@@ -7,6 +7,9 @@ const styleSheet = () =>
       flexDirection: 'row',
       gap: 8,
     },
+    selectedNetworkIcon: {
+      marginRight: 8,
+    },
   });
 
 export default styleSheet;

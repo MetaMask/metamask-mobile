@@ -23,7 +23,7 @@ interface TokenStickyFooterProps {
   securityData: TokenSecurityData | null | undefined;
   /** Action handlers from parent's useTokenActions hook */
   onBuy: () => void;
-  onSwap: () => void;
+  goToSwaps: () => void;
   hasEligibleSwapTokens: boolean;
 }
 
@@ -31,7 +31,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   token,
   securityData,
   onBuy,
-  onSwap,
+  goToSwaps,
   hasEligibleSwapTokens,
 }) => {
   const navigation = useNavigation();
@@ -139,7 +139,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                     size: ButtonSize.Lg,
                     onPress: () =>
                       handleFooterAction(
-                        onSwap,
+                        () => goToSwaps(),
                         strings('asset_overview.swap'),
                       ),
                   },

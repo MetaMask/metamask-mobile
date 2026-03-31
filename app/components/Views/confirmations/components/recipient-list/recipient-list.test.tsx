@@ -13,6 +13,10 @@ jest.mock('../../context/send-context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
 
+jest.mock('../../hooks/send/useSendScope', () => ({
+  useSendScope: jest.fn(),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const map: Record<string, string> = {
@@ -23,6 +27,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+// Mock child Recipient to keep tests deterministic and focused on grouping logic
 jest.mock('../UI/recipient', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Recipient: ({ recipient, isSelected, onPress }: any) => {
@@ -49,6 +54,7 @@ jest.mock('../UI/recipient', () => ({
   },
 }));
 
+const { useSendScope } = jest.requireMock('../../hooks/send/useSendScope');
 const { useSendContext } = jest.requireMock(
   '../../context/send-context/send-context',
 );
@@ -74,11 +80,13 @@ describe('RecipientList - BIP44 grouping', () => {
     },
     {
       address: '0x4444444444444444444444444444444444444444',
+      // no walletName to trigger Unknown Wallet grouping
     },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
+    useSendScope.mockReturnValue({ isBIP44: true });
     useSendContext.mockReturnValue({
       to: '0x2222222222222222222222222222222222222222',
     });
@@ -89,6 +97,7 @@ describe('RecipientList - BIP44 grouping', () => {
       <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
     );
 
+    // Group headers
     expect(getByText('Wallet A')).toBeOnTheScreen();
     expect(getByText('Wallet B')).toBeOnTheScreen();
     expect(getByText('Unknown Wallet')).toBeOnTheScreen();
@@ -137,6 +146,79 @@ describe('RecipientList - BIP44 grouping', () => {
     );
     expect(onRecipientSelected).not.toHaveBeenCalled();
   });
+});
+
+describe('RecipientList - non-BIP44 (flat list)', () => {
+  const onRecipientSelected = jest.fn();
+
+  const flatData: RecipientType[] = [
+    {
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      accountName: 'Account 1',
+    },
+    {
+      address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      accountName: 'Account 2',
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useSendScope.mockReturnValue({ isBIP44: false });
+    useSendContext.mockReturnValue({
+      to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    });
+  });
+
+  it('renders accounts header and no wallet group headers', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+      />,
+    );
+
+    expect(getByText('Your Accounts')).toBeOnTheScreen();
+    expect(queryByText('Wallet A')).toBeNull();
+    expect(queryByText('Wallet B')).toBeNull();
+    expect(queryByText('Unknown Wallet')).toBeNull();
+  });
+
+  it('marks selection and calls onRecipientSelected on press', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+      />,
+    );
+
+    expect(
+      getByTestId('selected-0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId('recipient-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    );
+    expect(onRecipientSelected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      }),
+    );
+  });
+
+  it('does not call onRecipientSelected when disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+        disabled
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    );
+    expect(onRecipientSelected).not.toHaveBeenCalled();
+  });
 
   it('renders empty state when data is empty and emptyMessage provided', () => {
     const { getByText } = renderWithProvider(
@@ -148,24 +230,5 @@ describe('RecipientList - BIP44 grouping', () => {
     );
 
     expect(getByText('No recipients')).toBeOnTheScreen();
-  });
-
-  it('renders contacts header for contact lists', () => {
-    const contactData: RecipientType[] = [
-      {
-        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        contactName: 'Alice',
-      },
-    ];
-
-    const { getByText } = renderWithProvider(
-      <RecipientList
-        data={contactData}
-        onRecipientSelected={onRecipientSelected}
-        isContactList
-      />,
-    );
-
-    expect(getByText('Contacts')).toBeOnTheScreen();
   });
 });

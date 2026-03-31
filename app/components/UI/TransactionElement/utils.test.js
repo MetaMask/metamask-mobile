@@ -378,10 +378,6 @@ describe('Transaction Element Utils', () => {
         strings('transactions.tx_review_perps_deposit'),
       ],
       [
-        TransactionType.perpsWithdraw,
-        strings('transactions.tx_review_perps_withdraw'),
-      ],
-      [
         TransactionType.predictDeposit,
         strings('transactions.tx_review_predict_deposit'),
       ],

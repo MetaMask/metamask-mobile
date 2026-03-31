@@ -4,7 +4,6 @@ import OndoLeaderboardView, {
   ONDO_LEADERBOARD_VIEW_TEST_IDS,
 } from './OndoLeaderboardView';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
-import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 
 const mockGoBack = jest.fn();
 
@@ -89,9 +88,9 @@ jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
+    default: ({ campaignId }: { campaignId: string }) =>
       ReactActual.createElement(View, {
-        testID: 'ondo-leaderboard-position',
+        testID: `ondo-leaderboard-position-${campaignId}`,
       }),
   };
 });
@@ -107,15 +106,10 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
 });
 
 jest.mock('../hooks/useGetOndoLeaderboard');
-jest.mock('../hooks/useGetOndoLeaderboardPosition');
 
 const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
   typeof useGetOndoLeaderboard
 >;
-const mockUseGetOndoLeaderboardPosition =
-  useGetOndoLeaderboardPosition as jest.MockedFunction<
-    typeof useGetOndoLeaderboardPosition
-  >;
 
 const hookDefaults = {
   leaderboard: null,
@@ -135,18 +129,9 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('OndoLeaderboardView', () => {
-  const positionDefaults = {
-    position: null,
-    isLoading: false,
-    hasError: false,
-    hasFetched: false,
-    refetch: jest.fn(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseGetOndoLeaderboard.mockReturnValue(hookDefaults);
-    mockUseGetOndoLeaderboardPosition.mockReturnValue(positionDefaults);
   });
 
   it('renders with the correct container testID', () => {
@@ -159,21 +144,16 @@ describe('OndoLeaderboardView', () => {
     expect(getByTestId('campaign-leaderboard')).toBeDefined();
   });
 
-  it('renders the OndoLeaderboardPosition component', () => {
+  it('renders the OndoLeaderboardPosition component with the campaign ID', () => {
     const { getByTestId } = render(<OndoLeaderboardView />);
-    expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+    expect(
+      getByTestId('ondo-leaderboard-position-campaign-ondo-123'),
+    ).toBeDefined();
   });
 
   it('calls useGetOndoLeaderboard with the campaign ID from route params', () => {
     render(<OndoLeaderboardView />);
     expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith('campaign-ondo-123');
-  });
-
-  it('calls useGetOndoLeaderboardPosition with the campaign ID from route params', () => {
-    render(<OndoLeaderboardView />);
-    expect(mockUseGetOndoLeaderboardPosition).toHaveBeenCalledWith(
-      'campaign-ondo-123',
-    );
   });
 
   it('navigates back when the back button is pressed', () => {

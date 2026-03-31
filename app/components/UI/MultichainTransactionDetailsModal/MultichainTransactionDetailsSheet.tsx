@@ -96,10 +96,13 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       // Close the bottom sheet and navigate to webview
       sheetRef.current?.onCloseBottomSheet(() => {
-        navigation.navigate(Routes.WEBVIEW.MAIN, {
-          screen: Routes.WEBVIEW.SIMPLE,
-          params: { url },
-        });
+        navigation.navigate(
+          Routes.WEBVIEW.MAIN as never,
+          {
+            screen: Routes.WEBVIEW.SIMPLE,
+            params: { url },
+          } as never,
+        );
       });
     },
     [id, chain, from?.address, to?.address, navigation],

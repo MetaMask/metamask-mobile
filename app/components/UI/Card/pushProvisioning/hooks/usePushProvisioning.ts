@@ -19,7 +19,6 @@ import {
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
-import { isAccountEligibleForProvisioning } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
@@ -63,14 +62,7 @@ import { strings } from '../../../../../../locales/i18n';
 export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
-  const {
-    cardDetails,
-    userAddress,
-    accountCreatedAt,
-    onSuccess,
-    onError,
-    onCancel,
-  } = options;
+  const { cardDetails, userAddress, onSuccess, onError, onCancel } = options;
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
@@ -102,15 +94,22 @@ export function usePushProvisioning(
         : false;
 
   // Create the adapters based on user location and platform
-  const cardAdapter = useMemo(
-    () =>
-      isSDKLoading || !cardSDK
-        ? null
-        : getCardProvider(userCardLocation, cardSDK),
-    [cardSDK, userCardLocation, isSDKLoading],
-  );
+  const cardAdapter = useMemo(() => {
+    if (isSDKLoading) {
+      return null;
+    }
+    if (!cardSDK) {
+      return null;
+    }
 
-  const walletAdapter = useMemo(() => getWalletProvider(), []);
+    const adapter = getCardProvider(userCardLocation, cardSDK);
+    return adapter;
+  }, [cardSDK, userCardLocation, isSDKLoading]);
+
+  const walletAdapter = useMemo(() => {
+    const adapter = getWalletProvider();
+    return adapter;
+  }, []);
 
   // Check wallet eligibility (async) - includes availability and canAddCard checks
   const [eligibility, setEligibility] = useState<WalletEligibility | null>(
@@ -342,10 +341,8 @@ export function usePushProvisioning(
   /**
    * Initiate provisioning
    *
-   * Handles all terminal results (success, cancel, error) from the service directly.
-   * The activation listener is a secondary mechanism for SDKs that also emit async
-   * activation events (e.g. Google Wallet); it ignores events once statusRef is no
-   * longer 'provisioning', so there is no double-handling.
+   * Note: Success events are handled by the activation listener (onCardActivated).
+   * Cancel and error events are handled here since they come directly from the SDK.
    */
   const initiateProvisioning =
     useCallback(async (): Promise<ProvisioningResult> => {
@@ -383,13 +380,8 @@ export function usePushProvisioning(
         setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
-        if (result.status === 'success') {
-          setStatus('success');
-          onSuccessRef.current?.({
-            status: 'success',
-            tokenId: result.tokenId,
-          });
-        } else if (result.status === 'canceled') {
+        // Handle cancel and error - success is handled by the activation listener
+        if (result.status === 'canceled') {
           setStatus('idle');
           trackAnalyticsEvent(
             MetaMetricsEvents.CARD_PUSH_PROVISIONING_CANCELED,
@@ -443,12 +435,14 @@ export function usePushProvisioning(
     setError(null);
   }, []);
 
+  // Simplified availability checks
+  const isCardProviderAvailable = cardAdapter !== null;
+  const isWalletProviderAvailable = walletAdapter !== null;
+
   const isLoading = isSDKLoading || isEligibilityCheckLoading;
 
   // Check if card is eligible (status must be 'ACTIVE')
   const isCardEligible = cardDetails?.status === 'ACTIVE';
-
-  const isAccountEligible = isAccountEligibleForProvisioning(accountCreatedAt);
 
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
@@ -456,9 +450,8 @@ export function usePushProvisioning(
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
-    isAccountEligible &&
-    !!cardAdapter &&
-    !!walletAdapter &&
+    isCardProviderAvailable &&
+    isWalletProviderAvailable &&
     eligibility?.isAvailable === true &&
     eligibility?.canAddCard === true;
 

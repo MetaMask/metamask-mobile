@@ -1,5 +1,4 @@
 import React from 'react';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import SettingsModal from './SettingsModal';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -292,7 +291,7 @@ describe('SettingsModal', () => {
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
         iconName: 'CheckBold',
-        iconColor: IconColor.Success,
+        iconColor: 'Success',
         hasNoTimeout: false,
       });
     });
@@ -316,7 +315,7 @@ describe('SettingsModal', () => {
         variant: 'Icon',
         labelOptions: [{ label: 'Error logging out' }],
         iconName: 'CircleX',
-        iconColor: IconColor.Error,
+        iconColor: 'Error',
         hasNoTimeout: false,
       });
     });

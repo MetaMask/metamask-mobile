@@ -3,12 +3,14 @@
  *
  * Simple factory functions that return the appropriate card and wallet providers
  * based on user location and platform OS.
+ *
+ * NOTE: This is the base module. Platform-specific branches will override
+ * getWalletProvider to return the appropriate adapter (GoogleWalletAdapter or AppleWalletAdapter).
  */
 
-import { Platform } from 'react-native';
 import { CardSDK } from '../sdk/CardSDK';
 import { GalileoCardAdapter, ICardProviderAdapter } from './adapters/card';
-import { GoogleWalletAdapter, IWalletProviderAdapter } from './adapters/wallet';
+import { IWalletProviderAdapter } from './adapters/wallet';
 import { CardLocation } from '../types';
 
 /**
@@ -34,11 +36,13 @@ export function getCardProvider(
 /**
  * Get the appropriate wallet provider adapter based on platform OS
  *
+ * NOTE: Base implementation returns null. Platform-specific branches
+ * (feat/apple-in-app-provisioning, feat/google-in-app-provisioning)
+ * will override this to return the appropriate adapter.
+ *
  * @returns The wallet provider adapter for the current platform, or null if not supported
  */
 export function getWalletProvider(): IWalletProviderAdapter | null {
-  if (Platform.OS === 'android') {
-    return new GoogleWalletAdapter();
-  }
+  // Platform-specific branches will implement this
   return null;
 }

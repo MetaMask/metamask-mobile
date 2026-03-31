@@ -3,16 +3,13 @@
 exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1`] = `
 <Navigator
   initialRouteName="Home"
+  mode="modal"
   screenOptions={
     {
       "headerShown": false,
     }
   }
 >
-  <Screen
-    component={[Function]}
-    name="Home"
-  />
   <Screen
     component={[Function]}
     name="CollectiblesDetails"
@@ -22,7 +19,6 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
-        "presentation": "modal",
       }
     }
   />
@@ -35,9 +31,12 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
-        "presentation": "modal",
       }
     }
+  />
+  <Screen
+    component={[Function]}
+    name="Home"
   />
   <Screen
     component={[Function]}
@@ -137,9 +136,6 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="Send"
     options={
       {
-        "cardStyle": {
-          "backgroundColor": "#ffffff",
-        },
         "gestureEnabled": false,
       }
     }
@@ -217,8 +213,8 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -253,8 +249,8 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -267,10 +263,33 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
-        "presentation": "transparentModal",
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Predict"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PredictModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
       }
     }
   />
@@ -384,8 +403,8 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -396,16 +415,13 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
 exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] = `
 <Navigator
   initialRouteName="Home"
+  mode="modal"
   screenOptions={
     {
       "headerShown": false,
     }
   }
 >
-  <Screen
-    component={[Function]}
-    name="Home"
-  />
   <Screen
     component={[Function]}
     name="CollectiblesDetails"
@@ -415,7 +431,6 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
-        "presentation": "modal",
       }
     }
   />
@@ -428,9 +443,12 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
-        "presentation": "modal",
       }
     }
+  />
+  <Screen
+    component={[Function]}
+    name="Home"
   />
   <Screen
     component={[Function]}
@@ -530,9 +548,6 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="Send"
     options={
       {
-        "cardStyle": {
-          "backgroundColor": "#ffffff",
-        },
         "gestureEnabled": false,
       }
     }
@@ -610,8 +625,8 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -646,8 +661,8 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -660,10 +675,33 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
-        "presentation": "transparentModal",
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Predict"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PredictModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
       }
     }
   />
@@ -777,8 +815,8 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -789,16 +827,13 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
 exports[`MainNavigator matches rendered snapshot 1`] = `
 <Navigator
   initialRouteName="Home"
+  mode="modal"
   screenOptions={
     {
       "headerShown": false,
     }
   }
 >
-  <Screen
-    component={[Function]}
-    name="Home"
-  />
   <Screen
     component={[Function]}
     name="CollectiblesDetails"
@@ -808,7 +843,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
-        "presentation": "modal",
       }
     }
   />
@@ -821,9 +855,12 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
           "backgroundColor": "transparent",
         },
         "cardStyleInterpolator": [Function],
-        "presentation": "modal",
       }
     }
+  />
+  <Screen
+    component={[Function]}
+    name="Home"
   />
   <Screen
     component={[Function]}
@@ -923,9 +960,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="Send"
     options={
       {
-        "cardStyle": {
-          "backgroundColor": "#ffffff",
-        },
         "gestureEnabled": false,
       }
     }
@@ -1003,8 +1037,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -1039,8 +1073,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -1053,10 +1087,33 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
-        "presentation": "transparentModal",
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="Predict"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="PredictModals"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
       }
     }
   />
@@ -1170,8 +1227,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
         "animationEnabled": false,
         "cardStyle": {
           "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
         },
-        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }

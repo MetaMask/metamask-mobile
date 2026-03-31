@@ -10,7 +10,6 @@ import {
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
-import AccountMenu from '../AccountMenu/AccountMenu';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
 
@@ -185,25 +184,20 @@ class TabBarComponent {
     });
   }
 
-  async tapAccountsMenu(): Promise<void> {
+  async tapSettings(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
+        // Navigate to Wallet first (where the hamburger menu lives)
         await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
         await Assertions.expectElementToBeVisible(WalletView.container);
         await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
-        await Assertions.expectElementToBeVisible(AccountMenu.container);
+        await Assertions.expectElementToBeVisible(SettingsView.title);
       },
       {
         timeout: 45000,
-        description: 'Tap Accounts Menu Button',
+        description: 'Tap Settings Button',
       },
     );
-  }
-
-  async tapSettings(): Promise<void> {
-    await this.tapAccountsMenu();
-    await AccountMenu.tapSettings();
-    await Assertions.expectElementToBeVisible(SettingsView.title);
   }
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(

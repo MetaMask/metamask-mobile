@@ -1,17 +1,18 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
-import {
-  Text,
+import Text, {
   TextVariant,
   TextColor,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -55,13 +56,13 @@ function EligibilityFailedModal() {
           testID: ELIGIBILITY_FAILED_MODAL_TEST_IDS.CLOSE_BUTTON,
         }}
       >
-        <Text variant={TextVariant.HeadingMd}>
+        <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.description',
           )}
@@ -72,21 +73,21 @@ function EligibilityFailedModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={navigateToContactSupport}
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-        >
-          {strings(
+          label={strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.contact_support',
           )}
-        </Button>
+          variant={ButtonVariants.Secondary}
+          width={ButtonWidthTypes.Full}
+        />
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
-          variant={ButtonVariant.Primary}
-          isFullWidth
-        >
-          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.got_it')}
-        </Button>
+          label={strings(
+            'fiat_on_ramp_aggregator.eligibility_failed_modal.got_it',
+          )}
+          variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
+        />
       </View>
     </BottomSheet>
   );

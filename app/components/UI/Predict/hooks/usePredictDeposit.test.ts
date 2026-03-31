@@ -15,6 +15,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: (component: unknown) => component,
+  withNavigationFocus: (component: unknown) => component,
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {

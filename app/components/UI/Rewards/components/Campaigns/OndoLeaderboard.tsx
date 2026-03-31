@@ -45,7 +45,6 @@ interface CampaignLeaderboardProps {
   isLeaderboardNotYetComputed?: boolean;
   onRetry?: () => void;
   currentUserReferralCode?: string | null;
-  showTitle?: boolean;
 }
 
 /**
@@ -172,7 +171,6 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   isLeaderboardNotYetComputed = false,
   onRetry,
   currentUserReferralCode,
-  showTitle = true,
 }) => {
   const tabs = useMemo(
     () =>
@@ -244,57 +242,40 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
-      {/* Title */}
-      {showTitle && (
-        <Text
-          variant={TextVariant.HeadingMd}
-          fontWeight={FontWeight.Bold}
-          twClassName="mb-4"
-        >
+      {/* Header with title and computed at */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Between}
+        alignItems={BoxAlignItems.Center}
+        twClassName="mb-4"
+      >
+        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {strings('rewards.ondo_campaign_leaderboard.title')}
         </Text>
-      )}
+        {computedAt ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
+          >
+            {strings('rewards.ondo_campaign_leaderboard.updated_at', {
+              time: formatComputedAt(computedAt),
+            })}
+          </Text>
+        ) : null}
+      </Box>
 
-      {/* Tier selector + last updated */}
-      {tabs.length > 1 ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 -mx-4"
-        >
-          <Box twClassName="flex-1">
-            <TabsBar
-              tabs={tabs}
-              activeIndex={selectedIndex}
-              onTabPress={(index) => onTierChange(tierNames[index])}
-              testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
-            />
-          </Box>
-          {computedAt ? (
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              twClassName="pr-4"
-              testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
-            >
-              {strings('rewards.ondo_campaign_leaderboard.updated_at', {
-                time: formatComputedAt(computedAt),
-              })}
-            </Text>
-          ) : null}
+      {/* Tier selector */}
+      {tabs.length > 1 && (
+        <Box twClassName="mb-4 -mx-4">
+          <TabsBar
+            tabs={tabs}
+            activeIndex={selectedIndex}
+            onTabPress={(index) => onTierChange(tierNames[index])}
+            testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
+          />
         </Box>
-      ) : computedAt ? (
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="mb-4"
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
-        >
-          {strings('rewards.ondo_campaign_leaderboard.updated_at', {
-            time: formatComputedAt(computedAt),
-          })}
-        </Text>
-      ) : null}
+      )}
 
       {/* Error banner when has error but no data to display */}
       {hasError && !isLoading && entries.length === 0 && (

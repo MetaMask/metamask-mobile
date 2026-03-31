@@ -1,8 +1,9 @@
 import { RegressionWalletUX } from '../../../tags';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
+import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe.skip(RegressionWalletUX('Settings'), () => {
@@ -14,8 +15,13 @@ describe.skip(RegressionWalletUX('Settings'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapAccountsMenu();
-        await AccountMenu.tapSupport();
+        await TabBarComponent.tapSettings();
+        await SettingsView.scrollToContactSupportButton();
+        await SettingsView.tapContactSupport();
+
+        await Assertions.expectElementToBeVisible(
+          SettingsView.contactSupportSectionTitle,
+        );
       },
     );
   });

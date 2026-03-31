@@ -67,6 +67,8 @@ const mockNavigation = {
   addListener: jest.fn(),
   removeListener: jest.fn(),
   getId: jest.fn(),
+  dangerouslyGetParent: jest.fn(),
+  dangerouslyGetState: jest.fn(),
 };
 
 const mockNetworkController = {

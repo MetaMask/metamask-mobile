@@ -1,4 +1,7 @@
 import React, { useRef } from 'react';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -20,8 +23,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  BottomSheet,
-  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -100,7 +101,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

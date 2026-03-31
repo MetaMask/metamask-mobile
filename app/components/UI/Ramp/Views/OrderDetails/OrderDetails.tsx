@@ -10,9 +10,6 @@ import {
   IconName,
   IconSize,
   FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 import {
   normalizeProviderCode,
@@ -24,6 +21,11 @@ import {
   getNavigateAfterExternalBrowserRoutes,
   type RampsOrderDetailsParams,
 } from '../../utils/rampsNavigation';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
 import { getRampsOrderDetailsNavbarOptions } from '../../../Navbar';
@@ -288,13 +290,12 @@ const OrderDetails = () => {
               {error}
             </Text>
             <Button
-              variant={ButtonVariant.Primary}
+              variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
-              isFullWidth
+              width={ButtonWidthTypes.Full}
+              label={strings('ramps_order_details.try_again')}
               onPress={onRetry}
-            >
-              {strings('ramps_order_details.try_again')}
-            </Button>
+            />
           </Box>
         </ScreenLayout.Body>
       </ScreenLayout>

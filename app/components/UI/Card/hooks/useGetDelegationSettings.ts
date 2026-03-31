@@ -27,7 +27,7 @@ const useGetDelegationSettings = () => {
     [],
   );
 
-  const { data, isLoading, isFetching, error } =
+  const { data, isLoading, error } =
     useQuery<DelegationSettingsResponse | null>({
       queryKey: QUERY_KEY,
       queryFn,
@@ -46,7 +46,7 @@ const useGetDelegationSettings = () => {
 
   return {
     data: data ?? null,
-    isLoading: isLoading && isFetching,
+    isLoading,
     error: error as Error | null,
     fetchData,
   };

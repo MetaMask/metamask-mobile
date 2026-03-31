@@ -65,9 +65,7 @@ const useGetLatestAllowanceForPriorityToken = (
     : ('' as `${string}:${string}`);
   const decimals = applicable ? priorityToken.decimals || 0 : 0;
 
-  const { data, isLoading, isFetching, error, refetch } = useQuery<
-    string | null
-  >({
+  const { data, isLoading, error, refetch } = useQuery<string | null>({
     queryKey: cardQueries.dashboard.keys.latestAllowance(
       tokenAddress,
       delegationContract,
@@ -113,7 +111,7 @@ const useGetLatestAllowanceForPriorityToken = (
 
   return {
     latestAllowance: data ?? null,
-    isLoading: isLoading && isFetching,
+    isLoading,
     error: error as Error | null,
     refetch: refetchAllowance,
   };

@@ -1,7 +1,4 @@
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
@@ -13,7 +10,7 @@ async function init({
   context,
   instance,
 }: {
-  navigation: NavigationContainerRef<ParamListBase>;
+  navigation: NavigationContainerRef;
   context?: string;
   instance: SDKConnect;
 }) {

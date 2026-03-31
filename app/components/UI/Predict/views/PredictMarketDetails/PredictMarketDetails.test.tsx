@@ -60,6 +60,7 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     initializeActiveOrder: jest.fn(),
     activeOrder: null,
+    updateActiveOrder: jest.fn(),
     clearActiveOrder: jest.fn(),
   }),
 }));
@@ -804,7 +805,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -817,7 +818,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -833,7 +834,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -847,7 +848,7 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -1176,7 +1177,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -1350,7 +1351,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithoutEndDate);
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -1422,7 +1423,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1605,7 +1606,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1640,7 +1641,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1787,7 +1788,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1820,7 +1821,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1853,7 +1854,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -2220,7 +2221,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('positions'),
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -2660,7 +2661,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -2696,7 +2697,7 @@ describe('PredictMarketDetails', () => {
       );
 
       const aboutTabWithPositions = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab('about'),
+        getPredictMarketDetailsSelector.tabBarTab(2),
       );
       fireEvent.press(aboutTabWithPositions);
 

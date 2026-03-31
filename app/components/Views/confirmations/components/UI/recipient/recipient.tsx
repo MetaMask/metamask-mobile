@@ -36,6 +36,7 @@ export interface RecipientType {
 interface RecipientProps {
   recipient: RecipientType;
   isSelected?: boolean;
+  isBIP44?: boolean;
   accountAvatarType: AvatarAccountType;
   onPress?: (recipient: RecipientType) => void;
 }
@@ -43,6 +44,7 @@ interface RecipientProps {
 export function Recipient({
   recipient,
   isSelected,
+  isBIP44,
   accountAvatarType,
   onPress,
 }: RecipientProps) {
@@ -105,7 +107,9 @@ export function Recipient({
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
           >
-            {recipient.accountGroupName || recipient.contactName}
+            {isBIP44
+              ? recipient.accountGroupName || recipient.contactName
+              : recipient.accountName || recipient.contactName}
           </Text>
           <Box twClassName="flex-row items-center">
             <Text

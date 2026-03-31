@@ -1,11 +1,14 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePredictBuyInputState } from './usePredictBuyInputState';
 
-const mockClearOrderError = jest.fn();
+let mockActiveOrder: { amount?: number; isInputFocused?: boolean } | null =
+  null;
+const mockUpdateActiveOrder = jest.fn();
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
-    clearOrderError: mockClearOrderError,
+    activeOrder: mockActiveOrder,
+    updateActiveOrder: mockUpdateActiveOrder,
   }),
 }));
 
@@ -21,10 +24,29 @@ jest.mock('@react-navigation/native', () => ({
 describe('usePredictBuyInputState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockActiveOrder = null;
   });
 
   describe('currentValue', () => {
-    it('initializes to 0', () => {
+    it('returns amount from activeOrder when set', () => {
+      mockActiveOrder = { amount: 42 };
+
+      const { result } = renderHook(() => usePredictBuyInputState());
+
+      expect(result.current.currentValue).toBe(42);
+    });
+
+    it('returns 0 when activeOrder is null', () => {
+      mockActiveOrder = null;
+
+      const { result } = renderHook(() => usePredictBuyInputState());
+
+      expect(result.current.currentValue).toBe(0);
+    });
+
+    it('returns 0 when activeOrder.amount is undefined', () => {
+      mockActiveOrder = {};
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       expect(result.current.currentValue).toBe(0);
@@ -32,17 +54,23 @@ describe('usePredictBuyInputState', () => {
   });
 
   describe('setCurrentValue', () => {
-    it('updates currentValue to the given number', () => {
+    it('calls updateActiveOrder with new amount', () => {
+      mockActiveOrder = { amount: 10 };
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
         result.current.setCurrentValue(20);
       });
 
-      expect(result.current.currentValue).toBe(20);
+      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 20 }),
+      );
     });
 
     it('sets isUserInputChange to true when value changes and is greater than 0', () => {
+      mockActiveOrder = { amount: 5 };
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
@@ -52,63 +80,76 @@ describe('usePredictBuyInputState', () => {
       expect(result.current.isUserInputChange).toBe(true);
     });
 
-    it('calls clearOrderError when user input detected (amount > 0 and changed)', () => {
+    it('clears error when user input detected (amount > 0 and changed)', () => {
+      mockActiveOrder = { amount: 5 };
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
         result.current.setCurrentValue(10);
       });
 
-      expect(mockClearOrderError).toHaveBeenCalled();
+      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 10, error: null }),
+      );
     });
 
     it('handles updater function (receives previous value)', () => {
-      const { result } = renderHook(() => usePredictBuyInputState());
+      mockActiveOrder = { amount: 5 };
 
-      act(() => {
-        result.current.setCurrentValue(5);
-      });
+      const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
         result.current.setCurrentValue((prev) => prev + 5);
       });
 
-      expect(result.current.currentValue).toBe(10);
-      expect(mockClearOrderError).toHaveBeenCalled();
+      expect(mockUpdateActiveOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 10 }),
+      );
     });
 
-    it('does not call clearOrderError when value set to 0', () => {
-      const { result } = renderHook(() => usePredictBuyInputState());
+    it('does not set isUserInputChange when value set to 0', () => {
+      mockActiveOrder = { amount: 5 };
 
-      act(() => {
-        result.current.setCurrentValue(5);
-      });
-      mockClearOrderError.mockClear();
+      const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
         result.current.setCurrentValue(0);
       });
 
-      expect(mockClearOrderError).not.toHaveBeenCalled();
       expect(result.current.isUserInputChange).toBe(false);
     });
   });
 
   describe('isInputFocused', () => {
-    it('initializes to true', () => {
+    it('returns isInputFocused from activeOrder', () => {
+      mockActiveOrder = { isInputFocused: true };
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       expect(result.current.isInputFocused).toBe(true);
     });
 
-    it('updates isInputFocused via setIsInputFocused', () => {
+    it('returns false when activeOrder is null', () => {
+      mockActiveOrder = null;
+
+      const { result } = renderHook(() => usePredictBuyInputState());
+
+      expect(result.current.isInputFocused).toBe(false);
+    });
+
+    it('setIsInputFocused calls updateActiveOrder with isInputFocused', () => {
+      mockActiveOrder = { isInputFocused: false };
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
-        result.current.setIsInputFocused(false);
+        result.current.setIsInputFocused(true);
       });
 
-      expect(result.current.isInputFocused).toBe(false);
+      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
+        isInputFocused: true,
+      });
     });
   });
 
@@ -132,9 +173,19 @@ describe('usePredictBuyInputState', () => {
 
   describe('currentValueUSDString', () => {
     it('initializes as empty string when currentValue is 0', () => {
+      mockActiveOrder = null;
+
       const { result } = renderHook(() => usePredictBuyInputState());
 
       expect(result.current.currentValueUSDString).toBe('');
+    });
+
+    it('initializes as string representation when currentValue exists', () => {
+      mockActiveOrder = { amount: 25 };
+
+      const { result } = renderHook(() => usePredictBuyInputState());
+
+      expect(result.current.currentValueUSDString).toBe('25');
     });
   });
 });

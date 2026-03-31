@@ -45,9 +45,7 @@ describe('useSearchTokens', () => {
 
   describe('searching', () => {
     it('fetches search results when searchTokens is called', async () => {
-      const mockResponse = createMockSearchResponse({
-        data: [createMockPopularToken({ symbol: 'SRCH', isVerified: true })],
-      });
+      const mockResponse = createMockSearchResponse();
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         json: async () => mockResponse,
       });
@@ -61,7 +59,6 @@ describe('useSearchTokens', () => {
       await waitFor(() => expect(result.current.isSearchLoading).toBe(false));
 
       expect(result.current.searchResults).toEqual(mockResponse.data);
-      expect(result.current.searchResults[0].isVerified).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/getTokens/search'),
         expect.objectContaining({
@@ -180,7 +177,7 @@ describe('useSearchTokens', () => {
   describe('pagination', () => {
     it('handles pagination with cursor', async () => {
       const firstPage = createMockPaginatedResponse({
-        data: [createMockPopularToken({ symbol: 'FIRST', isVerified: true })],
+        data: [createMockPopularToken({ symbol: 'FIRST' })],
         cursor: 'cursor123',
       });
       const secondPage = createMockSearchResponse({
@@ -209,7 +206,6 @@ describe('useSearchTokens', () => {
 
       expect(result.current.searchResults[0].symbol).toBe('FIRST');
       expect(result.current.searchResults[1].symbol).toBe('SECOND');
-      expect(result.current.searchResults[0].isVerified).toBe(true);
     });
 
     it('sets isLoadingMore for pagination requests', async () => {

@@ -93,11 +93,6 @@ describe('useLinkAccountGroup', () => {
 
   const mockShowToast = jest.fn();
   const mockRewardsToastOptions = {
-    entriesClosed: jest.fn().mockReturnValue({
-      variant: 'icon',
-      iconName: 'lock',
-      hapticsType: 'warning',
-    }),
     success: jest.fn().mockReturnValue({
       variant: 'icon',
       iconName: 'confirmation',

@@ -131,34 +131,23 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
-        // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
-        // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
-        // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
-        try {
-          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-            timeout: 45000,
-            description:
-              'Earn button should be visible after balance loads from mocked API',
-          });
-          await WalletView.tapOnEarnButton();
-          await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
-          await StakeView.enterAmount(AMOUNT_TO_STAKE);
-          await StakeView.tapReviewWithRetry(30000);
-          await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
-            timeout: 30000,
-          });
-          await StakeView.tapConfirm(30000);
-        } finally {
-          await device.enableSynchronization();
-        }
+        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+          timeout: 45000,
+          description:
+            'Earn button should be visible after balance loads from mocked API',
+        });
+        await WalletView.tapOnEarnButton();
+        await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
+        await StakeView.enterAmount(AMOUNT_TO_STAKE);
+        await StakeView.tapReviewWithRetry(30000);
+        await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
+          timeout: 30000,
+        });
+        await StakeView.tapConfirm(30000);
 
         await Assertions.expectElementToBeVisible(
           ActivitiesView.stakeDepositedLabel,
-          {
-            description: 'Staking deposit activity row title',
-            timeout: 120000,
-          },
         );
         await Assertions.expectElementToHaveText(
           ActivitiesView.transactionStatus(FIRST_ROW),

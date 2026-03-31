@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { formatPrice } from '../../../utils/format';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 
 let mockIsPredictBalanceSelected = true;
@@ -28,6 +29,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../utils/format', () => ({
+  formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
+}));
+
 describe('usePredictBuyAvailableBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -38,60 +43,105 @@ describe('usePredictBuyAvailableBalance', () => {
   });
 
   describe('availableBalance', () => {
-    it('returns Predict balance when isPredictBalanceSelected is true', () => {
+    it('returns formatted Predict balance when isPredictBalanceSelected is true', () => {
+      // Arrange
       mockIsPredictBalanceSelected = true;
       mockBalance = 250.5;
 
+      // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      expect(result.current.availableBalance).toBe(250.5);
+      // Assert
+      expect(result.current.availableBalance).toBe('$250.50');
     });
 
-    it('returns predict balance plus payToken balanceUsd when isPredictBalanceSelected is false', () => {
+    it('returns formatted payToken balanceUsd when isPredictBalanceSelected is false', () => {
+      // Arrange
       mockIsPredictBalanceSelected = false;
-      mockBalance = 100;
       mockPayToken = { balanceUsd: 150.75 };
 
+      // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      expect(result.current.availableBalance).toBe(250.75);
+      // Assert
+      expect(result.current.availableBalance).toBe('$150.75');
     });
 
-    it('returns predict balance when payToken has no balanceUsd and isPredictBalanceSelected is false', () => {
+    it('returns "$0.00" when payToken has no balanceUsd and isPredictBalanceSelected is false', () => {
+      // Arrange
       mockIsPredictBalanceSelected = false;
-      mockBalance = 100;
       mockPayToken = {};
 
+      // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      expect(result.current.availableBalance).toBe(100);
+      // Assert
+      expect(result.current.availableBalance).toBe('$0.00');
     });
 
-    it('falls back to Predict balance when payToken is null', () => {
+    it('returns "$0.00" when payToken is null and isPredictBalanceSelected is false', () => {
+      // Arrange
       mockIsPredictBalanceSelected = false;
       mockPayToken = null;
 
+      // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      expect(result.current.availableBalance).toBe(100);
+      // Assert
+      expect(result.current.availableBalance).toBe('$0.00');
     });
   });
 
   describe('isBalanceLoading', () => {
     it('returns isBalanceLoading from usePredictBalance', () => {
+      // Arrange
       mockIsBalanceLoading = true;
 
+      // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
+      // Assert
       expect(result.current.isBalanceLoading).toBe(true);
     });
 
     it('returns false when balance is not loading', () => {
+      // Arrange
       mockIsBalanceLoading = false;
 
+      // Act
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
+      // Assert
       expect(result.current.isBalanceLoading).toBe(false);
+    });
+  });
+
+  describe('formatPrice', () => {
+    it('calls formatPrice with correct options when using Predict balance', () => {
+      // Arrange
+      mockIsPredictBalanceSelected = true;
+      mockBalance = 500;
+
+      // Act
+      renderHook(() => usePredictBuyAvailableBalance());
+
+      // Assert
+      expect(formatPrice).toHaveBeenCalledWith(500, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+    });
+
+    it('does not call formatPrice when using payToken balance', () => {
+      // Arrange
+      mockIsPredictBalanceSelected = false;
+      mockPayToken = { balanceUsd: 100 };
+
+      // Act
+      renderHook(() => usePredictBuyAvailableBalance());
+
+      // Assert
+      expect(formatPrice).not.toHaveBeenCalled();
     });
   });
 });

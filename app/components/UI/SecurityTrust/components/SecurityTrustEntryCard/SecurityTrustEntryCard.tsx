@@ -47,10 +47,13 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
 
   const handlePress = () => {
     if (!hasDetails) return;
-    navigation.navigate(Routes.SECURITY_TRUST, {
-      ...token,
-      securityData,
-    });
+    navigation.navigate(
+      Routes.SECURITY_TRUST as never,
+      {
+        ...token,
+        securityData,
+      } as never,
+    );
   };
 
   const content = isLoading ? (

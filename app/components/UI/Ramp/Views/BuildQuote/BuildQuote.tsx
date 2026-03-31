@@ -26,11 +26,11 @@ import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
-import {
-  Text,
+import Text, {
   TextVariant,
   TextColor,
-  FontWeight,
+} from '../../../../../component-library/components/Texts/Text';
+import {
   Button,
   ButtonVariant,
   ButtonSize,
@@ -42,7 +42,6 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -208,7 +207,10 @@ function BuildQuote() {
       return false;
     }
 
-    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
+    if (
+      selectedProvider.supportedCryptoCurrencies &&
+      !selectedProvider.supportedCryptoCurrencies[effectiveAssetId]
+    ) {
       return true;
     }
 
@@ -312,13 +314,6 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
-
-  const amountDisplayString = useMemo(
-    () => `${currencyPrefix}${amount}${currencySuffix}`,
-    [currencyPrefix, currencySuffix, amount],
-  );
-  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
-  const amountLineHeight = amountFontSize + 10;
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -837,38 +832,31 @@ function BuildQuote() {
                 <View style={styles.amountRow}>
                   <Text
                     testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Regular}
+                    variant={TextVariant.HeadingLG}
                     color={
                       rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.ErrorDefault
+                        ? TextColor.Error
                         : undefined
                     }
-                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
+                    style={styles.mainAmount}
                     numberOfLines={1}
+                    adjustsFontSizeToFit
                   >
                     {currencyPrefix}
                     {amount}
                   </Text>
                   <Animated.View
-                    style={[
-                      styles.cursor,
-                      {
-                        height: Math.max(amountLineHeight - 4, 16),
-                        opacity: cursorOpacity,
-                      },
-                    ]}
+                    style={[styles.cursor, { opacity: cursorOpacity }]}
                   />
                   {currencySuffix ? (
                     <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Regular}
+                      variant={TextVariant.HeadingLG}
                       color={
                         rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.ErrorDefault
+                          ? TextColor.Error
                           : undefined
                       }
-                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
+                      style={styles.mainAmount}
                     >
                       {currencySuffix}
                     </Text>
@@ -921,7 +909,7 @@ function BuildQuote() {
                   ) : (
                     selectedProvider && (
                       <Text
-                        variant={TextVariant.BodySm}
+                        variant={TextVariant.BodySM}
                         style={styles.poweredByText}
                       >
                         {strings('fiat_on_ramp.powered_by_provider', {

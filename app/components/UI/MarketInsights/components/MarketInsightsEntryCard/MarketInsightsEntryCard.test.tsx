@@ -1,6 +1,5 @@
 import React from 'react';
-import { fireEvent, act, render } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
+import { fireEvent, act } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -8,20 +7,6 @@ import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
-
-jest.mock('react-native-linear-gradient', () => 'LinearGradient');
-
-jest.mock('@react-native-masked-view/masked-view', () =>
-  jest.fn(
-    ({
-      children,
-      maskElement,
-    }: {
-      children?: React.ReactNode;
-      maskElement?: React.ReactNode;
-    }) => [maskElement, children],
-  ),
-);
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -49,42 +34,10 @@ jest.mock('./AnimatedGradientBorder', () => ({
     MockAnimatedGradientBorder(props),
 }));
 
-/**
- * Finds the first node whose `onLayout` is not a Jest mock (skips
- * `useViewportTracking`'s mocked `onLayout`) so card `handleLayout` can be fired.
- */
-function findFirstNonMockOnLayoutNode(
-  node: ReactTestInstance,
-): ReactTestInstance {
-  const onLayout = node.props?.onLayout as ((e: unknown) => void) | undefined;
-  if (onLayout && !jest.isMockFunction(onLayout)) {
-    return node;
-  }
-  const { children } = node;
-  if (children == null) {
-    throw new Error('No non-mock onLayout handler found under card root');
-  }
-  const list = Array.isArray(children) ? children : [children];
-  for (const child of list) {
-    try {
-      return findFirstNonMockOnLayoutNode(child as ReactTestInstance);
-    } catch {
-      // try next sibling
-    }
-  }
-  throw new Error('No non-mock onLayout handler found under card root');
-}
-
 const mockReport = {
   headline: 'ETH rallies on ETF optimism',
   summary: 'ETF optimism and whale accumulation are driving momentum.',
-  trends: [
-    { title: 'ETF optimism', description: 'ETF inflows are driving demand.' },
-    {
-      title: 'Whale accumulation',
-      description: 'Large holders keep accumulating.',
-    },
-  ],
+  trends: [{ title: 'ETF optimism' }, { title: 'whale accumulation' }],
   sources: [{ name: 'CoinDesk', type: 'news', url: 'coindesk.com' }],
 };
 
@@ -100,10 +53,10 @@ describe('MarketInsightsEntryCard', () => {
     );
   });
 
-  it('renders the title and first trend description', () => {
+  it('renders summary text and handles press', () => {
     const mockPress = jest.fn();
 
-    const { getByTestId, getByText, getAllByText } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <MarketInsightsEntryCard
         report={mockReport as never}
         timeAgo="3m ago"
@@ -113,32 +66,12 @@ describe('MarketInsightsEntryCard', () => {
       />,
     );
 
-    // GradientText renders the label twice (mask + gradient child), so use getAllByText
-    expect(getAllByText('Market insights').length).toBeGreaterThan(0);
-    expect(getByText('ETF inflows are driving demand.')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('market-insights-entry-card'));
-    expect(mockPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders summary text when there are no trend descriptions', () => {
-    const { getByText } = renderWithProvider(
-      <MarketInsightsEntryCard
-        report={
-          {
-            ...mockReport,
-            trends: [],
-          } as never
-        }
-        timeAgo="3m ago"
-        onPress={jest.fn()}
-        testID="market-insights-entry-card"
-      />,
-    );
-
     expect(
       getByText('ETF optimism and whale accumulation are driving momentum.'),
     ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('market-insights-entry-card'));
+    expect(mockPress).toHaveBeenCalledTimes(1);
   });
 
   it('tracks Market Insights Card Scrolled to View when card becomes visible', () => {
@@ -230,9 +163,9 @@ describe('MarketInsightsEntryCard', () => {
     );
 
     const pressable = getByTestId('market-insights-entry-card');
-    const layoutTarget = findFirstNonMockOnLayoutNode(
-      pressable as unknown as ReactTestInstance,
-    );
+    const innerBox = pressable.children[0] as unknown as {
+      props: { onLayout?: (e: unknown) => void };
+    };
 
     const getDimensions = () => {
       const calls = MockAnimatedGradientBorder.mock.calls;
@@ -244,8 +177,9 @@ describe('MarketInsightsEntryCard', () => {
     expect(getDimensions()).toBeNull();
 
     // First layout sets dimensions
+    const renderCountBefore = MockAnimatedGradientBorder.mock.calls.length;
     await act(() => {
-      layoutTarget.props.onLayout?.({
+      innerBox.props.onLayout?.({
         nativeEvent: { layout: { width: 350, height: 200 } },
       });
     });
@@ -254,7 +188,7 @@ describe('MarketInsightsEntryCard', () => {
     // Same dimensions should not trigger a re-render
     const renderCountAfterFirst = MockAnimatedGradientBorder.mock.calls.length;
     await act(() => {
-      layoutTarget.props.onLayout?.({
+      innerBox.props.onLayout?.({
         nativeEvent: { layout: { width: 350, height: 200 } },
       });
     });
@@ -264,37 +198,10 @@ describe('MarketInsightsEntryCard', () => {
 
     // Different dimensions should update
     await act(() => {
-      layoutTarget.props.onLayout?.({
+      innerBox.props.onLayout?.({
         nativeEvent: { layout: { width: 400, height: 250 } },
       });
     });
     expect(getDimensions()).toEqual({ width: 400, height: 250 });
-  });
-
-  it('passes animationKey=0 initially and increments when the card becomes visible', () => {
-    MockAnimatedGradientBorder.mockClear();
-
-    renderWithProvider(
-      <MarketInsightsEntryCard
-        report={mockReport as never}
-        timeAgo="3m ago"
-        onPress={jest.fn()}
-        testID="market-insights-entry-card"
-      />,
-    );
-
-    const getAnimationKey = () => {
-      const calls = MockAnimatedGradientBorder.mock.calls;
-      const lastCall = calls[calls.length - 1];
-      return (lastCall[0] as Record<string, unknown>).animationKey;
-    };
-
-    expect(getAnimationKey()).toBe(0);
-
-    act(() => {
-      capturedOnVisible?.();
-    });
-
-    expect(getAnimationKey()).toBe(1);
   });
 });

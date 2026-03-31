@@ -26,7 +26,10 @@ const clearStackNavigatorOptions = {
 };
 
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
+  <Stack.Navigator
+    initialRouteName={Routes.RAMP.BUILD_QUOTE}
+    headerMode="screen"
+  >
     <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
@@ -60,7 +63,8 @@ const MainRoutes = () => (
 
 const RampModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    mode="modal"
+    screenOptions={clearStackNavigatorOptions}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
@@ -96,10 +100,7 @@ const RampModalsRoutes = () => (
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator
-      initialRouteName={Routes.RAMP.ID}
-      screenOptions={{ headerShown: false }}
-    >
+    <Stack.Navigator initialRouteName={Routes.RAMP.ID} headerMode="none">
       <Stack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
       <Stack.Screen
         name={Routes.RAMP.MODALS.ID}

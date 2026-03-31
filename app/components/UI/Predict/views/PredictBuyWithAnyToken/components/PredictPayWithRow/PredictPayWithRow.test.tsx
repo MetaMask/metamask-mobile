@@ -140,6 +140,7 @@ describe('PredictPayWithRow', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
+      { isPredictContext: true },
     );
   });
 
@@ -177,12 +178,12 @@ describe('PredictPayWithRow', () => {
     expect(tree).not.toContain('ArrowDown');
   });
 
-  it('falls back to Predict balance when payToken is null', () => {
+  it('falls back to empty string when no symbols available', () => {
     mockPayToken = null;
 
     renderWithProvider(<PredictPayWithRow />);
 
-    expect(screen.getByText('Pay with Predict balance')).toBeOnTheScreen();
+    expect(screen.getByText('Pay with')).toBeOnTheScreen();
   });
 
   it('renders with no transactionMeta without crashing', () => {

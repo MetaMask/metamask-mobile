@@ -426,12 +426,7 @@ jest.mock('../TokenSelectorItem', () => ({
     onPress,
     children,
   }: {
-    token: {
-      symbol: string;
-      address: string;
-      chainId: string;
-      isVerified?: boolean;
-    };
+    token: { symbol: string; address: string; chainId: string };
     onPress: (token: {
       symbol: string;
       address: string;
@@ -445,13 +440,6 @@ jest.mock('../TokenSelectorItem', () => ({
       TouchableOpacity,
       { onPress: () => onPress(token), testID: `token-${token.symbol}` },
       createElement(Text, null, token.symbol),
-      token.isVerified
-        ? createElement(
-            Text,
-            { testID: `verified-${token.symbol}` },
-            'verified',
-          )
-        : null,
       createElement(View, null, children),
     );
   },
@@ -573,14 +561,10 @@ describe('tokenToIncludeAsset', () => {
   });
 });
 
-const createSearchToken = (
-  symbol: string,
-  overrides: Partial<ReturnType<typeof createMockPopularToken>> = {},
-) =>
+const createSearchToken = (symbol: string) =>
   createMockPopularToken({
     assetId: `eip155:1/erc20:0x${symbol.toLowerCase()}` as never,
     symbol,
-    ...overrides,
   });
 
 describe('BridgeTokenSelector', () => {
@@ -644,23 +628,6 @@ describe('BridgeTokenSelector', () => {
       );
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
     });
-
-    it('passes verified popular tokens through to selector rows', async () => {
-      mockPopularTokensState = {
-        popularTokens: [
-          createMockPopularToken({
-            symbol: 'ETH',
-            name: 'Ethereum',
-            isVerified: true,
-          }),
-        ],
-        isLoading: false,
-      };
-
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
-
-      await waitFor(() => expect(getByTestId('verified-ETH')).toBeTruthy());
-    });
   });
 
   describe('search', () => {
@@ -679,19 +646,6 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
       await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
-    });
-
-    it('passes verified search results through to selector rows', async () => {
-      mockSearchTokensState = {
-        ...mockSearchTokensState,
-        searchResults: [createSearchToken('WETH', { isVerified: true })],
-        currentSearchQuery: 'WET',
-      };
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
-
-      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
-
-      await waitFor(() => expect(getByTestId('verified-WETH')).toBeTruthy());
     });
 
     it('clears search when clear button is pressed', async () => {

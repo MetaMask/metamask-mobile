@@ -20,407 +20,559 @@ exports[`DeveloperOptions renders correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
+      pointerEvents="box-none"
       style={
-        [
-          {
-            "backgroundColor": "rgb(242, 242, 242)",
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "zIndex": 1,
+        }
       }
     >
       <View
-        collapsable={false}
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
         pointerEvents="box-none"
-        style={
-          {
-            "zIndex": 1,
-          }
-        }
+        style={null}
       >
         <View
-          accessibilityElementsHidden={false}
-          importantForAccessibility="auto"
-          onLayout={[Function]}
+          collapsable={false}
           pointerEvents="box-none"
-          style={null}
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
         >
           <View
             collapsable={false}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
+                "flex": 1,
+                "shadowColor": "transparent",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
             pointerEvents="box-none"
             style={
               {
-                "bottom": 0,
-                "left": 0,
-                "opacity": 1,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-                "zIndex": 0,
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
               }
             }
           >
             <View
               collapsable={false}
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderBottomColor": "rgb(216, 216, 216)",
-                  "elevation": 0,
-                  "flex": 1,
-                  "shadowColor": "transparent",
-                  "shadowOffset": {
-                    "height": 0.5,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 0.85,
-                  "shadowRadius": 0,
-                }
-              }
-            />
-          </View>
-          <View
-            collapsable={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "height": 44,
-                "maxHeight": undefined,
-                "minHeight": undefined,
-                "opacity": undefined,
-                "transform": undefined,
-              }
-            }
-          >
-            <View
-              pointerEvents="none"
-              style={
-                {
-                  "height": 0,
-                }
-              }
-            />
-            <View
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "stretch",
-                  "flex": 1,
-                  "flexDirection": "row",
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
                 }
               }
             >
               <View
-                collapsable={false}
-                pointerEvents="box-none"
-                style={
+                accessibilityState={
                   {
-                    "alignItems": "flex-start",
-                    "flexBasis": 0,
-                    "flexGrow": 1,
-                    "justifyContent": "center",
-                    "marginStart": 0,
-                    "opacity": 1,
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
                   }
                 }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    {
+                      "marginHorizontal": 16,
+                    },
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                  ]
+                }
+                testID="back-arrow-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                      {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
-                      },
+                      undefined,
                     ]
                   }
-                  testID="back-arrow-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#131416",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
-              <View
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
+                  "opacity": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
                 collapsable={false}
-                pointerEvents="box-none"
+                numberOfLines={1}
+                onLayout={[Function]}
                 style={
                   {
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "maxWidth": 590,
-                    "opacity": 1,
+                    "color": "#4459ff",
+                    "fontSize": 17,
+                    "fontWeight": "600",
                   }
                 }
               >
                 <Text
-                  accessibilityRole="header"
-                  aria-level="1"
-                  collapsable={false}
-                  numberOfLines={1}
-                  onLayout={[Function]}
+                  accessibilityRole="text"
                   style={
                     {
-                      "color": "#4459ff",
-                      "fontSize": 17,
-                      "fontWeight": "600",
+                      "color": "#131416",
+                      "fontFamily": "Geist-Bold",
+                      "fontSize": 20,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
                 >
                   Developer options
                 </Text>
-              </View>
-              <View
-                collapsable={false}
-                pointerEvents="box-none"
-                style={
-                  {
-                    "alignItems": "flex-end",
-                    "flexBasis": 0,
-                    "flexGrow": 1,
-                    "justifyContent": "center",
-                    "marginEnd": 0,
-                    "opacity": 1,
-                  }
-                }
-              />
+              </Text>
             </View>
           </View>
         </View>
       </View>
-      <RNSScreenContainer
-        onLayout={[Function]}
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
-            "flex": 1,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "zIndex": undefined,
           }
         }
       >
-        <RNSScreen
-          activityState={2}
+        <View
           collapsable={false}
-          gestureResponseDistance={
-            {
-              "bottom": -1,
-              "end": -1,
-              "start": -1,
-              "top": -1,
-            }
-          }
-          onGestureCancel={[Function]}
-          pointerEvents="box-none"
-          sheetAllowedDetents="large"
-          sheetCornerRadius={-1}
-          sheetExpandsWhenScrolledToEdge={true}
-          sheetGrabberVisible={false}
-          sheetLargestUndimmedDetent="all"
           style={
             {
-              "bottom": 0,
-              "left": 0,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": undefined,
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
             }
           }
         >
           <View
             collapsable={false}
-            style={
-              {
-                "opacity": 1,
-              }
-            }
-          />
-          <View
-            accessibilityElementsHidden={false}
-            closing={false}
-            collapsable={false}
-            gestureVelocityImpact={0.3}
-            importantForAccessibility="auto"
-            onClose={[Function]}
-            onGestureBegin={[Function]}
-            onGestureCanceled={[Function]}
-            onGestureEnd={[Function]}
-            onOpen={[Function]}
-            onTransition={[Function]}
+            needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              [
-                {
-                  "display": "flex",
-                  "overflow": undefined,
-                },
-                {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                },
-              ]
-            }
-            transitionSpec={
               {
-                "close": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
-                "open": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
+                "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
+              enabled={false}
+              handlerTag={1}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               style={
                 {
                   "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                enabled={false}
-                handlerTag={1}
-                handlerType="PanGestureHandler"
-                needsOffscreenAlphaCompositing={false}
-                onGestureHandlerEvent={[Function]}
-                onGestureHandlerStateChange={[Function]}
+                pointerEvents="none"
                 style={
                   {
-                    "flex": 1,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateX": 0,
-                      },
-                    ],
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
                   }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
                 }
               >
                 <View
-                  pointerEvents="box-none"
                   style={
-                    [
-                      {
-                        "flex": 1,
-                        "overflow": "hidden",
-                      },
-                      [
-                        {
-                          "backgroundColor": "rgb(242, 242, 242)",
-                        },
-                        undefined,
-                      ],
-                    ]
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
-                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <View
+                    <RCTScrollView
+                      contentContainerStyle={
+                        {
+                          "padding": 24,
+                          "paddingBottom": 56,
+                        }
+                      }
                       style={
                         {
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
                     >
-                      <RCTScrollView
-                        contentContainerStyle={
-                          {
-                            "padding": 24,
-                            "paddingBottom": 56,
+                      <View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#131416",
+                              "fontFamily": "Geist-Bold",
+                              "fontSize": 24,
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
                           }
-                        }
-                        style={
-                          {
-                            "backgroundColor": "#ffffff",
-                            "flex": 1,
+                        >
+                          Sentry
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginTop": 8,
+                            }
                           }
-                        }
-                      >
-                        <View>
+                        >
+                          Generate a developer test Sentry trace.
+                        </Text>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          onPressIn={[Function]}
+                          onPressOut={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "#b4b4b528",
+                              "borderColor": "transparent",
+                              "borderRadius": 12,
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "marginTop": 16,
+                              "overflow": "hidden",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#131416",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Generate trace test
+                          </Text>
+                        </TouchableOpacity>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#131416",
+                              "fontFamily": "Geist-Bold",
+                              "fontSize": 24,
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
+                          }
+                        >
+                          Sample feature
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
+                          A sample feature as a template for developers.
+                        </Text>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          onPressIn={[Function]}
+                          onPressOut={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "#b4b4b528",
+                              "borderColor": "transparent",
+                              "borderRadius": 12,
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "marginTop": 16,
+                              "overflow": "hidden",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#131416",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Navigate to sample feature
+                          </Text>
+                        </TouchableOpacity>
+                        <View
+                          style={
+                            {
+                              "gap": 8,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
                           <Text
                             accessibilityRole="text"
                             style={
@@ -434,712 +586,18 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Sentry
+                            Perps trading
                           </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#66676a",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            Generate a developer test Sentry trace.
-                          </Text>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
+                          <View
                             style={
                               {
                                 "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
                                 "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "marginTop": 16,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
+                                "gap": 16,
                               }
                             }
+                            testID="perps-testnet-toggle-root"
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Generate trace test
-                            </Text>
-                          </TouchableOpacity>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 24,
-                                "letterSpacing": 0,
-                                "lineHeight": 32,
-                                "marginTop": 16,
-                              }
-                            }
-                          >
-                            Sample feature
-                          </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#66676a",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            A sample feature as a template for developers.
-                          </Text>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "marginTop": 16,
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Navigate to sample feature
-                            </Text>
-                          </TouchableOpacity>
-                          <View
-                            style={
-                              {
-                                "gap": 8,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 24,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 32,
-                                  "marginTop": 16,
-                                }
-                              }
-                            >
-                              Perps trading
-                            </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                }
-                              }
-                              testID="perps-testnet-toggle-root"
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Hyperliquid Network Toggle
-                              </Text>
-                              <RCTSwitch
-                                accessibilityRole="switch"
-                                onChange={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
-                                style={
-                                  {
-                                    "height": 31,
-                                    "width": 51,
-                                  }
-                                }
-                                testID="perps-testnet-toggle-switch"
-                                value={false}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Mainnet
-                              </Text>
-                            </View>
-                          </View>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 24,
-                                "letterSpacing": 0,
-                                "lineHeight": 32,
-                                "marginTop": 16,
-                              }
-                            }
-                          >
-                            Predict Deposit
-                          </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#66676a",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            Trigger a Predict deposit confirmation.
-                          </Text>
-                          <View
-                            accessibilityLabel="Deposit"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#b4b4b528",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
-                                },
-                                {
-                                  "marginTop": 16,
-                                },
-                                {
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                },
-                              ]
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              ellipsizeMode="clip"
-                              numberOfLines={1}
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "flexGrow": 0,
-                                    "flexShrink": 1,
-                                    "flexWrap": "wrap",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              Deposit
-                            </Text>
-                          </View>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 24,
-                                "letterSpacing": 0,
-                                "lineHeight": 32,
-                                "marginTop": 16,
-                              }
-                            }
-                          >
-                            Predict Claim
-                          </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#66676a",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            Trigger a Predict claim confirmation.
-                          </Text>
-                          <View
-                            accessibilityLabel="Claim"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#b4b4b528",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
-                                },
-                                {
-                                  "marginTop": 16,
-                                },
-                                {
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                },
-                              ]
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              ellipsizeMode="clip"
-                              numberOfLines={1}
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "flexGrow": 0,
-                                    "flexShrink": 1,
-                                    "flexWrap": "wrap",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              Claim
-                            </Text>
-                          </View>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 24,
-                                "letterSpacing": 0,
-                                "lineHeight": 32,
-                                "marginTop": 16,
-                              }
-                            }
-                          >
-                            Predict Withdraw
-                          </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#66676a",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            Trigger a Predict withdraw confirmation.
-                          </Text>
-                          <View
-                            accessibilityLabel="Withdraw"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#b4b4b528",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
-                                },
-                                {
-                                  "marginTop": 16,
-                                },
-                                {
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                },
-                              ]
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              ellipsizeMode="clip"
-                              numberOfLines={1}
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "flexGrow": 0,
-                                    "flexShrink": 1,
-                                    "flexWrap": "wrap",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              Withdraw
-                            </Text>
-                          </View>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#131416",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 24,
-                                "letterSpacing": 0,
-                                "lineHeight": 32,
-                                "marginTop": 16,
-                              }
-                            }
-                          >
-                            Perps Withdraw
-                          </Text>
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#66676a",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                                "marginTop": 8,
-                              }
-                            }
-                          >
-                            Trigger a Perps withdraw confirmation.
-                          </Text>
-                          <View
-                            accessibilityLabel="Withdraw"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "backgroundColor": "#b4b4b528",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
-                                },
-                                {
-                                  "marginTop": 16,
-                                },
-                                {
-                                  "transform": [
-                                    {
-                                      "scale": 1,
-                                    },
-                                  ],
-                                },
-                              ]
-                            }
-                            testID="confirmations-developer-options-perps-withdraw-button"
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              ellipsizeMode="clip"
-                              numberOfLines={1}
-                              style={
-                                [
-                                  {
-                                    "color": "#131416",
-                                    "flexGrow": 0,
-                                    "flexShrink": 1,
-                                    "flexWrap": "wrap",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": 400,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                    "textAlign": "center",
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              Withdraw
-                            </Text>
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "display": "flex",
-                                  "gap": 8,
-                                  "marginTop": 8,
-                                },
-                                undefined,
-                              ]
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 24,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 32,
-                                  "marginTop": 16,
-                                }
-                              }
-                            >
-                              Card
-                            </Text>
                             <Text
                               accessibilityRole="text"
                               style={
@@ -1149,113 +607,660 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
-                                  "marginTop": 8,
                                 }
                               }
                             >
-                              Reset Card onboarding state to start the onboarding flow from the beginning.
+                              Hyperliquid Network Toggle
                             </Text>
-                            <View
-                              accessibilityLabel="Reset Onboarding State"
-                              accessibilityRole="button"
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": false,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessibilityValue={
-                                {
-                                  "max": undefined,
-                                  "min": undefined,
-                                  "now": undefined,
-                                  "text": undefined,
-                                }
-                              }
-                              accessible={true}
-                              collapsable={false}
-                              focusable={true}
-                              onBlur={[Function]}
-                              onClick={[Function]}
-                              onFocus={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
+                            <RCTSwitch
+                              accessibilityRole="switch"
+                              onChange={[Function]}
                               onResponderTerminationRequest={[Function]}
                               onStartShouldSetResponder={[Function]}
                               style={
+                                {
+                                  "height": 31,
+                                  "width": 51,
+                                }
+                              }
+                              testID="perps-testnet-toggle-switch"
+                              value={false}
+                            />
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#66676a",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Mainnet
+                            </Text>
+                          </View>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#131416",
+                              "fontFamily": "Geist-Bold",
+                              "fontSize": 24,
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
+                          }
+                        >
+                          Predict Deposit
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
+                          Trigger a Predict deposit confirmation.
+                        </Text>
+                        <View
+                          accessibilityLabel="Deposit"
+                          accessibilityRole="button"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#b4b4b528",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "marginTop": 16,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#131416",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            Deposit
+                          </Text>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#131416",
+                              "fontFamily": "Geist-Bold",
+                              "fontSize": 24,
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
+                          }
+                        >
+                          Predict Claim
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
+                          Trigger a Predict claim confirmation.
+                        </Text>
+                        <View
+                          accessibilityLabel="Claim"
+                          accessibilityRole="button"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#b4b4b528",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "marginTop": 16,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#131416",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            Claim
+                          </Text>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#131416",
+                              "fontFamily": "Geist-Bold",
+                              "fontSize": 24,
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
+                          }
+                        >
+                          Predict Withdraw
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
+                          Trigger a Predict withdraw confirmation.
+                        </Text>
+                        <View
+                          accessibilityLabel="Withdraw"
+                          accessibilityRole="button"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#b4b4b528",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "marginTop": 16,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#131416",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            Withdraw
+                          </Text>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#131416",
+                              "fontFamily": "Geist-Bold",
+                              "fontSize": 24,
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
+                          }
+                        >
+                          Perps Withdraw
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#66676a",
+                              "fontFamily": "Geist-Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
+                          Trigger a Perps withdraw confirmation.
+                        </Text>
+                        <View
+                          accessibilityLabel="Withdraw"
+                          accessibilityRole="button"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#b4b4b528",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "columnGap": 8,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "width": "100%",
+                              },
+                              {
+                                "marginTop": 16,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
+                            ]
+                          }
+                          testID="confirmations-developer-options-perps-withdraw-button"
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#131416",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            Withdraw
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {
+                                "display": "flex",
+                                "gap": 8,
+                                "marginTop": 8,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#131416",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 24,
+                                "letterSpacing": 0,
+                                "lineHeight": 32,
+                                "marginTop": 16,
+                              }
+                            }
+                          >
+                            Card
+                          </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#66676a",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "marginTop": 8,
+                              }
+                            }
+                          >
+                            Reset Card onboarding state to start the onboarding flow from the beginning.
+                          </Text>
+                          <View
+                            accessibilityLabel="Reset Onboarding State"
+                            accessibilityRole="button"
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
+                                  "borderWidth": 1,
+                                  "columnGap": 8,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "minWidth": 80,
+                                  "opacity": 1,
+                                  "overflow": "hidden",
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
+                                  "width": "100%",
+                                },
+                                {
+                                  "marginTop": 16,
+                                },
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              ellipsizeMode="clip"
+                              numberOfLines={1}
+                              style={
                                 [
                                   {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#b4b4b528",
-                                    "borderColor": "transparent",
-                                    "borderRadius": 12,
-                                    "borderWidth": 1,
-                                    "columnGap": 8,
-                                    "flexDirection": "row",
-                                    "height": 48,
-                                    "justifyContent": "center",
-                                    "minWidth": 80,
-                                    "opacity": 1,
-                                    "overflow": "hidden",
-                                    "paddingLeft": 16,
-                                    "paddingRight": 16,
-                                    "width": "100%",
+                                    "color": "#131416",
+                                    "flexGrow": 0,
+                                    "flexShrink": 1,
+                                    "flexWrap": "wrap",
+                                    "fontFamily": "Geist-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": 400,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "textAlign": "center",
                                   },
-                                  {
-                                    "marginTop": 16,
-                                  },
-                                  {
-                                    "transform": [
-                                      {
-                                        "scale": 1,
-                                      },
-                                    ],
-                                  },
+                                  undefined,
                                 ]
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="clip"
-                                numberOfLines={1}
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "flexGrow": 0,
-                                      "flexShrink": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                Reset Onboarding State
-                              </Text>
-                            </View>
+                              Reset Onboarding State
+                            </Text>
                           </View>
                         </View>
-                      </RCTScrollView>
-                    </View>
+                      </View>
+                    </RCTScrollView>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </RNSScreen>
-      </RNSScreenContainer>
-    </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
   </RNCSafeAreaProvider>
 </View>
 `;

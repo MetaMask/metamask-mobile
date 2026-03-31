@@ -1,16 +1,20 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
-  Icon,
+  IconColor as DsIconColor,
+  IconSize as DsIconSize,
+} from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+
+import Icon, {
   IconName,
   IconSize,
   IconColor,
-  Text,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text, {
   TextVariant,
-  FontWeight,
-  Spinner,
-} from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../hooks/useStyles';
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './PaymentMethodPill.styles';
 import { PAYMENT_METHOD_PILL_TEST_IDS } from './PaymentMethodPill.testIds';
@@ -32,14 +36,14 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   isLoading = false,
   testID = PAYMENT_METHOD_PILL_TEST_IDS.CONTAINER,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
 
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]} testID={testID}>
         <Spinner
-          color={IconColor.IconDefault}
-          spinnerIconProps={{ size: IconSize.Sm }}
+          color={DsIconColor.IconDefault}
+          spinnerIconProps={{ size: DsIconSize.Sm }}
         />
       </View>
     );
@@ -56,21 +60,17 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
         <Icon
           name={IconName.Card}
           size={IconSize.Sm}
-          color={IconColor.IconDefault}
+          color={IconColor.Default}
         />
       </View>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        style={styles.label}
-      >
+      <Text variant={TextVariant.BodyMDMedium} style={styles.label}>
         {label}
       </Text>
       <View style={styles.arrowWrapper}>
         <Icon
           name={IconName.ArrowDown}
           size={IconSize.Sm}
-          color={IconColor.IconDefault}
+          color={IconColor.Default}
         />
       </View>
     </TouchableOpacity>

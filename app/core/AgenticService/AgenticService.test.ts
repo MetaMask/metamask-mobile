@@ -9,10 +9,7 @@ import AgenticService, {
   type ReactDevToolsHook,
 } from './AgenticService';
 import Engine from '../Engine';
-import type {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import type { NavigationContainerRef } from '@react-navigation/native';
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
@@ -327,8 +324,8 @@ describe('tryScroll', () => {
 // ─── AgenticService.install / __AGENTIC__ bridge tests ──────────────────────
 
 describe('AgenticService.install', () => {
-  let mockNavRef: NavigationContainerRef<ParamListBase>;
-  let mockDeferredNav: NavigationContainerRef<ParamListBase>;
+  let mockNavRef: NavigationContainerRef;
+  let mockDeferredNav: NavigationContainerRef;
   let savedHook: ReactDevToolsHook | undefined;
 
   beforeEach(() => {
@@ -340,14 +337,14 @@ describe('AgenticService.install', () => {
       goBack: jest.fn(),
       dispatch: jest.fn(),
       getCurrentRoute: jest.fn(() => ({ name: 'Wallet', key: 'w-1' })),
-      getState: jest.fn(() => ({})),
+      dangerouslyGetState: jest.fn(() => ({})),
       canGoBack: jest.fn(() => true),
-    } as unknown as NavigationContainerRef<ParamListBase>;
+    } as unknown as NavigationContainerRef;
 
     mockDeferredNav = {
       navigate: jest.fn(),
       goBack: jest.fn(),
-    } as unknown as NavigationContainerRef<ParamListBase>;
+    } as unknown as NavigationContainerRef;
 
     savedHook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
 

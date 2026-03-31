@@ -1,7 +1,4 @@
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import Logger from '../../util/Logger';
 
 /**
@@ -21,7 +18,7 @@ const DEFERRED_NAVIGATION_METHODS = ['navigate', 'reset'] as const;
  * when called during React's render cycle or navigation transitions.
  */
 class NavigationService {
-  static #navigation: NavigationContainerRef<ParamListBase>;
+  static #navigation: NavigationContainerRef;
 
   /**
    * Checks that the navigation object exists
@@ -38,9 +35,7 @@ class NavigationService {
   /**
    * Checks that the navigation object is valid
    */
-  static #assertNavigationRefType(
-    navRef: NavigationContainerRef<ParamListBase>,
-  ) {
+  static #assertNavigationRefType(navRef: NavigationContainerRef) {
     if (typeof navRef?.navigate !== 'function') {
       const error = new Error('Navigation reference is not valid!');
       Logger.error(error);
@@ -54,8 +49,8 @@ class NavigationService {
    * to the next frame to avoid timing issues during React's rendering cycles.
    */
   static #createReactAwareNavigation(
-    navRef: NavigationContainerRef<ParamListBase>,
-  ): NavigationContainerRef<ParamListBase> {
+    navRef: NavigationContainerRef,
+  ): NavigationContainerRef {
     return new Proxy(navRef, {
       get(target, prop, receiver) {
         const value = Reflect.get(target, prop, receiver);
@@ -93,7 +88,7 @@ class NavigationService {
    * Set the navigation object
    * @param navRef
    */
-  static set navigation(navRef: NavigationContainerRef<ParamListBase>) {
+  static set navigation(navRef: NavigationContainerRef) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
 
@@ -122,8 +117,7 @@ class NavigationService {
    * @internal
    */
   static resetForTesting() {
-    this.#navigation =
-      undefined as unknown as NavigationContainerRef<ParamListBase>;
+    this.#navigation = undefined as unknown as NavigationContainerRef;
   }
 }
 

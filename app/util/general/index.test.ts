@@ -7,7 +7,6 @@ import {
   isIPFSUri,
   deepJSONParse,
   getUniqueList,
-  findRouteNameFromNavigatorState,
 } from '.';
 
 describe('capitalize', () => {
@@ -216,86 +215,5 @@ describe('getUniqueList function', () => {
     const testArray = ['0x1', '0x2', '0x3'];
     const sameTestArray = [...testArray];
     expect(getUniqueList(testArray, sameTestArray)).toEqual(testArray);
-  });
-});
-
-describe('findRouteNameFromNavigatorState', () => {
-  it('returns the name from a simple single-route array', () => {
-    expect(findRouteNameFromNavigatorState([{ name: 'Settings' }])).toBe(
-      'Settings',
-    );
-  });
-
-  it('walks nested navigator state by index to the leaf route name', () => {
-    const routes = [
-      {
-        name: 'Root',
-        state: {
-          index: 1,
-          routes: [
-            { name: 'TabA' },
-            {
-              name: 'Stack',
-              state: {
-                index: 0,
-                routes: [{ name: 'Details' }],
-              },
-            },
-          ],
-        },
-      },
-    ];
-    expect(findRouteNameFromNavigatorState(routes)).toBe('Details');
-  });
-
-  it('returns undefined for an empty routes array', () => {
-    expect(findRouteNameFromNavigatorState([])).toBeUndefined();
-  });
-
-  it('returns undefined when routes is undefined', () => {
-    expect(
-      findRouteNameFromNavigatorState(
-        undefined as unknown as Parameters<
-          typeof findRouteNameFromNavigatorState
-        >[0],
-      ),
-    ).toBeUndefined();
-  });
-
-  it('maps Main, WalletTabHome, and Home to WalletView', () => {
-    expect(findRouteNameFromNavigatorState([{ name: 'Main' }])).toBe(
-      'WalletView',
-    );
-    expect(findRouteNameFromNavigatorState([{ name: 'WalletTabHome' }])).toBe(
-      'WalletView',
-    );
-    expect(findRouteNameFromNavigatorState([{ name: 'Home' }])).toBe(
-      'WalletView',
-    );
-  });
-
-  it('maps TransactionsHome to TransactionsView', () => {
-    expect(
-      findRouteNameFromNavigatorState([{ name: 'TransactionsHome' }]),
-    ).toBe('TransactionsView');
-  });
-
-  it('handles undefined as the last route without throwing', () => {
-    expect(
-      findRouteNameFromNavigatorState([{ name: 'First' }, undefined]),
-    ).toBeUndefined();
-  });
-
-  it('handles undefined child route in nested state without throwing', () => {
-    const routes = [
-      {
-        name: 'Parent',
-        state: {
-          index: 0,
-          routes: [undefined],
-        },
-      },
-    ];
-    expect(findRouteNameFromNavigatorState(routes)).toBeUndefined();
   });
 });

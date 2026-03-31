@@ -1,9 +1,7 @@
 import React from 'react';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
@@ -11,12 +9,17 @@ import {
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
+import { formatRateOfReturn } from './OndoLeaderboard.utils';
 import formatFiat from '../../../../../util/formatFiat';
 import { BigNumber } from 'bignumber.js';
-import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  selectRewardsSubscriptionId,
+  selectCampaignParticipantOptedIn,
+} from '../../../../../selectors/rewards';
 
 export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
   CONTAINER: 'ondo-leaderboard-position-container',
@@ -31,33 +34,19 @@ export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
 } as const;
 
 interface OndoLeaderboardPositionProps {
-  position: CampaignLeaderboardPositionDto | null;
-  isLoading: boolean;
-  hasError: boolean;
-  hasFetched: boolean;
-  refetch: () => Promise<void>;
-  showTitle?: boolean;
-  /** When provided and showTitle is true, displays a "Last updated" timestamp */
-  computedAt?: string | null;
+  campaignId: string | undefined;
 }
 
 const formatUsd = (value: number): string =>
   formatFiat(new BigNumber(value), 'USD');
 
-const PositionSkeleton: React.FC<{ showTitle?: boolean }> = ({
-  showTitle = false,
-}) => {
+const PositionSkeleton: React.FC = () => {
   const tw = useTailwind();
   return (
     <Box
       twClassName="gap-3"
       testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING}
     >
-      {showTitle && (
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_leaderboard_position.title')}
-        </Text>
-      )}
       {/* Row 1: Rank | Tier */}
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
         <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
@@ -116,16 +105,21 @@ const StatCell: React.FC<StatCellProps> = ({
  * and current USD value.
  */
 const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
-  position,
-  isLoading,
-  hasError,
-  hasFetched,
-  refetch,
-  showTitle = false,
-  computedAt,
+  campaignId,
 }) => {
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isOptedIn = useSelector(
+    selectCampaignParticipantOptedIn(subscriptionId, campaignId),
+  );
+  const { position, isLoading, hasError, hasFetched, refetch } =
+    useGetOndoLeaderboardPosition(campaignId);
+
+  if (!isOptedIn) {
+    return null;
+  }
+
   if (isLoading && !position) {
-    return <PositionSkeleton showTitle={showTitle} />;
+    return <PositionSkeleton />;
   }
 
   if (hasError && !position) {
@@ -169,28 +163,9 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
       twClassName="gap-3"
       testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER}
     >
-      {showTitle && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_leaderboard_position.title')}
-          </Text>
-          {computedAt && (
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {strings(
-                'rewards.ondo_campaign_leaderboard_position.updated_at',
-                { time: formatComputedAt(computedAt) },
-              )}
-            </Text>
-          )}
-        </Box>
-      )}
+      <Text variant={TextVariant.HeadingMd}>
+        {strings('rewards.ondo_campaign_leaderboard_position.title')}
+      </Text>
 
       {/* Grid row 1: Rank | Tier | (empty) */}
       <Box flexDirection={BoxFlexDirection.Row}>

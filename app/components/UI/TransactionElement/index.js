@@ -157,7 +157,6 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
-  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -448,14 +447,13 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const withdrawChainId = hasTransactionType(this.props.tx, [
+    const predictWithdrawChainId = hasTransactionType(this.props.tx, [
       TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
     ])
       ? this.props.tx.metamaskPay?.chainId
       : undefined;
 
-    const chainId = perpsDepositChainId ?? withdrawChainId ?? txChainId;
+    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
 
     return (
       <BadgeWrapper

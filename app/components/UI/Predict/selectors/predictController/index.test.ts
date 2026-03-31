@@ -10,7 +10,6 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
-  selectPredictActiveBuyOrder,
   selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
@@ -136,62 +135,6 @@ describe('Predict Controller Selectors', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selectPredictWithdrawTransaction(mockState as any);
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('selectPredictActiveBuyOrder', () => {
-    it('returns active buy order when it exists', () => {
-      const activeBuyOrder = {
-        state: 'preview',
-        transactionId: 'tx-1',
-      };
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              activeBuyOrder,
-            },
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictActiveBuyOrder(mockState as any);
-
-      expect(result).toEqual(activeBuyOrder);
-    });
-
-    it('returns null when active buy order is null', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              activeBuyOrder: null,
-            },
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictActiveBuyOrder(mockState as any);
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null when PredictController state is undefined', () => {
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: undefined,
-          },
-        },
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictActiveBuyOrder(mockState as any);
 
       expect(result).toBeNull();
     });

@@ -1,7 +1,4 @@
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import {
   disconnectAll,
   resetApprovedHosts,
@@ -20,7 +17,7 @@ const asyncInit = async ({
   instance,
   context,
 }: {
-  navigation: NavigationContainerRef<ParamListBase>;
+  navigation: NavigationContainerRef;
   instance: SDKConnect;
   context?: string;
 }) => {

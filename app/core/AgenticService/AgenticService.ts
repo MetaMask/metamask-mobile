@@ -7,10 +7,7 @@
  * apply production code standards (strict types, full error handling,
  * abstraction layers) here; keep it pragmatic and easy to change.
  */
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
@@ -280,22 +277,15 @@ const AgenticService = {
    * @param navRef  - Raw (unwrapped) navigation container ref
    * @param deferredNav - The requestAnimationFrame-deferred proxy
    */
-  install(
-    navRef: NavigationContainerRef<ParamListBase>,
-    deferredNav: NavigationContainerRef<ParamListBase>,
-  ) {
+  install(navRef: NavigationContainerRef, deferredNav: NavigationContainerRef) {
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
       platform: Platform.OS,
       navigate: (name: string, params?: object) =>
-        (
-          deferredNav as unknown as {
-            navigate: (name: string, params?: object) => void;
-          }
-        ).navigate(name, params),
+        deferredNav.navigate(name as never, params as never),
       getRoute: () => navRef.getCurrentRoute(),
-      getState: () => navRef.getState(),
+      getState: () => navRef.dangerouslyGetState(),
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>

@@ -175,27 +175,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   const sortedListItems = useMemo((): ProviderListItem[] => {
     if (!displayQuotes || !quotes || quotesLoading) {
-      // When quotes aren't available, separate by supportedCryptoCurrencies
-      const assetId = selectedToken?.assetId;
-      const [supported, unsupported] = providers.reduce<
-        [ProviderListItem[], ProviderListItem[]]
-      >(
-        ([sup, unsup], provider) => {
-          const item: ProviderListItem = { type: 'provider', provider };
-          if (!assetId) {
-            return [[...sup, item], unsup];
-          }
-          return provider.supportedCryptoCurrencies?.[assetId] === true
-            ? [[...sup, item], unsup]
-            : [sup, [...unsup, item]];
-        },
-        [[], []],
-      );
-
-      if (assetId && supported.length > 0 && unsupported.length > 0) {
-        return [...supported, { type: 'separator' as const }, ...unsupported];
-      }
-      return [...supported, ...unsupported];
+      return providers.map((provider) => ({ type: 'provider', provider }));
     }
 
     const sortOrder =
@@ -239,7 +219,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     }
 
     return items;
-  }, [providers, quotes, quotesLoading, displayQuotes, selectedToken?.assetId]);
+  }, [providers, quotes, quotesLoading, displayQuotes]);
 
   const handleProviderSelect = useCallback(
     (provider: Provider, _matchedQuote: Quote | null) => {

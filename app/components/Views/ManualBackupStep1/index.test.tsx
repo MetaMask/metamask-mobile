@@ -48,21 +48,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
-const { mockTheme } = jest.requireActual('../../../util/theme');
-
 const mockUseTheme = jest.fn().mockReturnValue({
   colors: {
-    text: { default: mockTheme.colors.text.default },
-    background: {
-      default: mockTheme.colors.background.default,
-      muted: mockTheme.colors.background.muted,
-    },
-    icon: { default: mockTheme.colors.icon.default },
-    border: {
-      default: mockTheme.colors.border.default,
-      muted: mockTheme.colors.border.muted,
-    },
-    error: { default: mockTheme.colors.error.default },
+    text: { default: '#000000' },
+    background: { default: '#FFFFFF', muted: '#F2F4F6' },
+    icon: { default: '#24272A' },
+    border: { default: '#BBC0C5', muted: '#D6D9DC' },
+    error: { default: '#D73A49' },
   },
   themeAppearance: 'dark',
 });
@@ -326,17 +318,11 @@ describe('ManualBackupStep1', () => {
     afterEach(() => {
       mockUseTheme.mockReturnValue({
         colors: {
-          text: { default: mockTheme.colors.text.default },
-          background: {
-            default: mockTheme.colors.background.default,
-            muted: mockTheme.colors.background.muted,
-          },
-          icon: { default: mockTheme.colors.icon.default },
-          border: {
-            default: mockTheme.colors.border.default,
-            muted: mockTheme.colors.border.muted,
-          },
-          error: { default: mockTheme.colors.error.default },
+          text: { default: '#000000' },
+          background: { default: '#FFFFFF', muted: '#F2F4F6' },
+          icon: { default: '#24272A' },
+          border: { default: '#BBC0C5', muted: '#D6D9DC' },
+          error: { default: '#D73A49' },
         },
         themeAppearance: 'dark',
       });
@@ -352,17 +338,11 @@ describe('ManualBackupStep1', () => {
       Platform.OS = 'android';
       mockUseTheme.mockReturnValue({
         colors: {
-          text: { default: mockTheme.colors.text.default },
-          background: {
-            default: mockTheme.colors.background.default,
-            muted: mockTheme.colors.background.muted,
-          },
-          icon: { default: mockTheme.colors.icon.default },
-          border: {
-            default: mockTheme.colors.border.default,
-            muted: mockTheme.colors.border.muted,
-          },
-          error: { default: mockTheme.colors.error.default },
+          text: { default: '#000000' },
+          background: { default: '#FFFFFF', muted: '#F2F4F6' },
+          icon: { default: '#24272A' },
+          border: { default: '#BBC0C5', muted: '#D6D9DC' },
+          error: { default: '#D73A49' },
         },
         themeAppearance: 'light',
       });

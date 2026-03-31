@@ -5,15 +5,8 @@ import { useDispatch } from 'react-redux';
 import { View, Text } from 'react-native';
 import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-
-const navigationContainerThemeCapture: {
-  theme?: { colors?: { background?: string } };
-} = {};
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -21,13 +14,6 @@ jest.mock('../../../util/trace', () => {
     ...actual,
     trace: jest.fn(),
     endTrace: jest.fn(),
-  };
-});
-
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
   };
 });
 
@@ -42,14 +28,20 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
+
 describe('NavigationProvider', () => {
   const mockDispatch = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    navigationContainerThemeCapture.theme = undefined;
     NavigationService.navigation =
-      undefined as unknown as NavigationContainerRef<ParamListBase>;
+      undefined as unknown as NavigationContainerRef;
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
   });
 

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import type { UseAnalyticsHook } from '../../../hooks/useAnalytics/useAnalytics.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 /**
  * Creating wallet notifications can take time, so we will use optimistic loader
@@ -14,7 +14,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
  */
 export function useOptimisticNavigationEffect(props: {
   isCreatingNotifications: boolean;
-  navigation: AppNavigationProp;
+  navigation: NavigationProp<ParamListBase>;
 }) {
   const { isCreatingNotifications, navigation } = props;
   const [optimisticLoading, setOptimisticLoading] = useState(false);
@@ -47,7 +47,7 @@ export function useOptimisticNavigationEffect(props: {
 }
 
 export function useHandleOptInClick(props: {
-  navigation: AppNavigationProp;
+  navigation: NavigationProp<ParamListBase>;
   metrics: UseAnalyticsHook;
   enableNotifications: () => Promise<void>;
 }) {
@@ -97,7 +97,7 @@ export function useHandleOptInClick(props: {
 }
 
 export function useHandleOptInCancel(props: {
-  navigation: AppNavigationProp;
+  navigation: NavigationProp<ParamListBase>;
   metrics: UseAnalyticsHook;
   isCreatingNotifications: boolean;
 }) {

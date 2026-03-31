@@ -56,13 +56,13 @@ import {
   convertTrendingAssetsToImporAssets,
   ImportAsset,
 } from '../../utils/utils';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 interface Props {
   /**
 	/* navigation object required to push new views
 	*/
-  navigation: AppNavigationProp;
+  navigation: NavigationProp<ParamListBase>;
   tabLabel: string;
 
   /**

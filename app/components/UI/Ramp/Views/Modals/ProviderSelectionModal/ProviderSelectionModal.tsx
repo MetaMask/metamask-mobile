@@ -96,17 +96,15 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes &&
-      amount > 0 &&
-      walletAddress &&
-      assetId &&
-      selectedPaymentMethod
+      !skipQuotes && amount > 0 && walletAddress && assetId
         ? {
             amount,
             walletAddress,
             assetId,
             providers: providerIds,
-            paymentMethods: [selectedPaymentMethod.id],
+            paymentMethods: selectedPaymentMethod
+              ? [selectedPaymentMethod.id]
+              : undefined,
             forceRefresh: true,
           }
         : null,
@@ -173,7 +171,7 @@ function ProviderSelectionModal() {
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
+          showQuotes={!skipQuotes && amount > 0}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(
             (id): id is string => id != null,

@@ -66,11 +66,7 @@ export const useGetOndoPortfolioPosition = (
           portfolio: result,
         }),
       );
-    } catch (e) {
-      console.error(
-        'useGetOndoPortfolioPosition: failed to fetch portfolio',
-        e,
-      );
+    } catch {
       setHasError(true);
     } finally {
       setIsLoading(false);

@@ -8,27 +8,6 @@ import Assertions from '../../framework/Assertions';
 
 jest.setTimeout(150_000);
 
-/**
- * The account-activity mock WebSocket (started with default fixtures) keeps the
- * iOS UI busy in Detox's view; disable sync for the test body so gestures and
- * webview scripts are not blocked waiting for idle. Same idea as
- * test-snap-network-access.spec.ts (WebSocket section).
- */
-async function withIosDetoxSyncDisabledForAccountActivityWs<T>(
-  fn: () => Promise<T>,
-): Promise<T> {
-  if (device.getPlatform() === 'ios') {
-    await device.disableSynchronization();
-  }
-  try {
-    return await fn();
-  } finally {
-    if (device.getPlatform() === 'ios') {
-      await device.enableSynchronization();
-    }
-  }
-}
-
 describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
   it('connects to the Get Entropy Snap', async () => {
     await withFixtures(
@@ -38,13 +17,11 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        await withIosDetoxSyncDisabledForAccountActivityWs(async () => {
-          await loginToApp();
-          await navigateToBrowserView();
-          await TestSnaps.navigateToTestSnap();
+        await loginToApp();
+        await navigateToBrowserView();
+        await TestSnaps.navigateToTestSnap();
 
-          await TestSnaps.installSnap('connectGetEntropyButton');
-        });
+        await TestSnaps.installSnap('connectGetEntropyButton');
       },
     );
   });
@@ -56,18 +33,13 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        await withIosDetoxSyncDisabledForAccountActivityWs(async () => {
-          await TestSnaps.fillMessage('entropyMessageInput', '1234');
-          await TestSnaps.tapButton('signEntropyMessageButton');
-          await Assertions.expectTextDisplayed('Signature request', {
-            description: 'Snap signature request should be visible',
-          });
-          await TestSnaps.approveSignRequest();
-          await TestSnaps.checkResultSpan(
-            'entropySignResultSpan',
-            '"0x9341785782b512c86235612365f1076b16731ed9473beb4d0804c30b7fcc3a055aa7103b02dc64014d923220712dfbef023ddcf6327b313ea2dfd4d83dc5a53e1c5e7f4e10bce49830eded302294054df8a7a46e5b6cb3e50eec564ecba17941"',
-          );
-        });
+        await TestSnaps.fillMessage('entropyMessageInput', '1234');
+        await TestSnaps.tapButton('signEntropyMessageButton');
+        await TestSnaps.approveSignRequest();
+        await TestSnaps.checkResultSpan(
+          'entropySignResultSpan',
+          '"0x9341785782b512c86235612365f1076b16731ed9473beb4d0804c30b7fcc3a055aa7103b02dc64014d923220712dfbef023ddcf6327b313ea2dfd4d83dc5a53e1c5e7f4e10bce49830eded302294054df8a7a46e5b6cb3e50eec564ecba17941"',
+        );
       },
     );
   });
@@ -90,22 +62,14 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
           skipReactNativeReload: true,
         },
         async () => {
-          await withIosDetoxSyncDisabledForAccountActivityWs(async () => {
-            await TestSnaps.selectInDropdown(
-              'getEntropyDropDown',
-              entropySource,
-            );
-            await TestSnaps.fillMessage('entropyMessageInput', '5678');
-            await TestSnaps.tapButton('signEntropyMessageButton');
-            await Assertions.expectTextDisplayed('Signature request', {
-              description: 'Snap signature request should be visible',
-            });
-            await TestSnaps.approveSignRequest();
-            await TestSnaps.checkResultSpan(
-              'entropySignResultSpan',
-              `"${result}"`,
-            );
-          });
+          await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
+          await TestSnaps.fillMessage('entropyMessageInput', '5678');
+          await TestSnaps.tapButton('signEntropyMessageButton');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'entropySignResultSpan',
+            `"${result}"`,
+          );
         },
       );
     },
@@ -118,26 +82,24 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        await withIosDetoxSyncDisabledForAccountActivityWs(async () => {
-          await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
-          await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
-          await TestSnaps.tapButton('signEntropyMessageButton');
-          await TestSnaps.approveSignRequest();
-          // iOS shows the error as a native alert; Android renders it in the
-          // web-view result span as JSON with escaped quotes.
-          if (device.getPlatform() === 'ios') {
-            await Assertions.expectTextDisplayed(
-              'Entropy source with ID "invalid" not found.',
-              { timeout: 30000 },
-            );
-          } else {
-            await TestSnaps.checkResultSpanIncludes(
-              'entropySignResultSpan',
-              'Entropy source with ID',
-              { timeout: 30000 },
-            );
-          }
-        });
+        await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
+        await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
+        await TestSnaps.tapButton('signEntropyMessageButton');
+        await TestSnaps.approveSignRequest();
+        // iOS shows the error as a native alert; Android renders it in the
+        // web-view result span as JSON with escaped quotes.
+        if (device.getPlatform() === 'ios') {
+          await Assertions.expectTextDisplayed(
+            'Entropy source with ID "invalid" not found.',
+            { timeout: 30000 },
+          );
+        } else {
+          await TestSnaps.checkResultSpanIncludes(
+            'entropySignResultSpan',
+            'Entropy source with ID',
+            { timeout: 30000 },
+          );
+        }
       },
     );
   });

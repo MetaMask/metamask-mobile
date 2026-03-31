@@ -1,19 +1,17 @@
 import React, { ReactNode } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import {
-  Box,
-  Text,
-  TextColor,
+import Text, {
   TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import {
   BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import HomepageSectionUnrealizedPnlRow from '../../../../Views/Homepage/components/HomepageSectionUnrealizedPnlRow';
 import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 export interface PerpsHomeSectionProps {
@@ -26,15 +24,15 @@ export interface PerpsHomeSectionProps {
    */
   subtitle?: string;
   /**
-   * Color for subtitle value text (e.g., Success for profit, Error for loss)
+   * Color for subtitle text (e.g., Success for profit, Error for loss)
    */
   subtitleColor?: TextColor;
   /**
-   * Optional suffix for subtitle (rendered in muted color, e.g., "Unrealized P&L")
+   * Optional suffix for subtitle (rendered in default color, e.g., "Unrealized PnL")
    */
   subtitleSuffix?: string;
   /**
-   * Test ID for subtitle value element
+   * Test ID for subtitle element
    */
   subtitleTestID?: string;
   /**
@@ -109,7 +107,7 @@ const styles = StyleSheet.create({
 const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   title,
   subtitle,
-  subtitleColor = TextColor.TextDefault,
+  subtitleColor = TextColor.Alternative,
   subtitleSuffix,
   subtitleTestID,
   isLoading,
@@ -148,34 +146,29 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
               </TouchableOpacity>
             ) : undefined
           }
-          twClassName="px-0 mb-0"
+          twClassName="px-0 mb-2"
         />
 
-        {/* Value + muted label: same row as wallet homepage unrealized P&L (8px gap). */}
-        {subtitle && subtitleSuffix ? (
-          <HomepageSectionUnrealizedPnlRow
-            label={subtitleSuffix}
-            valueText={subtitle}
-            valueColor={subtitleColor}
-            paddingHorizontal={0}
-            marginTop={1}
-            valueTestID={subtitleTestID}
-            labelTestID={
-              subtitleTestID ? `${subtitleTestID}-suffix` : undefined
-            }
-          />
-        ) : subtitle ? (
-          <Box marginTop={1}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={subtitleColor}
-              fontWeight={FontWeight.Medium}
-              testID={subtitleTestID}
-            >
-              {subtitle}
-            </Text>
-          </Box>
-        ) : null}
+        {/* Subtitle - NOT pressable */}
+        {subtitle && (
+          <Text
+            variant={TextVariant.BodySM}
+            color={subtitleColor}
+            testID={subtitleTestID}
+          >
+            {subtitle}
+            {subtitleSuffix && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                testID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+              >
+                {' '}
+                {subtitleSuffix}
+              </Text>
+            )}
+          </Text>
+        )}
       </View>
 
       {/* Section Content */}

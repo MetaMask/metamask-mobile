@@ -83,6 +83,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock @react-navigation/compat to prevent issues with createNavigatorFactory
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+  withNavigationFocus: jest.fn((component) => component),
+}));
+
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -166,26 +172,11 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
-jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: () => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
-    enableArbitrumNetwork: jest.fn(),
-    getArbitrumChainId: jest.fn(),
-    currentNetwork: 'mainnet',
-  }),
-}));
-
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
-    enableArbitrumNetwork: jest.fn(),
-    getArbitrumChainId: jest.fn(),
-    currentNetwork: 'mainnet',
-  })),
   usePerpsPrices: jest.fn(),
   usePerpsLivePrices: jest.fn(() => ({
     ETH: { price: '3000', percentChange24h: '2.5' },

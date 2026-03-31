@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SectionId, SECTIONS_CONFIG } from '../../sections.config';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 export interface SectionHeaderProps {
   sectionId: SectionId;
@@ -16,7 +15,7 @@ export interface SectionHeaderProps {
  * consistency between QuickActions buttons and section "View All" buttons.
  */
 const TrendingSectionHeader: React.FC<SectionHeaderProps> = ({ sectionId }) => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation();
   const sectionConfig = SECTIONS_CONFIG[sectionId];
 
   return (

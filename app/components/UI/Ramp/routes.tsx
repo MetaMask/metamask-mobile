@@ -39,7 +39,10 @@ const clearStackNavigatorOptions = {
 };
 
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.RAMP.TOKEN_SELECTION}>
+  <Stack.Navigator
+    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+    headerMode="screen"
+  >
     <Stack.Screen
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
@@ -90,7 +93,8 @@ const MainRoutes = () => (
 
 const TokenListModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    mode="modal"
+    screenOptions={clearStackNavigatorOptions}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
@@ -142,7 +146,7 @@ const TokenListRoutes = () => {
     <QueryClientProvider client={reactQueryService.queryClient}>
       <RootStack.Navigator
         initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-        screenOptions={{ headerShown: false }}
+        headerMode="none"
       >
         <RootStack.Screen
           name={Routes.RAMP.TOKEN_SELECTION}

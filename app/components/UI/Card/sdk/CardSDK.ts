@@ -2447,10 +2447,15 @@ export class CardSDK {
    * Google Wallet provisioning flow:
    * 1. Card provider returns opaquePaymentCard (OPC)
    *
-   * @returns Promise resolving to the opaque payment card string
+   * @param params - The Google Wallet provisioning request parameters
+   * @returns Promise resolving to the provisioning response with encrypted opaque payment card
    * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
    */
   createGoogleWalletProvisioningRequest = async (): Promise<{
+    cardNetwork: string;
+    lastFourDigits: string;
+    cardholderName: string;
+    cardDescription?: string;
     opaquePaymentCard: string;
   }> => {
     const endpoint = 'card/wallet/provision/google';
@@ -2483,6 +2488,12 @@ export class CardSDK {
     const responseData = (await response.json()) as {
       success: boolean;
       data?: {
+        cardNetwork?: string;
+        lastFourDigits?: string;
+        panLast4?: string;
+        cardholderName?: string;
+        holderName?: string;
+        cardDescription?: string;
         opaquePaymentCard?: string;
       };
     };
@@ -2496,8 +2507,14 @@ export class CardSDK {
       );
     }
 
+    const data = responseData.data;
+
     return {
-      opaquePaymentCard: responseData.data.opaquePaymentCard,
+      cardNetwork: data.cardNetwork || 'MASTERCARD',
+      lastFourDigits: data.lastFourDigits || data.panLast4 || '',
+      cardholderName: data.cardholderName || data.holderName || '',
+      cardDescription: data.cardDescription,
+      opaquePaymentCard: data.opaquePaymentCard as string,
     };
   };
 

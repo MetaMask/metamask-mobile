@@ -21,6 +21,7 @@ interface OrderPreviewResult {
 export function usePredictOrderPreview(
   params: PreviewOrderParams & {
     autoRefreshTimeout?: number;
+    initialPreview?: OrderPreview | null;
   },
 ): OrderPreviewResult {
   // Destructure params for stable dependencies
@@ -67,7 +68,9 @@ export function usePredictOrderPreview(
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
-  const preview = hasValidSize ? (query.data ?? null) : null;
+  const preview = hasValidSize
+    ? (query.data ?? params.initialPreview ?? null)
+    : (params.initialPreview ?? null);
   const error = query.error
     ? parseErrorMessage({
         error: query.error,

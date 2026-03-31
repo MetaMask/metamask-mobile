@@ -37,7 +37,7 @@ describe('PredictBuyBottomContent', () => {
   describe('when isInputFocused is true', () => {
     it('returns null and does not render anything', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused>
+        <PredictBuyBottomContent isInputFocused errorMessage={undefined}>
           {mockChildren}
         </PredictBuyBottomContent>,
       );
@@ -45,12 +45,26 @@ describe('PredictBuyBottomContent', () => {
       expect(screen.queryByText(/Disclaimer text/)).not.toBeOnTheScreen();
       expect(screen.queryByTestId('children-content')).not.toBeOnTheScreen();
     });
+
+    it('returns null even when errorMessage is provided', () => {
+      renderWithProvider(
+        <PredictBuyBottomContent isInputFocused errorMessage="Error message">
+          {mockChildren}
+        </PredictBuyBottomContent>,
+      );
+
+      expect(screen.queryByText(/Error message/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Disclaimer text/)).not.toBeOnTheScreen();
+    });
   });
 
   describe('when isInputFocused is false', () => {
     it('renders children content', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {mockChildren}
         </PredictBuyBottomContent>,
       );
@@ -60,7 +74,10 @@ describe('PredictBuyBottomContent', () => {
 
     it('renders disclaimer text', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {mockChildren}
         </PredictBuyBottomContent>,
       );
@@ -70,7 +87,10 @@ describe('PredictBuyBottomContent', () => {
 
     it('renders learn more link', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {mockChildren}
         </PredictBuyBottomContent>,
       );
@@ -80,7 +100,10 @@ describe('PredictBuyBottomContent', () => {
 
     it('opens Polymarket TOS URL when learn more is pressed', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {mockChildren}
         </PredictBuyBottomContent>,
       );
@@ -94,7 +117,61 @@ describe('PredictBuyBottomContent', () => {
     });
   });
 
+  describe('error message display', () => {
+    it('displays error message when provided', () => {
+      renderWithProvider(
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage="Insufficient balance"
+        >
+          {mockChildren}
+        </PredictBuyBottomContent>,
+      );
+
+      expect(screen.getByText(/Insufficient balance/)).toBeOnTheScreen();
+    });
+
+    it('does not display error message when not provided', () => {
+      renderWithProvider(
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
+          {mockChildren}
+        </PredictBuyBottomContent>,
+      );
+
+      expect(screen.queryByText(/Insufficient balance/)).not.toBeOnTheScreen();
+    });
+
+    it('displays error message along with children and disclaimer', () => {
+      renderWithProvider(
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage="Network error"
+        >
+          {mockChildren}
+        </PredictBuyBottomContent>,
+      );
+
+      expect(screen.getByText(/Network error/)).toBeOnTheScreen();
+      expect(screen.getByTestId('children-content')).toBeOnTheScreen();
+      expect(screen.getByText(/Disclaimer text/)).toBeOnTheScreen();
+    });
+  });
+
   describe('edge cases', () => {
+    it('handles empty error message string', () => {
+      renderWithProvider(
+        <PredictBuyBottomContent isInputFocused={false} errorMessage="">
+          {mockChildren}
+        </PredictBuyBottomContent>,
+      );
+
+      expect(screen.getByTestId('children-content')).toBeOnTheScreen();
+      expect(screen.getByText(/Disclaimer text/)).toBeOnTheScreen();
+    });
+
     it('handles multiple children elements', () => {
       const multipleChildren = (
         <>
@@ -108,7 +185,10 @@ describe('PredictBuyBottomContent', () => {
       );
 
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {multipleChildren}
         </PredictBuyBottomContent>,
       );
@@ -116,12 +196,31 @@ describe('PredictBuyBottomContent', () => {
       expect(screen.getByTestId('child-1')).toBeOnTheScreen();
       expect(screen.getByTestId('child-2')).toBeOnTheScreen();
     });
+
+    it('handles long error message text', () => {
+      const longError =
+        'This is a very long error message that explains in detail what went wrong with the transaction';
+
+      renderWithProvider(
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={longError}
+        >
+          {mockChildren}
+        </PredictBuyBottomContent>,
+      );
+
+      expect(screen.getByText(new RegExp(longError))).toBeOnTheScreen();
+    });
   });
 
   describe('Linking behavior', () => {
     it('calls Linking.openURL with correct URL', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {mockChildren}
         </PredictBuyBottomContent>,
       );
@@ -137,7 +236,10 @@ describe('PredictBuyBottomContent', () => {
 
     it('opens URL only when learn more is pressed', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
+        <PredictBuyBottomContent
+          isInputFocused={false}
+          errorMessage={undefined}
+        >
           {mockChildren}
         </PredictBuyBottomContent>,
       );

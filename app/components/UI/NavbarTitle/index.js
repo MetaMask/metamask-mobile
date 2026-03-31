@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useNavigation } from '@react-navigation/native';
+import { withNavigation } from '@react-navigation/compat';
 import {
   selectChainId,
   selectProviderConfig,
@@ -178,11 +178,4 @@ const mapStateToProps = (state) => ({
   selectedNetworkName: selectNetworkName(state),
 });
 
-const ConnectedNavbarTitle = connect(mapStateToProps)(NavbarTitle);
-
-const NavbarTitleWrapper = (props) => {
-  const navigation = useNavigation();
-  return <ConnectedNavbarTitle {...props} navigation={navigation} />;
-};
-
-export default NavbarTitleWrapper;
+export default withNavigation(connect(mapStateToProps)(NavbarTitle));

@@ -107,7 +107,7 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../pushProvisioning';
-import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
+import { AddToWalletButton } from '@expensify/react-native-wallet';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
 import { createViewPinBottomSheetNavigationDetails } from '../../components/ViewPinBottomSheet';
@@ -273,12 +273,12 @@ const CardHome = () => {
       cardDetails
         ? {
             id: cardDetails.id,
-            holderName: cardholderName,
+            holderName: cardDetails.holderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
           }
         : null,
-    [cardDetails, cardholderName],
+    [cardDetails],
   );
 
   const {
@@ -288,7 +288,6 @@ const CardHome = () => {
   } = usePushProvisioning({
     cardDetails: cardDetailsForProvisioning,
     userAddress: userAddressForProvisioning,
-    accountCreatedAt: kycStatus?.userDetails?.createdAt,
     onSuccess: () => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,

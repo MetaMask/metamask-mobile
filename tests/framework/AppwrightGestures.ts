@@ -95,39 +95,25 @@ export default class AppwrightGestures {
     options: {
       maxRetries?: number;
       retryDelay?: number;
-      tapBeforeFill?: boolean;
     } = {},
   ): Promise<void> {
-    const {
-      maxRetries = 1,
-      retryDelay = 1000,
-      tapBeforeFill = false,
-    } = options;
+    const { maxRetries = 1, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
     const elementToType = await elem;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        if (tapBeforeFill) {
-          try {
-            await elementToType.tap();
-            await AppwrightGestures.wait(300);
-          } catch {
-            // Field may already be focused; still try fill.
-          }
-        }
         await elementToType.fill(text);
         return; // Success, exit early
       } catch (error: unknown) {
         lastError = error as Error;
 
-        const retriable =
-          lastError.message.includes('not found') ||
-          lastError.message.includes('invalid element state');
-
-        if (retriable && attempt < maxRetries) {
+        // Check if it's a "not found" error and we have retries left
+        if (lastError.message.includes('not found') && attempt < maxRetries) {
           console.log(
-            `typeText retry ${attempt + 1}/${maxRetries}: ${lastError.message}`,
+            `Element not found on type attempt ${
+              attempt + 1
+            }, retrying in ${retryDelay}ms...`,
           );
           await AppwrightGestures.wait(retryDelay);
           continue;

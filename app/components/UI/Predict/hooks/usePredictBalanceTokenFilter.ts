@@ -1,12 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
-import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
-import { getNetworkImageSource } from '../../../../util/networks';
 import useFiatFormatter from '../../SimulationDetails/FiatDisplay/useFiatFormatter';
-import { POLYGON_USDCE } from '../../../Views/confirmations/constants/predict';
-import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
@@ -16,6 +10,10 @@ import {
 } from '../constants/transactions';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
+import { TransactionType } from '@metamask/transaction-controller';
+
+//TODO: Remove this once the predictDepositAndOrder type is added to the transaction controller
+const PREDICT_DEPOSIT_AND_ORDER_TYPE = 'predictDepositAndOrder';
 
 export function usePredictBalanceTokenFilter(
   forceEnabled = false,
@@ -24,20 +22,14 @@ export function usePredictBalanceTokenFilter(
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const usdceToken = useSelector((state: RootState) =>
-    selectSingleTokenByAddressAndChainId(
-      state,
-      POLYGON_USDCE.address,
-      PREDICT_BALANCE_CHAIN_ID,
-    ),
-  );
 
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
       if (
         !forceEnabled &&
         !hasTransactionType(transactionMeta, [
-          TransactionType.predictDepositAndOrder,
+          // TODO: Remove this once the predictDepositAndOrder type is added to the transaction controller
+          PREDICT_DEPOSIT_AND_ORDER_TYPE as TransactionType,
         ])
       ) {
         return tokens;
@@ -54,11 +46,8 @@ export function usePredictBalanceTokenFilter(
         symbol: 'USDC.e',
         balance: balanceStr,
         balanceInSelectedCurrency: balanceFormatted,
-        image: usdceToken?.image ?? '',
-        logo: usdceToken?.image ?? '',
-        networkBadgeSource: getNetworkImageSource({
-          chainId: PREDICT_BALANCE_CHAIN_ID,
-        }),
+        image: '',
+        logo: '',
         decimals: 6,
         isETH: false,
         isNative: false,
@@ -81,7 +70,6 @@ export function usePredictBalanceTokenFilter(
       isPredictBalanceSelected,
       predictBalance,
       formatFiat,
-      usdceToken,
     ],
   );
 }

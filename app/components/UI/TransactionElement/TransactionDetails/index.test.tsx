@@ -76,23 +76,9 @@ jest.mock('@metamask/controller-utils', () => ({
   query: jest.fn(),
 }));
 
-const mockNavigate = jest.fn();
-const mockPush = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
-  return {
-    ...actual,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      push: mockPush,
-    }),
-  };
-});
-
 const navigationMock = {
-  navigate: mockNavigate,
-  push: mockPush,
+  navigate: jest.fn(),
+  push: jest.fn(),
 };
 
 const renderComponent = ({

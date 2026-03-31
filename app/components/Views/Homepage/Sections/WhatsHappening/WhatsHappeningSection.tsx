@@ -77,12 +77,16 @@ const WhatsHappeningSection = forwardRef<
 
   const navigateToDetail = useCallback(
     (initialIndex: number) => {
-      // TODO: When WhatsHappeningDetailView is implemented, pass only { initialIndex } — the
-      // detail screen should call useWhatsHappening(); AiDigestController caches the response.
-      navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
-        items,
-        initialIndex,
-      });
+      // TODO: When WhatsHappeningDetailView is implemented:
+      // 1. Add 'WhatsHappeningDetailView' to RootStackParamList in app/core/NavigationService/types.ts
+      // 2. Remove the `as never` casts below
+      // 3. Replace { items, initialIndex } with just { initialIndex } — the detail screen
+      //    should call useWhatsHappening() directly; AiDigestController caches the response
+      //    so no extra network request will be made.
+      navigation.navigate(
+        Routes.WHATS_HAPPENING_DETAIL as never,
+        { items, initialIndex } as never,
+      );
     },
     [navigation, items],
   );

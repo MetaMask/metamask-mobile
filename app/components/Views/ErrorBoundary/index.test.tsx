@@ -3,18 +3,32 @@ import { View, Alert } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import { analytics } from '../../../util/analytics/analytics';
 
-jest.mock('../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: jest.fn(),
-  },
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
+
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  ...jest.requireActual('../../../components/hooks/useMetrics'),
+  withMetricsAwareness: jest
+    .fn()
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .mockImplementation((Children) => (props: any) => (
+      <Children
+        {...props}
+        metrics={{
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }}
+      />
+    )),
 }));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -81,7 +95,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     );
 
-    expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('renders all buttons when dataCollectionForMarketing is true', () => {
@@ -276,7 +290,7 @@ describe('ErrorBoundary', () => {
         { state: initialState },
       );
 
-      expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({

@@ -134,21 +134,16 @@ class LocalWebSocketServer implements Resource {
 
     this.websocketConnections = [];
 
-    await new Promise<void>((resolve, reject) => {
-      this.server?.close((err) => {
-        if (err) {
-          logger.warn(`[${this.name}] Error closing WebSocket server:`, err);
-          reject(err);
-        } else {
-          logger.info(
-            `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
-          );
-          resolve();
-        }
-      });
+    this.server.close(() => {
+      logger.info(
+        `[${this.name}] WebSocket server stopped on ws://localhost:${this.port}`,
+      );
     });
     this.server = null;
     this.status = ServerStatus.STOPPED;
+
+    // Give a delay to ensure all connections are fully closed
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   /**
