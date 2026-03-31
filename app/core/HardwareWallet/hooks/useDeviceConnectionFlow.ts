@@ -201,14 +201,23 @@ export const useDeviceConnectionFlow = ({
         adapter.resetFlowState();
       }
 
-      if (!(await adapter.ensurePermissions())) {
-        return false;
-      }
+      try {
+        if (!(await adapter.ensurePermissions())) {
+          return false;
+        }
 
-      const transportUnavailable =
-        await checkTransportEnabledOrShowError(adapter);
-      if (transportUnavailable) {
-        return createBlockingPromise();
+        const transportUnavailable =
+          await checkTransportEnabledOrShowError(adapter);
+        if (transportUnavailable) {
+          return createBlockingPromise();
+        }
+      } catch (error) {
+        DevLogger.log(
+          '[HardwareWallet] ensureDeviceReady pre-check error:',
+          error,
+        );
+        handleError(error);
+        return false;
       }
 
       return createBlockingPromise(() => {
