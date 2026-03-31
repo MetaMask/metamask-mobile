@@ -2,6 +2,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -34,22 +36,17 @@ import { useSelector } from 'react-redux';
 
 const introductionImg = require('../../../../images/reveal_srp.png');
 
-export interface SRPQuizProps {
-  route: {
-    params: {
-      keyringId?: string;
-    };
-  };
+export interface SRPQuizRouteParams {
+  keyringId?: string;
 }
 
+export type SRPQuizProps = StackScreenProps<
+  RootStackParamList,
+  'SRPRevealQuiz'
+>;
+
 const SRPQuiz = (props: SRPQuizProps) => {
-  // It has be destructured like this because of prettier
-  // shifting the fence to the ending curly brace.
-  const {
-    route: {
-      params: { keyringId },
-    },
-  } = props;
+  const keyringId = props.route.params?.keyringId;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});

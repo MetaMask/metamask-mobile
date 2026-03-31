@@ -12,17 +12,20 @@ import {
 } from '../../../core/SDKConnect/SDKConnectConstants.ts';
 import { ImageURISource } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { wait } from '../../../core/SDKConnect/utils/wait.util.ts';
 
-export interface ReturnToAppNotificationProps {
-  route: {
-    params: {
-      method?: string;
-      origin?: string;
-      hideReturnToApp?: boolean;
-    };
-  };
+export interface ReturnToAppNotificationRouteParams {
+  method?: string;
+  origin?: string;
+  hideReturnToApp?: boolean;
 }
+
+export type ReturnToAppNotificationProps = StackScreenProps<
+  RootStackParamList,
+  'ReturnToDappToast'
+>;
 
 // Get the secondary label to display if needed, depending on the method
 const getMethodLabel = (method?: string): string | undefined => {

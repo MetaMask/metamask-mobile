@@ -1,6 +1,8 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 
 // External dependencies.
 import BottomSheet, {
@@ -34,13 +36,11 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
-interface Props {
-  route: {
-    params: {
-      caller: string;
-    };
-  };
+export interface BasicFunctionalityModalParams {
+  caller: string;
 }
+
+type Props = StackScreenProps<RootStackParamList, 'BasicFunctionality'>;
 
 const BasicFunctionalityModal = ({ route }: Props) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -94,8 +94,8 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       );
     });
     if (
-      route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
-      route.params.caller === Routes.NOTIFICATIONS.OPT_IN
+      route.params?.caller === Routes.SETTINGS.NOTIFICATIONS ||
+      route.params?.caller === Routes.NOTIFICATIONS.OPT_IN
     ) {
       await enableNotificationsFromModal();
     }

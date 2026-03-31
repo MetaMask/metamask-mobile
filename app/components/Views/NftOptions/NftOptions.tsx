@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,13 +28,11 @@ import { Collectible } from '../../../components/UI/CollectibleMedia/Collectible
 import Routes from '../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
 
-interface Props {
-  route: {
-    params: {
-      collectible: Collectible;
-    };
-  };
+export interface NftOptionsParams {
+  collectible: Collectible;
 }
+
+type Props = StackScreenProps<RootStackParamList, 'NftOptions'>;
 
 const NftOptions = (props: Props) => {
   const { collectible } = props.route.params;
