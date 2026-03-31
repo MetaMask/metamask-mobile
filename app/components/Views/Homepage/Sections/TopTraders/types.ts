@@ -1,22 +1,22 @@
 /**
  * Represents a single top trader in the social leaderboard.
+ *
+ * Mapped from `LeaderboardEntry` returned by SocialService.
  */
 export interface TopTrader {
-  /** Unique identifier for the trader */
+  /** Clicker profile ID. */
   id: string;
-  /** Rank position in the leaderboard (1-based) */
+  /** Rank position in the leaderboard (1-based). */
   rank: number;
-  /** Display username */
+  /** Display username or truncated address. */
   username: string;
-  /** Optional URI for the trader's profile avatar image */
+  /** Profile avatar URL. */
   avatarUri?: string;
-  /** Percentage change over the period (e.g. 50.2 for +50.2%) */
+  /** ROI percentage over 30 days (e.g. 96.2 for +96.2%). */
   percentageChange: number;
-  /** Formatted profit amount string (e.g. "+$45,900K") */
-  profitAmount: string;
-  /** Time period label (e.g. "30D") */
-  period: string;
-  /** Whether the current user is following this trader */
+  /** Absolute PnL over 30 days in USD (raw number, formatted by the UI). */
+  pnlValue: number;
+  /** Whether the current user is following this trader. */
   isFollowing: boolean;
 }
 

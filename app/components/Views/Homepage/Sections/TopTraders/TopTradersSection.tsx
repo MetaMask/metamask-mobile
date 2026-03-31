@@ -5,9 +5,11 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { SectionRefreshHandle } from '../../types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
@@ -16,6 +18,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { TopTraderCard, TopTraderCardSkeleton } from './components';
+import { useTopTraders } from './hooks';
+
+const HOME_TRADER_LIMIT = 3;
+const SKELETON_KEYS = Array.from(
+  { length: HOME_TRADER_LIMIT },
+  (_, i) => `home-trader-skeleton-${i}`,
+);
 
 interface TopTradersSectionProps {
   sectionIndex: number;
@@ -23,11 +33,11 @@ interface TopTradersSectionProps {
 }
 
 /**
- * TopTradersSection — Social leaderboard entry point on the homepage.
+ * TopTradersSection -- Social leaderboard entry point on the homepage.
  *
- * Renders a tappable section header that navigates to the full
- * TopTradersView. The trader list, network filter, and follow actions
- * all live inside TopTradersView, not here.
+ * Renders a section header plus a horizontally scrollable row of the
+ * top 3 trader cards. Tapping the header chevron navigates to the
+ * full TopTradersView.
  */
 const TopTradersSection = forwardRef<
   SectionRefreshHandle,
@@ -35,25 +45,30 @@ const TopTradersSection = forwardRef<
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const navigation = useNavigation();
+  const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
+
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
+    limit: HOME_TRADER_LIMIT,
+  });
 
   useImperativeHandle(
     ref,
     () => ({
-      refresh: async () => undefined,
+      refresh,
     }),
-    [],
+    [refresh],
   );
 
   const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
-    isLoading: false,
+    isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
     totalSectionsLoaded,
-    isEmpty: true,
-    itemCount: 0,
+    isEmpty: traders.length === 0,
+    itemCount: traders.length,
   });
 
   const handleViewAll = useCallback(() => {
@@ -73,6 +88,23 @@ const TopTradersSection = forwardRef<
       <Box>
         <SectionHeader title={title} onPress={handleViewAll} />
       </Box>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
+        testID="homepage-top-traders-scroll"
+      >
+        {isLoading
+          ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
+          : traders.map((trader) => (
+              <TopTraderCard
+                key={trader.id}
+                trader={trader}
+                onFollowPress={toggleFollow}
+              />
+            ))}
+      </ScrollView>
     </View>
   );
 });

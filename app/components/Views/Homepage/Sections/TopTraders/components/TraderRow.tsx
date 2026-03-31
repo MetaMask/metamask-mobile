@@ -18,6 +18,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
+import { formatPnl } from '../utils/formatPnl';
 
 export interface TraderRowProps {
   trader: TopTrader;
@@ -26,7 +27,7 @@ export interface TraderRowProps {
 }
 
 /**
- * TraderRow — a single row in the Top Traders leaderboard.
+ * TraderRow -- a single row in the Top Traders leaderboard.
  *
  * Displays the trader's rank, avatar, username, performance stats,
  * and a Follow / Following toggle button.
@@ -38,8 +39,10 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const formattedPercentage = `+${trader.percentageChange}%`;
-  const statsText = `${formattedPercentage} · ${trader.profitAmount} `;
+  const roiSign = trader.percentageChange >= 0 ? '+' : '';
+  const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
+  const pnlText = formatPnl(trader.pnlValue);
+  const isPnlPositive = trader.pnlValue >= 0;
 
   return (
     <Box
@@ -96,22 +99,36 @@ const TraderRow: React.FC<TraderRowProps> = ({
               fontWeight={FontWeight.Medium}
               twClassName="text-success-default"
             >
-              {statsText}
+              {roiText}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {' \u00B7 '}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
+            >
+              {pnlText}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextMuted}
             >
-              {trader.period}
+              {' 30D'}
             </Text>
           </Text>
         </Box>
       </Box>
 
-      {/* Follow / Following button.
-           Follow   = Secondary (muted/outlined) — not yet following.
-           Following = Primary (filled, branded) — active following state. */}
+      {/* Follow / Following button */}
       <Button
         variant={
           trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary

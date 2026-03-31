@@ -1,102 +1,93 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useMemo, useCallback, useState } from 'react';
+import { useQuery } from '@metamask/react-data-query';
+// TODO: Update import to @metamask/social-controllers once the package is released.
+import type {
+  LeaderboardResponse,
+  FetchLeaderboardOptions,
+} from '@metamask-previews/social-controllers';
 import type { TopTrader } from '../types';
 
 /**
  * Result interface for the useTopTraders hook.
  */
 export interface UseTopTradersResult {
-  /** List of top traders */
   traders: TopTrader[];
-  /** Whether the data is currently loading */
   isLoading: boolean;
-  /** Error message if the data fetch failed */
   error: string | null;
-  /** Refresh the traders list */
   refresh: () => Promise<void>;
-  /** Toggle the follow state for a trader */
   toggleFollow: (traderId: string) => void;
 }
 
-/**
- * Mocked trader data used as a placeholder until the real API is integrated.
- * Replace with API calls when the social leaderboard data layer ships.
- */
-const MOCKED_TRADERS: TopTrader[] = [
-  {
-    id: 'trader-1',
-    rank: 1,
-    username: 'aparjey',
-    percentageChange: 50.2,
-    profitAmount: '+$45,900K',
-    period: '30D',
-    isFollowing: false,
-  },
-  {
-    id: 'trader-2',
-    rank: 2,
-    username: 'kien',
-    percentageChange: 91.2,
-    profitAmount: '+$41,800K',
-    period: '30D',
-    isFollowing: true,
-  },
-];
-
-const SIMULATED_LOADING_DELAY_MS = 800;
+interface UseTopTradersOptions {
+  limit?: number;
+}
 
 /**
- * Hook that provides top traders data for the homepage leaderboard section.
+ * Hook that provides top traders data for the social leaderboard.
  *
- * Currently uses mocked data with a simulated loading delay.
- * When the social leaderboard API ships, replace the `fetchTraders` body
- * with a real `Engine.context.*` call, keeping the same return shape.
+ * Uses the Data Services Pattern -- `useQuery` from `@metamask/react-data-query`
+ * resolves the `SocialService:fetchLeaderboard` query key through the messenger
+ * adapter, so the SocialService handles caching, de-duplication, and retries.
  *
+ * @param options - Optional configuration.
+ * @param options.limit - Maximum number of traders to return.
  * @returns Object with traders, isLoading, error, refresh, toggleFollow
  */
-export const useTopTraders = (): UseTopTradersResult => {
-  const [traders, setTraders] = useState<TopTrader[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const useTopTraders = (
+  options?: UseTopTradersOptions,
+): UseTopTradersResult => {
+  const fetchOptions: FetchLeaderboardOptions | null = options?.limit
+    ? { limit: options.limit }
+    : null;
 
-  const fetchTraders = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const queryKey: [string, FetchLeaderboardOptions | null] = [
+    'SocialService:fetchLeaderboard',
+    fetchOptions,
+  ];
 
-    try {
-      // TODO: Replace with real API call when data layer is ready.
-      await new Promise<void>((resolve) =>
-        setTimeout(resolve, SIMULATED_LOADING_DELAY_MS),
-      );
-      setTraders(MOCKED_TRADERS);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch top traders',
-      );
-      setTraders([]);
-    } finally {
-      setIsLoading(false);
+  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
+    queryKey,
+    enabled: true,
+  });
+
+  const [localFollowOverrides, setLocalFollowOverrides] = useState<
+    Record<string, boolean>
+  >({});
+
+  const traders: TopTrader[] = useMemo(() => {
+    if (!data?.traders) {
+      return [];
     }
-  }, []);
+
+    return data.traders.map((entry) => ({
+      id: entry.profileId,
+      rank: entry.rank,
+      username: entry.name,
+      avatarUri: entry.imageUrl,
+      percentageChange: entry.roi30d ?? 0,
+      pnlValue: entry.pnl30d,
+      isFollowing: localFollowOverrides[entry.profileId] ?? false,
+    }));
+  }, [data, localFollowOverrides]);
 
   const refresh = useCallback(async () => {
-    await fetchTraders();
-  }, [fetchTraders]);
+    await refetch();
+  }, [refetch]);
 
   const toggleFollow = useCallback((traderId: string) => {
-    setTraders((prev) =>
-      prev.map((trader) =>
-        trader.id === traderId
-          ? { ...trader, isFollowing: !trader.isFollowing }
-          : trader,
-      ),
-    );
+    setLocalFollowOverrides((prev) => ({
+      ...prev,
+      [traderId]: !prev[traderId],
+    }));
   }, []);
 
-  useEffect(() => {
-    fetchTraders();
-  }, [fetchTraders]);
-
-  return { traders, isLoading, error, refresh, toggleFollow };
+  return {
+    traders,
+    isLoading,
+    error: error ? String(error) : null,
+    refresh,
+    toggleFollow,
+  };
 };
 
 export default useTopTraders;
