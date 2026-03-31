@@ -63,7 +63,7 @@ function generatePRComment(summaryContent) {
 }
 
 function setGitHubOutputs(analysis) {
-  const { tags, confidence, riskLevel, performanceTests } = analysis;
+  const { tags, confidence, performanceTests } = analysis;
   setGithubOutputs('ai_e2e_test_tags', tags);
   setGithubOutputs('ai_confidence', confidence);
   // Performance test tags (empty array means no performance tests needed)
