@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new tab for users to see their NFTs and fixed NFT flicker on that view (#27437)
 - Added press opacity feedback to NFT grid items (#27488)
 - Applied a minimum $0.01 threshold for showing the "Claim bonus" CTA for Merkl rewards so that amounts below the threshold show the 3% bonus label instead (#27522)
-- Updated Predict withdraw to default to the user's last used destination token before falling back to the remote preferred token (#27532)
+- Updated Predict withdraw to default to the user’s last used destination token before falling back to the remote preferred token (#27532)
 - Enabled campaigns view under feature flag (#27556)
 - Redirected buy deeplinks to the new Ramps Buy flow when Ramps Unified V2 is enabled; deprecated cash deposit deeplinks (#27557)
 - Restored mUSD claimable bonus claim section on asset overview screen (#27567)
