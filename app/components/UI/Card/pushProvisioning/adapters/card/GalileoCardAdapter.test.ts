@@ -27,13 +27,9 @@ describe('GalileoCardAdapter', () => {
   });
 
   describe('getOpaquePaymentCard', () => {
-    it('returns successful response with encrypted payload', async () => {
+    it('returns opaquePaymentCard from SDK response', async () => {
       const mockResponse = {
         opaquePaymentCard: 'encrypted-opaque-card-data',
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '1234',
-        cardholderName: 'John Doe',
-        cardDescription: 'MetaMask Card',
       };
       mockCardSDK.createGoogleWalletProvisioningRequest.mockResolvedValue(
         mockResponse,
@@ -41,22 +37,15 @@ describe('GalileoCardAdapter', () => {
 
       const result = await adapter.getOpaquePaymentCard();
 
-      expect(result.success).toBe(true);
-      expect(result.encryptedPayload?.opaquePaymentCard).toBe(
-        'encrypted-opaque-card-data',
-      );
-      expect(result.cardNetwork).toBe('MASTERCARD');
-      expect(result.lastFourDigits).toBe('1234');
-      expect(result.cardholderName).toBe('John Doe');
+      expect(result).toEqual({
+        opaquePaymentCard: 'encrypted-opaque-card-data',
+      });
     });
 
     it('throws ProvisioningError when opaquePaymentCard is missing', async () => {
       // Test edge case where SDK returns invalid data
       mockCardSDK.createGoogleWalletProvisioningRequest.mockResolvedValue({
         opaquePaymentCard: '',
-        cardNetwork: 'MASTERCARD',
-        lastFourDigits: '1234',
-        cardholderName: 'John Doe',
       });
 
       await expect(adapter.getOpaquePaymentCard()).rejects.toThrow();
@@ -66,9 +55,6 @@ describe('GalileoCardAdapter', () => {
       // Test edge case where SDK returns null/undefined - use type assertion for testing
       mockCardSDK.createGoogleWalletProvisioningRequest.mockResolvedValue(
         undefined as unknown as {
-          cardNetwork: string;
-          lastFourDigits: string;
-          cardholderName: string;
           opaquePaymentCard: string;
         },
       );
