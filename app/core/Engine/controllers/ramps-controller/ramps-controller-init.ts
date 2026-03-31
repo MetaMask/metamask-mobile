@@ -78,7 +78,11 @@ export const rampsControllerInit: ControllerInitFunction<
     controller
       .init()
       .then(() => {
-        controller.subscribeToTransakOrderUpdates();
+        try {
+          controller.subscribeToTransakOrderUpdates();
+        } catch {
+          // WebSocket subscription failed — polling below serves as fallback
+        }
         controller.startOrderPolling();
       })
       .catch(() => {

@@ -38,6 +38,8 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
 };
 
 const mockInit = jest.fn().mockResolvedValue(undefined);
+const mockSubscribeToTransakOrderUpdates = jest.fn();
+const mockStartOrderPolling = jest.fn();
 
 jest.mock('@metamask/ramps-controller', () => {
   const actual = jest.requireActual('@metamask/ramps-controller');
@@ -46,6 +48,9 @@ jest.mock('@metamask/ramps-controller', () => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
     instance.constructor = MockRampsControllerSpy;
     instance.init = mockInit;
+    instance.subscribeToTransakOrderUpdates =
+      mockSubscribeToTransakOrderUpdates;
+    instance.startOrderPolling = mockStartOrderPolling;
     return instance;
   });
 
@@ -238,6 +243,23 @@ describe('ramps controller init', () => {
 
       await waitFor(() => {
         expect(mockInit).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('starts order polling even when WebSocket subscription throws', async () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+      mockSubscribeToTransakOrderUpdates.mockImplementation(() => {
+        throw new Error('WebSocket connection failed');
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => {
+        expect(mockSubscribeToTransakOrderUpdates).toHaveBeenCalledTimes(1);
+        expect(mockStartOrderPolling).toHaveBeenCalledTimes(1);
       });
     });
 
