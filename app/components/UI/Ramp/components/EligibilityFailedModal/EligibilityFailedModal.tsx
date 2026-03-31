@@ -1,24 +1,24 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { ELIGIBILITY_FAILED_MODAL_TEST_IDS } from './EligibilityFailedModal.testIds';
 
 const SUPPORT_URL = 'https://support.metamask.io';
 
@@ -47,19 +47,21 @@ function EligibilityFailedModal() {
       ref={sheetRef}
       shouldNavigateBack
       isInteractable={false}
-      testID="eligibility-failed-modal"
+      testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+        closeButtonProps={{
+          testID: ELIGIBILITY_FAILED_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       >
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.description',
           )}
@@ -70,21 +72,21 @@ function EligibilityFailedModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={navigateToContactSupport}
-          label={strings(
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+        >
+          {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.contact_support',
           )}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+        </Button>
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
-          label={strings(
-            'fiat_on_ramp_aggregator.eligibility_failed_modal.got_it',
-          )}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.got_it')}
+        </Button>
       </View>
     </BottomSheet>
   );

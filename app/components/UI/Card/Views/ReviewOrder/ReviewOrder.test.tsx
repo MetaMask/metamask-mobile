@@ -107,6 +107,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
   return {
     Box: ({
       children,
@@ -118,6 +120,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(RNText, props, children),
+    Button: ({
+      children,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(RNText, {}, children || label),
+      ),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       HeadingSm: 'HeadingSm',
@@ -128,6 +143,16 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: 'Regular',
       Medium: 'Medium',
       Bold: 'Bold',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });

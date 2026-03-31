@@ -164,9 +164,7 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
-import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { storageServiceInit } from './controllers/storage-service/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
@@ -181,6 +179,8 @@ import { rampsControllerInit } from './controllers/ramps-controller/ramps-contro
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
+import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
+import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,7 +285,6 @@ export class Engine {
     };
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
-        ErrorReportingService: errorReportingServiceInit,
         StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
@@ -332,7 +331,6 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
-        SwapsController: swapsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -377,6 +375,8 @@ export class Engine {
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         CardController: cardControllerInit,
+        ComplianceService: complianceServiceInit,
+        ComplianceController: complianceControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -419,6 +419,8 @@ export class Engine {
     const rampsController = controllersByName.RampsController;
     const aiDigestController = controllersByName.AiDigestController;
     const cardController = controllersByName.CardController;
+    const complianceService = controllersByName.ComplianceService;
+    const complianceController = controllersByName.ComplianceController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -444,7 +446,6 @@ export class Engine {
     const bridgeController = controllersByName.BridgeController;
     const nftController = controllersByName.NftController;
     const nftDetectionController = controllersByName.NftDetectionController;
-    const swapsController = controllersByName.SwapsController;
     const networkController = controllersByName.NetworkController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -524,7 +525,6 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: controllersByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
-      SwapsController: swapsController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -579,6 +579,8 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       CardController: cardController,
+      ComplianceService: complianceService,
+      ComplianceController: complianceController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -674,6 +676,18 @@ export class Engine {
             this.context.TokenBalancesController.updateBalances({
               chainIds: [hexChainId],
             });
+
+            const { AccountTrackerController, NetworkController } =
+              this.context;
+            try {
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(hexChainId);
+              AccountTrackerController.refresh([networkClientId]);
+            } catch {
+              // Chain may not be configured locally — skip balance refresh
+            }
+
+            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(
@@ -1167,12 +1181,12 @@ export class Engine {
   ) {
     const { ApprovalController } = this.context;
 
-    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+    if (opts.ignoreMissing && !ApprovalController.hasRequest({ id })) {
       return;
     }
 
     try {
-      ApprovalController.reject(id, reason);
+      ApprovalController.rejectRequest(id, reason);
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -1197,7 +1211,7 @@ export class Engine {
     const { ApprovalController } = this.context;
 
     try {
-      return await ApprovalController.accept(id, requestData, {
+      return await ApprovalController.acceptRequest(id, requestData, {
         waitForResult: opts.waitForResult,
         deleteAfterResult: opts.deleteAfterResult,
       });
@@ -1331,7 +1345,6 @@ export default {
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
-      SwapsController,
       TokenBalancesController,
       TokenListController,
       TokenRatesController,
@@ -1341,6 +1354,7 @@ export default {
       TransactionPayController,
       RampsController,
       AiDigestController,
+      ComplianceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1400,7 +1414,6 @@ export default {
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
-      SwapsController: SwapsController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
@@ -1412,6 +1425,7 @@ export default {
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
       CardController: CardController.state,
+      ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

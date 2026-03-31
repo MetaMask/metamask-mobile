@@ -24,13 +24,11 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -528,17 +526,16 @@ const ChooseYourCard = () => {
 
         <Box twClassName="px-4 pb-4 gap-2">
           <Button
-            variant={ButtonVariants.Primary}
-            label={
-              selectedCard.id === CardType.METAL
-                ? strings('card.choose_your_card.upgrade_title')
-                : strings('card.choose_your_card.continue_button')
-            }
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleContinue}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID={ChooseYourCardSelectors.CONTINUE_BUTTON}
-          />
+          >
+            {selectedCard.id === CardType.METAL
+              ? strings('card.choose_your_card.upgrade_title')
+              : strings('card.choose_your_card.continue_button')}
+          </Button>
           {activeIndex === 0 && !isUpgradeFlow && (
             <TouchableOpacity
               onPress={handleScrollToMetal}

@@ -1,3 +1,9 @@
+# typescript incremental build cache
+*.tsbuildinfo
+
+# task working directory (agent-local, not shipped)
+.task/
+
 # osx
 .DS_Store
 # don't save asdf tools-version config as nvm is prioritized.
@@ -38,6 +44,7 @@ android/app/.project
 android/app/bin/
 android/app/gradle*
 android/app/_build*
+android/libs
 .cxx/
 
 # if we ever want to add google services
@@ -182,3 +189,8 @@ temp/
 tests/coverage-systems/
 
 runway-artifacts/
+
+# E2E AI Analyzer output files
+release-test-plan.json
+release-delta.json
+release-signoffs.json

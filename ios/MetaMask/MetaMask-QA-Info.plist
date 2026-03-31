@@ -91,12 +91,6 @@
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
-		<string>CentraNo1-Bold.otf</string>
-		<string>CentraNo1-BoldItalic.otf</string>
-		<string>CentraNo1-Book.otf</string>
-		<string>CentraNo1-BookItalic.otf</string>
-		<string>CentraNo1-Medium.otf</string>
-		<string>CentraNo1-MediumItalic.otf</string>
 		<string>MMPoly-Regular.otf</string>
 		<string>MMSans-Bold.otf</string>
 		<string>MMSans-Medium.otf</string>
@@ -126,5 +120,9 @@
 	<string>$(MM_BRANCH_KEY_LIVE)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+  <key>braze_api_key</key>
+	<string>$(MM_BRAZE_API_KEY_IOS)</string>
+	<key>braze_sdk_endpoint</key>
+	<string>$(MM_BRAZE_SDK_ENDPOINT)</string>
 </dict>
 </plist>

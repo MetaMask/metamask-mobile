@@ -15,7 +15,6 @@ import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
   ActivityIndicator,
-  Alert,
   DeviceEventEmitter,
   Linking,
   RefreshControl,
@@ -24,7 +23,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -51,8 +49,6 @@ import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { SharedDeeplinkManager } from '../../../core/DeeplinkManager';
-import { Authentication } from '../../../core';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   BadgeStatus,
@@ -100,7 +96,6 @@ import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -110,7 +105,6 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import {
-  getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
@@ -149,7 +143,6 @@ import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccoun
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
-import { colorWithOpacity } from '../../../util/colors';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
@@ -197,7 +190,6 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
-import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const createStyles = ({ colors }: Theme) =>
@@ -227,13 +219,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
-    },
-    bottomFadeOverlay: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 40,
     },
     headerEndAccessoryContainer: {
       alignItems: 'flex-end',
@@ -642,10 +627,6 @@ const Wallet = ({
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
   // Tracks which sections have been viewed this visit (reset on each focus).
   const viewedSectionsRef = useRef<Set<string>>(new Set());
-  const scrollContentHeightRef = useRef(0);
-  const scrollYRef = useRef(0);
-  const lastBottomFadeOpacityRef = useRef(0);
-  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -978,13 +959,9 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
-
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
-
-  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -999,7 +976,6 @@ const Wallet = ({
     isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
-  const isAccountMenuEnabled = useAccountMenuEnabled();
   const { detectNfts } = useNftDetection();
 
   /**
@@ -1083,145 +1059,10 @@ const Wallet = ({
     }
   }, [isHomepageSectionsV1Enabled]);
 
-  const handleScrollWithFade = useCallback(
-    (e: {
-      nativeEvent: {
-        contentOffset: { y: number };
-        contentSize: { height: number };
-        layoutMeasurement: { height: number };
-      };
-    }) => {
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-      scrollContentHeightRef.current = contentSize.height;
-      scrollYRef.current = contentOffset.y;
-      handleHomepageScroll();
-      if (!isHomepageSectionsV1Enabled) return;
-      const remaining =
-        contentSize.height - contentOffset.y - layoutMeasurement.height;
-      const nextOpacity = remaining > 20 ? Math.min(1, remaining / 80) : 0;
-      if (Math.abs(nextOpacity - lastBottomFadeOpacityRef.current) > 0.05) {
-        lastBottomFadeOpacityRef.current = nextOpacity;
-        setBottomFadeOpacity(nextOpacity);
-      }
-    },
-    [handleHomepageScroll, isHomepageSectionsV1Enabled],
-  );
-
-  const handleScrollContentSizeChange = useCallback(
-    (_w: number, contentHeight: number) => {
-      scrollContentHeightRef.current = contentHeight;
-      if (!isHomepageSectionsV1Enabled || viewportHeight <= 0) return;
-      const remaining = contentHeight - scrollYRef.current - viewportHeight;
-      const nextOpacity = remaining > 20 ? Math.min(1, remaining / 80) : 0;
-      if (Math.abs(nextOpacity - lastBottomFadeOpacityRef.current) > 0.05) {
-        lastBottomFadeOpacityRef.current = nextOpacity;
-        setBottomFadeOpacity(nextOpacity);
-      }
-    },
-    [isHomepageSectionsV1Enabled, viewportHeight],
-  );
-
   const touchAreaSlop = useMemo(
     () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
     [],
   );
-
-  const onScanSuccess = useCallback(
-    (data: { private_key?: string; seed?: string }, content: string) => {
-      if (data.private_key) {
-        Alert.alert(
-          strings('wallet.private_key_detected'),
-          strings('wallet.do_you_want_to_import_this_account'),
-          [
-            {
-              text: strings('wallet.cancel'),
-              onPress: () => false,
-              style: 'cancel',
-            },
-            {
-              text: strings('wallet.yes'),
-              onPress: async () => {
-                try {
-                  await Authentication.importAccountFromPrivateKey(
-                    data.private_key as string,
-                  );
-                  navigation.navigate('ImportPrivateKeyView', {
-                    screen: 'ImportPrivateKeySuccess',
-                  });
-                } catch {
-                  Alert.alert(
-                    strings('import_private_key.error_title'),
-                    strings('import_private_key.error_message'),
-                  );
-                }
-              },
-            },
-          ],
-          { cancelable: false },
-        );
-      } else if (data.seed) {
-        Alert.alert(
-          strings('wallet.error'),
-          strings('wallet.logout_to_import_seed'),
-        );
-      } else {
-        setTimeout(() => {
-          SharedDeeplinkManager.parse(content, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          });
-        }, 500);
-      }
-    },
-    [navigation],
-  );
-
-  const openQRScanner = useCallback(() => {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
-    trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_QR_SCANNER,
-      )
-        .addProperties({ action: 'Wallet View', name: 'QR scanner' })
-        .build(),
-    );
-  }, [navigation, onScanSuccess, trackEvent]);
-
-  const handleNotificationOnPress = useCallback(() => {
-    if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
-        )
-          .addProperties({
-            unread_count: unreadNotificationCount,
-            read_count: readNotificationCount,
-          })
-          .build(),
-      );
-    } else {
-      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
-      trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
-        )
-          .addProperties({
-            action_type: 'started',
-            is_profile_syncing_enabled: isBackupAndSyncEnabled,
-          })
-          .build(),
-      );
-    }
-  }, [
-    isNotificationEnabled,
-    isBackupAndSyncEnabled,
-    unreadNotificationCount,
-    readNotificationCount,
-    navigation,
-    trackEvent,
-  ]);
 
   const handleHamburgerPress = useCallback(() => {
     trackEvent(
@@ -1539,13 +1380,12 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ bottom: 'additive' }}
+          edges={{ top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
               <HeaderRoot
-                includesTopInset
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                 endAccessory={
                   <View style={styles.headerEndAccessoryContainer}>
@@ -1563,57 +1403,13 @@ const Wallet = ({
                           touchAreaSlop={touchAreaSlop}
                         />
                       )}
-                      {!isAccountMenuEnabled && (
-                        <ButtonIcon
-                          iconProps={{
-                            color: MMDSIconColor.IconDefault,
-                          }}
-                          onPress={openQRScanner}
-                          iconName={MMDSIconName.QrCode}
-                          size={ButtonIconSize.Md}
-                          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                          hitSlop={touchAreaSlop}
-                        />
-                      )}
-                      {isNotificationsFeatureEnabled() &&
-                        !isAccountMenuEnabled && (
-                          <BadgeWrapper
-                            position={BadgeWrapperPosition.TopRight}
-                            positionAnchorShape={
-                              BadgeWrapperPositionAnchorShape.Circular
-                            }
-                            badge={
-                              isNotificationEnabled &&
-                              unreadNotificationCount > 0 ? (
-                                <BadgeStatus
-                                  status={BadgeStatusStatus.Active}
-                                />
-                              ) : null
-                            }
-                          >
-                            <ButtonIcon
-                              iconProps={{
-                                color: MMDSIconColor.IconDefault,
-                              }}
-                              onPress={handleNotificationOnPress}
-                              iconName={MMDSIconName.Notification}
-                              size={ButtonIconSize.Md}
-                              testID={
-                                WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
-                              }
-                              hitSlop={touchAreaSlop}
-                            />
-                          </BadgeWrapper>
-                        )}
-                      {isNotificationsFeatureEnabled() &&
-                      isAccountMenuEnabled ? (
+                      {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}
                           positionAnchorShape={
                             BadgeWrapperPositionAnchorShape.Circular
                           }
                           badge={
-                            isNotificationsFeatureEnabled() &&
                             isNotificationEnabled &&
                             unreadNotificationCount > 0 ? (
                               <BadgeStatus
@@ -1684,10 +1480,7 @@ const Wallet = ({
                     contentContainerStyle: scrollViewContentStyle,
                     showsVerticalScrollIndicator: false,
                     onScroll: isHomepageSectionsV1Enabled
-                      ? handleScrollWithFade
-                      : undefined,
-                    onContentSizeChange: isHomepageSectionsV1Enabled
-                      ? handleScrollContentSizeChange
+                      ? handleHomepageScroll
                       : undefined,
                     scrollEventThrottle: 16,
                     refreshControl: shouldEnableParentScroll ? (
@@ -1702,21 +1495,6 @@ const Wallet = ({
                 >
                   {content}
                 </ConditionalScrollView>
-                {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
-                  <LinearGradient
-                    pointerEvents="none"
-                    colors={[
-                      colorWithOpacity(colors.background.default, 0),
-                      colors.background.default,
-                    ]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={[
-                      styles.bottomFadeOverlay,
-                      { opacity: bottomFadeOpacity },
-                    ]}
-                  />
-                )}
               </View>
             </>
           ) : (

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-commonjs */
 const path = require('path');
 const {
   removeFencedCode,
@@ -196,6 +196,10 @@ function getESLintInstance() {
     // Sometimes we use `let` instead of `const` to assign variables depending on
     // the build type.
     eslintrc.rules['prefer-const'] = 0;
+
+    // This rule is broken when run under lockdown with `process.env.CI` set to `true`.
+    // Temporarily disabled until we can eliminate code fences.
+    eslintrc.rules['react/no-unescaped-entities'] = 0;
 
     // Remove all test-related overrides. We will never lint test files here.
     eslintrc.overrides = eslintrc.overrides.filter(

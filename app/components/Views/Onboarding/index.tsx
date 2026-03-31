@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useMemo,
   useRef,
   useCallback,
   useContext,
@@ -102,8 +103,19 @@ import {
   TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Theme,
+  ThemeProvider,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 
+import { getBuildNumber, getVersion } from 'react-native-device-info';
+import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -131,7 +143,12 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const onboardingVersion = useMemo(
+    () => `${getVersion()} (${getBuildNumber()})`,
+    [],
+  );
+
   const route =
     useRoute<RouteProp<{ params: OnboardingRouteParams }, 'params'>>();
   const dispatch = useDispatch();
@@ -357,7 +374,12 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
-      dispatch(setAccountType(AccountType.Metamask));
+      dispatch(
+        setAccountType({
+          accountType: AccountType.Metamask,
+          onboardingVersion,
+        }),
+      );
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
         account_type: AccountType.Metamask,
       });
@@ -365,7 +387,14 @@ const Onboarding = () => {
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [
+    metrics,
+    navigation,
+    track,
+    handleExistingUser,
+    dispatch,
+    onboardingVersion,
+  ]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -392,13 +421,25 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
-      dispatch(setAccountType(AccountType.Imported));
+      dispatch(
+        setAccountType({
+          accountType: AccountType.Imported,
+          onboardingVersion,
+        }),
+      );
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
         account_type: AccountType.Imported,
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser, dispatch]);
+  }, [
+    metrics,
+    navigation,
+    track,
+    handleExistingUser,
+    dispatch,
+    onboardingVersion,
+  ]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -412,86 +453,88 @@ const Onboarding = () => {
         socialLoginTraceCtx.current = undefined;
       }
 
-      if (result.type === 'success') {
-        const accountType = getSocialAccountType(provider, result.existingUser);
-        dispatch(setAccountType(accountType));
+      // Error case (result.type !== 'success') is not handled here because
+      // OAuthService.handleOAuthLogin() throws on failure, and the error is
+      // caught by the try/catch in onPressContinueWithSocialLogin, which calls
+      // handleLoginError → handleOAuthLoginError → captureException (Sentry).
+      if (result.type !== 'success') {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
-          account_type: accountType,
-        });
-        if (createWallet) {
-          if (result.existingUser) {
-            navigation.navigate('AccountAlreadyExists', {
-              accountName: result.accountName,
-              oauthLoginSuccess: true,
-              onboardingTraceCtx: onboardingTraceCtx.current,
-              provider,
-            });
-          } else {
-            trace({
-              name: TraceName.OnboardingNewSocialCreateWallet,
-              op: TraceOperation.OnboardingUserJourney,
-              tags: getTraceTags(store.getState()),
-              parentContext: onboardingTraceCtx.current,
-            });
+      const accountType = getSocialAccountType(provider, result.existingUser);
+      dispatch(setAccountType({ accountType, onboardingVersion }));
 
-            if (isIOS) {
-              // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-              navigation.navigate(
-                Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-                {
-                  accountName: result.accountName,
-                  oauthLoginSuccess: true,
-                  onboardingTraceCtx: onboardingTraceCtx.current,
-                  provider,
-                },
-              );
-            } else {
-              // Direct navigation to ChoosePassword for Android
-              navigation.navigate('ChoosePassword', {
-                [PREVIOUS_SCREEN]: ONBOARDING,
+      track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
+        account_type: accountType,
+      });
+      if (createWallet) {
+        if (result.existingUser) {
+          navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+            onboardingTraceCtx: onboardingTraceCtx.current,
+            provider,
+          });
+        } else {
+          trace({
+            name: TraceName.OnboardingNewSocialCreateWallet,
+            op: TraceOperation.OnboardingUserJourney,
+            tags: getTraceTags(store.getState()),
+            parentContext: onboardingTraceCtx.current,
+          });
+
+          if (isIOS) {
+            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
+            navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+              {
+                accountName: result.accountName,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: onboardingTraceCtx.current,
                 provider,
-              });
-            }
-          }
-        } else if (!createWallet) {
-          if (result.existingUser) {
-            trace({
-              name: TraceName.OnboardingExistingSocialLogin,
-              op: TraceOperation.OnboardingUserJourney,
-              tags: getTraceTags(store.getState()),
-              parentContext: onboardingTraceCtx.current,
-            });
-            isIOS
-              ? navigation.navigate(
-                  Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-                  {
-                    [PREVIOUS_SCREEN]: ONBOARDING,
-                    oauthLoginSuccess: true,
-                    onboardingTraceCtx: onboardingTraceCtx.current,
-                  },
-                )
-              : navigation.navigate('Rehydrate', {
-                  [PREVIOUS_SCREEN]: ONBOARDING,
-                  oauthLoginSuccess: true,
-                  onboardingTraceCtx: onboardingTraceCtx.current,
-                });
+              },
+            );
           } else {
-            navigation.navigate('AccountNotFound', {
-              accountName: result.accountName,
+            // Direct navigation to ChoosePassword for Android
+            navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: onboardingTraceCtx.current,
               provider,
             });
           }
         }
+      } else if (result.existingUser) {
+        trace({
+          name: TraceName.OnboardingExistingSocialLogin,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: getTraceTags(store.getState()),
+          parentContext: onboardingTraceCtx.current,
+        });
+        isIOS
+          ? navigation.navigate(
+              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+              {
+                [PREVIOUS_SCREEN]: ONBOARDING,
+                oauthLoginSuccess: true,
+                onboardingTraceCtx: onboardingTraceCtx.current,
+              },
+            )
+          : navigation.navigate('Rehydrate', {
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+              onboardingTraceCtx: onboardingTraceCtx.current,
+            });
       } else {
-        // handle error: show error message in the UI
+        navigation.navigate('AccountNotFound', {
+          accountName: result.accountName,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: onboardingTraceCtx.current,
+          provider,
+        });
       }
     },
-    [navigation, track, dispatch],
+    [navigation, track, dispatch, onboardingVersion],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -696,6 +739,18 @@ const Onboarding = () => {
       discardBufferedTraces();
       await setupSentry();
 
+      const accountType = getSocialAccountType(provider, !createWallet);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
+          .addProperties({
+            updated_after_onboarding: false,
+            location: 'onboarding_social_login',
+            account_type: accountType,
+          })
+          .build(),
+      );
+
       // use new trace instead of buffered trace for social login
       onboardingTraceCtx.current = trace({
         name: TraceName.OnboardingJourneyOverall,
@@ -703,7 +758,6 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
-      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
           account_type: accountType,
@@ -722,6 +776,41 @@ const Onboarding = () => {
       });
 
       const action = async () => {
+        // prompt for ios google login not supported below iOS 17.4
+        if (
+          provider === AuthConnection.Google &&
+          Device.isIos() &&
+          Device.comparePlatformVersionTo('17.4') < 0
+        ) {
+          const description = () => (
+            <>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description`)}
+                <Text twClassName="font-bold">
+                  {strings(`error_sheet.ios_need_update_description_version`)}
+                </Text>
+                {strings(`error_sheet.ios_need_update_description_end`)}
+              </Text>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description2`)}
+              </Text>
+            </>
+          );
+
+          await navigateToSuccessErrorSheetPromise(navigation, {
+            type: 'error',
+            icon: IconName.Warning,
+            iconColor: IconColor.Warning,
+            title: strings(`error_sheet.ios_need_update_title`),
+            description: description(),
+            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
+            closeOnPrimaryButtonPress: true,
+            isInteractable: false,
+          });
+          track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
+            account_type: accountType,
+          });
+        }
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {
@@ -751,6 +840,7 @@ const Onboarding = () => {
       handleExistingUser(action);
     },
     [
+      tw,
       navigation,
       metrics,
       track,
@@ -839,41 +929,45 @@ const Onboarding = () => {
           startOnboardingAnimation={state.startOnboardingAnimation}
           setStartFoxAnimation={setStartFoxAnimation}
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            isInverse
-            onPress={() => handleCtaActions('create')}
-            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+          {/*
+           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
+           * system theme setting: the "Create" button is always dark (black bg, white text) and the
+           * "Import" button is always light (white bg, black text). This design choice ensures both
+           * buttons remain visually distinct and accessible against the purple onboarding background
+           * in all theme contexts.
+           */}
+          <ThemeProvider
+            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
           >
-            {strings('onboarding.start_exploring_now')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            isInverse
-            onPress={() => handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            isFullWidth
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={tw.style({
-              backgroundColor: importedColors.applePayBlack,
-              borderColor: 'transparent',
-            })}
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={() => handleCtaActions('create')}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {strings('onboarding.start_exploring_now')}
+            </Button>
+          </ThemeProvider>
+          <ThemeProvider
+            theme={Theme.Light} // Keep this button in light mode regardless of theme
           >
-            {SEEDLESS_ONBOARDING_ENABLED
-              ? strings('onboarding.import_using_srp_social_login')
-              : strings('onboarding.import_using_srp')}
-          </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={() => handleCtaActions('existing')}
+              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
+              isFullWidth
+              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            >
+              {SEEDLESS_ONBOARDING_ENABLED
+                ? strings('onboarding.import_using_srp_social_login')
+                : strings('onboarding.import_using_srp')}
+            </Button>
+          </ThemeProvider>
         </OnboardingAnimation>
       </Box>
     ),
-    [
-      state.startOnboardingAnimation,
-      setStartFoxAnimation,
-      handleCtaActions,
-      tw,
-    ],
+    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
   );
 
   const handleSimpleNotification =

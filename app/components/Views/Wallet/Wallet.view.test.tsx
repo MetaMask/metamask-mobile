@@ -4,7 +4,7 @@ import {
   renderWalletViewWithRoutes,
 } from '../../../../tests/component-view/renderers/wallet';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import { describeForPlatforms } from '../../../util/test/platform';
+import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -42,36 +42,6 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('navigates to QR tab when scan button is pressed', async () => {
-    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
-      extraRoutes: [
-        { name: Routes.QR_TAB_SWITCHER },
-        { name: Routes.SETTINGS_VIEW },
-      ],
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: true,
-            },
-            RewardsController: {
-              activeAccount: null,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>,
-    });
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON));
-
-    expect(
-      await findByTestId(`route-${Routes.QR_TAB_SWITCHER}`),
     ).toBeOnTheScreen();
   });
 

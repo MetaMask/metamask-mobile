@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { getCardProvider, getWalletProvider } from './providers';
 import { GalileoCardAdapter } from './adapters/card';
-import { AppleWalletAdapter } from './adapters/wallet';
+import { GoogleWalletAdapter, AppleWalletAdapter } from './adapters/wallet';
 import { CardSDK } from '../sdk/CardSDK';
 
 jest.mock('./adapters/card', () => ({
@@ -15,6 +15,10 @@ jest.mock('./adapters/wallet', () => ({
     walletType: 'apple_wallet',
   })),
   IWalletProviderAdapter: {},
+  GoogleWalletAdapter: jest.fn().mockImplementation(() => ({
+    walletType: 'google_wallet',
+    platform: 'android',
+  })),
 }));
 
 describe('Push Provisioning Providers', () => {
@@ -67,7 +71,7 @@ describe('Push Provisioning Providers', () => {
       expect(AppleWalletAdapter).toHaveBeenCalled();
     });
 
-    it('returns null for Android', () => {
+    it('returns GoogleWalletAdapter for Android', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
@@ -75,7 +79,8 @@ describe('Push Provisioning Providers', () => {
 
       const result = getWalletProvider();
 
-      expect(result).toBeNull();
+      expect(result).toBeDefined();
+      expect(GoogleWalletAdapter).toHaveBeenCalled();
     });
 
     it('returns null for unsupported platforms', () => {

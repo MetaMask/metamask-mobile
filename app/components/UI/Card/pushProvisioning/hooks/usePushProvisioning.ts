@@ -342,8 +342,10 @@ export function usePushProvisioning(
   /**
    * Initiate provisioning
    *
-   * Note: Success events are handled by the activation listener (onCardActivated).
-   * Cancel and error events are handled here since they come directly from the SDK.
+   * Handles all terminal results (success, cancel, error) from the service directly.
+   * The activation listener is a secondary mechanism for SDKs that also emit async
+   * activation events (e.g. Google Wallet); it ignores events once statusRef is no
+   * longer 'provisioning', so there is no double-handling.
    */
   const initiateProvisioning =
     useCallback(async (): Promise<ProvisioningResult> => {
@@ -455,7 +457,6 @@ export function usePushProvisioning(
   // Check if card is eligible (status must be 'ACTIVE')
   const isCardEligible = cardDetails?.status === 'ACTIVE';
 
-  // NOTE: That's temporary, until the remaining accounts are updated to the new provider.
   const isAccountEligible = isAccountEligibleForProvisioning(accountCreatedAt);
 
   const canAddToWallet =
@@ -465,6 +466,7 @@ export function usePushProvisioning(
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
+    isAccountEligible &&
     !!cardAdapter &&
     !!walletAdapter &&
     eligibility?.isAvailable === true &&

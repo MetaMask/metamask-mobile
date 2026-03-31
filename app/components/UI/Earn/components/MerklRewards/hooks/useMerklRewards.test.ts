@@ -6,6 +6,7 @@ import {
   useMerklRewards,
 } from './useMerklRewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { TokenI } from '../../../../Tokens/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -48,6 +49,16 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(),
+    }),
+  }),
 }));
 
 // Mock fetch globally
@@ -155,12 +166,15 @@ describe('useMerklRewards', () => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
+      if (selector === selectNetworkConfigurationByChainId) {
+        return { name: 'Ethereum Mainnet' };
+      }
       return undefined;
     });
   });
 
   it('initializes with null claimableReward', () => {
-    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+    const { result } = renderHook(() => useMerklRewards({ asset: undefined }));
 
     expect(result.current.claimableReward).toBe(null);
   });
@@ -197,6 +211,9 @@ describe('useMerklRewards', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return null;
+      }
+      if (selector === selectNetworkConfigurationByChainId) {
+        return { name: 'Ethereum Mainnet' };
       }
       return undefined;
     });
@@ -978,5 +995,104 @@ describe('useMerklRewards', () => {
     // Verify fetch was called again
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalled();
+  });
+
+  it('clears stale claimableReward when refetch returns no matching reward', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe('1.50');
+    });
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.claimableReward).toBe(null);
+    });
+  });
+
+  it('starts auto-refresh interval and clears it on unmount', () => {
+    const intervalId = 123 as unknown as ReturnType<typeof setInterval>;
+    const setIntervalSpy = jest
+      .spyOn(global, 'setInterval')
+      .mockReturnValue(intervalId);
+    const clearIntervalSpy = jest
+      .spyOn(global, 'clearInterval')
+      .mockImplementation(() => undefined);
+
+    const { unmount } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 60000);
+
+    unmount();
+
+    expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId);
+
+    setIntervalSpy.mockRestore();
+    clearIntervalSpy.mockRestore();
+  });
+
+  it('increments rewardsFetchVersion after successful fetch and refetch', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValue('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(result.current.rewardsFetchVersion).toBeGreaterThan(0);
+    });
+
+    const versionAfterInitialFetch = result.current.rewardsFetchVersion;
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.rewardsFetchVersion).toBeGreaterThan(
+        versionAfterInitialFetch,
+      );
+    });
   });
 });

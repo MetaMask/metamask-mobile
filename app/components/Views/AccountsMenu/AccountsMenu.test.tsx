@@ -30,20 +30,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24272A',
-        alternative: '#6A737D',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -633,6 +625,26 @@ describe('AccountsMenu', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.SDK_SESSIONS_MANAGER,
+      );
+    });
+  });
+
+  describe('Networks Row', () => {
+    it('render Networks row', () => {
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.networks')).toBeOnTheScreen();
+      expect(getByTestId(AccountsMenuSelectorsIDs.NETWORKS)).toBeOnTheScreen();
+    });
+
+    it('navigate to NetworksManagement when Networks is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const networksButton = getByTestId(AccountsMenuSelectorsIDs.NETWORKS);
+
+      fireEvent.press(networksButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
       );
     });
   });

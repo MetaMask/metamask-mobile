@@ -42,6 +42,7 @@ export {
   // Wallet provider adapters
   type IWalletProviderAdapter,
   AppleWalletAdapter,
+  GoogleWalletAdapter,
 } from './adapters';
 
 // Service

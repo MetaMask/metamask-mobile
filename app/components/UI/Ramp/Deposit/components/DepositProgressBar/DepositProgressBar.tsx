@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './DepositProgressBar.styles';
+import { DEPOSIT_PROGRESS_BAR_TEST_IDS } from './DepositProgressBar.testIds';
 
 interface ProgressBarProps {
   steps: number;
@@ -15,7 +16,10 @@ const DepositProgressBar: React.FC<ProgressBarProps> = ({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container} testID="deposit-progress-container">
+    <View
+      style={styles.container}
+      testID={DEPOSIT_PROGRESS_BAR_TEST_IDS.CONTAINER}
+    >
       {Array.from({ length: steps }, (_, index) => {
         const isCompleted = index < currentStep;
         const isCurrent = index === currentStep;
@@ -36,7 +40,7 @@ const DepositProgressBar: React.FC<ProgressBarProps> = ({
           <View
             key={index}
             style={[stepStyle, gapStyle]}
-            testID={`deposit-progress-step-${index}`}
+            testID={`${DEPOSIT_PROGRESS_BAR_TEST_IDS.STEP_PREFIX}${index}`}
           />
         );
       })}

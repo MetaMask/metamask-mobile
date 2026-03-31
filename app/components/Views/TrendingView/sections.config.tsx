@@ -1,7 +1,8 @@
 import React, { PropsWithChildren, useContext, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -10,6 +11,7 @@ import TrendingTokensSkeleton from '../../UI/Trending/components/TrendingTokenSk
 import PerpsMarketRowItem from '../../UI/Perps/components/PerpsMarketRowItem';
 import {
   filterMarketsByQuery,
+  PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types';
@@ -49,20 +51,22 @@ interface SectionData {
   isLoading: boolean;
 }
 
-interface SectionConfig {
+export interface SectionConfig {
   id: SectionId;
   title: string;
   icon: SectionIcon;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  viewAllAction: (navigation: AppNavigationProp) => void;
+  /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
+  getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<{
     item: unknown;
     index: number;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: AppNavigationProp;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
     index?: number;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: AppNavigationProp;
   }>;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;
@@ -170,6 +174,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
+    getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
     RowItem: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -214,9 +219,12 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           defaultMarketTypeFilter: 'all',
+          source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
         },
       });
     },
+    getItemIdentifier: (item) =>
+      (item as Partial<PerpsMarketData>).symbol ?? '',
     RowItem: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
@@ -225,7 +233,10 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
             Routes.PERPS.ROOT,
             {
               screen: Routes.PERPS.MARKET_DETAILS,
-              params: { market: item as PerpsMarketData },
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+              },
             },
           );
         }}
@@ -268,6 +279,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
     },
+    getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
     RowItem: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -298,6 +310,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
+    getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
     RowItem: ({ item, index: _index }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
@@ -330,6 +343,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.SITES_FULL_VIEW);
     },
+    getItemIdentifier: (item) => (item as Partial<SiteData>).url ?? '',
     RowItem: ({ item, index: _index, navigation }) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),

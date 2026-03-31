@@ -11,5 +11,6 @@ export { type ICardProviderAdapter, GalileoCardAdapter } from './card';
 export {
   type IWalletProviderAdapter,
   AppleWalletAdapter,
+  GoogleWalletAdapter,
   type TokenInfo,
 } from './wallet';
