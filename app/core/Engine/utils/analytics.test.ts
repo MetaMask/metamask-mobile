@@ -3,9 +3,15 @@ import Logger from '../../../util/Logger';
 import type { ControllerMessenger } from '../types';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { store } from '../../../store';
 
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/analytics/AnalyticsEventBuilder');
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
 
 describe('trackEvent', () => {
   let mockInitMessenger: ControllerMessenger;
@@ -18,6 +24,9 @@ describe('trackEvent', () => {
     mockInitMessenger = {
       call: mockCall,
     } as unknown as ControllerMessenger;
+    jest
+      .mocked(store.getState)
+      .mockReturnValue({} as ReturnType<typeof store.getState>);
   });
 
   describe('successful tracking', () => {
@@ -53,6 +62,48 @@ describe('trackEvent', () => {
       expect(mockCall).toHaveBeenCalledWith(
         'AnalyticsController:trackEvent',
         event,
+      );
+    });
+
+    it('enriches allowlisted events before calling the analytics controller', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardCARD338AbtestAttentionBadge: 'withBadge',
+              },
+              localOverrides: {},
+            },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const event = {
+        name: 'Card Button Viewed',
+        properties: {
+          source: 'wallet',
+        },
+        sensitiveProperties: {},
+        saveDataRecording: false,
+      } as unknown as AnalyticsTrackingEvent;
+
+      trackEvent(mockInitMessenger, event);
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.objectContaining({
+          name: 'Card Button Viewed',
+          properties: {
+            source: 'wallet',
+            active_ab_tests: [
+              {
+                key: 'cardCARD338AbtestAttentionBadge',
+                value: 'withBadge',
+              },
+            ],
+          },
+        }),
       );
     });
   });
@@ -139,6 +190,60 @@ describe('trackEvent', () => {
         expect(buildAndTrackEventCall).toHaveBeenCalledWith(
           'AnalyticsController:trackEvent',
           mockEvent,
+        );
+      });
+
+      it('inherits A/B enrichment when buildAndTrackEvent forwards a matching event', () => {
+        jest.mocked(store.getState).mockReturnValue({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  cardCARD338AbtestAttentionBadge: 'control',
+                },
+                localOverrides: {},
+              },
+            },
+          },
+        } as ReturnType<typeof store.getState>);
+
+        const mockEvent = {
+          name: 'Card Button Viewed',
+          properties: { source: 'wallet' },
+          sensitiveProperties: {},
+          saveDataRecording: false,
+          get isAnonymous(): boolean {
+            return false;
+          },
+          get hasProperties(): boolean {
+            return true;
+          },
+        } as AnalyticsTrackingEvent;
+
+        mockBuilder.build.mockReturnValue(mockEvent);
+
+        buildAndTrackEvent(
+          buildAndTrackEventInitMessenger,
+          'Card Button Viewed',
+          {
+            source: 'wallet',
+          },
+        );
+
+        expect(buildAndTrackEventCall).toHaveBeenCalledWith(
+          'AnalyticsController:trackEvent',
+          expect.objectContaining({
+            name: 'Card Button Viewed',
+            properties: {
+              source: 'wallet',
+              active_ab_tests: [
+                {
+                  key: 'cardCARD338AbtestAttentionBadge',
+                  value: 'control',
+                },
+              ],
+            },
+          }),
         );
       });
 

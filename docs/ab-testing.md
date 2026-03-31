@@ -158,7 +158,7 @@ You do not need to manually track this event when using `useABTest`.
 
 ## Business Event Instrumentation (`active_ab_tests`)
 
-For feature/business events (page view, click, submit, conversion), add active test assignments via `active_ab_tests`.
+For feature/business events (page view, click, submit, conversion), use the shared `active_ab_tests` payload. New code should declare which events are attributable in the test config module, and the analytics wrappers inject the active assignments automatically for those allowlisted events.
 
 Shape:
 
@@ -166,39 +166,26 @@ Shape:
 active_ab_tests: Array<{ key: string; value: string }>;
 ```
 
-Single test example:
+Analytics mapping example:
 
 ```typescript
-const abAssignments = isActive
-  ? [{ key: flagKey, value: variantName }]
-  : undefined;
+export const FEATURE_AB_TEST_ANALYTICS_MAPPING = {
+  flagKey: FEATURE_AB_TEST_KEY,
+  validVariants: Object.values(FeatureVariant),
+  eventNames: [
+    MetaMetricsEvents.SCREEN_VIEWED.category,
+    MetaMetricsEvents.BUTTON_CLICKED.category,
+  ],
+} as const;
+```
 
+When one of those events is tracked through the shared wrappers, the A/B context is injected automatically:
+
+```typescript
 trackEvent(
   createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
     .addProperties({
       screen: 'details',
-      ...(abAssignments && { active_ab_tests: abAssignments }),
-    })
-    .build(),
-);
-```
-
-Multiple concurrent tests:
-
-```typescript
-const activeABTests = [
-  ...(buttonTest.isActive
-    ? [{ key: 'teamTEAM1234AbtestButtonColor', value: buttonTest.variantName }]
-    : []),
-  ...(ctaTest.isActive
-    ? [{ key: 'teamTEAM1234AbtestCtaText', value: ctaTest.variantName }]
-    : []),
-];
-
-trackEvent(
-  createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
-    .addProperties({
-      ...(activeABTests.length > 0 && { active_ab_tests: activeABTests }),
     })
     .build(),
 );
@@ -308,7 +295,7 @@ active_ab_tests: [
 
 ## Config Module Pattern (Best Practice)
 
-For any new A/B test, keep test configuration in a dedicated module (for example `abTestConfig.ts`) and import it in both feature UI and tracking hooks.
+For any new A/B test, keep test configuration in a dedicated module (for example `abTestConfig.ts`) and export the analytics mapping from that same module.
 
 ```typescript
 export const FEATURE_AB_TEST_KEY = 'teamTEAM1234AbtestFeatureName';
@@ -344,6 +331,15 @@ export const FEATURE_VARIANTS_ALT_STATE: Record<
     /* treatment alt-state config */
   },
 };
+
+export const FEATURE_AB_TEST_ANALYTICS_MAPPING = {
+  flagKey: FEATURE_AB_TEST_KEY,
+  validVariants: Object.values(FeatureVariant),
+  eventNames: [
+    MetaMetricsEvents.SCREEN_VIEWED.category,
+    MetaMetricsEvents.BUTTON_CLICKED.category,
+  ],
+} as const;
 ```
 
 Consumption pattern:
@@ -351,11 +347,7 @@ Consumption pattern:
 1. Resolve assignment via `useABTest(FEATURE_AB_TEST_KEY, FEATURE_VARIANTS)`.
 2. Normalize unknown/fallback assignments to `control` and use the chosen variant map for rendering.
 3. If UI state changes available options, select from an alternate variant map (`*_ALT_STATE`) with the same variant key.
-4. Reuse the same key and variant source in analytics hooks and emit:
-
-```typescript
-active_ab_tests: [{ key: FEATURE_AB_TEST_KEY, value: variantName }];
-```
+4. Export `FEATURE_AB_TEST_ANALYTICS_MAPPING` from the same config module so the analytics wrappers know which business events should receive `active_ab_tests`.
 
 Example: feature/UI consumption
 
@@ -375,44 +367,35 @@ const config = isInAltState
   : FEATURE_VARIANTS[selectedVariant];
 ```
 
-Example: single-test analytics event
+Example: tracked event with automatic enrichment
 
 ```typescript
 trackEvent(
   createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
     .addProperties({
       screen: 'feature-screen',
-      ...(isActive && {
-        active_ab_tests: [{ key: FEATURE_AB_TEST_KEY, value: variantName }],
-      }),
     })
     .build(),
 );
 ```
 
-Example: multiple concurrent tests in one event
+Example: allowlisting one event for multiple tests
 
 ```typescript
-const activeABTests = [
-  ...(layoutTest.isActive
-    ? [{ key: LAYOUT_TEST_KEY, value: layoutTest.variantName }]
-    : []),
-  ...(ctaTest.isActive
-    ? [{ key: CTA_TEST_KEY, value: ctaTest.variantName }]
-    : []),
-];
+export const LAYOUT_TEST_ANALYTICS_MAPPING = {
+  flagKey: LAYOUT_TEST_KEY,
+  validVariants: Object.values(LayoutVariant),
+  eventNames: [MetaMetricsEvents.BUTTON_CLICKED.category],
+} as const;
 
-trackEvent(
-  createEventBuilder(MetaMetricsEvents.BUTTON_CLICKED)
-    .addProperties({
-      button_id: 'continue',
-      ...(activeABTests.length > 0 && { active_ab_tests: activeABTests }),
-    })
-    .build(),
-);
+export const CTA_TEST_ANALYTICS_MAPPING = {
+  flagKey: CTA_TEST_KEY,
+  validVariants: Object.values(CtaVariant),
+  eventNames: [MetaMetricsEvents.BUTTON_CLICKED.category],
+} as const;
 ```
 
-This standard keeps flag key, variant labels, UI behavior, and analytics payloads in sync across feature code and events.
+This standard keeps flag key, variant labels, UI behavior, and business-event attribution in sync across feature code and analytics.
 
 ---
 
@@ -420,7 +403,8 @@ This standard keeps flag key, variant labels, UI behavior, and analytics payload
 
 - [ ] LaunchDarkly JSON flag created with threshold array
 - [ ] `useABTest` added in feature component
-- [ ] Relevant business events include `active_ab_tests`
+- [ ] Relevant business events listed in the config module analytics mapping
+- [ ] Shared tracking path is used for attributed events so `active_ab_tests` can be injected automatically
 
 ---
 
@@ -431,6 +415,9 @@ No. Use `active_ab_tests`.
 
 **Q: Do I manually emit `Experiment Viewed`?**  
 No, not when using `useABTest`. The hook emits it automatically for active assignments.
+
+**Q: Do I manually attach `active_ab_tests` to every event?**  
+No for new code on shared tracking paths. Export an allowlisted analytics mapping from the test config module and let the analytics wrappers inject `active_ab_tests` automatically.
 
 **Q: What is the fallback variant?**  
 `control`.

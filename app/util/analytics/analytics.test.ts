@@ -124,6 +124,52 @@ describe('analytics', () => {
       );
     });
 
+    it('enriches allowlisted events before queueing them', () => {
+      mockedStore.getState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardCARD338AbtestAttentionBadge: 'withBadge',
+              },
+              localOverrides: {},
+            },
+          },
+        },
+      } as ReturnType<typeof mockedStore.getState>);
+
+      const event: AnalyticsTrackingEvent = {
+        name: 'Card Button Viewed',
+        properties: { source: 'wallet' },
+        sensitiveProperties: {},
+        saveDataRecording: false,
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return true;
+        },
+      };
+
+      analytics.trackEvent(event);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Card Button Viewed',
+          properties: {
+            source: 'wallet',
+            active_ab_tests: [
+              {
+                key: 'cardCARD338AbtestAttentionBadge',
+                value: 'withBadge',
+              },
+            ],
+          },
+        }),
+      );
+    });
+
     it('logs error when queueOperation rejects', async () => {
       const error = new Error('Queue operation failed');
       mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);

@@ -1,3 +1,7 @@
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
+
 export const NUMPAD_QUICK_ACTIONS_AB_KEY =
   'swapsSWAPS4135AbtestNumpadQuickAmounts';
 
@@ -22,3 +26,13 @@ export const NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS: Record<
   [NumpadQuickActionsVariant.Control]: [25, 50, 75, 90],
   [NumpadQuickActionsVariant.Treatment]: [50, 75, 85, 95],
 };
+
+export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: NUMPAD_QUICK_ACTIONS_AB_KEY,
+    validVariants: Object.values(NumpadQuickActionsVariant),
+    eventNames: [
+      UnifiedSwapBridgeEventName.InputChanged,
+      MetaMetricsEvents.SWAP_PAGE_VIEWED.category,
+    ],
+  };

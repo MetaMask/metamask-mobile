@@ -1,3 +1,6 @@
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
+
 export const TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY =
   'swapsSWAPS4242AbtestTokenSelectorBalanceLayout';
 
@@ -24,3 +27,10 @@ export const TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS: Record<
     removeTickerFromTokenBalance: true,
   },
 };
+
+export const TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    validVariants: Object.values(TokenSelectorBalanceLayoutVariant),
+    eventNames: [MetaMetricsEvents.SWAP_PAGE_VIEWED.category],
+  };
