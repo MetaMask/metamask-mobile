@@ -21,7 +21,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { RootState } from '../../../reducers';
@@ -44,7 +44,7 @@ const BLOCKED_LIST = [
 
 const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [inBrowserView, setInBrowserView] = useState(false);
   const [inBlockedView, setInBlockedView] = useState(false);
   const [isVisible, setIsVisible] = useState(true);

@@ -3,6 +3,8 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { InteractionManager } from 'react-native';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 type RunAfterInteractionsTask = NonNullable<
   Parameters<typeof InteractionManager.runAfterInteractions>[0]
@@ -34,16 +36,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    WALLET_SECURITY_PROTECT_VIEWED: 'WALLET_SECURITY_PROTECT_VIEWED',
-    WALLET_SECURITY_PROTECT_ENGAGED: 'WALLET_SECURITY_PROTECT_ENGAGED',
-  },
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 const mockHasFunds = jest.fn(() => true);
 jest.mock('../../../core/Engine', () => ({
@@ -120,6 +113,12 @@ const renderWithTheme = (
 describe('ProtectWalletMandatoryModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockGetState.mockReturnValue({
       routes: [{ name: 'Home' }],
     });
@@ -271,7 +270,9 @@ describe('ProtectWalletMandatoryModal', () => {
 
     await waitFor(() => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'WALLET_SECURITY_PROTECT_ENGAGED',
+        expect.objectContaining({
+          category: 'Wallet Security Reminder Engaged',
+        }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
