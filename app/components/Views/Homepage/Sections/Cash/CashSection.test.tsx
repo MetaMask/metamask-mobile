@@ -1,8 +1,9 @@
-import React from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import React, { createRef } from 'react';
+import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CashSection from './CashSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { SectionRefreshHandle } from '../../types';
 
 const mockNavigate = jest.fn();
 
@@ -48,12 +49,16 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
   },
 }));
 
+let musdAggregatedRowRenderCount = 0;
 jest.mock('./MusdAggregatedRow', () => {
   const { Text } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   return {
     __esModule: true,
-    default: () => ReactActual.createElement(Text, null, 'MusdAggregatedRow'),
+    default: () => {
+      musdAggregatedRowRenderCount += 1;
+      return ReactActual.createElement(Text, null, 'MusdAggregatedRow');
+    },
   };
 });
 
@@ -86,6 +91,7 @@ describe('CashSection', () => {
       tokenBalanceAggregated: '0',
       fiatBalanceAggregatedFormatted: '$0.00',
     });
+    musdAggregatedRowRenderCount = 0;
   });
 
   it('returns null when mUSD conversion is disabled', () => {
@@ -169,5 +175,26 @@ describe('CashSection', () => {
     );
 
     expect(screen.getByText('MusdAggregatedRow')).toBeOnTheScreen();
+  });
+
+  it('remounts row when refresh is called via section ref', async () => {
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '1800',
+      fiatBalanceAggregatedFormatted: '$1,800.00',
+    });
+    const ref = createRef<SectionRefreshHandle>();
+
+    renderWithProvider(
+      <CashSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(musdAggregatedRowRenderCount).toBe(1);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(musdAggregatedRowRenderCount).toBe(2);
   });
 });
