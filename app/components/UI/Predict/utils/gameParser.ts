@@ -15,6 +15,7 @@ type SlugTeamOrder = 'away-home' | 'home-away';
 interface LeagueSlugConfig {
   pattern: RegExp;
   teamOrder: SlugTeamOrder;
+  tagSlug?: string; // if different than league slug
 }
 
 const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
@@ -29,6 +30,11 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
   ucl: {
     pattern: /^ucl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'home-away',
+  },
+  fif: {
+    pattern: /^fif-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'fifa-friendly',
   },
 };
 
@@ -54,8 +60,9 @@ export function getEventLeague(
 
   const leagues = Object.keys(LEAGUE_SLUG_CONFIGS) as PredictSportsLeague[];
   for (const league of leagues) {
-    const hasLeagueTag = tags.some((tag) => tag.slug === league);
-    const { pattern } = LEAGUE_SLUG_CONFIGS[league];
+    const { pattern, tagSlug } = LEAGUE_SLUG_CONFIGS[league];
+    const leagueTagSlug = tagSlug ?? league;
+    const hasLeagueTag = tags.some((tag) => tag.slug === leagueTagSlug);
     const hasValidSlug = pattern.test(event.slug);
     if (hasLeagueTag && hasValidSlug) {
       return league;

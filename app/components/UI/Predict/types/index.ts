@@ -129,7 +129,7 @@ export type PredictCategory =
   | 'hot';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl' | 'nba' | 'ucl';
+export type PredictSportsLeague = 'nfl' | 'nba' | 'ucl' | 'fif';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';

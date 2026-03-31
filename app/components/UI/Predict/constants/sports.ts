@@ -13,6 +13,7 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'nfl',
   'nba',
   'ucl',
+  'fif',
 ];
 
 export const filterSupportedLeagues = (
@@ -22,7 +23,10 @@ export const filterSupportedLeagues = (
     SUPPORTED_SPORTS_LEAGUES.includes(league as PredictSportsLeague),
   );
 
-const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set(['ucl']);
+const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
+  'ucl',
+  'fif',
+]);
 
 export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
   DRAW_CAPABLE_LEAGUES.has(league);
