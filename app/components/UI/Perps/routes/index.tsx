@@ -65,18 +65,14 @@ function getRedesignedConfirmationsHeaderOptions({
     : { header: () => null };
 }
 
-const PerpsConfirmScreen = (
-  props: React.ComponentProps<typeof Confirm> & {
-    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
-  },
-) => {
-  const params =
+const PerpsConfirmScreen = () => {
+  const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
-    params?.params?.showPerpsHeader ??
+    params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
+  return <Confirm disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {
