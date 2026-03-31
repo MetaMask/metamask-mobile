@@ -18,7 +18,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 
-const testEnvironment = process.env.BUILD_VARIANT || '';
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(PerformanceOnboarding, () => {

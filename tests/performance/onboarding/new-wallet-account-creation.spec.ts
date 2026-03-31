@@ -22,7 +22,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
 
-const testEnvironment = process.env.BUILD_VARIANT || '';
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
