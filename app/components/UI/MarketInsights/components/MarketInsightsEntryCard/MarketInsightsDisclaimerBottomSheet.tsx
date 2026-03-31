@@ -27,8 +27,7 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
-    onClose();
-  }, [onClose]);
+  }, []);
 
   return (
     <Modal

@@ -283,10 +283,8 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
                 {timeAgo}
               </Text>
               <Pressable
-                onPress={(e) => {
-                  e.stopPropagation();
-                  handleOpenDisclaimer();
-                }}
+                testID="market-insights-info-button"
+                onPress={handleOpenDisclaimer}
                 hitSlop={8}
               >
                 <Icon

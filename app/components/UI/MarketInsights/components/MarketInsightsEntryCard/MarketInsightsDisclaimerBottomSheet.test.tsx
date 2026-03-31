@@ -12,7 +12,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     BottomSheet: ReactLib.forwardRef(
       (
-        { children }: { children: React.ReactNode },
+        {
+          children,
+          onClose: onCloseProp,
+        }: { children: React.ReactNode; onClose?: () => void },
         ref: React.Ref<{
           onOpenBottomSheet: () => void;
           onCloseBottomSheet: () => void;
@@ -20,7 +23,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       ) => {
         ReactLib.useImperativeHandle(ref, () => ({
           onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn(),
+          // Simulate animation completion by immediately invoking the onClose prop
+          onCloseBottomSheet: jest.fn().mockImplementation(() => {
+            onCloseProp?.();
+          }),
         }));
         return <MockView testID="mock-bottom-sheet">{children}</MockView>;
       },
