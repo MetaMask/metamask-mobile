@@ -190,8 +190,8 @@ describe('getSeparatedLabelYPositions', () => {
     });
   });
 
-  describe('three positions with extreme overflow clamping to 0', () => {
-    it('clamps top position to 0 when shift exceeds bounds', () => {
+  describe('three positions with overflow exceeding top position', () => {
+    it('limits shift to top position value preserving spacing', () => {
       const input = [{ dotY: 10 }, { dotY: 100 }, { dotY: 190 }];
 
       const result = getSeparatedLabelYPositions(input);
@@ -199,9 +199,11 @@ describe('getSeparatedLabelYPositions', () => {
       // After sorting: [10, 100, 190]
       // After spacing: [10, 100, 190] (gaps are 90 and 90, both >= 48)
       // maxY = 160, overflow = 190 - 160 = 30
-      // Shift all up by 30: [0, 70, 160]
-      // First position clamped to 0 since 10 - 30 = -20 < 0
-      expect(result).toEqual([0, 70, 160]);
+      // shift = Math.min(30, 10) = 10 (limited by top position)
+      // After shift: [0, 90, 180] — spacing preserved even though bottom overflows
+      expect(result).toEqual([0, 90, 180]);
+      expect(result[1] - result[0]).toBeGreaterThanOrEqual(minSpacing);
+      expect(result[2] - result[1]).toBeGreaterThanOrEqual(minSpacing);
     });
   });
 

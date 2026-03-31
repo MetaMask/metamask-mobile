@@ -69,8 +69,9 @@ export const getSeparatedLabelYPositions = (
   const maxY = CHART_HEIGHT - LABEL_HEIGHT;
   const overflow = positions[positions.length - 1].y - maxY;
   if (overflow > 0) {
+    const shift = Math.min(overflow, positions[0].y);
     for (const pos of positions) {
-      pos.y = Math.max(0, pos.y - overflow);
+      pos.y -= shift;
     }
   }
 
