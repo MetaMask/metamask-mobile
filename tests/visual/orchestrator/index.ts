@@ -75,6 +75,10 @@ async function main() {
       }
     }
   } else {
+    if (!existsSync(FLOWS_DIR)) {
+      console.error(`Flows directory not found: ${FLOWS_DIR}`);
+      process.exit(1);
+    }
     flowPaths = discoverFlows(FLOWS_DIR);
   }
 
