@@ -979,7 +979,7 @@ export class MYXProvider implements PerpsProvider {
       // Validate minimum order size with 10% buffer for price movement
       const minOrderSize = await this.#getMinimumOrderSize(params.symbol);
       const minOrderSizeWithBuffer = minOrderSize * MYX_MIN_ORDER_SIZE_BUFFER;
-      if (usdAmount < minOrderSizeWithBuffer) {
+      if (!Number.isFinite(usdAmount) || usdAmount < minOrderSizeWithBuffer) {
         return {
           success: false,
           error: `Order size $${usdAmount.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces)} is below minimum $${Math.ceil(minOrderSizeWithBuffer)}`,
