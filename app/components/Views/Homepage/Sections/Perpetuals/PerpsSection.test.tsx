@@ -611,13 +611,19 @@ describe('PerpsSection', () => {
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(usePerpsLivePositions).toHaveBeenCalledWith({
-      throttleMs: 5000,
-    });
-    expect(usePerpsLiveOrders).toHaveBeenCalledWith({
-      hideTpSl: true,
-      throttleMs: 5000,
-    });
+    expect(usePerpsLivePositions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        throttleMs: 5000,
+        enabled: true,
+      }),
+    );
+    expect(usePerpsLiveOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hideTpSl: true,
+        throttleMs: 5000,
+        enabled: true,
+      }),
+    );
   });
 
   describe('Trending Perps Carousel', () => {
