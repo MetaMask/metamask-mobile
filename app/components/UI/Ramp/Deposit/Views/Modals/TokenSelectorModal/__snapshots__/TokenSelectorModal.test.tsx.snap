@@ -3185,6 +3185,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -3219,10 +3221,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3329,7 +3331,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3345,13 +3347,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -3359,13 +3365,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
@@ -3414,6 +3424,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -3448,10 +3460,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3558,7 +3570,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3574,13 +3586,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Tether USD
@@ -3588,13 +3604,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDT
@@ -3628,6 +3648,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -3662,10 +3684,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3772,7 +3794,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3788,13 +3810,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Bitcoin
@@ -3802,13 +3828,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           BTC
@@ -3842,6 +3872,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -3876,10 +3908,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3986,7 +4018,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4002,13 +4034,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Ethereum
@@ -4016,13 +4052,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           ETH
@@ -4056,6 +4096,8 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4090,10 +4132,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4200,7 +4242,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4216,13 +4258,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -4230,13 +4276,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC

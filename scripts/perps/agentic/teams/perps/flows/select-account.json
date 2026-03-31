@@ -1,0 +1,33 @@
+{
+  "title": "Select — switch to account {{address}} and verify",
+  "inputs": {
+    "address": {
+      "type": "string",
+      "description": "Ethereum address to switch to"
+    }
+  },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked"
+      ],
+      "steps": [
+        {
+          "id": "switch-account",
+          "action": "select_account",
+          "address": "{{address}}"
+        },
+        {
+          "id": "wait-switch",
+          "action": "wait_for",
+          "expression": "JSON.stringify({address:Engine.context.AccountsController.state.internalAccounts.accounts[Engine.context.AccountsController.state.internalAccounts.selectedAccount].address})",
+          "assert": {
+            "operator": "eq",
+            "field": "address",
+            "value": "{{address}}"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -2,6 +2,8 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MusdAggregatedRow from './MusdAggregatedRow';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import NavigationService from '../../../../../core/NavigationService';
 
 const mockClaimRewards = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -9,19 +11,30 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn(),
 }));
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: jest.fn(),
+    },
+  },
+}));
 
+const mockUseMusdBalance = jest.fn(() => ({
+  tokenBalanceAggregated: '1800.5',
+  fiatBalanceAggregatedFormatted: '$1,800.50',
+  hasMusdBalanceOnAnyChain: false,
+}));
 jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: () => ({
-    tokenBalanceAggregated: '1800.5',
-    fiatBalanceAggregatedFormatted: '$1,800.50',
-  }),
+  useMusdBalance: () => mockUseMusdBalance(),
 }));
 
 const mockUseMerklBonusClaim = jest.fn(() => ({
-  claimableReward: { amount: '10' } as { amount: string } | null,
+  claimableReward: '10' as string | null,
   hasPendingClaim: false,
   claimRewards: mockClaimRewards,
   isClaiming: false,
+  error: null as string | null,
 }));
 jest.mock(
   '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
@@ -48,11 +61,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMusdBalance.mockReturnValue({
+      tokenBalanceAggregated: '1800.5',
+      fiatBalanceAggregatedFormatted: '$1,800.50',
+      hasMusdBalanceOnAnyChain: false,
+    });
     mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: { amount: '10' },
+      claimableReward: '10',
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
+      error: null,
     });
   });
 
@@ -82,12 +101,27 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
   });
 
+  it('navigates to Asset with mobile_token_list_page source when row is pressed', () => {
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        source: TokenDetailsSource.MobileTokenListPage,
+      }),
+    );
+  });
+
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
-      claimableReward: { amount: '10' },
+      claimableReward: '10',
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: true,
+      error: null,
     });
 
     renderWithProvider(<MusdAggregatedRow />);
@@ -102,11 +136,106 @@ describe('MusdAggregatedRow', () => {
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
+      error: null,
     });
 
     renderWithProvider(<MusdAggregatedRow />);
 
     expect(screen.queryByText('Claim bonus')).toBeNull();
     expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+  });
+
+  describe('handleTokenRowPress', () => {
+    it('navigates to mUSD mainnet Asset details with mobile_token_list_page source when user has mUSD on a chain', () => {
+      mockUseMusdBalance.mockReturnValueOnce({
+        tokenBalanceAggregated: '1800.5',
+        fiatBalanceAggregatedFormatted: '$1,800.50',
+        hasMusdBalanceOnAnyChain: true,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({
+          source: TokenDetailsSource.MobileTokenListPage,
+        }),
+      );
+    });
+
+    it('navigates to mUSD mainnet Asset details when user has no mUSD balance on any chain', () => {
+      renderWithProvider(<MusdAggregatedRow />);
+
+      fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({
+          source: TokenDetailsSource.MobileTokenListPage,
+        }),
+      );
+    });
+  });
+
+  describe('claimable bonus threshold (min $0.01)', () => {
+    it('hides Claim bonus when claimable reward is "< 0.01"', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: null,
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+        error: null,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.queryByText('Claim bonus')).toBeNull();
+      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+    });
+
+    it('shows Claim bonus when claimable reward is exactly 0.01', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: '0.01',
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+        error: null,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
+    });
+
+    it('hides Claim bonus when claimable reward is below 0.01', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: null,
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+        error: null,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.queryByText('Claim bonus')).toBeNull();
+      expect(screen.getByText('3% bonus')).toBeOnTheScreen();
+    });
+
+    it('shows Claim bonus when claimable reward is above 0.01', () => {
+      mockUseMerklBonusClaim.mockReturnValue({
+        claimableReward: '0.02',
+        hasPendingClaim: false,
+        claimRewards: mockClaimRewards,
+        isClaiming: false,
+        error: null,
+      });
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      expect(screen.getByText('Claim bonus')).toBeOnTheScreen();
+    });
   });
 });

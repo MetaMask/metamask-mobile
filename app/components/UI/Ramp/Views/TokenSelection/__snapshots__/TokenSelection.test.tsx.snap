@@ -377,237 +377,426 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                               showsHorizontalScrollIndicator={false}
                             >
                               <View>
-                                <TouchableOpacity
+                                <View
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
                                   }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    All
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityValue={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
                                     }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
+                                    style={{}}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#ffffff",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      All
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
                                         "justifyContent": "center",
-                                        "marginRight": 8,
+                                        "minWidth": 80,
+                                        "opacity": 1,
                                         "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
                                       {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
-                                    }
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "marginRight": 8,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
+                                    style={{}}
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
+                                  <View
+                                    style={{}}
                                   >
-                                    Bitcoin
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Ethereum
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "marginRight": 8,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
+                                    style={{}}
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
+                                  <View
+                                    style={{}}
                                   >
-                                    Solana
-                                  </Text>
-                                </TouchableOpacity>
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Bitcoin
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    style={{}}
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "width": 16,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={{}}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Solana
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                             </RCTScrollView>
                           </View>
@@ -829,13 +1018,17 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     <Text
                                       accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 20,
+                                            "fontWeight": 500,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       No tokens match "Nonexistent Token"
@@ -1237,237 +1430,426 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                               showsHorizontalScrollIndicator={false}
                             >
                               <View>
-                                <TouchableOpacity
+                                <View
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
                                   }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    All
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityValue={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
                                     }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
+                                    style={{}}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#ffffff",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      All
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
                                         "justifyContent": "center",
-                                        "marginRight": 8,
+                                        "minWidth": 80,
+                                        "opacity": 1,
                                         "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
                                       {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
-                                    }
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "marginRight": 8,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
+                                    style={{}}
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
+                                  <View
+                                    style={{}}
                                   >
-                                    Bitcoin
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Ethereum
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "marginRight": 8,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
+                                    style={{}}
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
+                                  <View
+                                    style={{}}
                                   >
-                                    Solana
-                                  </Text>
-                                </TouchableOpacity>
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Bitcoin
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    style={{}}
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "width": 16,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={{}}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Solana
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                             </RCTScrollView>
                           </View>
@@ -1687,6 +2069,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -1721,10 +2105,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -1831,7 +2215,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -1847,13 +2231,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -1861,13 +2249,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
@@ -1877,7 +2269,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -1987,6 +2379,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2021,10 +2415,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2131,7 +2525,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2147,13 +2541,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Tether USD
@@ -2161,13 +2559,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDT
@@ -2177,7 +2579,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2287,6 +2689,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2321,10 +2725,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2431,7 +2835,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2447,13 +2851,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Bitcoin
@@ -2461,13 +2869,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           BTC
@@ -2477,7 +2889,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2587,6 +2999,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2621,10 +3035,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2731,7 +3145,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2747,13 +3161,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Ethereum
@@ -2761,13 +3179,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           ETH
@@ -2777,7 +3199,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2887,6 +3309,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2921,10 +3345,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3031,7 +3455,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3047,13 +3471,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -3061,13 +3489,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
@@ -3077,7 +3509,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3557,237 +3989,426 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                               showsHorizontalScrollIndicator={false}
                             >
                               <View>
-                                <TouchableOpacity
+                                <View
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
                                   }
-                                >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    All
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityValue={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
                                     }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
+                                    style={{}}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#ffffff",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      All
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
                                         "justifyContent": "center",
-                                        "marginRight": 8,
+                                        "minWidth": 80,
+                                        "opacity": 1,
                                         "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
                                       {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
-                                    }
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "marginRight": 8,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
+                                    style={{}}
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
+                                  <View
+                                    style={{}}
                                   >
-                                    Bitcoin
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Ethereum
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "transparent",
-                                      "borderRadius": 12,
-                                      "borderWidth": 1,
-                                      "flexDirection": "row",
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "marginRight": 8,
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
+                                    style={{}}
                                   >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
+                                    <View
                                       style={
                                         {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
                                           "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
-                                      testID="network-avatar-image"
-                                    />
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
                                   </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
+                                  <View
+                                    style={{}}
                                   >
-                                    Solana
-                                  </Text>
-                                </TouchableOpacity>
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Bitcoin
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    style={{}}
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "height": 16,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "width": 16,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={{}}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#131416",
+                                            "fontFamily": "Geist-Regular",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      Solana
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                             </RCTScrollView>
                           </View>
@@ -4007,6 +4628,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4041,10 +4664,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4151,7 +4774,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4167,13 +4790,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -4181,13 +4808,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
@@ -4197,7 +4828,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4307,6 +4938,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4341,10 +4974,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4451,7 +5084,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4467,13 +5100,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Tether USD
@@ -4481,13 +5118,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDT
@@ -4497,7 +5138,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4607,6 +5248,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4641,10 +5284,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4751,7 +5394,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4767,13 +5410,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Bitcoin
@@ -4781,13 +5428,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           BTC
@@ -4797,7 +5448,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4907,6 +5558,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4941,10 +5594,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -5051,7 +5704,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -5067,13 +5720,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Ethereum
@@ -5081,13 +5738,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           ETH
@@ -5097,7 +5758,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -5207,6 +5868,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -5241,10 +5904,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -5351,7 +6014,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -5367,13 +6030,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -5381,13 +6048,17 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
@@ -5397,7 +6068,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"

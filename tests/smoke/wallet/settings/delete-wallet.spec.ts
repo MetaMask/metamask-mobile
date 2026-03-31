@@ -2,6 +2,7 @@ import { RegressionWalletPlatform } from '../../../tags';
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
 import LoginView from '../../../page-objects/wallet/LoginView';
 import SettingsView from '../../../page-objects/Settings/SettingsView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import SecurityAndPrivacyView from '../../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../../page-objects/Settings/SecurityAndPrivacy/ChangePasswordView';
 import ForgotPasswordModal from '../../../page-objects/Common/ForgotPasswordModalView';
@@ -9,7 +10,6 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import CommonView from '../../../page-objects/CommonView.ts';
 import Assertions from '../../../framework/Assertions';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
 
@@ -68,13 +68,9 @@ describe(
             SecurityAndPrivacyView.securityAndPrivacyHeading,
           );
 
-          // should lock wallet from Settings
-          // TODO: remove the condition but keep the step once the issue above is fixed
-          // Skip back button tap only on iOS CI, execute otherwise
-          if (!(device.getPlatform() === 'ios' && process.env.CI)) {
-            await CommonView.tapBackButton();
-          }
-          await SettingsView.tapLock();
+          // should lock wallet from Accounts Menu
+          await TabBarComponent.tapAccountsMenu();
+          await AccountMenu.tapLock();
           await SettingsView.tapYesAlertButton();
           await Assertions.expectElementToBeVisible(LoginView.container);
 

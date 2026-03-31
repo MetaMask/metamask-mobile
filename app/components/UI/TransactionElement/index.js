@@ -58,7 +58,10 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  hasTransactionType,
+} from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   TRANSACTION_DETAIL_EVENTS,
@@ -135,7 +138,7 @@ const createStyles = (colors, typography) =>
     },
   });
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
 const transactionIconSent = require('../../../images/transaction-icons/send.png');
@@ -147,13 +150,14 @@ const transactionIconInteractionFailed = require('../../../images/transaction-ic
 const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
 const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
-/* eslint-enable import/no-commonjs */
+/* eslint-enable import-x/no-commonjs */
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -444,13 +448,14 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const predictWithdrawChainId = hasTransactionType(this.props.tx, [
+    const withdrawChainId = hasTransactionType(this.props.tx, [
       TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
     ])
       ? this.props.tx.metamaskPay?.chainId
       : undefined;
 
-    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
+    const chainId = perpsDepositChainId ?? withdrawChainId ?? txChainId;
 
     return (
       <BadgeWrapper
@@ -516,7 +521,8 @@ class TransactionElement extends PureComponent {
           !isQRHardwareAccount &&
           !isLedgerAccount)) &&
       !isSmartTransaction &&
-      !isBridgeTransaction;
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(tx);
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =
