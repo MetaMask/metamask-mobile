@@ -11,16 +11,7 @@ import TronClaimableRewardsRow from '../../Earn/components/Tron/TronStakingRewar
 import TronEstimatedAnnualRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
 import TronErrorsBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner';
 import useTronAssetOverviewSection from './useTronAssetOverviewSection';
-
-export type TronNativeToken = TokenI & {
-  chainId: `tron:${string}`;
-  symbol: 'TRX';
-  ticker?: 'TRX';
-};
-
-export const isTronNativeToken = (token: TokenI): token is TronNativeToken =>
-  (token.ticker ?? token.symbol) === 'TRX' &&
-  String(token.chainId).startsWith('tron:');
+import type { TronNativeToken } from '../utils/isTronNativeToken';
 
 export interface TronAssetOverviewSectionProps {
   token: TronNativeToken;

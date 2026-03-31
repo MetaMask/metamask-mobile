@@ -91,9 +91,8 @@ import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
-import TronAssetOverviewSection, {
-  isTronNativeToken,
-} from './TronAssetOverviewSection';
+import TronAssetOverviewSection from './TronAssetOverviewSection';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
