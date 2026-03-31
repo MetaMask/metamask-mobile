@@ -1,10 +1,5 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import {
-  getFixturesServerPort,
-  getMockServerPortForFixture,
-} from '../../framework/fixtures/FixtureUtils';
-
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
@@ -20,7 +15,6 @@ import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import ForgotPasswordModal from '../../page-objects/Common/ForgotPasswordModalView';
 import { loginToApp } from '../../flows/wallet.flow';
-import { dismissDevScreens, waitForAppReady } from '../../flows/general.flow';
 
 export const TEST_PASSWORD = 'Test123!@#';
 
@@ -117,11 +111,11 @@ export const completeGoogleNewUserOnboarding = (): Promise<void> =>
 export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
 
-const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
 /**
- * Locks the app from Settings
+ * Locks the app from Settings.
+ *
+ * Authentication.lockApp already resets navigation to the login screen;
+ * no need to terminate/relaunch the app (which desyncs Metro).
  */
 export const lockApp = async (): Promise<void> => {
   await TabBarComponent.tapAccountsMenu();
@@ -129,24 +123,6 @@ export const lockApp = async (): Promise<void> => {
   await AccountMenu.tapLock();
 
   await SettingsView.tapYesAlertButton();
-
-  const isIOS = device.getPlatform() === 'ios';
-
-  if (isIOS) {
-    await delay(1000);
-
-    await device.terminateApp();
-    await device.launchApp({
-      newInstance: false,
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-        mockServerPort: `${getMockServerPortForFixture()}`,
-      },
-    });
-
-    await dismissDevScreens();
-    await waitForAppReady();
-  }
 
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login screen should be visible after locking',
