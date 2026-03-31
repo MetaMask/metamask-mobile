@@ -69,6 +69,7 @@ app/selectors/rampsController                          @MetaMask/money-movement
 **/Ramp/**                                              @MetaMask/money-movement
 **/ramp/**                                              @MetaMask/money-movement
 **/ramps/**                                             @MetaMask/money-movement
+**/money-movement/**                                    @MetaMask/money-movement
 
 # Card Team
 app/components/UI/Card/                                    @MetaMask/card
