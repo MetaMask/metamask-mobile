@@ -2,13 +2,6 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useRefetchCandleDataOnError } from './useRefetchCandleDataOnError';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 
-jest.mock('@walletconnect/utils', () => ({
-  sleep: (ms: number) =>
-    new Promise<void>((resolve) => {
-      setTimeout(resolve, ms);
-    }),
-}));
-
 describe('useRefetchCandleDataOnError', () => {
   const makeCandleData = (candles: CandleData['candles'] = []): CandleData => ({
     symbol: 'BTC',
