@@ -208,7 +208,7 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.tags.build_variant).toBe('exp');
     expect(payload.tags.test_team).toBe('qa-automation');
     expect(payload.extra.timer_steps).toHaveLength(2);
-    expect(payload.extra.browserstack_recording_url).toBe(
+    expect(payload.extra.recording_url).toBe(
       'https://app-automate.browserstack.com/builds/build-123/sessions/sess-123',
     );
     expect(payload.extra.github_job_url).toBe(
@@ -231,7 +231,7 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.spans[0].data.test_file_path).toBe(
       'tests/performance/onboarding/import-wallet.spec.js',
     );
-    expect(payload.spans[0].data.browserstack_recording_url).toBe(
+    expect(payload.spans[0].data.recording_url).toBe(
       'https://app-automate.browserstack.com/builds/build-123/sessions/sess-123',
     );
     expect(payload.spans[0].data.github_job_url).toBe(

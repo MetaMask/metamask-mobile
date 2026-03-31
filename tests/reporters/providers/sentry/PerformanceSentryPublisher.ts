@@ -71,7 +71,7 @@ interface MirroredScenarioAttributes {
   device_name: string;
   device_os_version: string;
   test_file_path: string;
-  browserstack_recording_url: string | null;
+  recording_url: string | null;
   github_job_url: string | null;
   github_job_name: string | null;
 }
@@ -313,7 +313,7 @@ export async function publishPerformanceScenarioToSentry(
     device_name: options.metrics.device.name,
     device_os_version: options.metrics.device.osVersion,
     test_file_path: testFilePath,
-    browserstack_recording_url: options.browserstackRecordingUrl ?? null,
+    recording_url: options.browserstackRecordingUrl ?? null,
     github_job_url: getGithubJobUrl(),
     github_job_name: getEnvValue(ENV_GITHUB_JOB) ?? null,
   };
@@ -388,8 +388,7 @@ export async function publishPerformanceScenarioToSentry(
     spans,
     extra: {
       test_file_path: mirroredScenarioAttributes.test_file_path,
-      browserstack_recording_url:
-        mirroredScenarioAttributes.browserstack_recording_url,
+      recording_url: mirroredScenarioAttributes.recording_url,
       github_job_url: mirroredScenarioAttributes.github_job_url,
       github_job_name: mirroredScenarioAttributes.github_job_name,
       test_tags: options.tags,
