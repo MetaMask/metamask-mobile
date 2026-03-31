@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
 
   testflight-upload-summary:
-    name: TestFlight upload summary
+    name: TestFlight upload
     needs: [build]
     runs-on: ubuntu-latest
     steps:
@@ -68,6 +68,7 @@ jobs:
             echo "| **Source branch** | ${{ inputs.source_branch }} |"
             echo "| **Build name** | main-${{ inputs.environment || 'rc' }} |"
             echo "| **Build version** | ${BUILD_VERSION} |"
+            echo "| **Build number** | ${{ needs.build.outputs.build_version }} |"
             echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 

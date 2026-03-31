@@ -25,6 +25,10 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      build_version:
+        description: 'Native build number from the version bump (CFBundleVersion / versionCode); empty if skip_version_bump'
+        value: ${{ jobs.prepare.outputs.build_version }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -88,6 +92,7 @@ jobs:
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
+      build_version: ${{ needs.update-build-version.outputs.build-version || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
