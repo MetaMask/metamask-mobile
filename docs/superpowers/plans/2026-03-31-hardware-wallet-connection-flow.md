@@ -148,79 +148,14 @@ export type ErrorRenderer = ComponentType<ErrorComponentProps>;
 export type ErrorRendererMap = Partial<Record<ErrorCode, ErrorRenderer>>;
 ```
 
-- [ ] **Step 2: Write the failing test for registry**
-
-In `errors/registry.test.ts`:
-
-```ts
-import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { resolveErrorComponent } from './registry';
-import type { ErrorRenderer } from './types';
-
-// Mock components for testing
-const MockWalletSpecific: ErrorRenderer = (() =>
-  null) as unknown as ErrorRenderer;
-const MockShared: ErrorRenderer = (() => null) as unknown as ErrorRenderer;
-const MockGeneric: ErrorRenderer = (() => null) as unknown as ErrorRenderer;
-
-describe('resolveErrorComponent', () => {
-  it('returns wallet-specific component when registered for that wallet type', () => {
-    // Wallet-specific error should take priority
-    const result = resolveErrorComponent(
-      HardwareWalletType.Ledger,
-      ErrorCode.DeviceStateEthAppClosed,
-    );
-    expect(result).toBeDefined();
-  });
-
-  it('returns shared transport component for BLE permission errors', () => {
-    const result = resolveErrorComponent(
-      HardwareWalletType.Ledger,
-      ErrorCode.PermissionBluetoothDenied,
-    );
-    expect(result).toBeDefined();
-  });
-
-  it('returns shared DeviceNotFoundError for DeviceNotFound code', () => {
-    const result = resolveErrorComponent(
-      HardwareWalletType.Ledger,
-      ErrorCode.DeviceNotFound,
-    );
-    expect(result).toBeDefined();
-  });
-
-  it('returns DeviceNotFoundError when errorCode is undefined', () => {
-    const result = resolveErrorComponent(
-      HardwareWalletType.Ledger,
-      undefined as unknown as ErrorCode,
-    );
-    expect(result).toBeDefined();
-  });
-
-  it('returns GenericError for Unknown error code', () => {
-    const result = resolveErrorComponent(
-      HardwareWalletType.Ledger,
-      ErrorCode.Unknown,
-    );
-    expect(result).toBeDefined();
-  });
-});
-```
-
-- [ ] **Step 3: Run the test to verify it fails**
-
-Run: `npx jest app/components/Views/hardware-wallet/errors/registry.test.ts --no-coverage`
-Expected: FAIL — module not found
-
-- [ ] **Step 4: Create `errors/registry.ts`**
+- [ ] **Step 2: Create `errors/registry.ts`**
 
 ```ts
 import type { ComponentType } from 'react';
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import type { ErrorComponentProps, ErrorRendererMap } from './types';
 
-// Wallet-specific error maps (imported in Step later when components exist)
-// For now, use empty maps — will be populated in Tasks 3-5
+// Wallet-specific error maps (populated in Task 4)
 const WALLET_ERROR_MAPS: Partial<Record<HardwareWalletType, ErrorRendererMap>> =
   {};
 
@@ -229,6 +164,15 @@ let SHARED_ERROR_MAP: ErrorRendererMap = {};
 
 // Generic fallback (set in Task 3)
 let GENERIC_FALLBACK: ComponentType<ErrorComponentProps> | null = null;
+
+/** For test teardown — resets all registered error maps */
+export function resetRegistry(): void {
+  Object.keys(WALLET_ERROR_MAPS).forEach(
+    (key) => delete WALLET_ERROR_MAPS[key as HardwareWalletType],
+  );
+  SHARED_ERROR_MAP = {};
+  GENERIC_FALLBACK = null;
+}
 
 export function registerSharedErrors(
   map: ErrorRendererMap,
@@ -278,16 +222,93 @@ export function resolveErrorComponent(
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [ ] **Step 3: Write tests for the registry resolution logic with mocks**
+
+In `errors/registry.test.ts`:
+
+```ts
+import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  resolveErrorComponent,
+  registerSharedErrors,
+  registerWalletErrors,
+  resetRegistry,
+} from './registry';
+import type { ErrorRenderer } from './types';
+
+const MockWalletSpecific = (() => null) as unknown as ErrorRenderer;
+const MockShared = (() => null) as unknown as ErrorRenderer;
+const MockGeneric = (() => null) as unknown as ErrorRenderer;
+const MockDeviceNotFound = (() => null) as unknown as ErrorRenderer;
+
+describe('resolveErrorComponent', () => {
+  beforeEach(() => {
+    resetRegistry();
+    // Set up shared + generic for each test
+    registerSharedErrors(
+      {
+        [ErrorCode.PermissionBluetoothDenied]: MockShared,
+        [ErrorCode.DeviceNotFound]: MockDeviceNotFound,
+      },
+      MockGeneric,
+    );
+    // Register Ledger wallet-specific
+    registerWalletErrors(HardwareWalletType.Ledger, {
+      [ErrorCode.DeviceStateEthAppClosed]: MockWalletSpecific,
+    });
+  });
+
+  it('returns wallet-specific component when registered for that wallet type', () => {
+    const result = resolveErrorComponent(
+      HardwareWalletType.Ledger,
+      ErrorCode.DeviceStateEthAppClosed,
+    );
+    expect(result).toBe(MockWalletSpecific);
+  });
+
+  it('returns shared component when no wallet-specific match', () => {
+    const result = resolveErrorComponent(
+      HardwareWalletType.Ledger,
+      ErrorCode.PermissionBluetoothDenied,
+    );
+    expect(result).toBe(MockShared);
+  });
+
+  it('returns DeviceNotFound when errorCode is undefined', () => {
+    const result = resolveErrorComponent(
+      HardwareWalletType.Ledger,
+      undefined as unknown as ErrorCode,
+    );
+    expect(result).toBe(MockDeviceNotFound);
+  });
+
+  it('returns generic fallback for unhandled error codes', () => {
+    const result = resolveErrorComponent(
+      HardwareWalletType.Ledger,
+      ErrorCode.Unknown,
+    );
+    expect(result).toBe(MockGeneric);
+  });
+
+  it('throws when nothing is registered', () => {
+    resetRegistry();
+    expect(() =>
+      resolveErrorComponent(HardwareWalletType.Ledger, ErrorCode.Unknown),
+    ).toThrow('No error component registered');
+  });
+});
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx jest app/components/Views/hardware-wallet/errors/registry.test.ts --no-coverage`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add app/components/Views/hardware-wallet/errors/types.ts app/components/Views/hardware-wallet/errors/registry.ts app/components/Views/hardware-wallet/errors/registry.test.ts
-git commit -m "feat: add error component registry with resolver"
+git commit -m "feat: add error component registry with resolver and tests"
 ```
 
 ---
@@ -475,33 +496,87 @@ git commit -m "feat: add shared error components and register in registry"
 
 ## Task 4: Update Ledger-specific error components to accept ErrorComponentProps
 
-**Goal:** Make existing Ledger error components accept the standardized props interface.
+**Goal:** Make all existing Ledger error components accept the standardized props interface, then register them in the registry.
 
 **Files:**
 
 - Modify: `app/components/Views/hardware-wallet/errors/LedgerAppClosedError.tsx`
 - Modify: `app/components/Views/hardware-wallet/errors/LedgerBlindSigningDisabledError.tsx`
+- Modify: `app/components/Views/hardware-wallet/errors/LedgerGenericError.tsx`
+- Modify: `app/components/Views/hardware-wallet/errors/LedgerDeviceUnresponsiveError.tsx`
+- Modify: `app/components/Views/hardware-wallet/errors/connection/LedgerConnectionError.tsx`
+- Create: `app/components/Views/hardware-wallet/errors/ledger/index.ts`
 
 - [ ] **Step 1: Update `LedgerAppClosedError.tsx`**
 
-Change the props type to accept `ErrorComponentProps`. The component only uses `onContinue`.
+Change the props type to accept `ErrorComponentProps`. The component uses `isBusy` and `onContinue`. Keep forwarding `isBusy` to `ErrorState` to preserve the loading state on the Continue button.
 
 ```tsx
 import type { ErrorComponentProps } from './types';
 
-const LedgerAppClosedError = ({ onContinue }: ErrorComponentProps) => {
-  // existing rendering logic unchanged
+const LedgerAppClosedError = ({ isBusy, onContinue }: ErrorComponentProps) => {
+  // existing rendering logic, pass isBusy to ErrorState's primaryAction disabled prop
 };
 ```
 
 - [ ] **Step 2: Update `LedgerBlindSigningDisabledError.tsx`**
 
-Same pattern — accept `ErrorComponentProps`, use `onContinue`.
+Same pattern — accept `ErrorComponentProps`, forward `isBusy` and `onContinue`.
 
-- [ ] **Step 3: Create `errors/ledger/index.ts` and register Ledger errors**
+- [ ] **Step 3: Update `LedgerGenericError.tsx`**
+
+Accept `ErrorComponentProps`. Use `error`, `isBusy`, `onRetry`, and `onExit`. The existing `description` prop (passed via `connectionError?.userMessage`) is now `error?.userMessage`:
+
+```tsx
+import type { ErrorComponentProps } from './types';
+
+const LedgerGenericError = ({
+  error,
+  isBusy,
+  onRetry,
+  onExit,
+}: ErrorComponentProps) => {
+  const description =
+    error?.userMessage ??
+    strings('hardware_wallet.errors.unknown_error', {
+      device: strings('hardware_wallet.device_names.ledger'),
+    });
+  // existing ErrorState rendering with description
+};
+```
+
+- [ ] **Step 4: Update `LedgerDeviceUnresponsiveError.tsx`**
+
+Accept `ErrorComponentProps`. Use `isBusy` and `onRetry`.
+
+- [ ] **Step 5: Update `connection/LedgerConnectionError.tsx`**
+
+Accept `ErrorComponentProps` instead of its current custom props. Map the standardized callbacks to the existing config-based rendering:
+
+```tsx
+import type { ErrorComponentProps } from '../types';
+
+const LedgerConnectionError = ({
+  errorCode,
+  isBusy,
+  onRetry,
+  onContinue,
+  onOpenSettings,
+  onOpenBluetoothSettings,
+}: ErrorComponentProps) => {
+  // existing config map, using the renamed callbacks:
+  // onRetry -> onRetry (same)
+  // onContinue -> onContinue (was onContinue in old props too)
+  // onOpenSettings -> onOpenSettings (same)
+  // onOpenBluetoothSettings -> onOpenBluetoothSettings (same)
+  // ...
+};
+```
+
+- [ ] **Step 6: Create `errors/ledger/index.ts` and register Ledger errors**
 
 ```ts
-import { ErrorCode } from '@metamask/hw-wallet-sdk';
+import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { registerWalletErrors } from '../registry';
 import LedgerAppClosedError from './LedgerAppClosedError';
 import LedgerBlindSigningDisabledError from './LedgerBlindSigningDisabledError';
@@ -519,20 +594,20 @@ registerWalletErrors(HardwareWalletType.Ledger, LEDGER_ERROR_MAP);
 export { LedgerAppClosedError, LedgerBlindSigningDisabledError };
 ```
 
-- [ ] **Step 4: Update `errors/index.ts` to import the ledger registration**
+- [ ] **Step 7: Update `errors/index.ts` to import the ledger registration**
 
 Add: `import './ledger';` — this triggers the auto-registration side effect.
 
-- [ ] **Step 5: Run tests**
+- [ ] **Step 8: Run tests**
 
 Run: `npx jest app/components/Views/hardware-wallet/ --no-coverage`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add app/components/Views/hardware-wallet/errors/
-git commit -m "refactor: update Ledger errors to accept ErrorComponentProps and register in registry"
+git commit -m "refactor: update all Ledger errors to accept ErrorComponentProps and register in registry"
 ```
 
 ---
@@ -631,8 +706,9 @@ git commit -m "refactor: use error registry and route params in connection flow"
 **Files:**
 
 - Create: `app/components/Views/hardware-wallet/AccountSelection.tsx`
+- Create: `app/components/Views/hardware-wallet/AccountSelection.test.tsx`
 - Modify: `app/constants/navigation/Routes.ts`
-- Modify: Navigation registration (find where `Routes.HW.LEDGER_CONNECT` is registered)
+- Modify: Navigation registration in `app/app/App.tsx` (search for `Routes.HW.LEDGER_CONNECT`)
 
 - [ ] **Step 1: Add route to `Routes.ts`**
 
@@ -642,37 +718,137 @@ In `Routes.HW`, add:
 ACCOUNT_SELECTION: 'HardwareAccountSelection',
 ```
 
-- [ ] **Step 2: Create `AccountSelection.tsx`**
+- [ ] **Step 2: Read `LedgerSelectAccount/index.tsx` to understand the data logic**
 
-Port business logic from `LedgerSelectAccount/index.tsx`:
+Reference: `app/components/Views/LedgerSelectAccount/index.tsx`
 
-- Account fetching (`getLedgerAccountsByOperation`)
-- Account unlocking (`unlockLedgerWalletAccount`)
-- HD path management (`getHDPath`, `setHDPath`)
-- Forget device (`forgetLedger`)
-- Analytics events (use `walletType` from route params instead of hardcoded `HardwareDeviceTypes.LEDGER`)
-- Render `AccountSelectionFlow` with computed props
+Key state and logic to port:
 
-The screen reads `walletType` from route params. For now, all business logic is Ledger-specific (matching current behavior). When a new wallet type is added, dispatch based on `walletType`.
+- `accounts` state: fetched via `getLedgerAccountsByOperation`
+- `checkedAccounts` state: Set of selected account indices
+- `existingAccounts` state: loaded from `keyringController.getAccounts()`
+- `selectedOption` state: HD path (Ledger Live / Legacy / BIP44)
+- `blockingModalVisible` / `forgetDevice` state
+- `errorMsg` state
+- `fetchAccounts()`, `nextPage()`, `prevPage()` callbacks
+- `onUnlock()`: ensureDeviceReady → unlockLedgerWalletAccount → pop(2)
+- `onForget()`: forgetLedger → pop(2)
+- `onSelectedPathChanged()`: setHDPath → clear checked → refetch
+- Analytics: 4 events with `device_type` from route params
 
-Reference the existing `LedgerSelectAccount/index.tsx` closely — the logic is the same, just parameterized by wallet type and using `AccountSelectionFlow` instead of custom UI.
+- [ ] **Step 3: Create `AccountSelection.tsx` — data wrapper**
 
-- [ ] **Step 3: Register the route in navigation config**
+Structure:
 
-Find where `Routes.HW.LEDGER_CONNECT` -> `LedgerSelectAccount` is registered in `App.tsx` (or the navigation config file). Add:
+```tsx
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ActivityIndicator } from 'react-native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { AccountSelectionFlow, type AccountSelectionItem } from './components';
+import BlockingActionModal from '../../UI/BlockingActionModal';
+import { useHardwareWallet } from '../../../core/HardwareWallet';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+// ... Ledger-specific imports (getLedgerAccountsByOperation, etc.)
+// These stay Ledger-specific. When a new wallet type is added, dispatch here.
+
+const AccountSelection = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const walletType = (route.params?.walletType ??
+    HardwareWalletType.Ledger) as HardwareWalletType;
+  const { deviceId, deviceSelection, ensureDeviceReady } = useHardwareWallet();
+
+  // Port all state + callbacks from LedgerSelectAccount
+  // Use walletType for analytics device_type instead of hardcoded LEDGER
+
+  // ... (same logic, parameterized by walletType)
+
+  return (
+    <>
+      <AccountSelectionFlow
+        accounts={displayAccounts}
+        errorMessage={errorMsg}
+        isBusy={blockingModalVisible}
+        onBack={navigation.goBack}
+        onContinue={handleContinue}
+        onForget={handleForget}
+        onNextPage={nextPage}
+        onOpenSettings={openHdPathSheet}
+        onPrevPage={prevPage}
+        onToggleAccount={toggleAccountSelection}
+      />
+      <BlockingActionModal
+        modalVisible={blockingModalVisible}
+        isLoadingAction
+        onAnimationCompleted={onAnimationCompleted}
+      >
+        <Text>{strings('common.please_wait')}</Text>
+      </BlockingActionModal>
+    </>
+  );
+};
+```
+
+- [ ] **Step 4: Register the route in navigation config**
+
+Search for `Routes.HW.LEDGER_CONNECT` in `app/app/App.tsx`. Add a new `<Stack.Screen>` registration:
 
 ```ts
+import AccountSelection from './components/Views/hardware-wallet/AccountSelection';
+
+// In the Stack.Navigator:
 <Stack.Screen
   name={Routes.HW.ACCOUNT_SELECTION}
   component={AccountSelection}
 />
 ```
 
-- [ ] **Step 4: Update connection flow to navigate to new route**
+Keep the old `Routes.HW.LEDGER_CONNECT` registration for now (backward compat during migration).
 
-In `index.tsx`, ensure success navigation goes to `Routes.HW.ACCOUNT_SELECTION` with `walletType` param.
+- [ ] **Step 5: Update connection flow to navigate to new route**
 
-- [ ] **Step 5: Migrate tests from `LedgerSelectAccount`**
+In `hardware-wallet/index.tsx`, update the success navigation from `Routes.HW.LEDGER_CONNECT` to `Routes.HW.ACCOUNT_SELECTION`. Pass `walletType` as a route param:
+
+```ts
+navigation.dispatch(
+  StackActions.replace(Routes.HW.ACCOUNT_SELECTION, {
+    walletType,
+  }),
+);
+```
+
+- [ ] **Step 6: Update analytics to use `walletType`**
+
+In the new `AccountSelection.tsx`, replace all instances of:
+
+```ts
+device_type: HardwareDeviceTypes.LEDGER,
+```
+
+With:
+
+```ts
+device_type: walletType,
+```
+
+This covers all 4 analytics events: `HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN`, `HARDWARE_WALLET_ADD_ACCOUNT`, `HARDWARE_WALLET_ERROR`, `HARDWARE_WALLET_FORGOTTEN`.
+
+- [ ] **Step 7: Migrate tests from `LedgerSelectAccount`**
 
 Port test scenarios from `app/components/Views/LedgerSelectAccount/index.test.tsx` to `app/components/Views/hardware-wallet/AccountSelection.test.tsx`. Key scenarios:
 
@@ -683,15 +859,15 @@ Port test scenarios from `app/components/Views/LedgerSelectAccount/index.test.ts
 - Pagination (prev/next)
 - Error handling during fetch
 
-- [ ] **Step 6: Run tests**
+- [ ] **Step 8: Run tests**
 
 Run: `npx jest app/components/Views/hardware-wallet/ --no-coverage`
 Expected: PASS
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add app/components/Views/hardware-wallet/AccountSelection.tsx app/constants/navigation/Routes.ts
+git add app/components/Views/hardware-wallet/AccountSelection.tsx app/components/Views/hardware-wallet/AccountSelection.test.tsx app/constants/navigation/Routes.ts app/app/App.tsx
 git commit -m "feat: add AccountSelection screen replacing LedgerSelectAccount"
 ```
 
@@ -699,25 +875,26 @@ git commit -m "feat: add AccountSelection screen replacing LedgerSelectAccount"
 
 ## Task 7: Make illustration components wallet-type-aware
 
-**Goal:** `LookingForDeviceState` and `DeviceNotFoundState` accept illustration prop instead of importing Ledger illustration directly.
+**Goal:** `LookingForDeviceState`, `DeviceNotFoundState`, and `DeviceFoundState` accept illustration prop instead of importing Ledger illustration directly.
 
 **Files:**
 
 - Modify: `app/components/Views/hardware-wallet/components/LookingForDeviceState.tsx`
 - Modify: `app/components/Views/hardware-wallet/components/DeviceNotFoundState.tsx`
-- Modify: `app/components/Views/hardware-wallet/components/LedgerDeviceIllustration.tsx` (no rename, just reference)
+- Modify: `app/components/Views/hardware-wallet/components/DeviceFoundState.tsx`
 
 - [ ] **Step 1: Update `LookingForDeviceState.tsx`**
 
-Add optional `illustration` prop. Default to `LedgerDeviceIllustration` when not provided:
+Add optional `illustration` prop. The component currently takes no props — add just the illustration prop:
 
 ```tsx
+import type { ReactNode } from 'react';
+
 type Props = {
   illustration?: ReactNode;
-  // existing props...
 };
 
-const LookingForDeviceState = ({ illustration, ...rest }: Props) => {
+const LookingForDeviceState = ({ illustration }: Props) => {
   return (
     // ...existing layout...
     {illustration ?? <LedgerDeviceIllustration />}
@@ -728,25 +905,54 @@ const LookingForDeviceState = ({ illustration, ...rest }: Props) => {
 
 - [ ] **Step 2: Update `DeviceNotFoundState.tsx`**
 
-Same pattern — accept `illustration` prop, default to Ledger.
+Add `illustration` prop alongside existing `onRetry` prop:
 
-- [ ] **Step 3: Update `index.tsx` to pass wallet-type-aware illustration**
+```tsx
+type Props = {
+  illustration?: ReactNode;
+  onRetry: () => void;
+};
+
+const DeviceNotFoundState = ({ illustration, onRetry }: Props) => {
+  // ...existing layout, use illustration ?? <LedgerDeviceIllustration />
+};
+```
+
+- [ ] **Step 3: Update `DeviceFoundState.tsx`**
+
+Same pattern — add `illustration` prop alongside existing props (`deviceName`, `disabled`, `onOpenSelector`).
+
+- [ ] **Step 4: Update `index.tsx` to pass wallet-type-aware illustration**
 
 In the connection flow, look up the illustration for the current wallet type:
 
 ```ts
+import { getWalletIllustration } from './illustrations';
+
 const illustration = getWalletIllustration(walletType);
 // Pass to <LookingForDeviceState illustration={illustration} />
+// Pass to <DeviceFoundState illustration={illustration} ... />
 ```
 
-For now, `getWalletIllustration` returns `LedgerDeviceIllustration` for Ledger. Adding a new type means adding to this map.
+Create a simple illustration map (can be inline in `index.tsx` or a small helper file):
 
-- [ ] **Step 4: Run tests**
+```ts
+import LedgerDeviceIllustration from './components/LedgerDeviceIllustration';
+
+const ILLUSTRATION_MAP: Record<string, ReactNode> = {
+  [HardwareWalletType.Ledger]: <LedgerDeviceIllustration />,
+};
+
+export const getWalletIllustration = (walletType: HardwareWalletType | null) =>
+  walletType ? ILLUSTRATION_MAP[walletType] : null;
+```
+
+- [ ] **Step 5: Run tests**
 
 Run: `npx jest app/components/Views/hardware-wallet/ --no-coverage`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add app/components/Views/hardware-wallet/components/ app/components/Views/hardware-wallet/index.tsx
