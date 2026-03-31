@@ -13,13 +13,13 @@ Screenshot-based visual regression tests using [Maestro](https://maestro.mobile.
 
 ```bash
 # Assert mode — compare against existing baselines
-yarn maestro:visual --flow tests/visual/flows/wallet/wallet-home.yaml
+yarn maestro:visualtests/visual/flows/wallet/wallet-home.yaml
 
 # Update baselines — capture new baseline screenshots
-yarn maestro:visual:update-baselines --flow tests/visual/flows/wallet/wallet-home.yaml
+yarn maestro:visual:update-baselinestests/visual/flows/wallet/wallet-home.yaml
 
 # Run all flows in a directory
-yarn maestro:visual --flow tests/visual/flows/wallet/
+yarn maestro:visualtests/visual/flows/wallet/
 ```
 
 ## Adding a New Visual Test
@@ -49,7 +49,7 @@ tags:
 
 # Capture screenshot
 - assertScreenshot:
-    path: ios/wallet/my-screen.png
+    path: tests/visual/baselines/ios/wallet/my-screen.png
     thresholdPercentage: 95
 ```
 
@@ -77,13 +77,13 @@ const modifiers = {
 ### 3. Generate the baseline
 
 ```bash
-yarn maestro:visual:update-baselines --flow tests/visual/flows/wallet/my-screen.yaml
+yarn maestro:visual:update-baselinestests/visual/flows/wallet/my-screen.yaml
 ```
 
 ### 4. Verify it passes
 
 ```bash
-yarn maestro:visual --flow tests/visual/flows/wallet/my-screen.yaml
+yarn maestro:visualtests/visual/flows/wallet/my-screen.yaml
 ```
 
 ## Writing Flows
@@ -139,13 +139,13 @@ A single flow can capture multiple screens — just use different `path` values:
 
 ```yaml
 - assertScreenshot:
-    path: ios/wallet/send-asset-selection.png
+    path: tests/visual/baselines/ios/wallet/send-asset-selection.png
     thresholdPercentage: 95
 
 # ... navigate to next screen ...
 
 - assertScreenshot:
-    path: ios/wallet/send-amount-input.png
+    path: tests/visual/baselines/ios/wallet/send-amount-input.png
     thresholdPercentage: 95
 ```
 
