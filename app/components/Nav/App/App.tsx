@@ -90,6 +90,7 @@ import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnect
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
+import AccountSelection from '../../Views/hardware-wallet/AccountSelection';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -699,6 +700,10 @@ const LedgerConnectFlow = () => (
     <Stack.Screen
       name={Routes.HW.LEDGER_CONNECT}
       component={LedgerSelectAccount}
+    />
+    <Stack.Screen
+      name={Routes.HW.ACCOUNT_SELECTION}
+      component={AccountSelection}
     />
   </Stack.Navigator>
 );

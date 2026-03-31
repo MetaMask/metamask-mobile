@@ -87,6 +87,7 @@ const Routes = {
     CONNECT_LEDGER: 'ConnectLedgerFlow',
     LEDGER_BLUETOOTH: 'LedgerBluetooth',
     LEDGER_CONNECT: 'LedgerConnect',
+    ACCOUNT_SELECTION: 'HardwareAccountSelection',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
