@@ -339,6 +339,10 @@ const Routes = {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
   },
+  SOCIAL_LEADERBOARD: {
+    ROOT: 'SocialLeaderboard',
+    VIEW: 'TopTradersView',
+  },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
