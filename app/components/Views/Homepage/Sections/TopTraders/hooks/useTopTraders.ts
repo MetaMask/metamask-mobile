@@ -6,6 +6,8 @@ import type {
   FetchLeaderboardOptions,
 } from '@metamask-previews/social-controllers';
 import type { TopTrader } from '../types';
+// TODO: Remove initialData fixture once the Social API is live.
+import leaderboardFixture from '../__fixtures__/leaderboardResponse.json';
 
 /**
  * Result interface for the useTopTraders hook.
@@ -48,6 +50,8 @@ export const useTopTraders = (
   const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
     queryKey,
     enabled: true,
+    // TODO: Remove initialData once the Social API is live.
+    initialData: leaderboardFixture as unknown as LeaderboardResponse,
   });
 
   const [localFollowOverrides, setLocalFollowOverrides] = useState<

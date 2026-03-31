@@ -20,6 +20,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
 
+const AVATAR_SIZE = 40;
+
 export interface TraderRowProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
@@ -71,18 +73,20 @@ const TraderRow: React.FC<TraderRowProps> = ({
         </Text>
 
         {/* Avatar */}
-        <AvatarBase
-          size={AvatarBaseSize.Lg}
-          fallbackText={trader.username.charAt(0).toUpperCase()}
-        >
-          {trader.avatarUri ? (
-            <Image
-              source={{ uri: trader.avatarUri }}
-              style={tw.style('w-full h-full rounded-full')}
-              resizeMode="cover"
-            />
-          ) : null}
-        </AvatarBase>
+        {trader.avatarUri ? (
+          <Image
+            source={{ uri: trader.avatarUri }}
+            style={tw.style(
+              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+            )}
+            resizeMode="cover"
+          />
+        ) : (
+          <AvatarBase
+            size={AvatarBaseSize.Lg}
+            fallbackText={trader.username.charAt(0).toUpperCase()}
+          />
+        )}
 
         {/* Username + stats */}
         <Box twClassName="flex-1 min-w-0">

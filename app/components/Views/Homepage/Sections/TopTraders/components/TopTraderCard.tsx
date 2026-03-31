@@ -6,7 +6,6 @@ import {
   TextVariant,
   FontWeight,
   TextColor,
-  BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
   AvatarBase,
@@ -25,6 +24,8 @@ export interface TopTraderCardProps {
   onFollowPress: (traderId: string) => void;
   testID?: string;
 }
+
+const AVATAR_SIZE = 40;
 
 /**
  * TopTraderCard -- compact card for the homepage horizontal scroll.
@@ -47,34 +48,28 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 
   return (
     <Box
-      twClassName="w-[200px] rounded-2xl bg-muted p-4 gap-1 overflow-hidden"
+      twClassName="w-[200px] rounded-2xl bg-muted p-4 overflow-hidden"
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
-      {/* Avatar */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        <AvatarBase
-          size={AvatarBaseSize.Lg}
-          fallbackText={trader.username.charAt(0).toUpperCase()}
-        >
-          {trader.avatarUri ? (
-            <Image
-              source={{ uri: trader.avatarUri }}
-              style={tw.style('w-full h-full rounded-full')}
-              resizeMode="cover"
-            />
-          ) : null}
-        </AvatarBase>
-      </Box>
+      {/* Top content: avatar + name + stats */}
+      <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 gap-2 mb-3">
+        {/* Avatar */}
+        {trader.avatarUri ? (
+          <Image
+            source={{ uri: trader.avatarUri }}
+            style={tw.style(
+              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+            )}
+            resizeMode="cover"
+          />
+        ) : (
+          <AvatarBase
+            size={AvatarBaseSize.Lg}
+            fallbackText={trader.username.charAt(0).toUpperCase()}
+          />
+        )}
 
-      {/* Username */}
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
+        {/* Username */}
         <Text
           variant={TextVariant.HeadingSm}
           fontWeight={FontWeight.Bold}
@@ -83,13 +78,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         >
           {trader.username}
         </Text>
-      </Box>
 
-      {/* Stats: +96.2% . +$45,900K 30D */}
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
+        {/* Stats: +96.2% · +$963K 30D */}
         <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
           <Text
             variant={TextVariant.BodyXs}
@@ -126,18 +116,20 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         </Text>
       </Box>
 
-      {/* Follow / Following button */}
-      <Button
-        variant={
-          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
-        }
-        size={ButtonSize.Sm}
-        onPress={() => onFollowPress(trader.id)}
-      >
-        {trader.isFollowing
-          ? strings('social_leaderboard.following')
-          : strings('social_leaderboard.follow')}
-      </Button>
+      {/* Follow / Following button pinned to bottom */}
+      <Box alignItems={BoxAlignItems.Center}>
+        <Button
+          variant={
+            trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+          }
+          size={ButtonSize.Sm}
+          onPress={() => onFollowPress(trader.id)}
+        >
+          {trader.isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+      </Box>
     </Box>
   );
 };

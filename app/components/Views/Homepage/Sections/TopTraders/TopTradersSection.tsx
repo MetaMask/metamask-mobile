@@ -85,26 +85,26 @@ const TopTradersSection = forwardRef<
       onLayout={onLayout}
       testID="homepage-top-traders-section-root"
     >
-      <Box>
+      <Box gap={3}>
         <SectionHeader title={title} onPress={handleViewAll} />
-      </Box>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
-        testID="homepage-top-traders-scroll"
-      >
-        {isLoading
-          ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
-          : traders.map((trader) => (
-              <TopTraderCard
-                key={trader.id}
-                trader={trader}
-                onFollowPress={toggleFollow}
-              />
-            ))}
-      </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
+          testID="homepage-top-traders-scroll"
+        >
+          {isLoading
+            ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
+            : traders.map((trader) => (
+                <TopTraderCard
+                  key={trader.id}
+                  trader={trader}
+                  onFollowPress={toggleFollow}
+                />
+              ))}
+        </ScrollView>
+      </Box>
     </View>
   );
 });
