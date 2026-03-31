@@ -14,6 +14,8 @@ export interface UsePredictMarketDataOptions {
   pageSize?: number;
   customQueryParams?: string;
   refine?: (markets: PredictMarket[]) => PredictMarket[];
+  /** When false, skips fetches and clears local state. @default true */
+  enabled?: boolean;
 }
 
 export interface UsePredictMarketDataResult {
@@ -39,9 +41,10 @@ export const usePredictMarketData = (
     pageSize = 20,
     customQueryParams,
     refine,
+    enabled = true,
   } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -60,6 +63,9 @@ export const usePredictMarketData = (
 
   const fetchMarketData = useCallback(
     async (isLoadMore = false) => {
+      if (!enabled) {
+        return;
+      }
       try {
         if (isLoadMore) {
           setIsLoadingMore(true);
@@ -191,26 +197,38 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, customQueryParams, refine],
+    [category, q, pageSize, customQueryParams, refine, enabled],
   );
 
   const loadMore = useCallback(async () => {
+    if (!enabled) return;
     if (isLoadingMore || !hasMore) return;
     await fetchMarketData(true);
-  }, [fetchMarketData, isLoadingMore, hasMore]);
+  }, [enabled, fetchMarketData, isLoadingMore, hasMore]);
 
   const refetch = useCallback(async () => {
+    if (!enabled) return;
     await fetchMarketData(false);
-  }, [fetchMarketData]);
+  }, [enabled, fetchMarketData]);
 
   // Reset pagination when category or search changes
   useEffect(() => {
+    if (!enabled) {
+      setMarketData([]);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setError(null);
+      setCurrentOffset(0);
+      currentOffsetRef.current = 0;
+      setHasMore(true);
+      return;
+    }
     setCurrentOffset(0);
     currentOffsetRef.current = 0;
     setHasMore(true);
     setMarketData([]);
     fetchMarketData(false);
-  }, [category, q, customQueryParams, fetchMarketData]);
+  }, [enabled, category, q, customQueryParams, fetchMarketData]);
 
   return {
     marketData,
