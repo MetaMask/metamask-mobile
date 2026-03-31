@@ -9,7 +9,11 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 
 // External dependencies.
@@ -113,11 +117,8 @@ import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
 
-interface NetworkSelectorProps {
-  route: RouteProp<RootStackParamList, 'NetworkSelector'>;
-}
-
-const NetworkSelector = ({ route }: NetworkSelectorProps) => {
+const NetworkSelector = () => {
+  const route = useRoute<RouteProp<RootStackParamList, 'NetworkSelector'>>();
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,

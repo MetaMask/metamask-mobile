@@ -479,20 +479,20 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={MultichainAccountConnect as ScreenComponent}
+      component={MultichainAccountConnect}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={MultichainAccountPermissions as ScreenComponent}
+      component={MultichainAccountPermissions}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
       name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-      component={AccountPermissionsConfirmRevokeAll as ScreenComponent}
+      component={AccountPermissionsConfirmRevokeAll}
     />
     <Stack.Screen
       name={Routes.SHEET.CONNECTION_DETAILS}
-      component={ConnectionDetails as ScreenComponent}
+      component={ConnectionDetails}
     />
     <Stack.Screen
       name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
@@ -500,7 +500,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
-      component={NetworkSelector as ScreenComponent}
+      component={NetworkSelector}
     />
     <Stack.Screen
       name={Routes.SHEET.TOKEN_SORT}

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
   useContext,
@@ -125,10 +125,11 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   </Box>
 );
 
-const MultichainAccountConnect = (props: AccountConnectProps) => {
+const MultichainAccountConnect = () => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { hostInfo, permissionRequestId } = props.route.params;
+  const route = useRoute<AccountConnectProps['route']>();
+  const { hostInfo, permissionRequestId } = route.params;
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number>();

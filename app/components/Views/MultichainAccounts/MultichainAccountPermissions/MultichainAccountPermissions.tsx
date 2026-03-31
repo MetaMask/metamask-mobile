@@ -12,7 +12,7 @@ import {
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
@@ -45,13 +45,9 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 
-export interface MultichainAccountPermissionsProps {
-  route: {
-    params: {
-      hostInfo: {
-        metadata: { origin: string };
-      };
-    };
+interface MultichainAccountPermissionsRouteParams {
+  hostInfo: {
+    metadata: { origin: string };
   };
 }
 
@@ -61,12 +57,14 @@ export enum MultichainAccountPermissionsScreens {
   ConnectMoreNetworks = 'ConnectMoreNetworks',
 }
 
-export const MultichainAccountPermissions = (
-  props: MultichainAccountPermissionsProps,
-) => {
+export const MultichainAccountPermissions = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { hostInfo } = props.route.params;
+  const route =
+    useRoute<
+      RouteProp<{ params: MultichainAccountPermissionsRouteParams }, 'params'>
+    >();
+  const { hostInfo } = route.params;
   const [screen, setScreen] = useState<MultichainAccountPermissionsScreens>(
     MultichainAccountPermissionsScreens.Connected,
   );
@@ -397,7 +395,7 @@ export const MultichainAccountPermissions = (
         currentPageInformation={{
           currentEnsName: '',
           icon: '',
-          url: props?.route?.params?.hostInfo?.metadata?.origin,
+          url: route?.params?.hostInfo?.metadata?.origin,
         }}
         selectedAccountGroupIds={selectedAccountGroupIds}
         networkAvatars={networkAvatars}
@@ -416,7 +414,7 @@ export const MultichainAccountPermissions = (
       handleOnEditNetworks,
       handleConfirm,
       handleRevokeAll,
-      props?.route?.params?.hostInfo?.metadata?.origin,
+      route?.params?.hostInfo?.metadata?.origin,
     ],
   );
 

@@ -1,5 +1,6 @@
 // Third party dependencies
 import React, { useCallback, useRef } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
 // External dependencies
 import { View } from 'react-native';
@@ -21,26 +22,27 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
-interface AccountPermissionsConfirmRevokeAllProps {
-  route: {
-    params: {
-      hostInfo: {
-        metadata: { origin: string };
-      };
-      onRevokeAll?: () => void;
-    };
+interface AccountPermissionsConfirmRevokeAllRouteParams {
+  hostInfo: {
+    metadata: { origin: string };
   };
+  onRevokeAll?: () => void;
 }
 
-const AccountPermissionsConfirmRevokeAll = (
-  props: AccountPermissionsConfirmRevokeAllProps,
-) => {
+const AccountPermissionsConfirmRevokeAll = () => {
+  const route =
+    useRoute<
+      RouteProp<
+        { params: AccountPermissionsConfirmRevokeAllRouteParams },
+        'params'
+      >
+    >();
   const {
     hostInfo: {
       metadata: { origin: hostname },
     },
     onRevokeAll,
-  } = props.route.params;
+  } = route.params;
 
   const { styles } = useStyles(styleSheet, {});
   // TODO: Replace "any" with type

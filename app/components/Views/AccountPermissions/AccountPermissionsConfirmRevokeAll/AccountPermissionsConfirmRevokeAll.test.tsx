@@ -11,6 +11,7 @@ import { strings } from '../../../../../locales/i18n';
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 const mockedOnRevokeAll = jest.fn();
+let mockRouteParams: Record<string, unknown> = {};
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -19,6 +20,9 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockedNavigate,
       goBack: mockedGoBack,
       isFocused: jest.fn(() => true),
+    }),
+    useRoute: () => ({
+      params: mockRouteParams,
     }),
   };
 });
@@ -48,17 +52,15 @@ const mockInitialState: DeepPartial<RootState> = {
 describe('AccountPermissionsConfirmRevokeAll', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
   });
 
   it('renders correctly', () => {
+    mockRouteParams = {
+      hostInfo: { metadata: { origin: 'test' } },
+    };
     const { toJSON } = renderWithProvider(
-      <AccountPermissionsConfirmRevokeAll
-        route={{
-          params: {
-            hostInfo: { metadata: { origin: 'test' } },
-          },
-        }}
-      />,
+      <AccountPermissionsConfirmRevokeAll />,
       { state: mockInitialState },
     );
 
@@ -66,14 +68,11 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   });
 
   it('handles cancel button press', () => {
+    mockRouteParams = {
+      hostInfo: { metadata: { origin: 'test' } },
+    };
     const { getByTestId } = renderWithProvider(
-      <AccountPermissionsConfirmRevokeAll
-        route={{
-          params: {
-            hostInfo: { metadata: { origin: 'test' } },
-          },
-        }}
-      />,
+      <AccountPermissionsConfirmRevokeAll />,
       { state: mockInitialState },
     );
 
@@ -84,15 +83,12 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   });
 
   it('handles revoke button press', () => {
+    mockRouteParams = {
+      hostInfo: { metadata: { origin: 'test' } },
+      onRevokeAll: mockedOnRevokeAll,
+    };
     const { getByTestId } = renderWithProvider(
-      <AccountPermissionsConfirmRevokeAll
-        route={{
-          params: {
-            hostInfo: { metadata: { origin: 'test' } },
-            onRevokeAll: mockedOnRevokeAll,
-          },
-        }}
-      />,
+      <AccountPermissionsConfirmRevokeAll />,
       { state: mockInitialState },
     );
 
@@ -104,14 +100,11 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
 
   it('displays correct host information', () => {
     const testOrigin = 'test.example.com';
+    mockRouteParams = {
+      hostInfo: { metadata: { origin: testOrigin } },
+    };
     const { getByText } = renderWithProvider(
-      <AccountPermissionsConfirmRevokeAll
-        route={{
-          params: {
-            hostInfo: { metadata: { origin: testOrigin } },
-          },
-        }}
-      />,
+      <AccountPermissionsConfirmRevokeAll />,
       { state: mockInitialState },
     );
 

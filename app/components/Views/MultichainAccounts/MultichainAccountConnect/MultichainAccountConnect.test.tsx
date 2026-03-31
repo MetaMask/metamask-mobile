@@ -47,6 +47,7 @@ const MOCK_WALLET_ID = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ';
 const MOCK_ACCOUNT_GROUP_1_ID = `${MOCK_WALLET_ID}/0`;
 const MOCK_ACCOUNT_GROUP_2_ID = `${MOCK_WALLET_ID}/1`;
 
+let mockRouteParams: Record<string, unknown> = {};
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -54,6 +55,9 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+    }),
+    useRoute: () => ({
+      params: mockRouteParams,
     }),
   };
 });
@@ -505,6 +509,7 @@ mockIsUUID.mockReturnValue(false);
 describe('MultichainAccountConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -522,82 +527,70 @@ describe('MultichainAccountConnect', () => {
         Caip25EndowmentPermissionName,
       );
     });
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'mockOrigin',
-                isEip1193Request: true,
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'mockOrigin',
+          isEip1193Request: true,
+        },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
   });
 
   it('renders correctly with request including chains and accounts', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'mockOrigin',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                },
-              }),
-            },
-            permissionRequestId: 'test',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'mockOrigin',
+        },
+        permissions: createMockCaip25Permission({
+          'eip155:1': {
+            accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
   });
 
   it('renders correctly with request including only chains', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'mockOrigin',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'mockOrigin',
+        },
+        permissions: createMockCaip25Permission({
+          'eip155:1': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
@@ -606,27 +599,23 @@ describe('MultichainAccountConnect', () => {
   it('handles cancel button press correctly', () => {
     Engine.context.PermissionController.rejectPermissionsRequest =
       mockRejectPermissionsRequest;
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'mockOrigin',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'mockOrigin',
+        },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     const cancelButton = getByTestId(CommonSelectorsIDs.CANCEL_BUTTON);
     fireEvent.press(cancelButton);
@@ -653,28 +642,24 @@ describe('MultichainAccountConnect', () => {
     Engine.context.PermissionController.grantPermissionsIncremental =
       mockGrantPermissionsIncremental;
 
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-                isEip1193Request: true,
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-confirm',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'https://example.com',
+          isEip1193Request: true,
+        },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test-confirm',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
     fireEvent.press(confirmButton);
@@ -698,25 +683,22 @@ describe('MultichainAccountConnect', () => {
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
       it('does not show phishing modal for safe URLs', async () => {
-        const { queryByText } = renderWithProvider(
-          <MultichainAccountConnect
-            route={{
-              params: {
-                hostInfo: {
-                  metadata: {
-                    id: 'mockId',
-                    origin: 'safe-site.com',
-                  },
-                  permissions: createMockCaip25Permission({
-                    'wallet:eip155': {
-                      accounts: [],
-                    },
-                  }),
-                },
-                permissionRequestId: 'test',
+        mockRouteParams = {
+          hostInfo: {
+            metadata: {
+              id: 'mockId',
+              origin: 'safe-site.com',
+            },
+            permissions: createMockCaip25Permission({
+              'wallet:eip155': {
+                accounts: [],
               },
-            }}
-          />,
+            }),
+          },
+          permissionRequestId: 'test',
+        };
+        const { queryByText } = renderWithProvider(
+          <MultichainAccountConnect />,
           { state: createMockState() },
         );
 
@@ -768,27 +750,23 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: mockChannelId,
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: mockChannelId,
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: mockStateWithoutWC2 },
-      );
+          }),
+        },
+        permissionRequestId: 'test',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: mockStateWithoutWC2,
+      });
 
       const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
       expect(connectButton).toBeDefined();
@@ -812,27 +790,23 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: mockChannelId,
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: mockChannelId,
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: mockStateWithWC2 },
-      );
+          }),
+        },
+        permissionRequestId: 'test',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: mockStateWithWC2,
+      });
 
       const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
       expect(connectButton).toBeDefined();
@@ -850,27 +824,23 @@ describe('MultichainAccountConnect', () => {
     Engine.context.PermissionController.acceptPermissionsRequest =
       mockAcceptPermissionsRequestError;
 
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-error',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'https://example.com',
+        },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test-error',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
     fireEvent.press(confirmButton);
@@ -888,27 +858,23 @@ describe('MultichainAccountConnect', () => {
     Engine.context.PermissionController.acceptPermissionsRequest =
       mockAcceptPermissionsRequestNetworkError;
 
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                },
-              }),
-            },
-            permissionRequestId: 'test-network-error',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'https://example.com',
+        },
+        permissions: createMockCaip25Permission({
+          'eip155:1': {
+            accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test-network-error',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
     fireEvent.press(confirmButton);
@@ -920,83 +886,71 @@ describe('MultichainAccountConnect', () => {
 
   describe('Account selection and multi-selector', () => {
     it('renders multi-selector screen when editing accounts', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [
-                      `eip155:1:${MOCK_ADDRESS_1}`,
-                      `eip155:1:${MOCK_ADDRESS_2}`,
-                    ],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-multi-selector',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [
+                `eip155:1:${MOCK_ADDRESS_1}`,
+                `eip155:1:${MOCK_ADDRESS_2}`,
+              ],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-multi-selector',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       // Should render the connect button initially
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
 
     it('handles account group selection correctly', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-account-groups',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-account-groups',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
 
     it('handles empty account selection', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-empty-accounts',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-empty-accounts',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
       expect(connectButton).toBeTruthy();
@@ -1005,83 +959,71 @@ describe('MultichainAccountConnect', () => {
 
   describe('Network selection and chain handling', () => {
     it('handles multiple chain requests correctly', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-multi-chain',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+            },
+          }),
+        },
+        permissionRequestId: 'test-multi-chain',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
     });
 
     it('handles unsupported chain requests', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:999999': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-unsupported-chain',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:999999': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-unsupported-chain',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
 
     it('handles network switching scenarios', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-network-switch',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-network-switch',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
@@ -1089,162 +1031,138 @@ describe('MultichainAccountConnect', () => {
 
   describe('Permissions summary screen', () => {
     it('renders permissions summary with correct information', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-permissions-summary',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-permissions-summary',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
     });
 
     it('handles edit accounts action from permissions summary', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [
-                      `eip155:1:${MOCK_ADDRESS_1}`,
-                      `eip155:1:${MOCK_ADDRESS_2}`,
-                    ],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-edit-accounts',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [
+                `eip155:1:${MOCK_ADDRESS_1}`,
+                `eip155:1:${MOCK_ADDRESS_2}`,
+              ],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-edit-accounts',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
 
     it('handles edit networks action from permissions summary', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-edit-networks',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+            },
+          }),
+        },
+        permissionRequestId: 'test-edit-networks',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
   });
 
   it('handles empty permissions gracefully', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: {},
-            },
-            permissionRequestId: 'test-empty-permissions',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'https://example.com',
+        },
+        permissions: {},
+      },
+      permissionRequestId: 'test-empty-permissions',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
   });
 
   it('handles invalid origin URLs', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'invalid-url',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-invalid-origin',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'invalid-url',
+        },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test-invalid-origin',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
   });
 
   it('handles missing metadata gracefully', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: '',
-                origin: '',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-missing-metadata',
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: '',
+          origin: '',
+        },
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
           },
-        }}
-      />,
-      { state: createMockState() },
-    );
+        }),
+      },
+      permissionRequestId: 'test-missing-metadata',
+    };
+    const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+      state: createMockState(),
+    });
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
   });
@@ -1253,28 +1171,24 @@ describe('MultichainAccountConnect', () => {
     // Mock console.error to prevent error logs during test execution
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
+    mockRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'https://example.com',
+        },
+        permissions: createMockCaip25Permission({
+          'eip155:1': {
+            accounts: ['invalid-caip-account-id'],
+          },
+        }),
+      },
+      permissionRequestId: 'test-malformed-caip',
+    };
     expect(() => {
-      renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: ['invalid-caip-account-id'],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-malformed-caip',
-            },
-          }}
-        />,
-        { state: createMockState() },
-      );
+      renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
     }).toThrow('Invalid CAIP account ID.');
 
     // Restore console.error
@@ -1297,27 +1211,23 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [], // No existing connected accounts
-                  },
-                }),
-              },
-              permissionRequestId: 'test-first-supported-group',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [], // No existing connected accounts
             },
-          }}
-        />,
-        { state: mockStateWithMultipleAccounts },
-      );
+          }),
+        },
+        permissionRequestId: 'test-first-supported-group',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: mockStateWithMultipleAccounts,
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
@@ -1338,28 +1248,24 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:999999': {
-                    // Unsupported chain to create empty supported groups
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-no-supported-groups',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:999999': {
+              // Unsupported chain to create empty supported groups
+              accounts: [],
             },
-          }}
-        />,
-        { state: mockStateWithMinimalAccounts },
-      );
+          }),
+        },
+        permissionRequestId: 'test-no-supported-groups',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: mockStateWithMinimalAccounts,
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
@@ -1381,27 +1287,23 @@ describe('MultichainAccountConnect', () => {
         },
       });
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-connected-groups',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-connected-groups',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
@@ -1420,81 +1322,69 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('creates phishing navigation callback functions', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-phishing-callbacks',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-phishing-callbacks',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
     });
 
     it('handles different origin formats for phishing detection setup', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'example.com', // URL without protocol
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-url-formats',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'example.com', // URL without protocol
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-url-formats',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
     });
 
     it('sets up phishing modal callbacks with proper dependencies', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://test-site.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': {
-                    accounts: [],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-dependencies',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://test-site.com',
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-dependencies',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
@@ -1513,28 +1403,25 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('navigates to network selector screen when editing networks', async () => {
-      const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-network-selector-screen',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+            },
+          }),
+        },
+        permissionRequestId: 'test-network-selector-screen',
+      };
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: createMockState() },
       );
 
@@ -1583,28 +1470,25 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-network-selection-return',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+            },
+          }),
+        },
+        permissionRequestId: 'test-network-selection-return',
+      };
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: mockStateWithMultipleNetworks },
       );
 
@@ -1665,25 +1549,22 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-chain-ids-update',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
+          }),
+        },
+        permissionRequestId: 'test-chain-ids-update',
+      };
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: mockStateWithNetworks },
       );
 
@@ -1743,28 +1624,25 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-network-selection-verification',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+            },
+          }),
+        },
+        permissionRequestId: 'test-network-selection-verification',
+      };
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: mockStateWithNetworks },
       );
 
@@ -1817,25 +1695,22 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId, findByTestId, queryByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-individual-network-selection',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
+          }),
+        },
+        permissionRequestId: 'test-individual-network-selection',
+      };
+      const { getByTestId, findByTestId, queryByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: mockStateWithNetworks },
       );
 
@@ -1871,27 +1746,23 @@ describe('MultichainAccountConnect', () => {
       Engine.context.PermissionController.acceptPermissionsRequest =
         mockAcceptPermissions;
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // Account selected
-                  },
-                }),
-              },
-              permissionRequestId: 'test-state-update-after-selection',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // Account selected
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-state-update-after-selection',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
       fireEvent.press(connectButton);
@@ -1918,27 +1789,23 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('displays selected accounts correctly in permissions summary', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // One account selected
-                  },
-                }),
-              },
-              permissionRequestId: 'test-account-display',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // One account selected
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-account-display',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
@@ -1953,27 +1820,23 @@ describe('MultichainAccountConnect', () => {
       Engine.context.PermissionController.acceptPermissionsRequest =
         mockAcceptPermissionsRequestLocal;
 
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-caip25-account-ids',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-caip25-account-ids',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
       fireEvent.press(connectButton);
@@ -1999,30 +1862,26 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('handles multiple account selections correctly', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [
-                      `eip155:1:${MOCK_ADDRESS_1}`,
-                      `eip155:1:${MOCK_ADDRESS_2}`,
-                    ],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-multiple-accounts',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [
+                `eip155:1:${MOCK_ADDRESS_1}`,
+                `eip155:1:${MOCK_ADDRESS_2}`,
+              ],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-multiple-accounts',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
 
@@ -2031,28 +1890,25 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('verifies handleAccountGroupsSelected handles multi-chain scenarios', () => {
-      const { getByTestId, getAllByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                  'eip155:137': {
-                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-multi-chain-consistency',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
+            'eip155:137': {
+              accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+            },
+          }),
+        },
+        permissionRequestId: 'test-multi-chain-consistency',
+      };
+      const { getByTestId, getAllByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: createMockState() },
       );
 
@@ -2065,27 +1921,23 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('verifies handleAccountGroupsSelected function behavior is testable', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                  },
-                }),
-              },
-              permissionRequestId: 'test-function-behavior',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
             },
-          }}
-        />,
-        { state: createMockState() },
-      );
+          }),
+        },
+        permissionRequestId: 'test-function-behavior',
+      };
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMockState(),
+      });
 
       expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
@@ -2109,25 +1961,22 @@ describe('MultichainAccountConnect', () => {
         },
       };
 
-      const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://example.com',
-                },
-                permissions: createMockCaip25Permission({
-                  'eip155:1': {
-                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // Start with Account 1 selected
-                  },
-                }),
-              },
-              permissionRequestId: 'test-deselect-accounts-flow',
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://example.com',
+          },
+          permissions: createMockCaip25Permission({
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // Start with Account 1 selected
             },
-          }}
-        />,
+          }),
+        },
+        permissionRequestId: 'test-deselect-accounts-flow',
+      };
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect />,
         { state: mockStateWithAccountGroups },
       );
 
@@ -2203,22 +2052,20 @@ describe('MultichainAccountConnect', () => {
       };
     };
 
-    const maliciousRoute = {
-      params: {
-        hostInfo: {
-          metadata: {
-            id: 'mockId',
-            origin: 'wc-channel-id',
-            isEip1193Request: true,
-          },
-          permissions: createMockCaip25Permission({
-            'wallet:eip155': {
-              accounts: [],
-            },
-          }),
+    const maliciousRouteParams = {
+      hostInfo: {
+        metadata: {
+          id: 'mockId',
+          origin: 'wc-channel-id',
+          isEip1193Request: true,
         },
-        permissionRequestId: 'test-malicious',
+        permissions: createMockCaip25Permission({
+          'wallet:eip155': {
+            accounts: [],
+          },
+        }),
       },
+      permissionRequestId: 'test-malicious',
     };
 
     beforeEach(() => {
@@ -2234,17 +2081,18 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('renders the initial connect screen with connect button for a malicious dapp', () => {
-      const { getByTestId } = renderWithProvider(
-        <MultichainAccountConnect route={maliciousRoute} />,
-        { state: createMaliciousWC2State() },
-      );
+      mockRouteParams = maliciousRouteParams;
+      const { getByTestId } = renderWithProvider(<MultichainAccountConnect />, {
+        state: createMaliciousWC2State(),
+      });
 
       expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     });
 
     it('shows MaliciousWarning screen when confirm is pressed on a malicious dapp', async () => {
+      mockRouteParams = maliciousRouteParams;
       const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect route={maliciousRoute} />,
+        <MultichainAccountConnect />,
         { state: createMaliciousWC2State() },
       );
 
@@ -2262,8 +2110,9 @@ describe('MultichainAccountConnect', () => {
       Engine.context.PermissionController.acceptPermissionsRequest =
         mockAcceptLocal;
 
+      mockRouteParams = maliciousRouteParams;
       const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect route={maliciousRoute} />,
+        <MultichainAccountConnect />,
         { state: createMaliciousWC2State() },
       );
 
@@ -2282,8 +2131,9 @@ describe('MultichainAccountConnect', () => {
     });
 
     it('returns to initial connect screen when close is pressed on MaliciousWarning', async () => {
+      mockRouteParams = maliciousRouteParams;
       const { getByTestId, findByTestId } = renderWithProvider(
-        <MultichainAccountConnect route={maliciousRoute} />,
+        <MultichainAccountConnect />,
         { state: createMaliciousWC2State() },
       );
 
@@ -2308,24 +2158,21 @@ describe('MultichainAccountConnect', () => {
 
       const cleanState = createMockState();
 
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'https://clean-dapp.com',
+            isEip1193Request: true,
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': { accounts: [] },
+          }),
+        },
+        permissionRequestId: 'test-clean',
+      };
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'https://clean-dapp.com',
-                  isEip1193Request: true,
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': { accounts: [] },
-                }),
-              },
-              permissionRequestId: 'test-clean',
-            },
-          }}
-        />,
+        <MultichainAccountConnect />,
         { state: cleanState },
       );
 
@@ -2343,24 +2190,21 @@ describe('MultichainAccountConnect', () => {
     it('does not flag non-WalletConnect connections as malicious', () => {
       const state = createMockState();
 
+      mockRouteParams = {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'some-non-wc-origin',
+            isEip1193Request: true,
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': { accounts: [] },
+          }),
+        },
+        permissionRequestId: 'test',
+      };
       const { getByTestId, queryByTestId } = renderWithProvider(
-        <MultichainAccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  origin: 'some-non-wc-origin',
-                  isEip1193Request: true,
-                },
-                permissions: createMockCaip25Permission({
-                  'wallet:eip155': { accounts: [] },
-                }),
-              },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
+        <MultichainAccountConnect />,
         { state },
       );
 
