@@ -81,6 +81,7 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
@@ -171,7 +172,9 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
     selectedToken,
     paymentMethods,
     getBuyWidgetData,
@@ -184,6 +187,7 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -257,14 +261,51 @@ function BuildQuote() {
     }, []),
   );
 
-  // Show "Token Not Available" modal when the selected token is unavailable
-  // for the current provider. Debounced to let the query settle — prevents
-  // the modal from flashing when isTokenUnavailable is briefly true due to
-  // stale cached data before the fresh response arrives.
+  // When no provider is selected (e.g. first-time user in a region without
+  // Transak), pick the first provider that supports the selected token.
+  useEffect(() => {
+    if (
+      !isOnBuildQuoteScreen ||
+      selectedProvider ||
+      !effectiveAssetId ||
+      providers.length === 0
+    ) {
+      return;
+    }
+    const supportingProvider = providers.find(
+      (p) => p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+    );
+    if (supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [
+    isOnBuildQuoteScreen,
+    selectedProvider,
+    effectiveAssetId,
+    providers,
+    setSelectedProvider,
+  ]);
+
+  // When the selected token is unavailable for the current provider:
+  // - If the provider was auto-selected (soft), silently switch to the best
+  //   provider that supports the token.
+  // - Otherwise, show the "Token Not Available" modal so the user can decide.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
+    }
+
+    if (providerAutoSelected && effectiveAssetId) {
+      const supportingProvider = providers.find(
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+      );
+      if (supportingProvider) {
+        setSelectedProvider(supportingProvider, { autoSelected: true });
+        return;
+      }
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -289,6 +330,9 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
+    providerAutoSelected,
+    providers,
+    setSelectedProvider,
   ]);
 
   const {

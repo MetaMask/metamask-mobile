@@ -363,7 +363,7 @@ const DetectedTokensFlow = () => (
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
     <Stack.Screen
       name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation as ScreenComponent}
+      component={DetectedTokensConfirmation}
       options={{ presentation: 'modal' }}
     />
   </Stack.Navigator>
