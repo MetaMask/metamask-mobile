@@ -28,25 +28,25 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import HardwareWalletTestIds from '../hardwareWallet.testIds';
 
-type MockAsset = {
+interface MockAsset {
   address: string;
   balance: string;
   iconSource: ImageSourcePropType;
   kind: 'network' | 'token';
   label?: string;
   title: string;
-};
+}
 
-export type AccountSelectionItem = {
+export interface AccountSelectionItem {
   address: string;
   index: number;
   isExistingAccount: boolean;
   isSelected: boolean;
   totalBalance: string;
   assets: MockAsset[];
-};
+}
 
-type AccountSelectionFlowProps = {
+interface AccountSelectionFlowProps {
   accounts: AccountSelectionItem[];
   errorMessage: string | null;
   isBusy: boolean;
@@ -57,7 +57,7 @@ type AccountSelectionFlowProps = {
   onOpenSettings: () => void;
   onPrevPage: () => void;
   onToggleAccount: (accountIndex: number) => void;
-};
+}
 
 const SelectionCheckbox = ({
   isSelected,
@@ -65,31 +65,29 @@ const SelectionCheckbox = ({
 }: {
   isSelected: boolean;
   isDisabled: boolean;
-}) => (
-  <Box
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Center}
-    twClassName="h-6 w-6 rounded-md border"
-    style={{
-      backgroundColor: isSelected ? '#F2F2F2' : 'transparent',
-      borderColor: isSelected ? '#F2F2F2' : 'rgba(133, 139, 154, 0.5)',
-      opacity: isDisabled ? 0.7 : 1,
-    }}
-  >
-    {isSelected ? <Icon name={IconName.Check} size={IconSize.Sm} /> : null}
-  </Box>
-);
+}) => {
+  const tw = useTailwind();
+  return (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName={`h-6 w-6 rounded-md border ${isSelected ? 'border-muted bg-muted' : 'border-muted'} ${isDisabled ? 'opacity-70' : ''}`}
+    >
+      {isSelected ? <Icon name={IconName.Check} size={IconSize.Sm} /> : null}
+    </Box>
+  );
+};
 
-const AssetLabel = ({ label }: { label: string }) => (
-  <Box
-    twClassName="rounded px-1.5 py-0.5"
-    style={{ backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
-  >
-    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-      {label}
-    </Text>
-  </Box>
-);
+const AssetLabel = ({ label }: { label: string }) => {
+  const tw = useTailwind();
+  return (
+    <Box twClassName="rounded px-1.5 py-0.5" style={tw.style('bg-muted')}>
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {label}
+      </Text>
+    </Box>
+  );
+};
 
 const AccountAssetRow = ({ asset }: { asset: MockAsset }) => (
   <Box
@@ -170,9 +168,6 @@ const AccountCard = ({
         <Box
           twClassName="rounded-xl border bg-muted px-4 py-3"
           style={tw.style(
-            {
-              borderColor: 'rgba(133, 139, 154, 0.2)',
-            },
             pressed && !account.isExistingAccount && 'opacity-90',
           )}
         >
@@ -185,7 +180,10 @@ const AccountCard = ({
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {`Account ${account.index + 1}`}
               </Text>
-              <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {account.totalBalance}
               </Text>
             </Box>
@@ -195,10 +193,7 @@ const AccountCard = ({
             />
           </Box>
 
-          <Box
-            twClassName="mt-3 pt-3"
-            style={{ borderTopWidth: 1, borderTopColor: 'rgba(133, 139, 154, 0.2)' }}
-          >
+          <Box twClassName="mt-3 border-t border-muted pt-3">
             <Box twClassName="gap-3">
               {account.assets.map((asset) => (
                 <AccountAssetRow
@@ -226,13 +221,17 @@ const AccountSelectionFlow = ({
   onPrevPage,
   onToggleAccount,
 }: AccountSelectionFlowProps) => {
+  const tw = useTailwind();
   const hasSelection = useMemo(
-    () => accounts.some((account) => account.isSelected && !account.isExistingAccount),
+    () =>
+      accounts.some(
+        (account) => account.isSelected && !account.isExistingAccount,
+      ),
     [accounts],
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#131416' }}>
+    <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -272,8 +271,8 @@ const AccountSelectionFlow = ({
           ) : null}
 
           <ScrollView
-            style={{ flex: 1, marginTop: 16 }}
-            contentContainerStyle={{ paddingBottom: 24, gap: 12 }}
+            style={tw.style('flex-1 mt-4')}
+            contentContainerStyle={tw.style('pb-6 gap-3')}
             showsVerticalScrollIndicator={false}
           >
             {accounts.map((account) => (
@@ -300,7 +299,7 @@ const AccountSelectionFlow = ({
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
                     twClassName="gap-1"
-                    style={pressed ? { opacity: 0.7 } : undefined}
+                    style={pressed ? tw.style('opacity-70') : undefined}
                   >
                     <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
                     <Text
@@ -323,7 +322,7 @@ const AccountSelectionFlow = ({
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
                     twClassName="gap-1"
-                    style={pressed ? { opacity: 0.7 } : undefined}
+                    style={pressed ? tw.style('opacity-70') : undefined}
                   >
                     <Text
                       variant={TextVariant.BodySm}
@@ -340,8 +339,8 @@ const AccountSelectionFlow = ({
         </Box>
 
         <Box
-          twClassName="px-4 pb-4 pt-2"
-          style={{ borderTopWidth: 0, backgroundColor: '#131416' }}
+          twClassName="border-t-0 px-4 pb-4 pt-2"
+          style={tw.style('bg-default')}
         >
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
             <Button
@@ -349,7 +348,7 @@ const AccountSelectionFlow = ({
               size={ButtonSize.Lg}
               onPress={onForget}
               isDisabled={isBusy}
-              style={{ flex: 1 }}
+              style={tw.style('flex-1')}
               testID={HardwareWalletTestIds.ACCOUNT_SELECTION_FORGET_BUTTON}
             >
               {strings('account_selector.forget')}
@@ -359,7 +358,7 @@ const AccountSelectionFlow = ({
               size={ButtonSize.Lg}
               onPress={onContinue}
               isDisabled={!hasSelection || isBusy}
-              style={{ flex: 1 }}
+              style={tw.style('flex-1')}
               testID={HardwareWalletTestIds.ACCOUNT_SELECTION_CONTINUE_BUTTON}
             >
               {strings('common.continue')}
