@@ -454,7 +454,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet as ScreenComponent}
+      component={AddNewAccountBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -463,7 +463,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal as ScreenComponent}
+      component={SDKSessionModal}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -475,7 +475,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal as ScreenComponent}
+      component={SDKDisconnectModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}

@@ -5,8 +5,15 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+let mockRouteParams: Record<string, unknown> | undefined = {};
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
+  useRoute: jest.fn(() => ({
+    key: '1',
+    name: 'params',
+    params: mockRouteParams,
+  })),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -66,6 +73,7 @@ import SDKConnectV2 from '../../../../core/SDKConnectV2';
 describe('SDKDisconnectModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
 
     (useSelector as jest.Mock).mockReturnValue({
       v2Connections: { conn1: {}, conn2: {} },
@@ -83,18 +91,13 @@ describe('SDKDisconnectModal', () => {
 
   describe('Basic Rendering', () => {
     it('renders with account params', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              account: '0x123',
-              accountName: 'Test Account',
-              channelId: 'channel1',
-              dapp: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        account: '0x123',
+        accountName: 'Test Account',
+        channelId: 'channel1',
+        dapp: 'Test DApp',
+      };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       expect(getByText('sdk_disconnect_modal.disconnect_account')).toBeTruthy();
       expect(getByText('sdk_disconnect_modal.disconnect_confirm')).toBeTruthy();
@@ -102,16 +105,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('renders with channel params', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              dapp: 'Test DApp',
-            },
-          }}
-        />,
-      );
+      mockRouteParams = { channelId: 'channel1', dapp: 'Test DApp' };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       expect(
         getByText('sdk_disconnect_modal.disconnect_all_accounts'),
@@ -119,13 +114,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('renders with no params', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {},
-          }}
-        />,
-      );
+      mockRouteParams = {};
+      const { getByText } = render(<SDKDisconnectModal />);
 
       expect(getByText('sdk_disconnect_modal.disconnect_all')).toBeTruthy();
     });
@@ -133,17 +123,12 @@ describe('SDKDisconnectModal', () => {
 
   describe('Actions', () => {
     it('handles disconnect single account', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              account: '0x123',
-              channelId: 'channel1',
-              accountsLength: 2,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        account: '0x123',
+        channelId: 'channel1',
+        accountsLength: 2,
+      };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -154,15 +139,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles disconnect channel', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              channelId: 'channel1',
-            },
-          }}
-        />,
-      );
+      mockRouteParams = { channelId: 'channel1' };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -173,13 +151,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles disconnect all', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {},
-          }}
-        />,
-      );
+      mockRouteParams = {};
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -187,16 +160,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles V2 disconnect', async () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = { channelId: 'channel1', isV2: true };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -204,15 +169,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles cancel', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              channelId: 'channel1',
-            },
-          }}
-        />,
-      );
+      mockRouteParams = { channelId: 'channel1' };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.cancel'));
 
@@ -220,17 +178,12 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles last account disconnect', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              account: '0x123',
-              channelId: 'channel1',
-              accountsLength: 1,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        account: '0x123',
+        channelId: 'channel1',
+        accountsLength: 1,
+      };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -244,15 +197,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles V2 disconnect all', async () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = { isV2: true };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -263,14 +209,8 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles undefined params gracefully', () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            params: undefined as any,
-          }}
-        />,
-      );
+      mockRouteParams = undefined;
+      const { getByText } = render(<SDKDisconnectModal />);
 
       expect(getByText('sdk_disconnect_modal.disconnect_all')).toBeTruthy();
     });
@@ -278,46 +218,30 @@ describe('SDKDisconnectModal', () => {
 
   describe('Error Handling', () => {
     it('handles V2 disconnect errors gracefully', async () => {
-      // Mock SDKConnectV2.disconnect to throw an error
       (SDKConnectV2.disconnect as jest.Mock).mockRejectedValueOnce(
         new Error('Disconnect failed'),
       );
+      mockRouteParams = { channelId: 'channel1', isV2: true };
 
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              channelId: 'channel1',
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
-      // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Should still navigate even on error
       expect(mockNavigate).toHaveBeenCalledWith('SDK_SESSIONS_MANAGER', {
         trigger: expect.any(Number),
       });
     });
 
     it('handles V2 account disconnect with last account escalation', async () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              account: '0x123',
-              channelId: 'channel1',
-              accountsLength: 1,
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        account: '0x123',
+        channelId: 'channel1',
+        accountsLength: 1,
+        isV2: true,
+      };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -330,18 +254,13 @@ describe('SDKDisconnectModal', () => {
     });
 
     it('handles V2 account disconnect without escalation', async () => {
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              account: '0x123',
-              channelId: 'channel1',
-              accountsLength: 3, // More than 1 account
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      mockRouteParams = {
+        account: '0x123',
+        channelId: 'channel1',
+        accountsLength: 3,
+        isV2: true,
+      };
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -357,16 +276,9 @@ describe('SDKDisconnectModal', () => {
       (useSelector as jest.Mock).mockReturnValue({
         v2Connections: {},
       });
+      mockRouteParams = { isV2: true };
 
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
@@ -380,16 +292,9 @@ describe('SDKDisconnectModal', () => {
       (useSelector as jest.Mock).mockReturnValue({
         v2Connections: null,
       });
+      mockRouteParams = { isV2: true };
 
-      const { getByText } = render(
-        <SDKDisconnectModal
-          route={{
-            params: {
-              isV2: true,
-            },
-          }}
-        />,
-      );
+      const { getByText } = render(<SDKDisconnectModal />);
 
       fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
 
