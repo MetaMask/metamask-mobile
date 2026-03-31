@@ -20,9 +20,9 @@ const selectPredictWithdrawTransaction = createSelector(
   (predictControllerState) => predictControllerState?.withdrawTransaction,
 );
 
-const selectPredictActiveOrder = createSelector(
+const selectPredictActiveBuyOrder = createSelector(
   selectPredictControllerState,
-  (predictState) => predictState?.activeOrder ?? null,
+  (predictState) => predictState?.activeBuyOrder ?? null,
 );
 
 const selectPredictClaimablePositions = createSelector(
@@ -113,7 +113,7 @@ export {
   selectPredictPendingDeposits,
   selectPredictPendingClaims,
   selectPredictWithdrawTransaction,
-  selectPredictActiveOrder,
+  selectPredictActiveBuyOrder,
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
