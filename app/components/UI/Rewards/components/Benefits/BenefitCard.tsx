@@ -41,7 +41,7 @@ const BenefitCard = ({ benefit }: Props) => {
           <Image
             source={{ uri: benefit.thumbnail }}
             style={tw.style('w-full h-full rounded-lg')}
-            resizeMode="contain"
+            resizeMode="cover"
             testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
           />
         </Box>

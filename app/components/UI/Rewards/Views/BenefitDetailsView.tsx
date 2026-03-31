@@ -1,12 +1,15 @@
 import React from 'react';
-import { Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
+import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection, Button, ButtonSize, ButtonVariant,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -23,6 +26,7 @@ import { formatDayHourRemaining } from '../utils/formatUtils.ts';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import Routes from '../../../../constants/navigation/Routes.ts';
 
 const BenefitDetailsView = () => {
   const tw = useTailwind();
@@ -34,7 +38,13 @@ const BenefitDetailsView = () => {
 
   const handleClaim = () => {
     if (benefit.url) {
-      Linking.openURL(benefit.url);
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: benefit.url,
+          timestamp: Date.now(),
+        },
+      });
     }
   };
 
@@ -54,7 +64,7 @@ const BenefitDetailsView = () => {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 pb-24')}
+          contentContainerStyle={tw.style('px-4 pb-6')}
         >
           <Box twClassName="w-full rounded-lg overflow-hidden">
             <Image

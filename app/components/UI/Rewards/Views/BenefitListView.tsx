@@ -63,9 +63,9 @@ const BenefitListView = () => {
     if (isLoading || benefits?.length === 0) return null;
     return (
       <Box twClassName="items-center justify-center">
-        {/*<Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>*/}
-        {/*  Powered by The Miracle*/}
-        {/*</Text>*/}
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          Powered by The Miracle
+        </Text>
       </Box>
     );
   }, [isLoading, benefits?.length]);
@@ -98,14 +98,16 @@ const BenefitListView = () => {
           emptyComponent
         ) : (
           <Box twClassName="h-full p-4">
-            <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
-              {strings('rewards.benefits.list_header')}
-            </Text>
             <FlatList
               data={benefits}
               renderItem={renderBenefitItem}
               keyExtractor={(item) => item.id.toString()}
               ListFooterComponent={renderFooter}
+              ListHeaderComponent={
+                <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
+                  {strings('rewards.benefits.list_header')}
+                </Text>
+              }
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
