@@ -13,6 +13,10 @@ const ENV_SENTRY_SAMPLE_RATE = 'E2E_PERFORMANCE_SENTRY_SAMPLE_RATE';
 const ENV_SENTRY_ENVIRONMENT = 'E2E_PERFORMANCE_SENTRY_ENVIRONMENT';
 const ENV_SENTRY_RELEASE = 'E2E_PERFORMANCE_SENTRY_RELEASE';
 const ENV_SENTRY_BUILD_VARIANT = 'E2E_PERFORMANCE_BUILD_VARIANT';
+const ENV_GITHUB_SERVER_URL = 'GITHUB_SERVER_URL';
+const ENV_GITHUB_REPOSITORY = 'GITHUB_REPOSITORY';
+const ENV_GITHUB_RUN_ID = 'GITHUB_RUN_ID';
+const ENV_GITHUB_JOB = 'GITHUB_JOB';
 const MAX_MEASUREMENT_KEY_LENGTH = 64;
 const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
@@ -24,6 +28,7 @@ interface PublishPerformanceScenarioOptions {
   testTitle: string;
   projectName: string;
   testFilePath?: string;
+  browserstackRecordingUrl?: string | null;
   tags: string[];
   status?: string;
   retry?: number;
@@ -55,6 +60,7 @@ interface SentryMeasurement {
 
 interface MirroredScenarioAttributes {
   project_name: string;
+  test_team: string;
   provider: string;
   team_id: string;
   team_name: string;
@@ -65,6 +71,9 @@ interface MirroredScenarioAttributes {
   device_name: string;
   device_os_version: string;
   test_file_path: string;
+  browserstack_recording_url: string | null;
+  github_job_url: string | null;
+  github_job_name: string | null;
 }
 
 function getEnvValue(key: string): string | undefined {
@@ -192,6 +201,17 @@ function parseSampleRate(rawSampleRate: string | undefined): number | null {
   return sampleRate;
 }
 
+function getGithubJobUrl(): string | null {
+  const serverUrl = getEnvValue(ENV_GITHUB_SERVER_URL);
+  const repository = getEnvValue(ENV_GITHUB_REPOSITORY);
+  const runId = getEnvValue(ENV_GITHUB_RUN_ID);
+  if (!serverUrl || !repository || !runId) {
+    return null;
+  }
+
+  return `${serverUrl}/${repository}/actions/runs/${runId}`;
+}
+
 export async function publishPerformanceScenarioToSentry(
   options: PublishPerformanceScenarioOptions,
 ): Promise<boolean> {
@@ -282,6 +302,7 @@ export async function publishPerformanceScenarioToSentry(
 
   const mirroredScenarioAttributes: MirroredScenarioAttributes = {
     project_name: options.projectName,
+    test_team: teamId,
     provider,
     team_id: teamId,
     team_name: teamName,
@@ -292,6 +313,9 @@ export async function publishPerformanceScenarioToSentry(
     device_name: options.metrics.device.name,
     device_os_version: options.metrics.device.osVersion,
     test_file_path: testFilePath,
+    browserstack_recording_url: options.browserstackRecordingUrl ?? null,
+    github_job_url: getGithubJobUrl(),
+    github_job_name: getEnvValue(ENV_GITHUB_JOB) ?? null,
   };
 
   let cursor = startTimestamp;
@@ -354,6 +378,7 @@ export async function publishPerformanceScenarioToSentry(
       provider: mirroredScenarioAttributes.provider,
       team_id: mirroredScenarioAttributes.team_id,
       team_name: mirroredScenarioAttributes.team_name,
+      test_team: mirroredScenarioAttributes.test_team,
       test_status: mirroredScenarioAttributes.test_status,
       retry: String(mirroredScenarioAttributes.retry),
       worker_index: String(mirroredScenarioAttributes.worker_index),
@@ -363,6 +388,10 @@ export async function publishPerformanceScenarioToSentry(
     spans,
     extra: {
       test_file_path: mirroredScenarioAttributes.test_file_path,
+      browserstack_recording_url:
+        mirroredScenarioAttributes.browserstack_recording_url,
+      github_job_url: mirroredScenarioAttributes.github_job_url,
+      github_job_name: mirroredScenarioAttributes.github_job_name,
       test_tags: options.tags,
       threshold_margin_percent: options.metrics.thresholdMarginPercent,
       has_thresholds: options.metrics.hasThresholds,

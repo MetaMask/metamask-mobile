@@ -4,6 +4,7 @@ import {
   type MetricsOutput,
 } from '../../../reporters/PerformanceTracker';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
+import { BrowserStackAPI } from '../../services/providers/browserstack/BrowserStackAPI';
 import {
   QualityGatesValidator,
   markQualityGateFailure,
@@ -15,6 +16,27 @@ import { IsDisplayedParams, PlaywrightElement } from '../../PlaywrightAdapter';
 
 interface PerformanceFixtures {
   performanceTracker: PerformanceTracker;
+}
+
+async function getBrowserStackRecordingUrl(
+  sessionId: string | null,
+  projectName: string,
+): Promise<string | null> {
+  if (!sessionId || !projectName.toLowerCase().includes('browserstack')) {
+    return null;
+  }
+
+  try {
+    const api = new BrowserStackAPI();
+    const sessionDetails = await api.getSessionDetails(sessionId);
+    if (!sessionDetails?.buildId) {
+      return null;
+    }
+
+    return api.buildSessionURL(sessionDetails.buildId, sessionId);
+  } catch {
+    return null;
+  }
 }
 
 // Create a custom test fixture that handles performance tracking and cleanup
@@ -77,12 +99,26 @@ export const test = base.extend<PerformanceFixtures>({
     }
 
     if (metrics) {
+      let sessionId: string | null = null;
+      if (testInfo?.annotations) {
+        sessionId =
+          testInfo.annotations.find(
+            (annotation) => annotation.type === 'sessionId',
+          )?.description ?? null;
+      }
+
+      const browserstackRecordingUrl = await getBrowserStackRecordingUrl(
+        sessionId,
+        testInfo.project?.name ?? 'unknown',
+      );
+
       try {
         const sentToSentry = await publishPerformanceScenarioToSentry({
           metrics,
           testTitle: testInfo.title,
           projectName: testInfo.project?.name ?? 'unknown',
           testFilePath: testInfo.file,
+          browserstackRecordingUrl,
           tags: testTags,
           status: testInfo.status,
           retry: testInfo.retry,
