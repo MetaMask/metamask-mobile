@@ -15,7 +15,6 @@ export const initialState: BenefitsState = {
   benefits: [],
   benefitsLoading: false,
   benefitsError: false,
-  allFetched: false,
   lastFetched: 0,
 };
 
@@ -25,8 +24,6 @@ const benefitsSlice = createSlice({
   reducers: {
     setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
       state.benefits = action.payload.benefits;
-      state.currentPage = action.payload.page;
-      state.hasNextPage = action.payload.hasNextPage;
       state.lastFetched = action.payload.lastFetched;
     },
     setBenefitsLoading: (state, action: PayloadAction<boolean>) => {

@@ -76,7 +76,7 @@ const BenefitsPreview = () => {
         ) : hasBenefits ? (
           benefits
             .slice(0, 3)
-            .map((benefit, i) => <BenefitCard benefit={benefit} />)
+            .map((benefit, i) => <BenefitCard key={i} benefit={benefit} />)
         ) : (
           <Box twClassName="flex-1 items-center justify-center gap-3">
             <Text variant={TextVariant.BodyMd} twClassName="text-alternative">

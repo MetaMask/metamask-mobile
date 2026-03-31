@@ -1,55 +1,54 @@
 import { BaseController, StateMetadata } from '@metamask/base-controller';
 import { maxBy } from 'lodash';
 import {
-  type RewardsControllerState,
-  type RewardsAccountState,
-  type LoginResponseDto,
-  type PerpsDiscountData,
-  type EstimatePointsDto,
-  type EstimatedPointsDto,
-  type SeasonDtoState,
-  type SeasonStatusState,
-  type SeasonTierState,
-  type SeasonTierDto,
-  type SubscriptionSeasonReferralDetailState,
-  type GeoRewardsMetadata,
-  type SubscriptionDto,
-  type PaginatedPointsEventsDto,
-  type GetPointsEventsDto,
-  type OptInStatusInputDto,
-  type OptInStatusDto,
-  type PointsBoostDto,
-  type PointsEventDto,
-  type RewardDto,
+  BASE32_REGEX,
   type CampaignDto,
-  type CampaignParticipantStatusDto,
+  type CampaignDtoState,
   type CampaignLeaderboardDto,
   type CampaignLeaderboardPositionDto,
+  type CampaignParticipantStatusDto,
+  type CampaignState,
+  ClaimRewardDto,
+  type ClientVersionRequirementDto,
+  type DiscoverSeasonsDto,
+  type EstimatedPointsDto,
+  type EstimatePointsDto,
+  type GeoRewardsMetadata,
+  type GetPointsEventsDto,
+  GetPointsEventsLastUpdatedDto,
+  type LineaTokenRewardDto,
+  type LoginResponseDto,
+  type OffDeviceSubscriptionAccountsState,
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
+  type OptInStatusDto,
+  type OptInStatusInputDto,
+  type PaginatedPointsEventsDto,
+  type PerpsDiscountData,
+  type PointsBoostDto,
   type PointsEstimateHistoryEntry,
-  ClaimRewardDto,
+  type PointsEventDto,
   PointsEventsDtoState,
-  SubscriptionBenefitsState,
-  GetPointsEventsLastUpdatedDto,
-  SeasonStatusDto,
-  type DiscoverSeasonsDto,
+  type RewardDto,
+  type RewardsAccountState,
+  type RewardsControllerState,
+  type SeasonDtoState,
   type SeasonMetadataDto,
   type SeasonStateDto,
-  type LineaTokenRewardDto,
-  type OffDeviceSubscriptionAccountsState,
-  type ClientVersionRequirementDto,
-  type CampaignState,
-  type CampaignDtoState,
-  BASE32_REGEX,
-  CampaignType,
+  SeasonStatusDto,
+  type SeasonStatusState,
+  type SeasonTierDto,
+  type SeasonTierState,
+  SubscriptionBenefitsState,
+  type SubscriptionDto,
+  type SubscriptionSeasonReferralDetailState,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
-  storeSubscriptionToken,
+  getSubscriptionToken,
   removeSubscriptionToken,
   resetAllSubscriptionTokens,
-  getSubscriptionToken,
+  storeSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -62,17 +61,17 @@ import {
 } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
 import {
-  isNonEvmAddress,
   isBtcAccount,
+  isNonEvmAddress,
   isTronAccount,
 } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
 import { signBitcoinRewardsMessage } from './utils/bitcoin-snap';
 import { signTronRewardsMessage } from './utils/tron-snap';
 import {
+  AccountAlreadyRegisteredError,
   AuthorizationFailedError,
   InvalidTimestampError,
-  AccountAlreadyRegisteredError,
   SeasonNotFoundError,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
@@ -95,6 +94,9 @@ const SEASON_METADATA_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
+
+// Benefits details cache threshold
+const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 15; // 15 minutes
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -3895,15 +3897,22 @@ export class RewardsController extends BaseController<
    * Get benefits details with caching
    * @param subscriptionId - The subscription ID for authentication
    * @param limit - The maximum number of items requested
+   * @param refresh - Whether to bypass the cache and fetch fresh data
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async getBenefits(
     subscriptionId: string,
     limit: number,
+    refresh: boolean,
   ): Promise<SubscriptionBenefitsState> {
-    const result = await wrapWithCache<SubscriptionBenefitsState>({
+    if (refresh) {
+      this.update((state) => {
+        delete state.subscriptionBenefits[subscriptionId];
+      });
+    }
+    return await wrapWithCache<SubscriptionBenefitsState>({
       key: `${subscriptionId}`,
-      ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
+      ttl: BENEFITS_DETAILS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
         const cached = this.state.subscriptionBenefits[key] || undefined;
         if (!cached) return;
@@ -3923,7 +3932,7 @@ export class RewardsController extends BaseController<
               this.messenger.call(
                 'RewardsDataService:getBenefits',
                 subscriptionId,
-                limit
+                limit,
               ),
             subscriptionId,
           );
@@ -3941,12 +3950,11 @@ export class RewardsController extends BaseController<
         }
       },
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.subscriptionBenefits[key] = payload;
         });
       },
     });
-    return result;
   }
 
   /**

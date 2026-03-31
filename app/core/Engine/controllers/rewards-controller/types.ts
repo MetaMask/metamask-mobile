@@ -2125,7 +2125,8 @@ export interface RewardsControllerGetBenefitsAction {
   type: 'RewardsController:getBenefits';
   handler: (
     subscriptionId: string,
-    page: number
+    limit: number,
+    refresh: boolean
   ) => Promise<SubscriptionBenefitsState>;
 }
 

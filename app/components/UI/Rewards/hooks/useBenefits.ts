@@ -20,7 +20,7 @@ export const useBenefits = (): {
   const isLoadingRef = useRef(false);
 
   const fetchBenefits = useCallback(
-    async (limit: number) => {
+    async (limit: number, refresh: boolean) => {
       if (!subscriptionId) {
         dispatch(setBenefitsError(false));
         dispatch(setBenefitsLoading(false));
@@ -40,6 +40,7 @@ export const useBenefits = (): {
             'RewardsController:getBenefits',
             subscriptionId,
             limit,
+            refresh
           );
 
         dispatch(setBenefits(benefitsState));
@@ -54,11 +55,11 @@ export const useBenefits = (): {
   );
 
   const initBenefits = useCallback(async (): Promise<void> => {
-    await fetchBenefits(10);
+    await fetchBenefits(10, false);
   }, [fetchBenefits]);
 
   const getAllBenefits = useCallback(async (): Promise<void> => {
-    await fetchBenefits(200);
+    await fetchBenefits(200, true);
   }, [fetchBenefits]);
 
   useFocusEffect(
