@@ -94,13 +94,12 @@ platform :ios do
     )
     
     # Upload to TestFlight with API key from app_store_connect_api_key action.
-    # When distribute_external is false we skip_submission so the action only
-    # uploads the IPA binary. This avoids TestFlight management API calls that
-    # require an App Manager (or higher) role API key — a Developer role key
-    # can upload builds but cannot manage distribution.
+    # skip_submission prevents the beta app review submission API call that
+    # fails when another build in the same version train is already in review.
     testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
+      skip_submission: true,
       distribute_external: distribute_external,
       groups: groups,
       notify_external_testers: notify_external_testers,
