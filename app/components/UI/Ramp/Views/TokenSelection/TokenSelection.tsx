@@ -216,7 +216,7 @@ function TokenSelection() {
         setSelectedToken(assetId);
         navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
       } else {
-        navigation.dangerouslyGetParent()?.goBack();
+        navigation.getParent()?.goBack();
         goToBuy({ assetId });
       }
     },

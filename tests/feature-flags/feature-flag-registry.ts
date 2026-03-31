@@ -2839,17 +2839,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  importSrpWordSuggestion: {
-    name: 'importSrpWordSuggestion',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.61.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   legacyIosGoogleConfigEnabled: {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
