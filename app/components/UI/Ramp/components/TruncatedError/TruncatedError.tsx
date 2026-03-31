@@ -7,16 +7,15 @@ import {
   type TextLayoutEventData,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Text,
-  type TextProps,
+import Text, {
   TextVariant,
   TextColor,
-  Icon,
+} from '../../../../../component-library/components/Texts/Text';
+import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Icons/Icon';
 import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -97,11 +96,11 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.ErrorDefault}
+        variant={TextVariant.BodySM}
+        color={TextColor.Error}
         numberOfLines={maxLines}
         ellipsizeMode="tail"
-        onTextLayout={handleTextLayout as TextProps['onTextLayout']}
+        onTextLayout={handleTextLayout}
         style={[styles.text, !hasMeasured && styles.measuring]}
       >
         {hasMeasured && isTruncated
@@ -114,11 +113,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
         accessibilityRole="button"
         accessibilityLabel="View error details"
       >
-        <Icon
-          name={IconName.Info}
-          size={IconSize.Sm}
-          color={IconColor.ErrorDefault}
-        />
+        <Icon name={IconName.Info} size={IconSize.Sm} color={IconColor.Error} />
       </TouchableOpacity>
     </View>
   );

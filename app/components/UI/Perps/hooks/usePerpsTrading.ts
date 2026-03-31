@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
   type AccountState,
   type CancelOrderParams,
@@ -39,8 +38,6 @@ import {
  * Provides methods for placing, canceling, and closing trading positions
  */
 export function usePerpsTrading() {
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
       const controller = Engine.context.PerpsController;
@@ -119,20 +116,18 @@ export function usePerpsTrading() {
     ): Promise<{
       result: Promise<string>;
     }> => {
-      await ensureArbitrumNetworkExists();
       const controller = Engine.context.PerpsController;
       return controller.depositWithConfirmation({ amount, placeOrder: false });
     },
-    [ensureArbitrumNetworkExists],
+    [],
   );
 
   const depositWithOrder = useCallback(async (): Promise<{
     result: Promise<string>;
   }> => {
-    await ensureArbitrumNetworkExists();
     const controller = Engine.context.PerpsController;
     return controller.depositWithOrder();
-  }, [ensureArbitrumNetworkExists]);
+  }, []);
 
   const clearDepositResult = useCallback((): void => {
     const controller = Engine.context.PerpsController;

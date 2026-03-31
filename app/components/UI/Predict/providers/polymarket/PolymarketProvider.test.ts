@@ -254,7 +254,6 @@ describe('PolymarketProvider', () => {
       minimumVersion: '7.64.0',
     },
     fakOrdersEnabled: false,
-    predictWithAnyTokenEnabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,

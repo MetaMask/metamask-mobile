@@ -6,6 +6,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import {
   PERPS_CONSTANTS,
@@ -66,6 +67,7 @@ export const usePerpsHomeActions = (
   const navigation = useNavigation();
   const isEligible = useSelector(selectPerpsEligibility);
   const { depositWithConfirmation } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -105,6 +107,7 @@ export const usePerpsHomeActions = (
     DevLogger.log('[usePerpsHomeActions] Starting add funds flow');
 
     try {
+      await ensureArbitrumNetworkExists();
       navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
       // Wait for deposit confirmation to complete before calling success callback
@@ -135,6 +138,7 @@ export const usePerpsHomeActions = (
     }
   }, [
     isEligible,
+    ensureArbitrumNetworkExists,
     navigateToConfirmation,
     depositWithConfirmation,
     onAddFundsSuccess,
@@ -167,6 +171,7 @@ export const usePerpsHomeActions = (
     });
 
     try {
+      await ensureArbitrumNetworkExists();
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });
@@ -194,6 +199,7 @@ export const usePerpsHomeActions = (
     }
   }, [
     isEligible,
+    ensureArbitrumNetworkExists,
     navigation,
     onWithdrawSuccess,
     onError,

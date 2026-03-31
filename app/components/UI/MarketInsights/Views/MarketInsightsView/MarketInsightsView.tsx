@@ -299,21 +299,8 @@ const MarketInsightsView: React.FC = () => {
     return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
   }, [report]);
   const handleBackPress = useCallback(() => {
-    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_CLOSED)
-      .addProperties({
-        ...assetIdProperty,
-        ...assetSymbolProperty,
-      })
-      .build();
-    trackEvent(event);
     navigation.goBack();
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    assetIdProperty,
-    assetSymbolProperty,
-  ]);
+  }, [navigation]);
 
   const handleTweetPress = useCallback((url: string) => {
     if (isSafeUrl(url)) {

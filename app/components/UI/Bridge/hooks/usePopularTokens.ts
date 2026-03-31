@@ -10,7 +10,6 @@ export interface PopularToken {
   iconUrl: string;
   name: string;
   symbol: string;
-  isVerified?: boolean;
   noFee?: {
     isSource: boolean;
     isDestination: boolean;

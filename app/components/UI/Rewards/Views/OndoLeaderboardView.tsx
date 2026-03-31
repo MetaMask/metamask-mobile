@@ -9,7 +9,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
-import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { strings } from '../../../../../locales/i18n';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -41,14 +40,6 @@ const OndoLeaderboardView: React.FC = () => {
     refetch: refetchLeaderboard,
   } = useGetOndoLeaderboard(campaignId);
 
-  const {
-    position,
-    isLoading: isPositionLoading,
-    hasError: hasPositionError,
-    hasFetched: positionHasFetched,
-    refetch: refetchPosition,
-  } = useGetOndoLeaderboardPosition(campaignId);
-
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
       <SafeAreaView
@@ -69,15 +60,7 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position card */}
           <Box twClassName="px-4 pt-4">
-            <OndoLeaderboardPosition
-              position={position}
-              isLoading={isPositionLoading}
-              hasError={hasPositionError}
-              hasFetched={positionHasFetched}
-              refetch={refetchPosition}
-              showTitle
-              computedAt={position?.computedAt}
-            />
+            <OndoLeaderboardPosition campaignId={campaignId} />
           </Box>
 
           {/* Full leaderboard */}
@@ -94,7 +77,6 @@ const OndoLeaderboardView: React.FC = () => {
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
-              showTitle={false}
             />
           </Box>
         </ScrollView>

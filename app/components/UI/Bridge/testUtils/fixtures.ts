@@ -91,9 +91,7 @@ export const createMockSearchResponse = (
     endCursor?: string;
   } = {},
 ) => ({
-  data: overrides.data ?? [
-    createMockPopularToken({ symbol: 'SRCH', isVerified: true }),
-  ],
+  data: overrides.data ?? [createMockPopularToken({ symbol: 'SRCH' })],
   count: overrides.data?.length ?? 1,
   totalCount: overrides.data?.length ?? 1,
   pageInfo: {

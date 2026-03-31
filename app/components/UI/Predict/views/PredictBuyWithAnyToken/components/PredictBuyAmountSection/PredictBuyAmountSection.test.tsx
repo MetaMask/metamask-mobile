@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import PredictBuyAmountSection from './PredictBuyAmountSection';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
@@ -20,24 +20,12 @@ jest.mock('../../../../utils/format', () => ({
 }));
 
 jest.mock('../../../../components/PredictAmountDisplay', () => {
-  const {
-    Pressable: RNPressable,
-    View: RNView,
-    Text: RNText,
-  } = jest.requireActual('react-native');
+  const { View: RNView, Text: RNText } = jest.requireActual('react-native');
   return function MockPredictAmountDisplay(props: Record<string, unknown>) {
     return (
-      <RNPressable
-        testID="amount-display"
-        onPress={props.onPress as () => void}
-      >
-        <RNView>
-          <RNText>{props.amount as string}</RNText>
-          <RNText testID="amount-display-active">
-            {String(props.isActive)}
-          </RNText>
-        </RNView>
-      </RNPressable>
+      <RNView testID="amount-display">
+        <RNText>{props.amount as string}</RNText>
+      </RNView>
     );
   };
 });
@@ -77,7 +65,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -95,7 +82,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -114,7 +100,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$1,234.56"
           toWin={250}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -134,7 +119,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton
-          isPlacingOrder={false}
         />,
       );
 
@@ -152,7 +136,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={150}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -170,7 +153,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -190,7 +172,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={250}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -208,34 +189,11 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
       const amountDisplay = screen.getByTestId('amount-display');
-      fireEvent.press(amountDisplay);
-
-      expect(mockKeypadRef.current.handleAmountPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('marks the amount display as active when focused and not placing an order', () => {
-      renderWithProvider(
-        <PredictBuyAmountSection
-          currentValueUSDString="$100"
-          keypadRef={mockKeypadRef}
-          isInputFocused
-          isBalanceLoading={false}
-          isBalancePulsing={false}
-          availableBalanceDisplay="$500"
-          toWin={100}
-          isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
-        />,
-      );
-
-      expect(screen.getByTestId('amount-display-active')).toHaveTextContent(
-        'true',
-      );
+      expect(amountDisplay).toBeOnTheScreen();
     });
   });
 
@@ -251,7 +209,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -269,7 +226,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -289,7 +245,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={0}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -307,7 +262,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$50000"
           toWin={10000}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -325,7 +279,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -343,7 +296,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 
@@ -361,37 +313,11 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton
-          isPlacingOrder={false}
         />,
       );
 
       expect(screen.getByTestId('skeleton-120')).toBeOnTheScreen();
       expect(screen.getByTestId('skeleton-80')).toBeOnTheScreen();
-    });
-  });
-
-  describe('isPlacingOrder behavior', () => {
-    it('disables amount press and isActive when isPlacingOrder is true', () => {
-      renderWithProvider(
-        <PredictBuyAmountSection
-          currentValueUSDString="$100"
-          keypadRef={mockKeypadRef}
-          isInputFocused
-          isBalanceLoading={false}
-          isBalancePulsing={false}
-          availableBalanceDisplay="$500"
-          toWin={100}
-          isShowingToWinSkeleton={false}
-          isPlacingOrder
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId('amount-display'));
-
-      expect(mockKeypadRef.current.handleAmountPress).not.toHaveBeenCalled();
-      expect(screen.getByTestId('amount-display-active')).toHaveTextContent(
-        'false',
-      );
     });
   });
 
@@ -407,7 +333,6 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={150}
           isShowingToWinSkeleton={false}
-          isPlacingOrder={false}
         />,
       );
 

@@ -21,7 +21,6 @@ export interface BridgeToken {
     isSource: boolean;
     isDestination: boolean;
   };
-  isVerified?: boolean;
   aggregators?: string[];
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;

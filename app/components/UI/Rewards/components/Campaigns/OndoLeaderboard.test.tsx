@@ -248,14 +248,6 @@ describe('OndoLeaderboard', () => {
       expect(getByText('Leaderboard')).toBeDefined();
     });
 
-    it('does not render title when showTitle is false', () => {
-      const { queryByText } = render(
-        <OndoLeaderboard {...defaultProps} showTitle={false} />,
-      );
-
-      expect(queryByText('Leaderboard')).toBeNull();
-    });
-
     it('renders computed at timestamp', () => {
       const { getByTestId } = render(<OndoLeaderboard {...defaultProps} />);
 
@@ -290,16 +282,6 @@ describe('OndoLeaderboard', () => {
       expect(
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
       ).toBeNull();
-    });
-
-    it('renders computed at timestamp for single-tier leaderboard', () => {
-      const { getByTestId } = render(
-        <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
-      );
-
-      expect(
-        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
-      ).toBeDefined();
     });
 
     it('calls onTierChange when tab is pressed', () => {

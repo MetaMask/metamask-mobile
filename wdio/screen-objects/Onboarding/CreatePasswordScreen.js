@@ -5,7 +5,6 @@ import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/Choose
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
-import { iosPasswordInputXpath } from './iosPasswordInputXpath.js';
 import { expect as appwrightExpect } from 'appwright';
 
 class CreatePasswordScreen {
@@ -34,16 +33,9 @@ class CreatePasswordScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        // EditText may carry testID itself, or sit under the Pressable — cover both.
-        return AppwrightSelectors.getElementByXpath(
-          this._device,
-          `//android.widget.EditText[contains(@resource-id,'${CREATE_PASSWORD_INPUT_FIRST_FIELD}') or ancestor::*[contains(@resource-id,'${CREATE_PASSWORD_INPUT_FIRST_FIELD}')]]`,
-        );
+        return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(
-          this._device,
-          iosPasswordInputXpath(CREATE_PASSWORD_INPUT_FIRST_FIELD, 1),
-        );
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
       }
     }
   }
@@ -55,15 +47,9 @@ class CreatePasswordScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByXpath(
-          this._device,
-          `//android.widget.EditText[contains(@resource-id,'${CONFIRM_PASSWORD_INPUT_FIRST_FIELD}') or ancestor::*[contains(@resource-id,'${CONFIRM_PASSWORD_INPUT_FIRST_FIELD}')]]`,
-        );
+        return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(
-          this._device,
-          iosPasswordInputXpath(CONFIRM_PASSWORD_INPUT_FIRST_FIELD, 2),
-        );
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
       }
     }
   }
@@ -93,11 +79,7 @@ class CreatePasswordScreen {
       await Gestures.setValueWithoutTap(this.newPasswordInput, password);
     } else {
       const element = await this.newPasswordInput;
-      await AppwrightGestures.typeText(element, password, {
-        tapBeforeFill: AppwrightSelectors.isAndroid(this._device),
-        maxRetries: 2,
-        retryDelay: 500,
-      });
+      await AppwrightGestures.typeText(element, password);
     }
   }
 
@@ -106,11 +88,7 @@ class CreatePasswordScreen {
       await Gestures.setValueWithoutTap(this.confirmPasswordInput, password);
     } else {
       const element = await this.confirmPasswordInput;
-      await AppwrightGestures.typeText(element, password, {
-        tapBeforeFill: AppwrightSelectors.isAndroid(this._device),
-        maxRetries: 2,
-        retryDelay: 500,
-      });
+      await AppwrightGestures.typeText(element, password);
     }
   }
 
@@ -133,7 +111,7 @@ class CreatePasswordScreen {
 
   async isVisible() {
     const element = await this.newPasswordInput;
-    await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 }
 

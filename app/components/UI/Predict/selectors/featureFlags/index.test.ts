@@ -2,8 +2,6 @@ import {
   selectPredictEnabledFlag,
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeeCollectionFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-  selectPredictHomeFeaturedVariant,
   selectPredictHotTabFlag,
   selectPredictWithAnyTokenEnabledFlag,
 } from '.';
@@ -928,8 +926,96 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictWithAnyTokenEnabledFlag', () => {
-    it('returns false when remote flags are empty (version-gated default)', () => {
+  describe('selectPredictPayWithAnyTokenEnabledFlag', () => {
+    it('returns true when remote flag is enabled and version check passes', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWithAnyToken: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWithAnyToken: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWithAnyToken: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to false when remote flag is null', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWithAnyToken: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to false when remote feature flags are empty', () => {
       const result = selectPredictWithAnyTokenEnabledFlag(
         mockedEmptyFlagsState,
       );
@@ -937,7 +1023,7 @@ describe('Predict Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when controller is undefined', () => {
+    it('defaults to false when controller is undefined', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -950,19 +1036,16 @@ describe('Predict Feature Flag Selectors', () => {
 
       expect(result).toBe(false);
     });
-  });
 
-  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    it('returns version-gated flag value when remote flag is set', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithRemoteFlag = {
+    it('defaults to false when remote flag is invalid', () => {
+      const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
+                predictWithAnyToken: {
+                  enabled: 'invalid',
+                  minimumVersion: 123,
                 },
               },
               cacheTimestamp: 0,
@@ -971,107 +1054,9 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      const result =
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFlag);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when env var not set and no remote flag', () => {
-      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-      const stateWithoutRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictGtmOnboardingModalEnabledFlag(
-        stateWithoutRemoteFlag,
-      );
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
 
       expect(result).toBe(false);
-    });
-  });
-
-  describe('selectPredictHomeFeaturedVariant', () => {
-    it('returns carousel by default', () => {
-      const result = selectPredictHomeFeaturedVariant(mockedEmptyFlagsState);
-
-      expect(result).toBe('carousel');
-    });
-
-    it('returns list when remote flag variant is list and version check passes', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithListVariant = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictHomeFeaturedVariant: {
-                  enabled: true,
-                  variant: 'list',
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictHomeFeaturedVariant(stateWithListVariant);
-
-      expect(result).toBe('list');
-    });
-
-    it('returns carousel when version check fails', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const stateWithHighMinVersion = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictHomeFeaturedVariant: {
-                  enabled: true,
-                  variant: 'list',
-                  minimumVersion: '99.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictHomeFeaturedVariant(stateWithHighMinVersion);
-
-      expect(result).toBe('carousel');
-    });
-
-    it('returns carousel when remote flag is null', () => {
-      const stateWithNullFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictHomeFeaturedVariant: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictHomeFeaturedVariant(stateWithNullFlag);
-
-      expect(result).toBe('carousel');
     });
   });
 });

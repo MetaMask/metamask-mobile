@@ -26,8 +26,6 @@ interface UseDeviceConnectionFlowOptions {
   checkTransportEnabledOrShowError: (
     adapter: HardwareWalletAdapter,
   ) => Promise<boolean>;
-  /** Called at the start of each new ensureDeviceReady flow. */
-  onFlowStart?: () => void;
 }
 
 interface UseDeviceConnectionFlowResult {
@@ -54,7 +52,6 @@ export const useDeviceConnectionFlow = ({
   createAdapterWithCallbacks,
   initializeAdapter,
   checkTransportEnabledOrShowError,
-  onFlowStart,
 }: UseDeviceConnectionFlowOptions): UseDeviceConnectionFlowResult => {
   const pendingReadyResolveRef = useRef<((ready: boolean) => void) | null>(
     null,
@@ -191,8 +188,6 @@ export const useDeviceConnectionFlow = ({
         targetDeviceId,
       );
 
-      onFlowStart?.();
-
       if (pendingReadyResolveRef.current) {
         DevLogger.log(
           '[HardwareWallet] Abandoning previous pending readiness check (not resolving)',
@@ -258,7 +253,6 @@ export const useDeviceConnectionFlow = ({
       tryEnsureReady,
       checkTransportEnabledOrShowError,
       createBlockingPromise,
-      onFlowStart,
     ],
   );
 

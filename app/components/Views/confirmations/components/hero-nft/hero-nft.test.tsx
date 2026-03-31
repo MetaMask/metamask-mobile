@@ -129,7 +129,6 @@ describe('HeroNft', () => {
 
     expect(getByText('Sending')).toBeOnTheScreen();
     expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- false positive: '#12345' is a token-id display prefix, not a color literal
     expect(getByText('#12345')).toBeOnTheScreen();
     expect(getByTestId('nft-image')).toBeOnTheScreen();
   });

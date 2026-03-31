@@ -7,8 +7,8 @@ import {
 import { addEventListener as addNetInfoEventListener } from '@react-native-community/netinfo';
 import { ReactQueryService } from './ReactQueryService';
 
-jest.mock('@tanstack/query-core', () => ({
-  ...jest.requireActual('@tanstack/query-core'),
+jest.mock('@tanstack/react-query', () => ({
+  QueryClient: jest.fn().mockImplementation(() => ({ clear: jest.fn() })),
   focusManager: { setFocused: jest.fn() },
   onlineManager: { setEventListener: jest.fn() },
 }));
@@ -43,15 +43,14 @@ describe('ReactQueryService', () => {
 
   describe('constructor', () => {
     it('creates a QueryClient with expected default options', () => {
-      // @ts-expect-error Accessing private property.
-      expect(service.queryClient.defaultOptions).toStrictEqual({
-        queries: {
-          staleTime: 1000 * 60 * 5,
-          retry: 2,
-          cacheTime: 1000 * 60 * 60 * 24,
-          queryFn: expect.any(Function),
+      expect(QueryClient).toHaveBeenCalledWith({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5,
+            retry: 2,
+            gcTime: 1000 * 60 * 60 * 24,
+          },
         },
-        mutations: undefined,
       });
     });
 
@@ -170,11 +169,9 @@ describe('ReactQueryService', () => {
     });
 
     it('clears the query client cache', () => {
-      const spy = jest.spyOn(service.queryClient, 'clear');
-
       service.destroy();
 
-      expect(spy).toHaveBeenCalled();
+      expect(service.queryClient.clear).toHaveBeenCalled();
     });
   });
 });

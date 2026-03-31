@@ -25,7 +25,6 @@ interface PredictBuyAmountSectionProps {
   availableBalanceDisplay: string;
   toWin: number;
   isShowingToWinSkeleton: boolean;
-  isPlacingOrder: boolean;
 }
 
 const PredictBuyAmountSection = ({
@@ -37,7 +36,6 @@ const PredictBuyAmountSection = ({
   availableBalanceDisplay,
   toWin,
   isShowingToWinSkeleton,
-  isPlacingOrder,
 }: PredictBuyAmountSectionProps) => {
   const tw = useTailwind();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -70,10 +68,8 @@ const PredictBuyAmountSection = ({
       <Box twClassName="text-center leading-[72px]">
         <PredictAmountDisplay
           amount={currentValueUSDString}
-          onPress={() =>
-            !isPlacingOrder && keypadRef.current?.handleAmountPress()
-          }
-          isActive={isInputFocused && !isPlacingOrder}
+          onPress={() => keypadRef.current?.handleAmountPress()}
+          isActive={isInputFocused}
           hasError={false}
         />
       </Box>

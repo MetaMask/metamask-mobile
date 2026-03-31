@@ -23,7 +23,6 @@ export interface PredictFeatureFlags {
   liveSportsLeagues: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
-  predictWithAnyTokenEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

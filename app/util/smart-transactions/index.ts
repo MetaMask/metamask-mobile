@@ -44,11 +44,7 @@ export const getSmartTransactionMetricsProperties = async (
       await waitForSmartTransactionConfirmationDone(controllerMessenger);
   }
   if (!smartTransaction) {
-    // Still mark as smart transaction since this function is only called when
-    // smart transactions are enabled for the chain. Cancelled/dropped smart
-    // transactions won't have a mined tx hash, so the lookup above returns
-    // nothing, but the transaction still went through the smart transaction flow.
-    return { is_smart_transaction: true };
+    return {};
   }
   if (!smartTransaction?.statusMetadata) {
     return { is_smart_transaction: true };

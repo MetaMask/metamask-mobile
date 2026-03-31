@@ -17,12 +17,10 @@ import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
 import TokenListItem from '../../components/TokenListItem';
 import { createUnsupportedTokenModalNavigationDetails } from '../Modals/UnsupportedTokenModal/UnsupportedTokenModal';
 
-import {
-  Box,
-  Text,
+import { Box } from '@metamask/design-system-react-native';
+import Text, {
   TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -300,7 +298,7 @@ function TokenSelection() {
   const renderEmptyList = useCallback(
     () => (
       <ListItemSelect isSelected={false} isDisabled>
-        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('deposit.token_modal.no_tokens_found', {
             searchString,
           })}
@@ -367,10 +365,10 @@ function TokenSelection() {
         <ScreenLayout.Body>
           <Box twClassName="flex-1 items-center justify-center px-4">
             <Box twClassName="text-center">
-              <Text variant={TextVariant.BodyMd}>
+              <Text variant={TextVariant.BodyMD}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
-              <Text variant={TextVariant.BodyMd}>
+              <Text variant={TextVariant.BodyMD}>
                 {parseUserFacingError(
                   error,
                   strings('deposit.token_modal.error_loading_tokens'),

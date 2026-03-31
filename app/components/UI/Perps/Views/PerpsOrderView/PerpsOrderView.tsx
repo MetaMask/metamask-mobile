@@ -761,12 +761,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: orderForm.amount,
       szDecimals: marketData?.szDecimals,
-      onConfirm: async (
-        _position?: Position,
-        takeProfitPrice?: string,
-        stopLossPrice?: string,
-      ) => {
-        // Order flow: no position; just persist TP/SL in form state
+      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
+        // Use the same clearing approach as the "Off" button
+        // If values are undefined or empty, ensure they're cleared properly
         const tpToSet = takeProfitPrice || undefined;
         const slToSet = stopLossPrice || undefined;
 

@@ -41,21 +41,21 @@ export function PredictPayWithRow({
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
-  const showPredictBalance = isPredictBalanceSelected || !payToken;
-
   const handlePress = useCallback(() => {
     if (!canEdit) return;
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      isPredictContext: true,
+    });
   }, [canEdit, navigation]);
 
   const label = strings('confirm.label.pay_with');
-  const displaySymbol = showPredictBalance
+  const displaySymbol = isPredictBalanceSelected
     ? 'Predict balance'
     : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
-  const tokenIconAddress = showPredictBalance
+  const tokenIconAddress = isPredictBalanceSelected
     ? POLYGON_USDCE.address
     : (payToken?.address as Hex | undefined);
-  const tokenIconChainId = showPredictBalance
+  const tokenIconChainId = isPredictBalanceSelected
     ? PREDICT_BALANCE_CHAIN_ID
     : (payToken?.chainId as Hex | undefined);
 
@@ -65,7 +65,7 @@ export function PredictPayWithRow({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName={`rounded-full  py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'}`}
+        twClassName="rounded-full bg-default p-4"
         gap={3}
       >
         {tokenIconAddress && tokenIconChainId && (

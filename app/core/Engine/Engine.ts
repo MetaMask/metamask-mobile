@@ -165,6 +165,7 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
 import { storageServiceInit } from './controllers/storage-service/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
@@ -285,6 +286,7 @@ export class Engine {
     };
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
+        ErrorReportingService: errorReportingServiceInit,
         StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,

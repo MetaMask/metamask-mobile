@@ -23,7 +23,6 @@ const useCardDetails = () => {
   const {
     data: cardDetailsData,
     isLoading,
-    isFetching,
     error,
     refetch,
   } = useQuery<CardDetailsResult | null>({
@@ -70,7 +69,7 @@ const useCardDetails = () => {
   return {
     cardDetails: cardDetailsData?.cardDetails ?? null,
     warning: cardDetailsData?.warning ?? null,
-    isLoading: isLoading && isFetching,
+    isLoading,
     error: error as Error | null,
     fetchCardDetails,
   };

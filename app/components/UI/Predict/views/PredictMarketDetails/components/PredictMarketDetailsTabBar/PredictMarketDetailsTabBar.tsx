@@ -9,14 +9,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  getPredictMarketDetailsSelector,
-  PredictMarketDetailsSelectorsIDs,
-  type PredictMarketDetailsTabKey,
-} from '../../../../Predict.testIds';
+import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
+
+type TabKey = 'positions' | 'outcomes' | 'about';
 
 export interface PredictMarketDetailsTabBarProps {
-  tabs: { label: string; key: PredictMarketDetailsTabKey }[];
+  tabs: { label: string; key: TabKey }[];
   activeTab: number | null;
   onTabPress: (tabIndex: number) => void;
 }
@@ -43,7 +41,7 @@ const PredictMarketDetailsTabBar = memo(
                 'w-1/3 py-3',
                 activeTab === index ? 'border-b-2 border-default' : '',
               )}
-              testID={getPredictMarketDetailsSelector.tabBarTab(tab.key)}
+              testID={`${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-${index}`}
             >
               <Text
                 variant={TextVariant.BodyMd}

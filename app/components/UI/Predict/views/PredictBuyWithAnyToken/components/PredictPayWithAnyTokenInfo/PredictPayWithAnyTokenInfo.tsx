@@ -1,12 +1,11 @@
 import BigNumber from 'bignumber.js';
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { PREDICT_CURRENCY } from '../../../../../../Views/confirmations/constants/predict';
 import { useTransactionCustomAmount } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
-import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { Hex } from '@metamask/utils';
+import useClearConfirmationOnBackSwipe from '../../../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 
 interface PredictPayWithAnyTokenInfoProps {
   depositAmount: number;
@@ -15,25 +14,14 @@ interface PredictPayWithAnyTokenInfoProps {
 const PredictPayWithAnyTokenInfo = ({
   depositAmount,
 }: PredictPayWithAnyTokenInfoProps) => {
-  const transactionMeta = useTransactionMetadataRequest();
+  const { isPredictBalanceSelected } = usePredictPaymentToken();
 
-  if (!transactionMeta) {
-    return null;
-  }
-
-  return <PredictPayWithAnyTokenInfoInner depositAmount={depositAmount} />;
-};
-
-function PredictPayWithAnyTokenInfoInner({
-  depositAmount,
-}: PredictPayWithAnyTokenInfoProps) {
-  const { isPredictBalanceSelected, selectedPaymentToken } =
-    usePredictPaymentToken();
-  const { setPayToken, payToken } = useTransactionPayToken();
-  const transactionMeta = useTransactionMetadataRequest();
+  useClearConfirmationOnBackSwipe();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
+
+  const activeTransactionMeta = useTransactionMetadataRequest();
 
   const parsedDepositAmount = useMemo(() => {
     if (isPredictBalanceSelected || depositAmount <= 0) {
@@ -52,11 +40,11 @@ function PredictPayWithAnyTokenInfoInner({
     if (
       parsedDepositAmount &&
       parsedDepositAmount.trim() !== '' &&
-      transactionMeta
+      activeTransactionMeta
     ) {
       updatePendingAmount(parsedDepositAmount);
     }
-  }, [parsedDepositAmount, transactionMeta, updatePendingAmount]);
+  }, [parsedDepositAmount, activeTransactionMeta, updatePendingAmount]);
 
   useEffect(() => {
     if (
@@ -64,44 +52,19 @@ function PredictPayWithAnyTokenInfoInner({
       amountHuman !== '0' &&
       parsedDepositAmount &&
       parsedDepositAmount.trim() !== '' &&
-      transactionMeta
+      activeTransactionMeta
     ) {
-      updateTokenAmountCallback(parsedDepositAmount);
+      updateTokenAmountCallback(amountHuman);
     }
   }, [
     amountHuman,
-    transactionMeta,
+    depositAmount,
+    activeTransactionMeta,
     updateTokenAmountCallback,
     parsedDepositAmount,
   ]);
 
-  useEffect(() => {
-    if (!transactionMeta || isPredictBalanceSelected || !selectedPaymentToken) {
-      return;
-    }
-
-    const hasSelectedTokenApplied =
-      payToken?.address?.toLowerCase() ===
-        selectedPaymentToken.address.toLowerCase() &&
-      payToken?.chainId?.toLowerCase() ===
-        selectedPaymentToken.chainId.toLowerCase();
-
-    if (!hasSelectedTokenApplied) {
-      setPayToken({
-        address: selectedPaymentToken.address as Hex,
-        chainId: selectedPaymentToken.chainId as Hex,
-      });
-    }
-  }, [
-    transactionMeta,
-    isPredictBalanceSelected,
-    selectedPaymentToken,
-    payToken?.address,
-    payToken?.chainId,
-    setPayToken,
-  ]);
-
   return null;
-}
+};
 
 export default PredictPayWithAnyTokenInfo;

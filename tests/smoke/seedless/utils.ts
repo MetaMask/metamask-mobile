@@ -16,7 +16,6 @@ import TermsOfUseModal from '../../page-objects/Onboarding/TermsOfUseModal';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import LoginView from '../../page-objects/wallet/LoginView';
-import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import ForgotPasswordModal from '../../page-objects/Common/ForgotPasswordModalView';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -124,9 +123,9 @@ const delay = (ms: number): Promise<void> =>
  * Locks the app from Settings
  */
 export const lockApp = async (): Promise<void> => {
-  await TabBarComponent.tapAccountsMenu();
+  await TabBarComponent.tapSettings();
 
-  await AccountMenu.tapLock();
+  await SettingsView.tapLock();
 
   await SettingsView.tapYesAlertButton();
 

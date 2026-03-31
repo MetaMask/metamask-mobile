@@ -21,9 +21,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl, formatPercentage } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -34,7 +34,6 @@ import {
   usePerpsHomeSectionTracking,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
-import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
@@ -86,16 +85,6 @@ const PerpsHomeView = () => {
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-
-  // Ensure Arbitrum network exists when user lands on the main perps screen (not on button click)
-  useFocusEffect(
-    useCallback(() => {
-      ensureArbitrumNetworkExists().catch(() => {
-        // Error already logged in usePerpsNetworkManagement
-      });
-    }, [ensureArbitrumNetworkExists]),
-  );
 
   // Bottom sheet state and refs
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
@@ -152,9 +141,10 @@ const PerpsHomeView = () => {
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
       const pnlNum = parseFloat(unrealizedPnl);
+      const isPnlZero = BigNumber(unrealizedPnl).isZero();
 
-      // Open (filled) positions only — hide when flat so spacing matches homepage sections
-      if (!hasPositions) {
+      // Only show subtitle when there are positions and P&L is non-zero
+      if (!hasPositions || isPnlZero) {
         return {
           positionsSubtitle: undefined,
           positionsSubtitleColor: undefined,
@@ -164,11 +154,12 @@ const PerpsHomeView = () => {
 
       const color =
         pnlNum > 0
-          ? TextColor.SuccessDefault
+          ? TextColor.Success
           : pnlNum < 0
-            ? TextColor.ErrorDefault
-            : TextColor.TextDefault;
+            ? TextColor.Error
+            : TextColor.Alternative;
 
+      // Format: "-$18.47 (2.1%)" colored + "Unrealized PnL" in default color
       const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const suffix = strings('perps.unrealized_pnl');
 

@@ -2,17 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Text,
+import Text, {
   TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -26,6 +18,16 @@ import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import DepositDateField from '../../Deposit/components/DepositDateField';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
 import { formatNumberToTemplate } from '../../Deposit/components/DepositPhoneField/formatNumberToTemplate';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import { timestampToTransakFormat } from '../../Deposit/utils';
@@ -33,8 +35,6 @@ import useAnalytics from '../../hooks/useAnalytics';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
-import { TextVariant as ComponentLibraryTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
@@ -322,7 +322,7 @@ const V2BasicInfo = (): JSX.Element => {
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
-            <Text variant={TextVariant.HeadingMd} style={styles.title}>
+            <Text variant={TextVariant.HeadingMD} style={styles.title}>
               {strings('deposit.basic_info.title')}
             </Text>
             <Text style={styles.subtitle}>
@@ -339,7 +339,7 @@ const V2BasicInfo = (): JSX.Element => {
                           variant: ButtonVariants.Link,
                           label: strings('deposit.basic_info.login_with_email'),
                           onPress: handleLogout,
-                          labelTextVariant: ComponentLibraryTextVariant.BodyMD,
+                          labelTextVariant: TextVariant.BodyMD,
                           testID: BASIC_INFO_TEST_IDS.LOGOUT_BUTTON,
                         }
                       : undefined
@@ -449,7 +449,7 @@ const V2BasicInfo = (): JSX.Element => {
               <DepositTextField
                 label={
                   <View style={styles.ssnLabel}>
-                    <Text variant={TextVariant.BodyMd}>
+                    <Text variant={TextVariant.BodyMD}>
                       {strings('deposit.basic_info.social_security_number')}
                     </Text>
                     <TouchableOpacity
@@ -459,7 +459,7 @@ const V2BasicInfo = (): JSX.Element => {
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}
-                        color={IconColor.IconAlternative}
+                        color={IconColor.Alternative}
                       />
                     </TouchableOpacity>
                   </View>
@@ -490,14 +490,13 @@ const V2BasicInfo = (): JSX.Element => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleOnPressContinue}
-            variant={ButtonVariant.Primary}
-            isFullWidth
+            label={strings('deposit.basic_info.continue')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
             isDisabled={loading || !!error}
-            isLoading={loading}
+            loading={loading}
             testID={BASIC_INFO_TEST_IDS.CONTINUE_BUTTON}
-          >
-            {strings('deposit.basic_info.continue')}
-          </Button>
+          />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

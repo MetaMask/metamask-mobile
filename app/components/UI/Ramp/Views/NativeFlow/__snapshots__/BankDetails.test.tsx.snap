@@ -85,17 +85,13 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 20,
-                      "fontWeight": 700,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 20,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_title
@@ -103,17 +99,13 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_1
@@ -121,17 +113,13 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_2
@@ -227,17 +215,13 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 12,
-                        "fontWeight": 400,
-                        "letterSpacing": 0.25,
-                        "lineHeight": 20,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
                   }
                 >
                   deposit.bank_details.info_banner_text
@@ -253,183 +237,87 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
               }
             }
           >
-            <View
-              accessibilityLabel="deposit.order_processing.cancel_order_button"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.order_processing.cancel_order_button
               </Text>
-            </View>
-            <View
-              accessibilityLabel="deposit.bank_details.button"
+            </TouchableOpacity>
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="main-action-button"
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.button
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -523,17 +411,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 20,
-                      "fontWeight": 700,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 20,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_title
@@ -541,17 +425,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_1
@@ -559,17 +439,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_2
@@ -649,34 +525,29 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   deposit.bank_details.show_bank_info
                 </Text>
                 <SvgMock
+                  color="#4459ff"
                   fill="currentColor"
+                  height={16}
                   name="ArrowDown"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "height": 16,
-                        "width": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
                   }
+                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -767,17 +638,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 12,
-                        "fontWeight": 400,
-                        "letterSpacing": 0.25,
-                        "lineHeight": 20,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
                   }
                 >
                   deposit.bank_details.info_banner_text
@@ -793,244 +660,77 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
               }
             }
           >
-            <View
-              accessibilityHint="Button is currently loading, please wait"
-              accessibilityLabel="deposit.order_processing.cancel_order_button"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": true,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={true}
+              loading={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b552",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "bottom": 0,
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
-                }
-                testID="spinner-container"
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "columnGap": 8,
-                        "flexDirection": "row",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "transform": [
-                            {
-                              "rotate": "0deg",
-                            },
-                          ],
-                        },
-                      ]
-                    }
-                    testID="spinner-animated-view"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Loading"
-                      style={
-                        [
-                          {
-                            "color": "#131416",
-                            "height": 20,
-                            "width": 20,
-                          },
-                          undefined,
-                        ]
-                      }
-                      testID="spinner-icon"
-                    />
-                  </View>
-                </View>
-              </View>
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
-                style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "opacity": 0,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                deposit.order_processing.cancel_order_button
-              </Text>
-            </View>
-            <View
-              accessibilityLabel="deposit.bank_details.button"
+              <ActivityIndicator
+                color="#131416"
+                size="small"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={true}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="main-action-button"
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.button
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -1124,17 +824,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 20,
-                      "fontWeight": 700,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 20,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_title
@@ -1142,17 +838,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_1
@@ -1160,17 +852,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_2
@@ -1250,34 +938,29 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   deposit.bank_details.show_bank_info
                 </Text>
                 <SvgMock
+                  color="#4459ff"
                   fill="currentColor"
+                  height={16}
                   name="ArrowDown"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "height": 16,
-                        "width": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
                   }
+                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -1368,17 +1051,13 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 12,
-                        "fontWeight": 400,
-                        "letterSpacing": 0.25,
-                        "lineHeight": 20,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
                   }
                 >
                   deposit.bank_details.info_banner_text
@@ -1394,244 +1073,77 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
               }
             }
           >
-            <View
-              accessibilityLabel="deposit.order_processing.cancel_order_button"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={true}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.order_processing.cancel_order_button
               </Text>
-            </View>
-            <View
-              accessibilityHint="Button is currently loading, please wait"
-              accessibilityLabel="deposit.bank_details.button"
+            </TouchableOpacity>
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": true,
-                  "checked": undefined,
-                  "disabled": true,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={true}
+              loading={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#414243",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 0.5,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="main-action-button"
             >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "bottom": 0,
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "left": 0,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
-                }
-                testID="spinner-container"
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "columnGap": 8,
-                        "flexDirection": "row",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "transform": [
-                            {
-                              "rotate": "0deg",
-                            },
-                          ],
-                        },
-                      ]
-                    }
-                    testID="spinner-animated-view"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Loading"
-                      style={
-                        [
-                          {
-                            "color": "#ffffff",
-                            "height": 20,
-                            "width": 20,
-                          },
-                          undefined,
-                        ]
-                      }
-                      testID="spinner-icon"
-                    />
-                  </View>
-                </View>
-              </View>
-              <Text
-                accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
-                style={
-                  [
-                    {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "opacity": 0,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                deposit.bank_details.button
-              </Text>
-            </View>
+              <ActivityIndicator
+                color="#ffffff"
+                size="small"
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -1725,17 +1237,13 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 20,
-                      "fontWeight": 700,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 20,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_title
@@ -1743,17 +1251,13 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_1
@@ -1761,17 +1265,13 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_2
@@ -1851,34 +1351,29 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   deposit.bank_details.show_bank_info
                 </Text>
                 <SvgMock
+                  color="#4459ff"
                   fill="currentColor"
+                  height={16}
                   name="ArrowDown"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "height": 16,
-                        "width": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
                   }
+                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -1969,17 +1464,13 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 12,
-                        "fontWeight": 400,
-                        "letterSpacing": 0.25,
-                        "lineHeight": 20,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
                   }
                 >
                   deposit.bank_details.info_banner_text
@@ -1995,183 +1486,87 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
               }
             }
           >
-            <View
-              accessibilityLabel="deposit.order_processing.cancel_order_button"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.order_processing.cancel_order_button
               </Text>
-            </View>
-            <View
-              accessibilityLabel="deposit.bank_details.button"
+            </TouchableOpacity>
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="main-action-button"
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.button
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -2265,17 +1660,13 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 20,
-                      "fontWeight": 700,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 20,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_title
@@ -2283,17 +1674,13 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_1
@@ -2301,17 +1688,13 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_2
@@ -2371,34 +1754,29 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   deposit.bank_details.show_bank_info
                 </Text>
                 <SvgMock
+                  color="#4459ff"
                   fill="currentColor"
+                  height={16}
                   name="ArrowDown"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "height": 16,
-                        "width": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
                   }
+                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -2489,17 +1867,13 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 12,
-                        "fontWeight": 400,
-                        "letterSpacing": 0.25,
-                        "lineHeight": 20,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
                   }
                 >
                   deposit.bank_details.info_banner_text
@@ -2515,183 +1889,87 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
               }
             }
           >
-            <View
-              accessibilityLabel="deposit.order_processing.cancel_order_button"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.order_processing.cancel_order_button
               </Text>
-            </View>
-            <View
-              accessibilityLabel="deposit.bank_details.button"
+            </TouchableOpacity>
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="main-action-button"
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.button
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -2785,17 +2063,13 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 20,
-                      "fontWeight": 700,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Bold",
+                    "fontSize": 20,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_title
@@ -2803,17 +2077,13 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_1
@@ -2821,17 +2091,13 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#66676a",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.main_content_2
@@ -2911,34 +2177,29 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
                   }
                 >
                   deposit.bank_details.show_bank_info
                 </Text>
                 <SvgMock
+                  color="#4459ff"
                   fill="currentColor"
+                  height={16}
                   name="ArrowDown"
                   style={
-                    [
-                      {
-                        "color": "#4459ff",
-                        "height": 16,
-                        "width": 16,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
                   }
+                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -3029,17 +2290,13 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
                 <Text
                   accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
-                        "fontSize": 12,
-                        "fontWeight": 400,
-                        "letterSpacing": 0.25,
-                        "lineHeight": 20,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#66676a",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 12,
+                      "letterSpacing": 0.25,
+                      "lineHeight": 20,
+                    }
                   }
                 >
                   deposit.bank_details.info_banner_text
@@ -3055,183 +2312,87 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
               }
             }
           >
-            <View
-              accessibilityLabel="deposit.order_processing.cancel_order_button"
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
-                    "borderColor": "transparent",
-                    "borderRadius": 12,
-                    "borderWidth": 1,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#131416",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.order_processing.cancel_order_button
               </Text>
-            </View>
-            <View
-              accessibilityLabel="deposit.bank_details.button"
+            </TouchableOpacity>
+            <TouchableOpacity
               accessibilityRole="button"
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": false,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessibilityValue={
-                {
-                  "max": undefined,
-                  "min": undefined,
-                  "now": undefined,
-                  "text": undefined,
-                }
-              }
               accessible={true}
-              collapsable={false}
-              focusable={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onFocus={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+              activeOpacity={1}
+              disabled={false}
+              loading={false}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
-                    "borderRadius": 12,
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                    "height": 48,
-                    "justifyContent": "center",
-                    "minWidth": 80,
-                    "opacity": 1,
-                    "overflow": "hidden",
-                    "paddingLeft": 16,
-                    "paddingRight": 16,
-                  },
-                  {
-                    "flex": 1,
-                  },
-                  {
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
               }
               testID="main-action-button"
             >
               <Text
                 accessibilityRole="text"
-                ellipsizeMode="clip"
-                numberOfLines={1}
                 style={
-                  [
-                    {
-                      "color": "#ffffff",
-                      "flexGrow": 0,
-                      "flexShrink": 1,
-                      "flexWrap": "wrap",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "fontWeight": 400,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "textAlign": "center",
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 deposit.bank_details.button
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

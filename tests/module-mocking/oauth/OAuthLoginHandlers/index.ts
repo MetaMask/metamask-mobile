@@ -13,7 +13,6 @@ import {
   AuthServerUrl,
   web3AuthNetwork,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
-import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
 /**
  * Login result type
@@ -46,8 +45,6 @@ abstract class MockBaseLoginHandler {
   abstract authConnection: string;
   abstract scope: string[];
   abstract authServerPath: string;
-
-  public options!: BaseHandlerOptions;
 
   protected authServerUrl: string;
   protected web3AuthNetwork: string;
@@ -127,11 +124,6 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
     super();
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri || 'metamask://';
-    this.options = {
-      clientId: this.clientId,
-      authServerUrl: this.authServerUrl,
-      web3AuthNetwork: this.web3AuthNetwork,
-    };
   }
 
   async login(): Promise<LoginHandlerResult> {
@@ -179,11 +171,6 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
   constructor(params: { clientId: string }) {
     super();
     this.clientId = params.clientId;
-    this.options = {
-      clientId: this.clientId,
-      authServerUrl: this.authServerUrl,
-      web3AuthNetwork: this.web3AuthNetwork,
-    };
   }
 
   async login(): Promise<LoginHandlerResult> {

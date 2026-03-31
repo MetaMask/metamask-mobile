@@ -223,19 +223,8 @@ export type PerpsControllerState = {
   lastDepositResult: LastTransactionResult | null;
 
   // Simple withdrawal state (transient, for UI feedback)
-  // Note: withdrawInProgress is now derived from withdrawalRequests having pending/bridging entries
   withdrawInProgress: boolean;
   lastWithdrawResult: LastTransactionResult | null;
-
-  // FIFO guard for withdrawal completion matching.
-  // Timestamp is persisted — survives app restarts so the hook skips
-  // already-processed history entries even after relaunch.
-  // TxHashes array is NOT persisted — it tracks completions within a
-  // single session to prevent re-matching (direct completions,
-  // same-millisecond API completions). Resets naturally on app restart;
-  // the timestamp guard provides cross-restart protection.
-  lastCompletedWithdrawalTimestamp: number | null;
-  lastCompletedWithdrawalTxHashes: string[];
 
   // Withdrawal request tracking (persistent, for transaction history)
   withdrawalRequests: {
@@ -396,8 +385,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   withdrawInProgress: false,
   lastDepositTransactionId: null,
   lastWithdrawResult: null,
-  lastCompletedWithdrawalTimestamp: null,
-  lastCompletedWithdrawalTxHashes: [],
   withdrawalRequests: [],
   withdrawalProgress: {
     progress: 0,
@@ -506,18 +493,6 @@ const metadata: StateMetadata<PerpsControllerState> = {
   },
   lastWithdrawResult: {
     includeInStateLogs: true,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  lastCompletedWithdrawalTimestamp: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  lastCompletedWithdrawalTxHashes: {
-    includeInStateLogs: false,
     persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
@@ -1279,14 +1254,13 @@ export class PerpsController extends BaseController<
   /**
    * Clean up old withdrawal/deposit requests that don't have accountAddress
    * These are from before the accountAddress field was added and can't be displayed
-   * in the UI (which filters by account), so we discard them.
-   * Also drop persisted failed withdrawals — failures are surfaced via lastWithdrawResult only.
+   * in the UI (which filters by account), so we discard them
    */
   #migrateRequestsIfNeeded(): void {
     this.update((state) => {
       // Remove withdrawal requests without accountAddress - they can't be attributed to any account
-      state.withdrawalRequests = state.withdrawalRequests.filter(
-        (req) => Boolean(req.accountAddress) && req.status !== 'failed',
+      state.withdrawalRequests = state.withdrawalRequests.filter((req) =>
+        Boolean(req.accountAddress),
       );
 
       // Remove deposit requests without accountAddress - they can't be attributed to any account
@@ -2407,9 +2381,8 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Update withdrawal request status when it completes, or remove it on failure.
-   * This is called when a withdrawal is matched with a completed withdrawal from the API.
-   * When status is `failed`, the request is removed from the queue (not retained).
+   * Update withdrawal request status when it completes
+   * This is called when a withdrawal is matched with a completed withdrawal from the API
    *
    * @param withdrawalId - The withdrawal transaction ID.
    * @param status - The current status.
@@ -2435,25 +2408,14 @@ export class PerpsController extends BaseController<
         withdrawalAmount = request.amount;
         shouldTrack =
           withdrawalAmount !== undefined && request.status !== status;
+        request.status = status;
+        request.success = status === 'completed';
+        if (txHash) {
+          request.txHash = txHash;
+        }
 
-        if (status === 'failed') {
-          state.withdrawalRequests.splice(withdrawalIndex, 1);
-          state.withdrawInProgress = state.withdrawalRequests.some(
-            (req) => req.status === 'pending' || req.status === 'bridging',
-          );
-          state.withdrawalProgress = {
-            progress: 0,
-            lastUpdated: Date.now(),
-            activeWithdrawalId: null,
-          };
-        } else {
-          request.status = status;
-          request.success = status === 'completed';
-          if (txHash) {
-            request.txHash = txHash;
-          }
-
-          // Clear withdrawal progress when withdrawal completes
+        // Clear withdrawal progress when withdrawal completes
+        if (status === 'completed' || status === 'failed') {
           state.withdrawalProgress = {
             progress: 0,
             lastUpdated: Date.now(),
@@ -2484,90 +2446,6 @@ export class PerpsController extends BaseController<
         txHash,
       });
     }
-  }
-
-  /**
-   * Complete a specific withdrawal detected via transaction history polling (FIFO queue).
-   * Called when a completed withdrawal appears in the transaction history matching a pending request.
-   *
-   * Uses FIFO matching: oldest pending withdrawal is matched with first completed withdrawal
-   * in history that happened after its submission time.
-   *
-   * @param withdrawalRequestId - The ID of the pending withdrawal request to mark as complete.
-   * @param completedWithdrawal - The completed withdrawal data from the history API.
-   * @param completedWithdrawal.txHash - The on-chain transaction hash.
-   * @param completedWithdrawal.amount - The withdrawal amount.
-   * @param completedWithdrawal.timestamp - The completion timestamp from the history API.
-   * @param completedWithdrawal.asset - The asset symbol (e.g. USDC).
-   */
-  completeWithdrawalFromHistory(
-    withdrawalRequestId: string,
-    completedWithdrawal: {
-      txHash: string;
-      amount: string;
-      timestamp: number;
-      asset?: string;
-    },
-  ): void {
-    let didRemove = false;
-    this.update((state) => {
-      const requestIndex = state.withdrawalRequests.findIndex(
-        (req) => req.id === withdrawalRequestId,
-      );
-
-      if (requestIndex === -1) {
-        return;
-      }
-
-      didRemove = true;
-      state.withdrawalRequests.splice(requestIndex, 1);
-
-      // Update the FIFO guard. The timestamp is persisted for cross-restart
-      // protection. The txHashes array (not persisted) accumulates within a
-      // session to prevent re-matching direct completions and same-millisecond
-      // API completions. It resets naturally on app restart.
-      state.lastCompletedWithdrawalTimestamp = completedWithdrawal.timestamp;
-      state.lastCompletedWithdrawalTxHashes.push(completedWithdrawal.txHash);
-
-      const hasPendingWithdrawals = state.withdrawalRequests.some(
-        (req) => req.status === 'pending' || req.status === 'bridging',
-      );
-
-      state.withdrawInProgress = hasPendingWithdrawals;
-
-      if (!hasPendingWithdrawals) {
-        state.withdrawalProgress = {
-          progress: 0,
-          lastUpdated: Date.now(),
-          activeWithdrawalId: null,
-        };
-      }
-
-      state.lastUpdateTimestamp = Date.now();
-    });
-
-    if (!didRemove) {
-      return;
-    }
-
-    this.#debugLog(
-      'PerpsController: Completed withdrawal from transaction history (FIFO)',
-      {
-        withdrawalRequestId,
-        txHash: completedWithdrawal.txHash,
-        amount: completedWithdrawal.amount,
-      },
-    );
-
-    this.#getMetrics().trackPerpsEvent(
-      PerpsAnalyticsEvent.WithdrawalTransaction,
-      {
-        [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
-        [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: Number.parseFloat(
-          completedWithdrawal.amount,
-        ),
-      },
-    );
   }
 
   /**
@@ -4326,7 +4204,7 @@ export class PerpsController extends BaseController<
     });
 
     this.update((state) => {
-      // Filter out pending/bridging withdrawals, keep completed for history
+      // Filter out pending/bridging withdrawals, keep completed/failed for history
       state.withdrawalRequests = state.withdrawalRequests.filter(
         (req) => req.status !== 'pending' && req.status !== 'bridging',
       );

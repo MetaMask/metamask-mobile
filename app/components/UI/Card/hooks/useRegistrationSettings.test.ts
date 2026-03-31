@@ -11,13 +11,11 @@ const mockRefetch = jest.fn();
 let mockQueryFn: (() => Promise<unknown>) | undefined;
 let mockQueryReturn: {
   data: unknown;
-  isFetching: boolean;
   isLoading: boolean;
   error: Error | null;
   refetch: jest.Mock;
 } = {
   data: undefined,
-  isFetching: false,
   isLoading: false,
   error: null,
   refetch: mockRefetch,
@@ -51,7 +49,6 @@ describe('useRegistrationSettings', () => {
 
     mockQueryReturn = {
       data: undefined,
-      isFetching: false,
       isLoading: false,
       error: null,
       refetch: mockRefetch,
@@ -157,7 +154,6 @@ describe('useRegistrationSettings', () => {
     it('returns data from useQuery', () => {
       mockQueryReturn = {
         data: mockRegistrationSettingsResponse,
-        isFetching: false,
         isLoading: false,
         error: null,
         refetch: mockRefetch,
@@ -174,7 +170,6 @@ describe('useRegistrationSettings', () => {
     it('returns loading state from useQuery', () => {
       mockQueryReturn = {
         data: undefined,
-        isFetching: true,
         isLoading: true,
         error: null,
         refetch: mockRefetch,
@@ -190,7 +185,6 @@ describe('useRegistrationSettings', () => {
       mockQueryReturn = {
         data: undefined,
         isLoading: false,
-        isFetching: false,
         error: new Error('Registration settings error'),
         refetch: mockRefetch,
       };

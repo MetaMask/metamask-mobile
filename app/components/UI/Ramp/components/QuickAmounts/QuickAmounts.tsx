@@ -6,7 +6,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../hooks/useStyles';
+import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './QuickAmounts.styles';
 import { QUICK_AMOUNTS_TEST_IDS } from './QuickAmounts.testIds';

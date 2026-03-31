@@ -52,8 +52,6 @@ export interface HardwareWalletBottomSheetProps {
   onConnectionSuccess?: () => void;
   /** Callback when user cancels during awaiting confirmation state */
   onAwaitingConfirmationCancel?: () => void;
-  /** Callback fired when the user taps the CTA on an error/recovery screen. */
-  onCTAClicked?: () => void;
 }
 
 /**
@@ -81,7 +79,6 @@ export const HardwareWalletBottomSheet: React.FC<
   successAutoDismissMs = 1000,
   onConnectionSuccess,
   onAwaitingConfirmationCancel,
-  onCTAClicked,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -127,14 +124,12 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [onAwaitingConfirmationCancel]);
 
   const handleErrorContinue = useCallback(async () => {
-    onCTAClicked?.();
     await retryEnsureDeviceReady();
-  }, [retryEnsureDeviceReady, onCTAClicked]);
+  }, [retryEnsureDeviceReady]);
 
   const handleErrorDismiss = useCallback(() => {
-    onCTAClicked?.();
     onClose();
-  }, [onClose, onCTAClicked]);
+  }, [onClose]);
 
   const handleSuccessDismiss = useCallback(() => {
     onConnectionSuccess?.();

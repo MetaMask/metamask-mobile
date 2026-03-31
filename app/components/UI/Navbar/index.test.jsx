@@ -286,10 +286,10 @@ describe('getBridgeNavbar', () => {
   };
   const mockThemeColors = {
     background: {
-      default: mockTheme.colors.background.default,
+      default: '#FFFFFF',
     },
     primary: {
-      default: mockTheme.colors.primary.default,
+      default: '#037DD6',
     },
   };
 

@@ -159,12 +159,6 @@ const TokenDetails: React.FC<{
       networkName,
     });
 
-  // Swaps view should always scroll to top when navigating from the token details view
-  const goToSwapsFromDetails = useCallback(
-    () => goToSwaps(undefined, undefined, undefined, true),
-    [goToSwaps],
-  );
-
   const {
     transactions,
     submittedTxs,
@@ -221,7 +215,7 @@ const TokenDetails: React.FC<{
         onBuy={onBuy}
         onSend={onSend}
         onReceive={onReceive}
-        goToSwaps={goToSwapsFromDetails}
+        goToSwaps={goToSwaps}
         onMarketInsightsDisplayResolved={
           onMarketInsightsDisplayResolved
             ? (isDisplayed: boolean) =>
@@ -306,7 +300,7 @@ const TokenDetails: React.FC<{
           token={token}
           securityData={securityData}
           onBuy={onBuy}
-          goToSwaps={goToSwapsFromDetails}
+          goToSwaps={goToSwaps}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
         />
       )}

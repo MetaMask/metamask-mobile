@@ -34,7 +34,6 @@ import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
@@ -140,20 +139,6 @@ class AuthenticationService {
   private dispatchPasswordSet(): void {
     ReduxService.store.dispatch(passwordSet());
   }
-
-  /**
-   * Clears all auth-related storage flags and resets the allow-login-with-remember-me
-   * Redux state. Centralised here so that both `storePassword` and `resetPassword`
-   * stay in sync when new flags are added in the future.
-   */
-  private clearAuthStorageFlags = async (): Promise<void> => {
-    await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-    await StorageWrapper.removeItem(PASSCODE_DISABLED);
-    await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
-    if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
-      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
-    }
-  };
 
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
@@ -392,8 +377,13 @@ class AuthenticationService {
       // Store password in keychain with appropriate type
       await SecureKeychain.setGenericPassword(password, authType);
 
-      // Remove legacy authentication flags and reset remember-me state
-      await this.clearAuthStorageFlags();
+      // Remove legacy authentication flags
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await StorageWrapper.removeItem(PASSCODE_DISABLED);
+      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
+      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+      }
 
       // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
       this.updateOsAuthEnabled(
@@ -420,9 +410,6 @@ class AuthenticationService {
   resetPassword = async () => {
     try {
       await SecureKeychain.resetGenericPassword();
-
-      await this.clearAuthStorageFlags();
-      this.updateOsAuthEnabled(false);
     } catch (error) {
       throw new AuthenticationError(
         `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${
@@ -547,7 +534,8 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      if (authData.oauth2Login && !isE2EMockOAuth()) {
+      // check for oauth2 login
+      if (authData.oauth2Login) {
         await this.createAndBackupSeedPhrase(password);
       } else {
         await this.createWalletVaultAndKeychain(password);
@@ -849,42 +837,9 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
-      let shouldResetOnLock = false;
-      // Only check for specific error messages when the thrown value is an actual
-      // Error instance; strings or other primitives should not trigger the alert.
-      if (
-        error instanceof Error &&
-        error.message.includes(
-          UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
-        )
-      ) {
-        shouldResetOnLock = await new Promise<boolean>((resolve) => {
-          // Alert user biometric changed
-          Alert.alert(
-            strings('login.biometric_changed'),
-            strings('login.biometric_changed_alert_desc'),
-            [
-              {
-                text: strings('login.biometric_changed_alert_confirm'),
-                onPress: async () => {
-                  resolve(true);
-                },
-              },
-            ],
-            {
-              // Prevent dismissing without confirmation, which can otherwise deadlock unlock flow.
-              cancelable: false,
-            },
-          );
-        });
-      }
-
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
       try {
-        await this.lockApp({
-          reset: shouldResetOnLock,
-          navigateToLogin: false,
-        });
+        await this.lockApp({ reset: false, navigateToLogin: false });
       } catch (lockError) {
         // Log but don't replace the original error
         Logger.error(

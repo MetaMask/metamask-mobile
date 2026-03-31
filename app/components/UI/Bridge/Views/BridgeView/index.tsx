@@ -36,7 +36,6 @@ import {
 import {
   useNavigation,
   useRoute,
-  useFocusEffect,
   type RouteProp,
 } from '@react-navigation/native';
 import { getBridgeNavbar } from '../../../Navbar';
@@ -114,7 +113,6 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const keypadRef = useRef<SwapsKeypadRef>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
 
   // Needed to get gas fee estimates
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
@@ -187,16 +185,6 @@ const BridgeView = () => {
   useRecipientInitialization(hasInitializedRecipient);
 
   useBridgeViewOnFocus({ inputRef, keypadRef });
-
-  // Scroll to top when navigating to the bridge view if requested
-  useFocusEffect(
-    useCallback(() => {
-      if (route.params?.scrollToTopOnNav && scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ y: 0, animated: false });
-        navigation.setParams({ scrollToTopOnNav: undefined });
-      }
-    }, [navigation, route.params?.scrollToTopOnNav]),
-  );
 
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
@@ -408,16 +396,13 @@ const BridgeView = () => {
     <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
-        onStartShouldSetResponder={() =>
-          !(contentMode === 'zero' && isSwapsTrendingTokensEnabled)
-        }
+        onStartShouldSetResponder={() => true}
         onResponderRelease={() => {
           inputRef.current?.blur();
           keypadRef.current?.close();
         }}
       >
         <ScrollView
-          ref={scrollViewRef}
           testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}

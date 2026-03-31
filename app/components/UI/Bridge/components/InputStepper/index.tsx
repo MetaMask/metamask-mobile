@@ -26,8 +26,6 @@ export const InputStepper = ({
   maxAmount,
   postValue,
   placeholder = '0',
-  selection,
-  onSelectionChange,
 }: InputStepperProps) => {
   const fontSize = calculateInputFontSize(value.length);
   const { styles } = useStyles(inputStepperStyles, { fontSize });
@@ -64,10 +62,6 @@ export const InputStepper = ({
               value={displayedAmount}
               style={styles.input}
               testID="input-stepper-input"
-              // Slippage controls selection so keypad edits can target the
-              // displayed caret position instead of always appending.
-              selection={selection}
-              onSelectionChange={onSelectionChange}
             />
           </View>
           {postValue && (

@@ -82,17 +82,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialLeaderboardEnabled: {
-    name: 'aiSocialLeaderboardEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '7.72.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   aiSocialMarketAnalysisEnabled: {
     name: 'aiSocialMarketAnalysisEnabled',
     type: FeatureFlagType.Remote,
@@ -2885,6 +2874,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         value: true,
       },
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  mobileUxAccountMenu: {
+    name: 'mobileUxAccountMenu',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 

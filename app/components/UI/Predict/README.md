@@ -60,7 +60,6 @@ The Predict feature enables users to participate in prediction markets within Me
 │   ├── format.ts                # Price, percentage, and volume formatting
 │   └── orders.ts                # Order ID generation utilities
 ├── /views                       # Main screen components
-│   ├── /PredictBuyWithAnyToken  # Buy/order flow (single-route architecture)
 │   ├── /PredictCashOut          # Cash out/redeem positions screen
 │   ├── /PredictMarketDetails    # Individual market details screen
 │   ├── /PredictMarketList       # Market listing screen
@@ -137,114 +136,6 @@ Component input → Hook state → Validation → Controller action
 | Market data              | `usePredictMarket`       | Market data fetching with pagination, search, infinite scroll, and retry logic   |
 | Price history            | `usePredictPriceHistory` | Price history fetching with pagination, search, infinite scroll, and retry logic |
 | Order notifications      | `usePredictOrders`       | Automatic toast notifications, status tracking                                   |
-
-## PredictBuyWithAnyToken
-
-The buy/order flow lives in `views/PredictBuyWithAnyToken/`. This is the primary screen where users place prediction market orders. Everything — direct orders, deposit-and-order flows, and pay-with-any-token flows — happens on a **single route** without navigation redirects.
-
-### Single-Route Architecture
-
-All order states (preview, token selection, deposit, order placement) are managed by `PredictController` and rendered inline within `PredictBuyWithAnyToken`. The confirmation transaction (`PredictPayWithAnyTokenInfo`) is mounted as a headless component that syncs deposit amounts and payment tokens via effects, rather than living on a separate navigation screen. When an external payment token is selected, `initPayWithAnyToken()` fires on the initial `transitionEnd` event to prepare the deposit-and-order batch in the background.
-
-Flow logic (deposit → order chaining, error handling, state transitions) lives in `PredictController` — hooks react to `activeOrder.state` changes via effects rather than driving transitions themselves.
-
-### Components
-
-| Component                    | Description                                                                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PredictBuyActionButton`     | Main CTA button with loading/disabled states tied to order lifecycle                                                                       |
-| `PredictBuyAmountSection`    | Keypad and amount input for entering bet size; disables input interaction while order is placing                                           |
-| `PredictBuyBottomContent`    | Bottom area layout (fee summary, action button)                                                                                            |
-| `PredictBuyError`            | Generic error display for all buy-flow errors (minimum bet, insufficient balance, order failures, insufficient pay token balance)          |
-| `PredictBuyPreviewHeader`    | Header showing market/outcome info with `outcomeToken` prop for direct token resolution (falls back to route param token, not first token) |
-| `PredictFeeSummary`          | Breakdown of MetaMask fee, provider fee, deposit fee, and total                                                                            |
-| `PredictPayWithAnyTokenInfo` | Headless component that syncs deposit amount and payment token to the confirmation transaction; renders only when `transactionMeta` exists |
-| `PredictPayWithRow`          | Payment token selector row — always visible (Predict balance or external tokens); falls back to Predict balance when payToken is null      |
-
-### Hooks
-
-| Hook                            | Description                                                                                                                                                                                                                                                                                                    |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `usePredictBuyActions`          | Orchestrates buy flow lifecycle: analytics tracking on mount, `transitionEnd` initialization for `initPayWithAnyToken()`, back-navigation cleanup, confirm/deposit/order logic, and SUCCESS → dismiss. Returns `handleConfirm` and `placeOrder`                                                                |
-| `usePredictBuyConditions`       | Derives boolean flags (`canPlaceBet`, `isBelowMinimum`, `isInsufficientBalance`, `isInsufficientPayTokenBalance`, `isRateLimited`, `maxBetAmount`, `isPayFeesLoading`, `isBalancePulsing`, etc.) from order and preview state. Includes stale-quote detection to bridge `TransactionPayController` timing gaps |
-| `usePredictBuyError`            | Derives error messages from active order state, preview errors, minimum bet violations, insufficient balance, and insufficient pay token balance. Detects order-not-filled errors for the retry flow                                                                                                           |
-| `usePredictBuyInfo`             | Computes display values (`toWin`, `metamaskFee`, `providerFee`, `depositFee`, `depositAmount`, `total`, `rewardsFeeAmount`) from preview, `TransactionPayController` totals, and Predict balance                                                                                                               |
-| `usePredictBuyInputState`       | Manages keypad input value, user-change tracking, input focus state, and `isConfirming` flag. Clears active order errors on user input change                                                                                                                                                                  |
-| `usePredictBuyAvailableBalance` | Resolves the available balance as a raw number — Predict balance when using balance, or Predict balance + external token balance when using an external token                                                                                                                                                  |
-
-## Active Order Lifecycle
-
-The `activeBuyOrder` in `PredictControllerState` tracks the full lifecycle of a single buy order from preview to completion. Only one order can be active at a time. All state transitions are owned by `PredictController` methods — hooks react to state changes via effects rather than driving transitions themselves.
-
-When the active order enters `PAY_WITH_ANY_TOKEN` and `placeOrder()` is called, the controller stores the preview and analytics in an in-memory `pendingOrderPreviews` map keyed by `transactionId`. After the deposit transaction confirms, `handleTransactionSideEffects()` looks up the stored preview and automatically calls `placeOrder()` to complete the order.
-
-### State Shape
-
-```typescript
-activeBuyOrder: {
-  transactionId?: string;                          // Transaction ID linking deposit to order (for deposit-and-order flow)
-  state: ActiveOrderState;                         // Current lifecycle state
-  error?: string;                                  // Error message from failed operations
-} | null;
-```
-
-### ActiveOrderState
-
-```typescript
-enum ActiveOrderState {
-  PREVIEW = 'preview', // User is editing amount on the keypad
-  PAY_WITH_ANY_TOKEN = 'pay_with_any_token', // External token selected, deposit-and-order tx prepared in background
-  DEPOSITING = 'depositing', // Deposit transaction in progress (set by placeOrder when state is PAY_WITH_ANY_TOKEN)
-  PLACING_ORDER = 'placing_order', // Order submission in flight
-  SUCCESS = 'success', // Order completed, about to dismiss
-}
-```
-
-### State Machine
-
-```mermaid
-stateDiagram-v2
-    [*] --> PREVIEW: initPayWithAnyToken()
-
-    PREVIEW --> PAY_WITH_ANY_TOKEN: selectPaymentToken(external token)
-    PAY_WITH_ANY_TOKEN --> PREVIEW: selectPaymentToken(balance token)
-
-    PREVIEW --> PLACING_ORDER: placeOrder() [balance selected]
-    PAY_WITH_ANY_TOKEN --> DEPOSITING: placeOrder() [external token selected]
-
-    DEPOSITING --> PLACING_ORDER: handleTransactionSideEffects(depositAndOrder confirmed) → placeOrder()
-    DEPOSITING --> PREVIEW: handleTransactionSideEffects(depositAndOrder failed) [sets error, retries initPayWithAnyToken]
-
-    PLACING_ORDER --> SUCCESS: placeOrder() succeeds
-    PLACING_ORDER --> PREVIEW: placeOrder() fails [sets error, clears payment token, retries initPayWithAnyToken]
-
-    SUCCESS --> [*]: onPlaceOrderEnd() + navigation pop
-```
-
-Notes:
-
-- Back navigation or approval rejection triggers `onPlaceOrderEnd()`, which clears the active order, payment token, and deposit preview.
-- Deposit failure resets to `PREVIEW`, stores the error on `activeBuyOrder.error`, clears `transactionId`, and automatically retries `initPayWithAnyToken()`.
-- Order failure resets to `PREVIEW`, stores the error, clears `selectedPaymentToken`, and if a `transactionId` was present, clears it and retries `initPayWithAnyToken()`.
-- The `transitionEnd` listener in `usePredictBuyActions` triggers `initPayWithAnyToken()` once on initial mount to prepare the deposit-and-order batch when an external token is selected.
-- Transaction status events (`TransactionController:transactionStatusUpdated`) for `predictDepositAndOrder` are handled by `handleTransactionSideEffects()` in the controller, which chains deposit confirmation into `placeOrder()` automatically using the preview stored in `pendingOrderPreviews`.
-- When `placeOrder()` is called while the active order state is `PAY_WITH_ANY_TOKEN`, it transitions to `DEPOSITING`, stores the preview in `pendingOrderPreviews[transactionId]`, and returns early. The actual order placement happens when the deposit transaction confirms.
-- On successful order placement, foreground flows invalidate order-related queries in Predict hooks, while background flows publish `PredictController:transactionStatusChanged` events that trigger app-level query invalidation and toast notifications.
-- State transitions are gated behind the `predictWithAnyToken` feature flag — when disabled, `placeOrder()` behaves as a direct order without active order state management.
-
-### Controller Methods (State Transitions)
-
-| Method                      | Transition                           | Notes                                                                                                                                                      |
-| --------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `initPayWithAnyToken()`     | Sets `transactionId` on active order | Prepares deposit-and-order batch via provider; initializes to `PREVIEW` if no active order exists; guards against duplicates                               |
-| `selectPaymentToken()`      | `PREVIEW ↔ PAY_WITH_ANY_TOKEN`      | Toggles between balance and external token; sets/clears `selectedPaymentToken` and clears error                                                            |
-| `placeOrder()`              | `PAY_WITH_ANY_TOKEN -> DEPOSITING`   | When external token selected: stores preview in `pendingOrderPreviews`, transitions to `DEPOSITING`, returns early                                         |
-| `placeOrder()`              | `PREVIEW -> PLACING_ORDER`           | When balance selected: submits order directly to provider                                                                                                  |
-| `placeOrder()`              | `PLACING_ORDER -> SUCCESS`           | On successful order completion; optimistically updates balance; foreground hooks invalidate queries, and background flows publish an order confirmed event |
-| `placeOrder()`              | `PLACING_ORDER -> PREVIEW`           | On order failure; stores error, clears payment token; if `transactionId` present, clears it and retries `initPayWithAnyToken()`                            |
-| `onPlaceOrderEnd()`         | `-> null`                            | Clears active order, payment token, and deposit preview                                                                                                    |
-| `clearOrderError()`         | (no state change)                    | Removes error from active order                                                                                                                            |
-| `setSelectedPaymentToken()` | (no state change)                    | Directly sets or clears the selected payment token in state                                                                                                |
 
 ## Core Types and Utilities
 

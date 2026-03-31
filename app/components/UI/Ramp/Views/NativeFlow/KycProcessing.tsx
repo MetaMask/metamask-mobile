@@ -4,22 +4,23 @@ import styleSheet from '../../Deposit/Views/KycProcessing/KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useStyles } from '../../../../hooks/useStyles';
+import { useStyles } from '../../../../../component-library/hooks';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  Text,
+import Text, {
   TextVariant,
-  Icon,
+} from '../../../../../component-library/components/Texts/Text';
+import Icon, {
   IconName,
   IconSize,
   IconColor,
-  Button,
+} from '../../../../../component-library/components/Icons/Icon';
+import Button, {
   ButtonSize,
-  ButtonVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import { KycStatus } from '../../Deposit/constants';
 import Logger from '../../../../../util/Logger';
@@ -173,12 +174,12 @@ const V2KycProcessing = () => {
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Xl}
-                color={IconColor.ErrorDefault}
+                color={IconColor.Error}
               />
-              <Text variant={TextVariant.BodyMd} style={styles.heading}>
+              <Text variant={TextVariant.BodyMD} style={styles.heading}>
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
-              <Text variant={TextVariant.BodyMd} style={styles.description}>
+              <Text variant={TextVariant.BodyMD} style={styles.description}>
                 {error || strings('deposit.kyc_processing.error_description')}
               </Text>
             </View>
@@ -189,11 +190,10 @@ const V2KycProcessing = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleContinue}
-              variant={ButtonVariant.Primary}
-              isFullWidth
-            >
-              {strings('deposit.kyc_processing.error_button')}
-            </Button>
+              label={strings('deposit.kyc_processing.error_button')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+            />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -212,17 +212,13 @@ const V2KycProcessing = () => {
                 <Icon
                   name={IconName.CheckBold}
                   size={IconSize.Xl}
-                  color={IconColor.SuccessDefault}
+                  color={IconColor.Success}
                 />
               </View>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                style={styles.heading}
-              >
+              <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
                 {strings('deposit.kyc_processing.success_heading')}
               </Text>
-              <Text variant={TextVariant.BodyMd} style={styles.description}>
+              <Text variant={TextVariant.BodyMD} style={styles.description}>
                 {strings('deposit.kyc_processing.success_description')}
               </Text>
             </View>
@@ -233,11 +229,10 @@ const V2KycProcessing = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleContinue}
-              variant={ButtonVariant.Primary}
-              isFullWidth
-            >
-              {strings('deposit.kyc_processing.success_button')}
-            </Button>
+              label={strings('deposit.kyc_processing.success_button')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+            />
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -256,14 +251,10 @@ const V2KycProcessing = () => {
               color={theme.colors.primary.default}
               testID={KYC_PROCESSING_TEST_IDS.ACTIVITY_INDICATOR}
             />
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              style={styles.heading}
-            >
+            <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
               {strings('deposit.kyc_processing.heading')}
             </Text>
-            <Text variant={TextVariant.BodyMd} style={styles.description}>
+            <Text variant={TextVariant.BodyMD} style={styles.description}>
               {strings('deposit.kyc_processing.description')}
             </Text>
           </View>

@@ -402,24 +402,7 @@ export class WC2Manager {
     this.sessions = {};
 
     const actives = this.web3Wallet.getActiveSessions() || {};
-    const permissionsController = (
-      Engine.context as {
-        // TODO: Replace 'any' with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        PermissionController: PermissionController<any, any>;
-      }
-    ).PermissionController;
-
     Object.values(actives).forEach(async (session) => {
-      try {
-        permissionsController.revokeAllPermissions(session.pairingTopic);
-      } catch (err) {
-        DevLogger.log(
-          `WC2::removeAll revokeAllPermissions failed for ${session.pairingTopic}`,
-          err,
-        );
-      }
-
       this.web3Wallet
         .disconnectSession({
           topic: session.topic,
@@ -693,8 +676,6 @@ export class WC2Manager {
 
       this.sessions[activeSession.topic] = session;
 
-      await this.enforceSessionLimit();
-
       DevLogger.log(`WC2::session_proposal updateSession`, {
         chainId: walletChainIdDecimal,
         accounts: approvedAccounts,
@@ -744,25 +725,6 @@ export class WC2Manager {
         }),
       );
     }
-  }
-
-  private async enforceSessionLimit() {
-    const activeSessions = this.getSessions();
-    const limit = AppConstants.WALLET_CONNECT.LIMIT_SESSIONS;
-
-    if (activeSessions.length <= limit) {
-      return;
-    }
-
-    const oldestSession = activeSessions.reduce((oldest, session) =>
-      session.expiry < oldest.expiry ? session : oldest,
-    );
-
-    DevLogger.log(
-      `WC2::enforceSessionLimit removing oldest session topic=${oldestSession.topic} (${activeSessions.length} sessions exceed limit of ${limit})`,
-    );
-
-    await this.removeSession(oldestSession);
   }
 
   private async onSessionRequest(requestEvent: WalletKitTypes.SessionRequest) {

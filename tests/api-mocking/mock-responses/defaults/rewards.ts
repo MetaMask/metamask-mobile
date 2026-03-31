@@ -41,12 +41,5 @@ export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: {},
     },
-    // Merkl bonus / mUSD claim rewards (homepage Cash, asset overview, etc.)
-    {
-      urlEndpoint:
-        /^https:\/\/api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards(\?|$)/,
-      responseCode: 200,
-      response: [],
-    },
   ],
 };

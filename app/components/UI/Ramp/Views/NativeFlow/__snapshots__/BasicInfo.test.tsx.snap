@@ -174,20 +174,15 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 20,
-                    "fontWeight": 700,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  {
-                    "marginBottom": 4,
-                    "marginTop": 24,
-                  },
-                ]
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 4,
+                  "marginTop": 24,
+                }
               }
             >
               deposit.basic_info.title
@@ -195,20 +190,14 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": 400,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#66676a",
-                    "marginBottom": 16,
-                  },
-                ]
+                {
+                  "color": "#66676a",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 16,
+                }
               }
             >
               deposit.basic_info.subtitle
@@ -563,19 +552,13 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        [
-                          {
-                            "color": "#131416",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "fontWeight": 400,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          },
-                          {
-                            "fontSize": 18,
-                          },
-                        ]
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 18,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
                       }
                     >
                       🇬🇧
@@ -870,91 +853,45 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
             </View>
           </View>
         </View>
-        <View
-          accessibilityLabel="deposit.basic_info.continue"
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#131416",
-                "borderRadius": 12,
-                "columnGap": 8,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-              {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            ]
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
           }
           testID="continue-button"
         >
           <Text
             accessibilityRole="text"
-            ellipsizeMode="clip"
-            numberOfLines={1}
             style={
-              [
-                {
-                  "color": "#ffffff",
-                  "flexGrow": 0,
-                  "flexShrink": 1,
-                  "flexWrap": "wrap",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                  "textAlign": "center",
-                },
-                undefined,
-              ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
             }
           >
             deposit.basic_info.continue
           </Text>
-        </View>
+        </TouchableOpacity>
         <SvgMock
           fill="currentColor"
           name="powered-by-transak-logo"
@@ -1145,20 +1082,15 @@ exports[`V2BasicInfo matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 20,
-                    "fontWeight": 700,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  {
-                    "marginBottom": 4,
-                    "marginTop": 24,
-                  },
-                ]
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 4,
+                  "marginTop": 24,
+                }
               }
             >
               deposit.basic_info.title
@@ -1166,20 +1098,14 @@ exports[`V2BasicInfo matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": 400,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#66676a",
-                    "marginBottom": 16,
-                  },
-                ]
+                {
+                  "color": "#66676a",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 16,
+                }
               }
             >
               deposit.basic_info.subtitle
@@ -1534,19 +1460,13 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        [
-                          {
-                            "color": "#131416",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "fontWeight": 400,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          },
-                          {
-                            "fontSize": 18,
-                          },
-                        ]
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 18,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
                       }
                     >
                       🇺🇸
@@ -1554,20 +1474,13 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        [
-                          {
-                            "color": "#131416",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "fontWeight": 400,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          },
-                          {
-                            "color": "#131416",
-                            "fontSize": 14,
-                          },
-                        ]
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 14,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
                       }
                     >
                       +1
@@ -1782,17 +1695,13 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        {
-                          "color": "#131416",
-                          "fontFamily": "Geist-Regular",
-                          "fontSize": 16,
-                          "fontWeight": 400,
-                          "letterSpacing": 0,
-                          "lineHeight": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
                     }
                   >
                     deposit.basic_info.social_security_number
@@ -1802,18 +1711,17 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                     testID="ssn-info-button"
                   >
                     <SvgMock
+                      color="#66676a"
                       fill="currentColor"
+                      height={16}
                       name="Info"
                       style={
-                        [
-                          {
-                            "color": "#66676a",
-                            "height": 16,
-                            "width": 16,
-                          },
-                          undefined,
-                        ]
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
                       }
+                      width={16}
                     />
                   </TouchableOpacity>
                 </View>
@@ -2019,91 +1927,45 @@ exports[`V2BasicInfo matches snapshot 1`] = `
             </View>
           </View>
         </View>
-        <View
-          accessibilityLabel="deposit.basic_info.continue"
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#131416",
-                "borderRadius": 12,
-                "columnGap": 8,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-              {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            ]
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
           }
           testID="continue-button"
         >
           <Text
             accessibilityRole="text"
-            ellipsizeMode="clip"
-            numberOfLines={1}
             style={
-              [
-                {
-                  "color": "#ffffff",
-                  "flexGrow": 0,
-                  "flexShrink": 1,
-                  "flexWrap": "wrap",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                  "textAlign": "center",
-                },
-                undefined,
-              ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
             }
           >
             deposit.basic_info.continue
           </Text>
-        </View>
+        </TouchableOpacity>
         <SvgMock
           fill="currentColor"
           name="powered-by-transak-logo"
@@ -2294,20 +2156,15 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 20,
-                    "fontWeight": 700,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  {
-                    "marginBottom": 4,
-                    "marginTop": 24,
-                  },
-                ]
+                {
+                  "color": "#131416",
+                  "fontFamily": "Geist-Bold",
+                  "fontSize": 20,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 4,
+                  "marginTop": 24,
+                }
               }
             >
               deposit.basic_info.title
@@ -2315,20 +2172,14 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "fontWeight": 400,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#66676a",
-                    "marginBottom": 16,
-                  },
-                ]
+                {
+                  "color": "#66676a",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "marginBottom": 16,
+                }
               }
             >
               deposit.basic_info.subtitle
@@ -2683,19 +2534,13 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        [
-                          {
-                            "color": "#131416",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "fontWeight": 400,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          },
-                          {
-                            "fontSize": 18,
-                          },
-                        ]
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 18,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
                       }
                     >
                       🇬🇧
@@ -2703,20 +2548,13 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        [
-                          {
-                            "color": "#131416",
-                            "fontFamily": "Geist-Regular",
-                            "fontSize": 16,
-                            "fontWeight": 400,
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                          },
-                          {
-                            "color": "#131416",
-                            "fontSize": 14,
-                          },
-                        ]
+                        {
+                          "color": "#131416",
+                          "fontFamily": "Geist-Regular",
+                          "fontSize": 14,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
                       }
                     >
                       +44
@@ -3011,91 +2849,45 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
             </View>
           </View>
         </View>
-        <View
-          accessibilityLabel="deposit.basic_info.continue"
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#131416",
-                "borderRadius": 12,
-                "columnGap": 8,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-              {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            ]
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
           }
           testID="continue-button"
         >
           <Text
             accessibilityRole="text"
-            ellipsizeMode="clip"
-            numberOfLines={1}
             style={
-              [
-                {
-                  "color": "#ffffff",
-                  "flexGrow": 0,
-                  "flexShrink": 1,
-                  "flexWrap": "wrap",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                  "textAlign": "center",
-                },
-                undefined,
-              ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
             }
           >
             deposit.basic_info.continue
           </Text>
-        </View>
+        </TouchableOpacity>
         <SvgMock
           fill="currentColor"
           name="powered-by-transak-logo"

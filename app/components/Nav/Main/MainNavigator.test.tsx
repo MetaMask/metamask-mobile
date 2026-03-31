@@ -5,10 +5,6 @@ import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn(() => '7.72.0'),
-}));
-
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
@@ -148,57 +144,5 @@ describe('MainNavigator', () => {
     expect(featureFlagOverrideScreen?.component.name).toBe(
       'FeatureFlagOverride',
     );
-  });
-
-  it('includes TopTradersView screen when Social Leaderboard remote flag is enabled', () => {
-    const stateWithSocialLeaderboard = {
-      ...initialRootState,
-      engine: {
-        ...initialRootState.engine,
-        backgroundState: {
-          ...initialRootState.engine.backgroundState,
-          RemoteFeatureFlagController: {
-            ...initialRootState.engine.backgroundState
-              .RemoteFeatureFlagController,
-            remoteFeatureFlags: {
-              ...initialRootState.engine.backgroundState
-                .RemoteFeatureFlagController.remoteFeatureFlags,
-              aiSocialLeaderboardEnabled: {
-                enabled: true,
-                minimumVersion: '0.0.1',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const container = renderWithProvider(<MainNavigator />, {
-      state: stateWithSocialLeaderboard,
-    });
-
-    interface ScreenChild {
-      name: string;
-      component: { name: string };
-    }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
-      )
-      .map((child) => ({
-        name: child.props.name,
-        component: child.props.component,
-      }));
-
-    const topTradersScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.VIEW,
-    );
-
-    expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('TopTradersView');
   });
 });

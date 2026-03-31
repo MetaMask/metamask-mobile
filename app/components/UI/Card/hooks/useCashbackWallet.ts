@@ -124,7 +124,7 @@ const useCashbackWallet = () => {
 
   return {
     cashbackWallet: walletQuery.data ?? null,
-    isLoading: walletQuery.isLoading && walletQuery.isFetching,
+    isLoading: walletQuery.isLoading,
     error: walletQuery.error,
     fetchCashbackWallet: walletQuery.refetch,
 

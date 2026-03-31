@@ -25,7 +25,6 @@ import {
 import {
   getCampaignStatusInfo,
   isCampaignTypeSupported,
-  isOptinAllowed,
 } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -181,8 +180,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                     </Text>
                   </Box>
                 ) : campaignStatus === 'active' &&
-                  participantStatus?.optedIn !== true &&
-                  isOptinAllowed(campaign) ? (
+                  participantStatus?.optedIn !== true ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}

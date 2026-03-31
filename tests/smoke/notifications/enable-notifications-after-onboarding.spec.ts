@@ -1,5 +1,6 @@
 import NotificationDetailsView from '../../page-objects/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../page-objects/Notifications/NotificationMenuView';
+import WalletView from '../../page-objects/wallet/WalletView';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -9,8 +10,6 @@ import {
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
@@ -30,9 +29,8 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       },
       async () => {
         await loginToApp();
-        // Notifications accessed via AccountsMenu (bell icon moved to hamburger menu)
-        await TabBarComponent.tapAccountsMenu();
-        await AccountMenu.tapNotifications();
+        // Bell Icon
+        await WalletView.tapBellIcon();
 
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
         await Assertions.expectElementToBeVisible(

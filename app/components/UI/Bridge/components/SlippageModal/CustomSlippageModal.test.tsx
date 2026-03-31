@@ -1,9 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
-import {
-  type NativeSyntheticEvent,
-  type TextInputSelectionChangeEventData,
-} from 'react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { CustomSlippageModal } from './CustomSlippageModal';
 
 // Mock BottomSheet
@@ -49,15 +45,16 @@ jest.mock(
 // Mock InputStepper
 jest.mock('../InputStepper', () => ({
   InputStepper: jest.fn(
-    (props: {
+    ({
+      value,
+      onIncrease,
+      onDecrease,
+      description,
+    }: {
       value: string;
       onIncrease: () => void;
       onDecrease: () => void;
       description: unknown;
-      selection?: { start: number; end: number };
-      onSelectionChange?: (
-        event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-      ) => void;
     }) => {
       const ReactNative = jest.requireActual('react-native');
       const { View, Text, TouchableOpacity } = ReactNative;
@@ -66,18 +63,18 @@ jest.mock('../InputStepper', () => ({
         <View testID="input-stepper">
           <TouchableOpacity
             testID="input-stepper-decrease"
-            onPress={props.onDecrease}
+            onPress={onDecrease}
           >
             <Text>-</Text>
           </TouchableOpacity>
-          <Text testID="input-stepper-value">{props.value}</Text>
+          <Text testID="input-stepper-value">{value}</Text>
           <TouchableOpacity
             testID="input-stepper-increase"
-            onPress={props.onIncrease}
+            onPress={onIncrease}
           >
             <Text>+</Text>
           </TouchableOpacity>
-          {props.description && <View testID="input-stepper-description" />}
+          {description && <View testID="input-stepper-description" />}
         </View>
       );
     },
@@ -202,18 +199,6 @@ const mockInputStepper = InputStepper as jest.MockedFunction<
 >;
 const mockKeypad = Keypad as jest.MockedFunction<typeof Keypad>;
 
-const createSelectionEvent = (
-  start: number,
-): NativeSyntheticEvent<TextInputSelectionChangeEventData> =>
-  ({
-    nativeEvent: {
-      selection: {
-        start,
-        end: start,
-      },
-    },
-  }) as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
-
 describe('CustomSlippageModal', () => {
   const mockSlippageConfig = {
     input_step: 0.1,
@@ -293,21 +278,6 @@ describe('CustomSlippageModal', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           payload: '5',
-        }),
-      );
-    });
-
-    it('sanitizes a trailing decimal before dispatching slippage', () => {
-      mockSelector.mockReturnValue('2.');
-
-      const { getByText } = render(<CustomSlippageModal />);
-
-      const confirmButton = getByText('Confirm');
-      fireEvent.press(confirmButton);
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          payload: '2',
         }),
       );
     });
@@ -543,12 +513,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Try to input value that exceeds max_amount (e.g., 150)
-      act(() => {
-        keypadOnChange({
-          value: '150',
-          valueAsNumber: 150,
-          pressedKey: '0' as never,
-        });
+      keypadOnChange({
+        value: '150',
+        valueAsNumber: 150,
+        pressedKey: '0' as never,
       });
 
       // Re-render to apply state change
@@ -575,12 +543,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Try to input value with 3 decimals (exceeds input_max_decimals: 2)
-      act(() => {
-        keypadOnChange({
-          value: '1.234',
-          valueAsNumber: 1.234,
-          pressedKey: '4' as never,
-        });
+      keypadOnChange({
+        value: '1.234',
+        valueAsNumber: 1.234,
+        pressedKey: '4' as never,
       });
 
       // Value should remain unchanged (rejected)
@@ -597,12 +563,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Input value with exactly 2 decimals (should be accepted)
-      act(() => {
-        keypadOnChange({
-          value: '1.25',
-          valueAsNumber: 1.25,
-          pressedKey: '5' as never,
-        });
+      keypadOnChange({
+        value: '1.25',
+        valueAsNumber: 1.25,
+        pressedKey: '5' as never,
       });
 
       // Re-render to apply state change
@@ -622,12 +586,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Try to add decimal point to max amount (100.)
-      act(() => {
-        keypadOnChange({
-          value: '100.',
-          valueAsNumber: 100,
-          pressedKey: 'Period' as never,
-        });
+      keypadOnChange({
+        value: '100.',
+        valueAsNumber: 100,
+        pressedKey: 'Period' as never,
       });
 
       // Re-render to apply state change
@@ -673,12 +635,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Input valid value
-      act(() => {
-        keypadOnChange({
-          value: '25',
-          valueAsNumber: 25,
-          pressedKey: '5' as never,
-        });
+      keypadOnChange({
+        value: '25',
+        valueAsNumber: 25,
+        pressedKey: '5' as never,
       });
 
       // Re-render to apply state change
@@ -702,12 +662,10 @@ describe('CustomSlippageModal', () => {
 
       // Simulate backspace press that results in trailing dot
       // e.g., user had "5.5", pressed backspace, keypad returns "5."
-      act(() => {
-        keypadOnChange({
-          value: '5.',
-          valueAsNumber: 5,
-          pressedKey: 'Back' as never,
-        });
+      keypadOnChange({
+        value: '5.',
+        valueAsNumber: 5,
+        pressedKey: 'Back' as never,
       });
 
       // Re-render to apply state change
@@ -727,12 +685,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Simulate backspace press on "0.5" resulting in "0."
-      act(() => {
-        keypadOnChange({
-          value: '0.',
-          valueAsNumber: 0,
-          pressedKey: 'Back' as never,
-        });
+      keypadOnChange({
+        value: '0.',
+        valueAsNumber: 0,
+        pressedKey: 'Back' as never,
       });
 
       // Re-render to apply state change
@@ -752,12 +708,10 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Simulate period key press (not backspace)
-      act(() => {
-        keypadOnChange({
-          value: '5.',
-          valueAsNumber: 5,
-          pressedKey: 'Period' as never,
-        });
+      keypadOnChange({
+        value: '5.',
+        valueAsNumber: 5,
+        pressedKey: 'Period' as never,
       });
 
       // Re-render to apply state change
@@ -859,58 +813,6 @@ describe('CustomSlippageModal', () => {
         }),
         expect.anything(),
       );
-    });
-
-    it('updates the displayed value at the selected cursor position', () => {
-      mockUseSlippageConfig.mockReturnValue({
-        ...mockSlippageConfig,
-        max_amount: 1000,
-      });
-      mockSelector.mockReturnValue('12.5');
-
-      const { getByTestId } = render(<CustomSlippageModal />);
-
-      const inputStepperProps = mockInputStepper.mock.calls[0][0];
-
-      act(() => {
-        inputStepperProps.onSelectionChange?.(createSelectionEvent(1));
-      });
-      const keypadOnChange =
-        mockKeypad.mock.calls[mockKeypad.mock.calls.length - 1][0].onChange;
-      act(() => {
-        keypadOnChange({
-          value: '12.55',
-          valueAsNumber: 12.55,
-          pressedKey: '5' as never,
-        });
-      });
-
-      expect(getByTestId('input-stepper-value').props.children).toBe('152.5');
-    });
-
-    it('resets the cursor when stepper buttons change the value', () => {
-      mockSelector.mockReturnValue('12.5');
-
-      const { getByTestId } = render(<CustomSlippageModal />);
-
-      const initialInputStepperProps = mockInputStepper.mock.calls[0][0];
-      act(() => {
-        initialInputStepperProps.onSelectionChange?.(createSelectionEvent(1));
-      });
-
-      fireEvent.press(getByTestId('input-stepper-increase'));
-
-      const latestKeypadOnChange =
-        mockKeypad.mock.calls[mockKeypad.mock.calls.length - 1][0].onChange;
-      act(() => {
-        latestKeypadOnChange({
-          value: '12.65',
-          valueAsNumber: 12.65,
-          pressedKey: '5' as never,
-        });
-      });
-
-      expect(getByTestId('input-stepper-value').props.children).toBe('12.65');
     });
   });
 

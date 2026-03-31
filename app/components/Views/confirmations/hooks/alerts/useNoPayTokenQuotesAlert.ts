@@ -6,7 +6,6 @@ import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useIsTransactionPayLoading,
-  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
@@ -14,17 +13,10 @@ import {
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
-  const fiatPayment = useTransactionPayFiatPayment();
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
   const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
-
-  const fiatAmount = Number(fiatPayment?.amountFiat);
-  const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
-  const hasSelectedFiatPaymentMethod = Boolean(
-    fiatPayment?.selectedPaymentMethodId,
-  );
 
   const isOptionalOnly = (sourceAmounts ?? []).every(
     (t) =>
@@ -32,22 +24,12 @@ export function useNoPayTokenQuotesAlert() {
         ?.skipIfBalance,
   );
 
-  const shouldShowNonFiatNoQuotesAlert =
+  const showAlert =
     payToken &&
     !isQuotesLoading &&
     sourceAmounts?.length &&
     !quotes?.length &&
     !isOptionalOnly;
-
-  const shouldShowFiatNoQuotesAlert =
-    hasSelectedFiatPaymentMethod &&
-    hasValidFiatAmount &&
-    !isQuotesLoading &&
-    sourceAmounts?.length === 0 &&
-    quotes?.length === 0;
-
-  const showAlert =
-    shouldShowNonFiatNoQuotesAlert || shouldShowFiatNoQuotesAlert;
 
   return useMemo(() => {
     if (!showAlert) {

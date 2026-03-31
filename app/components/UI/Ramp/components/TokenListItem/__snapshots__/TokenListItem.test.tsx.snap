@@ -186,17 +186,13 @@ exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Ethereum
@@ -204,17 +200,13 @@ exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 14,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              },
-              undefined,
-            ]
+            {
+              "color": "#66676a",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           ETH
@@ -411,17 +403,13 @@ exports[`TokenListItem basic rendering renders disabled token with info button a
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-              undefined,
-            ]
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
           }
         >
           Ethereum
@@ -429,17 +417,13 @@ exports[`TokenListItem basic rendering renders disabled token with info button a
         <Text
           accessibilityRole="text"
           style={
-            [
-              {
-                "color": "#66676a",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 14,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              },
-              undefined,
-            ]
+            {
+              "color": "#66676a",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 14,
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           ETH
