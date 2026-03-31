@@ -900,7 +900,6 @@ describe('useTokenActions', () => {
             ? expect.objectContaining({ address: expectedDestinationAddress })
             : undefined,
           undefined,
-          true,
         );
       },
     );
@@ -1086,7 +1085,6 @@ describe('useTokenActions', () => {
             ? expect.objectContaining({ address: expectedDestinationAddress })
             : undefined,
           undefined,
-          true,
         );
       },
     );
