@@ -11,6 +11,21 @@ import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
 import { fireEvent } from '@testing-library/react-native';
 
+const mockTx = {
+  id: 'test-tx-id',
+  chainId: '0x1',
+  hash: '0x123',
+  networkClientId: 'mainnet',
+  time: Date.now(),
+  txParams: {
+    from: '0x123',
+    to: '0x456',
+    value: '0x0',
+    data: '0x',
+  },
+  status: TransactionStatus.submitted,
+} as TransactionMeta;
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -20,6 +35,13 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: jest.fn(),
     }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: {
+        evmTxMeta: mockTx,
+      },
+    }),
   };
 });
 
@@ -27,29 +49,6 @@ describe('BlockExplorersModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  const mockTx = {
-    id: 'test-tx-id',
-    chainId: '0x1',
-    hash: '0x123',
-    networkClientId: 'mainnet',
-    time: Date.now(),
-    txParams: {
-      from: '0x123',
-      to: '0x456',
-      value: '0x0',
-      data: '0x',
-    },
-    status: TransactionStatus.submitted,
-  } as TransactionMeta;
-
-  const mockProps = {
-    route: {
-      params: {
-        evmTxMeta: mockTx,
-      },
-    },
-  };
 
   const mockState = {
     ...initialState,
@@ -71,7 +70,7 @@ describe('BlockExplorersModal', () => {
 
   it('should render without crashing', () => {
     const { getByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -82,7 +81,7 @@ describe('BlockExplorersModal', () => {
 
   it('should display both source and destination chain block explorer buttons', () => {
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -123,7 +122,7 @@ describe('BlockExplorersModal', () => {
     };
 
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -135,7 +134,7 @@ describe('BlockExplorersModal', () => {
 
   it('should navigate to webview when source chain explorer button is pressed', () => {
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -155,7 +154,7 @@ describe('BlockExplorersModal', () => {
 
   it('should navigate to webview when destination chain explorer button is pressed', () => {
     const { getByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
