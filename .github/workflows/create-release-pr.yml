@@ -163,16 +163,37 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Run after OTA_VERSION is on origin so the changelog action sees the latest release branch (changelog PR before stable release PR so retries can still refresh changelog if PR create fails).
+      # Same tooling as update-release-changelog.yml; zero-padded OTA versions (e.g. 101.1.02) are not valid strict SemVer for auto-changelog — wrapper passes a normalized version (101.1.2) while keeping branch names release/101.1.02 and release-changelog/101.1.02.
+      - name: Checkout github-tools (release changelog)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/github-tools
+          path: github-tools
+          ref: v1
+
+      - name: Setup Node for changelog tooling
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        uses: ./github-tools/.github/actions/checkout-and-setup
+        with:
+          is-high-risk-environment: true
+
       - name: Update release changelog (OTA hotfix)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: MetaMask/github-tools/.github/actions/update-release-changelog@v1
-        with:
-          release-branch: release/${{ inputs.semver-version }}
-          repository-url: ${{ github.server_url }}/${{ github.repository }}
-          platform: mobile
-          previous-version-ref: 'null'
-          github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          GIT_AUTHOR_NAME: metamaskbot
+          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          corepack enable
+          yarn install --immutable
+          bash .github/scripts/run-update-release-changelog-mobile.sh \
+            "release/${{ inputs.semver-version }}" \
+            mobile \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            "null"
 
       - name: Create OTA release PR to stable (if missing)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
