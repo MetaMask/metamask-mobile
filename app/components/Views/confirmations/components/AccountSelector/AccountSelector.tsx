@@ -25,19 +25,19 @@ import {
   selectAccountToGroupMap,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import stylesheet from './MoneyAccountSelector.styles';
+import stylesheet from './AccountSelector.styles';
 
-export const MONEY_ACCOUNT_SELECTOR_TEST_IDS = {
-  PILL: 'money-account-selector-pill',
-  MODAL: 'money-account-selector-modal',
+export const ACCOUNT_SELECTOR_TEST_IDS = {
+  PILL: 'account-selector-pill',
+  MODAL: 'account-selector-modal',
 };
 
-export interface MoneyAccountSelectorProps {
+export interface AccountSelectorProps {
   selectedAddress?: string;
   onAccountSelected: (address: string) => void;
 }
 
-const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
+const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
 }) => {
@@ -115,7 +115,7 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
       <TouchableOpacity
         onPress={openModal}
         style={styles.selector}
-        testID={MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL}
+        testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
         {selectedAddress && accountName ? (
           <>
@@ -157,7 +157,7 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={closeModal}
-        testID={MONEY_ACCOUNT_SELECTOR_TEST_IDS.MODAL}
+        testID={ACCOUNT_SELECTOR_TEST_IDS.MODAL}
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
@@ -187,4 +187,4 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
   );
 };
 
-export default MoneyAccountSelector;
+export default AccountSelector;

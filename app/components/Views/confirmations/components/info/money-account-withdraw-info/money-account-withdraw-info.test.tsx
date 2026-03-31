@@ -1,31 +1,25 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import {
-  MoneyAccountDepositInfo,
+  MoneyAccountWithdrawInfo,
   MONEY_ACCOUNT_CURRENCY,
-} from './money-account-deposit-info';
+} from './money-account-withdraw-info';
 
 jest.mock('../../../hooks/ui/useNavbar', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
+const mockCustomAmountInfo = jest.fn();
 jest.mock('../custom-amount-info', () => ({
-  CustomAmountInfo: ({
-    currency,
-    children,
-    afterPayWith,
-  }: {
-    currency: string;
-    children?: React.ReactNode;
-    afterPayWith?: React.ReactNode;
-  }) => {
+  CustomAmountInfo: (props: Record<string, unknown>) => {
+    mockCustomAmountInfo(props);
     const { View, Text } = jest.requireActual('react-native');
     return (
-      <View>
-        <Text testID="custom-amount-info">{currency}</Text>
-        {children}
-        {afterPayWith}
+      <View testID="custom-amount-info-wrapper">
+        <Text testID="custom-amount-info">{props.currency as string}</Text>
+        {props.children as React.ReactNode}
+        {props.afterPayWith as React.ReactNode}
       </View>
     );
   },
@@ -61,15 +55,16 @@ jest.mock('../../AccountSelector', () => {
         testID="money-account-selector-pill"
         onPress={() => onAccountSelected('0xTestAddress')}
       >
-        <Text>Select recipient</Text>
+        <Text>Select account</Text>
       </TouchableOpacity>
     ),
   };
 });
 
-describe('MoneyAccountDepositInfo', () => {
+describe('MoneyAccountWithdrawInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
     const { useTransactionMetadataRequest } = jest.requireMock(
       '../../../hooks/transactions/useTransactionMetadataRequest',
     );
@@ -81,7 +76,7 @@ describe('MoneyAccountDepositInfo', () => {
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+    const { getByTestId } = render(<MoneyAccountWithdrawInfo />);
 
     expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
     expect(getByTestId('custom-amount-info').props.children).toBe(
@@ -92,10 +87,10 @@ describe('MoneyAccountDepositInfo', () => {
   it('sets navbar title via useNavbar', () => {
     const useNavbar = jest.requireMock('../../../hooks/ui/useNavbar').default;
 
-    render(<MoneyAccountDepositInfo />);
+    render(<MoneyAccountWithdrawInfo />);
 
     expect(useNavbar).toHaveBeenCalledWith(
-      'confirm.title.money_account_deposit',
+      'confirm.title.money_account_withdraw',
     );
   });
 
@@ -104,22 +99,32 @@ describe('MoneyAccountDepositInfo', () => {
   });
 
   it('renders AccountSelector', () => {
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+    const { getByTestId } = render(<MoneyAccountWithdrawInfo />);
 
     expect(getByTestId('money-account-selector-pill')).toBeOnTheScreen();
   });
 
-  it('calls updateEditableParams with selected address', () => {
+  it('calls updateEditableParams with selected address as from', () => {
     const { updateEditableParams } = jest.requireMock(
       '../../../../../../util/transaction-controller',
     );
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+    const { getByTestId } = render(<MoneyAccountWithdrawInfo />);
 
     fireEvent.press(getByTestId('money-account-selector-pill'));
 
     expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      to: '0xTestAddress',
+      from: '0xTestAddress',
     });
+  });
+
+  it('disables confirm when no source account is selected', () => {
+    render(<MoneyAccountWithdrawInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.disableConfirm).toBe(true);
   });
 
   it('does not call updateEditableParams when transactionMeta has no id', () => {
@@ -131,7 +136,7 @@ describe('MoneyAccountDepositInfo', () => {
     const { updateEditableParams } = jest.requireMock(
       '../../../../../../util/transaction-controller',
     );
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+    const { getByTestId } = render(<MoneyAccountWithdrawInfo />);
 
     fireEvent.press(getByTestId('money-account-selector-pill'));
 
