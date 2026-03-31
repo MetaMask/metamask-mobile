@@ -32,6 +32,7 @@ import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
@@ -69,6 +70,7 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const isScrollDisabled = useDisableScroll();
+  useTransactionPayAutoFiatSubmission();
 
   return (
     <ConfirmationContextProvider>
