@@ -34,10 +34,10 @@
     "optedIn": false
   },
   "GatorPermissionsController": {
-    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
-    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "grantedPermissions": [],
     "isFetchingGatorPermissions": false,
-    "isGatorPermissionsEnabled": false
+    "lastSyncedTimestamp": -1,
+    "pendingRevocations": []
   },
   "NftController": {
     "allNftContracts": {},

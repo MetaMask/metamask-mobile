@@ -152,10 +152,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "nonRPCGasFeeApisDisabled": false,
       },
       "GatorPermissionsController": {
-        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
-        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "grantedPermissions": [],
         "isFetchingGatorPermissions": false,
-        "isGatorPermissionsEnabled": false,
+        "lastSyncedTimestamp": -1,
+        "pendingRevocations": [],
       },
       "GeolocationController": {
         "error": null,
@@ -971,10 +971,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "nonRPCGasFeeApisDisabled": false,
       },
       "GatorPermissionsController": {
-        "gatorPermissionsMapSerialized": "{"native-token-stream":{},"native-token-periodic":{},"erc20-token-stream":{},"erc20-token-periodic":{},"other":{}}",
-        "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+        "grantedPermissions": [],
         "isFetchingGatorPermissions": false,
-        "isGatorPermissionsEnabled": false,
+        "lastSyncedTimestamp": -1,
+        "pendingRevocations": [],
       },
       "GeolocationController": {
         "error": null,
