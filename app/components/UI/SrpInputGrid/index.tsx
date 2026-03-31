@@ -15,6 +15,8 @@ import {
   FontWeight,
   Box,
   BoxBackgroundColor,
+  Button,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import SrpInput from '../../Views/SrpInput';
 import { useAppTheme } from '../../../util/theme';
@@ -499,16 +501,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           />
         </Box>
 
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.PrimaryDefault}
-          twClassName="text-right pt-2 pb-[1px] self-end"
-          onPress={handlePasteOrClear}
-        >
-          {trimmedSeedPhraseLength >= 1
-            ? strings('import_from_seed.clear_all')
-            : strings('import_from_seed.paste')}
-        </Text>
+        <Box twClassName="flex-row justify-end items-end pt-1 pb-[1px]">
+          <Button variant={ButtonVariant.Tertiary} onPress={handlePasteOrClear}>
+            {trimmedSeedPhraseLength >= 1
+              ? strings('import_from_seed.clear_all')
+              : strings('import_from_seed.paste')}
+          </Button>
+        </Box>
 
         {Boolean(externalError || error) && (
           <Text
