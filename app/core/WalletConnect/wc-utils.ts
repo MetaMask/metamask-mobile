@@ -19,6 +19,11 @@ import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
+import Engine from '../Engine';
+import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -31,6 +36,21 @@ export interface WCMultiVersionParams {
   bridge?: string;
   key?: string;
   handshakeTopic?: string;
+}
+
+/**
+ * Describes a namespace to include in a WalletConnect session.
+ * Used for all chains: EVM, Tron, Solana, etc.
+ */
+export interface NamespaceConfig {
+  /** CAIP-2 chain IDs to advertise (e.g. ["eip155:1", "tron:728126428"]) */
+  chains: string[];
+  /** WalletConnect methods the wallet supports for this namespace */
+  methods: string[];
+  /** Events emitted by the wallet for this namespace */
+  events: string[];
+  /** CAIP-10 account strings (e.g. ["eip155:1:0xabc...", "tron:728126428:TAddr..."]) */
+  accounts: string[];
 }
 
 export const getHostname = (uri: string): string => {
@@ -211,48 +231,48 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (): string[] => {
-  const allEIP155Methods = [
-    // Standard JSON-RPC methods
-    'eth_sendTransaction',
-    'eth_sign',
-    'eth_signTransaction',
-    'eth_signTypedData',
-    'eth_signTypedData_v3',
-    'eth_signTypedData_v4',
-    'personal_sign',
-    'eth_sendRawTransaction',
-    'eth_accounts',
-    'eth_getBalance',
-    'eth_call',
-    'eth_estimateGas',
-    'eth_blockNumber',
-    'eth_getCode',
-    'eth_getTransactionCount',
-    'eth_getTransactionReceipt',
-    'eth_getTransactionByHash',
-    'eth_getBlockByHash',
-    'eth_getBlockByNumber',
-    'net_version',
-    'eth_chainId',
-    'eth_requestAccounts',
+/**
+ * Normalizes a CAIP-2 chain ID coming FROM WalletConnect to MetaMask's internal format.
+ * Dispatches per namespace — add a new chain block below to handle future format mismatches.
+ *
+ * All conversions are currently no-ops (commented out per chain) until dApps adopt
+ * the canonical formats from ChainAgnostic/namespaces.
+ */
+export const normalizeCaipChainIdInbound = (caipChainId: string): string => {
+  const namespace = caipChainId.split(':')[0];
 
-    // MetaMask specific methods
-    'wallet_addEthereumChain',
-    'wallet_switchEthereumChain',
-    'wallet_getPermissions',
-    'wallet_requestPermissions',
-    'wallet_watchAsset',
-    'wallet_scanQRCode',
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (namespace === KnownCaipNamespace.Tron) {
+    // WalletConnect hex → MetaMask decimal (ChainAgnostic/namespaces#170)
+    // const chainRef = caipChainId.slice('tron:'.length);
+    // if (chainRef.startsWith('0x')) return `tron:${parseInt(chainRef, 16)}`;
+    return caipChainId;
+  }
+  ///: END:ONLY_INCLUDE_IF
 
-    // EIP-5792 methods
-    'wallet_sendCalls',
-    'wallet_getCallsStatus',
-    'wallet_getCapabilities',
-  ];
+  return caipChainId;
+};
 
-  // TODO: extract from the permissions controller when implemented
-  return allEIP155Methods;
+/**
+ * Normalizes a CAIP-2 chain ID going TO WalletConnect from MetaMask's internal format.
+ * Dispatches per namespace — add a new chain block below to handle future format mismatches.
+ *
+ * All conversions are currently no-ops (commented out per chain) until dApps adopt
+ * the canonical formats from ChainAgnostic/namespaces.
+ */
+export const normalizeCaipChainIdOutbound = (caipChainId: string): string => {
+  const namespace = caipChainId.split(':')[0];
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  if (namespace === KnownCaipNamespace.Tron) {
+    // MetaMask decimal → WalletConnect hex (ChainAgnostic/namespaces#170)
+    // const chainRef = caipChainId.slice('tron:'.length);
+    // if (!chainRef.startsWith('0x')) return `tron:0x${parseInt(chainRef, 10).toString(16)}`;
+    return caipChainId;
+  }
+  ///: END:ONLY_INCLUDE_IF
+
+  return caipChainId;
 };
 
 export const getScopedPermissions = async ({
@@ -260,40 +280,53 @@ export const getScopedPermissions = async ({
 }: {
   channelId: string;
 }) => {
+  // Each chain appends its own block to this map.
+  // To add a new chain, add a flag-guarded block below.
+  const namespaces: Record<string, NamespaceConfig> = {};
+
+  // EIP155 namespace
   const approvedAccounts = getPermittedAccounts(channelId);
-  const chains = await getPermittedChains(channelId);
-
+  const evmChains = (await getPermittedChains(channelId)).filter((chain) =>
+    chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
+  );
   DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found accounts:`,
-    approvedAccounts,
+    `WC::getScopedPermissions eip155 accounts=${JSON.stringify(approvedAccounts)} chains=${JSON.stringify(evmChains)}`,
   );
-
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found chains:`,
-    chains,
-  );
-
-  // Create properly formatted account strings for each chain and account
-  const accountsPerChains = chains.flatMap((chain) =>
-    Array.isArray(approvedAccounts)
-      ? approvedAccounts.map((account) => `${chain}:${account}`)
-      : [],
-  );
-
-  const scopedPermissions = {
-    chains,
-    methods: getApprovedSessionMethods(),
+  namespaces[KnownCaipNamespace.Eip155] = {
+    chains: evmChains,
+    methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Eip155],
     events: ['chainChanged', 'accountsChanged'],
-    accounts: accountsPerChains,
+    accounts: evmChains.flatMap((chain) =>
+      Array.isArray(approvedAccounts)
+        ? approvedAccounts.map((account) => `${chain}:${account}`)
+        : [],
+    ),
   };
 
-  DevLogger.log(
-    `WC::getScopedPermissions final permissions`,
-    scopedPermissions,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const tronAccounts = Engine.context.AccountsController.listAccounts().filter(
+    (account) => account.type === TrxAccountType.Eoa,
   );
-  return {
-    [KnownCaipNamespace.Eip155]: scopedPermissions,
-  };
+  if (tronAccounts.length > 0) {
+    const tronChainId = normalizeCaipChainIdOutbound(TrxScope.Mainnet);
+    const tronAccountStrings = tronAccounts.map(
+      (account) => `${tronChainId}:${account.address}`,
+    );
+    namespaces[KnownCaipNamespace.Tron] = {
+      chains: [tronChainId],
+      methods: APPROVED_METHODS_BY_NAMESPACE[KnownCaipNamespace.Tron],
+      events: [],
+      accounts: tronAccountStrings,
+    };
+    DevLogger.log(
+      `WC::getScopedPermissions added Tron namespace`,
+      tronAccountStrings,
+    );
+  }
+  ///: END:ONLY_INCLUDE_IF
+
+  DevLogger.log(`WC::getScopedPermissions final namespaces`, namespaces);
+  return namespaces;
 };
 
 export const isSwitchingChainRequest = (
