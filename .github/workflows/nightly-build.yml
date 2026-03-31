@@ -124,16 +124,21 @@ jobs:
           case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
           echo "path=$ABS" >> "$GITHUB_OUTPUT"
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch Apple API keys from AWS Secrets Manager
+        run: bash scripts/fetch-apple-api-keys-from-aws.sh
+
       - name: Setup App Store Connect API Key
         run: |
           bash scripts/setup-app-store-connect-api-key.sh \
             "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
 
       - name: Upload to TestFlight
         run: |
@@ -183,16 +188,21 @@ jobs:
           case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
           echo "path=$ABS" >> "$GITHUB_OUTPUT"
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_APPLE_TESTFLIGHT }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch Apple API keys from AWS Secrets Manager
+        run: bash scripts/fetch-apple-api-keys-from-aws.sh
+
       - name: Setup App Store Connect API Key
         run: |
           bash scripts/setup-app-store-connect-api-key.sh \
             "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
 
       - name: Upload to TestFlight
         run: |
