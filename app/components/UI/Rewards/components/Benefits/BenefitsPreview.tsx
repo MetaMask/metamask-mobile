@@ -23,8 +23,10 @@ import BenefitCard from './BenefitCard.tsx';
 import Routes from '../../../../../constants/navigation/Routes.ts';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const BenefitsPreview = () => {
+  const tw = useTailwind();
   const benefits = useSelector(selectBenefits);
   const isLoading = useSelector(selectBenefitsLoading);
   const { initBenefits } = useBenefits();
@@ -55,15 +57,13 @@ const BenefitsPreview = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-2"
         >
-          {isLoading && (
-            <ActivityIndicator size="small" color={colors.primary.default} />
-          )}
+          {/*{isLoading && (*/}
+          {/*  <ActivityIndicator size="small" color={colors.primary.default} />*/}
+          {/*)}*/}
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.benefits.title')}
           </Text>
-          {!isLoading && hasBenefits && (
-            <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-          )}
+          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
         </Box>
       </Pressable>
 
@@ -72,7 +72,7 @@ const BenefitsPreview = () => {
         testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
       >
         {isLoading ? (
-          <Skeleton height={'132px'} width="100%" />
+          <Skeleton style={tw.style('h-50 rounded-xl')} />
         ) : hasBenefits ? (
           benefits
             .slice(0, 3)

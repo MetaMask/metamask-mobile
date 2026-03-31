@@ -1,9 +1,4 @@
-import {
-  Box,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
@@ -22,6 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import TheMiracleFooter from '../components/Benefits/TheMiracleFooter.tsx';
 
 const BenefitListView = () => {
   const tw = useTailwind();
@@ -61,13 +57,7 @@ const BenefitListView = () => {
 
   const renderFooter = useCallback(() => {
     if (isLoading || benefits?.length === 0) return null;
-    return (
-      <Box twClassName="items-center justify-center">
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          Powered by The Miracle
-        </Text>
-      </Box>
-    );
+    return <TheMiracleFooter />;
   }, [isLoading, benefits?.length]);
 
   const emptyComponent = useMemo(() => {

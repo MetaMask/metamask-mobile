@@ -112,6 +112,7 @@ const BenefitDetailsView = () => {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleClaim}
+            endIconName={IconName.Export}
             twClassName="w-full"
             testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION}
           >
