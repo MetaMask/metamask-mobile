@@ -4,7 +4,10 @@ import React from 'react';
 import BridgeTrendingTokensSection from './BridgeTrendingTokensSection';
 import { useTokenListFilters } from '../../../Trending/hooks/useTokenListFilters/useTokenListFilters';
 import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { BridgeTrendingTokensSectionTestIds } from './BridgeTrendingTokensSection.testIds';
+
+const mockTrendingTokenRowItem = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({})),
@@ -35,8 +38,16 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ token }: { token: { assetId: string } }) =>
-        ReactLib.createElement(View, { testID: `row-${token.assetId}` }),
+      default: ({
+        token,
+        tokenDetailsSource,
+      }: {
+        token: { assetId: string };
+        tokenDetailsSource?: TokenDetailsSource;
+      }) => {
+        mockTrendingTokenRowItem({ token, tokenDetailsSource });
+        return ReactLib.createElement(View, { testID: `row-${token.assetId}` });
+      },
     };
   },
 );
@@ -119,6 +130,12 @@ describe('BridgeTrendingTokensSection', () => {
 
     const rows = getAllByTestId(/^row-/);
     expect(rows).toHaveLength(12);
+    expect(mockTrendingTokenRowItem).toHaveBeenCalledTimes(12);
+    expect(mockTrendingTokenRowItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenDetailsSource: TokenDetailsSource.TrendingSwaps,
+      }),
+    );
     expect(
       getByTestId(BridgeTrendingTokensSectionTestIds.SHOW_MORE),
     ).toBeTruthy();
