@@ -5,6 +5,3 @@
 // Once this is updated, verify that e2e smoke tests are working as expected
 export const isProduction = (): boolean =>
   process.env.METAMASK_ENVIRONMENT === 'production';
-
-export const isGatorPermissionsFeatureEnabled = (): boolean =>
-  process.env.GATOR_PERMISSIONS_ENABLED?.toString() === 'true';
