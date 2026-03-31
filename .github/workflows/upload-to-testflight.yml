@@ -29,6 +29,7 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+          - 'Acolad Product QA'
 
 # contents: write required by build.yml update-build-version job (version bump)
 permissions:
