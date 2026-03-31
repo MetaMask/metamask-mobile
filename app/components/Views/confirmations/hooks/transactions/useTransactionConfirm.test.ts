@@ -21,7 +21,10 @@ import { flushPromises } from '../../../../../util/test/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { isSendBundleSupported } from '../../../../../util/transactions/sentinel-api';
 import { act } from '@testing-library/react-hooks';
-import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayQuotes,
+} from '../pay/useTransactionPayData';
 import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
@@ -82,6 +85,9 @@ describe('useTransactionConfirm', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
   const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
 
   beforeEach(() => {
@@ -123,6 +129,7 @@ describe('useTransactionConfirm', () => {
     } as unknown as ReturnType<typeof useNetworkEnablement>);
 
     useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
   });
 
   it('confirms approval request', async () => {
@@ -518,6 +525,53 @@ describe('useTransactionConfirm', () => {
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
+    });
+  });
+
+  describe('fiat payment branching', () => {
+    it('returns early when fiat is selected and no orderCode', async () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('proceeds with normal confirmation when fiat is selected and orderCode exists', async () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        orderCode: 'order-abc',
+      } as never);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
+    });
+
+    it('does not affect non-fiat confirmation flow', async () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
     });
   });
 });
