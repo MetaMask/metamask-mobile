@@ -1,19 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import OndoPortfolio, { ONDO_PORTFOLIO_TEST_IDS } from './OndoPortfolio';
-import { useGetOndoPortfolioPosition } from '../../hooks/useGetOndoPortfolioPosition';
 import type {
   OndoGmPortfolioDto,
   OndoGmPortfolioPositionDto,
   OndoGmPortfolioSummaryDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-
-jest.mock('../../hooks/useGetOndoPortfolioPosition');
-
-const mockUseGetOndoPortfolioPosition =
-  useGetOndoPortfolioPosition as jest.MockedFunction<
-    typeof useGetOndoPortfolioPosition
-  >;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -103,7 +95,7 @@ jest.mock('../../../../../util/formatFiat', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
-      'rewards.ondo_campaign_portfolio.positions_heading': 'Your Positions',
+      'rewards.ondo_campaign_portfolio.title': 'Your Positions',
       'rewards.ondo_campaign_portfolio.empty': 'No positions yet',
       'rewards.ondo_campaign_portfolio.empty_description':
         'Start investing to see your positions',
@@ -144,7 +136,6 @@ jest.mock('./OndoLeaderboard.utils', () => ({
   formatComputedAt: jest.fn(() => '1 hour ago'),
 }));
 
-const CAMPAIGN_ID = 'campaign-123';
 const mockRefetch = jest.fn();
 
 const MOCK_POSITION: OndoGmPortfolioPositionDto = {
@@ -175,6 +166,14 @@ const MOCK_PORTFOLIO: OndoGmPortfolioDto = {
   computedAt: '2026-03-20T12:00:00.000Z',
 };
 
+const baseProps = {
+  portfolio: null as OndoGmPortfolioDto | null,
+  isLoading: false,
+  hasError: false,
+  hasFetched: false,
+  refetch: mockRefetch,
+};
+
 describe('OndoPortfolio', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -182,48 +181,42 @@ describe('OndoPortfolio', () => {
 
   describe('loading state', () => {
     it('renders skeleton when loading before first fetch with no data', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: true,
-        hasError: false,
-        hasFetched: false,
-        refetch: mockRefetch,
-      });
-
       const { getByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio {...baseProps} isLoading />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
     });
 
     it('does not render skeleton when loading but portfolio data already present', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: MOCK_PORTFOLIO,
-        isLoading: true,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { queryByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={MOCK_PORTFOLIO}
+          isLoading
+          hasFetched
+        />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
     });
 
-    it('renders skeleton during retry (isLoading=true, hasFetched=true, no portfolio)', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: true,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
+    it('renders skeleton when loading and portfolio has zero positions', () => {
+      const { getByTestId } = render(
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={{ ...MOCK_PORTFOLIO, positions: [] }}
+          isLoading
+          hasFetched
+        />,
+      );
 
+      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
+    });
+
+    it('renders skeleton during retry (isLoading=true, hasFetched=true, no portfolio)', () => {
       const { getByTestId, queryByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio {...baseProps} isLoading hasFetched />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
@@ -233,48 +226,29 @@ describe('OndoPortfolio', () => {
 
   describe('error state', () => {
     it('renders error banner when has error and no data', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: false,
-        hasError: true,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { getByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio {...baseProps} hasError hasFetched />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeDefined();
     });
 
     it('does not show empty banner on error even after fetch', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: false,
-        hasError: true,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { queryByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio {...baseProps} hasError hasFetched />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
     });
 
     it('shows cached portfolio data instead of error banner when portfolio exists', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: MOCK_PORTFOLIO,
-        isLoading: false,
-        hasError: true,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { queryByTestId, getByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={MOCK_PORTFOLIO}
+          hasError
+          hasFetched
+        />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeNull();
@@ -284,32 +258,16 @@ describe('OndoPortfolio', () => {
 
   describe('empty state', () => {
     it('renders empty banner when fetch completed with no portfolio', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { getByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio {...baseProps} hasFetched />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeDefined();
     });
 
     it('does not render empty banner when portfolio data is present', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: MOCK_PORTFOLIO,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { queryByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} hasFetched />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
@@ -318,17 +276,7 @@ describe('OndoPortfolio', () => {
 
   describe('initial/unfetched state', () => {
     it('renders nothing before any fetch has completed', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: false,
-        hasError: false,
-        hasFetched: false,
-        refetch: mockRefetch,
-      });
-
-      const { queryByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
-      );
+      const { queryByTestId } = render(<OndoPortfolio {...baseProps} />);
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeNull();
@@ -338,89 +286,60 @@ describe('OndoPortfolio', () => {
   });
 
   describe('portfolio data display', () => {
-    beforeEach(() => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: MOCK_PORTFOLIO,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-    });
+    const loadedProps = {
+      ...baseProps,
+      portfolio: MOCK_PORTFOLIO,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+    };
 
     it('renders portfolio container', () => {
-      const { getByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
-      );
+      const { getByTestId } = render(<OndoPortfolio {...loadedProps} />);
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
     });
 
     it('renders the positions heading', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
 
       expect(getByText('Your Positions')).toBeDefined();
     });
 
     it('renders the token name', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
 
       expect(getByText('Apple Inc.')).toBeDefined();
     });
   });
 
-  describe('hook integration', () => {
-    it('passes campaignId to hook', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: null,
-        isLoading: false,
-        hasError: false,
-        hasFetched: false,
-        refetch: mockRefetch,
-      });
-
-      render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
-
-      expect(mockUseGetOndoPortfolioPosition).toHaveBeenCalledWith(CAMPAIGN_ID);
-    });
-  });
-
   describe('navigation', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: MOCK_PORTFOLIO,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-    });
+    const loadedProps = {
+      ...baseProps,
+      portfolio: MOCK_PORTFOLIO,
+      hasFetched: true,
+    };
 
     it('shows arrow icon in section header when there are positions', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       fireEvent.press(getByText('Your Positions'));
       // Component handles the press without throwing
       expect(getByText('Your Positions')).toBeDefined();
     });
 
     it('pressing a position row does not throw', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       fireEvent.press(getByText('Apple Inc.'));
       expect(getByText('Apple Inc.')).toBeDefined();
     });
 
     it('renders empty banner when portfolio has no positions', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: { ...MOCK_PORTFOLIO, positions: [] },
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { getByTestId, queryByTestId } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={{ ...MOCK_PORTFOLIO, positions: [] }}
+          hasFetched
+        />,
       );
 
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeDefined();
@@ -429,61 +348,51 @@ describe('OndoPortfolio', () => {
   });
 
   describe('position rendering details', () => {
-    beforeEach(() => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: MOCK_PORTFOLIO,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-    });
+    const loadedProps = {
+      ...baseProps,
+      portfolio: MOCK_PORTFOLIO,
+      hasFetched: true,
+    };
 
     it('renders the units text', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       expect(getByText('45.2 units')).toBeDefined();
     });
 
     it('renders the updated at text', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       expect(getByText('Updated: 1 hour ago')).toBeDefined();
     });
 
     it('renders positive PnL percent in green', () => {
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       expect(getByText('+7.75%')).toBeDefined();
     });
 
     it('renders negative PnL percent for loss position', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: {
-          ...MOCK_PORTFOLIO,
-          positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '-0.05' }],
-        },
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
-      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      const { getByText } = render(
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={{
+            ...MOCK_PORTFOLIO,
+            positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '-0.05' }],
+          }}
+          hasFetched
+        />,
+      );
       expect(getByText('-5.00%')).toBeDefined();
     });
 
     it('does not render PnL percent when value is non-numeric', () => {
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: {
-          ...MOCK_PORTFOLIO,
-          positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '—' }],
-        },
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: mockRefetch,
-      });
-
       const { queryByText } = render(
-        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={{
+            ...MOCK_PORTFOLIO,
+            positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '—' }],
+          }}
+          hasFetched
+        />,
       );
       expect(queryByText('—')).toBeNull();
     });

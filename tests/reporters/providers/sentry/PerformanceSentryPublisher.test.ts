@@ -66,6 +66,10 @@ describe('PerformanceSentryPublisher', () => {
     process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
   const originalSentryEnabled = process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
   const originalBuildVariant = process.env.E2E_PERFORMANCE_BUILD_VARIANT;
+  const originalGithubServerUrl = process.env.GITHUB_SERVER_URL;
+  const originalGithubRepository = process.env.GITHUB_REPOSITORY;
+  const originalGithubRunId = process.env.GITHUB_RUN_ID;
+  const originalGithubJob = process.env.GITHUB_JOB;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,6 +77,10 @@ describe('PerformanceSentryPublisher', () => {
     delete process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
     delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
     delete process.env.E2E_PERFORMANCE_BUILD_VARIANT;
+    delete process.env.GITHUB_SERVER_URL;
+    delete process.env.GITHUB_REPOSITORY;
+    delete process.env.GITHUB_RUN_ID;
+    delete process.env.GITHUB_JOB;
     fetchMock = jest.spyOn(global, 'fetch');
   });
 
@@ -101,6 +109,30 @@ describe('PerformanceSentryPublisher', () => {
       process.env.E2E_PERFORMANCE_BUILD_VARIANT = originalBuildVariant;
     }
 
+    if (originalGithubServerUrl === undefined) {
+      delete process.env.GITHUB_SERVER_URL;
+    } else {
+      process.env.GITHUB_SERVER_URL = originalGithubServerUrl;
+    }
+
+    if (originalGithubRepository === undefined) {
+      delete process.env.GITHUB_REPOSITORY;
+    } else {
+      process.env.GITHUB_REPOSITORY = originalGithubRepository;
+    }
+
+    if (originalGithubRunId === undefined) {
+      delete process.env.GITHUB_RUN_ID;
+    } else {
+      process.env.GITHUB_RUN_ID = originalGithubRunId;
+    }
+
+    if (originalGithubJob === undefined) {
+      delete process.env.GITHUB_JOB;
+    } else {
+      process.env.GITHUB_JOB = originalGithubJob;
+    }
+
     fetchMock.mockRestore();
   });
 
@@ -124,6 +156,10 @@ describe('PerformanceSentryPublisher', () => {
     process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';
     process.env.E2E_PERFORMANCE_BUILD_VARIANT = 'exp';
+    process.env.GITHUB_SERVER_URL = 'https://github.com';
+    process.env.GITHUB_REPOSITORY = 'MetaMask/metamask-mobile';
+    process.env.GITHUB_RUN_ID = '12345';
+    process.env.GITHUB_JOB = 'e2e-performance-android';
     fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
@@ -134,6 +170,8 @@ describe('PerformanceSentryPublisher', () => {
       testTitle: 'Import wallet flow',
       projectName: 'browserstack-android',
       testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      browserstackRecordingUrl:
+        'https://app-automate.browserstack.com/builds/build-123/sessions/sess-123',
       tags: ['@PerformanceOnboarding', '@PerformanceLaunch'],
       status: 'passed',
       retry: 0,
@@ -168,7 +206,40 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.measurements.scenario_total_time_ms.value).toBe(1300);
     expect(payload.tags.project_name).toBe('browserstack-android');
     expect(payload.tags.build_variant).toBe('exp');
+    expect(payload.tags.test_team).toBe('qa-automation');
     expect(payload.extra.timer_steps).toHaveLength(2);
+    expect(payload.extra.recording_url).toBe(
+      'https://app-automate.browserstack.com/builds/build-123/sessions/sess-123',
+    );
+    expect(payload.extra.github_job_url).toBe(
+      'https://github.com/MetaMask/metamask-mobile/actions/runs/12345',
+    );
+    expect(payload.extra.github_job_name).toBe('e2e-performance-android');
+    expect(payload.spans).toHaveLength(2);
+    expect(payload.spans[0].op).toBe('e2e.performance.step');
+    expect(payload.spans[0].data.project_name).toBe('browserstack-android');
+    expect(payload.spans[0].data.test_team).toBe('qa-automation');
+    expect(payload.spans[0].data.provider).toBe('browserstack');
+    expect(payload.spans[0].data.team_id).toBe('qa-automation');
+    expect(payload.spans[0].data.team_name).toBe('QA Automation');
+    expect(payload.spans[0].data.test_status).toBe('passed');
+    expect(payload.spans[0].data.retry).toBe(0);
+    expect(payload.spans[0].data.worker_index).toBe(3);
+    expect(payload.spans[0].data.build_variant).toBe('exp');
+    expect(payload.spans[0].data.device_name).toBe('Samsung Galaxy S23 Ultra');
+    expect(payload.spans[0].data.device_os_version).toBe('13.0');
+    expect(payload.spans[0].data.test_file_path).toBe(
+      'tests/performance/onboarding/import-wallet.spec.js',
+    );
+    expect(payload.spans[0].data.recording_url).toBe(
+      'https://app-automate.browserstack.com/builds/build-123/sessions/sess-123',
+    );
+    expect(payload.spans[0].data.github_job_url).toBe(
+      'https://github.com/MetaMask/metamask-mobile/actions/runs/12345',
+    );
+    expect(payload.spans[0].data.github_job_name).toBe(
+      'e2e-performance-android',
+    );
   });
 
   it('protects reserved aggregate keys from timer-key collisions', async () => {
