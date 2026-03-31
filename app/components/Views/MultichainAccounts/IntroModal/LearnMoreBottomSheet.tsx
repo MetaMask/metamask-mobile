@@ -24,6 +24,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
+export interface LearnMoreBottomSheetParams {
+  onClose: () => void;
+}
+
 interface LearnMoreBottomSheetProps {
   onClose: () => void;
 }
