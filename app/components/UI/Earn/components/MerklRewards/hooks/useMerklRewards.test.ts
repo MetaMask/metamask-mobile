@@ -174,7 +174,7 @@ describe('useMerklRewards', () => {
   });
 
   it('initializes with null claimableReward', () => {
-    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+    const { result } = renderHook(() => useMerklRewards({ asset: undefined }));
 
     expect(result.current.claimableReward).toBe(null);
   });
@@ -1054,5 +1054,45 @@ describe('useMerklRewards', () => {
 
     setIntervalSpy.mockRestore();
     clearIntervalSpy.mockRestore();
+  });
+
+  it('increments rewardsFetchVersion after successful fetch and refetch', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1500000000000000000',
+      pending: '0',
+      proofs: [],
+      amount: '1500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValue(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValue('0');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      expect(result.current.rewardsFetchVersion).toBeGreaterThan(0);
+    });
+
+    const versionAfterInitialFetch = result.current.rewardsFetchVersion;
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(result.current.rewardsFetchVersion).toBeGreaterThan(
+        versionAfterInitialFetch,
+      );
+    });
   });
 });

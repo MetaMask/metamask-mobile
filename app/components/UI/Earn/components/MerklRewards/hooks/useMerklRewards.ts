@@ -174,7 +174,7 @@ export const useMerklRewards = ({
           'useMerklRewards: Error fetching claimable rewards',
         );
       } finally {
-        if (!controller.signal.aborted && process.env.NODE_ENV !== 'test') {
+        if (!controller.signal.aborted) {
           setRewardsFetchVersion((version) => version + 1);
         }
       }

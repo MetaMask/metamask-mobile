@@ -112,6 +112,10 @@ export const useMerklBonusClaim = (
   const [claimLockFetchVersion, setClaimLockFetchVersion] = useState<
     number | null
   >(null);
+  const latestRewardsFetchVersionRef = useRef(rewardsFetchVersion);
+  useEffect(() => {
+    latestRewardsFetchVersionRef.current = rewardsFetchVersion;
+  }, [rewardsFetchVersion]);
   const isClaimLocked =
     claimLockFetchVersion !== null &&
     claimLockFetchVersion === rewardsFetchVersion;
@@ -120,10 +124,10 @@ export const useMerklBonusClaim = (
     const claimResult = await claimRewards();
     // Keep CTA hidden until the next rewards refetch resolves.
     if (claimResult) {
-      setClaimLockFetchVersion(rewardsFetchVersion);
+      setClaimLockFetchVersion(latestRewardsFetchVersionRef.current);
     }
     return claimResult;
-  }, [claimRewards, rewardsFetchVersion]);
+  }, [claimRewards]);
 
   const hasClaimableBonus =
     isEligible &&
