@@ -418,6 +418,139 @@ describe('usePredictOrderPreview', () => {
     });
   });
 
+  describe('sticky error behavior', () => {
+    it('preserves error during background auto-refresh', async () => {
+      const { Wrapper } = createWrapper();
+      mockPreviewOrder.mockRejectedValue(new Error('Not enough shares'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const params = { ...defaultParams, autoRefreshTimeout: 1000 };
+      const { result } = renderHook(() => usePredictOrderPreview(params), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(result.current.error).toBe('Failed to preview order');
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('clears error when auto-refresh succeeds after previous failure', async () => {
+      const { Wrapper } = createWrapper();
+      mockPreviewOrder.mockRejectedValue(new Error('Not enough shares'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const params = { ...defaultParams, autoRefreshTimeout: 1000 };
+      const { result } = renderHook(() => usePredictOrderPreview(params), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
+
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeNull();
+      });
+
+      expect(result.current.preview).toEqual(mockPreview);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('clears error when size changes', async () => {
+      const { Wrapper } = createWrapper();
+      mockPreviewOrder.mockRejectedValue(new Error('Not enough shares'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const { result, rerender } = renderHook(
+        (props: PreviewOrderParams) => usePredictOrderPreview(props),
+        { wrapper: Wrapper, initialProps: defaultParams },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
+
+      mockPreviewOrder.mockResolvedValue(mockPreview);
+      rerender({ ...defaultParams, size: 200 });
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeNull();
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('returns false for isLoading when sticky error exists during refetch', async () => {
+      const { Wrapper } = createWrapper();
+      mockPreviewOrder.mockRejectedValue(new Error('Not enough shares'));
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const params = { ...defaultParams, autoRefreshTimeout: 1000 };
+      const { result } = renderHook(() => usePredictOrderPreview(params), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeTruthy();
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
   describe('parameter changes', () => {
     it('reacts to outcomeTokenId changes', async () => {
       const { Wrapper } = createWrapper();

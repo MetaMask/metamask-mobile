@@ -6,7 +6,7 @@ import renderWithProvider, {
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
+import { UnstakeConfirmationViewRouteParams } from './UnstakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
 
@@ -72,6 +72,14 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: mockSetOptions,
     }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: {
+        amountWei: '4999820000000000000',
+        amountFiat: '12894.52',
+      } as UnstakeConfirmationViewRouteParams,
+    }),
   };
 });
 
@@ -107,21 +115,9 @@ expect.addSnapshotSerializer({
 
 describe('UnstakeConfirmationView', () => {
   it('render matches snapshot', () => {
-    const props: UnstakeConfirmationViewProps = {
-      route: {
-        key: '1',
-        name: 'params',
-        params: {
-          amountWei: '4999820000000000000',
-          amountFiat: '12894.52',
-        },
-      },
-    };
-
-    const { toJSON } = renderWithProvider(
-      <UnstakeConfirmationView {...props} />,
-      { state: mockInitialState },
-    );
+    const { toJSON } = renderWithProvider(<UnstakeConfirmationView />, {
+      state: mockInitialState,
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
