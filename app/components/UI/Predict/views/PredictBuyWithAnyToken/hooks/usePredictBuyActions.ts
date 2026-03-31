@@ -35,7 +35,8 @@ export const usePredictBuyActions = ({
   const { onConfirm: onApprovalConfirm, approvalRequest } =
     useApprovalRequest();
   const { onReject } = useConfirmActions();
-  const { activeOrder } = usePredictActiveOrder();
+  const { activeOrder, clearActiveOrderTransactionId } =
+    usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
@@ -88,8 +89,14 @@ export const usePredictBuyActions = ({
 
     return navigation.addListener('beforeRemove', () => {
       onReject(undefined, true);
+      clearActiveOrderTransactionId();
     });
-  }, [navigation, payWithAnyTokenEnabled, onReject]);
+  }, [
+    navigation,
+    payWithAnyTokenEnabled,
+    onReject,
+    clearActiveOrderTransactionId,
+  ]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {

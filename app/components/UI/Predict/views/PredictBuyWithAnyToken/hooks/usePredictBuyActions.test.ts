@@ -87,9 +87,13 @@ jest.mock('../../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   }),
 }));
 
+const mockClearActiveOrderTransactionId = jest.fn();
+
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: mockActiveOrder,
+    clearActiveOrderTransactionId: (...args: unknown[]) =>
+      mockClearActiveOrderTransactionId(...args),
   }),
 }));
 
@@ -112,6 +116,8 @@ jest.mock('../../../../../../core/Engine', () => ({
         mockSetSelectedPaymentToken(...args),
       onPlaceOrderSuccess: (...args: unknown[]) =>
         mockOnPlaceOrderSuccess(...args),
+      clearActiveOrderTransactionId: (...args: unknown[]) =>
+        mockClearActiveOrderTransactionId(...args),
     },
   },
 }));

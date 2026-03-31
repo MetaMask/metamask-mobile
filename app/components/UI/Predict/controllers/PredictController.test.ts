@@ -174,10 +174,10 @@ const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 function setActiveOrderForTest(
   controller: PredictController,
-  order: PredictControllerState['activeBuyOrder'],
+  order: PredictControllerState['activeBuyOrders'][string],
 ) {
   controller.updateStateForTesting((state) => {
-    state.activeBuyOrder = order;
+    state.activeBuyOrders[MOCK_ADDRESS] = order;
   });
 }
 
@@ -1330,9 +1330,12 @@ describe('PredictController', () => {
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 
-          await expect(controller.placeOrder({ preview })).rejects.toThrow(
-            'Order placement failed',
-          );
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-background',
+            }),
+          ).rejects.toThrow('Order placement failed');
 
           expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -1364,13 +1367,17 @@ describe('PredictController', () => {
           );
           setActiveOrderForTest(controller, {
             state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-active',
           });
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 
-          await expect(controller.placeOrder({ preview })).rejects.toThrow(
-            'Order placement failed',
-          );
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-background',
+            }),
+          ).rejects.toThrow('Order placement failed');
 
           expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({ type: 'order', status: 'failed' }),
@@ -3965,7 +3972,7 @@ describe('PredictController', () => {
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -4080,13 +4087,15 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeBuyOrder?.transactionId).toBe(
-          'batch-123',
-        );
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBe('batch-123');
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
 
@@ -4103,10 +4112,12 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
         expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
         expect(addTransactionBatch).not.toHaveBeenCalled();
       });
@@ -4124,7 +4135,7 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -4142,7 +4153,7 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -4151,7 +4162,7 @@ describe('PredictController', () => {
     it('still sets selectedPaymentToken when activeOrder is null', () => {
       withController(({ controller }) => {
         controller.clearActiveOrder();
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
 
         controller.selectPaymentToken(
           createAssetToken({
@@ -4180,7 +4191,9 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
 
@@ -4192,14 +4205,16 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
         controller.clearActiveOrder();
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
 
         expect(() => controller.clearOrderError()).not.toThrow();
       });
@@ -4214,7 +4229,7 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -4250,7 +4265,7 @@ describe('PredictController', () => {
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -4263,8 +4278,10 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -4282,7 +4299,7 @@ describe('PredictController', () => {
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
         expect(getPendingOrderPreviews(controller)['tx-123']).toBeDefined();
       });
     });
@@ -4303,7 +4320,7 @@ describe('PredictController', () => {
             transactionId: 'tx-100',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
             ActiveOrderState.DEPOSITING,
           );
           expect(
@@ -4336,7 +4353,7 @@ describe('PredictController', () => {
           symbol: 'USDC.e',
         } as any);
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -4365,7 +4382,7 @@ describe('PredictController', () => {
             transactionId: 'tx-1',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
             ActiveOrderState.SUCCESS,
           );
         },
@@ -4383,6 +4400,9 @@ describe('PredictController', () => {
   describe('payWithAnyTokenConfirmation', () => {
     it('initializes deposit batch with default active order in PREVIEW state', async () => {
       await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+        });
         controller.setSelectedPaymentToken({
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
           chainId: '0x89',
@@ -4397,7 +4417,7 @@ describe('PredictController', () => {
             batchId: 'default-batch',
           },
         });
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
         expect(mockPolymarketProvider.prepareDeposit).toHaveBeenCalled();
@@ -4415,7 +4435,7 @@ describe('PredictController', () => {
         const result = await controller.initPayWithAnyToken();
 
         expect(result.success).toBe(true);
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -4512,7 +4532,7 @@ describe('PredictController', () => {
     it('clears error on activeBuyOrder after successful batch creation', async () => {
       await withController(async ({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.activeBuyOrder = {
+          state.activeBuyOrders[MOCK_ADDRESS] = {
             state: ActiveOrderState.PREVIEW,
             error: 'previous-error',
           };
@@ -4526,7 +4546,9 @@ describe('PredictController', () => {
             batchId: 'default-batch',
           },
         });
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
   });
@@ -5009,10 +5031,12 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeBuyOrder?.transactionId).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBeUndefined();
       });
     });
 
@@ -5044,10 +5068,12 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeBuyOrder?.transactionId).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBeUndefined();
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
@@ -5075,10 +5101,12 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeBuyOrder?.transactionId).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBeUndefined();
       });
     });
 
@@ -7469,7 +7497,7 @@ describe('PredictController', () => {
 
         controller.onPlaceOrderSuccess();
 
-        expect(controller.state.activeBuyOrder).toEqual({
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
           state: ActiveOrderState.PREVIEW,
         });
         expect(controller.state.selectedPaymentToken).toBeNull();
@@ -7530,7 +7558,7 @@ describe('PredictController', () => {
             success: false,
             response: { status: 'deposit_in_progress' },
           });
-          expect(controller.state.activeBuyOrder).toEqual({
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.DEPOSITING,
             transactionId: 'tx-deposit-1',
           });
@@ -7566,7 +7594,7 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview });
 
-          expect(controller.state.activeBuyOrder).toEqual({
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.SUCCESS,
           });
         },
@@ -7609,12 +7637,12 @@ describe('PredictController', () => {
 
           expect(retrySpy).toHaveBeenCalledTimes(1);
           expect(
-            controller.state.activeBuyOrder?.transactionId,
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
           ).toBeUndefined();
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
             ActiveOrderState.PREVIEW,
           );
-          expect(controller.state.activeBuyOrder?.error).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
             'Order placement failed',
           );
         },
@@ -7633,8 +7661,10 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          setActiveOrderForTest(controller, {
-            state: ActiveOrderState.PREVIEW,
+          controller.updateStateForTesting((state) => {
+            state.activeBuyOrders[explicitAddress] = {
+              state: ActiveOrderState.PREVIEW,
+            };
           });
 
           mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -7650,7 +7680,7 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview, address: explicitAddress });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[explicitAddress]?.state).toBe(
             ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledWith(
@@ -7709,10 +7739,13 @@ describe('PredictController', () => {
     });
 
     it('updates activeBuyOrder to SUCCESS when background order completes for any buy order', async () => {
+      const bgAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       await withController(
         async ({ controller }) => {
-          setActiveOrderForTest(controller, {
-            state: ActiveOrderState.PREVIEW,
+          controller.updateStateForTesting((state) => {
+            state.activeBuyOrders[bgAddress] = {
+              state: ActiveOrderState.PREVIEW,
+            };
           });
 
           (
@@ -7727,7 +7760,7 @@ describe('PredictController', () => {
             }
           ).pendingOrderPreviews['tx-bg-1'] = {
             preview: createMockOrderPreview({ side: Side.BUY }),
-            signerAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            signerAddress: bgAddress,
           };
 
           mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -7743,11 +7776,11 @@ describe('PredictController', () => {
 
           await controller.placeOrder({
             preview,
-            address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            address: bgAddress,
             transactionId: 'tx-bg-1',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[bgAddress]?.state).toBe(
             ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
@@ -7915,10 +7948,13 @@ describe('PredictController', () => {
     });
 
     it('skips PAY_WITH_ANY_TOKEN deposit branch and places order directly when transactionId has existing pending preview', async () => {
+      const bgAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       await withController(
         async ({ controller }) => {
-          setActiveOrderForTest(controller, {
-            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          controller.updateStateForTesting((state) => {
+            state.activeBuyOrders[bgAddress] = {
+              state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            };
           });
 
           (
@@ -7933,7 +7969,7 @@ describe('PredictController', () => {
             }
           ).pendingOrderPreviews['tx-bg-1'] = {
             preview: createMockOrderPreview({ side: Side.BUY }),
-            signerAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            signerAddress: bgAddress,
           };
 
           mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -7949,11 +7985,11 @@ describe('PredictController', () => {
 
           await controller.placeOrder({
             preview,
-            address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            address: bgAddress,
             transactionId: 'tx-bg-1',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[bgAddress]?.state).toBe(
             ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
@@ -7995,7 +8031,7 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
-        expect(controller.state.activeBuyOrder?.state).not.toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).not.toBe(
           ActiveOrderState.DEPOSITING,
         );
       });
@@ -8018,9 +8054,7 @@ describe('PredictController', () => {
 
         await controller.placeOrder({ preview });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
-        );
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -8044,7 +8078,7 @@ describe('PredictController', () => {
 
         await controller.placeOrder({ preview });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -8065,7 +8099,7 @@ describe('PredictController', () => {
           'Order failed',
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PLACING_ORDER,
         );
         expect(controller.state.lastError).toBe('Order failed');
@@ -8097,7 +8131,9 @@ describe('PredictController', () => {
         );
 
         expect(retrySpy).not.toHaveBeenCalled();
-        expect(controller.state.activeBuyOrder?.transactionId).toBe('batch-1');
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBe('batch-1');
       });
     });
   });
@@ -8244,7 +8280,7 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
         expect(retrySpy).toHaveBeenCalledTimes(1);
@@ -8287,10 +8323,10 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
-        expect(controller.state.activeBuyOrder?.error).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
           'User rejected the request.',
         );
       });
@@ -8322,7 +8358,9 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.error).toBeDefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeDefined();
         expect(retrySpy).toHaveBeenCalledTimes(1);
       });
     });
@@ -8364,7 +8402,7 @@ describe('PredictController', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.DEPOSITING,
-          transactionId: 'tx-1',
+          transactionId: 'tx-active',
         });
 
         jest
@@ -8454,7 +8492,7 @@ describe('PredictController', () => {
           address: accountAddress,
           transactionId: 'tx-1',
         });
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -8487,7 +8525,7 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -8574,7 +8612,7 @@ describe('PredictController', () => {
             } as any);
 
           controller.updateStateForTesting((state) => {
-            state.activeBuyOrder = {
+            state.activeBuyOrders[MOCK_ADDRESS] = {
               state: ActiveOrderState.DEPOSITING,
               transactionId: 'tx-switched',
             };
@@ -8620,7 +8658,7 @@ describe('PredictController', () => {
       it('forwards the transaction address to initPayWithAnyToken when depositAndOrder fails after account switch', () => {
         withController(({ controller, messenger }) => {
           controller.updateStateForTesting((state) => {
-            state.activeBuyOrder = {
+            state.activeBuyOrders[originalAddress] = {
               state: ActiveOrderState.DEPOSITING,
               transactionId: 'tx-switched',
             };
@@ -8645,7 +8683,7 @@ describe('PredictController', () => {
           } as { transactionMeta: TransactionMeta });
 
           expect(retrySpy).toHaveBeenCalled();
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[originalAddress]?.state).toBe(
             ActiveOrderState.PAY_WITH_ANY_TOKEN,
           );
         });
