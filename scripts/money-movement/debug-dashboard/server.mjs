@@ -16,19 +16,6 @@ const sessionLogger = createSessionLogger(LOG_FILE);
 
 const httpServer = createServer(async (req, res) => {
   try {
-    const pathname = new URL(req.url || '/', 'http://localhost').pathname;
-    if (pathname === '/purify.min.js') {
-      const js = await readFile(
-        join(__dirname, 'vendor', 'purify.min.js'),
-        'utf-8',
-      );
-      res.writeHead(200, {
-        'Content-Type': 'application/javascript; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600',
-      });
-      res.end(js);
-      return;
-    }
     const html = await readFile(join(__dirname, 'dashboard.html'), 'utf-8');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);

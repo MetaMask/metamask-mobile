@@ -139,7 +139,12 @@ describe('ramps controller init', () => {
   });
 
   it('uses initial state when initial state is passed in', () => {
+    const defaultState = jest
+      .requireActual('@metamask/ramps-controller')
+      .getDefaultRampsControllerState() as RampsControllerState;
+
     const initialRampsControllerState: RampsControllerState = {
+      ...defaultState,
       userRegion: createMockUserRegion('us-ca'),
       countries: {
         data: [],
@@ -165,7 +170,6 @@ describe('ramps controller init', () => {
         isLoading: false,
         error: null,
       },
-      providerAutoSelected: false,
       requests: {},
       nativeProviders: {
         transak: {
