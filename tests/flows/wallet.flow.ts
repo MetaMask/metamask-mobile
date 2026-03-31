@@ -540,6 +540,8 @@ export const onboardingFlowImportSRPPlaywright = async (
   await CreatePasswordView.reEnterPassword(
     getPasswordForScenario('onboarding') ?? '',
   );
+  await CreatePasswordView.tapPasswordVisibilityIcon();
+  await PlaywrightGestures.hideKeyboard();
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
 
