@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    # Keep full CI scoped to standard PR updates only.
-    # Adding ready_for_review here would restart the entire workflow.
     types: [opened, synchronize, reopened]
   merge_group:
     types: [checks_requested]
