@@ -46,6 +46,7 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
         <BottomSheetHeader
           onClose={handleClose}
           variant={BottomSheetHeaderVariant.Display}
+          twClassName="px-6"
         >
           {strings('market_insights.disclaimer_modal.title')}
         </BottomSheetHeader>
