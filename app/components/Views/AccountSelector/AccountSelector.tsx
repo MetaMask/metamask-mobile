@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
   useWindowDimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -131,23 +131,25 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const { accounts } = useAccounts(accountsParams);
+  const shouldRedirectToAddWallet =
+    navigateToAddAccountActions ===
+    AccountSelectorScreens.MultichainAddWalletActions;
 
   const [screen, setScreen] = useState<AccountSelectorScreens>(() =>
-    navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-      ? AccountSelectorScreens.AddAccountActions
-      : AccountSelectorScreens.AccountSelector,
+    shouldRedirectToAddWallet
+      ? AccountSelectorScreens.MultichainAddWalletActions
+      : navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
+        ? AccountSelectorScreens.AddAccountActions
+        : AccountSelectorScreens.AccountSelector,
   );
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 
-  useEffect(() => {
-    if (
-      navigateToAddAccountActions ===
-      AccountSelectorScreens.MultichainAddWalletActions
-    ) {
-      navigation.navigate(Routes.SHEET.ADD_WALLET);
+  useLayoutEffect(() => {
+    if (shouldRedirectToAddWallet) {
+      navigation.dispatch(StackActions.replace(Routes.SHEET.ADD_WALLET));
     }
-  }, [navigateToAddAccountActions, navigation]);
+  }, [navigation, shouldRedirectToAddWallet]);
 
   // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
@@ -334,6 +336,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
+
+  if (shouldRedirectToAddWallet) {
+    return null;
+  }
 
   if (isFullPageAccountList) {
     return (

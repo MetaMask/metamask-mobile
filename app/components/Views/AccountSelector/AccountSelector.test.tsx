@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
@@ -95,12 +96,13 @@ jest.mock('../../hooks/useAccounts', () => ({
 // Mock navigation
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
-    dispatch: jest.fn(),
+    dispatch: mockDispatch,
     isFocused: jest.fn(() => true),
   }),
 }));
@@ -454,8 +456,16 @@ describe('AccountSelector', () => {
       );
 
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET),
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.replace(Routes.SHEET.ADD_WALLET),
+        ),
       );
+
+      expect(
+        screen.queryByTestId(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+        ),
+      ).not.toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
