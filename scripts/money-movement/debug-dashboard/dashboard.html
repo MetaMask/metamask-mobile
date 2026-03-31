@@ -716,8 +716,19 @@
         </div>
       </div>
     </div>
+    <script src="/purify.min.js"></script>
     <script>
       (function () {
+        /** @param {string} html */
+        function trustedHtml(html) {
+          if (typeof window.DOMPurify === 'undefined') {
+            return html;
+          }
+          return window.DOMPurify.sanitize(String(html ?? ''), {
+            ADD_ATTR: ['data-key', 'data-path'],
+          });
+        }
+
         let ws = null;
         let currentState = null;
         const expandedPaths = new Set();
@@ -907,9 +918,10 @@
             html += renderStateSection(key, currentState[key]);
           }
           const scrollTop = stateBody.scrollTop;
-          stateBody.innerHTML =
+          stateBody.innerHTML = trustedHtml(
             html ||
-            '<div class="empty-state"><div class="empty-state-text">No matching keys</div></div>';
+              '<div class="empty-state"><div class="empty-state-text">No matching keys</div></div>',
+          );
           stateBody.scrollTop = scrollTop;
           stateBody
             .querySelectorAll('.state-section-header')
@@ -1172,7 +1184,7 @@
           const summaryHtml = getMethodResultSummary(msg);
           const cacheBadge = getCacheBadgeHtml(msg.cacheStatus);
           const urlHtml = formatRequestUrl(msg.requestUrl);
-          el.innerHTML = `<div class="method-header">
+          el.innerHTML = trustedHtml(`<div class="method-header">
         <span class="method-name">${esc(msg.name)}</span>
         <span class="method-time">${formatTime(msg.timestamp)}</span>
         <span class="method-badges">${cacheBadge}<span class="method-duration ${dc}">${msg.duration != null ? msg.duration + 'ms' : ''}</span></span>
@@ -1182,7 +1194,7 @@
         ${msg.requestUrl ? `<div><strong>Request URL:</strong>\n${esc(msg.requestUrl)}</div>\n` : ''}<div><strong>Args:</strong>\n${formatJsonSafe(msg.args)}</div>
         ${msg.error ? `<div class="method-error"><strong>Error:</strong> ${esc(msg.error)}</div>` : ''}
         ${msg.result !== undefined ? `<div><strong>Result:</strong>\n${formatJsonSafe(msg.result)}</div>` : ''}
-      </div>`;
+      </div>`);
           el.addEventListener('click', () => {
             el.querySelector('.method-detail').classList.toggle('open');
           });
@@ -1213,7 +1225,7 @@
           } else if (d.error) {
             bodyHtml = `<div class="widget-response-body method-error">${esc(d.error)}</div>`;
           }
-          el.innerHTML = `<div class="method-header">
+          el.innerHTML = trustedHtml(`<div class="method-header">
         <span class="method-time">${formatTime(d.timestamp)}</span>
         <span class="method-badges"><span class="method-duration">${d.duration}ms</span> ${statusHtml}</span>
       </div>
@@ -1225,7 +1237,7 @@
         ${d.error ? `<div class="method-error"><strong>Error:</strong> ${esc(d.error)}</div>` : ''}
         ${d.responseBody ? `<div><strong>Response body:</strong>\n${esc(d.responseBody)}</div>` : ''}
         <div><strong>Duration:</strong> ${d.duration}ms</div>
-      </div>`;
+      </div>`);
           el.addEventListener('click', () => {
             const detail = el.querySelector('.method-detail');
             detail.style.display =
@@ -1289,7 +1301,9 @@
             if (isComplex) {
               el.className = 'patch-entry collapsible';
               const preview = truncate(JSON.stringify(patch.value), 80);
-              el.innerHTML = `<span class="patch-op ${opClass}">${esc(patch.op)}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-arrow">\u2192</span><span class="patch-value-preview">${esc(preview)}</span>`;
+              el.innerHTML = trustedHtml(
+                `<span class="patch-op ${opClass}">${esc(patch.op)}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-arrow">\u2192</span><span class="patch-value-preview">${esc(preview)}</span>`,
+              );
               const detail = document.createElement('div');
               detail.className = 'patch-detail';
               const pre = document.createElement('pre');
@@ -1302,7 +1316,9 @@
             } else {
               el.className = 'patch-entry';
               const valueHtml = primitiveHtml || '';
-              el.innerHTML = `<span class="patch-op ${opClass}">${esc(patch.op)}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-arrow">\u2192</span>${valueHtml}`;
+              el.innerHTML = trustedHtml(
+                `<span class="patch-op ${opClass}">${esc(patch.op)}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-arrow">\u2192</span>${valueHtml}`,
+              );
             }
             group.appendChild(el);
           }

@@ -17,3 +17,4 @@ wdio
 junitProperties.js
 /tests/scripts/ai-e2e-tags-selector.ts
 scripts/aggregate-performance-reports.mjs
+/scripts/money-movement/debug-dashboard/vendor

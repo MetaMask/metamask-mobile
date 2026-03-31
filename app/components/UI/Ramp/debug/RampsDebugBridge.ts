@@ -401,36 +401,25 @@ function wrapControllerMethods(
         typeof (result as Promise<unknown>).then === 'function';
 
       if (isPromiseLike) {
-        (result as Promise<unknown>).then(
-          (resolved) => {
-            const cacheStatus =
-              trackCache && requestsBefore
-                ? detectCacheStatus(controller, requestsBefore)
-                : null;
-            send({
-              type: 'method',
-              name,
-              args: sanitizeArgs(args),
-              result: sanitizeResult(resolved),
-              duration: Date.now() - start,
-              timestamp: Date.now(),
-              cacheStatus,
-              requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
-            });
-          },
-          (err) => {
-            send({
-              type: 'method',
-              name,
-              args: sanitizeArgs(args),
-              error: err instanceof Error ? err.message : String(err),
-              duration: Date.now() - start,
-              timestamp: Date.now(),
-              cacheStatus: trackCache ? 'miss' : null,
-              requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
-            });
-          },
-        );
+        // Only attach onFulfilled so we do not consume rejections (avoids masking
+        // unhandled rejections in devtools). Failed async methods still reject to callers.
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises -- debug-only side effect; original promise is still returned to callers
+        (result as Promise<unknown>).then((resolved) => {
+          const cacheStatus =
+            trackCache && requestsBefore
+              ? detectCacheStatus(controller, requestsBefore)
+              : null;
+          send({
+            type: 'method',
+            name,
+            args: sanitizeArgs(args),
+            result: sanitizeResult(resolved),
+            duration: Date.now() - start,
+            timestamp: Date.now(),
+            cacheStatus,
+            requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+          });
+        });
       } else {
         const cacheStatus =
           trackCache && requestsBefore

@@ -23,4 +23,6 @@ yarn ramps:debug-dashboard
 
 Same thing as `bash run.sh` in this directory (`run.sh` runs `npm ci` only if `node_modules/ws` is missing, then `node server.mjs`).
 
+The dashboard loads **DOMPurify** from **`vendor/purify.min.js`** (vendored bundle; served at `/purify.min.js`). Update the file when bumping DOMPurify for security fixes.
+
 Optional port: `RAMPS_DEBUG_PORT=8100 yarn ramps:debug-dashboard` (from repo root) or `RAMPS_DEBUG_PORT=8100 node server.mjs` here — if you change the port, update `DASHBOARD_WS_URL` in `RampsDebugBridge.ts` to match.
