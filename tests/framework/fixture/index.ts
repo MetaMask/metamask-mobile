@@ -57,6 +57,12 @@ interface TestLevelFixtures {
   performanceTracker: PerformanceTracker;
 }
 
+function getSessionIdFromAnnotations(
+  annotations?: { type: string; description?: string }[],
+): string | null {
+  return annotations?.find((a) => a.type === 'sessionId')?.description ?? null;
+}
+
 export const test = base.extend<TestLevelFixtures>({
   // eslint-disable-next-line no-empty-pattern
   currentDeviceDetails: async ({}, use, testInfo) => {
@@ -189,8 +195,7 @@ export const test = base.extend<TestLevelFixtures>({
     }
   },
 
-  // eslint-disable-next-line no-empty-pattern
-  performanceTracker: async ({}, use, testInfo) => {
+  performanceTracker: async ({ deviceProvider }, use, testInfo) => {
     const testId = getTestId(testInfo);
 
     // Skip retry if previous attempt failed due to quality gates
@@ -246,13 +251,19 @@ export const test = base.extend<TestLevelFixtures>({
       );
     }
 
+    const sessionId = getSessionIdFromAnnotations(testInfo.annotations);
+
     if (metrics) {
+      const videoRecordingUrl =
+        (await deviceProvider.getRecordingUrl?.(sessionId ?? '')) ?? null;
+
       try {
         const sentToSentry = await publishPerformanceScenarioToSentry({
           metrics,
           testTitle: testInfo.title,
           projectName: testInfo.project?.name ?? 'unknown',
           testFilePath: testInfo.file,
+          videoRecordingUrl,
           tags: testTags,
           status: testInfo.status,
           retry: testInfo.retry,
@@ -297,15 +308,6 @@ export const test = base.extend<TestLevelFixtures>({
     }
 
     console.log('🔍 Looking for session ID...');
-
-    let sessionId: string | null = null;
-
-    if (testInfo?.annotations) {
-      sessionId =
-        testInfo.annotations.find(
-          (annotation) => annotation.type === 'sessionId',
-        )?.description ?? null;
-    }
 
     if (sessionId) {
       // Store session data as a test attachment for the reporter to find
