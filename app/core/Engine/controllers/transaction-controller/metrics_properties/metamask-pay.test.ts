@@ -116,7 +116,7 @@ describe('Metamask Pay Metrics', () => {
         type: TransactionType.perpsDeposit,
         metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
         requiredTransactionIds: ['child-1'],
-      } as TransactionMeta,
+      } as unknown as TransactionMeta,
     ];
 
     const result = getMetaMaskPayProperties(request);
@@ -171,7 +171,7 @@ describe('Metamask Pay Metrics', () => {
         type: TransactionType.predictWithdraw,
         metamaskPay: { chainId: '0x38', tokenAddress: '0x000' },
         requiredTransactionIds: ['child-1'],
-      } as TransactionMeta,
+      } as unknown as TransactionMeta,
     ];
 
     const result = getMetaMaskPayProperties(request);
