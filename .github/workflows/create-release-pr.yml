@@ -46,10 +46,10 @@ jobs:
           fi
 
           patch="${SEMVER##*.}"
-          # OTA hotfix: patch segment has two or more digit characters (e.g. 7.71.01). Skips package.json / native build version bump; only OTA_VERSION is bumped later.
-          if [[ ${#patch} -ge 2 ]]; then
+          # OTA hotfix: patch is leading-zero–padded (e.g. 7.71.01). Normal multi-digit patches (e.g. 7.71.10) must not match—length-only checks misclassify those as OTA.
+          if [[ "$patch" =~ ^0[0-9]+$ ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
-            echo "OTA hotfix (patch segment length ${#patch}: ${patch}): will skip standard semver/build bump."
+            echo "OTA hotfix (zero-padded patch: ${patch}): will skip standard semver/build bump."
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
             echo "Not OTA hotfix (patch segment: ${patch})."
@@ -114,8 +114,29 @@ jobs:
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
 
-      - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
+      # Check PR before checkout/bump/push so retries do not increment OTA_VERSION again when a PR already exists.
+      - name: Check for existing OTA release PR
+        id: ota_release_pr
         if: needs.resolve-bases.outputs.is_ota == 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}"
+          COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base "$RELEASE_BASE" --json number --jq 'length')
+          if [[ "$COUNT" -gt 0 ]]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release PR already exists for $BRANCH → $RELEASE_BASE; skipping OTA_VERSION bump and push."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No open release PR for $BRANCH → $RELEASE_BASE; will bump OTA_VERSION and create PR if needed."
+          fi
+
+      - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
         with:
           ref: release/${{ inputs.semver-version }}
@@ -123,7 +144,7 @@ jobs:
           fetch-depth: 0
 
       - name: Bump OTA_VERSION and open release PR if missing (OTA hotfix)
-        if: needs.resolve-bases.outputs.is_ota == 'true'
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         shell: bash
         env:
           SEMVER: ${{ inputs.semver-version }}
@@ -138,12 +159,7 @@ jobs:
           git add app/constants/ota.ts
           git commit -m "chore: bump OTA_VERSION for OTA hotfix ${SEMVER}"
           git push origin "$BRANCH"
-          COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base "$RELEASE_BASE" --json number --jq 'length')
-          if [[ "$COUNT" -eq 0 ]]; then
-            gh pr create --repo "$GITHUB_REPOSITORY" --draft \
-              --base "$RELEASE_BASE" --head "$BRANCH" \
-              --title "release: ${SEMVER} (OTA)" \
-              --body "OTA hotfix release branch \`${BRANCH}\`. Native semver and build version are not bumped; only \`OTA_VERSION\` in \`app/constants/ota.ts\` was incremented."
-          else
-            echo "Release PR already exists for $BRANCH → $RELEASE_BASE"
-          fi
+          gh pr create --repo "$GITHUB_REPOSITORY" --draft \
+            --base "$RELEASE_BASE" --head "$BRANCH" \
+            --title "release: ${SEMVER} (OTA)" \
+            --body "OTA hotfix release branch \`${BRANCH}\`. Native semver and build version are not bumped; only \`OTA_VERSION\` in \`app/constants/ota.ts\` was incremented."

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Increments OTA_VERSION in app/constants/ota.ts (used for OTA hotfix release PRs).
-# Supports: vN -> v(N+1), vA.B.C -> vA.B.(C+1)
+# Supports: vX.XX.X (no OTA yet) -> v0, vN -> v(N+1), vA.B.C -> vA.B.(C+1)
 set -euo pipefail
 
 FILE="${1:-app/constants/ota.ts}"
@@ -23,7 +23,10 @@ if [[ -z "$current" ]]; then
 fi
 new=""
 
-if [[ "$current" =~ ^v([0-9]+)$ ]]; then
+# Sentinel: native build has not shipped an OTA yet; first OTA hotfix establishes v0 (then v1, v2, …).
+if [[ "$current" == 'vX.XX.X' ]]; then
+  new='v0'
+elif [[ "$current" =~ ^v([0-9]+)$ ]]; then
   n="${BASH_REMATCH[1]}"
   new="v$((10#$n + 1))"
 elif [[ "$current" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
@@ -32,7 +35,7 @@ elif [[ "$current" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
   c="${BASH_REMATCH[3]}"
   new="v${a}.${b}.$((10#$c + 1))"
 else
-  echo "Error: unsupported OTA_VERSION format (expected vN or vA.B.C): ${current}" >&2
+  echo "Error: unsupported OTA_VERSION format (expected vX.XX.X, vN, or vA.B.C): ${current}" >&2
   exit 1
 fi
 
