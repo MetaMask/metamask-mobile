@@ -182,7 +182,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       sectionName: HomeSectionNames.TOKENS,
       sectionIndex,
       totalSectionsLoaded,
-      isEmpty: isZeroBalanceAccount,
+      isEmpty: isZeroBalanceAccount || showTokensError,
       itemCount,
     });
 
