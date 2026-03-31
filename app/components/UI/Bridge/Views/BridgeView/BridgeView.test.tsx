@@ -29,6 +29,7 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import { Button } from '@metamask/design-system-react-native';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -98,11 +99,6 @@ jest.mock('../../../../../core/Engine', () => {
       unsubscribe: jest.fn(),
     },
     context: {
-      SwapsController: {
-        fetchAggregatorMetadataWithCache: jest.fn(),
-        fetchTopAssetsWithCache: jest.fn(),
-        fetchTokenWithCache: jest.fn(),
-      },
       KeyringController: {
         state: {
           keyrings: [
@@ -158,6 +154,7 @@ jest.mock('../../../../../core/Engine', () => {
         resetState: jest.fn(),
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
         updateBridgeQuoteRequestParams: jest.fn(),
+        trackUnifiedSwapBridgeEvent: jest.fn(),
       },
     },
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -226,6 +223,8 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockFocusEffects: (() => void | (() => void))[] = [];
 const mockRoute = {
   params: {
     sourcePage: 'test',
@@ -236,8 +235,12 @@ jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
+    useFocusEffect: jest.fn((callback: () => void | (() => void)) => {
+      mockFocusEffects.push(callback);
+    }),
     useNavigation: () => ({
       navigate: mockNavigate,
+      setParams: mockSetParams,
       setOptions: jest.fn(),
     }),
     useRoute: () => mockRoute,
@@ -358,6 +361,10 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusEffects.length = 0;
+    mockRoute.params = {
+      sourcePage: 'test',
+    } as BridgeRouteParams;
   });
 
   it('renders source and destination token areas', async () => {
@@ -373,6 +380,29 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('scrolls to top and clears the route param when requested on focus', () => {
+    mockRoute.params = {
+      sourcePage: 'test',
+      scrollToTopOnNav: true,
+    } as BridgeRouteParams;
+
+    renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    act(() => {
+      mockFocusEffects[mockFocusEffects.length - 1]?.();
+    });
+
+    expect(mockSetParams).toHaveBeenCalledWith({
+      scrollToTopOnNav: undefined,
+    });
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
@@ -489,6 +519,43 @@ describe('BridgeView', () => {
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
     expect(getByText('$19,000.00')).toBeTruthy();
+  });
+
+  it('should update source token amount when selecting a quick-pick preset', async () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        bestQuote: null,
+        sourceAmount: undefined,
+        isLoading: false,
+        destTokenAmount: undefined,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId, getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    const sourceInput = getByTestId('source-token-area-input');
+    await act(async () => {
+      sourceInput.props.onPressIn();
+    });
+
+    await waitFor(() => {
+      expect(getByText('25%')).toBeTruthy();
+    });
+
+    fireEvent.press(getByText('25%'));
+
+    await waitFor(() => {
+      expect(getByTestId('source-token-area-input').props.value).toBe('0.5');
+    });
   });
 
   it('should display source token symbol and balance', async () => {
@@ -1503,14 +1570,21 @@ describe('BridgeView', () => {
         mockState,
       );
 
-      const { getByTestId } = renderScreen(
+      const rendered = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
+      // The new Pressable-based Button does not expose onPress on the host View
+      // when disabled, so we find the Button component instance and call onPress directly.
+      const buttons = rendered.UNSAFE_getAllByType(Button);
+      const confirmButton = buttons.find(
+        (b) => b.props.testID === BridgeViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+
       await act(async () => {
-        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+        confirmButton?.props.onPress?.();
       });
 
       await waitFor(() => {

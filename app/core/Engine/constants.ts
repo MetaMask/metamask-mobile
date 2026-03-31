@@ -20,6 +20,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ProfileMetricsService',
   'RampsService',
   'TransakService',
+  'ComplianceService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -47,7 +48,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
-  'SwapsController:stateChange',
   'TokenBalancesController:stateChange',
   'TokenListController:stateChange',
   'TokenRatesController:stateChange',
@@ -89,23 +89,8 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'CardController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
+  'ComplianceController:stateChange',
 ] as const;
-
-export const swapsSupportedChainIds = [
-  NETWORK_CHAIN_ID.MAINNET,
-  NETWORK_CHAIN_ID.BSC,
-  NETWORK_CHAIN_ID.POLYGON,
-  NETWORK_CHAIN_ID.AVALANCHE,
-  NETWORK_CHAIN_ID.ARBITRUM,
-  NETWORK_CHAIN_ID.OPTIMISM,
-  NETWORK_CHAIN_ID.ZKSYNC_ERA,
-  NETWORK_CHAIN_ID.LINEA_MAINNET,
-  NETWORK_CHAIN_ID.BASE,
-  NETWORK_CHAIN_ID.SEI,
-  NETWORK_CHAIN_ID.MONAD,
-  NETWORK_CHAIN_ID.HYPE,
-  NETWORK_CHAIN_ID.MEGAETH_MAINNET,
-];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
 export const LINEA_MAINNET_DISPLAY_NAME = 'Linea';

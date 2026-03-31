@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, RenderResult } from '@testing-library/react-native';
 import { EarningsHistoryChart } from './EarningsHistoryChart';
 import { fireLayoutEvent } from '../../../../../../../util/testUtils/react-native-svg-charts';
-import { lightTheme } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../../../../util/theme';
 
 jest.mock('react-native-svg-charts', () => {
   const reactNativeSvgCharts = jest.requireActual('react-native-svg-charts'); // Get the actual Grid component
@@ -92,7 +92,7 @@ describe('EarningsHistoryChart', () => {
     // expect bar 1 to be selected and highlighted on touch
     expect(chartContainer.getByText('Day 1')).toBeTruthy();
     expect(chartContainer.getByText('1.00000 ETH')).toBeTruthy();
-    expect(chart.data[0].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[0].svg.fill).toBe(mockTheme.colors.success.default);
     // end touch bar 1
     fireEvent(
       chartContainer.getByTestId('earnings-history-chart'),
@@ -104,7 +104,7 @@ describe('EarningsHistoryChart', () => {
     // expect bar 1 to be selected and highlighted after touch end
     expect(chartContainer.getByText('Day 1')).toBeTruthy();
     expect(chartContainer.getByText('1.00000 ETH')).toBeTruthy();
-    expect(chart.data[0].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[0].svg.fill).toBe(mockTheme.colors.success.default);
   });
 
   it('updates chart state when bar 2 is clicked', async () => {
@@ -119,7 +119,7 @@ describe('EarningsHistoryChart', () => {
     // expect bar 2 to be selected and highlighted on touch
     expect(chartContainer.getByText('Day 2')).toBeTruthy();
     expect(chartContainer.getByText('3.00000 ETH')).toBeTruthy();
-    expect(chart.data[1].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[1].svg.fill).toBe(mockTheme.colors.success.default);
     // end touch bar 2
     fireEvent(
       chartContainer.getByTestId('earnings-history-chart'),
@@ -131,7 +131,7 @@ describe('EarningsHistoryChart', () => {
     // expect bar 2 to be selected and highlighted after touch end
     expect(chartContainer.getByText('Day 2')).toBeTruthy();
     expect(chartContainer.getByText('3.00000 ETH')).toBeTruthy();
-    expect(chart.data[1].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[1].svg.fill).toBe(mockTheme.colors.success.default);
   });
 
   it('updates chart state when bar 3 is clicked', async () => {
@@ -145,7 +145,7 @@ describe('EarningsHistoryChart', () => {
     );
     expect(chartContainer.getByText('Day 3')).toBeTruthy();
     expect(chartContainer.getByText('2.00000 ETH')).toBeTruthy();
-    expect(chart.data[2].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[2].svg.fill).toBe(mockTheme.colors.success.default);
     // end touch bar 3
     fireEvent(
       chartContainer.getByTestId('earnings-history-chart'),
@@ -156,7 +156,7 @@ describe('EarningsHistoryChart', () => {
     );
     expect(chartContainer.getByText('Day 3')).toBeTruthy();
     expect(chartContainer.getByText('2.00000 ETH')).toBeTruthy();
-    expect(chart.data[2].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[2].svg.fill).toBe(mockTheme.colors.success.default);
   });
 
   it('updates chart to initial state when selected bar is set unselected', async () => {
@@ -177,7 +177,7 @@ describe('EarningsHistoryChart', () => {
       },
     );
     // expect bar 3 to be selected and highlighted
-    expect(chart.data[2].svg.fill).toBe(lightTheme.colors.success.default);
+    expect(chart.data[2].svg.fill).toBe(mockTheme.colors.success.default);
     // click again
     fireEvent(
       chartContainer.getByTestId('earnings-history-chart'),

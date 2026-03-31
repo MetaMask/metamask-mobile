@@ -174,11 +174,6 @@ import {
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, {
-  SwapsControllerState,
-  SwapsControllerActions,
-  SwapsControllerEvents,
-} from '@metamask/swaps-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
@@ -357,10 +352,6 @@ import {
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
 import type {
-  ErrorReportingService,
-  ErrorReportingServiceActions,
-} from '@metamask/error-reporting-service';
-import type {
   StorageService,
   StorageServiceActions,
   StorageServiceEvents,
@@ -432,18 +423,28 @@ import {
   AiDigestControllerEvents,
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
+import {
+  ComplianceController,
+  ComplianceControllerActions,
+  ComplianceControllerEvents,
+  ComplianceControllerState,
+  ComplianceService,
+  ComplianceServiceActions,
+  ComplianceServiceEvents,
+} from '@metamask/compliance-controller';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Controllers that area always instantiated
  */
 type RequiredControllers = Omit<
   Controllers,
-  | 'ErrorReportingService'
   | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
+  | 'ComplianceService'
 >;
 
 /**
@@ -451,12 +452,12 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  | 'ErrorReportingService'
   | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
+  | 'ComplianceService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -483,7 +484,6 @@ type GlobalActions =
   | AccountTrackerControllerActions
   | AssetsControllerActions
   | NftControllerActions
-  | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
   | ConnectivityControllerActions
@@ -547,7 +547,6 @@ type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
-  | ErrorReportingServiceActions
   | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
@@ -557,6 +556,8 @@ type GlobalActions =
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
+  | ComplianceControllerActions
+  | ComplianceServiceActions
   | TransakServiceActions;
 
 type GlobalEvents =
@@ -566,7 +567,6 @@ type GlobalEvents =
   | AccountTrackerControllerEvents
   | AssetsControllerEvents
   | NftControllerEvents
-  | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
@@ -636,6 +636,8 @@ type GlobalEvents =
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
+  | ComplianceControllerEvents
+  | ComplianceServiceEvents
   | TransakServiceEvents;
 
 /**
@@ -651,6 +653,7 @@ export type RootExtendedMessenger = ExtendedMessenger<
 export const getRootExtendedMessenger = (): RootExtendedMessenger =>
   new ExtendedMessenger<'Root', GlobalActions, GlobalEvents>({
     namespace: 'Root',
+    captureException,
   });
 
 /**
@@ -662,6 +665,7 @@ export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
 export const getRootMessenger = (): RootMessenger =>
   new Messenger<'Root', GlobalActions, GlobalEvents>({
     namespace: 'Root',
+    captureException,
   });
 
 /**
@@ -684,7 +688,6 @@ export type Controllers = {
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
-  ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -728,7 +731,6 @@ export type Controllers = {
   ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
-  SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
@@ -758,6 +760,8 @@ export type Controllers = {
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
+  ComplianceService: ComplianceService;
+  ComplianceController: ComplianceController;
   TransakService: TransakService;
 };
 
@@ -793,7 +797,6 @@ export type EngineState = {
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
-  SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
@@ -840,6 +843,7 @@ export type EngineState = {
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
+  ComplianceController: ComplianceControllerState;
 };
 
 /** Controller names */
@@ -903,7 +907,6 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'MoneyAccountService'
   | 'EarnController'
-  | 'ErrorReportingService'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
@@ -924,7 +927,6 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
-  | 'SwapsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'
@@ -952,7 +954,9 @@ export type ControllersToInitialize =
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'AnalyticsController'
-  | 'AiDigestController';
+  | 'AiDigestController'
+  | 'ComplianceService'
+  | 'ComplianceController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

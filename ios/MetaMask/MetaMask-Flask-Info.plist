@@ -129,10 +129,14 @@
 		<string>link.metamask.io</string>
 		<string>link-test.metamask.io</string>
 		<string>metamask-alternate.app.link</string>
-		<string>metamask.test.app.link</string>
-		<string>metamask-alternate.test.app.link</string>
+		<string>metamask.test-app.link</string>
+		<string>metamask-alternate.test-app.link</string>
 	</array>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+  <key>braze_api_key</key>
+	<string>$(MM_BRAZE_API_KEY_IOS)</string>
+	<key>braze_sdk_endpoint</key>
+	<string>$(MM_BRAZE_SDK_ENDPOINT)</string>
 </dict>
 </plist>

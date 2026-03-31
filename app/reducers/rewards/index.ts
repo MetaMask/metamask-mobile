@@ -10,6 +10,9 @@ import {
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -120,9 +123,31 @@ export interface RewardsState {
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
   campaignsError: boolean;
+  campaignsHasLoaded: boolean;
 
   // Campaign participant status (keyed by campaignId)
   campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
+
+  // Version guard state
+  versionGuardMinimumMobileVersion: string | null;
+  versionGuardLoading: boolean;
+  versionGuardError: boolean;
+
+  // Campaign leaderboard (keyed by campaignId)
+  ondoCampaignLeaderboard: CampaignLeaderboardDto | null;
+  ondoCampaignLeaderboardLoading: boolean;
+  ondoCampaignLeaderboardError: boolean;
+  // Currently selected tier for leaderboard display
+  ondoCampaignLeaderboardSelectedTier: string | null;
+
+  // Campaign leaderboard position (user's position, keyed by composite key `${subscriptionId}:${campaignId}`)
+  ondoCampaignLeaderboardPositions: Record<
+    string,
+    CampaignLeaderboardPositionDto
+  >;
+
+  // Ondo GM portfolio (keyed by composite key `${subscriptionId}:${campaignId}`)
+  ondoCampaignPortfolio: Record<string, OndoGmPortfolioDto>;
 }
 
 export const initialState: RewardsState = {
@@ -189,9 +214,27 @@ export const initialState: RewardsState = {
   campaigns: [],
   campaignsLoading: false,
   campaignsError: false,
+  campaignsHasLoaded: false,
 
   // Campaign participant statuses initial state
   campaignParticipantStatuses: {},
+
+  // Version guard initial state
+  versionGuardMinimumMobileVersion: null,
+  versionGuardLoading: false,
+  versionGuardError: false,
+
+  // Campaign leaderboard initial state
+  ondoCampaignLeaderboard: null,
+  ondoCampaignLeaderboardLoading: false,
+  ondoCampaignLeaderboardError: false,
+  ondoCampaignLeaderboardSelectedTier: null,
+
+  // Campaign leaderboard position initial state
+  ondoCampaignLeaderboardPositions: {},
+
+  // Ondo GM portfolio initial state
+  ondoCampaignPortfolio: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -298,6 +341,11 @@ const rewardsSlice = createSlice({
 
     resetRewardsState: (state) => {
       Object.assign(state, initialState);
+      // Explicitly clear leaderboard state (also covered by initialState above)
+      state.ondoCampaignLeaderboard = null;
+      state.ondoCampaignLeaderboardSelectedTier = null;
+      state.ondoCampaignLeaderboardPositions = {};
+      state.ondoCampaignPortfolio = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -334,27 +382,24 @@ const rewardsSlice = createSlice({
         hasValidPreviousId && previousCandidateId !== newCandidateId;
 
       if (candidateIdChanged) {
-        // Reset UI state to initial values
-        state.seasonId = initialState.seasonId;
-        state.seasonName = initialState.seasonName;
-        state.seasonStartDate = initialState.seasonStartDate;
-        state.seasonEndDate = initialState.seasonEndDate;
-        state.seasonTiers = initialState.seasonTiers;
-        state.seasonActivityTypes = initialState.seasonActivityTypes;
-        state.seasonWaysToEarn = initialState.seasonWaysToEarn;
-        state.referralCode = initialState.referralCode;
-        state.refereeCount = initialState.refereeCount;
-        state.currentTier = initialState.currentTier;
-        state.nextTier = initialState.nextTier;
-        state.nextTierPointsNeeded = initialState.nextTierPointsNeeded;
-        state.balanceTotal = initialState.balanceTotal;
-        state.balanceRefereePortion = initialState.balanceRefereePortion;
-        state.balanceUpdatedAt = initialState.balanceUpdatedAt;
-        state.seasonShouldInstallNewVersion =
-          initialState.seasonShouldInstallNewVersion;
-        state.activeBoosts = initialState.activeBoosts;
-        state.pointsEvents = initialState.pointsEvents;
-        state.unlockedRewards = initialState.unlockedRewards;
+        // Reset all state to initial, preserving only non-subscription-scoped fields
+        Object.assign(state, initialState, {
+          activeTab: state.activeTab,
+          onboardingActiveStep: state.onboardingActiveStep,
+          onboardingReferralCode: state.onboardingReferralCode,
+          geoLocation: state.geoLocation,
+          optinAllowedForGeo: state.optinAllowedForGeo,
+          optinAllowedForGeoLoading: state.optinAllowedForGeoLoading,
+          optinAllowedForGeoError: state.optinAllowedForGeoError,
+          hideCurrentAccountNotOptedInBanner:
+            state.hideCurrentAccountNotOptedInBanner,
+          hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
+          bulkLink: state.bulkLink,
+          versionGuardMinimumMobileVersion:
+            state.versionGuardMinimumMobileVersion,
+          versionGuardLoading: state.versionGuardLoading,
+          versionGuardError: state.versionGuardError,
+        });
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -448,6 +493,7 @@ const rewardsSlice = createSlice({
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
       state.campaigns = action.payload;
       state.campaignsError = false;
+      state.campaignsHasLoaded = true;
     },
     setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
       if (action.payload && state.campaigns.length) {
@@ -457,6 +503,9 @@ const rewardsSlice = createSlice({
     },
     setCampaignsError: (state, action: PayloadAction<boolean>) => {
       state.campaignsError = action.payload;
+      if (action.payload) {
+        state.campaignsHasLoaded = true;
+      }
     },
 
     setCampaignParticipantStatus: (
@@ -468,6 +517,95 @@ const rewardsSlice = createSlice({
     ) => {
       state.campaignParticipantStatuses[action.payload.campaignId] =
         action.payload.status;
+    },
+
+    // Version guard reducers
+    setVersionGuardMinimumMobileVersion: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.versionGuardMinimumMobileVersion = action.payload;
+    },
+    setVersionGuardLoading: (state, action: PayloadAction<boolean>) => {
+      state.versionGuardLoading = action.payload;
+    },
+    setVersionGuardError: (state, action: PayloadAction<boolean>) => {
+      state.versionGuardError = action.payload;
+    },
+
+    // Campaign leaderboard reducers
+    setOndoCampaignLeaderboard: (
+      state,
+      action: PayloadAction<CampaignLeaderboardDto | null>,
+    ) => {
+      state.ondoCampaignLeaderboard = action.payload;
+      state.ondoCampaignLeaderboardError = false;
+      // Set the first tier as selected if not already set, or if the current
+      // selection no longer exists in the incoming data (e.g. different campaign)
+      if (action.payload) {
+        const tierNames = Object.keys(action.payload.tiers);
+        if (
+          tierNames.length > 0 &&
+          (!state.ondoCampaignLeaderboardSelectedTier ||
+            !tierNames.includes(state.ondoCampaignLeaderboardSelectedTier))
+        ) {
+          state.ondoCampaignLeaderboardSelectedTier = tierNames[0];
+        }
+      }
+    },
+    setOndoCampaignLeaderboardLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.ondoCampaignLeaderboard) {
+        return;
+      }
+      state.ondoCampaignLeaderboardLoading = action.payload;
+    },
+    setOndoCampaignLeaderboardError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.ondoCampaignLeaderboardError = action.payload;
+    },
+    setOndoCampaignLeaderboardSelectedTier: (
+      state,
+      action: PayloadAction<string>,
+    ) => {
+      state.ondoCampaignLeaderboardSelectedTier = action.payload;
+    },
+
+    // Campaign leaderboard position reducers
+    setOndoCampaignLeaderboardPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        position: CampaignLeaderboardPositionDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.position) {
+        state.ondoCampaignLeaderboardPositions[key] = action.payload.position;
+      } else {
+        delete state.ondoCampaignLeaderboardPositions[key];
+      }
+    },
+
+    setOndoCampaignPortfolioPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        portfolio: OndoGmPortfolioDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.portfolio) {
+        state.ondoCampaignPortfolio[key] = action.payload.portfolio;
+      } else {
+        delete state.ondoCampaignPortfolio[key];
+      }
     },
 
     // Bulk link reducers
@@ -538,62 +676,73 @@ const rewardsSlice = createSlice({
         state.bulkLink.isRunning = false;
         state.bulkLink.wasInterrupted = false;
       })
-      .addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
-        if (action.payload?.rewards) {
-          // Detect if bulk link was interrupted (app closed while running)
-          const previousBulkLink = action.payload.rewards.bulkLink;
-          const wasInterrupted = previousBulkLink?.isRunning === true;
+      .addCase(
+        'persist/REHYDRATE',
+        (state, action: RehydrateAction): RewardsState | void => {
+          if (action.payload?.rewards) {
+            // Detect if bulk link was interrupted (app closed while running)
+            const previousBulkLink = action.payload.rewards.bulkLink;
+            const wasInterrupted = previousBulkLink?.isRunning === true;
 
-          return {
-            // Reset non-persistent state (state is persisted via controller)
-            ...initialState,
+            return {
+              // Reset non-persistent state (state is persisted via controller)
+              ...initialState,
 
-            // UI state we want to restore from previous visit
-            seasonId: action.payload.rewards.seasonId,
-            seasonName: action.payload.rewards.seasonName,
-            seasonStartDate: action.payload.rewards.seasonStartDate,
-            seasonEndDate: action.payload.rewards.seasonEndDate,
-            seasonTiers: action.payload.rewards.seasonTiers,
-            seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
-            seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
-            seasonShouldInstallNewVersion:
-              action.payload.rewards.seasonShouldInstallNewVersion,
-            referralCode: action.payload.rewards.referralCode,
-            refereeCount: action.payload.rewards.refereeCount,
-            currentTier: action.payload.rewards.currentTier,
-            nextTier: action.payload.rewards.nextTier,
-            nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
-            balanceTotal: action.payload.rewards.balanceTotal,
-            balanceRefereePortion: action.payload.rewards.balanceRefereePortion,
-            balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
-            activeBoosts: action.payload.rewards.activeBoosts,
-            pointsEvents: action.payload.rewards.pointsEvents,
-            unlockedRewards: action.payload.rewards.unlockedRewards,
-            hideUnlinkedAccountsBanner:
-              action.payload.rewards.hideUnlinkedAccountsBanner,
-            hideCurrentAccountNotOptedInBanner:
-              action.payload.rewards.hideCurrentAccountNotOptedInBanner,
+              // UI state we want to restore from previous visit
+              seasonId: action.payload.rewards.seasonId,
+              seasonName: action.payload.rewards.seasonName,
+              seasonStartDate: action.payload.rewards.seasonStartDate,
+              seasonEndDate: action.payload.rewards.seasonEndDate,
+              seasonTiers: action.payload.rewards.seasonTiers,
+              seasonActivityTypes: action.payload.rewards.seasonActivityTypes,
+              seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn,
+              seasonShouldInstallNewVersion:
+                action.payload.rewards.seasonShouldInstallNewVersion,
+              referralCode: action.payload.rewards.referralCode,
+              refereeCount: action.payload.rewards.refereeCount,
+              currentTier: action.payload.rewards.currentTier,
+              nextTier: action.payload.rewards.nextTier,
+              nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
+              balanceTotal: action.payload.rewards.balanceTotal,
+              balanceRefereePortion:
+                action.payload.rewards.balanceRefereePortion,
+              balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
+              activeBoosts: action.payload.rewards.activeBoosts,
+              pointsEvents: action.payload.rewards.pointsEvents,
+              unlockedRewards: action.payload.rewards.unlockedRewards,
+              campaigns: action.payload.rewards.campaigns,
+              campaignParticipantStatuses:
+                action.payload.rewards.campaignParticipantStatuses ?? {},
+              ondoCampaignLeaderboardPositions:
+                action.payload.rewards.ondoCampaignLeaderboardPositions ?? {},
+              ondoCampaignPortfolio:
+                action.payload.rewards.ondoCampaignPortfolio ?? {},
+              hideUnlinkedAccountsBanner:
+                action.payload.rewards.hideUnlinkedAccountsBanner,
+              hideCurrentAccountNotOptedInBanner:
+                action.payload.rewards.hideCurrentAccountNotOptedInBanner,
 
-            // Bulk link state - preserve interrupted status for resume capability
-            bulkLink: {
-              ...initialState.bulkLink,
-              wasInterrupted,
-              // Preserve previous progress for UI display (how many were done before interruption)
-              linkedAccounts: wasInterrupted
-                ? (previousBulkLink?.linkedAccounts ?? 0)
-                : 0,
-              failedAccounts: wasInterrupted
-                ? (previousBulkLink?.failedAccounts ?? 0)
-                : 0,
-              // Preserve subscription ID for resume validation
-              initialSubscriptionId: wasInterrupted
-                ? (previousBulkLink?.initialSubscriptionId ?? null)
-                : null,
-            },
-          };
-        }
-        return state;
-      });
+              // Bulk link state - preserve interrupted status for resume capability
+              bulkLink: {
+                ...initialState.bulkLink,
+                wasInterrupted,
+                // Preserve previous progress for UI display (how many were done before interruption)
+                linkedAccounts: wasInterrupted
+                  ? (previousBulkLink?.linkedAccounts ?? 0)
+                  : 0,
+                failedAccounts: wasInterrupted
+                  ? (previousBulkLink?.failedAccounts ?? 0)
+                  : 0,
+                // Preserve subscription ID for resume validation
+                initialSubscriptionId: wasInterrupted
+                  ? (previousBulkLink?.initialSubscriptionId ?? null)
+                  : null,
+              },
+            } as RewardsState;
+          }
+          return state as unknown as RewardsState;
+        },
+      );
   },
 });
 
@@ -627,6 +776,17 @@ export const {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  // Version guard actions
+  setVersionGuardMinimumMobileVersion,
+  setVersionGuardLoading,
+  setVersionGuardError,
+  // Campaign leaderboard actions
+  setOndoCampaignLeaderboard,
+  setOndoCampaignLeaderboardLoading,
+  setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardSelectedTier,
+  setOndoCampaignLeaderboardPosition,
+  setOndoCampaignPortfolioPosition,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

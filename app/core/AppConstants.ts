@@ -1,6 +1,6 @@
+import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
-import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 
 const DEVELOPMENT = 'development';
 
@@ -16,7 +16,7 @@ export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'Google',
+  DEFAULT_SEARCH_ENGINE: 'Brave',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
@@ -96,6 +96,8 @@ export default {
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_UNIVERSAL_LINK_HOST_ALTERNATE: 'metamask-alternate.app.link',
+  MM_UNIVERSAL_LINK_TEST_APP_HOST: 'metamask.test-app.link',
+  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE: 'metamask-alternate.test-app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -214,8 +216,7 @@ export default {
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
   DIGEST_API_URL:
-    process.env.DIGEST_API_URL ||
-    'https://digest.dev-api.cx.metamask.io/api/v1',
+    process.env.DIGEST_API_URL || 'https://digest.api.cx.metamask.io/api/v1',
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',

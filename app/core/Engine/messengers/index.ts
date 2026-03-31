@@ -122,13 +122,11 @@ import {
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import { getSwapsControllerMessenger } from './swaps-controller-messenger';
 import {
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
@@ -156,6 +154,11 @@ import { getProfileMetricsServiceMessenger } from './profile-metrics-service-mes
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
+import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
+import {
+  getComplianceControllerMessenger,
+  getComplianceControllerInitMessenger,
+} from './compliance/compliance-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -203,10 +206,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ErrorReportingService: {
-    getMessenger: getErrorReportingServiceMessenger,
     getInitMessenger: noop,
   },
   LoggingController: {
@@ -371,10 +370,6 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
   },
-  SwapsController: {
-    getMessenger: getSwapsControllerMessenger,
-    getInitMessenger: noop,
-  },
   NetworkEnablementController: {
     getMessenger: getNetworkEnablementControllerMessenger,
     getInitMessenger: noop,
@@ -482,5 +477,13 @@ export const CONTROLLER_MESSENGERS = {
   CardController: {
     getMessenger: getCardControllerMessenger,
     getInitMessenger: noop,
+  },
+  ComplianceService: {
+    getMessenger: getComplianceServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ComplianceController: {
+    getMessenger: getComplianceControllerMessenger,
+    getInitMessenger: getComplianceControllerInitMessenger,
   },
 } as const;

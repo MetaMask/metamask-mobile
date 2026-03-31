@@ -2,9 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -15,11 +19,6 @@ import DepositTextField from '../../Deposit/components/DepositTextField';
 import { useForm } from '../../Deposit/hooks/useForm';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
 import Logger from '../../../../../util/Logger';
@@ -228,7 +227,7 @@ const V2EnterAddress = (): JSX.Element => {
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.textContainer}>
-              <Text variant={TextVariant.HeadingLG}>
+              <Text variant={TextVariant.HeadingLg}>
                 {strings('deposit.enter_address.title')}
               </Text>
               <Text style={styles.subtitle}>
@@ -356,13 +355,14 @@ const V2EnterAddress = (): JSX.Element => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleOnPressContinue}
-              label={strings('deposit.enter_address.continue')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
+              variant={ButtonVariant.Primary}
+              isFullWidth
               isDisabled={loading || !!error}
-              loading={loading}
+              isLoading={loading}
               testID={ENTER_ADDRESS_TEST_IDS.CONTINUE_BUTTON}
-            />
+            >
+              {strings('deposit.enter_address.continue')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

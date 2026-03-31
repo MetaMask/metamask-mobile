@@ -6,7 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { Linking, Animated, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useFocusEffect,
+  useIsFocused,
+} from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -16,18 +20,17 @@ import {
   getWidgetRedirectConfig,
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
-import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import {
+  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -39,6 +42,7 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
+import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -92,9 +96,21 @@ export function isBailedOrderStatus(
   return status != null && BAILED_ORDER_STATUSES.has(status);
 }
 
+/**
+ * Identifies which flow the user used to enter the Buy screen.
+ * - 'tokenInfo': Home → Tokens → Token Info → Buy
+ * - 'homeTokenList': Home → (token list with Buy buttons) → Buy
+ * - undefined: Home → Buy → Token Selection → BuildQuote (standard flow)
+ */
+export type BuyFlowOrigin = 'tokenInfo' | 'homeTokenList';
+
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
+  /** Which flow the user used to enter the Buy screen. */
+  buyFlowOrigin?: BuyFlowOrigin;
+  /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
+  amount?: number;
 }
 
 /**
@@ -129,17 +145,22 @@ const DEFAULT_AMOUNT = 100;
 
 function BuildQuote() {
   const navigation = useNavigation();
+  const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
   const cursorOpacity = useBlinkingCursor();
 
-  const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
-  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const params = useParams<BuildQuoteParams>();
+  const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
+
+  const [amount, setAmount] = useState<string>(() => String(initialAmount));
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(initialAmount);
+  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(
+    params?.amount != null,
+  );
   const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
   const [rampsError, setRampsError] = useState<string | null>(null);
-  const params = useParams<BuildQuoteParams>();
 
   useEffect(() => {
     if (params?.nativeFlowError) {
@@ -152,11 +173,12 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
+    paymentMethods,
     getBuyWidgetData,
     addPrecreatedOrder,
-    addOrder,
-    getOrderFromCallback,
     paymentMethodsLoading,
+    paymentMethodsFetching,
+    paymentMethodsStatus,
     selectedPaymentMethod,
   } = useRampsController();
 
@@ -174,33 +196,100 @@ function BuildQuote() {
     }
   }, [selectedProvider]);
 
-  const isTokenUnavailable = useMemo(
-    () =>
-      !!(
-        selectedProvider &&
-        params?.assetId &&
-        selectedProvider.supportedCryptoCurrencies &&
-        !selectedProvider.supportedCryptoCurrencies[params.assetId]
-      ),
-    [selectedProvider, params?.assetId],
+  const tokenStateIsSettled =
+    !params?.assetId || selectedToken?.assetId === params.assetId;
+
+  // Controller state is the source of truth for the active token;
+  // route params are only used as bootstrapping input.
+  const effectiveAssetId = selectedToken?.assetId ?? params?.assetId;
+
+  const isTokenUnavailable = useMemo(() => {
+    if (!selectedProvider || !effectiveAssetId) {
+      return false;
+    }
+
+    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
+      return true;
+    }
+
+    // Only determine unavailability after payment methods have fully settled.
+    // This prevents the modal from flashing during loading/idle/error states
+    // (e.g. after a provider change while the new query is still in flight).
+    // Also wait for background refetches to complete — react-query may return
+    // stale cached data (status='success') while refetching for a new provider.
+    if (paymentMethodsStatus !== 'success' || paymentMethodsFetching) {
+      return false;
+    }
+
+    // If payment methods returned results, token IS available
+    // (payment methods API is more authoritative than supportedCryptoCurrencies)
+    if (paymentMethods.length > 0) {
+      return false;
+    }
+
+    // Payment methods loaded but empty
+    if (tokenStateIsSettled) {
+      return true;
+    }
+
+    return false;
+  }, [
+    selectedProvider,
+    effectiveAssetId,
+    paymentMethodsFetching,
+    tokenStateIsSettled,
+    paymentMethodsStatus,
+    paymentMethods.length,
+  ]);
+
+  // Tracks which provider:token combination was last shown the modal,
+  // so we don't duplicate-navigate within the same visit but DO re-show
+  // when the combination changes.
+  const lastShownUnavailableKeyRef = useRef<string>('');
+
+  // Bump a counter on screen focus so the modal effect re-evaluates
+  // when the user navigates away (e.g. token selection) and comes back.
+  const [focusTrigger, setFocusTrigger] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      lastShownUnavailableKeyRef.current = '';
+      setFocusTrigger((c) => c + 1);
+    }, []),
   );
 
-  /*
-   * Shows the "token not available modal" if the token is not available for the selected provider.
-   */
-  const hasShownTokenUnavailableRef = useRef(false);
+  // Show "Token Not Available" modal when the selected token is unavailable
+  // for the current provider. Debounced to let the query settle — prevents
+  // the modal from flashing when isTokenUnavailable is briefly true due to
+  // stale cached data before the fresh response arrives.
   useEffect(() => {
-    if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
-      hasShownTokenUnavailableRef.current = true;
+    if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
+      lastShownUnavailableKeyRef.current = '';
+      return;
+    }
+
+    const key = `${selectedProvider?.id}:${effectiveAssetId}`;
+    if (lastShownUnavailableKeyRef.current === key) return;
+
+    const timer = setTimeout(() => {
+      lastShownUnavailableKeyRef.current = key;
       navigation.navigate(
         ...createTokenNotAvailableModalNavigationDetails({
-          assetId: params?.assetId ?? '',
+          assetId: effectiveAssetId ?? '',
+          buyFlowOrigin: params?.buyFlowOrigin,
         }),
       );
-    } else if (!isTokenUnavailable) {
-      hasShownTokenUnavailableRef.current = false;
-    }
-  }, [isTokenUnavailable, params?.assetId, navigation]);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [
+    isOnBuildQuoteScreen,
+    params?.buyFlowOrigin,
+    isTokenUnavailable,
+    effectiveAssetId,
+    navigation,
+    selectedProvider?.id,
+    focusTrigger,
+  ]);
 
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -223,6 +312,13 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+
+  const amountDisplayString = useMemo(
+    () => `${currencyPrefix}${amount}${currencySuffix}`,
+    [currencyPrefix, currencySuffix, amount],
+  );
+  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
+  const amountLineHeight = amountFontSize + 10;
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -270,6 +366,7 @@ function BuildQuote() {
     selectedPaymentMethod &&
     selectedProvider &&
     selectedToken?.assetId &&
+    tokenStateIsSettled &&
     debouncedPollingAmount > 0
   );
 
@@ -484,7 +581,7 @@ function BuildQuote() {
         if (!quote) {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
-        await transakRouteAfterAuth(quote);
+        await transakRouteAfterAuth(quote, amountAsNumber);
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({
@@ -588,36 +685,17 @@ function BuildQuote() {
             return;
           }
 
-          try {
-            const order = await getOrderFromCallback(
-              providerCode,
-              result.url,
-              effectiveWallet,
-            );
-
-            if (!order || isBailedOrderStatus(order.status)) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            addOrder(order);
-
-            const rawOrderId = order.providerOrderId ?? effectiveOrderId;
-            if (!rawOrderId) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            const orderCode = extractOrderCode(rawOrderId);
-            navigateAfterExternalBrowser({
-              returnDestination: 'order',
-              orderCode,
-              providerCode,
-              walletAddress: effectiveWallet || undefined,
-            });
-          } catch {
+          if (!effectiveWallet) {
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+            return;
           }
+
+          navigateAfterExternalBrowser({
+            returnDestination: 'order',
+            callbackUrl: result.url,
+            providerCode,
+            walletAddress: effectiveWallet,
+          });
         } finally {
           InAppBrowser.closeAuth();
         }
@@ -662,8 +740,6 @@ function BuildQuote() {
     navigation,
     getBuyWidgetData,
     addPrecreatedOrder,
-    getOrderFromCallback,
-    addOrder,
     navigateAfterExternalBrowser,
   ]);
 
@@ -761,31 +837,38 @@ function BuildQuote() {
                 <View style={styles.amountRow}>
                   <Text
                     testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                    variant={TextVariant.HeadingLG}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Regular}
                     color={
                       rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.Error
+                        ? TextColor.ErrorDefault
                         : undefined
                     }
-                    style={styles.mainAmount}
+                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
                     {currencyPrefix}
                     {amount}
                   </Text>
                   <Animated.View
-                    style={[styles.cursor, { opacity: cursorOpacity }]}
+                    style={[
+                      styles.cursor,
+                      {
+                        height: Math.max(amountLineHeight - 4, 16),
+                        opacity: cursorOpacity,
+                      },
+                    ]}
                   />
                   {currencySuffix ? (
                     <Text
-                      variant={TextVariant.HeadingLG}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Regular}
                       color={
                         rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.Error
+                          ? TextColor.ErrorDefault
                           : undefined
                       }
-                      style={styles.mainAmount}
+                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     >
                       {currencySuffix}
                     </Text>
@@ -797,7 +880,9 @@ function BuildQuote() {
                     strings('fiat_on_ramp.select_payment_method')
                   }
                   isLoading={paymentMethodsLoading}
-                  onPress={handlePaymentPillPress}
+                  onPress={
+                    isTokenUnavailable ? undefined : handlePaymentPillPress
+                  }
                   testID="build-quote-payment-pill"
                 />
               </View>
@@ -836,7 +921,7 @@ function BuildQuote() {
                   ) : (
                     selectedProvider && (
                       <Text
-                        variant={TextVariant.BodySM}
+                        variant={TextVariant.BodySm}
                         style={styles.poweredByText}
                       >
                         {strings('fiat_on_ramp.powered_by_provider', {

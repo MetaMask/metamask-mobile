@@ -61,6 +61,8 @@ const defaultMockController: UseRampsControllerResult = {
   setSelectedPaymentMethod: jest.fn(),
   paymentMethodsLoading: false,
   paymentMethodsError: null,
+  paymentMethodsFetching: false,
+  paymentMethodsStatus: 'idle' as const,
   getQuotes: jest.fn(),
   getBuyWidgetData: jest.fn(),
   orders: [],
@@ -409,6 +411,61 @@ describe('ProviderSelection', () => {
     await waitFor(() => {
       expect(getByText('Best rate')).toBeOnTheScreen();
     });
+  });
+
+  it('separates providers by supportedCryptoCurrencies when quotes are not available', () => {
+    const musdAssetId = 'eip155:1/erc20:0xmusd';
+    if (!mockSelectedToken) {
+      throw new Error('Expected mockSelectedToken to be defined');
+    }
+    const supportedProvider: Provider = {
+      ...transakProvider,
+      id: '/providers/supported',
+      name: 'SupportedProvider',
+      supportedCryptoCurrencies: {
+        [musdAssetId]: true,
+      },
+    };
+    const unsupportedProvider: Provider = {
+      ...transakProvider,
+      id: '/providers/unsupported',
+      name: 'UnsupportedProvider',
+      supportedCryptoCurrencies: {
+        'eip155:1/slip44:60': true,
+      },
+    };
+
+    const allProviders = [supportedProvider, unsupportedProvider];
+
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: {
+        ...mockSelectedToken,
+        assetId: musdAssetId,
+      },
+      providers: allProviders,
+      selectedProvider: null,
+    });
+
+    const { getByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={null}
+          quotesLoading={false}
+          quotesError={null}
+          showQuotes={false}
+          onProviderSelect={jest.fn()}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByText('SupportedProvider')).toBeOnTheScreen();
+    expect(getByText('UnsupportedProvider')).toBeOnTheScreen();
+    expect(getByText('Other options')).toBeOnTheScreen();
   });
 
   it('shows Previously used tag when provider is in ordersProviders', async () => {

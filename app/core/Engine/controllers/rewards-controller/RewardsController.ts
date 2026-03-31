@@ -23,6 +23,10 @@ import {
   type RewardDto,
   type CampaignDto,
   type CampaignParticipantStatusDto,
+  type CampaignLeaderboardDto,
+  type CampaignLeaderboardPositionDto,
+  type OndoGmPortfolioDto,
+  type OndoGmPortfolioState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -33,7 +37,11 @@ import {
   type SeasonStateDto,
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
+  type ClientVersionRequirementDto,
+  type CampaignState,
+  type CampaignDtoState,
   BASE32_REGEX,
+  CampaignType,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -98,9 +106,19 @@ const OFF_DEVICE_SUBSCRIPTION_ACCOUNTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 
 
 // Campaigns cache threshold
 const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const CAMPAIGNS_CACHE_KEY = 'CAMPAIGNS_CACHE_KEY';
 
 // Campaign participant status cache threshold
 const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign leaderboard cache threshold (hourly job updates, but we cache for 5 min)
+const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign leaderboard position cache threshold
+const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign portfolio position cache threshold
+const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -187,6 +205,24 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  ondoCampaignLeaderboard: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  ondoCampaignLeaderboardPositions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  ondoCampaignPortfolio: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -217,6 +253,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
+  ondoCampaignLeaderboard: {},
+  ondoCampaignLeaderboardPositions: {},
+  ondoCampaignPortfolio: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -310,10 +349,10 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
@@ -466,14 +505,12 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isCampaignsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -488,7 +525,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -599,6 +635,18 @@ export class RewardsController extends BaseController<
       this.getCampaignParticipantStatus.bind(this),
     );
     this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignLeaderboard',
+      this.getOndoCampaignLeaderboard.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignLeaderboardPosition',
+      this.getOndoCampaignLeaderboardPosition.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignPortfolioPosition',
+      this.getOndoCampaignPortfolioPosition.bind(this),
+    );
+    this.messenger.registerActionHandler(
       'RewardsController:claimReward',
       this.claimReward.bind(this),
     );
@@ -645,6 +693,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyBonusCode',
       this.applyBonusCode.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getClientVersionRequirements',
+      this.getClientVersionRequirements.bind(this),
     );
   }
 
@@ -2633,6 +2685,22 @@ export class RewardsController extends BaseController<
           delete state.accounts[state.activeAccount.account];
           state.activeAccount = null;
         }
+        // Clear all cached data keyed by this subscription ID
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
+        Object.keys(state.ondoCampaignPortfolio).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignPortfolio[key];
+          }
+        });
       });
 
       Logger.log('RewardsController: Logout completed successfully');
@@ -3384,21 +3452,20 @@ export class RewardsController extends BaseController<
     if (!rewardsEnabled) {
       return [];
     }
-    if (!this.#isCampaignsEnabled()) {
-      return [];
-    }
-    const result = await wrapWithCache<CampaignDto[]>({
-      key: subscriptionId,
+
+    return wrapWithCache<CampaignDto[]>({
+      key: CAMPAIGNS_CACHE_KEY,
       ttl: CAMPAIGNS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
-        const cachedCampaigns = this.state.campaigns[key] || undefined;
-        if (!cachedCampaigns) return;
-        return {
-          payload: cachedCampaigns.campaigns,
-          lastFetched: cachedCampaigns.lastFetched,
-        };
+        const cached = this.state.campaigns[key];
+        return cached
+          ? {
+              payload: cached.campaigns as CampaignDto[],
+              lastFetched: cached.lastFetched,
+            }
+          : undefined;
       },
-      fetchFresh: async () =>
+      fetchFresh: () =>
         this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh campaigns data via API call',
@@ -3409,19 +3476,14 @@ export class RewardsController extends BaseController<
           )) as CampaignDto[];
           return response || [];
         }, subscriptionId),
-      writeCache: (key: string, payload: CampaignDto[]) => {
-        this.#writeCampaignsCache(key, payload);
+      writeCache: (key, campaigns) => {
+        this.update((state) => {
+          (state.campaigns as Record<string, unknown>)[key] = {
+            campaigns: campaigns as CampaignDtoState[],
+            lastFetched: Date.now(),
+          } as CampaignState;
+        });
       },
-    });
-
-    return result;
-  }
-
-  #writeCampaignsCache(key: string, campaigns: CampaignDto[]): void {
-    const cacheEntry = { campaigns, lastFetched: Date.now() };
-    this.update((state) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (state.campaigns as Record<string, unknown>)[key] = cacheEntry as any;
     });
   }
 
@@ -3435,7 +3497,7 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+    if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;
@@ -3449,13 +3511,31 @@ export class RewardsController extends BaseController<
         campaignId,
       )) as CampaignParticipantStatusDto;
     }, subscriptionId);
-    // Invalidate the participant status cache so the next fetch gets fresh data
+    // Invalidate the participant status cache and leaderboard / portfolio cache
     this.update((state) => {
       delete state.campaignParticipantStatus[key];
+      delete state.ondoCampaignLeaderboardPositions[key];
+      delete (
+        state.ondoCampaignPortfolio as Record<
+          string,
+          OndoGmPortfolioState | undefined
+        >
+      )[key];
     });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
     if (!wasAlreadyOptedIn) {
       this.messenger.publish('RewardsController:campaignOptedIn', {
+        campaignId,
+        subscriptionId,
+      });
+      this.messenger.publish(
+        'RewardsController:leaderboardPositionInvalidated',
+        {
+          campaignId,
+          subscriptionId,
+        },
+      );
+      this.messenger.publish('RewardsController:portfolioPositionInvalidated', {
         campaignId,
         subscriptionId,
       });
@@ -3473,7 +3553,7 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+    if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;
@@ -3507,6 +3587,209 @@ export class RewardsController extends BaseController<
           state.campaignParticipantStatus[k] = {
             optedIn: payload.optedIn,
             participantCount: payload.participantCount,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the campaign leaderboard showing top 20 participants per tier.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard data grouped by tier.
+   */
+  async getOndoCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { campaignId, computedAt: '', tiers: {} };
+    }
+
+    const result = await wrapWithCache<CampaignLeaderboardDto>({
+      key: campaignId,
+      ttl: ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignLeaderboard[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            campaignId: cached.campaignId,
+            computedAt: cached.computedAt,
+            tiers: cached.tiers,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh campaign leaderboard via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getOndoCampaignLeaderboard',
+          campaignId,
+        )) as CampaignLeaderboardDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignLeaderboard[k] = {
+            campaignId: payload.campaignId,
+            computedAt: payload.computedAt,
+            tiers: payload.tiers,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's position on the campaign leaderboard.
+   * This is an authenticated endpoint.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found.
+   */
+  async getOndoCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardPositionDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<CampaignLeaderboardPositionDto | null>({
+      key,
+      ttl: ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignLeaderboardPositions[k];
+        if (!cached) return undefined;
+        if ('notFound' in cached) {
+          return { payload: null, lastFetched: cached.lastFetched };
+        }
+        return {
+          payload: {
+            projectedTier: cached.projectedTier,
+            rank: cached.rank,
+            totalInTier: cached.totalInTier,
+            rateOfReturn: cached.rateOfReturn,
+            currentUsdValue: cached.currentUsdValue,
+            totalUsdDeposited: cached.totalUsdDeposited,
+            netDeposit: cached.netDeposit,
+            computedAt: cached.computedAt,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign leaderboard position via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getOndoCampaignLeaderboardPosition',
+            campaignId,
+            subscriptionId,
+          )) as CampaignLeaderboardPositionDto | null;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        if (payload === null) {
+          this.update((state) => {
+            state.ondoCampaignLeaderboardPositions[k] = {
+              notFound: true,
+              lastFetched: Date.now(),
+            };
+          });
+        } else {
+          this.update((state) => {
+            state.ondoCampaignLeaderboardPositions[k] = {
+              projectedTier: payload.projectedTier,
+              rank: payload.rank,
+              totalInTier: payload.totalInTier,
+              rateOfReturn: payload.rateOfReturn,
+              currentUsdValue: payload.currentUsdValue,
+              totalUsdDeposited: payload.totalUsdDeposited,
+              netDeposit: payload.netDeposit,
+              computedAt: payload.computedAt,
+              lastFetched: Date.now(),
+            };
+          });
+        }
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's Ondo GM portfolio for a campaign.
+   * This is an authenticated endpoint.
+   * Results are cached for 5 minutes under
+   * `state.ondoCampaignPortfolio[subscriptionId:campaignId]` as
+   * {@link OndoGmPortfolioState}. Null API responses are not written to the cache.
+   * @param campaignId - The campaign ID to get portfolio for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The portfolio, or null if not found.
+   */
+  async getOndoCampaignPortfolioPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmPortfolioDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<OndoGmPortfolioDto | null>({
+      key,
+      ttl: ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignPortfolio[k];
+        if (!cached) {
+          return undefined;
+        }
+        return {
+          payload: {
+            positions: cached.positions,
+            summary: cached.summary,
+            computedAt: cached.computedAt,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign portfolio via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getOndoCampaignPortfolioPosition',
+            campaignId,
+            subscriptionId,
+          )) as OndoGmPortfolioDto | null;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        if (payload === null) {
+          this.update((state) => {
+            delete (
+              state.ondoCampaignPortfolio as Record<
+                string,
+                OndoGmPortfolioState | undefined
+              >
+            )[k];
+          });
+          return;
+        }
+        this.update((state) => {
+          state.ondoCampaignPortfolio[k] = {
+            positions: payload.positions,
+            summary: payload.summary,
+            computedAt: payload.computedAt,
             lastFetched: Date.now(),
           };
         });
@@ -3683,6 +3966,25 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Fetch the minimum client version requirements from the public API.
+   * Cached in memory for the controller's lifetime (one fetch per app session).
+   * This is a public (unauthenticated) endpoint that does not require
+   * the rewards feature to be enabled.
+   */
+  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
+    if (this.#clientVersionRequirements) {
+      return this.#clientVersionRequirements;
+    }
+
+    const result = (await this.messenger.call(
+      'RewardsDataService:getClientVersionRequirements',
+    )) as ClientVersionRequirementDto;
+
+    this.#clientVersionRequirements = result;
+    return result;
+  }
+
+  /**
    * Invalidate referral details cache for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    */
@@ -3719,6 +4021,25 @@ export class RewardsController extends BaseController<
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
         delete state.subscriptionReferralDetails[compositeKey];
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
+        const portfolioByKeySeason = state.ondoCampaignPortfolio as Record<
+          string,
+          OndoGmPortfolioState | undefined
+        >;
+        Object.keys(portfolioByKeySeason).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete portfolioByKeySeason[key];
+          }
+        });
       });
     } else {
       // Invalidate all seasons for this subscription
@@ -3755,6 +4076,25 @@ export class RewardsController extends BaseController<
             OffDeviceSubscriptionAccountsState
           >
         )[subscriptionId];
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
+        const portfolioByKeyAllSeasons = state.ondoCampaignPortfolio as Record<
+          string,
+          OndoGmPortfolioState | undefined
+        >;
+        Object.keys(portfolioByKeyAllSeasons).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete portfolioByKeyAllSeasons[key];
+          }
+        });
       });
     }
 
