@@ -4,7 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import MenuItem from './MenuItem';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 const createTestProps = (overrides = {}) => ({
   iconName: IconName.Add,

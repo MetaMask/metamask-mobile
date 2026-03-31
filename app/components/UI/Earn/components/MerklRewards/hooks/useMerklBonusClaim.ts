@@ -21,6 +21,8 @@ export interface MerklClaimData {
   claimableReward: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
+  /** Set when the last claim attempt failed (e.g. no reward data, network). */
+  error: string | null;
   claimRewards: () => Promise<
     | {
         txHash: string;
@@ -34,6 +36,7 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimableReward: null,
   hasPendingClaim: false,
   isClaiming: false,
+  error: null,
   claimRewards: async () => undefined,
 };
 
@@ -100,7 +103,11 @@ export const useMerklBonusClaim = (
     asset: eligibleAsset,
   });
   const { hasPendingClaim } = usePendingMerklClaim();
-  const { claimRewards, isClaiming } = useMerklClaimTransaction(eligibleAsset);
+  const {
+    claimRewards,
+    isClaiming,
+    error: claimError,
+  } = useMerklClaimTransaction(eligibleAsset);
 
   const hasClaimableBonus =
     isEligible &&
@@ -158,6 +165,14 @@ export const useMerklBonusClaim = (
       hasPendingClaim,
       claimRewards,
       isClaiming,
+      error: claimError,
     };
-  }, [isEligible, claimableReward, hasPendingClaim, claimRewards, isClaiming]);
+  }, [
+    isEligible,
+    claimableReward,
+    hasPendingClaim,
+    claimRewards,
+    isClaiming,
+    claimError,
+  ]);
 };

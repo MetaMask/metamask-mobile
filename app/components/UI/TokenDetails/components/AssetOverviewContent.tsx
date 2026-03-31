@@ -58,6 +58,7 @@ import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
+  MarketInsightsEntryCardSkeleton,
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
@@ -540,6 +541,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,
+          ...(marketInsightsReport && {
+            asset_symbol: marketInsightsReport.asset,
+            digest_id: marketInsightsReport.digestId,
+          }),
         })
         .build();
       trackEvent(event);
@@ -566,6 +571,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     createEventBuilder,
     token.symbol,
     marketInsightsCaip19Id,
+    marketInsightsReport,
     token.image,
     token.logo,
     token.address,
@@ -634,6 +640,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
     });
   };
+
+  const shouldShowMarketInsights =
+    isMarketInsightsEnabled &&
+    Boolean(marketInsightsCaip19Id) &&
+    (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
@@ -836,17 +847,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
-          {isMarketInsightsEnabled &&
-          marketInsightsReport &&
-          marketInsightsCaip19Id ? (
+          {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
-              <MarketInsightsEntryCard
-                report={marketInsightsReport}
-                timeAgo={marketInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                caip19Id={marketInsightsCaip19Id}
-                testID="market-insights-entry-card"
-              />
+              {marketInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={marketInsightsReport}
+                  timeAgo={marketInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  caip19Id={marketInsightsCaip19Id ?? undefined}
+                  testID="market-insights-entry-card"
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
             </View>
           ) : null}
           {

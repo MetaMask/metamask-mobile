@@ -110,8 +110,8 @@ const createMockEntry = (
   overrides: Partial<CampaignLeaderboardEntry> = {},
 ): CampaignLeaderboardEntry => ({
   rank: 1,
-  referral_code: 'ABC123',
-  rate_of_return: 0.15,
+  referralCode: 'ABC123',
+  rateOfReturn: 0.15,
   ...overrides,
 });
 
@@ -120,12 +120,12 @@ const defaultProps = {
   selectedTier: 'STARTER',
   onTierChange: jest.fn(),
   entries: [
-    createMockEntry({ rank: 1, referral_code: 'AAA111', rate_of_return: 0.2 }),
-    createMockEntry({ rank: 2, referral_code: 'BBB222', rate_of_return: 0.15 }),
+    createMockEntry({ rank: 1, referralCode: 'AAA111', rateOfReturn: 0.2 }),
+    createMockEntry({ rank: 2, referralCode: 'BBB222', rateOfReturn: 0.15 }),
     createMockEntry({
       rank: 3,
-      referral_code: 'CCC333',
-      rate_of_return: -0.05,
+      referralCode: 'CCC333',
+      rateOfReturn: -0.05,
     }),
   ],
   totalParticipants: 150,
@@ -193,6 +193,39 @@ describe('OndoLeaderboard', () => {
     });
   });
 
+  describe('not yet computed state', () => {
+    it('renders info banner when leaderboard not yet computed and no data', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          isLeaderboardNotYetComputed
+          entries={[]}
+          tierNames={[]}
+        />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeDefined();
+    });
+
+    it('does not render info banner when still loading', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          isLeaderboardNotYetComputed
+          isLoading
+          entries={[]}
+          tierNames={[]}
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeNull();
+    });
+  });
+
   describe('empty state', () => {
     it('renders empty state when no tier names', () => {
       const { getByTestId } = render(
@@ -213,6 +246,14 @@ describe('OndoLeaderboard', () => {
         getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
       ).toBeDefined();
       expect(getByText('Leaderboard')).toBeDefined();
+    });
+
+    it('does not render title when showTitle is false', () => {
+      const { queryByText } = render(
+        <OndoLeaderboard {...defaultProps} showTitle={false} />,
+      );
+
+      expect(queryByText('Leaderboard')).toBeNull();
     });
 
     it('renders computed at timestamp', () => {
@@ -249,6 +290,16 @@ describe('OndoLeaderboard', () => {
       expect(
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE),
       ).toBeNull();
+    });
+
+    it('renders computed at timestamp for single-tier leaderboard', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
+      ).toBeDefined();
     });
 
     it('calls onTierChange when tab is pressed', () => {
@@ -337,7 +388,7 @@ describe('OndoLeaderboard', () => {
 
   describe('rate of return formatting', () => {
     it('formats positive rate of return with plus sign', () => {
-      const entries = [createMockEntry({ rank: 1, rate_of_return: 0.1523 })];
+      const entries = [createMockEntry({ rank: 1, rateOfReturn: 0.1523 })];
       const { getByText } = render(
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );
@@ -346,7 +397,7 @@ describe('OndoLeaderboard', () => {
     });
 
     it('formats negative rate of return without plus sign', () => {
-      const entries = [createMockEntry({ rank: 1, rate_of_return: -0.0832 })];
+      const entries = [createMockEntry({ rank: 1, rateOfReturn: -0.0832 })];
       const { getByText } = render(
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );
@@ -355,7 +406,7 @@ describe('OndoLeaderboard', () => {
     });
 
     it('formats zero rate of return with plus sign', () => {
-      const entries = [createMockEntry({ rank: 1, rate_of_return: 0 })];
+      const entries = [createMockEntry({ rank: 1, rateOfReturn: 0 })];
       const { getByText } = render(
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );
