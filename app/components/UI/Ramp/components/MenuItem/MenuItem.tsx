@@ -1,18 +1,20 @@
 import React from 'react';
-import Icon, {
+import {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconColor,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './MenuItem.styles';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 
 interface MenuItemProps {
   iconName: IconName;
@@ -27,7 +29,7 @@ export default function MenuItem({
   description,
   onPress,
 }: MenuItemProps) {
-  const { theme, styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <ListItemSelect
@@ -41,13 +43,15 @@ export default function MenuItem({
         <Icon
           name={iconName}
           size={IconSize.Md}
-          color={theme.colors.icon.default}
+          color={IconColor.IconDefault}
         />
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {title}
+        </Text>
         {description && (
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {description}
           </Text>
         )}
