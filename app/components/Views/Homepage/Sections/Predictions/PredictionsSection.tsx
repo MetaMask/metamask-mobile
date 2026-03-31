@@ -193,25 +193,30 @@ const PredictionsSection = forwardRef<
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
     const isTrendingOnly = mode === 'trending-only';
     const isPositionsOnly = mode === 'positions-only';
+    const shouldLoadPositions = !isTrendingOnly;
+    const shouldLoadMarkets = !isPositionsOnly;
     const { claim } = usePredictClaim();
 
-    // Fetch both positions and markets
+    // Fetch only data required by the active section mode.
     const {
       positions,
       isLoading: isLoadingPositions,
       error: positionsError,
       refetch: refetchPositions,
-    } = usePredictPositionsForHomepage();
+    } = usePredictPositionsForHomepage({ enabled: shouldLoadPositions });
 
     const {
       markets,
       isLoading: isLoadingMarkets,
       error: marketsError,
       refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, shouldLoadMarkets);
 
     const { totalClaimableValue, isLoading: isLoadingClaimable } =
-      usePredictPositionsForHomepage({ claimable: true });
+      usePredictPositionsForHomepage({
+        claimable: true,
+        enabled: shouldLoadPositions,
+      });
 
     const handleClaim = useCallback(async () => {
       await claim();
@@ -224,7 +229,7 @@ const PredictionsSection = forwardRef<
       data: predictUnrealizedPnL,
       isLoading: isPredictUnrealizedPnLLoading,
     } = useUnrealizedPnL({
-      enabled: hasPositions,
+      enabled: shouldLoadPositions && hasPositions,
     });
 
     const predictHomepageUnrealizedPnl = useMemo(

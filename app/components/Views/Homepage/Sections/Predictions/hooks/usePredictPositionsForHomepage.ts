@@ -14,6 +14,7 @@ export interface UsePredictPositionsForHomepageResult {
 interface UsePredictPositionsForHomepageOptions {
   maxPositions?: number;
   claimable?: boolean;
+  enabled?: boolean;
 }
 
 /**
@@ -27,10 +28,11 @@ interface UsePredictPositionsForHomepageOptions {
 export const usePredictPositionsForHomepage = (
   options: UsePredictPositionsForHomepageOptions = {},
 ): UsePredictPositionsForHomepageResult => {
-  const { maxPositions, claimable = false } = options;
+  const { maxPositions, claimable = false, enabled = true } = options;
 
   const { data, isLoading, error, refetch } = usePredictPositions({
     claimable,
+    enabled,
   });
 
   const allPositions = useMemo(() => data ?? [], [data]);

@@ -70,7 +70,7 @@ const HOMEPAGE_THROTTLE_MS = 5000;
  *
  * Must be rendered inside PerpsConnectionProvider + PerpsStreamProvider.
  */
-const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
+export const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
   (
     {
       sectionIndex,
@@ -89,6 +89,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
     const isTrendingOnly = mode === 'trending-only';
     const isPositionsOnly = mode === 'positions-only';
+    const shouldLoadPositions = !isTrendingOnly;
+    const shouldLoadMarkets = !isPositionsOnly;
     const { error: connectionError, reconnectWithNewContext } =
       usePerpsConnection();
     const { track } = usePerpsEventTracking();
@@ -97,16 +99,19 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
         throttleMs: HOMEPAGE_THROTTLE_MS,
+        enabled: shouldLoadPositions,
       });
 
     const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
       usePerpsLiveAccount({
         throttleMs: HOMEPAGE_THROTTLE_MS,
+        enabled: shouldLoadPositions,
       });
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
       hideTpSl: true,
       throttleMs: HOMEPAGE_THROTTLE_MS,
+      enabled: shouldLoadPositions,
     });
 
     const hookLoading = positionsLoading || ordersLoading;
@@ -123,7 +128,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const showSkeleton = hookLoading || deferredLoading;
 
-    const { markets, isLoading: marketsLoading } = usePerpsMarkets();
+    const { markets, isLoading: marketsLoading } = usePerpsMarkets({
+      skipInitialFetch: !shouldLoadMarkets,
+    });
     const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
     const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 

@@ -12,6 +12,7 @@ import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
 import WhatsHappeningSection from './Sections/WhatsHappening';
 import PerpsSection from './Sections/Perpetuals';
+import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
@@ -35,6 +36,8 @@ import {
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { strings } from '../../../../locales/i18n';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -218,12 +221,26 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
           totalSectionsLoaded={totalSectionsLoaded}
         />
-        <PerpsSection
-          ref={perpsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode={sectionMode}
-        />
+        {isPerpsEnabled && (
+          <PerpsConnectionProvider suppressErrorView>
+            <PerpsStreamProvider>
+              <PerpsSectionBase
+                ref={perpsSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+                mode={sectionMode}
+              />
+              <PerpsSectionBase
+                ref={trendingPerpsRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PERPS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+                mode="trending-only"
+                sectionName={HomeSectionNames.TRENDING_PERPS}
+                titleOverride={strings('homepage.sections.trending_perpetuals')}
+              />
+            </PerpsStreamProvider>
+          </PerpsConnectionProvider>
+        )}
         <PredictionsSection
           ref={predictionsSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
@@ -258,14 +275,6 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           mode="trending-only"
           sectionName={HomeSectionNames.TRENDING_TOKENS}
           titleOverride={strings('homepage.sections.trending_tokens')}
-        />
-        <PerpsSection
-          ref={trendingPerpsRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PERPS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode="trending-only"
-          sectionName={HomeSectionNames.TRENDING_PERPS}
-          titleOverride={strings('homepage.sections.trending_perpetuals')}
         />
         <PredictionsSection
           ref={trendingPredictionsRef}

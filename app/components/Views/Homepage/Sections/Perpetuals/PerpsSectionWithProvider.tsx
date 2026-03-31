@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
-import PerpsSection from './PerpsSection';
+import { PerpsSection } from './PerpsSection';
 import type { SectionRefreshHandle, HomeSectionMode } from '../../types';
 import type { HomeSectionName } from '../../hooks/useHomeViewedEvent';
 
