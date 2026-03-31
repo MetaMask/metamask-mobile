@@ -2,7 +2,9 @@ import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../../../../core/NavigationService/types';
 
 import Avatar, {
   AvatarSize,
@@ -25,21 +27,14 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../../core/Engine';
 
-interface SwitchAccountTypeModalRouteParams {
+export interface SwitchAccountTypeModalRouteParams {
   address?: Hex;
 }
 
-interface SwitchAccountTypeModalParamList {
-  ConfirmationSwitchAccountType: SwitchAccountTypeModalRouteParams;
-  [key: string]: object | undefined;
-}
-
-interface SwitchAccountTypeModalProps {
-  route: RouteProp<
-    SwitchAccountTypeModalParamList,
-    'ConfirmationSwitchAccountType'
-  >;
-}
+type SwitchAccountTypeModalProps = StackScreenProps<
+  RootStackParamList,
+  'ConfirmationSwitchAccountType'
+>;
 
 const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const { styles } = useStyles(styleSheet, {});
