@@ -1,25 +1,59 @@
 ##############################################################################################
 #
-# Runway iOS RC Workflow
+# Runway OTA / build core (reusable)
 #
-# Triggered from Runway to either:
-# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
-# - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
-#
-# When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# Shared logic for Runway: OTA bump detection, push-eas-update dispatch, or build.yml.
+# Callers: iOS Runway workflows bump once (skip_version_bump false); Android pass skip_version_bump true.
 #
 ##############################################################################################
-name: Runway iOS RC
+name: Runway OTA Build Core
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      platform:
+        description: 'Target platform passed to push-eas-update and build.yml (android or ios)'
+        required: true
+        type: string
       source_branch:
         description: >-
           Optional branch, tag, or SHA (Build workflow source_branch).
-          Empty uses the branch selected in the "Use workflow from" UI.
+          Empty uses the branch selected in the caller workflow_dispatch "Use workflow from" UI.
         required: false
         type: string
+        default: ''
+      ota_channel:
+        description: 'push-eas-update channel input (e.g. rc, production)'
+        required: false
+        type: string
+        default: rc
+      build_name:
+        description: 'build.yml build_name (e.g. main-rc, main-prod)'
+        required: false
+        type: string
+        default: main-rc
+      upload_testflight:
+        description: 'If true and platform is ios, upload IPA to TestFlight after trigger-build'
+        required: false
+        type: boolean
+        default: false
+      create_production_ota_tag:
+        description: 'If true, create OTA release tag after production trigger-ota (callers: *production* only)'
+        required: false
+        type: boolean
+        default: false
+      ios_testflight_summary_title:
+        description: 'Step summary heading when upload_testflight is true'
+        required: false
+        type: string
+        default: 'Runway iOS RC'
+      skip_version_bump:
+        description: >-
+          If true, build.yml skips update-latest-build-version. Android Runway entry workflows set
+          true (iOS bumps first); iOS uses default false.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -106,6 +140,8 @@ jobs:
     needs: decide
     if: needs.decide.outputs.ota_bump == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.release_tag.outputs.release_tag }}
     steps:
       - name: Validate PR number
         run: |
@@ -117,7 +153,7 @@ jobs:
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
       - name: Trigger Push OTA Update workflow
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -131,11 +167,17 @@ jobs:
                 pr_number: '${{ needs.decide.outputs.pr_number }}',
                 base_branch: '${{ needs.decide.outputs.base_ref }}',
                 message: '${{ needs.decide.outputs.ota_version }}',
-                channel: 'rc',
-                platform: 'ios'
+                channel: '${{ inputs.ota_channel }}',
+                platform: '${{ inputs.platform }}'
               }
             });
             core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
+
+      - name: Export release tag for OTA follow-up jobs
+        id: release_tag
+        run: |
+          # Tag name must match OTA_VERSION (app/constants/ota.ts), not package.json semver
+          echo "release_tag=${{ needs.decide.outputs.ota_version }}" >> "$GITHUB_OUTPUT"
 
   trigger-build:
     name: Trigger build mobile app
@@ -143,32 +185,43 @@ jobs:
     if: needs.decide.outputs.ota_bump != 'true'
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-rc
-      platform: ios
-      skip_version_bump: false
+      build_name: ${{ inputs.build_name }}
+      platform: ${{ inputs.platform }}
+      skip_version_bump: ${{ inputs.skip_version_bump }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
       upload_to_sentry: true
+    secrets: inherit
+
+  create-ota-production-tag:
+    name: Create OTA production release tag
+    needs: [trigger-ota]
+    if: ${{ inputs.create_production_ota_tag == true }}
+    uses: ./.github/workflows/runway-create-ota-production-tag.yml
+    with:
+      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
+      checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
   testflight-upload-summary:
     name: TestFlight upload summary
     needs: [trigger-build]
+    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.source_branch || github.ref_name }}
+          ref: ${{ inputs.source_branch || github.ref }}
       - name: Display TestFlight upload summary
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
           {
-            echo "### 📲 TestFlight Upload (Runway iOS RC)"
+            echo "### 📲 TestFlight Upload (${{ inputs.ios_testflight_summary_title }})"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
             echo "| **Ref** | ${{ inputs.source_branch || github.ref_name }} |"
-            echo "| **Build name** | main-rc |"
+            echo "| **Build name** | ${{ inputs.build_name }} |"
             echo "| **Build version** | ${BUILD_VERSION} |"
             echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -176,6 +229,7 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [trigger-build, testflight-upload-summary]
+    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
     environment: apple
     steps:
@@ -183,7 +237,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.source_branch || github.ref_name }}
+          ref: ${{ inputs.source_branch || github.ref }}
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -195,7 +249,7 @@ jobs:
       - name: Download iOS build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-main-rc
+          name: ios-ipa-${{ inputs.build_name }}
 
       - name: Find IPA path
         id: ipa
@@ -222,7 +276,7 @@ jobs:
       - name: Upload to TestFlight
         run: |
           bash scripts/upload-to-testflight.sh \
-            "github_actions_main-rc" \
+            "github_actions_${{ inputs.build_name }}" \
             "${{ inputs.source_branch || github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
             "" \

@@ -173,7 +173,7 @@ const DaimoPayModal: React.FC = () => {
         queryKey: cardQueries.dashboard.keys.cardDetails(),
       });
 
-      const parentNavigator = navigation.dangerouslyGetParent();
+      const parentNavigator = navigation.getParent();
       if (parentNavigator) {
         parentNavigator.dispatch(
           CommonActions.reset({
@@ -200,14 +200,11 @@ const DaimoPayModal: React.FC = () => {
           }),
         );
       } else {
-        navigation.navigate(
-          Routes.CARD.ORDER_COMPLETED as never,
-          {
-            paymentMethod: 'crypto',
-            transactionHash: txHash,
-            fromUpgrade,
-          } as never,
-        );
+        navigation.navigate(Routes.CARD.ORDER_COMPLETED, {
+          paymentMethod: 'crypto',
+          transactionHash: txHash,
+          fromUpgrade,
+        });
       }
     },
     [trackEvent, createEventBuilder, navigation, fromUpgrade, queryClient],
