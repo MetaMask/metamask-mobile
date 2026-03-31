@@ -897,6 +897,176 @@ describe('BuildQuote', () => {
     });
   });
 
+  describe('auto-select provider when none selected', () => {
+    it('selects the first provider that supports the token', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
+        autoSelected: true,
+      });
+    });
+
+    it('does not auto-select when a provider is already selected', () => {
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-select when providers list is empty', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-select when no token is selected', () => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: null,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('skips providers that do not support the token', () => {
+      const unsupportedProvider = {
+        id: 'banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
+        links: [],
+      };
+
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [unsupportedProvider, NATIVE_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(NATIVE_PROVIDER, {
+        autoSelected: true,
+      });
+    });
+
+    it('does not auto-select when no provider supports the token', () => {
+      const unsupportedProvider = {
+        id: 'banxa',
+        name: 'Banxa',
+        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
+        links: [],
+      };
+
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [unsupportedProvider],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-select when screen is not focused', () => {
+      const mockUseIsFocused = jest.requireMock('@react-navigation/native')
+        .useIsFocused as jest.Mock;
+      mockUseIsFocused.mockReturnValue(false);
+
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        providers: [WIDGET_PROVIDER],
+        selectedProvider: null,
+        setSelectedProvider: mockSetSelectedProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+      });
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+
+      mockUseIsFocused.mockReturnValue(true);
+    });
+  });
+
   describe('Token unavailable for provider', () => {
     const TOKEN_ASSET = 'eip155:1/slip44:60';
 
