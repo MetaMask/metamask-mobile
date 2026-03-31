@@ -2,7 +2,14 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -17,6 +24,8 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMoneyAccount } from '../../hooks/useMoneyAccount';
+import { strings } from '../../../../../../locales/i18n';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -28,6 +37,8 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
+  const { moneyAccountAddress, entropySource, createMoneyAccount } =
+    useMoneyAccount();
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -103,6 +114,28 @@ const MoneyHomeView = () => {
             onLearnMorePress={handleLearnMorePress}
             onHeaderPress={handleWhyMetaMaskMoneyHeaderPress}
           />
+          <Divider />
+          <Box twClassName="mx-4 mb-4 p-4 rounded-lg border border-border-muted bg-background-muted">
+            <Text variant={TextVariant.HeadingSm} twClassName="mb-3">
+              {strings('money.debug.title')}
+            </Text>
+            <Box twClassName="mb-3">
+              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold} twClassName="mb-1">
+                {strings('money.debug.money_account_address_label')}
+              </Text>
+              <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+                {moneyAccountAddress ?? strings('money.debug.not_created')}
+              </Text>
+            </Box>
+            <Button
+              variant={ButtonVariant.Secondary}
+              isDisabled={!entropySource || !!moneyAccountAddress}
+              isFullWidth
+              onPress={createMoneyAccount}
+            >
+              {strings('multichain_accounts.create_money_account')}
+            </Button>
+          </Box>
         </ScrollView>
         <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
       </Box>

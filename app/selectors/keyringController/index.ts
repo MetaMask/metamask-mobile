@@ -1,5 +1,5 @@
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-import { KeyringControllerState } from '@metamask/keyring-controller';
+import { KeyringControllerState, KeyringTypes } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -61,4 +61,18 @@ export const selectIsUnlocked = createDeepEqualSelector(
   selectKeyringControllerState,
   (keyringControllerState: KeyringControllerState) =>
     keyringControllerState.isUnlocked,
+);
+
+/**
+ * A memoized selector that returns the first address associated with the
+ * Money keyring, or null if no Money keyring exists.
+ */
+export const selectMoneyAccountAddress = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) => {
+    const moneyKeyring = keyrings.find(
+      (keyring) => keyring.type === KeyringTypes.money,
+    );
+    return moneyKeyring?.accounts?.[0] ?? null;
+  },
 );
