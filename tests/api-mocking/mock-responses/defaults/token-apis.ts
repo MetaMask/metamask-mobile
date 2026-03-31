@@ -9,6 +9,14 @@ import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses.ts';
 const tokenListRegex =
   /^https:\/\/token\.api\.cx\.metamask\.io\/tokens\/\d+\?.*$/;
 
+// Single-token metadata: /token/{chainId}?address=0x...
+// The controller fetches this for any token the app encounters (swap quotes,
+// bridge destinations, etc.). Without a default mock every test that triggers
+// the request must add its own — and missing ones cause validateLiveRequests
+// failures. Return a minimal valid response so tests don't break.
+const singleTokenMetadataRegex =
+  /^https:\/\/token\.api\.cx\.metamask\.io\/token\/\d+\?address=0x[a-fA-F0-9]+/;
+
 const tokenAssetsRegex =
   /^https:\/\/token\.api\.cx\.metamask\.io\/assets\?assetIds=.*&includeTokenSecurityData=true$/;
 
@@ -23,6 +31,19 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       urlEndpoint: tokenListRegex,
       responseCode: 200,
       response: TOKEN_API_TOKENS_RESPONSE,
+    },
+    {
+      urlEndpoint: singleTokenMetadataRegex,
+      responseCode: 200,
+      response: {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'TOKEN',
+        decimals: 18,
+        occurences: 1,
+        aggregators: [],
+        name: 'Mock Token',
+        iconUrl: '',
+      },
     },
     {
       urlEndpoint: tokenAssetsRegex,
