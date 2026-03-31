@@ -35,8 +35,8 @@ class CreatePasswordView {
             `.description("${ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}")`,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            '//XCUIElementTypeSecureTextField[@name="create-password-first-input-field"]',
+          PlaywrightMatchers.getElementByCatchAll(
+            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
           ),
       },
     });
@@ -58,8 +58,8 @@ class CreatePasswordView {
             `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            '//XCUIElementTypeSecureTextField[@name="create-password-second-input-field"]',
+          PlaywrightMatchers.getElementByCatchAll(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
           ),
       },
     });
@@ -84,8 +84,8 @@ class CreatePasswordView {
             },
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            '//XCUIElementTypeOther[@name="textfield" and @label="create-password-second-input-field"]',
+          PlaywrightMatchers.getElementByCatchAll(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
           ),
       },
     });

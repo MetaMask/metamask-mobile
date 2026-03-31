@@ -112,6 +112,7 @@ export class BrowserStackConfigBuilder {
           : {
               'appium:bundleId': this.project.use.app?.appId,
             }),
+        'appium:newCommandTimeout': 300,
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,

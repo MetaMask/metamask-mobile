@@ -103,10 +103,24 @@ export const test = base.extend<TestLevelFixtures>({
       // Create driver and set up test context
       driver = await deviceProvider.getDriver();
 
-      // Set the implicit timeout for the driver
-      await driver.setTimeout({
-        implicit: project.use.expectTimeout ?? DEFAULT_IMPLICIT_WAIT_MS,
-      });
+      // Set the implicit timeout for the driver.
+      // Wrapped in retry because BrowserStack sessions can transiently reject
+      // the setTimeout command before the session is fully initialised.
+      const implicitMs = project.use.expectTimeout ?? DEFAULT_IMPLICIT_WAIT_MS;
+      const maxRetries = 3;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          await driver.setTimeout({ implicit: implicitMs });
+          break;
+        } catch (err) {
+          if (attempt === maxRetries) throw err;
+          const backoff = attempt * 1000;
+          console.warn(
+            `driver.setTimeout failed (attempt ${attempt}/${maxRetries}), retrying in ${backoff}ms…`,
+          );
+          await new Promise((r) => setTimeout(r, backoff));
+        }
+      }
 
       // Make driver globally accessible for utilities
       globalThis.driver = driver;
