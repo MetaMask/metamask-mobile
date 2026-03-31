@@ -4,12 +4,20 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import NFTsSection from './NFTsSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { SectionRefreshHandle } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockOnRefresh = jest.fn().mockResolvedValue(undefined);
 const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
 const mockAbortDetection = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({ name: 'Add Collectibles' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -41,6 +49,13 @@ jest.mock('../../../../UI/NftGrid/useNftRefresh', () => ({
   useNftRefresh: () => ({
     refreshing: false,
     onRefresh: mockOnRefresh,
+  }),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -132,6 +147,14 @@ describe('NFTsSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
       assetType: 'collectible',
     });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WALLET_ADD_COLLECTIBLES,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action: 'Wallet View',
+      name: 'Add Collectibles',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'Add Collectibles' });
   });
 
   it('renders section title when user has NFTs', () => {
