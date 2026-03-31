@@ -99,6 +99,10 @@ export interface UseTokenActionsResult {
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
+  /** Sticky token-details Swap handler with balance-aware defaults */
+  handleStickySwapPress: () => void;
+  /** Sticky token-details Swap visibility flag */
+  hasEligibleStickySwapTokens: boolean;
   /** Whether the user has any tokens with positive balance that can be used as a swap source */
   hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
@@ -107,6 +111,8 @@ export interface UseTokenActionsResult {
 export interface UseTokenActionsParams {
   token: TokenI;
   networkName?: string;
+  /** Optional up-to-date token balance from Token Details balance hook */
+  currentTokenBalance?: string;
 }
 
 /**
@@ -116,6 +122,7 @@ export interface UseTokenActionsParams {
 export const useTokenActions = ({
   token,
   networkName,
+  currentTokenBalance,
 }: UseTokenActionsParams): UseTokenActionsResult => {
   const navigation = useNavigation();
 
@@ -390,10 +397,9 @@ export const useTokenActions = ({
       };
     }
 
-    // Priority 2: Find highest USD value token on any chain (with positive balance)
-    // Only exclude if BOTH address AND chainId match (same exact token)
+    // Eligible cross-chain assets: exclude exact same token (address + chain match)
     // This allows cross-chain bridging of native tokens that share the zero address
-    const allAssets = userAssets
+    const crossChainAssets = userAssets
       .filter(
         (a) =>
           !(
@@ -403,8 +409,25 @@ export const useTokenActions = ({
       )
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
-    if (allAssets.length > 0) {
-      const asset = allAssets[0];
+    // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
+    const nativeAsset = crossChainAssets.find((a) => a.isNative);
+    if (nativeAsset) {
+      return {
+        address: nativeAsset.assetId,
+        chainId: nativeAsset.chainId as Hex | CaipChainId,
+        decimals: nativeAsset.decimals,
+        symbol: nativeAsset.symbol,
+        name: nativeAsset.name,
+        image: nativeAsset.image,
+      };
+    }
+
+    // Priority 3 – Last swapped token (needs selector/data source)
+    // Priority 4 – Most used token (needs selector/data source)
+
+    // Fallback: highest USD value token on any chain
+    if (crossChainAssets.length > 0) {
+      const asset = crossChainAssets[0];
       return {
         address: asset.assetId,
         chainId: asset.chainId as Hex | CaipChainId,
@@ -417,6 +440,21 @@ export const useTokenActions = ({
     // No eligible tokens found - return null to trigger on-ramp flow
     return null;
   }, [userAssetsMap, token.chainId, token.address]);
+
+  const currentTokenHasBalance = useMemo(() => {
+    const balanceToCheck = currentTokenBalance ?? token.balance;
+
+    if (typeof balanceToCheck === 'number') {
+      return balanceToCheck > 0;
+    }
+
+    if (typeof balanceToCheck === 'string') {
+      const parsedBalance = Number(balanceToCheck.replace(/,/gu, '').trim());
+      return Number.isFinite(parsedBalance) && parsedBalance > 0;
+    }
+
+    return false;
+  }, [currentTokenBalance, token.balance]);
 
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
@@ -463,6 +501,30 @@ export const useTokenActions = ({
     );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
+  // Sticky Token Details swap button only:
+  // - If current token has balance, keep current token as source
+  // - If current token has no balance, prefill source with best available token and current as destination
+  const handleStickySwapPress = useCallback(() => {
+    if (!goToSwaps) return;
+
+    if (currentTokenHasBalance) {
+      goToSwaps(currentTokenAsBridgeToken, undefined, undefined);
+      return;
+    }
+
+    if (buySourceToken) {
+      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined);
+      return;
+    }
+
+    goToSwaps(currentTokenAsBridgeToken, undefined, undefined);
+  }, [
+    goToSwaps,
+    currentTokenHasBalance,
+    currentTokenAsBridgeToken,
+    buySourceToken,
+  ]);
+
   return {
     onBuy,
     onSend,
@@ -470,6 +532,9 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
+    handleStickySwapPress,
+    hasEligibleStickySwapTokens:
+      buySourceToken !== null || currentTokenHasBalance,
     hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };
