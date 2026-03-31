@@ -143,7 +143,7 @@ interface TrendingTokenRowItemProps {
  */
 const getAssetNavigationParams = (
   token: TrendingAsset,
-  source: TokenDetailsSource = TokenDetailsSource.Trending,
+  source: TokenDetailsSource,
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
