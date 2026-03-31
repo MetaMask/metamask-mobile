@@ -7,7 +7,11 @@ import React, {
   useRef,
 } from 'react';
 import { Linking } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  StackActions,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -148,14 +152,14 @@ const RevealPrivateCredential = ({
       return;
     }
     if (route?.params?.popToTopOnDone) {
-      navigation.popToTop();
+      navigation.dispatch(StackActions.popToTop());
       return;
     }
     if (shouldUpdateNav) {
-      navigation.pop();
+      navigation.dispatch(StackActions.pop());
       return;
     }
-    navigation.pop();
+    navigation.dispatch(StackActions.pop());
   }, [
     hasNavigation,
     shouldUpdateNav,
