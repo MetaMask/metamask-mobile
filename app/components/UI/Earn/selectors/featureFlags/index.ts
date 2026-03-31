@@ -367,7 +367,6 @@ export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
  * Remote flag takes precedence over the local fallback.
  * If both are unavailable or invalid, defaults to mainnet and Linea.
  */
-// TODO: Test me
 export const selectMusdTokenRegistrationChainIds = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string[] => {
