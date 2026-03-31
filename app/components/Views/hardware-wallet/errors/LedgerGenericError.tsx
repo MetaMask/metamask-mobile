@@ -12,7 +12,6 @@ const LedgerGenericError = ({
   error,
   isBusy,
   onRetry,
-  onContinue,
 }: ErrorComponentProps) => {
   const description =
     error?.userMessage ??
@@ -28,16 +27,10 @@ const LedgerGenericError = ({
       isBusy={isBusy}
       illustration={<LedgerDeviceIllustration state="not-found" />}
       primaryAction={{
-        label: strings('hardware_wallet.common.continue'),
-        onPress: onContinue,
-        testID: HardwareWalletTestIds.CONTINUE_BUTTON,
-        variant: ButtonVariant.Primary,
-      }}
-      secondaryAction={{
         label: strings('hardware_wallet.error.retry'),
         onPress: onRetry,
         testID: HardwareWalletTestIds.RETRY_BUTTON,
-        variant: ButtonVariant.Secondary,
+        variant: ButtonVariant.Primary,
       }}
     />
   );

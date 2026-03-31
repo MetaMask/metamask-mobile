@@ -5,22 +5,20 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Image,
+  Box,
   Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-} from 'react-native';
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../core/Engine';
-import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAssetFromTheme, useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
-import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import {
   forgetLedger,
   getHDPath,
@@ -33,9 +31,7 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
-import createStyles from './index.styles';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import {
   LEDGER_BIP44_PATH,
@@ -46,12 +42,17 @@ import {
   LEDGER_LIVE_STRING,
   LEDGER_UNKNOWN_STRING,
 } from '../../../core/Ledger/constants';
-import SelectOptionSheet from '../../UI/SelectOptionSheet';
+import { createOptionsSheetNavDetails } from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
-import { toFormattedAddress } from '../../../util/address';
+import { formatAddress, toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
+import Images from '../../../images/image-icons';
+import {
+  AccountSelectionFlow,
+  type AccountSelectionItem,
+} from '../hardware-wallet/components';
 
 interface OptionType {
   key: string;
@@ -62,13 +63,8 @@ interface OptionType {
 const LedgerSelectAccount = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const styles = createStyles(colors);
-  const ledgerThemedImage = useAssetFromTheme(
-    ledgerDeviceLightImage,
-    ledgerDeviceDarkImage,
-  );
+  const tw = useTailwind();
 
   const { deviceId, deviceSelection, ensureDeviceReady } = useHardwareWallet();
 
@@ -119,11 +115,11 @@ const LedgerSelectAccount = () => {
   const [accounts, setAccounts] = useState<
     { address: string; index: number; balance: string }[]
   >([]);
-
+  const [checkedAccounts, setCheckedAccounts] = useState<Set<number>>(
+    new Set(),
+  );
   const [forgetDevice, setForgetDevice] = useState(false);
-
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
-
   const [selectedOption, setSelectedOption] = useState<OptionType>(
     ledgerPathOptions[0],
   );
@@ -349,87 +345,147 @@ const LedgerSelectAccount = () => {
       );
       if (!option) return;
       await setHDPath(path);
+      setCheckedAccounts(new Set());
       setSelectedOption(option);
     },
     [ledgerPathOptions],
   );
 
+  const openHdPathSheet = useCallback(() => {
+    navigation.navigate(
+      ...createOptionsSheetNavDetails({
+        label: strings('ledger.select_hd_path'),
+        options: ledgerPathOptions,
+        selectedValue: selectedOption.value,
+        onValueChange: async (value) => {
+          await onSelectedPathChanged(value);
+        },
+      }),
+    );
+  }, [
+    ledgerPathOptions,
+    navigation,
+    onSelectedPathChanged,
+    selectedOption.value,
+  ]);
+
+  const toggleAccountSelection = useCallback((accountIndex: number) => {
+    setCheckedAccounts((previousCheckedAccounts) => {
+      const nextCheckedAccounts = new Set(previousCheckedAccounts);
+      if (nextCheckedAccounts.has(accountIndex)) {
+        nextCheckedAccounts.delete(accountIndex);
+      } else {
+        nextCheckedAccounts.add(accountIndex);
+      }
+      return nextCheckedAccounts;
+    });
+  }, []);
+
+  const displayAccounts = useMemo<AccountSelectionItem[]>(() => {
+    const existingAccountsSet = new Set(
+      existingAccounts.map((address) => toFormattedAddress(address)),
+    );
+
+    return accounts.map((account) => {
+      const isExistingAccount = existingAccountsSet.has(
+        toFormattedAddress(account.address),
+      );
+      const isSelected =
+        isExistingAccount || checkedAccounts.has(account.index);
+      const formattedAddress = formatAddress(account.address, 'mid');
+
+      return {
+        address: account.address,
+        index: account.index,
+        isExistingAccount,
+        isSelected,
+        // Mocked asset rows match the approved Figma-first scope until multichain
+        // hardware account data is available for this flow.
+        totalBalance: '$360.00',
+        assets: [
+          {
+            title: 'Ethereum',
+            address: formattedAddress,
+            balance: '$120.00',
+            iconSource: Images.ETHEREUM,
+            kind: 'network',
+          },
+          {
+            title: 'Solana',
+            address: '6dk7RD...DEtXQ',
+            balance: '$120.00',
+            iconSource: Images.SOLANA,
+            kind: 'network',
+          },
+          {
+            title: 'Bitcoin',
+            address: 'bc1qea...er2fx',
+            balance: '$120.00',
+            iconSource: Images.BTC,
+            kind: 'token',
+            label: account.index % 2 === 0 ? 'Taproot' : 'Native Segwit',
+          },
+        ],
+      };
+    });
+  }, [accounts, checkedAccounts, existingAccounts]);
+
+  const handleContinue = useCallback(() => {
+    setErrorMsg(null);
+    onUnlock([...checkedAccounts]);
+  }, [checkedAccounts, onUnlock]);
+
+  const handleForget = useCallback(() => {
+    setErrorMsg(null);
+    setForgetDevice(true);
+    setBlockingModalVisible(true);
+  }, []);
+
   if (accounts.length <= 0) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        {errorMsg ? (
-          <Text style={styles.error}>{errorMsg}</Text>
-        ) : (
-          <>
-            <ActivityIndicator size="large" color={colors.primary.default} />
-            <Text style={[styles.text, styles.loadingText]}>
-              {strings('ledger.looking_for_device')}
+      <SafeAreaView style={tw.style('flex-1 bg-default')}>
+        <Box twClassName="flex-1 items-center justify-center px-6">
+          {errorMsg ? (
+            <Text variant={TextVariant.BodyMd} color={TextColor.Error}>
+              {errorMsg}
             </Text>
-          </>
-        )}
-      </View>
+          ) : (
+            <>
+              <ActivityIndicator size="large" />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="mt-4"
+              >
+                {strings('ledger.looking_for_device')}
+              </Text>
+            </>
+          )}
+        </Box>
+      </SafeAreaView>
     );
   }
 
   return (
     <>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Image
-            source={ledgerThemedImage}
-            resizeMode="contain"
-            style={styles.ledgerIcon}
-          />
-
-          <TouchableOpacity
-            onPress={navigation.goBack}
-            style={styles.navbarRightButton}
-          >
-            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
-          </TouchableOpacity>
-        </View>
-        <View>
-          {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
-          <Text style={styles.mainTitle}>
-            {strings('ledger.select_accounts')}
-          </Text>
-          <Text style={styles.selectorTitle}>
-            {strings('ledger.select_hd_path')}
-          </Text>
-          <Text style={styles.selectorDescription}>
-            {strings('ledger.select_hd_path_description')}
-          </Text>
-          <View style={styles.pathSelector}>
-            <SelectOptionSheet
-              options={ledgerPathOptions}
-              label={strings('ledger.select_hd_path')}
-              onValueChange={async (val) => await onSelectedPathChanged(val)}
-              selectedValue={selectedOption.value}
-            />
-          </View>
-        </View>
-        <AccountSelector
-          accounts={accounts}
-          selectedAccounts={existingAccounts}
-          nextPage={nextPage}
-          prevPage={prevPage}
-          onUnlock={(accountIndex: number[]) => {
-            setErrorMsg(null);
-            onUnlock(accountIndex);
-          }}
-          onForget={() => {
-            setErrorMsg(null);
-            setForgetDevice(true);
-            setBlockingModalVisible(true);
-          }}
-        />
-      </View>
+      <AccountSelectionFlow
+        accounts={displayAccounts}
+        errorMessage={errorMsg}
+        isBusy={blockingModalVisible}
+        onBack={navigation.goBack}
+        onContinue={handleContinue}
+        onForget={handleForget}
+        onNextPage={nextPage}
+        onOpenSettings={openHdPathSheet}
+        onPrevPage={prevPage}
+        onToggleAccount={toggleAccountSelection}
+      />
       <BlockingActionModal
         modalVisible={blockingModalVisible}
         isLoadingAction
         onAnimationCompleted={onAnimationCompleted}
       >
-        <Text style={styles.text}>{strings('common.please_wait')}</Text>
+        <Text>{strings('common.please_wait')}</Text>
       </BlockingActionModal>
     </>
   );

@@ -8081,7 +8081,17 @@
       "looking_subtitle": "Hold on while we search for it...",
       "found_title": "Ledger device found",
       "not_found_title": "Device not found",
-      "select_device_title": "Select device"
+      "select_device_title": "Select device",
+      "bluetooth_access_denied_title": "Bluetooth access denied",
+      "bluetooth_access_denied_description": "Enable Bluetooth in your device settings to connect your Ledger device",
+      "location_access_denied_title": "Location access denied",
+      "location_access_denied_description": "Enable location permissions in your device settings to connect your Ledger device",
+      "nearby_devices_access_denied_title": "Permissions to nearby devices denied",
+      "nearby_devices_access_denied_description": "Enable access to nearby devices in Settings to connect your Ledger device",
+      "bluetooth_disabled_title": "Bluetooth is turned off",
+      "bluetooth_disabled_description": "Enable Bluetooth in your device settings to connect your Ledger device",
+      "bluetooth_connection_failed_title": "Bluetooth connection failed",
+      "bluetooth_connection_failed_description": "Make sure your device is nearby, then try reconnecting"
     },
     "errors": {
       "device_locked": "Unlock it and try again to continue",

@@ -8,12 +8,7 @@ import ErrorState from '../ErrorState';
 import type { ErrorComponentProps } from '../types';
 import LedgerDeviceIllustration from '../../components/LedgerDeviceIllustration';
 
-const GenericError = ({
-  error,
-  isBusy,
-  onRetry,
-  onExit,
-}: ErrorComponentProps) => {
+const GenericError = ({ error, isBusy, onRetry }: ErrorComponentProps) => {
   const description =
     error?.userMessage ??
     strings('hardware_wallet.errors.unknown_error', {
@@ -28,16 +23,10 @@ const GenericError = ({
       isBusy={isBusy}
       illustration={<LedgerDeviceIllustration state="not-found" />}
       primaryAction={{
-        label: strings('hardware_wallet.common.continue'),
-        onPress: onExit,
-        testID: HardwareWalletTestIds.CONTINUE_BUTTON,
-        variant: ButtonVariant.Primary,
-      }}
-      secondaryAction={{
         label: strings('hardware_wallet.error.retry'),
         onPress: onRetry,
         testID: HardwareWalletTestIds.RETRY_BUTTON,
-        variant: ButtonVariant.Secondary,
+        variant: ButtonVariant.Primary,
       }}
     />
   );

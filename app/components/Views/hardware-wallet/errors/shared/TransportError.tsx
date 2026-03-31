@@ -6,9 +6,6 @@ const TransportError = ({
   errorCode,
   isBusy,
   onRetry,
-  onExit,
-  onOpenSettings,
-  onOpenBluetoothSettings,
 }: ErrorComponentProps) => (
   <LedgerConnectionError
     errorCode={
@@ -16,9 +13,6 @@ const TransportError = ({
     }
     isBusy={isBusy}
     onRetry={onRetry}
-    onContinue={onExit}
-    onOpenSettings={onOpenSettings}
-    onOpenBluetoothSettings={onOpenBluetoothSettings}
   />
 );
 

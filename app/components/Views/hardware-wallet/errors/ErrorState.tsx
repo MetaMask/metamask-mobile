@@ -12,30 +12,28 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-type ErrorAction = {
+interface ErrorAction {
   label: string;
   onPress: () => void;
   testID: string;
   variant: ButtonVariant;
-};
+}
 
-type ErrorStateProps = {
+interface ErrorStateProps {
   testID: string;
   title: string;
   description: string;
-  isBusy?: boolean;
   imageSource?: ImageSourcePropType;
   imageClassName?: string;
   illustration?: ReactNode;
   primaryAction: ErrorAction;
   secondaryAction?: ErrorAction;
-};
+}
 
 const ErrorState = ({
   testID,
   title,
   description,
-  isBusy = false,
   imageSource,
   imageClassName = 'h-[240px] w-[280px]',
   illustration,
@@ -45,7 +43,7 @@ const ErrorState = ({
   const tw = useTailwind();
 
   return (
-    <Box testID={testID} twClassName="flex-1 justify-between pb-4 pt-16">
+    <Box testID={testID} twClassName="w-full flex-1 justify-between pb-4 pt-16">
       <Box twClassName="items-center">
         <Box twClassName="h-[300px] w-full items-center justify-center">
           {illustration ??
@@ -85,7 +83,6 @@ const ErrorState = ({
             variant={secondaryAction.variant}
             size={ButtonSize.Lg}
             onPress={secondaryAction.onPress}
-            isDisabled={isBusy}
             style={tw.style('flex-1')}
           >
             {secondaryAction.label}
@@ -96,7 +93,6 @@ const ErrorState = ({
           variant={primaryAction.variant}
           size={ButtonSize.Lg}
           onPress={primaryAction.onPress}
-          isDisabled={isBusy}
           style={tw.style(secondaryAction ? 'flex-1' : 'w-full')}
         >
           {primaryAction.label}

@@ -248,11 +248,6 @@ function parseErrorByMessage(
     },
     {
       patterns: ['bluetooth'],
-      code: ErrorCode.BluetoothDisabled,
-      condition: (msg) => msg.includes('off') || msg.includes('disabled'),
-    },
-    {
-      patterns: ['bluetooth'],
       code: ErrorCode.BluetoothScanFailed,
       condition: (msg) => msg.includes('scan'),
     },

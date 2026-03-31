@@ -28,26 +28,30 @@ const DeviceNotFoundState = ({
   return (
     <Box
       testID={HardwareWalletTestIds.DEVICE_NOT_FOUND}
-      twClassName="w-full items-center"
+      twClassName="w-full flex-1 justify-between"
     >
-      {illustration ?? <LedgerDeviceIllustration state="not-found" />}
-      <Text
-        variant={TextVariant.HeadingLg}
-        fontWeight={FontWeight.Medium}
-        twClassName="mt-4 text-center"
-      >
-        {strings('hardware_wallet.ledger_onboarding.not_found_title')}
-      </Text>
-      <OnboardingTips />
-      <Button
-        testID={HardwareWalletTestIds.RETRY_BUTTON}
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={onRetry}
-        style={tw.style('mt-8 w-full')}
-      >
-        {strings('ledger.try_again')}
-      </Button>
+      <Box twClassName="items-center">
+        {illustration ?? <LedgerDeviceIllustration state="not-found" />}
+      </Box>
+      <Box twClassName="items-center px-4 pb-4">
+        <Text
+          variant={TextVariant.HeadingLg}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-center"
+        >
+          {strings('hardware_wallet.ledger_onboarding.not_found_title')}
+        </Text>
+        <OnboardingTips />
+        <Button
+          testID={HardwareWalletTestIds.RETRY_BUTTON}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={onRetry}
+          style={tw.style('mt-8 w-full')}
+        >
+          {strings('ledger.try_again')}
+        </Button>
+      </Box>
     </Box>
   );
 };

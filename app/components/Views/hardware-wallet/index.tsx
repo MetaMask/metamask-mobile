@@ -184,6 +184,9 @@ const HardwareWallet = () => {
       if (isConnected && isMountedRef.current) {
         handleNavigateToLedgerConnect();
       }
+    } catch {
+      // ensureDeviceReady handles its own errors via handleError,
+      // but disconnects during pre-checks can still throw here.
     } finally {
       isRetryingErrorActionRef.current = false;
       if (isMountedRef.current) {

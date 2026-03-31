@@ -85,7 +85,7 @@ const INITIAL_SHARED_MAP: ErrorRendererMap = {
   [ErrorCode.BluetoothConnectionFailed]: TransportError,
   [ErrorCode.DeviceNotFound]: DeviceNotFoundError,
   [ErrorCode.DeviceUnresponsive]: DeviceUnresponsiveError,
-  [ErrorCode.ConnectionTimeout]: DeviceUnresponsiveError,
+  [ErrorCode.ConnectionTimeout]: DeviceNotFoundError,
 };
 
 registerSharedErrors(INITIAL_SHARED_MAP, GenericError);

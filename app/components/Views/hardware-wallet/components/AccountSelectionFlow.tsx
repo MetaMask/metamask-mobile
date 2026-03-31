@@ -1,22 +1,17 @@
 import React, { useMemo } from 'react';
-import { Pressable, ScrollView, type ImageSourcePropType } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  AvatarNetwork,
-  AvatarNetworkSize,
-  AvatarToken,
-  AvatarTokenSize,
+  Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Box,
   Button,
   ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -28,23 +23,10 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import HardwareWalletTestIds from '../hardwareWallet.testIds';
 
-interface MockAsset {
-  address: string;
-  balance: string;
-  iconSource: ImageSourcePropType;
-  kind: 'network' | 'token';
-  label?: string;
-  title: string;
-}
+import type { AccountSelectionItem } from './account-selection/types';
+import AccountCard from './account-selection/AccountCard';
 
-export interface AccountSelectionItem {
-  address: string;
-  index: number;
-  isExistingAccount: boolean;
-  isSelected: boolean;
-  totalBalance: string;
-  assets: MockAsset[];
-}
+export type { AccountSelectionItem } from './account-selection/types';
 
 interface AccountSelectionFlowProps {
   accounts: AccountSelectionItem[];
@@ -58,156 +40,6 @@ interface AccountSelectionFlowProps {
   onPrevPage: () => void;
   onToggleAccount: (accountIndex: number) => void;
 }
-
-const SelectionCheckbox = ({
-  isSelected,
-  isDisabled,
-}: {
-  isSelected: boolean;
-  isDisabled: boolean;
-}) => {
-  const tw = useTailwind();
-  return (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName={`h-6 w-6 rounded-md border ${isSelected ? 'border-muted bg-muted' : 'border-muted'} ${isDisabled ? 'opacity-70' : ''}`}
-    >
-      {isSelected ? <Icon name={IconName.Check} size={IconSize.Sm} /> : null}
-    </Box>
-  );
-};
-
-const AssetLabel = ({ label }: { label: string }) => {
-  const tw = useTailwind();
-  return (
-    <Box twClassName="rounded px-1.5 py-0.5" style={tw.style('bg-muted')}>
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
-    </Box>
-  );
-};
-
-const AccountAssetRow = ({ asset }: { asset: MockAsset }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName="gap-4"
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="flex-1 gap-4"
-    >
-      {asset.kind === 'network' ? (
-        <AvatarNetwork
-          name={asset.title}
-          imageSource={asset.iconSource}
-          size={AvatarNetworkSize.Lg}
-        />
-      ) : (
-        <AvatarToken
-          name={asset.title}
-          src={asset.iconSource}
-          size={AvatarTokenSize.Lg}
-        />
-      )}
-      <Box twClassName="min-w-0 flex-1">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-1.5"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {asset.title}
-          </Text>
-          {asset.label ? <AssetLabel label={asset.label} /> : null}
-        </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {asset.address}
-        </Text>
-      </Box>
-    </Box>
-    <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-      {asset.balance}
-    </Text>
-  </Box>
-);
-
-const AccountCard = ({
-  account,
-  onPress,
-}: {
-  account: AccountSelectionItem;
-  onPress: () => void;
-}) => {
-  const tw = useTailwind();
-
-  return (
-    <Pressable
-      testID={`${HardwareWalletTestIds.ACCOUNT_CARD}-${account.index}`}
-      accessibilityRole="checkbox"
-      accessibilityState={{
-        checked: account.isSelected,
-        disabled: account.isExistingAccount,
-      }}
-      disabled={account.isExistingAccount}
-      onPress={onPress}
-    >
-      {({ pressed }) => (
-        <Box
-          twClassName="rounded-xl border bg-muted px-4 py-3"
-          style={tw.style(
-            pressed && !account.isExistingAccount && 'opacity-90',
-          )}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Box twClassName="flex-1 pr-3">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {`Account ${account.index + 1}`}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {account.totalBalance}
-              </Text>
-            </Box>
-            <SelectionCheckbox
-              isSelected={account.isSelected}
-              isDisabled={account.isExistingAccount}
-            />
-          </Box>
-
-          <Box twClassName="mt-3 border-t border-muted pt-3">
-            <Box twClassName="gap-3">
-              {account.assets.map((asset) => (
-                <AccountAssetRow
-                  key={`${account.index}-${asset.title}-${asset.address}-${asset.label ?? 'base'}`}
-                  asset={asset}
-                />
-              ))}
-            </Box>
-          </Box>
-        </Box>
-      )}
-    </Pressable>
-  );
-};
 
 const AccountSelectionFlow = ({
   accounts,

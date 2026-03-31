@@ -1,3 +1,5 @@
+export { default as AccountSelectionFlow } from './AccountSelectionFlow';
+export type { AccountSelectionItem } from './AccountSelectionFlow'; // Re-exported from account-selection/types
 export { default as DeviceFoundState } from './DeviceFoundState';
 export { default as DeviceNotFoundState } from './DeviceNotFoundState';
 export { default as DeviceSelector } from './DeviceSelector';

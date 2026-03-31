@@ -15,33 +15,30 @@ type SupportedConnectionErrorCode =
   | ErrorCode.BluetoothDisabled
   | ErrorCode.BluetoothConnectionFailed;
 
-type LedgerConnectionErrorProps = {
+interface LedgerConnectionErrorProps {
   errorCode: SupportedConnectionErrorCode;
   isBusy?: boolean;
   onRetry: () => void;
-  onContinue: () => void;
-  onOpenSettings: () => void;
-  onOpenBluetoothSettings: () => void;
-};
+}
 
-type ConnectionErrorConfig = {
+interface ConnectionErrorConfig {
   testID: string;
   title: string;
   description: string;
   illustrationVariant: ConnectionErrorIllustrationVariant;
-  actions: Array<{
+  actions: {
     label: string;
     onPress: () => void;
     testID: string;
     variant: ButtonVariant;
-  }>;
+  }[];
   bottomAction?: {
     label: string;
     onPress: () => void;
     testID: string;
     variant: ButtonVariant;
   };
-};
+}
 
 export const isConnectionErrorCode = (
   errorCode?: ErrorCode,
@@ -56,9 +53,6 @@ const LedgerConnectionError = ({
   errorCode,
   isBusy,
   onRetry,
-  onContinue,
-  onOpenSettings,
-  onOpenBluetoothSettings,
 }: LedgerConnectionErrorProps) => {
   const config: Record<SupportedConnectionErrorCode, ConnectionErrorConfig> = {
     [ErrorCode.PermissionBluetoothDenied]: {
@@ -72,24 +66,12 @@ const LedgerConnectionError = ({
       illustrationVariant: 'bluetoothAccessDenied',
       actions: [
         {
-          label: strings('hardware_wallet.error.view_settings'),
-          onPress: onOpenSettings,
-          testID: HardwareWalletTestIds.VIEW_SETTINGS_BUTTON,
-          variant: ButtonVariant.Primary,
-        },
-        {
           label: strings('hardware_wallet.error.retry'),
           onPress: onRetry,
           testID: HardwareWalletTestIds.RETRY_BUTTON,
           variant: ButtonVariant.Primary,
         },
       ],
-      bottomAction: {
-        label: strings('hardware_wallet.common.continue'),
-        onPress: onContinue,
-        testID: HardwareWalletTestIds.CONTINUE_BUTTON,
-        variant: ButtonVariant.Secondary,
-      },
     },
     [ErrorCode.PermissionLocationDenied]: {
       testID: HardwareWalletTestIds.ERROR_LOCATION_ACCESS_DENIED,
@@ -102,24 +84,12 @@ const LedgerConnectionError = ({
       illustrationVariant: 'locationAccessDenied',
       actions: [
         {
-          label: strings('hardware_wallet.error.view_settings'),
-          onPress: onOpenSettings,
-          testID: HardwareWalletTestIds.VIEW_SETTINGS_BUTTON,
-          variant: ButtonVariant.Primary,
-        },
-        {
           label: strings('hardware_wallet.error.retry'),
           onPress: onRetry,
           testID: HardwareWalletTestIds.RETRY_BUTTON,
           variant: ButtonVariant.Primary,
         },
       ],
-      bottomAction: {
-        label: strings('hardware_wallet.common.continue'),
-        onPress: onContinue,
-        testID: HardwareWalletTestIds.CONTINUE_BUTTON,
-        variant: ButtonVariant.Secondary,
-      },
     },
     [ErrorCode.PermissionNearbyDevicesDenied]: {
       testID: HardwareWalletTestIds.ERROR_NEARBY_DEVICES_ACCESS_DENIED,
@@ -132,52 +102,30 @@ const LedgerConnectionError = ({
       illustrationVariant: 'nearbyDevicesDenied',
       actions: [
         {
-          label: strings('hardware_wallet.error.view_settings'),
-          onPress: onOpenSettings,
-          testID: HardwareWalletTestIds.VIEW_SETTINGS_BUTTON,
-          variant: ButtonVariant.Primary,
-        },
-        {
           label: strings('hardware_wallet.error.retry'),
           onPress: onRetry,
           testID: HardwareWalletTestIds.RETRY_BUTTON,
           variant: ButtonVariant.Primary,
         },
       ],
-      bottomAction: {
-        label: strings('hardware_wallet.common.continue'),
-        onPress: onContinue,
-        testID: HardwareWalletTestIds.CONTINUE_BUTTON,
-        variant: ButtonVariant.Secondary,
-      },
     },
     [ErrorCode.BluetoothDisabled]: {
       testID: HardwareWalletTestIds.ERROR_BLUETOOTH_DISABLED,
-      title: strings('hardware_wallet.ledger_onboarding.bluetooth_disabled_title'),
+      title: strings(
+        'hardware_wallet.ledger_onboarding.bluetooth_disabled_title',
+      ),
       description: strings(
         'hardware_wallet.ledger_onboarding.bluetooth_disabled_description',
       ),
       illustrationVariant: 'bluetoothDisabled',
       actions: [
         {
-          label: strings('hardware_wallet.error.view_settings'),
-          onPress: onOpenBluetoothSettings,
-          testID: HardwareWalletTestIds.VIEW_SETTINGS_BUTTON,
-          variant: ButtonVariant.Primary,
-        },
-        {
           label: strings('hardware_wallet.error.retry'),
           onPress: onRetry,
           testID: HardwareWalletTestIds.RETRY_BUTTON,
           variant: ButtonVariant.Primary,
         },
       ],
-      bottomAction: {
-        label: strings('hardware_wallet.common.continue'),
-        onPress: onContinue,
-        testID: HardwareWalletTestIds.CONTINUE_BUTTON,
-        variant: ButtonVariant.Secondary,
-      },
     },
     [ErrorCode.BluetoothConnectionFailed]: {
       testID: HardwareWalletTestIds.ERROR_BLUETOOTH_CONNECTION_FAILED,
@@ -193,12 +141,6 @@ const LedgerConnectionError = ({
           label: strings('hardware_wallet.error.retry'),
           onPress: onRetry,
           testID: HardwareWalletTestIds.RETRY_BUTTON,
-          variant: ButtonVariant.Primary,
-        },
-        {
-          label: strings('hardware_wallet.common.continue'),
-          onPress: onContinue,
-          testID: HardwareWalletTestIds.CONTINUE_BUTTON,
           variant: ButtonVariant.Primary,
         },
       ],

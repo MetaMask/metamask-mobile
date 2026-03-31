@@ -15,14 +15,14 @@ import ConnectionErrorIllustration, {
   ConnectionErrorIllustrationVariant,
 } from './ConnectionErrorIllustration';
 
-type ConnectionErrorAction = {
+interface ConnectionErrorAction {
   label: string;
   onPress: () => void;
   testID: string;
   variant: ButtonVariant;
-};
+}
 
-type ConnectionErrorStateProps = {
+interface ConnectionErrorStateProps {
   testID: string;
   title: string;
   description: string;
@@ -30,7 +30,7 @@ type ConnectionErrorStateProps = {
   illustrationVariant: ConnectionErrorIllustrationVariant;
   actions?: ConnectionErrorAction[];
   bottomAction?: ConnectionErrorAction;
-};
+}
 
 const ConnectionErrorState = ({
   testID,
@@ -44,7 +44,7 @@ const ConnectionErrorState = ({
   const tw = useTailwind();
 
   return (
-    <Box testID={testID} twClassName="flex-1 justify-between pb-4 pt-16">
+    <Box testID={testID} twClassName="w-full flex-1 justify-between pb-4 pt-16">
       <Box twClassName="items-center">
         <ConnectionErrorIllustration variant={illustrationVariant} />
 
@@ -76,7 +76,6 @@ const ConnectionErrorState = ({
                 variant={action.variant}
                 size={ButtonSize.Lg}
                 onPress={action.onPress}
-                isDisabled={isBusy}
                 style={tw.style(index === 0 ? 'w-full' : 'mt-4 w-full')}
               >
                 {action.label}
@@ -92,7 +91,6 @@ const ConnectionErrorState = ({
               variant={bottomAction.variant}
               size={ButtonSize.Lg}
               onPress={bottomAction.onPress}
-              isDisabled={isBusy}
               style={tw.style('w-full')}
             >
               {bottomAction.label}
