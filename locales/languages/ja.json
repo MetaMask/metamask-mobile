@@ -6215,7 +6215,7 @@
       "energy": "エネルギー",
       "estimated_annual_reward": "予想年間報酬",
       "trx_locked_for": "TRXのロック期間",
-      "trx_locked_for_minimum_time": "最大3日",
+      "trx_locked_for_minimum_time": "最大14日",
       "trx_released_in": "TRXのロック解除までの待機期間",
       "trx_released_in_minimum_time": "最大14日",
       "fee": "手数料",
