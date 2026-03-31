@@ -1,6 +1,12 @@
 import type { ComponentType } from 'react';
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import type { ErrorComponentProps, ErrorRendererMap } from './types';
+import {
+  TransportError,
+  DeviceNotFoundError,
+  DeviceUnresponsiveError,
+  GenericError,
+} from './shared';
 
 const WALLET_ERROR_MAPS: Partial<Record<HardwareWalletType, ErrorRendererMap>> =
   {};
@@ -70,3 +76,16 @@ export function resolveErrorComponent(
     `No error component registered for walletType=${walletType} errorCode=${errorCode}`,
   );
 }
+
+const INITIAL_SHARED_MAP: ErrorRendererMap = {
+  [ErrorCode.PermissionBluetoothDenied]: TransportError,
+  [ErrorCode.PermissionLocationDenied]: TransportError,
+  [ErrorCode.PermissionNearbyDevicesDenied]: TransportError,
+  [ErrorCode.BluetoothDisabled]: TransportError,
+  [ErrorCode.BluetoothConnectionFailed]: TransportError,
+  [ErrorCode.DeviceNotFound]: DeviceNotFoundError,
+  [ErrorCode.DeviceUnresponsive]: DeviceUnresponsiveError,
+  [ErrorCode.ConnectionTimeout]: DeviceUnresponsiveError,
+};
+
+registerSharedErrors(INITIAL_SHARED_MAP, GenericError);
