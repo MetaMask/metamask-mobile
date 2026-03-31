@@ -65,10 +65,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock useMetrics
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   __esModule: true,
-  default: jest.fn(() => ({
+  useAnalytics: jest.fn(() => ({
     addTraitsToUser: jest.fn(),
   })),
 }));
@@ -266,7 +265,8 @@ describe('useFeatureFlagOverride Hook', () => {
 });
 
 describe('FeatureFlagOverride', () => {
-  let mockNavigation: ReturnType<typeof useNavigation>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNavigation: any;
 
   // Helper to render with providers
   const renderWithProviders = (

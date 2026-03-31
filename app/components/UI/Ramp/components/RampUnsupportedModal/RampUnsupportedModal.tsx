@@ -1,18 +1,17 @@
 import React, { useCallback, useRef } from 'react';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -45,13 +44,13 @@ function RampUnsupportedModal() {
           testID: RAMP_UNSUPPORTED_MODAL_TEST_IDS.CLOSE_BUTTON,
         }}
       >
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <Box twClassName="px-6 pb-6">
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
             'fiat_on_ramp_aggregator.unsupported_region_modal.description',
           )}
@@ -62,12 +61,11 @@ function RampUnsupportedModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
-          label={strings(
-            'fiat_on_ramp_aggregator.unsupported_region_modal.got_it',
-          )}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('fiat_on_ramp_aggregator.unsupported_region_modal.got_it')}
+        </Button>
       </Box>
     </BottomSheet>
   );

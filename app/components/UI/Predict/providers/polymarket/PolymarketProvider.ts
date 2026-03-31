@@ -937,8 +937,13 @@ export class PolymarketProvider implements PredictProvider {
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
 
+    const teamLookup = this.#createTeamLookup(
+      this.#getSupportedLeagues().length > 0,
+    );
+
     const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
+      teamLookup,
     });
 
     // Apply optimistic updates (unified for BUY/SELL/CLAIM)

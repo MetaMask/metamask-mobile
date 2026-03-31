@@ -2070,6 +2070,31 @@ describe('TradingService', () => {
       ).rejects.toThrow(/Insufficient balance for flip fees/);
     });
 
+    it('allows flip when balance covers 1x notional fee estimate', async () => {
+      // position: size=0.5, entryPrice=50000
+      // estimatedFees = positionSize * entryPrice * ESTIMATED_FEE_RATE
+      //               = 0.5 * 50000 * 0.0009 = $22.50 (1x notional, correct)
+      // pre-fix would compute 2x: 1.0 * 50000 * 0.0009 = $45 → would block this user
+      mockProvider.getAccountState = jest.fn().mockResolvedValue({
+        ...mockAccountState,
+        availableBalance: '30', // $30 > $22.50, sufficient with 1x
+      });
+      mockProvider.placeOrder.mockResolvedValue({
+        success: true,
+        orderId: 'flip-balance-fixed',
+        filledSize: '1.0',
+        averagePrice: '50000',
+      });
+
+      const result = await tradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
     it('throws error when account state cannot be retrieved', async () => {
       mockProvider.getAccountState = jest.fn().mockResolvedValue(null);
 

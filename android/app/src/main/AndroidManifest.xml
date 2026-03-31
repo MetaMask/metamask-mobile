@@ -192,6 +192,14 @@
 		<meta-data  android:name="com.google.firebase.messaging.default_notification_icon"
 		android:resource="@mipmap/ic_notification_small"/>
 
+		<!-- Braze push: primary FCM handler, forwards non-Braze messages via fallback in braze.xml -->
+		<service android:name="com.braze.push.BrazeFirebaseMessagingService"
+			android:exported="false">
+			<intent-filter>
+				<action android:name="com.google.firebase.MESSAGING_EVENT" />
+			</intent-filter>
+		</service>
+
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="${applicationId}.provider"

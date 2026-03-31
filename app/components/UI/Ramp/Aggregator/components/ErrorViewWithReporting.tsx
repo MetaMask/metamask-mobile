@@ -31,7 +31,7 @@ function ErrorViewWithReporting({
       ctaOnPress={() => {
         //TODO: implement a mechanisim for user to submit a support ticket
         // @ts-expect-error navigation prop mismatch
-        navigation.dangerouslyGetParent()?.pop();
+        navigation.getParent()?.pop();
       }}
       location={location}
       asScreen={asScreen}

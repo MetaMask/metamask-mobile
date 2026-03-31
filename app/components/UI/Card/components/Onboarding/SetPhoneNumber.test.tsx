@@ -55,6 +55,68 @@ jest.mock('./RegionSelectorModal', () => ({
 
 import { useCardSDK } from '../../sdk';
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  return {
+    Box: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(View, { testID, ...props }, children),
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children || label),
+      ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+    TextVariant: {
+      BodySm: 'BodySm',
+      BodyMd: 'BodyMd',
+      HeadingMd: 'HeadingMd',
+    },
+    Icon: ({ ...props }: Record<string, unknown>) =>
+      React.createElement(View, props),
+    IconName: {
+      ArrowDown: 'arrow-down',
+    },
+    IconSize: {
+      Sm: 'sm',
+      Md: 'md',
+    },
+    Label: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(Text, props, children),
+  };
+});
+
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
   const React = jest.requireActual('react');
