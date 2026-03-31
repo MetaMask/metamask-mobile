@@ -798,17 +798,44 @@ describe('CandleStreamChannel', () => {
   });
 
   describe('Fetch Historical Candles', () => {
-    it('returns early when no cached data exists', async () => {
+    it('fetches with Date.now fallback when no cached data exists', async () => {
+      const now = 1700100000000;
+      jest.setSystemTime(now);
+
+      const olderCandles: CandleData = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [
+          {
+            time: 1699996400000,
+            open: '49000',
+            high: '50000',
+            low: '48500',
+            close: '49500',
+            volume: '80',
+          },
+        ],
+      };
+      mockFetchHistoricalCandles.mockResolvedValue(olderCandles);
+
       await channel.fetchHistoricalCandles(
         'BTC',
         CandlePeriod.OneHour,
         TimeDuration.OneDay,
       );
 
-      expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        limit: expect.any(Number),
+        endTime: now - 1,
+      });
     });
 
-    it('returns early when cached data has no candles', async () => {
+    it('fetches with Date.now fallback when cached data has no candles', async () => {
+      const now = 1700100000000;
+      jest.setSystemTime(now);
+
       let capturedCallback: ((data: CandleData) => void) | undefined;
       mockSubscribeToCandles.mockImplementation(({ callback }) => {
         capturedCallback = callback;
@@ -829,13 +856,20 @@ describe('CandleStreamChannel', () => {
       };
       capturedCallback?.(emptyData);
 
+      mockFetchHistoricalCandles.mockResolvedValue(null);
+
       await channel.fetchHistoricalCandles(
         'BTC',
         CandlePeriod.OneHour,
         TimeDuration.OneDay,
       );
 
-      expect(mockFetchHistoricalCandles).not.toHaveBeenCalled();
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        limit: expect.any(Number),
+        endTime: now - 1,
+      });
     });
 
     it('fetches and merges historical candles successfully', async () => {
@@ -1227,6 +1261,124 @@ describe('CandleStreamChannel', () => {
           interval: CandlePeriod.FourHours,
         }),
       );
+    });
+  });
+
+  describe('onError propagation', () => {
+    it('calls subscriber onError callback when subscription initialization fails', () => {
+      const onError = jest.fn();
+      const subscriptionError = new Error('Too many requests');
+
+      let capturedOnError: ((error: Error) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ onError: onErr }) => {
+        capturedOnError = onErr;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        onError,
+      });
+
+      // Simulate subscription error from the controller
+      capturedOnError?.(subscriptionError);
+
+      expect(onError).toHaveBeenCalledWith(subscriptionError);
+    });
+
+    it('propagates onError through connect to the controller subscription', () => {
+      const onError = jest.fn();
+
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        onError,
+      });
+
+      // Verify subscribeToCandles was called with an onError handler
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onError: expect.any(Function),
+        }),
+      );
+    });
+
+    it('notifies all subscribers for the same cacheKey on error', () => {
+      const onError1 = jest.fn();
+      const onError2 = jest.fn();
+      const subscriptionError = new Error('Too many requests');
+
+      let capturedOnError: ((error: Error) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ onError: onErr }) => {
+        capturedOnError = onErr;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        onError: onError1,
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        onError: onError2,
+      });
+
+      capturedOnError?.(subscriptionError);
+
+      expect(onError1).toHaveBeenCalledWith(subscriptionError);
+      expect(onError2).toHaveBeenCalledWith(subscriptionError);
+    });
+
+    it('does not notify subscribers for a different cacheKey on error', () => {
+      const btcOnError = jest.fn();
+      const ethOnError = jest.fn();
+      const subscriptionError = new Error('Too many requests');
+
+      let btcCapturedOnError: ((error: Error) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(
+        ({ symbol, onError: onErr }) => {
+          if (symbol === 'BTC') {
+            btcCapturedOnError = onErr;
+          }
+          return jest.fn();
+        },
+      );
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        onError: btcOnError,
+      });
+
+      channel.subscribe({
+        symbol: 'ETH',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+        onError: ethOnError,
+      });
+
+      // Trigger error only on BTC
+      btcCapturedOnError?.(subscriptionError);
+
+      expect(btcOnError).toHaveBeenCalledWith(subscriptionError);
+      expect(ethOnError).not.toHaveBeenCalled();
     });
   });
 });

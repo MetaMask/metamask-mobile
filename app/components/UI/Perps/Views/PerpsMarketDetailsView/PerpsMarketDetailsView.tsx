@@ -27,7 +27,6 @@ import {
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
-  CandleData,
 } from '@metamask/perps-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -143,8 +142,7 @@ import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionV
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import { sleep } from '@walletconnect/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useRefetchCandleDataOnError } from '../../hooks/useRefetchCandleDataOnError';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -152,54 +150,6 @@ interface MarketDetailsRouteParams {
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
 }
-
-const useRefetchCandleDataOnError = ({
-  candleData,
-  candleError,
-  fetchMoreHistory,
-}: {
-  candleData: CandleData | null;
-  candleError: Error | null;
-  fetchMoreHistory: () => Promise<void>;
-}) => {
-  const candlesRefetchRef = useRef<{
-    candles: CandleData['candles'];
-    error: Error | null;
-  }>({ candles: [], error: null });
-  const fetchMoreHistoryRef = useRef<() => Promise<void>>(fetchMoreHistory);
-
-  useEffect(() => {
-    candlesRefetchRef.current.candles = candleData?.candles ?? [];
-    candlesRefetchRef.current.error = candleError;
-    fetchMoreHistoryRef.current = fetchMoreHistory;
-  }, [candleData, candleError, fetchMoreHistory]);
-
-  const candleErorrMessage = candleError?.message;
-  const tooManyRequestsRegex = /too many requests/i;
-  const maxRetries = 12;
-  const retryDelay = 5000;
-  const shouldRetry =
-    !!candleErorrMessage && tooManyRequestsRegex.test(candleErorrMessage);
-
-  useEffect(() => {
-    if (!shouldRetry) return;
-    let isMounted = true;
-
-    const retry = async (retryCount: number = 0) => {
-      if (retryCount >= maxRetries) return;
-      if (!isMounted) return;
-      if (candlesRefetchRef.current.candles.length > 0) return;
-      await sleep(retryDelay);
-      await fetchMoreHistoryRef.current();
-      await retry(retryCount + 1);
-    };
-
-    retry();
-    return () => {
-      isMounted = false;
-    };
-  }, [shouldRetry]);
-};
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
