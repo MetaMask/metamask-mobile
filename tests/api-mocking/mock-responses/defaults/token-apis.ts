@@ -20,10 +20,12 @@ const tokenV3AssetsRegex =
 
 // Matches the single-token metadata endpoint triggered by TokensController.addToken()
 // when useEnsureMusdTokenRegistered registers mUSD at app startup for all supported chains.
-// e.g. https://token.api.cx.metamask.io/token/1?address=0xaca92...&includeRwaData=true
-//      https://token.api.cx.metamask.io/token/59144?address=0xaca92...&includeRwaData=true
-const tokenByAddressRegex =
-  /^https:\/\/token\.api\.cx\.metamask\.io\/token\/\d+\?.*includeRwaData=true.*$/;
+// Scoped to the mUSD token address (0xaca92e438df0b2401ff60da7e4337b687a2435da) so that
+// unrelated token-by-address lookups are NOT matched and continue to resolve normally.
+// e.g. https://token.api.cx.metamask.io/token/1?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&includeRwaData=true
+//      https://token.api.cx.metamask.io/token/59144?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&includeRwaData=true
+const musdTokenByAddressRegex =
+  /^https:\/\/token\.api\.cx\.metamask\.io\/token\/\d+\?.*address=0xaca92e438df0b2401ff60da7e4337b687a2435da.*$/i;
 
 export const TOKEN_API_MOCKS: MockEventsObject = {
   GET: [
@@ -43,7 +45,7 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       response: [],
     },
     {
-      urlEndpoint: tokenByAddressRegex,
+      urlEndpoint: musdTokenByAddressRegex,
       responseCode: 200,
       response: MUSD_TOKEN_API_RESPONSE,
     },
