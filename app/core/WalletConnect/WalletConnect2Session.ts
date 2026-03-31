@@ -27,7 +27,7 @@ import getRpcMethodMiddleware, {
 } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ERROR_MESSAGES } from './WalletConnectV2';
-import METHODS_TO_REDIRECT from './wc-config';
+import { REDIRECT_METHODS_BY_NAMESPACE } from './wc-config';
 import {
   getScopedPermissions,
   hideWCLoadingState,
@@ -38,7 +38,14 @@ import {
   getChainIdForCaipChainId,
   getHostname,
   normalizeDappUrl,
+  normalizeCaipChainIdInbound,
 } from './wc-utils';
+import { HandlerType } from '@metamask/snaps-utils';
+import { SnapId } from '@metamask/snaps-sdk';
+import { handleSnapRequest } from '../Snaps/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { TRON_WALLET_SNAP_ID } from '../SnapKeyring/TronWalletSnap';
+///: END:ONLY_INCLUDE_IF
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
@@ -277,10 +284,8 @@ class WalletConnect2Session {
   };
 
   public get getAllowedChainIds(): CaipChainId[] {
-    return (
-      this.session.namespaces.eip155?.chains?.map(
-        (chain) => chain as CaipChainId,
-      ) || []
+    return Object.values(this.session.namespaces).flatMap(
+      (ns) => ns?.chains?.map((chain) => chain as CaipChainId) ?? [],
     );
   }
 
@@ -567,6 +572,33 @@ class WalletConnect2Session {
     }
 
     const method = requestEvent.params.request.method;
+    const requestChainId = normalizeCaipChainIdInbound(
+      requestEvent.params.chainId,
+    ) as CaipChainId;
+    const requestNamespace = requestChainId?.split(':')?.[0];
+
+    // Mark redirect before any routing so all namespaces benefit from it.
+    const redirectMethods =
+      (requestNamespace && REDIRECT_METHODS_BY_NAMESPACE[requestNamespace]) ??
+      [];
+    if (redirectMethods.includes(method)) {
+      this.requestsToRedirect[requestEvent.id] = true;
+    }
+
+    // Non-EVM namespace routing: each chain maps to its Snap ID.
+    // To add a new chain, append an entry inside the flag block below
+    // (or add a new flag block for the new chain).
+    const nonEvmSnapIdByNamespace: Record<string, string> = {};
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    nonEvmSnapIdByNamespace[KnownCaipNamespace.Tron] = TRON_WALLET_SNAP_ID;
+    ///: END:ONLY_INCLUDE_IF
+
+    const nonEvmSnapId =
+      requestNamespace && nonEvmSnapIdByNamespace[requestNamespace];
+    if (nonEvmSnapId) {
+      return this.routeToSnap(requestEvent, nonEvmSnapId, unverifiedOrigin);
+    }
+
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
     let caip2ChainId: CaipChainId;
@@ -610,10 +642,6 @@ class WalletConnect2Session {
 
     const permittedChains = await getPermittedChains(this.channelId);
     const isAllowedChainId = permittedChains.includes(caip2ChainId);
-
-    if (METHODS_TO_REDIRECT[method]) {
-      this.requestsToRedirect[requestEvent.id] = true;
-    }
 
     if (method === 'wallet_switchEthereumChain') {
       try {
@@ -688,6 +716,39 @@ class WalletConnect2Session {
       },
       origin: unverifiedOrigin,
     });
+  };
+
+  /**
+   * Routes a WalletConnect session request to a Snap via OnRpcRequest.
+   * Generic handler for non-EVM namespaces (Tron, and future chains).
+   */
+  private routeToSnap = async (
+    requestEvent: WalletKitTypes.SessionRequest,
+    snapId: string,
+    unverifiedOrigin: string,
+  ) => {
+    const { method, params } = requestEvent.params.request;
+    DevLogger.log(
+      `WC2::routeToSnap snapId=${snapId} method=${method} origin=${unverifiedOrigin}`,
+    );
+    try {
+      const result = await handleSnapRequest(Engine.controllerMessenger, {
+        origin: unverifiedOrigin,
+        snapId: snapId as SnapId,
+        handler: HandlerType.OnRpcRequest,
+        request: {
+          jsonrpc: '2.0',
+          id: requestEvent.id,
+          method,
+          params: params ?? [],
+        },
+      });
+      await this.approveRequest({ id: requestEvent.id + '', result });
+    } catch (error) {
+      await this.rejectRequest({ id: requestEvent.id + '', error });
+    } finally {
+      this._isHandlingRequest = false;
+    }
   };
 
   removeListeners = async () => {
