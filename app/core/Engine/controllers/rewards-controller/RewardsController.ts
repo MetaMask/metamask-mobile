@@ -247,6 +247,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  benefitImpressions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -257,6 +263,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   accounts: {},
   subscriptions: {},
   subscriptionBenefits: {},
+  benefitImpressions: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
@@ -3976,8 +3983,7 @@ export class RewardsController extends BaseController<
         const cached = this.state.benefitImpressions[key] || undefined;
         if (!cached) return;
         return {
-          payload: cached,
-          lastFetched: cached.lastFetched,
+          payload: cached
         };
       },
       fetchFresh: async () => {
