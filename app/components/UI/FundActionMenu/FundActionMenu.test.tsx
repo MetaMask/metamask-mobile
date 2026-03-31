@@ -152,7 +152,7 @@ describe('FundActionMenu', () => {
   describe('Component Rendering', () => {
     it('renders correctly with default props', () => {
       const { getByTestId } = render(<FundActionMenu />);
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('fund-action-menu-bottom-sheet')).toBeOnTheScreen();
     });
 
     it('renders deposit button when deposit is enabled', () => {
@@ -637,7 +637,7 @@ describe('FundActionMenu', () => {
     it('properly integrates with BottomSheet ref methods', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('fund-action-menu-bottom-sheet')).toBeOnTheScreen();
     });
 
     it('displays correct strings from i18n', () => {

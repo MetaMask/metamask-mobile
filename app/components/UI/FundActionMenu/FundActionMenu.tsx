@@ -237,7 +237,7 @@ const FundActionMenu = () => {
     <BottomSheet
       ref={sheetRef}
       goBack={navigation.goBack}
-      testID="bottom-sheet"
+      testID="fund-action-menu-bottom-sheet"
     >
       <Box twClassName="py-4">
         {actionConfigs.map(
