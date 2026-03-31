@@ -232,7 +232,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             gap={1}
           >
             <GradientText
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
             >
               {strings('market_insights.title')}
