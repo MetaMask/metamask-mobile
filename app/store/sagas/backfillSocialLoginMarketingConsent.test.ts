@@ -1,7 +1,6 @@
 import { expectSaga } from 'redux-saga-test-plan';
 import { updateDataRecordingFlag } from '../../util/analytics/analyticsDataDeletion';
 import { backfillSocialLoginMarketingConsent } from './backfillSocialLoginMarketingConsent';
-import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import initialRootState from '../../util/test/initial-root-state';
 import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onboarding';
 import { analytics } from '../../util/analytics/analytics';
@@ -71,11 +70,11 @@ describe('backfillSocialLoginMarketingConsent', () => {
       expect.objectContaining({
         saveDataRecording: true,
         properties: expect.objectContaining({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+          has_marketing_consent: true,
           is_metrics_opted_in: true,
           location: 'saga_backfill_marketing_consent',
           updated_after_onboarding: false,
-          account_type: 'metamask_google',
+          account_type: 'imported_google',
         }),
       }),
     );
