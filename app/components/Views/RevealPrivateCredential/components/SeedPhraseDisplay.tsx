@@ -5,8 +5,8 @@ import {
   Text,
   TextColor,
   TextVariant,
-  TextButton,
-  TextButtonSize,
+  Button,
+  ButtonVariant,
   IconName,
   BoxFlexDirection,
   BoxAlignItems,
@@ -73,21 +73,19 @@ const SeedPhraseDisplay = ({
       />
     </Box>
     {clipboardEnabled ? (
-      <TextButton
-        size={TextButtonSize.BodyMd}
+      <Button
+        variant={ButtonVariant.Tertiary}
         onPress={onCopyToClipboard}
         testID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
         }
-        twClassName="self-center w-full flex-1 items-center justify-center mb-2"
+        isFullWidth
         startIconName={IconName.Copy}
-        startIconProps={{
-          size: IconSize.Md,
-        }}
         isDisabled={!showSeedPhrase}
+        twClassName="mb-2"
       >
         {strings('reveal_credential.copy_to_clipboard')}
-      </TextButton>
+      </Button>
     ) : null}
   </Box>
 );
