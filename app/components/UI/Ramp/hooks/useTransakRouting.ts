@@ -9,7 +9,7 @@ import {
   normalizeProviderCode,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
-import { REDIRECTION_URL } from '../Deposit/constants';
+import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
@@ -270,7 +270,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
-      if (!url.startsWith(REDIRECTION_URL)) return;
+      if (!url.startsWith(getRampCallbackBaseUrl())) return;
 
       let orderId: string | null = null;
       try {

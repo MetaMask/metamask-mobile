@@ -358,9 +358,17 @@ const Checkout = () => {
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             const errorUrl = nativeEvent.url;
+            // When a callbackKey is active (Transak native / Deposit flows), the
+            // redirect to the fake-callback URL intentionally returns a 404. The
+            // registered callback handler processes the URL instead, so treating
+            // that 404 as a fatal error would tear down the WebView and race with
+            // the order-completion callback -- causing the "confirm order" loop.
+            const isExpectedCallbackError =
+              callbackKeyRef.current && errorUrl.startsWith(callbackBaseUrl);
             if (
-              errorUrl === initialUriRef.current ||
-              errorUrl.startsWith(callbackBaseUrl)
+              !isExpectedCallbackError &&
+              (errorUrl === initialUriRef.current ||
+                errorUrl.startsWith(callbackBaseUrl))
             ) {
               const webviewHttpError = strings(
                 'fiat_on_ramp_aggregator.webview_received_error',
