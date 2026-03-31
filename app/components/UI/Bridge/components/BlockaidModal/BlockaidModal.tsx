@@ -7,9 +7,7 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import {
   ButtonSize,
   ButtonVariants,
@@ -24,9 +22,6 @@ const createStyles = () =>
     footer: {
       paddingVertical: 20,
       paddingHorizontal: 16,
-    },
-    errorMessage: {
-      textAlign: 'center',
     },
   });
 
@@ -62,7 +57,7 @@ const BlockaidModal = () => {
         {strings(`blockaid_modal.${errorType}_title`)}
       </BottomSheetHeader>
       <View style={styles.container}>
-        <Text variant={TextVariant.BodyMD} style={styles.errorMessage}>
+        <Text variant={TextVariant.BodyMd} twClassName="text-center">
           {errorMessage}
         </Text>
       </View>
