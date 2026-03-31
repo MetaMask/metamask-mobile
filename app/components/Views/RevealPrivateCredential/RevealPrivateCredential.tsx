@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { Linking } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -44,17 +45,21 @@ import {
   SRPTabView,
 } from './components';
 import { useRevealCredential, useSRPQuiz } from './hooks';
-import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
+import {
+  IRevealPrivateCredentialProps,
+  RevealPrivateCredentialRouteProp,
+  RevealSrpStage,
+} from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const RevealPrivateCredential = ({
-  navigation,
   cancel,
-  route,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
-  const hasNavigation = !!navigation;
+  const navigation = useNavigation();
+  const route = useRoute<RevealPrivateCredentialRouteProp>();
+  const hasNavigation = !cancel;
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const keyringId = route?.params?.keyringId;
 
