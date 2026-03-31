@@ -78,7 +78,7 @@ import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -169,7 +169,9 @@ const slideFromRightAnimation = {
 };
 
 const WalletModalFlow = () => (
-  <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
+  >
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -210,7 +212,7 @@ const AssetStackFlow = (props) => (
 const AssetNavigator = (props) => (
   <Stack.Navigator
     initialRouteName={'AssetStackFlow'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
   >
     <Stack.Screen
       name={'AssetStackFlow'}
@@ -241,7 +243,7 @@ const WalletTabModalFlow = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
+        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -300,7 +302,7 @@ const RewardsHome = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
+        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
@@ -326,7 +328,7 @@ const RewardsHome = () => {
         options={{
           headerShown: false,
           presentation: 'transparentModal',
-          ...clearStackNavigatorOptions,
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
         }}
       />
       <Stack.Screen
@@ -1106,7 +1108,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptions}
+        options={clearStackNavigatorOptionsWithTransitionAnimation}
       />
       <Stack.Screen
         name="StakeScreens"
@@ -1121,7 +1123,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
-        options={clearStackNavigatorOptions}
+        options={clearStackNavigatorOptionsWithTransitionAnimation}
       />
       {isMoneyHomeScreenEnabled && (
         <Stack.Screen
@@ -1134,7 +1136,7 @@ const MainNavigator = () => {
         name="StakeModals"
         component={StakeModalStack}
         options={{
-          ...clearStackNavigatorOptions,
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
           presentation: 'transparentModal',
         }}
       />
@@ -1155,7 +1157,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
-            options={clearStackNavigatorOptions}
+            options={clearStackNavigatorOptionsWithTransitionAnimation}
           />
         </>
       )}
@@ -1199,7 +1201,7 @@ const MainNavigator = () => {
             component={PredictModalStack}
             options={{
               presentation: 'transparentModal',
-              ...clearStackNavigatorOptions,
+              ...clearStackNavigatorOptionsWithTransitionAnimation,
             }}
           />
         </>
@@ -1290,7 +1292,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
-        options={clearStackNavigatorOptions}
+        options={clearStackNavigatorOptionsWithTransitionAnimation}
       />
     </Stack.Navigator>
   );
