@@ -7,8 +7,8 @@ import {
 import {
   SnapControllerGetPermittedSnapsAction,
   SnapControllerInstallSnapsAction,
-  MultichainRouterGetSupportedAccountsAction,
-  MultichainRouterIsSupportedScopeAction,
+  MultichainRoutingServiceGetSupportedAccountsAction,
+  MultichainRoutingServiceIsSupportedScopeAction,
 } from '@metamask/snaps-controllers';
 import { AccountsControllerListAccountsAction } from '@metamask/accounts-controller';
 import {
@@ -58,8 +58,8 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
 
 type AllowedInitializationActions =
   | AccountsControllerListAccountsAction
-  | MultichainRouterIsSupportedScopeAction
-  | MultichainRouterGetSupportedAccountsAction
+  | MultichainRoutingServiceIsSupportedScopeAction
+  | MultichainRoutingServiceGetSupportedAccountsAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | SnapPermissionSpecificationsActions;
 
@@ -97,8 +97,8 @@ export function getPermissionControllerInitMessenger(
       'KeyringController:getKeyringsByType',
       'KeyringController:getState',
       'KeyringController:withKeyring',
-      'MultichainRouter:isSupportedScope',
-      'MultichainRouter:getSupportedAccounts',
+      'MultichainRoutingService:isSupportedScope',
+      'MultichainRoutingService:getSupportedAccounts',
       'NetworkController:findNetworkClientIdByChainId',
       'PermissionController:hasPermission',
       'PhishingController:maybeUpdateState',

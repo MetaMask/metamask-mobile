@@ -1,9 +1,9 @@
 import {
-  MultichainRouterGetSupportedAccountsAction,
-  MultichainRouterIsSupportedScopeAction,
+  MultichainRoutingServiceGetSupportedAccountsAction as MultichainRoutingServiceGetSupportedAccountsActionType,
+  MultichainRoutingServiceIsSupportedScopeAction as MultichainRoutingServiceIsSupportedScopeActionType,
 } from '@metamask/snaps-controllers';
 
-export const MultichainRouterIsSupportedScopeEvent: MultichainRouterIsSupportedScopeAction['type'] =
-  'MultichainRouter:isSupportedScope';
-export const MultichainRouterGetSupportedAccountsEvent: MultichainRouterGetSupportedAccountsAction['type'] =
-  'MultichainRouter:getSupportedAccounts';
+export const MultichainRoutingServiceIsSupportedScopeAction: MultichainRoutingServiceIsSupportedScopeActionType['type'] =
+  'MultichainRoutingService:isSupportedScope';
+export const MultichainRoutingServiceGetSupportedAccountsAction: MultichainRoutingServiceGetSupportedAccountsActionType['type'] =
+  'MultichainRoutingService:getSupportedAccounts';

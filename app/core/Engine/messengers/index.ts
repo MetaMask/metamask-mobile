@@ -135,9 +135,9 @@ import { getPhishingControllerMessenger } from './phishing-controller-messenger'
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
-  getMultichainRouterInitMessenger,
-  getMultichainRouterMessenger,
-} from './multichain-router-messenger';
+  getMultichainRoutingServiceInitMessenger,
+  getMultichainRoutingServiceMessenger,
+} from './multichain-routing-service-messenger.ts';
 import {
   getTransactionPayControllerInitMessenger,
   getTransactionPayControllerMessenger,
@@ -331,9 +331,9 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainBalancesControllerMessenger,
     getInitMessenger: noop,
   },
-  MultichainRouter: {
-    getMessenger: getMultichainRouterMessenger,
-    getInitMessenger: getMultichainRouterInitMessenger,
+  MultichainRoutingService: {
+    getMessenger: getMultichainRoutingServiceMessenger,
+    getInitMessenger: getMultichainRoutingServiceInitMessenger,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,

@@ -6,10 +6,7 @@ export {
   getSnapControllerMessenger,
   getSnapControllerInitMessenger,
 } from './snap-controller-messenger';
-export type {
-  SnapControllerMessenger,
-  SnapControllerInitMessenger,
-} from './snap-controller-messenger';
+export type { SnapControllerInitMessenger } from './snap-controller-messenger';
 export { getSnapInterfaceControllerMessenger } from './snap-interface-controller-messenger';
 export type { SnapInterfaceControllerMessenger } from './snap-interface-controller-messenger';
 export { getSnapRegistryControllerMessenger } from './snap-registry-controller-messenger.ts';

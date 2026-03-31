@@ -193,11 +193,10 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
-  MultichainRouterActions,
+  MultichainRoutingServiceActions,
   WebSocketService,
   WebSocketServiceActions,
-  WebSocketServiceEvents,
-  MultichainRouter,
+  MultichainRoutingService,
   ExecutionServiceActions,
   ExecutionServiceEvents,
 } from '@metamask/snaps-controllers';
@@ -436,7 +435,7 @@ import { captureException } from '@sentry/react-native';
 type RequiredControllers = Omit<
   Controllers,
   | 'GeolocationApiService'
-  | 'MultichainRouter'
+  | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
@@ -449,7 +448,7 @@ type RequiredControllers = Omit<
 type OptionalControllers = Pick<
   Controllers,
   | 'GeolocationApiService'
-  | 'MultichainRouter'
+  | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
   | 'StorageService'
@@ -541,7 +540,7 @@ type GlobalActions =
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
-  | MultichainRouterActions
+  | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
   | StorageServiceActions
   | DelegationControllerActions
@@ -581,7 +580,6 @@ type GlobalEvents =
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
-  | WebSocketServiceEvents
   | ExecutionServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
@@ -731,7 +729,7 @@ export type Controllers = {
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   MultichainAssetsController: MultichainAssetsController;
-  MultichainRouter: MultichainRouter;
+  MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
@@ -895,7 +893,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
-  | 'MultichainRouter'
+  | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'SnapKeyringBuilder'
