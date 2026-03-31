@@ -35,7 +35,14 @@ function discoverFlows(dir: string): string[] {
 async function main() {
   const args = process.argv.slice(2);
   const updateBaselines = args.includes('--update-baselines');
-  const flowArgs = args.filter((a) => !a.startsWith('--'));
+
+  // Parse --flow <path> argument (can be specified multiple times)
+  const flowArgs: string[] = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--flow' && i + 1 < args.length) {
+      flowArgs.push(args[++i]);
+    }
+  }
 
   // Clean tmp dir at start
   rmSync(TMP_DIR, { recursive: true, force: true });
