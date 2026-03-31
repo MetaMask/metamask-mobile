@@ -69,7 +69,6 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
       });
 
       performanceTracker.addTimers(timer1);
-      await performanceTracker.attachToTest(testInfo);
 
       console.log('Warm Start Login to Wallet Performance Test completed');
       console.log(`Warm Start Login to Wallet: ${timer1.getDuration()}ms`);

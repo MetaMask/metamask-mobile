@@ -101,7 +101,6 @@ test.describe(`${PerformanceLogin}`, () => {
       connectTimer.stop();
 
       performanceTracker.addTimers(metamaskTimer, connectTimer);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

@@ -34,7 +34,6 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await timer2.measure(() => QuoteView.isQuoteDisplayed());
 
       performanceTracker.addTimers(timer1, timer2);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

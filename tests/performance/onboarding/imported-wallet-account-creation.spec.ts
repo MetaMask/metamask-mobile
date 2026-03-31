@@ -41,7 +41,6 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       });
 
       performanceTracker.addTimers(screen1Timer, screen3Timer);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

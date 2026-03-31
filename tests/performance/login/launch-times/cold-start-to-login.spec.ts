@@ -58,7 +58,6 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
       });
 
       performanceTracker.addTimers(timer1);
-      await performanceTracker.attachToTest(testInfo);
 
       console.log('Cold Start to Login Screen Performance Test completed');
       console.log(`Cold Start to Login Screen: ${timer1.getDuration()}ms`);

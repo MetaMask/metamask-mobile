@@ -121,7 +121,6 @@ test.describe(PerformancePreps, () => {
         openPositionTimer,
         MarketDetailsScreenTimer,
       );
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });
