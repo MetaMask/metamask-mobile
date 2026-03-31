@@ -283,6 +283,7 @@ const PredictionsSection = forwardRef<
                   key={`${position.outcomeId}:${position.outcomeIndex}`}
                   position={position}
                   onPress={handlePositionPress}
+                  privacyMode={Boolean(privacyMode)}
                 />
               ))
             )}
@@ -291,7 +292,7 @@ const PredictionsSection = forwardRef<
               totalClaimableValue > 0 && (
                 <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
                   <PredictClaimButton
-                    amount={totalClaimableValue}
+                    amount={privacyMode ? undefined : totalClaimableValue}
                     onPress={handleClaim}
                   />
                 </Box>
