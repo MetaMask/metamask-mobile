@@ -2,8 +2,13 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReturnToAppNotification from './index.tsx';
-import { ReturnToAppNotificationProps } from './ReturnToAppNotification.tsx';
 import { ToastContext } from '../../../component-library/components/Toast/index.ts';
+
+let mockRouteParams: {
+  method?: string;
+  origin?: string;
+  hideReturnToApp?: boolean;
+} = {};
 
 jest.mock('../../../../locales/i18n.js', () => ({
   strings: jest.fn().mockImplementation((key) => key),
@@ -27,6 +32,9 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
     }),
+    useRoute: () => ({
+      params: mockRouteParams,
+    }),
   };
 });
 
@@ -35,15 +43,13 @@ describe('ReturnToAppNotification', () => {
     current: { showToast: jest.fn(), closeToast: jest.fn() },
   });
 
-  const renderWithProviders = (
-    route: ReturnToAppNotificationProps['route'],
-  ) => {
+  const renderWithProviders = () => {
     const toastRef = createToastRef();
 
     const ui = (
       <SafeAreaProvider>
         <ToastContext.Provider value={{ toastRef }}>
-          <ReturnToAppNotification route={route} />
+          <ReturnToAppNotification />
         </ToastContext.Provider>
       </SafeAreaProvider>
     );
@@ -52,16 +58,13 @@ describe('ReturnToAppNotification', () => {
     return { ...utils, toastRef };
   };
 
-  const mockRoute: ReturnToAppNotificationProps['route'] = {
-    params: {
-      method: undefined,
-      origin: 'https://example.com',
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
+    mockRouteParams = {
+      method: undefined,
+      origin: 'https://example.com',
+    };
     mockUseFavicon.mockReturnValue({
       isLoaded: true,
       faviconURI: { uri: 'https://example.com/favicon.png' },
@@ -69,11 +72,11 @@ describe('ReturnToAppNotification', () => {
   });
 
   it('renders without crashing', () => {
-    renderWithProviders(mockRoute);
+    renderWithProviders();
   });
 
   it('renders correctly with default message', () => {
-    const { toJSON } = renderWithProviders(mockRoute);
+    const { toJSON } = renderWithProviders();
 
     expect(toJSON()).toMatchSnapshot();
   });
