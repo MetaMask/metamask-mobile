@@ -29,7 +29,20 @@ function getTransakContext(): string {
   return Platform.OS === 'ios' ? 'mobile-ios' : 'mobile-android';
 }
 
-const createPusher: PusherFactory = (key, options) => new Pusher(key, options);
+const createPusher: PusherFactory = (key, options) => {
+  const pusher = new Pusher(key, options);
+  return {
+    subscribe(channelName: string) {
+      const channel = pusher.subscribe(channelName);
+      return {
+        bind: channel.bind.bind(channel),
+        unbindAll: channel.unbind_all.bind(channel),
+      };
+    },
+    unsubscribe: pusher.unsubscribe.bind(pusher),
+    disconnect: pusher.disconnect.bind(pusher),
+  };
+};
 
 export const transakServiceInit: ControllerInitFunction<
   TransakService,

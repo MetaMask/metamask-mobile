@@ -75,7 +75,6 @@ export function getRampsControllerMessenger(
       'TransakService:subscribeToOrder',
       'TransakService:unsubscribeFromOrder',
       'TransakService:disconnectWebSocket',
-      'TransakService:getWebSocketSubscriptions',
     ],
     events: ['TransakService:orderUpdate'],
   });
