@@ -39,14 +39,45 @@ interface HomepageScrollContextValue {
   visitId: number;
   /**
    * Called by each section immediately after its section_viewed event fires.
-   * Used to aggregate the total number of distinct sections viewed this visit.
+   * Tracks the section name for total count and the section index for depth.
    */
-  notifySectionViewed: (sectionName: HomeSectionName) => void;
+  notifySectionViewed: (
+    sectionName: HomeSectionName,
+    sectionIndex: number,
+  ) => void;
   /**
    * Returns the number of distinct sections viewed during the current visit.
    * Intended for use in the session_summary event fired on blur.
    */
   getViewedSectionCount: () => number;
+  /**
+   * Returns the maximum section index reached during the current visit.
+   * Resets to -1 on each new homepage focus.
+   */
+  getVisitMaxDepth: () => number;
+  /**
+   * Returns the maximum section index reached across all visits this app session.
+   * Never resets within a session.
+   */
+  getSessionMaxDepth: () => number;
+  /**
+   * Appends the current visit's max depth to the running list, then returns
+   * the full array of per-visit max depths for avg/median computation.
+   * Call once per visit, in the session_summary blur handler.
+   */
+  getAndRecordVisitDepths: () => number[];
+  /**
+   * Persistent non-PII identifier for this app install. Stable across app
+   * restarts. Used to distinguish new users from returning users in analytics
+   * without relying on wallet address or any personal data.
+   */
+  homepageUserId: string;
+  /**
+   * Ephemeral identifier for the current app launch. Generated once on app
+   * start and never persisted. Groups all homepage visits within one session,
+   * distinguishing "navigated away and back" from a fresh app launch.
+   */
+  appSessionId: string;
 }
 
 const noop = () => () => {
@@ -61,6 +92,11 @@ const defaultValue: HomepageScrollContextValue = {
   visitId: 0,
   notifySectionViewed: () => undefined,
   getViewedSectionCount: () => 0,
+  getVisitMaxDepth: () => -1,
+  getSessionMaxDepth: () => -1,
+  getAndRecordVisitDepths: () => [],
+  homepageUserId: '',
+  appSessionId: '',
 };
 
 export const HomepageScrollContext =

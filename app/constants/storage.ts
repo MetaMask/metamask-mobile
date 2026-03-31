@@ -43,6 +43,7 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
  */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 export const ANALYTICS_ID = `${prefix}AnalyticsId`;
+export const HOMEPAGE_USER_ID = `${prefix}HomepageUserId`;
 
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 

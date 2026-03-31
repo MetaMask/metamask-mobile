@@ -44,6 +44,9 @@ let mockContextValue = {
   visitId: 0,
   notifySectionViewed: mockNotifySectionViewed,
   getViewedSectionCount: jest.fn(() => 0),
+  getSessionMaxDepth: jest.fn(() => -1),
+  homepageUserId: 'test-homepage-user-id',
+  appSessionId: 'test-app-session-id',
 };
 
 jest.mock('../context/HomepageScrollContext', () => ({
@@ -92,6 +95,9 @@ describe('useHomeViewedEvent', () => {
       visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
       notifySectionViewed: mockNotifySectionViewed,
       getViewedSectionCount: jest.fn(() => 0),
+      getSessionMaxDepth: jest.fn(() => -1),
+      homepageUserId: 'test-homepage-user-id',
+      appSessionId: 'test-app-session-id',
     };
   });
 
@@ -438,6 +444,14 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('includes all required properties', () => {
+      mockContextValue = {
+        ...mockContextValue,
+        visitId: 2,
+        getSessionMaxDepth: jest.fn(() => 3),
+        homepageUserId: 'test-homepage-user-id',
+        appSessionId: 'test-app-session-id',
+      };
+
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
@@ -459,6 +473,10 @@ describe('useHomeViewedEvent', () => {
         is_empty: true,
         item_count: 0,
         entry_point: HomeEntryPointsValues.APP_OPENED,
+        homepage_user_id: 'test-homepage-user-id',
+        app_session_id: 'test-app-session-id',
+        visit_number: 2,
+        max_scroll_depth_session: 3,
       });
     });
 
@@ -488,6 +506,104 @@ describe('useHomeViewedEvent', () => {
       );
 
       expect(mockTrackEvent).toHaveBeenCalledWith(builtEvent);
+    });
+  });
+
+  describe('new analytics properties', () => {
+    it('includes homepage_user_id from context', () => {
+      mockContextValue = {
+        ...mockContextValue,
+        homepageUserId: 'user-abc-123',
+      };
+
+      renderHook(() =>
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ homepage_user_id: 'user-abc-123' }),
+      );
+    });
+
+    it('includes app_session_id from context', () => {
+      mockContextValue = {
+        ...mockContextValue,
+        appSessionId: 'session-xyz-456',
+      };
+
+      renderHook(() =>
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ app_session_id: 'session-xyz-456' }),
+      );
+    });
+
+    it('includes visit_number equal to visitId from context', () => {
+      mockContextValue = { ...mockContextValue, visitId: 3 };
+
+      renderHook(() =>
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ visit_number: 3 }),
+      );
+    });
+
+    it('includes max_scroll_depth_session from getSessionMaxDepth()', () => {
+      mockContextValue = {
+        ...mockContextValue,
+        getSessionMaxDepth: jest.fn(() => 4),
+      };
+
+      renderHook(() =>
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ max_scroll_depth_session: 4 }),
+      );
+    });
+
+    it('defers firing when homepageUserId is empty, then fires once it loads', () => {
+      mockContextValue = { ...mockContextValue, homepageUserId: '' };
+
+      const { rerender } = renderHook(() =>
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
+      );
+
+      // Should not fire while homepageUserId is empty.
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      // Simulate the async load completing.
+      mockContextValue = {
+        ...mockContextValue,
+        homepageUserId: 'loaded-user-id',
+      };
+      rerender();
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ homepage_user_id: 'loaded-user-id' }),
+      );
+    });
+
+    it('calls notifySectionViewed with sectionName and sectionIndex', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          sectionName: HomeSectionNames.NFTS,
+          sectionIndex: 3,
+        }),
+      );
+
+      expect(mockNotifySectionViewed).toHaveBeenCalledWith(
+        HomeSectionNames.NFTS,
+        3,
+      );
     });
   });
 

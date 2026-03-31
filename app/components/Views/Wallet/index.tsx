@@ -37,6 +37,8 @@ import {
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { getHomepageUserId } from '../../../util/analytics/homepageUserId';
+import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import {
   PERPS_GTM_MODAL_SHOWN,
@@ -136,6 +138,7 @@ import {
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -627,6 +630,14 @@ const Wallet = ({
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
   // Tracks which sections have been viewed this visit (reset on each focus).
   const viewedSectionsRef = useRef<Set<string>>(new Set());
+  // Max section index reached this visit (reset on each focus).
+  const maxDepthThisVisitRef = useRef<number>(-1);
+  // Cumulative max section index across all visits this app session.
+  const sessionMaxDepthRef = useRef<number>(-1);
+  // Per-visit max depths accumulated across the session for avg/median.
+  const visitDepthsRef = useRef<number[]>([]);
+  // Persistent non-PII install ID for homepage analytics (loaded async on mount).
+  const [homepageUserId, setHomepageUserId] = useState('');
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -804,6 +815,15 @@ const Wallet = ({
     return () => {
       isMountedRef.current = false;
     };
+  }, []);
+
+  // Load the persistent homepage user ID once on mount.
+  useEffect(() => {
+    getHomepageUserId().then((id) => {
+      if (isMountedRef.current) {
+        setHomepageUserId(id);
+      }
+    });
   }, []);
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1264,25 +1284,45 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
-  // Reset viewed sections synchronously on focus, before the new visitId
-  // propagates to child effects that re-add sections. A useEffect on [visitId]
-  // runs after children's effects (React runs children before parents), so
-  // sections would add themselves then the parent would clear them — causing
-  // total_sections_viewed to always be 0 on the second+ visit.
+  // Reset viewed sections and visit depth synchronously on focus, before the
+  // new visitId propagates to child effects that re-add sections. A useEffect
+  // on [visitId] runs after children's effects (React runs children before
+  // parents), so sections would add themselves then the parent would clear
+  // them — causing total_sections_viewed to always be 0 on the second+ visit.
   useFocusEffect(
     useCallback(() => {
       viewedSectionsRef.current.clear();
+      maxDepthThisVisitRef.current = -1;
     }, []),
   );
 
-  const notifySectionViewed = useCallback((sectionName: string) => {
-    viewedSectionsRef.current.add(sectionName);
-  }, []);
+  const notifySectionViewed = useCallback(
+    (sectionName: HomeSectionName, sectionIndex: number) => {
+      viewedSectionsRef.current.add(sectionName);
+      if (sectionIndex > maxDepthThisVisitRef.current) {
+        maxDepthThisVisitRef.current = sectionIndex;
+      }
+      if (sectionIndex > sessionMaxDepthRef.current) {
+        sessionMaxDepthRef.current = sectionIndex;
+      }
+    },
+    [],
+  );
 
   const getViewedSectionCount = useCallback(
     () => viewedSectionsRef.current.size,
     [],
   );
+
+  const getVisitMaxDepth = useCallback(() => maxDepthThisVisitRef.current, []);
+
+  const getSessionMaxDepth = useCallback(() => sessionMaxDepthRef.current, []);
+
+  const getAndRecordVisitDepths = useCallback(() => {
+    const updated = [...visitDepthsRef.current, maxDepthThisVisitRef.current];
+    visitDepthsRef.current = updated;
+    return updated;
+  }, []);
 
   const homepageScrollContextValue = useMemo(
     () => ({
@@ -1293,6 +1333,11 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
+      getVisitMaxDepth,
+      getSessionMaxDepth,
+      getAndRecordVisitDepths,
+      homepageUserId,
+      appSessionId: HOMEPAGE_APP_SESSION_ID,
     }),
     [
       subscribeToScroll,
@@ -1302,6 +1347,10 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
+      getVisitMaxDepth,
+      getSessionMaxDepth,
+      getAndRecordVisitDepths,
+      homepageUserId,
     ],
   );
 

@@ -22,8 +22,16 @@ interface UseHomeSessionSummaryParams {
 const useHomeSessionSummary = ({
   totalSectionsLoaded,
 }: UseHomeSessionSummaryParams) => {
-  const { visitId, entryPoint, getViewedSectionCount } =
-    useHomepageScrollContext();
+  const {
+    visitId,
+    entryPoint,
+    getViewedSectionCount,
+    getVisitMaxDepth,
+    getSessionMaxDepth,
+    getAndRecordVisitDepths,
+    homepageUserId,
+    appSessionId,
+  } = useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sessionStartRef = useRef<number>(Date.now());
@@ -55,6 +63,21 @@ const useHomeSessionSummary = ({
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
+
+        const visitMaxDepth = getVisitMaxDepth();
+        const sessionMaxDepth = getSessionMaxDepth();
+        const allDepths = getAndRecordVisitDepths();
+        const avgDepth = allDepths.length
+          ? allDepths.reduce((a, b) => a + b, 0) / allDepths.length
+          : -1;
+        const sortedDepths = [...allDepths].sort((a, b) => a - b);
+        const mid = Math.floor(sortedDepths.length / 2);
+        const medianDepth = sortedDepths.length
+          ? sortedDepths.length % 2 !== 0
+            ? sortedDepths[mid]
+            : (sortedDepths[mid - 1] + sortedDepths[mid]) / 2
+          : -1;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
             .addProperties({
@@ -64,11 +87,27 @@ const useHomeSessionSummary = ({
               total_sections_loaded: totalSectionsLoadedRef.current,
               entry_point: entryPointRef.current,
               session_time: sessionTime,
+              homepage_user_id: homepageUserId,
+              app_session_id: appSessionId,
+              visit_number: visitIdRef.current,
+              max_scroll_depth_visit: visitMaxDepth,
+              max_scroll_depth_session: sessionMaxDepth,
+              avg_scroll_depth: avgDepth,
+              median_scroll_depth: medianDepth,
             })
             .build(),
         );
       },
-      [trackEvent, createEventBuilder, getViewedSectionCount],
+      [
+        trackEvent,
+        createEventBuilder,
+        getViewedSectionCount,
+        getVisitMaxDepth,
+        getSessionMaxDepth,
+        getAndRecordVisitDepths,
+        homepageUserId,
+        appSessionId,
+      ],
     ),
   );
 };

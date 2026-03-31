@@ -67,6 +67,9 @@ const useHomeViewedEvent = ({
     entryPoint,
     visitId,
     notifySectionViewed,
+    getSessionMaxDepth,
+    homepageUserId,
+    appSessionId,
   } = useHomepageScrollContext();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -84,6 +87,10 @@ const useHomeViewedEvent = ({
     // sectionIndex is -1 when the section's feature flag is OFF and it is
     // not included in enabledSections. Don't fire the event in that case.
     if (sectionIndex < 0) return;
+    // homepageUserId is loaded asynchronously on mount. If it hasn't resolved
+    // yet, defer: once it loads, fireEvent gets a new reference (it's in the
+    // useCallback deps), causing the triggering effects to re-run and retry.
+    if (!homepageUserId) return;
     hasFiredRef.current = true;
 
     trackEvent(
@@ -97,10 +104,14 @@ const useHomeViewedEvent = ({
           is_empty: isEmpty,
           item_count: itemCount,
           entry_point: entryPoint,
+          homepage_user_id: homepageUserId,
+          app_session_id: appSessionId,
+          visit_number: visitId,
+          max_scroll_depth_session: getSessionMaxDepth(),
         })
         .build(),
     );
-    notifySectionViewed(sectionName);
+    notifySectionViewed(sectionName, sectionIndex);
   }, [
     visitId,
     sectionName,
@@ -109,6 +120,9 @@ const useHomeViewedEvent = ({
     isEmpty,
     itemCount,
     entryPoint,
+    homepageUserId,
+    appSessionId,
+    getSessionMaxDepth,
     trackEvent,
     createEventBuilder,
     notifySectionViewed,
