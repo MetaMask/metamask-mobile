@@ -624,8 +624,7 @@
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
-    "quotesRefreshCount": 0,
-    "tokenWarnings": []
+    "quotesRefreshCount": 0
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -733,7 +732,7 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
-    "activeOrder": null,
+    "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
@@ -749,7 +748,6 @@
       "isLoading": false,
       "error": null
     },
-    "providerAutoSelected": false,
     "providers": {
       "data": [],
       "selected": null,
@@ -792,6 +790,7 @@
       }
     },
     "requests": {},
-    "orders": []
+    "orders": [],
+    "providerAutoSelected": false
   }
 }

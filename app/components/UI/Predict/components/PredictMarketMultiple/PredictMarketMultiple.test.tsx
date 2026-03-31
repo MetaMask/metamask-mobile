@@ -29,9 +29,6 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: null,
-    updateActiveOrder: jest.fn(),
-    initializeActiveOrder: jest.fn(),
-    clearActiveOrder: jest.fn(),
   }),
 }));
 
@@ -116,6 +113,26 @@ describe('PredictMarketMultiple', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+  });
+
+  it('falls back to 0% label when percentage formatting throws', () => {
+    const formatModule =
+      jest.requireActual<typeof import('../../utils/format')>(
+        '../../utils/format',
+      );
+    const spy = jest
+      .spyOn(formatModule, 'formatPercentage')
+      .mockImplementation(() => {
+        throw new Error('format failure');
+      });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('0')).toBeOnTheScreen();
+    spy.mockRestore();
   });
 
   it('render market information correctly', () => {
