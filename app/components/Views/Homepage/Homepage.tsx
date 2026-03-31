@@ -230,68 +230,133 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
                 totalSectionsLoaded={totalSectionsLoaded}
                 mode={sectionMode}
               />
-              <PerpsSectionBase
-                ref={trendingPerpsRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-                mode="trending-only"
-                sectionName={HomeSectionNames.TRENDING_PERPS}
-                titleOverride={strings('homepage.sections.trending_perpetuals')}
-              />
+              {/* Keep TRENDING_PERPS in the trending block visually while reusing one provider instance */}
+              <Box gap={8}>
+                <PredictionsSection
+                  ref={predictionsSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                  mode={sectionMode}
+                />
+                <DeFiSection
+                  ref={defiSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+
+                {/* NFTs above trending when user has NFTs */}
+                {hasNfts && (
+                  <NFTsSection
+                    ref={nftsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+
+                {/* Always-on trending sections */}
+                <WhatsHappeningSection
+                  ref={whatsHappeningSectionRef}
+                  sectionIndex={getSectionIndex(
+                    HomeSectionNames.WHATS_HAPPENING,
+                  )}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+                <TokensSection
+                  ref={trendingTokensRef}
+                  sectionIndex={getSectionIndex(
+                    HomeSectionNames.TRENDING_TOKENS,
+                  )}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                  mode="trending-only"
+                  sectionName={HomeSectionNames.TRENDING_TOKENS}
+                  titleOverride={strings('homepage.sections.trending_tokens')}
+                />
+                <PerpsSectionBase
+                  ref={trendingPerpsRef}
+                  sectionIndex={getSectionIndex(
+                    HomeSectionNames.TRENDING_PERPS,
+                  )}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                  mode="trending-only"
+                  sectionName={HomeSectionNames.TRENDING_PERPS}
+                  titleOverride={strings(
+                    'homepage.sections.trending_perpetuals',
+                  )}
+                />
+                <PredictionsSection
+                  ref={trendingPredictionsRef}
+                  sectionIndex={getSectionIndex(
+                    HomeSectionNames.TRENDING_PREDICT,
+                  )}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                  mode="trending-only"
+                  sectionName={HomeSectionNames.TRENDING_PREDICT}
+                  titleOverride={strings(
+                    'homepage.sections.trending_predictions',
+                  )}
+                />
+
+                {/* NFTs below trending when user has no NFTs */}
+                {!hasNfts && (
+                  <NFTsSection
+                    ref={nftsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+              </Box>
             </PerpsStreamProvider>
           </PerpsConnectionProvider>
         )}
-        <PredictionsSection
-          ref={predictionsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode={sectionMode}
-        />
-        <DeFiSection
-          ref={defiSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-
-        {/* NFTs above trending when user has NFTs */}
-        {hasNfts && (
-          <NFTsSection
-            ref={nftsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
-
-        {/* Always-on trending sections */}
-        <WhatsHappeningSection
-          ref={whatsHappeningSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-        <TokensSection
-          ref={trendingTokensRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_TOKENS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode="trending-only"
-          sectionName={HomeSectionNames.TRENDING_TOKENS}
-          titleOverride={strings('homepage.sections.trending_tokens')}
-        />
-        <PredictionsSection
-          ref={trendingPredictionsRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode="trending-only"
-          sectionName={HomeSectionNames.TRENDING_PREDICT}
-          titleOverride={strings('homepage.sections.trending_predictions')}
-        />
-
-        {/* NFTs below trending when user has no NFTs */}
-        {!hasNfts && (
-          <NFTsSection
-            ref={nftsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
+        {!isPerpsEnabled && (
+          <>
+            <PredictionsSection
+              ref={predictionsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+              totalSectionsLoaded={totalSectionsLoaded}
+              mode={sectionMode}
+            />
+            <DeFiSection
+              ref={defiSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            {hasNfts && (
+              <NFTsSection
+                ref={nftsSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            <WhatsHappeningSection
+              ref={whatsHappeningSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            <TokensSection
+              ref={trendingTokensRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_TOKENS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+              mode="trending-only"
+              sectionName={HomeSectionNames.TRENDING_TOKENS}
+              titleOverride={strings('homepage.sections.trending_tokens')}
+            />
+            <PredictionsSection
+              ref={trendingPredictionsRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
+              totalSectionsLoaded={totalSectionsLoaded}
+              mode="trending-only"
+              sectionName={HomeSectionNames.TRENDING_PREDICT}
+              titleOverride={strings('homepage.sections.trending_predictions')}
+            />
+            {!hasNfts && (
+              <NFTsSection
+                ref={nftsSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+          </>
         )}
       </Box>
     );
