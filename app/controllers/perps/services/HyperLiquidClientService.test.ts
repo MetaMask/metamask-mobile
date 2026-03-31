@@ -1174,6 +1174,33 @@ describe('HyperLiquidClientService', () => {
       expect(callback).not.toHaveBeenCalled(); // Callback should not be invoked after unsubscribe
     });
 
+    it('suppresses error when cleanup aborts in-flight REST call', async () => {
+      // Arrange - make snapshot reject with abort error
+      const abortError = new Error('AbortError');
+      abortError.name = 'AbortError';
+      mockInfoClientWs.candleSnapshot = jest.fn().mockRejectedValue(abortError);
+
+      const onError = jest.fn();
+      const callback = jest.fn();
+
+      // Act - subscribe then immediately unsubscribe (triggers abort)
+      const unsubscribe = service.subscribeToCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+        onError,
+      });
+
+      unsubscribe();
+
+      // Wait for async rejection to propagate
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Assert - error suppressed (abort is intentional), callback not invoked
+      expect(onError).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
+    });
+
     it('cleans up WebSocket when unsubscribed during subscription establishment', async () => {
       // Arrange - fast snapshot, slow WebSocket subscription
       mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
