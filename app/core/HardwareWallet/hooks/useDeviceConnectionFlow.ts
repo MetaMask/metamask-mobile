@@ -227,9 +227,17 @@ export const useDeviceConnectionFlow = ({
         (async () => {
           try {
             refs.abortControllerRef.current = new AbortController();
-            await tryEnsureReady(adapter, targetDeviceId);
+            const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            if (!isReady && pendingReadyResolveRef.current) {
+              pendingReadyResolveRef.current(false);
+              pendingReadyResolveRef.current = null;
+            }
           } catch (error) {
             DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
+            if (pendingReadyResolveRef.current) {
+              pendingReadyResolveRef.current(false);
+              pendingReadyResolveRef.current = null;
+            }
             handleError(error);
           } finally {
             refs.abortControllerRef.current = null;
