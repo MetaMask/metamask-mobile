@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../util/theme';
 import {
   Box,
   BoxAlignItems,
@@ -27,14 +26,19 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
+import { useBenefits } from '../hooks/useBenefits.ts';
 
 const BenefitDetailsView = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute<BenefitDetailsViewRouteProp>();
-  const { colors } = useTheme();
-
   const { benefit } = route.params;
+
+  const { postImpression } = useBenefits();
+
+  useEffect(() => {
+    postImpression(benefit).then();
+  }, [benefit, postImpression]);
 
   const handleClaim = () => {
     if (benefit.url) {

@@ -7,20 +7,23 @@ import {
   setBenefitsLoading,
 } from '../../../../reducers/benefits';
 import Engine from '../../../../core/Engine';
-import type { SubscriptionBenefitsState } from '../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  SubscriptionBenefitDto,
+  SubscriptionBenefitsState
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export const useBenefits = (): {
-  initBenefits: (refreshCache?: boolean) => Promise<void>;
   getAllBenefits: () => Promise<void>;
+  postImpression: (benefit: SubscriptionBenefitDto) => Promise<void>;
 } => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isLoadingRef = useRef(false);
 
   const fetchBenefits = useCallback(
-    async (limit: number, refresh: boolean) => {
+    async (limit: number) => {
       if (!subscriptionId) {
         dispatch(setBenefitsError(false));
         dispatch(setBenefitsLoading(false));
@@ -39,8 +42,7 @@ export const useBenefits = (): {
           await Engine.controllerMessenger.call(
             'RewardsController:getBenefits',
             subscriptionId,
-            limit,
-            refresh
+            limit
           );
 
         dispatch(setBenefits(benefitsState));
@@ -54,25 +56,30 @@ export const useBenefits = (): {
     [dispatch, subscriptionId],
   );
 
-  const initBenefits = useCallback(async (): Promise<void> => {
-    await fetchBenefits(10, false);
+  const getAllBenefits = useCallback(async (): Promise<void> => {
+    await fetchBenefits(200);
   }, [fetchBenefits]);
 
-  const getAllBenefits = useCallback(async (): Promise<void> => {
-    await fetchBenefits(200, true);
-  }, [fetchBenefits]);
+  const postImpression = useCallback(async (benefit: SubscriptionBenefitDto): Promise<void> => {
+    // await Engine.controllerMessenger.call(
+    //     'RewardsController:postBenefitImpression',
+    //     subscriptionId,
+    //     benefit.id,
+    //     benefit.type
+    //   );
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      initBenefits().then();
-    }, [initBenefits]),
+      getAllBenefits().then();
+    }, [getAllBenefits]),
   );
 
   // Listen for events that should trigger a refetch of referral details
   useInvalidateByRewardEvents(
     ['RewardsController:accountLinked', 'RewardsController:benefitClaimed'],
-    initBenefits,
+    getAllBenefits,
   );
 
-  return { initBenefits, getAllBenefits };
+  return { getAllBenefits, postImpression };
 };

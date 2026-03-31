@@ -10,7 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { ActivityIndicator, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';
@@ -22,20 +22,18 @@ import { useBenefits } from '../../hooks/useBenefits.ts';
 import BenefitCard from './BenefitCard.tsx';
 import Routes from '../../../../../constants/navigation/Routes.ts';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const BenefitsPreview = () => {
   const tw = useTailwind();
   const benefits = useSelector(selectBenefits);
   const isLoading = useSelector(selectBenefitsLoading);
-  const { initBenefits } = useBenefits();
+  const { getAllBenefits } = useBenefits();
   const navigation = useNavigation();
-  const { colors } = useTheme();
 
   useEffect(() => {
-    initBenefits().then();
-  }, [initBenefits]);
+    getAllBenefits().then();
+  }, [getAllBenefits]);
 
   const handleNavigateToCampaigns = useCallback(() => {
     navigation.navigate(Routes.BENEFIT_LIST_VIEW);
