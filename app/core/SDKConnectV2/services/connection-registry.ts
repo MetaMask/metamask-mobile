@@ -107,8 +107,12 @@ export class ConnectionRegistry {
     const excess = sorted.slice(0, sorted.length - MAX_CONNECTIONS);
 
     for (const conn of excess) {
-      logger.debug('Trimming excess connection on startup:', conn.id);
-      await this.disconnect(conn.id);
+      try {
+        logger.debug('Trimming excess connection on startup:', conn.id);
+        await this.disconnect(conn.id);
+      } catch (error) {
+        logger.error('Failed to trim excess connection:', conn.id, error);
+      }
     }
   }
 
@@ -221,10 +225,9 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      connInfo = this.toConnectionInfo(connReq);
-
       await this.evictIfAtCapacity();
 
+      connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,

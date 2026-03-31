@@ -947,7 +947,7 @@ describe('ConnectionRegistry', () => {
       expect(Connection.create).toHaveBeenCalledTimes(3);
     });
 
-    it('should trim connections down to MAX_CONNECTIONS on cold start', async () => {
+    it('evicts the oldest connection when at MAX_CONNECTIONS', async () => {
       const count = MAX_CONNECTIONS + 5;
       const baseTime = Date.now();
 
@@ -1001,6 +1001,64 @@ describe('ConnectionRegistry', () => {
       for (let i = 5; i < count; i++) {
         expect(mockConnections[i].disconnect).not.toHaveBeenCalled();
       }
+    });
+
+    it('continues trimming and completes initialization when a disconnect fails during trim', async () => {
+      const count = MAX_CONNECTIONS + 3;
+      const baseTime = Date.now();
+
+      const persistedConnections: ConnectionInfo[] = [];
+      const mockConnections: ReturnType<typeof createMockConnection>[] = [];
+
+      for (let i = 0; i < count; i++) {
+        const expiresAt = baseTime + i * 1000;
+        persistedConnections.push(
+          createPersistedConnection(`conn-${i}`, {
+            metadata: {
+              dapp: { name: `DApp ${i}`, url: `https://dapp-${i}.com` },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+          }),
+        );
+        persistedConnections[i].expiresAt = expiresAt;
+
+        mockConnections.push(
+          createMockConnection(`conn-${i}`, {
+            info: {
+              id: `conn-${i}`,
+              metadata: persistedConnections[i].metadata,
+              expiresAt,
+            },
+          }),
+        );
+      }
+
+      // Make the first excess connection's disconnect throw
+      mockConnections[0].disconnect.mockRejectedValue(
+        new Error('Storage failure'),
+      );
+
+      mockStore.list.mockResolvedValue(persistedConnections);
+      (Connection.create as jest.Mock).mockClear();
+      mockConnections.forEach((c) => {
+        (Connection.create as jest.Mock).mockResolvedValueOnce(c);
+      });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Trim was still attempted for all 3 excess connections
+      expect(mockConnections[0].disconnect).toHaveBeenCalledTimes(1);
+      expect(mockConnections[1].disconnect).toHaveBeenCalledTimes(1);
+      expect(mockConnections[2].disconnect).toHaveBeenCalledTimes(1);
+
+      // syncConnectionList was still called — initialization completed
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalled();
     });
 
     it('should handle errors when store.list fails during initialization', async () => {
