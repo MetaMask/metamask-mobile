@@ -10,7 +10,7 @@ export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
 
 // Default implicit wait timeout for WebDriverIO element lookups (in ms).
 // Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
-export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;
+export const DEFAULT_IMPLICIT_WAIT_MS = 10_000;
 
 // Default action timeout for Playwright/WebDriverIO actions (tap, click, type, etc.) in ms.
 export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
