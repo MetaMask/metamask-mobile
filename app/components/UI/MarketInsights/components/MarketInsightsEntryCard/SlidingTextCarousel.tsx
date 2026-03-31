@@ -158,7 +158,7 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
   if (texts.length <= 1) {
     return (
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
         color={TextColor.TextDefault}
         numberOfLines={2}
       >
