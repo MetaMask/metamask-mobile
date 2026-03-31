@@ -74,7 +74,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
           is_metrics_opted_in: true,
           location: 'saga_backfill_marketing_consent',
           updated_after_onboarding: false,
-          account_type: 'imported_google',
+          account_type: 'metamask_google',
         }),
       }),
     );
