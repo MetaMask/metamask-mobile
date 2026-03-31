@@ -42,9 +42,14 @@ const useHomeSessionSummary = ({
   }, [visitId]);
 
   // Stable refs for the blur callback to avoid stale closure issues.
+  // Values that change after mount (including async ones like homepageUserId)
+  // are synced via useEffect so the useFocusEffect callback stays stable and
+  // React Navigation never tears it down prematurely due to a dependency change.
   const visitIdRef = useRef(visitId);
   const entryPointRef = useRef(entryPoint);
   const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
+  const homepageUserIdRef = useRef(homepageUserId);
+  const appSessionIdRef = useRef(appSessionId);
 
   useEffect(() => {
     visitIdRef.current = visitId;
@@ -55,11 +60,20 @@ const useHomeSessionSummary = ({
   useEffect(() => {
     totalSectionsLoadedRef.current = totalSectionsLoaded;
   }, [totalSectionsLoaded]);
+  useEffect(() => {
+    homepageUserIdRef.current = homepageUserId;
+  }, [homepageUserId]);
+  useEffect(() => {
+    appSessionIdRef.current = appSessionId;
+  }, [appSessionId]);
 
   useFocusEffect(
     useCallback(
       () => () => {
         if (visitIdRef.current === 0) return;
+        // homepageUserId is loaded asynchronously. Skip if it hasn't resolved
+        // yet to avoid emitting a summary with an empty user identifier.
+        if (!homepageUserIdRef.current) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
@@ -87,8 +101,8 @@ const useHomeSessionSummary = ({
               total_sections_loaded: totalSectionsLoadedRef.current,
               entry_point: entryPointRef.current,
               session_time: sessionTime,
-              homepage_user_id: homepageUserId,
-              app_session_id: appSessionId,
+              homepage_user_id: homepageUserIdRef.current,
+              app_session_id: appSessionIdRef.current,
               visit_number: visitIdRef.current,
               max_scroll_depth_visit: visitMaxDepth,
               max_scroll_depth_session: sessionMaxDepth,
@@ -105,8 +119,6 @@ const useHomeSessionSummary = ({
         getVisitMaxDepth,
         getSessionMaxDepth,
         getAndRecordVisitDepths,
-        homepageUserId,
-        appSessionId,
       ],
     ),
   );

@@ -107,6 +107,40 @@ describe('useHomeSessionSummary', () => {
     };
   });
 
+  describe('blur guard — empty homepageUserId', () => {
+    it('does not fire when homepageUserId has not loaded yet', () => {
+      mockContextValue = { ...mockContextValue, homepageUserId: '' };
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      act(() => {
+        simulateBlur();
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('fires once homepageUserId is available', () => {
+      mockContextValue = {
+        ...mockContextValue,
+        homepageUserId: 'loaded-user-id',
+      };
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      act(() => {
+        simulateBlur();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ homepage_user_id: 'loaded-user-id' }),
+      );
+    });
+  });
+
   describe('blur guard — visitId === 0', () => {
     it('does not fire when visitId is 0 (pre-focus state)', () => {
       mockContextValue = { ...mockContextValue, visitId: 0 };
@@ -119,6 +153,47 @@ describe('useHomeSessionSummary', () => {
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('homepageUserId async load — no spurious blur', () => {
+    it('does not fire session_summary when homepageUserId changes after mount', () => {
+      // Simulate the async load: homepageUserId starts empty, then resolves.
+      // If it were in useCallback's dep array, useFocusEffect would tear down
+      // and re-run its callback, triggering the blur cleanup prematurely.
+      mockContextValue = { ...mockContextValue, homepageUserId: '' };
+
+      let capturedBlur: (() => void) | undefined;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        capturedBlur = (callback as () => (() => void) | undefined)();
+      });
+
+      const { rerender } = renderHook(() =>
+        useHomeSessionSummary({ totalSectionsLoaded: 5 }),
+      );
+
+      // Simulate async ID arriving — rerender with the real ID.
+      mockContextValue = {
+        ...mockContextValue,
+        homepageUserId: 'loaded-user-id',
+      };
+
+      act(() => {
+        rerender();
+      });
+
+      // The blur cleanup should NOT have fired — user is still on homepage.
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      // Explicitly blur now — should fire with the updated ID from the ref.
+      act(() => {
+        capturedBlur?.();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ homepage_user_id: 'loaded-user-id' }),
+      );
     });
   });
 

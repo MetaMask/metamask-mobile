@@ -552,18 +552,63 @@ describe('useHomeViewedEvent', () => {
       );
     });
 
-    it('includes max_scroll_depth_session from getSessionMaxDepth()', () => {
+    it('includes max_scroll_depth_session as max of sectionIndex and getSessionMaxDepth()', () => {
+      // sectionIndex=2, prior session max=4 → prior max wins
       mockContextValue = {
         ...mockContextValue,
         getSessionMaxDepth: jest.fn(() => 4),
       };
 
       renderHook(() =>
-        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          sectionIndex: 2,
+        }),
       );
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ max_scroll_depth_session: 4 }),
+      );
+    });
+
+    it('reports current sectionIndex when it exceeds the prior session max', () => {
+      // sectionIndex=5, prior session max=2 → current section is the new deepest
+      mockContextValue = {
+        ...mockContextValue,
+        getSessionMaxDepth: jest.fn(() => 2),
+      };
+
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          sectionIndex: 5,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ max_scroll_depth_session: 5 }),
+      );
+    });
+
+    it('reports sectionIndex as session max on first section viewed (prior max is -1)', () => {
+      // Prior session max is -1 (nothing viewed yet) → current section sets the depth
+      mockContextValue = {
+        ...mockContextValue,
+        getSessionMaxDepth: jest.fn(() => -1),
+      };
+
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          sectionIndex: 0,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ max_scroll_depth_session: 0 }),
       );
     });
 
@@ -578,6 +623,41 @@ describe('useHomeViewedEvent', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
 
       // Simulate the async load completing.
+      mockContextValue = {
+        ...mockContextValue,
+        homepageUserId: 'loaded-user-id',
+      };
+      rerender();
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ homepage_user_id: 'loaded-user-id' }),
+      );
+    });
+
+    it('fires for a ref section that was visible but scrolled past before homepageUserId loaded', () => {
+      mockContextValue = { ...mockContextValue, homepageUserId: '' };
+
+      // Section starts in viewport (y=0, height=200 → fully visible).
+      const mockRef = createMockRef(0, 200);
+      const { rerender } = renderHook(() =>
+        useHomeViewedEvent({ ...defaultParams, sectionRef: mockRef }),
+      );
+
+      // Section was visible but fireEvent deferred — should not have fired yet.
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      // Simulate user scrolling past the section (now below viewport).
+      const mockMeasureInWindow = (
+        mockRef as unknown as { current: { measureInWindow: jest.Mock } }
+      ).current.measureInWindow as jest.Mock;
+      mockMeasureInWindow.mockImplementation(
+        (cb: (x: number, y: number, w: number, h: number) => void) =>
+          cb(0, 900, 300, 200), // below the 800px viewport
+      );
+
+      // homepageUserId loads — section is no longer visible, but wasVisibleRef
+      // recorded that it was, so the event should still fire.
       mockContextValue = {
         ...mockContextValue,
         homepageUserId: 'loaded-user-id',
