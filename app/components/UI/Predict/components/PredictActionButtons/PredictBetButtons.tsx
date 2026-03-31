@@ -15,6 +15,9 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   yesLabel,
   yesPrice,
   onYesPress,
+  drawLabel,
+  drawPrice,
+  onDrawPress,
   noLabel,
   noPrice,
   onNoPress,
@@ -37,6 +40,19 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         size={isCarousel ? ButtonBaseSize.Md : undefined}
       />
     </Box>
+    {drawLabel !== undefined && drawPrice !== undefined && onDrawPress && (
+      <Box twClassName="flex-1">
+        <PredictBetButton
+          label={drawLabel}
+          price={drawPrice}
+          onPress={onDrawPress}
+          variant="draw"
+          disabled={disabled}
+          testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_DRAW}`}
+          size={isCarousel ? ButtonBaseSize.Md : undefined}
+        />
+      </Box>
+    )}
     <Box twClassName="flex-1">
       <PredictBetButton
         label={noLabel}
