@@ -28,7 +28,7 @@ export function getMultichainAssetsControllerMessenger(
     actions: [
       'PermissionController:getPermissions',
       'SnapController:handleRequest',
-      'SnapController:getAllSnaps',
+      'SnapController:getRunnableSnaps',
       'AccountsController:listMultichainAccounts',
       'PhishingController:bulkScanTokens',
     ],

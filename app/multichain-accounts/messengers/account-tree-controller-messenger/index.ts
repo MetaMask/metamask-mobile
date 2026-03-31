@@ -45,7 +45,7 @@ export function getAccountTreeControllerMessenger(
       'AuthenticationController:getSessionProfile',
       'MultichainAccountService:createMultichainAccountGroup',
       'MultichainAccountService:createMultichainAccountGroups',
-      'SnapController:get',
+      'SnapController:getSnap',
       'KeyringController:getState',
     ],
     events: [
