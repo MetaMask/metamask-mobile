@@ -35,6 +35,7 @@
     "start:android:qa": "./scripts/build.sh android qa dev --local",
     "start:android:flask": "./scripts/build.sh android flask dev --local",
     "start:api-logging-server": "node -r @babel/register scripts/start-api-logging-server.js",
+    "ramps:debug-dashboard": "bash scripts/money-movement/debug-dashboard/run.sh",
     "install:ios:runway": "./scripts/install-ios-runway-app.sh",
     "install:android:runway": "./scripts/install-android-runway-app.sh",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
@@ -193,6 +194,7 @@
     "@metamask/messenger@^0.3.0": "^1.0.0"
   },
   "dependencies": {
+    "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "^2.1.7",
     "@consensys/on-ramp-sdk": "2.1.12",
@@ -313,8 +315,8 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^63.3.0",
-    "@metamask/transaction-pay-controller": "^19.0.0",
-    "@metamask/tron-wallet-snap": "1.24.0",
+    "@metamask/transaction-pay-controller": "^17.1.0",
+    "@metamask/tron-wallet-snap": "^1.25.0",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",

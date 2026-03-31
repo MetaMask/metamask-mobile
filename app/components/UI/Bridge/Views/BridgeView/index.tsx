@@ -408,7 +408,9 @@ const BridgeView = () => {
     <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
-        onStartShouldSetResponder={() => true}
+        onStartShouldSetResponder={() =>
+          !(contentMode === 'zero' && isSwapsTrendingTokensEnabled)
+        }
         onResponderRelease={() => {
           inputRef.current?.blur();
           keypadRef.current?.close();
