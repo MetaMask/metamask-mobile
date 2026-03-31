@@ -5,11 +5,14 @@ import {
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
 import { GetPermissions } from '@metamask/permission-controller';
-import { GetAllSnaps, HandleSnapRequest } from '@metamask/snaps-controllers';
+import {
+  SnapControllerGetAllSnapsAction,
+  SnapControllerHandleRequestAction,
+} from '@metamask/snaps-controllers';
 
 export type MultichainAssetsControllerActions =
-  | HandleSnapRequest
-  | GetAllSnaps
+  | SnapControllerHandleRequestAction
+  | SnapControllerGetAllSnapsAction
   | GetPermissions
   | AccountsControllerListMultichainAccountsAction;
 
