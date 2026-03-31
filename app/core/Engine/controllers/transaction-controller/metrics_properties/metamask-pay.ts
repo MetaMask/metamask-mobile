@@ -15,6 +15,7 @@ import { RootState } from '../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { BigNumber } from 'bignumber.js';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
@@ -32,6 +33,13 @@ const PAY_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+];
+
+const USE_CASE_MAP: [TransactionType[], string][] = [
+  [[TransactionType.predictWithdraw], 'predict_withdraw'],
+  [[TransactionType.predictDeposit], 'predict_deposit'],
+  [[TransactionType.perpsDeposit], 'perps_deposit'],
+  [[TransactionType.perpsWithdraw], 'perps_withdraw'],
 ];
 
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
@@ -57,7 +65,7 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   }
 
   if (isPayType || !parentTransaction) {
-    addFallbackProperties(properties, transactionMeta, getState());
+    addPayTypeProperties(properties, transactionMeta, getState());
 
     if (isPayType || properties.mm_pay) {
       addTimeToComplete(
@@ -169,12 +177,17 @@ function addTimeToComplete(
     Math.round(Date.now() - submittedTime) / 1000;
 }
 
-function addFallbackProperties(
+/**
+ * Derives mm_pay_* properties from controller state for PAY_TYPE transactions.
+ * Uses transactionMeta.metamaskPay and TransactionPayController.transactionData
+ * as the single source of truth, independent of UI hook lifecycle.
+ */
+function addPayTypeProperties(
   properties: JsonMap,
   transaction: TransactionMeta,
   state: RootState,
 ) {
-  const { metamaskPay } = transaction;
+  const { metamaskPay, id: transactionId } = transaction;
 
   if (
     !metamaskPay?.chainId ||
@@ -189,11 +202,58 @@ function addFallbackProperties(
   properties.mm_pay = true;
   properties.mm_pay_chain_selected = chainId;
 
-  properties.mm_pay_token_selected = getTokenSymbol(
-    state,
-    chainId,
-    tokenAddress,
+  const txPayData =
+    state.engine.backgroundState.TransactionPayController?.transactionData?.[
+      transactionId
+    ];
+
+  properties.mm_pay_token_selected =
+    txPayData?.paymentToken?.symbol ??
+    getTokenSymbol(state, chainId, tokenAddress);
+
+  for (const [types, useCase] of USE_CASE_MAP) {
+    if (hasTransactionType(transaction, types)) {
+      properties.mm_pay_use_case = useCase;
+      break;
+    }
+  }
+
+  if (!txPayData) {
+    return;
+  }
+
+  const { quotes, totals, tokens } = txPayData;
+  const primaryRequiredToken = tokens?.find(
+    (t: { skipIfBalance: boolean }) => !t.skipIfBalance,
   );
+
+  if (primaryRequiredToken) {
+    properties.mm_pay_sending_value_usd = Number(
+      primaryRequiredToken.amountUsd ?? '0',
+    );
+  }
+
+  if (totals) {
+    properties.mm_pay_receiving_value_usd = Number(totals.targetAmount.usd);
+    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
+    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
+    properties.mm_pay_network_fee_usd = new BigNumber(
+      totals.fees.sourceNetwork.estimate.usd,
+    )
+      .plus(totals.fees.targetNetwork.usd)
+      .toString(10);
+  }
+
+  const strategy = quotes?.[0]?.strategy;
+
+  if (strategy === TransactionPayStrategy.Bridge) {
+    properties.mm_pay_strategy = 'mm_swaps_bridge';
+  } else if (strategy === TransactionPayStrategy.Relay) {
+    properties.mm_pay_strategy = 'relay';
+  }
+
+  properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
+  properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
 }
 
 function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {

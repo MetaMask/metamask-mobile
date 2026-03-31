@@ -400,7 +400,7 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('generates fallback properties from transaction metadata', () => {
+  it('derives base properties from metamaskPay metadata', () => {
     request.transactionMeta.metamaskPay = {
       chainId: '0x3',
       tokenAddress: '0x123',
@@ -438,7 +438,77 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('does not include token symbol in fallback properties if token is not found', () => {
+  it('prefers paymentToken.symbol over token selector lookup', () => {
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x38',
+      tokenAddress: '0x0000000000000000000000000000000000000000',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          TransactionPayController: {
+            transactionData: {
+              'child-1': {
+                paymentToken: { symbol: 'BNB', chainId: '0x38' },
+                tokens: [],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x38',
+        mm_pay_token_selected: 'BNB',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('falls back to token selector when paymentToken is unavailable', () => {
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x3',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: {
+            allTokens: {
+              '0x3': {
+                '0x123': [
+                  {
+                    address: '0x123',
+                    symbol: 'USDC',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_token_selected: 'USDC',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('does not include token symbol if neither source has it', () => {
     request.transactionMeta.metamaskPay = {
       chainId: '0x3',
       tokenAddress: '0x123',
@@ -461,6 +531,90 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_chain_selected: '0x3',
         mm_pay_token_selected: undefined,
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('derives mm_pay_use_case from transaction type', () => {
+    request.transactionMeta.type = TransactionType.predictWithdraw;
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x89',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay_use_case: 'predict_withdraw',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('derives fee and value properties from TransactionPayController state', () => {
+    request.transactionMeta.type = TransactionType.predictWithdraw;
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x38',
+      tokenAddress: '0x0000000000000000000000000000000000000000',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          TransactionPayController: {
+            transactionData: {
+              'child-1': {
+                paymentToken: { symbol: 'BNB', chainId: '0x38' },
+                quotes: [{ strategy: TransactionPayStrategy.Relay }],
+                tokens: [
+                  { skipIfBalance: false, amountUsd: '0.30' },
+                  { skipIfBalance: true, amountUsd: '0.10' },
+                ],
+                totals: {
+                  targetAmount: { usd: '0.26', fiat: '0.26' },
+                  fees: {
+                    metaMask: { usd: '0.003', fiat: '0.003' },
+                    provider: { usd: '0.04', fiat: '0.04' },
+                    sourceNetwork: {
+                      estimate: { usd: '0.005', fiat: '0.005' },
+                    },
+                    targetNetwork: { usd: '0.001', fiat: '0.001' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_chain_selected: '0x38',
+        mm_pay_token_selected: 'BNB',
+        mm_pay_use_case: 'predict_withdraw',
+        mm_pay_sending_value_usd: 0.3,
+        mm_pay_receiving_value_usd: 0.26,
+        mm_pay_metamask_fee_usd: 0.003,
+        mm_pay_provider_fee_usd: '0.04',
+        mm_pay_network_fee_usd: '0.006',
+        mm_pay_strategy: 'relay',
+        mm_pay_transaction_step_total: 2,
+        mm_pay_transaction_step: 2,
       }),
       sensitiveProperties: {},
     });
