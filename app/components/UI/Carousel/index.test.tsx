@@ -23,6 +23,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { SolScope } from '@metamask/keyring-api';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
 const makeMockState = () =>
   ({
@@ -60,16 +62,7 @@ jest.mock('../../../core/Engine', () => ({
   context: { PreferencesController: { state: {} } },
 }));
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  build: () => ({ category: 'Banner Display', properties: {} }),
-}));
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
   const mockParse = jest.fn().mockResolvedValue(true);
@@ -119,6 +112,7 @@ const mockReduxHooks = (state?: RootState) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   mockReduxHooks();
   jest
     .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
