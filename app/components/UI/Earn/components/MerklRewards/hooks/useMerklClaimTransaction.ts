@@ -13,7 +13,10 @@ import { selectDefaultEndpointByChainId } from '../../../../../../selectors/netw
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { TokenI } from '../../../../Tokens/types';
 import { RootState } from '../../../../../../reducers';
-import { fetchMerklRewardsForAsset } from '../merkl-client';
+import {
+  clearMerklRewardsCache,
+  fetchMerklRewardsForAsset,
+} from '../merkl-client';
 import {
   DISTRIBUTOR_CLAIM_ABI,
   MERKL_CLAIM_ORIGIN,
@@ -71,12 +74,22 @@ export const useMerklClaimTransaction = (asset: TokenI | undefined) => {
     setError(null);
 
     try {
-      // Fetch claim data from Merkl API
-      const rewardData = await fetchMerklRewardsForAsset(
+      // Fetch claim data from Merkl API (may hit in-memory cache)
+      let rewardData = await fetchMerklRewardsForAsset(
         asset,
         selectedAddress,
         abortController.signal,
       );
+
+      // Stale empty cache can disagree with a warm display fetch — retry once fresh
+      if (!rewardData) {
+        clearMerklRewardsCache();
+        rewardData = await fetchMerklRewardsForAsset(
+          asset,
+          selectedAddress,
+          abortController.signal,
+        );
+      }
 
       if (!rewardData) {
         setError('No claimable rewards found');

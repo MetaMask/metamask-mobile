@@ -17,7 +17,7 @@ import Logger from '../../../util/Logger';
 import { useAssetFromTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -35,7 +35,7 @@ export const createOTAUpdatesModalNavDetails = createNavigationDetails(
 
 const OTAUpdatesModal = () => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
   const metamaskName = useAssetFromTheme(
     metamaskNameLightMode,

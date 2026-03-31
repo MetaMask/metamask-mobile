@@ -10,12 +10,14 @@ import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import MusdCalculatorView from './Views/MusdCalculatorView';
+import OndoLeaderboardView from './Views/OndoLeaderboardView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useTheme } from '../../../util/theme';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -25,6 +27,7 @@ const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   useRewardsVersionGuard();
 
@@ -68,7 +71,10 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_ONBOARDING_FLOW}
         component={OnboardingNavigator}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
       />
       {subscriptionId ? (
         <>
@@ -110,6 +116,11 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
             component={MusdCalculatorView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
+            component={OndoLeaderboardView}
             options={{ headerShown: false }}
           />
         </>

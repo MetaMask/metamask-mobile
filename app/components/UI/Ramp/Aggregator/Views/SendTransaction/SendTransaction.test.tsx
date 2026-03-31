@@ -292,7 +292,7 @@ jest.mock('@react-navigation/native', () => {
       ),
       goBack: mockGoBack,
       reset: mockReset,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -341,6 +341,21 @@ describe('SendTransaction View', () => {
     mockUseParamsValues = {
       orderId: 'test-id-1',
     };
+  });
+
+  it('does not crash when order data has no cryptoCurrency', async () => {
+    const orderWithoutCrypto = {
+      ...mockOrder,
+      id: 'test-id-no-crypto',
+      data: {
+        ...mockOrder.data,
+        cryptoCurrency: undefined,
+      } as DeepPartial<SellOrder>,
+    } as FiatOrder;
+
+    mockUseParamsValues = { orderId: 'test-id-no-crypto' };
+    render(SendTransaction, [orderWithoutCrypto]);
+    expect(screen.queryByText('Next')).not.toBeOnTheScreen();
   });
 
   it('calls setOptions when rendering', async () => {
@@ -528,5 +543,61 @@ describe('SendTransaction View', () => {
         },
       ]
     `);
+  });
+
+  describe('transactionAnalyticsPayload with partial order data', () => {
+    it('handles missing cryptoCurrency gracefully in analytics', async () => {
+      const partialOrder = {
+        ...mockOrder,
+        id: 'test-partial-crypto',
+        data: {
+          ...mockOrder.data,
+          cryptoCurrency: undefined,
+        } as DeepPartial<SellOrder>,
+      } as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-partial-crypto' };
+      render(SendTransaction, [partialOrder]);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+        expect.objectContaining({
+          chain_id_source: undefined,
+          currency_source: undefined,
+          crypto_amount: '0.012361263',
+          order_id: 'test-partial-crypto',
+        }),
+      );
+    });
+
+    it('handles missing cryptoCurrency.network gracefully in analytics and does not invoke send', async () => {
+      const partialOrder = {
+        ...mockOrder,
+        id: 'test-partial-network',
+        data: {
+          ...mockOrder.data,
+          cryptoCurrency: {
+            ...(mockOrder.data as DeepPartial<SellOrder>).cryptoCurrency,
+            network: undefined,
+          },
+        } as DeepPartial<SellOrder>,
+      } as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-partial-network' };
+      render(SendTransaction, [partialOrder]);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+        expect.objectContaining({
+          chain_id_source: undefined,
+          currency_source: 'ETH',
+          currency_destination: 'USD',
+          payment_method_id: '/payments/instant-bank-transfer',
+          provider_offramp: 'Test (Staging)',
+        }),
+      );
+
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+    });
   });
 });

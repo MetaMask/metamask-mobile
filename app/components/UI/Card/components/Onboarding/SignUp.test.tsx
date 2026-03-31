@@ -181,7 +181,7 @@ describe('SignUp Component', () => {
       );
 
       const continueButton = getByTestId('signup-continue-button');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('does not show error messages initially', () => {
@@ -460,7 +460,7 @@ describe('SignUp Component', () => {
 
       expect(queryByText('United Kingdom')).toBeNull();
       // Continue button must remain disabled — no eligible country was selected
-      expect(getByTestId('signup-continue-button').props.disabled).toBe(true);
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
       expect(storeWithGB.getState().card.userCardLocation).toBe(
         'international',
       );
@@ -533,7 +533,7 @@ describe('SignUp Component', () => {
       // Now check if the continue button is enabled
       await waitFor(
         () => {
-          expect(continueButton.props.disabled).toBe(false);
+          expect(continueButton).toBeEnabled();
         },
         { timeout: 3000 },
       );
@@ -559,7 +559,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(true);
+        expect(continueButton).toBeDisabled();
       });
     });
 
@@ -590,7 +590,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(true);
+        expect(continueButton).toBeDisabled();
       });
     });
 
@@ -612,7 +612,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(true);
+        expect(continueButton).toBeDisabled();
       });
     });
   });
@@ -637,7 +637,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).toBeEnabled();
       });
 
       await act(async () => {
@@ -666,7 +666,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton.props.disabled).toBe(false);
+        expect(continueButton).toBeEnabled();
       });
 
       await act(async () => {

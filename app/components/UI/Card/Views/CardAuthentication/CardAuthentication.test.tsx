@@ -28,12 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/compat', () => ({
-  NavigationActions: {
-    navigate: jest.fn((params) => ({ type: 'NAVIGATE', ...params })),
-  },
-}));
-
 const mockLogin = jest.fn();
 const mockClearError = jest.fn();
 const mockSendOtpLogin = jest.fn();
@@ -412,7 +406,8 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
-        expect(loginButton).toHaveProp('loading', true);
+        expect(loginButton).toBeDisabled();
+        expect(loginButton.props.accessibilityState.busy).toBe(true);
       });
 
       if (resolveLogin) {
@@ -420,7 +415,7 @@ describe('CardAuthentication Component', () => {
       }
 
       await waitFor(() => {
-        expect(loginButton).toHaveProp('loading', false);
+        expect(loginButton.props.accessibilityState.busy).toBeFalsy();
       });
     });
   });
