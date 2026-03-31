@@ -44,6 +44,7 @@ android/app/.project
 android/app/bin/
 android/app/gradle*
 android/app/_build*
+android/libs
 .cxx/
 
 # if we ever want to add google services
