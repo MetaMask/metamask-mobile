@@ -53,16 +53,13 @@ type DebugMessage =
       details: WidgetUrlRequestDetails;
     };
 
-// Wraps globalThis.fetch at import time so that the proxy is installed
-// before RampsService (or any other consumer) captures a reference to fetch.
-const fetchUrlTracker = createFetchUrlTracker();
-
 /**
  * Initializes the debug bridge for the RampsController.
  * Subscribes to state changes and wraps controller methods to log calls,
  * then sends everything over WebSocket to the debug dashboard.
  *
- * Only call this in __DEV__ mode.
+ * Only call this in __DEV__ mode after opting in via `RAMPS_DEBUG_DASHBOARD=true`.
+ * Fetch is patched here (not at module load) so requiring this module is side-effect free.
  *
  * @param controller - The RampsController instance.
  * @param messenger - The controller messenger to subscribe to state changes.
@@ -73,6 +70,8 @@ export function initRampsDebugBridge(
     subscribe: (event: string, handler: (...args: unknown[]) => void) => void;
   },
 ): void {
+  const fetchUrlTracker = createFetchUrlTracker();
+
   let ws: WebSocket | null = null;
   let pendingMessages: string[] = [];
 
@@ -105,17 +104,19 @@ export function initRampsDebugBridge(
       ws.onopen = () => {
         Logger.log('[RampsDebug] Connected to debug dashboard');
 
+        // Flush queued messages first so stale `state` payloads from while
+        // disconnected cannot overwrite the fresh snapshot sent next.
+        for (const raw of pendingMessages) {
+          ws?.send(raw);
+        }
+        pendingMessages = [];
+
         send({
           type: 'state',
           state: controller.state as unknown as Record<string, unknown>,
           patches: [],
           timestamp: Date.now(),
         });
-
-        for (const raw of pendingMessages) {
-          ws?.send(raw);
-        }
-        pendingMessages = [];
       };
 
       ws.onclose = () => {
