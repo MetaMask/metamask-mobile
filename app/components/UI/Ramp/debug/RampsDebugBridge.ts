@@ -1,8 +1,8 @@
+import { NativeModules } from 'react-native';
 import type { RampsController } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 
-/** Default dashboard WebSocket; use `adb reverse tcp:8099 tcp:8099` on Android so the app can reach the host. */
-const DASHBOARD_WS_URL = 'ws://localhost:8099';
+const DASHBOARD_PORT = 8099;
 const RECONNECT_DELAY_MS = 3000;
 
 const EXCLUDED_PROPS = new Set([
@@ -18,17 +18,6 @@ type RequestsState = Record<
   string,
   { status: string; timestamp: number; lastFetchedAt: number }
 >;
-
-interface WidgetUrlRequestDetails {
-  url: string;
-  status?: number;
-  statusText?: string;
-  ok: boolean;
-  error?: string;
-  responseBody?: string;
-  duration: number;
-  timestamp: number;
-}
 
 type DebugMessage =
   | {
@@ -47,11 +36,74 @@ type DebugMessage =
       timestamp: number;
       cacheStatus?: 'hit' | 'miss' | null;
       requestUrl?: string | null;
+      orderId?: string | null;
+      refreshTrigger?: 'websocket' | 'polling' | null;
+      correlatedEventType?: string | null;
     }
   | {
-      type: 'widget-url-request';
-      details: WidgetUrlRequestDetails;
+      type: 'ws-status';
+      connected: boolean;
+      subscribedOrderIds: string[];
+      timestamp: number;
+    }
+  | {
+      type: 'ws-event';
+      transakOrderId: string;
+      status: string;
+      eventType: string;
+      timestamp: number;
     };
+
+// Wraps globalThis.fetch at import time so that the proxy is installed
+// before RampsService (or any other consumer) captures a reference to fetch.
+const fetchUrlTracker = createFetchUrlTracker();
+
+function parseHost(input: string | undefined | null): string | null {
+  if (!input) {
+    return null;
+  }
+
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    const match = trimmed.match(/^https?:\/\/([^/:]+)(?::\d+)?\//u);
+    return match?.[1] ?? null;
+  }
+
+  return trimmed.replace(/:\d+$/u, '');
+}
+
+function getDashboardUrl(): string {
+  const overrideHost = parseHost(
+    (globalThis as { RAMPS_DEBUG_HOST?: string }).RAMPS_DEBUG_HOST,
+  );
+  if (overrideHost) {
+    return `ws://${overrideHost}:${DASHBOARD_PORT}`;
+  }
+
+  const platformHost = parseHost(
+    NativeModules?.PlatformConstants?.ServerHost ??
+      NativeModules?.PlatformConstants?.serverHost,
+  );
+  if (platformHost) {
+    return `ws://${platformHost}:${DASHBOARD_PORT}`;
+  }
+
+  const scriptURL =
+    NativeModules?.SourceCode?.scriptURL ??
+    NativeModules?.SourceCode?.bundleURL ??
+    '';
+
+  const scriptHost = parseHost(scriptURL);
+  if (scriptHost) {
+    return `ws://${scriptHost}:${DASHBOARD_PORT}`;
+  }
+
+  return `ws://localhost:${DASHBOARD_PORT}`;
+}
 
 /**
  * Initializes the debug bridge for the RampsController.
@@ -59,7 +111,8 @@ type DebugMessage =
  * then sends everything over WebSocket to the debug dashboard.
  *
  * Only call this in __DEV__ mode after opting in via `RAMPS_DEBUG_DASHBOARD=true`.
- * Fetch is patched here (not at module load) so requiring this module is side-effect free.
+ * Fetch is patched at module load (not lazily) so the proxy is installed before
+ * RampsService captures a reference to globalThis.fetch.
  *
  * @param controller - The RampsController instance.
  * @param messenger - The controller messenger to subscribe to state changes.
@@ -70,8 +123,6 @@ export function initRampsDebugBridge(
     subscribe: (event: string, handler: (...args: unknown[]) => void) => void;
   },
 ): void {
-  const fetchUrlTracker = createFetchUrlTracker();
-
   let ws: WebSocket | null = null;
   let pendingMessages: string[] = [];
 
@@ -89,6 +140,8 @@ export function initRampsDebugBridge(
 
   function connect() {
     try {
+      const dashboardUrl = getDashboardUrl();
+
       // React Native WebSocket supports a third arg for options (including headers)
       // but the TS types don't include it, so we cast through unknown.
       const RNWebSocket = WebSocket as unknown as new (
@@ -97,7 +150,9 @@ export function initRampsDebugBridge(
         options: { headers: Record<string, string> },
       ) => WebSocket;
 
-      ws = new RNWebSocket(DASHBOARD_WS_URL, undefined, {
+      Logger.log('[RampsDebug] Connecting to debug dashboard at', dashboardUrl);
+
+      ws = new RNWebSocket(dashboardUrl, undefined, {
         headers: { 'X-Ramps-Debug-Source': 'mobile' },
       });
 
@@ -141,16 +196,96 @@ export function initRampsDebugBridge(
         patches: patches || [],
         timestamp: Date.now(),
       });
+      sendWsStatus();
     });
   } catch (e) {
     Logger.log('[RampsDebug] Failed to subscribe to state changes:', e);
   }
 
-  fetchUrlTracker.registerWidgetCallback((details: WidgetUrlRequestDetails) => {
-    send({ type: 'widget-url-request', details });
+  const PENDING_STATUSES = new Set([
+    'PENDING',
+    'CREATED',
+    'UNKNOWN',
+    'PRECREATED',
+  ]);
+
+  let wsConnected = false;
+
+  function extractTransakOrderId(providerOrderId: string): string {
+    if (providerOrderId.startsWith('/providers/')) {
+      const parts = providerOrderId.split('/');
+      return parts[parts.length - 1];
+    }
+    return providerOrderId;
+  }
+
+  function sendWsStatus() {
+    try {
+      const orders = (
+        controller.state as unknown as {
+          orders?: {
+            providerOrderId: string;
+            status: string;
+            provider?: { id?: string };
+          }[];
+        }
+      ).orders;
+
+      const subscribedOrderIds = (orders ?? [])
+        .filter((o) => {
+          const providerId = o.provider?.id ?? '';
+          return (
+            providerId.includes('transak-native') &&
+            PENDING_STATUSES.has(o.status)
+          );
+        })
+        .map((o) => extractTransakOrderId(o.providerOrderId));
+
+      send({
+        type: 'ws-status',
+        connected: wsConnected,
+        subscribedOrderIds,
+        timestamp: Date.now(),
+      });
+    } catch (e) {
+      Logger.log('[RampsDebug] Failed to derive websocket status:', e);
+    }
+  }
+
+  try {
+    messenger.subscribe('TransakService:orderUpdate', (...args: unknown[]) => {
+      const [data] = args as [
+        { transakOrderId: string; status: string; eventType: string },
+      ];
+
+      wsConnected = true;
+      send({
+        type: 'ws-event',
+        transakOrderId: data.transakOrderId,
+        status: data.status,
+        eventType: data.eventType,
+        timestamp: Date.now(),
+      });
+      sendWsStatus();
+    });
+  } catch (e) {
+    Logger.log(
+      '[RampsDebug] Failed to subscribe to websocket order updates:',
+      e,
+    );
+  }
+
+  const WS_METHODS = new Set(['subscribeToTransakOrderUpdates']);
+
+  wrapControllerMethods(controller, send, fetchUrlTracker, (methodName) => {
+    if (WS_METHODS.has(methodName)) {
+      wsConnected = true;
+      sendWsStatus();
+    }
   });
-  wrapControllerMethods(controller, send, fetchUrlTracker);
   connect();
+  setTimeout(sendWsStatus, 1500);
+  setInterval(sendWsStatus, 5000);
 }
 
 const RAMPS_URL_PATTERNS = ['on-ramp', 'localhost:3000', '127.0.0.1:3000'];
@@ -168,29 +303,19 @@ const METHOD_URL_PATTERNS: Record<string, RegExp> = {
   hydrateState: /geolocation/,
 };
 
-const WIDGET_URL_PATTERN = /buy-widget|buy-url/;
-
 /**
  * Wraps globalThis.fetch to capture URLs matching ramps API patterns.
  * Uses an append-only log with method-to-URL-path matching so that
  * concurrent async method calls get the correct URL instead of
  * cross-contaminating via a shared drain buffer.
- *
- * Also intercepts widget URL requests (buy-widget, buy-url) to capture
- * full request/response details for debug dashboard visibility.
  */
 function createFetchUrlTracker() {
   const log: { url: string; ts: number }[] = [];
-  let widgetCallback: ((details: WidgetUrlRequestDetails) => void) | null =
-    null;
   const originalFetch = globalThis.fetch;
 
   if (!originalFetch || typeof originalFetch !== 'function') {
     return {
       findUrl: () => null,
-      registerWidgetCallback: (
-        _cb: (details: WidgetUrlRequestDetails) => void,
-      ) => undefined,
     };
   }
 
@@ -209,69 +334,13 @@ function createFetchUrlTracker() {
     } catch {
       // URL extraction failed — don't interfere with the request
     }
-    const isRampsUrl = url && RAMPS_URL_PATTERNS.some((p) => url.includes(p));
-    const isWidgetUrl =
-      isRampsUrl && WIDGET_URL_PATTERN.test(url) && widgetCallback;
-
-    let startTime = 0;
-    if (isRampsUrl) {
-      startTime = Date.now();
-      log.push({ url, ts: startTime });
+    if (url && RAMPS_URL_PATTERNS.some((p) => url.includes(p))) {
+      log.push({ url, ts: Date.now() });
       if (log.length > 500) {
         log.splice(0, log.length - 200);
       }
     }
-
-    const promise = originalFetch.call(globalThis, input, init);
-
-    if (isWidgetUrl && widgetCallback) {
-      const cb = widgetCallback;
-      const start = startTime;
-      promise
-        .then(async (response) => {
-          try {
-            const duration = Date.now() - start;
-            let responseBody: string | undefined;
-            if (!response.ok) {
-              try {
-                const cloned = response.clone();
-                responseBody = await cloned.text();
-                if (responseBody.length > 2000) {
-                  responseBody = responseBody.slice(0, 2000) + '...[truncated]';
-                }
-              } catch {
-                responseBody = '[unable to read body]';
-              }
-            }
-            cb({
-              url,
-              status: response.status,
-              statusText: response.statusText,
-              ok: response.ok,
-              responseBody: response.ok ? undefined : responseBody,
-              duration,
-              timestamp: Date.now(),
-            });
-          } catch {
-            // Swallow any error in our logging to avoid affecting the app
-          }
-        })
-        .catch((err) => {
-          try {
-            cb({
-              url,
-              ok: false,
-              error: err instanceof Error ? err.message : String(err),
-              duration: Date.now() - start,
-              timestamp: Date.now(),
-            });
-          } catch {
-            // Swallow any error in our logging
-          }
-        });
-    }
-
-    return promise;
+    return originalFetch.call(globalThis, input, init);
   } as typeof fetch;
 
   return {
@@ -288,9 +357,6 @@ function createFetchUrlTracker() {
       }
 
       return fallback;
-    },
-    registerWidgetCallback(cb: (details: WidgetUrlRequestDetails) => void) {
-      widgetCallback = cb;
     },
   };
 }
@@ -344,11 +410,44 @@ const DATA_FETCH_METHODS = new Set([
   'hydrateState',
 ]);
 
+const WS_REFRESH_MATCH_WINDOW_MS = 5000;
+
+function normalizeOrderId(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length === 0) {
+    return null;
+  }
+
+  const match = value.match(/\/orders\/([^/?#]+)$/u);
+  return match?.[1] ?? value;
+}
+
 function wrapControllerMethods(
   controller: RampsController,
   send: (msg: DebugMessage) => void,
   urlTracker: ReturnType<typeof createFetchUrlTracker>,
+  onMethodCall?: (methodName: string) => void,
 ) {
+  const recentWsEvents = new Map<
+    string,
+    { timestamp: number; eventType: string; status: string }
+  >();
+
+  try {
+    const originalSend = send;
+    send = (msg: DebugMessage) => {
+      if (msg.type === 'ws-event') {
+        recentWsEvents.set(msg.transakOrderId, {
+          timestamp: msg.timestamp,
+          eventType: msg.eventType,
+          status: msg.status,
+        });
+      }
+      originalSend(msg);
+    };
+  } catch {
+    // Keep the original send function if wrapping fails for any reason.
+  }
+
   const proto = Object.getPrototypeOf(controller);
   const methodNames = Object.getOwnPropertyNames(proto).filter((name) => {
     if (EXCLUDED_PROPS.has(name)) return false;
@@ -372,10 +471,20 @@ function wrapControllerMethods(
     const trackCache = DATA_FETCH_METHODS.has(name);
 
     ctrl[name] = function (...args: unknown[]) {
+      onMethodCall?.(name);
       const start = Date.now();
       const requestsBefore = trackCache
         ? snapshotRequestTimestamps(controller)
         : null;
+      const orderId = name === 'getOrder' ? normalizeOrderId(args[1]) : null;
+      const correlatedEvent = orderId ? recentWsEvents.get(orderId) : null;
+      const refreshTrigger =
+        name === 'getOrder'
+          ? correlatedEvent &&
+            start - correlatedEvent.timestamp <= WS_REFRESH_MATCH_WINDOW_MS
+            ? 'websocket'
+            : 'polling'
+          : null;
 
       let result: unknown;
 
@@ -391,6 +500,9 @@ function wrapControllerMethods(
           timestamp: Date.now(),
           cacheStatus: trackCache ? 'miss' : null,
           requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+          orderId,
+          refreshTrigger,
+          correlatedEventType: correlatedEvent?.eventType ?? null,
         });
         throw err;
       }
@@ -401,9 +513,6 @@ function wrapControllerMethods(
         typeof (result as Promise<unknown>).then === 'function';
 
       if (isPromiseLike) {
-        // onRejected mirrors the sync catch block so failures show in the dashboard,
-        // and it satisfies the derived promise so React Native __DEV__ does not log a
-        // spurious unhandled rejection (callers still get the original promise).
         // eslint-disable-next-line @typescript-eslint/no-floating-promises -- debug-only side effect; original promise is still returned to callers
         (result as Promise<unknown>).then(
           (resolved) => {
@@ -420,6 +529,9 @@ function wrapControllerMethods(
               timestamp: Date.now(),
               cacheStatus,
               requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+              orderId,
+              refreshTrigger,
+              correlatedEventType: correlatedEvent?.eventType ?? null,
             });
           },
           (err) => {
@@ -432,6 +544,9 @@ function wrapControllerMethods(
               timestamp: Date.now(),
               cacheStatus: trackCache ? 'miss' : null,
               requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+              orderId,
+              refreshTrigger,
+              correlatedEventType: correlatedEvent?.eventType ?? null,
             });
           },
         );
@@ -449,6 +564,9 @@ function wrapControllerMethods(
           timestamp: Date.now(),
           cacheStatus,
           requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+          orderId,
+          refreshTrigger,
+          correlatedEventType: correlatedEvent?.eventType ?? null,
         });
       }
 
