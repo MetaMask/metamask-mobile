@@ -3,6 +3,7 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 
 const mockGoBack = jest.fn();
 
@@ -13,6 +14,18 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({ goBack: mockGoBack }),
   };
 });
+
+const mockUseTopTraders: UseTopTradersResult = {
+  traders: [],
+  isLoading: false,
+  error: null,
+  refresh: jest.fn(),
+  toggleFollow: jest.fn(),
+};
+
+jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
+  useTopTraders: () => mockUseTopTraders,
+}));
 
 describe('TopTradersView', () => {
   beforeEach(() => {
