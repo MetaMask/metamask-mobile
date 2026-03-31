@@ -73,7 +73,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
           has_marketing_consent: true,
           is_metrics_opted_in: true,
           location: 'saga_backfill_marketing_consent',
-          updated_after_onboarding: false,
+          updated_after_onboarding: true,
           account_type: 'metamask_google',
         }),
       }),

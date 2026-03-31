@@ -36,7 +36,7 @@ export function* backfillSocialLoginMarketingConsent() {
         [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
         is_metrics_opted_in: true,
         location: 'saga_backfill_marketing_consent',
-        updated_after_onboarding: false,
+        updated_after_onboarding: true,
         account_type: getSocialAccountType(authConnection, false),
       })
       .build();
