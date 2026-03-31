@@ -41,6 +41,7 @@ export interface DepositKeyboardProps {
   doneLabel?: string;
   hasInput?: boolean;
   hasMax?: boolean;
+  hidePercentageButtons?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -53,6 +54,7 @@ export const DepositKeyboard = memo(
     doneLabel,
     hasInput,
     hasMax,
+    hidePercentageButtons,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -108,6 +110,7 @@ export const DepositKeyboard = memo(
           )}
           {!alertMessage &&
             !hasInput &&
+            !hidePercentageButtons &&
             buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
