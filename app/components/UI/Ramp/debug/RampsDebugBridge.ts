@@ -401,9 +401,9 @@ function wrapControllerMethods(
         typeof (result as Promise<unknown>).then === 'function';
 
       if (isPromiseLike) {
-        // Second argument avoids an unhandled rejection on the *derived* promise from
-        // `.then()` in React Native __DEV__ (LogBox). The original promise is still
-        // returned to callers unchanged.
+        // onRejected mirrors the sync catch block so failures show in the dashboard,
+        // and it satisfies the derived promise so React Native __DEV__ does not log a
+        // spurious unhandled rejection (callers still get the original promise).
         // eslint-disable-next-line @typescript-eslint/no-floating-promises -- debug-only side effect; original promise is still returned to callers
         (result as Promise<unknown>).then(
           (resolved) => {
@@ -422,8 +422,17 @@ function wrapControllerMethods(
               requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
             });
           },
-          () => {
-            /* intentional no-op: rejection is handled by the caller's promise */
+          (err) => {
+            send({
+              type: 'method',
+              name,
+              args: sanitizeArgs(args),
+              error: err instanceof Error ? err.message : String(err),
+              duration: Date.now() - start,
+              timestamp: Date.now(),
+              cacheStatus: trackCache ? 'miss' : null,
+              requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+            });
           },
         );
       } else {
