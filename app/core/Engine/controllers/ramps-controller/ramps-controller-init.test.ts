@@ -65,6 +65,18 @@ jest.mock('react-native-device-info', () => ({
   getVersion: () => '99.0.0',
 }));
 
+jest.mock('../../../../components/UI/Ramp/debug/RampsDebugBridge', () => ({
+  __esModule: true,
+  initRampsDebugBridge: jest.fn(),
+}));
+
+const getInitRampsDebugBridgeMock = (): jest.Mock =>
+  (
+    jest.requireMock(
+      '../../../../components/UI/Ramp/debug/RampsDebugBridge',
+    ) as { initRampsDebugBridge: jest.Mock }
+  ).initRampsDebugBridge;
+
 const createMockInitMessenger = (
   overrides: {
     enabled?: boolean;
@@ -308,5 +320,34 @@ describe('ramps controller init', () => {
 
     expect(result.controller).toBeDefined();
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('when __DEV__ is true', () => {
+    let previousDev: boolean;
+
+    beforeEach(() => {
+      previousDev = (global as { __DEV__: boolean }).__DEV__;
+      (global as { __DEV__: boolean }).__DEV__ = true;
+      getInitRampsDebugBridgeMock().mockClear();
+    });
+
+    afterEach(() => {
+      (global as { __DEV__: boolean }).__DEV__ = previousDev;
+    });
+
+    it('requires RampsDebugBridge and calls initRampsDebugBridge with controller and messenger', () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: false,
+      });
+
+      const { controller } = rampsControllerInit(initRequestMock);
+      const initRampsDebugBridge = getInitRampsDebugBridgeMock();
+
+      expect(initRampsDebugBridge).toHaveBeenCalledTimes(1);
+      expect(initRampsDebugBridge).toHaveBeenCalledWith(
+        controller,
+        initRequestMock.controllerMessenger,
+      );
+    });
   });
 });

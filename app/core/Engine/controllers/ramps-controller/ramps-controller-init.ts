@@ -99,15 +99,16 @@ export const rampsControllerInit: ControllerInitFunction<
   });
 
   // Dev-only: streams controller state / traffic to the local dashboard (see Ramp/debug/README.md).
-  // Dynamic import keeps the bridge out of production bundles.
+  // Use require (not dynamic import) so Jest can mock the module; Metro drops this block in prod (__DEV__ false).
   if (__DEV__) {
-    import('../../../../components/UI/Ramp/debug/RampsDebugBridge')
-      .then(({ initRampsDebugBridge }) => {
-        initRampsDebugBridge(controller, controllerMessenger);
-      })
-      .catch(() => {
-        /* optional dev tooling — ignore load failures */
-      });
+    try {
+      const { initRampsDebugBridge } =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- dev-only optional tooling; Jest cannot mock dynamic import()
+        require('../../../../components/UI/Ramp/debug/RampsDebugBridge');
+      initRampsDebugBridge(controller, controllerMessenger);
+    } catch {
+      /* optional dev tooling — ignore load failures */
+    }
   }
 
   return {
