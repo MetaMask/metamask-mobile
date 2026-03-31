@@ -39,6 +39,15 @@ async function getBrowserStackRecordingUrl(
   }
 }
 
+function getSessionIdFromAnnotations(
+  annotations?: { type: string; description?: string }[],
+): string | null {
+  return (
+    annotations?.find((annotation) => annotation.type === 'sessionId')
+      ?.description ?? null
+  );
+}
+
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend<PerformanceFixtures>({
   // eslint-disable-next-line no-empty-pattern
@@ -98,15 +107,9 @@ export const test = base.extend<PerformanceFixtures>({
       );
     }
 
-    if (metrics) {
-      let sessionId: string | null = null;
-      if (testInfo?.annotations) {
-        sessionId =
-          testInfo.annotations.find(
-            (annotation) => annotation.type === 'sessionId',
-          )?.description ?? null;
-      }
+    const sessionId = getSessionIdFromAnnotations(testInfo.annotations);
 
+    if (metrics) {
       const browserstackRecordingUrl = await getBrowserStackRecordingUrl(
         sessionId,
         testInfo.project?.name ?? 'unknown',
@@ -163,15 +166,6 @@ export const test = base.extend<PerformanceFixtures>({
     }
 
     console.log('🔍 Looking for session ID...');
-
-    let sessionId: string | null = null;
-
-    if (testInfo?.annotations) {
-      sessionId =
-        testInfo.annotations.find(
-          (annotation) => annotation.type === 'sessionId',
-        )?.description ?? null;
-    }
 
     if (sessionId) {
       // Store session data as a test attachment for the reporter to find
