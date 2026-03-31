@@ -138,6 +138,10 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
     return [
       { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
       { name: HomeSectionNames.TOKENS, enabled: true },
+      {
+        name: HomeSectionNames.TOP_TRADERS,
+        enabled: isTopTradersEnabled,
+      },
       { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
       { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
       {
@@ -208,6 +212,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
           totalSectionsLoaded={totalSectionsLoaded}
           mode={sectionMode}
+        />
+        <TopTradersSection
+          ref={topTradersSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+          totalSectionsLoaded={totalSectionsLoaded}
         />
         <PerpsSection
           ref={perpsSectionRef}
