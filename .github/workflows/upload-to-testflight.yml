@@ -4,6 +4,21 @@ name: Upload to TestFlight
 # All TestFlight logic lives here; build.yml only builds and uploads artifacts.
 #
 on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      environment:
+        description: 'Build environment / track (exp, beta, rc)'
+        required: true
+        type: string
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: false
+        type: string
+        default: 'MetaMask BETA & Release Candidates'
   workflow_dispatch:
     inputs:
       source_branch:
@@ -36,42 +51,54 @@ permissions:
   id-token: write
 
 jobs:
+  # Create a temporary branch so the version-bump commit can be pushed without
+  # hitting branch-protection rules on the source branch (e.g. main).
+  prepare-build-branch:
+    uses: ./.github/workflows/create-build-branch.yml
+    with:
+      source_branch: ${{ inputs.source_branch }}
+    secrets: inherit
+
   build:
     name: Build iOS (${{ inputs.environment || 'rc' }})
+    needs: [prepare-build-branch]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-${{ inputs.environment || 'rc' }}
       platform: ios
       skip_version_bump: false
-      source_branch: ${{ inputs.source_branch }}
+      source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
     secrets: inherit
 
   testflight-upload-summary:
     name: TestFlight upload summary
-    needs: [build]
+    needs: [build, prepare-build-branch]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.source_branch }}
+          ref: ${{ needs.prepare-build-branch.outputs.build_branch }}
       - name: Display TestFlight upload summary
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
+          BUILD_NUMBER=$(awk '/versionCode/{print $2}' android/app/build.gradle)
           {
             echo "### 📲 TestFlight Upload"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| **Workflow ref** | ${{ github.ref_name }} (required for AWS) |"
-            echo "| **Source branch** | ${{ inputs.source_branch }} |"
-            echo "| **Build name** | main-${{ inputs.environment || 'rc' }} |"
-            echo "| **Build version** | ${BUILD_VERSION} |"
+            echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
+            echo "| **Build branch** | \`${{ needs.prepare-build-branch.outputs.build_branch }}\` |"
+            echo "| **Build name** | \`main-${{ inputs.environment || 'rc' }}\` |"
+            echo "| **Build version** | \`${BUILD_VERSION}\` |"
+            echo "| **Build number** | \`${BUILD_NUMBER}\` |"
             echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
+            echo "| **Workflow ref** | \`${{ github.ref_name }}\` (required for AWS) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # Pulls App Store Connect API keys from AWS Secrets Manager (OIDC).
-  # Workflow must run from main; build uses inputs.source_branch.
+  # Workflow must run from main; build uses the temporary build branch.
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [build, testflight-upload-summary]
@@ -170,3 +197,21 @@ jobs:
         run: |
           rm -f ios/AuthKey.p8
           echo "🧹 Cleaned up API key file"
+
+  cleanup-build-branch:
+    name: Cleanup build branch
+    needs: [prepare-build-branch, upload-ios-testflight]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PR_TOKEN || github.token }}
+      - name: Delete temporary build branch
+        env:
+          BRANCH: ${{ needs.prepare-build-branch.outputs.build_branch }}
+        run: |
+          if [ -n "$BRANCH" ]; then
+            git push origin --delete "$BRANCH" || true
+            echo "🧹 Deleted build branch: $BRANCH"
+          fi
