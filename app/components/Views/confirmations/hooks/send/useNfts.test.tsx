@@ -23,7 +23,6 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { useEVMNfts } from './useNfts';
-import { useSendScope } from './useSendScope';
 
 jest.mock('ethers/lib/utils', () => ({
   isAddress: jest.fn(),
@@ -48,7 +47,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accountTreeController');
 jest.mock('../../../../../selectors/accountsController');
 jest.mock('../../../../../selectors/nftController');
 jest.mock('../../utils/network');
-jest.mock('./useSendScope');
 
 const mockIsEvmAddress = isEvmAddress as jest.MockedFunction<
   typeof isEvmAddress
@@ -66,9 +64,6 @@ const mockSelectAllNfts = selectAllNfts as jest.MockedFunction<
 >;
 const mockGetNetworkBadgeSource = getNetworkBadgeSource as jest.MockedFunction<
   typeof getNetworkBadgeSource
->;
-const mockuseSendScope = useSendScope as jest.MockedFunction<
-  typeof useSendScope
 >;
 const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.MockedFunction<
   typeof getFormattedIpfsUrl
@@ -125,6 +120,7 @@ const createMockAccountGroup = (accounts: string[]): AccountGroupObject => ({
     name: 'Test Account Group',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
 });
 
@@ -139,6 +135,7 @@ const createMockMultichainAccountGroup = (
       name: 'Test Multichain Account Group',
       pinned: false,
       hidden: false,
+      lastSelected: 0,
     },
   }) as unknown as AccountGroupObject;
 
@@ -220,11 +217,6 @@ describe('useEVMNfts', () => {
     jest.clearAllMocks();
     mockGetNetworkBadgeSource.mockReturnValue('network-badge-source');
     mockIsEvmAddress.mockReturnValue(true);
-    mockuseSendScope.mockReturnValue({
-      isSolanaOnly: false,
-      isEvmOnly: true,
-      isBIP44: false,
-    });
     mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
       'network-client-id',
     );
@@ -235,33 +227,16 @@ describe('useEVMNfts', () => {
     mockGetFormattedIpfsUrl.mockResolvedValue(undefined as unknown as string);
   });
 
-  it('returns empty array when isEvm is false', async () => {
-    mockuseSendScope.mockReturnValue({
-      isSolanaOnly: false,
-      isEvmOnly: false,
-      isBIP44: false,
-    });
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [mockNft],
-        },
-      }),
-    );
+  it('returns empty array when no account group is selected', async () => {
+    mockSelectSelectedAccountGroup.mockReturnValue(null);
+    mockSelectInternalAccountsById.mockReturnValue({});
+    mockSelectAllNfts.mockReturnValue({});
 
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
       expect(result.current.nfts).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 

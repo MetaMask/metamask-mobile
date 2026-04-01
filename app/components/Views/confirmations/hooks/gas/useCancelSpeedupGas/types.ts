@@ -19,6 +19,8 @@ export interface UseCancelSpeedupGasResult {
   nativeTokenSymbol: string;
   /** Whether the transaction can still be modified (status is unapproved or submitted). */
   isTransactionModifiable: boolean;
+  /** True once previousGas has been persisted and initial gas params applied. */
+  isInitialGasReady: boolean;
 }
 
 export interface UseCancelSpeedupGasInput {

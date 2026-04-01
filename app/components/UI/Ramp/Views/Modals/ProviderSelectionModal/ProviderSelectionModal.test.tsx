@@ -295,6 +295,27 @@ describe('ProviderSelectionModal', () => {
     });
   });
 
+  it('does not fetch quotes when selectedPaymentMethod is null', () => {
+    mockUseRampsController.mockReturnValue({
+      ...defaultControllerReturn,
+      selectedPaymentMethod: null as never,
+    });
+    renderWithProvider(ProviderSelectionModal);
+
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
+  });
+
+  it('passes showQuotes as false when selectedPaymentMethod is null', () => {
+    mockUseRampsController.mockReturnValue({
+      ...defaultControllerReturn,
+      selectedPaymentMethod: null as never,
+    });
+    const { queryByText } = renderWithProvider(ProviderSelectionModal);
+
+    // Should not show "no quotes available" error since showQuotes is false
+    expect(queryByText('fiat_on_ramp.no_quotes_available')).toBeNull();
+  });
+
   it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {
     mockUseParams.mockReturnValue({ amount: 100 });
     renderWithProvider(ProviderSelectionModal);

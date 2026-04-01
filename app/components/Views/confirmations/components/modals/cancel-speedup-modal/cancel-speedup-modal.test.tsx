@@ -65,17 +65,31 @@ const defaultGasValues = {
   networkFeeNative: '0.001',
   networkFeeFiat: '$1.80',
   nativeTokenSymbol: 'ETH',
+  isInitialGasReady: true,
   isTransactionModifiable: true,
 };
 
 jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
   useCancelSpeedupGas: jest.fn(),
-  getBumpParamsForCancelSpeedup: jest.fn(() => ({})),
+  getBumpParamsForCancelSpeedup: jest.fn(() => ({
+    gasValues: { maxFeePerGas: '0x1', maxPriorityFeePerGas: '0x1' },
+    userFeeLevel: 'medium',
+  })),
 }));
 
 jest.mock('../../../../../../util/transaction-controller', () => ({
   ...jest.requireActual('../../../../../../util/transaction-controller'),
   updateTransactionGasFees: jest.fn(),
+  updatePreviousGasParams: jest.fn(),
+}));
+
+jest.mock('../../../hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(() => ({ gasFeeEstimates: {} })),
+}));
+
+jest.mock('../../../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: { showToast: jest.fn() },
 }));
 
 jest.mock('../../../../../../core/ToastService/ToastService', () => ({
@@ -263,6 +277,43 @@ describe('CancelSpeedupModal', () => {
 
     await waitFor(() => {
       expect(queryByTestId('gas-fee-modal')).toBeNull();
+    });
+  });
+
+  it('does not call onConfirm when isInitialGasReady is false', () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isInitialGasReady: false,
+    });
+
+    const { getByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    fireEvent.press(getByText('Confirm'));
+
+    expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
+
+  it('calls onConfirm when isInitialGasReady is true', async () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isInitialGasReady: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    fireEvent.press(getByText('Confirm'));
+
+    await waitFor(() => {
+      expect(mockOnConfirm).toHaveBeenCalledWith({
+        maxFeePerGas: '0x1',
+        maxPriorityFeePerGas: '0x1',
+      });
     });
   });
 

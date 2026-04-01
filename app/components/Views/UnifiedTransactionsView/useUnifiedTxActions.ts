@@ -17,8 +17,14 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { isHardwareAccount } from '../../../util/address';
-import { getMediumGasPriceHex } from '../../../util/confirmation/gas';
-import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
+import {
+  getGasValuesForReplacement,
+  getMediumGasPriceHex,
+} from '../../../util/confirmation/gas';
+import {
+  getPreviousGasFromController,
+  speedUpTransaction as speedUpTx,
+} from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import {
   createLedgerTransactionModalNavDetails,
@@ -213,7 +219,12 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
-      const gasValues = getParamsToSend(params);
+      const rawGasValues = getParamsToSend(params);
+      const gasValues = getGasValuesForReplacement(
+        rawGasValues,
+        getPreviousGasFromController(speedUpTxId),
+        SPEED_UP_RATE,
+      );
 
       if (isLedgerAccount) {
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
@@ -248,7 +259,12 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for cancel');
       }
 
-      const gasValues = getParamsToSend(params);
+      const rawGasValues = getParamsToSend(params);
+      const gasValues = getGasValuesForReplacement(
+        rawGasValues,
+        getPreviousGasFromController(cancelTxId),
+        CANCEL_RATE,
+      );
 
       if (isLedgerAccount) {
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;

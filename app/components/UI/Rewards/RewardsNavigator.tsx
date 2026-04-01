@@ -17,6 +17,7 @@ import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selecto
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
+import { useTheme } from '../../../util/theme';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -26,6 +27,7 @@ const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   useRewardsVersionGuard();
 
@@ -69,7 +71,10 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_ONBOARDING_FLOW}
         component={OnboardingNavigator}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
       />
       {subscriptionId ? (
         <>

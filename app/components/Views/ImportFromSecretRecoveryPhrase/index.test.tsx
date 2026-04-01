@@ -94,13 +94,6 @@ const initialState = {
   },
 };
 
-jest.mock(
-  '../../../selectors/featureFlagController/importSrpWordSuggestion',
-  () => ({
-    selectImportSrpWordSuggestionEnabledFlag: () => true,
-  }),
-);
-
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => {

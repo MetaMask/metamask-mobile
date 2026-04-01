@@ -11,7 +11,7 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         {
@@ -19,18 +19,18 @@
           "symbol": "{{symbol}}"
         }
       ],
-      "steps": [
-        {
-          "id": "assert-position-exists",
+      "entry": "assert-position-exists",
+      "nodes": {
+        "assert-position-exists": {
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
           "assert": {
             "operator": "not_null",
             "field": "margin"
-          }
+          },
+          "next": "nav-market-detail"
         },
-        {
-          "id": "nav-market-detail",
+        "nav-market-detail": {
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -43,78 +43,83 @@
               "volume": "0",
               "maxLeverage": "100"
             }
-          }
+          },
+          "next": "wait-render"
         },
-        {
-          "id": "wait-render",
+        "wait-render": {
           "action": "wait_for",
-          "test_id": "position-card-margin-chevron"
+          "test_id": "position-card-margin-chevron",
+          "next": "press-margin-chevron"
         },
-        {
-          "id": "press-margin-chevron",
+        "press-margin-chevron": {
           "action": "press",
-          "test_id": "position-card-margin-chevron"
+          "test_id": "position-card-margin-chevron",
+          "next": "wait-action-sheet"
         },
-        {
-          "id": "wait-action-sheet",
+        "wait-action-sheet": {
           "action": "wait_for",
-          "test_id": "perps-adjust-margin-add-btn"
+          "test_id": "perps-adjust-margin-add-btn",
+          "next": "press-add-margin-option"
         },
-        {
-          "id": "press-add-margin-option",
+        "press-add-margin-option": {
           "action": "press",
-          "test_id": "perps-adjust-margin-add-btn"
+          "test_id": "perps-adjust-margin-add-btn",
+          "next": "wait-margin-screen"
         },
-        {
-          "id": "wait-margin-screen",
+        "wait-margin-screen": {
           "action": "wait_for",
-          "route": "PerpsAdjustMargin"
+          "route": "PerpsAdjustMargin",
+          "next": "press-amount-display"
         },
-        {
-          "id": "press-amount-display",
+        "press-amount-display": {
           "action": "press",
-          "test_id": "perps-amount-display-touchable"
+          "test_id": "perps-amount-display-touchable",
+          "next": "wait-keypad"
         },
-        {
-          "id": "wait-keypad",
+        "wait-keypad": {
           "action": "wait_for",
-          "test_id": "keypad-delete-button"
+          "test_id": "keypad-delete-button",
+          "next": "clear-keypad"
         },
-        {
-          "id": "clear-keypad",
+        "clear-keypad": {
           "action": "clear_keypad",
-          "count": 8
+          "count": 8,
+          "next": "type-amount"
         },
-        {
-          "id": "type-amount",
+        "type-amount": {
           "action": "type_keypad",
-          "value": "{{marginAmount}}"
+          "value": "{{marginAmount}}",
+          "next": "press-done"
         },
-        {
-          "id": "press-done",
+        "press-done": {
           "action": "press",
-          "test_id": "perps-adjust-margin-done-button"
+          "test_id": "perps-adjust-margin-done-button",
+          "next": "wait-done"
         },
-        {
-          "id": "wait-done",
+        "wait-done": {
           "action": "wait_for",
-          "test_id": "perps-adjust-margin-confirm-button"
+          "test_id": "perps-adjust-margin-confirm-button",
+          "next": "press-confirm"
         },
-        {
-          "id": "press-confirm",
+        "press-confirm": {
           "action": "press",
-          "test_id": "perps-adjust-margin-confirm-button"
+          "test_id": "perps-adjust-margin-confirm-button",
+          "next": "wait-confirm"
         },
-        {
-          "id": "wait-confirm",
+        "wait-confirm": {
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
           "assert": {
             "operator": "not_null",
             "field": "margin"
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }

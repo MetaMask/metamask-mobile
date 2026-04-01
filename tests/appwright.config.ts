@@ -76,7 +76,10 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding',
+      // Exclude seedless OAuth perf — those run under android-onboarding-seedless with a binary
+      // built with seedless+OAuth Metro mocks
       testMatch: '**/performance/onboarding/**/*.spec.js',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -84,13 +87,16 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        buildPath:
+          process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
+          process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
         expectTimeout: 30 * 1000,
       },
     },
     {
       name: 'ios-onboarding',
       testMatch: '**/performance/onboarding/**/*.spec.js',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -98,7 +104,41 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        buildPath:
+          process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
+          process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000,
+      },
+    },
+    {
+      name: 'android-onboarding-seedless',
+      testMatch: '**/performance/onboarding/seedless-*.spec.js',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+        },
+        buildPath:
+          process.env.BROWSERSTACK_ANDROID_SEEDLESS_PERF_APP_URL ??
+          process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000,
+      },
+    },
+    {
+      name: 'ios-onboarding-seedless',
+      testMatch: '**/performance/onboarding/seedless-*.spec.js',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        buildPath:
+          process.env.BROWSERSTACK_IOS_SEEDLESS_PERF_APP_URL ??
+          process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
         expectTimeout: 30 * 1000,
       },
     },
