@@ -38,4 +38,9 @@ export interface ServiceProvider {
    * Returns a recording URL for the given session (optional, provider-specific)
    */
   getRecordingUrl?(sessionId: string): Promise<string | null>;
+
+  /**
+   * Uploads a local log file to the provider's session log viewer (optional)
+   */
+  uploadTerminalLogs?(sessionId: string, filePath: string): Promise<void>;
 }

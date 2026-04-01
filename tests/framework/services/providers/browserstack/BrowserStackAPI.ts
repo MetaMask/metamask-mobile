@@ -1,3 +1,5 @@
+/* eslint-disable import-x/no-nodejs-modules */
+import fs from 'fs';
 import { createLogger } from '../../../logger.ts';
 
 const logger = createLogger({ name: 'BrowserStackAPI' });
@@ -363,6 +365,61 @@ export class BrowserStackAPI {
    */
   buildSessionURL(buildId: string, sessionId: string): string {
     return `${API_BASE_URL.replace('api-cloud.browserstack.com/app-automate', 'app-automate.browserstack.com')}/builds/${buildId}/sessions/${sessionId}`;
+  }
+
+  /**
+   * Upload a local log file to BrowserStack's "Other Logs" tab for a session.
+   * Docs: POST /app-automate/sessions/{session_id}/terminallogs
+   * Accepted formats: .txt, .json, .xml, .log (max 2 MB, retained 30 days)
+   *
+   * @param sessionId - The BrowserStack session ID
+   * @param filePath - Absolute path to the log file to upload
+   */
+  async uploadTerminalLogs(sessionId: string, filePath: string): Promise<void> {
+    if (!this.hasCredentials()) {
+      logger.warn(
+        'Skipping uploadTerminalLogs: missing BrowserStack credentials',
+      );
+      return;
+    }
+
+    if (!fs.existsSync(filePath)) {
+      logger.warn(`Skipping uploadTerminalLogs: file not found at ${filePath}`);
+      return;
+    }
+
+    logger.info(`Uploading terminal logs to BrowserStack session ${sessionId}`);
+
+    const fileContent = fs.readFileSync(filePath);
+    const formData = new FormData();
+    formData.append(
+      'file',
+      new Blob([fileContent], { type: 'text/plain' }),
+      'fixture-debug.log',
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/sessions/${sessionId}/terminallogs`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: this.getAuthHeader(),
+        },
+        body: formData,
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new BrowserStackAPIError(
+        `Failed to upload terminal logs: ${response.statusText}`,
+        response.status,
+        errorBody,
+      );
+    }
+
+    logger.info('Terminal logs uploaded successfully');
   }
 
   /**

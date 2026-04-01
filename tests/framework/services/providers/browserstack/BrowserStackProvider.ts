@@ -56,6 +56,13 @@ export class BrowserStackProvider extends BaseServiceProvider {
   }
 
   /**
+   * Upload a local log file to BrowserStack's "Other Logs" tab
+   */
+  async uploadTerminalLogs(sessionId: string, filePath: string): Promise<void> {
+    await this.api.uploadTerminalLogs(sessionId, filePath);
+  }
+
+  /**
    * Update test details in BrowserStack
    */
   async syncTestDetails(details: {

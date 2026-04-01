@@ -1,3 +1,6 @@
+/* eslint-disable import-x/no-nodejs-modules */
+import fs from 'fs';
+import path from 'path';
 import { test as base, type FullProject } from '@playwright/test';
 import { WebDriverConfig } from '../types.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../Constants.ts';
@@ -14,6 +17,32 @@ import {
 } from '../quality-gates';
 import { getTeamInfoFromTags } from '../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
+
+// ---------------------------------------------------------------------------
+// File-based diagnostic logger
+// Writes fixture lifecycle events to tests/test-reports/fixture-debug.log
+// so they can be attached as CI artifacts and shared easily.
+// ---------------------------------------------------------------------------
+const LOG_FILE = path.resolve(
+  __dirname,
+  '../../test-reports/fixture-debug.log',
+);
+
+function fixtureLog(level: 'INFO' | 'WARN' | 'ERROR', message: string): void {
+  const line = `${new Date().toISOString()} [${level}] ${message}\n`;
+  try {
+    fs.appendFileSync(LOG_FILE, line);
+  } catch {
+    // Never let logging failures break test execution
+  }
+  if (level === 'ERROR') {
+    console.error(message);
+  } else if (level === 'WARN') {
+    console.warn(message);
+  } else {
+    console.log(message);
+  }
+}
 
 // Extend globalThis to include driver property
 declare global {
@@ -68,24 +97,21 @@ function getSessionIdFromAnnotations(
  * succeeds, confirming the Appium driver is fully ready to accept commands.
  *
  * Why this is needed:
- * BrowserStack's remote() resolves as soon as the WebDriver session object is
- * created on their hub, but the actual device driver (UiAutomator2 / XCUITest)
- * continues bootstrapping for several seconds afterward. During that window,
- * session-scoped commands are rejected immediately (~26-44ms) with a Timeout
- * error — including POST /session/:id/timeouts itself.
+ * BrowserStack returns HTTP 200 for POST /session before XCUITest/UiAutomator2
+ * has fully bootstrapped on the device (observed when WDA is not cached and
+ * startup takes 15-30s). During that window, POST /session/:id/timeouts is
+ * rejected immediately with a Timeout error while other endpoints (e.g.
+ * GET /window/rect) may already succeed — they go through different code paths
+ * on BrowserStack's Appium hub.
  *
- * Why not use getWindowSize() as the probe:
- * getWindowSize() and setTimeout go through different code paths on BrowserStack's
- * Appium server. The window endpoint can succeed while the timeouts endpoint is
- * still not ready — as confirmed by observing getWindowSize() succeed at 00:07
- * followed immediately by setTimeout failing at 00:07 in the same session.
- * Using setTimeout as its own probe is the only way to guarantee the exact
- * endpoint we need is ready before we depend on it.
+ * When WDA IS cached, remote() blocks for the full session creation and
+ * the first poll here succeeds immediately. This function is a no-cost
+ * safety net for the cold-start case.
  *
  * @param driver - The WebdriverIO browser instance
  * @param implicitMs - The implicit wait value to set (used as both probe and final value)
  * @param options.pollIntervalMs - How long to wait between attempts (default 500ms)
- * @param options.timeoutMs - Maximum time to wait before giving up (default 120s)
+ * @param options.timeoutMs - Maximum time to wait before giving up (default 240s, intentionally below idleTimeout:300 in BrowserStackConfigBuilder)
  */
 async function waitForSetTimeoutReady(
   driver: WebdriverIO.Browser,
@@ -94,18 +120,38 @@ async function waitForSetTimeoutReady(
 ): Promise<void> {
   const { pollIntervalMs = 500, timeoutMs = 240_000 } = options;
   const deadline = Date.now() + timeoutMs;
+  const start = Date.now();
+  let attempts = 0;
+  let lastError: unknown;
 
   while (Date.now() < deadline) {
+    attempts++;
     try {
       await driver.setTimeout({ implicit: implicitMs });
+      if (attempts > 1) {
+        fixtureLog(
+          'INFO',
+          `[fixture] waitForSetTimeoutReady: succeeded on attempt ${attempts} after ${Date.now() - start}ms`,
+        );
+      }
       return;
-    } catch {
+    } catch (err) {
+      lastError = err;
+      const elapsed = Date.now() - start;
+      const message = err instanceof Error ? err.message : String(err);
+      fixtureLog(
+        'WARN',
+        `[fixture] waitForSetTimeoutReady: attempt ${attempts} failed at ${elapsed}ms — ${message}`,
+      );
       await new Promise((r) => setTimeout(r, pollIntervalMs));
     }
   }
 
+  const message =
+    lastError instanceof Error ? lastError.message : String(lastError);
   throw new Error(
-    `BrowserStack Appium driver did not accept setTimeout within ${timeoutMs}ms. ` +
+    `BrowserStack Appium driver did not accept setTimeout within ${timeoutMs}ms ` +
+      `(${attempts} attempts). Last error: ${message}. ` +
       `The device driver (UiAutomator2/XCUITest) may still be bootstrapping.`,
   );
 }
@@ -154,7 +200,15 @@ export const test = base.extend<TestLevelFixtures>({
 
     try {
       // Create driver and set up test context
+      fixtureLog(
+        'INFO',
+        `[fixture] driver: calling getDriver() for "${testInfo.title}"`,
+      );
       driver = await deviceProvider.getDriver();
+      fixtureLog(
+        'INFO',
+        `[fixture] driver: getDriver() returned, sessionId=${deviceProvider.sessionId}`,
+      );
 
       // Set the implicit timeout for the driver.
       // On BrowserStack, POST /session/:id/timeouts is polled until it succeeds
@@ -164,7 +218,15 @@ export const test = base.extend<TestLevelFixtures>({
       const implicitMs = project.use.expectTimeout ?? DEFAULT_IMPLICIT_WAIT_MS;
       const isBrowserStack = project.use.device?.provider === 'browserstack';
       if (isBrowserStack) {
+        fixtureLog(
+          'INFO',
+          `[fixture] driver: starting waitForSetTimeoutReady (implicitMs=${implicitMs})`,
+        );
         await waitForSetTimeoutReady(driver, implicitMs);
+        fixtureLog(
+          'INFO',
+          '[fixture] driver: waitForSetTimeoutReady completed',
+        );
       } else {
         await driver.setTimeout({ implicit: implicitMs });
       }
@@ -192,12 +254,18 @@ export const test = base.extend<TestLevelFixtures>({
         console.error('Failed to sync pre-test details:', error);
       }
 
+      fixtureLog('INFO', '[fixture] driver: handing driver to test body');
+
       // Run the test
       await use(driver);
     } finally {
       // Cleanup happens even if test fails
       const testStatus = testInfo.status;
       const testError = testInfo.error?.message;
+      fixtureLog(
+        testStatus === 'passed' ? 'INFO' : 'WARN',
+        `[fixture] driver: test finished — status=${testStatus}${testError ? ` error="${testError}"` : ''}`,
+      );
 
       try {
         // Sync final test status to provider (e.g., BrowserStack dashboard)
@@ -209,6 +277,17 @@ export const test = base.extend<TestLevelFixtures>({
         });
       } catch (error) {
         console.error('Failed to sync test details:', error);
+      }
+
+      try {
+        // Upload fixture-debug.log to BrowserStack's "Other Logs" tab so it's
+        // visible on the session dashboard alongside Appium/device logs.
+        const sessionId = deviceProvider.sessionId;
+        if (sessionId) {
+          await deviceProvider.uploadTerminalLogs?.(sessionId, LOG_FILE);
+        }
+      } catch (error) {
+        console.error('Failed to upload terminal logs:', error);
       }
 
       try {
