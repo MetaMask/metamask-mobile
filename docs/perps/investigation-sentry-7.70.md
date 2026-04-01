@@ -109,7 +109,7 @@ then retries and verifies recovery plus market loading.
 ### Run it
 
 ```bash
-cd /Users/deeeed/dev/metamask/metamask-mobile-4-ws
+cd /Users/deeeed/dev/metamask/metamask-mobile-4
 yarn a:status
 bash scripts/perps/agentic/validate-recipe.sh \
   scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json \
@@ -138,7 +138,7 @@ the flow runs.
 To record the iOS simulator while the recipe runs:
 
 ```bash
-cd /Users/deeeed/dev/metamask/metamask-mobile-4-ws
+cd /Users/deeeed/dev/metamask/metamask-mobile-4
 mkdir -p .agent/videos
 xcrun simctl io booted recordVideo .agent/videos/reproduce-ws-init-failure.mp4
 ```
@@ -146,7 +146,7 @@ xcrun simctl io booted recordVideo .agent/videos/reproduce-ws-init-failure.mp4
 Then, in another shell, run:
 
 ```bash
-cd /Users/deeeed/dev/metamask/metamask-mobile-4-ws
+cd /Users/deeeed/dev/metamask/metamask-mobile-4
 bash scripts/perps/agentic/validate-recipe.sh \
   scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json \
   --skip-manual
