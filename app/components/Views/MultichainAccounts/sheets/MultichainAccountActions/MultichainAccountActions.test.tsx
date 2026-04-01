@@ -22,6 +22,7 @@ const mockAccountGroup: AccountGroupObject = {
     name: 'Test Account Group',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
 };
 
