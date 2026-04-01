@@ -113,18 +113,21 @@ jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
+    token,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
       severity: string | undefined;
     }) => void;
+    token?: { address?: string; chainId?: string; symbol?: string };
   }) => {
+    const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
       onMarketInsightsDisplayResolved?.({
         isDisplayed: true,
         severity: undefined,
       });
-    }, [onMarketInsightsDisplayResolved]);
+    }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
 
     return null;
   };
