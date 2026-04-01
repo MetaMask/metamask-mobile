@@ -197,7 +197,10 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   // Initialize connection in background while user views tutorial
   useEffect(() => {
-    PerpsConnectionManager.connect().catch((error) => {
+    PerpsConnectionManager.connect({
+      source: 'tutorial_preload',
+      suppressError: true,
+    }).catch((error) => {
       DevLogger.log(
         'Background connection initialization during tutorial:',
         error,
