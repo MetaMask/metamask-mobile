@@ -192,8 +192,9 @@
     "bn.js@npm:5.2.1": "5.2.3",
     "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
     "@metamask/messenger@^0.3.0": "^1.0.0",
-    "@metamask/accounts-controller": "^37.1.0",
-    "@metamask/profile-sync-controller": "^28.0.2"
+    "@metamask/accounts-controller": "^37.2.0",
+    "@metamask/profile-sync-controller": "^28.0.2",
+    "@metamask/money-account-controller@^0.0.0": "npm:@metamask-previews/money-account-controller@0.0.0-preview-373edc9"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -213,7 +214,7 @@
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.0",
     "@metamask/account-tree-controller": "^7.0.0",
-    "@metamask/accounts-controller": "^37.1.1",
+    "@metamask/accounts-controller": "^37.2.0",
     "@metamask/address-book-controller": "^7.1.0",
     "@metamask/ai-controllers": "^0.6.0",
     "@metamask/analytics-controller": "^1.0.0",
@@ -260,7 +261,7 @@
     "@metamask/json-rpc-middleware-stream": "^8.0.7",
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/keyring-api": "^21.6.0",
-    "@metamask/keyring-controller": "^25.0.0",
+    "@metamask/keyring-controller": "^25.2.0",
     "@metamask/keyring-internal-api": "^10.0.0",
     "@metamask/keyring-snap-client": "^8.2.1",
     "@metamask/keyring-utils": "^3.2.0",
