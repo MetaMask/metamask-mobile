@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import {
   selectPaymentMethods,
   selectProviders,
-  selectTokens,
   selectUserRegion,
 } from '../../../../selectors/rampsController';
 import { type PaymentMethod } from '@metamask/ramps-controller';
@@ -53,36 +52,30 @@ export interface UseRampsPaymentMethodsResult {
 }
 
 /**
- * Hook to get payment methods state from RampsController.
- * This hook assumes Engine is already initialized.
+ * Hook to get payment methods via React Query.
+ *
+ * The query fires only when a provider is selected (provider change is the
+ * sole trigger). Token and fiat are passed to the API call but are NOT part
+ * of the query key, so changing them does not cause a refetch.
  *
  * @returns Payment methods state.
  */
 export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedPaymentMethod } = useSelector(selectPaymentMethods);
   const { selected: selectedProvider } = useSelector(selectProviders);
-  const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
-
-  const tokenSupportedByProvider = selectedProvider?.supportedCryptoCurrencies
-    ? selectedProvider.supportedCryptoCurrencies[
-        selectedToken?.assetId ?? ''
-      ] === true
-    : true;
 
   const queryEnabled = Boolean(
     userRegion?.regionCode &&
       userRegion?.country?.currency &&
-      selectedToken?.assetId &&
-      selectedProvider?.id &&
-      tokenSupportedByProvider,
+      selectedProvider?.id,
   );
 
   const paymentMethodsQuery = useQuery({
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: selectedToken?.assetId ?? '',
+      assetId: '', // not used in the query key; provider scope is sufficient
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,

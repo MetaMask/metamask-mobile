@@ -115,7 +115,7 @@ describe('useRampsPaymentMethods', () => {
     jest.clearAllMocks();
   });
 
-  it('returns idle before an active request exists', () => {
+  it('returns idle when no provider is selected', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
     });
@@ -138,7 +138,7 @@ describe('useRampsPaymentMethods', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('returns loading while the active query is in flight', () => {
+  it('returns loading while the query is in flight', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
@@ -242,45 +242,6 @@ describe('useRampsPaymentMethods', () => {
     expect(
       Engine.context.RampsController.setSelectedPaymentMethod,
     ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
-  });
-
-  it('disables the query when the token is missing from supportedCryptoCurrencies', () => {
-    const store = createMockStore({
-      providers: {
-        ...baseRampsState.providers,
-        selected: {
-          id: '/providers/banxa',
-          name: 'Banxa',
-          supportedCryptoCurrencies: {
-            'eip155:1/slip44:60': true,
-            // MUSD assetId is NOT in the map — treated as unsupported
-          },
-        },
-      },
-      tokens: {
-        ...baseRampsState.tokens,
-        selected: {
-          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          chainId: 'eip155:1',
-          name: 'MetaMask USD',
-          symbol: 'MUSD',
-          decimals: 6,
-          iconUrl: '',
-          tokenSupported: true,
-        },
-      },
-    });
-    const { Wrapper } = createWrapper(store);
-
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-
-    expect(result.current.status).toBe('idle');
-    expect(result.current.isLoading).toBe(false);
-    expect(
-      Engine.context.RampsController.getPaymentMethods,
-    ).not.toHaveBeenCalled();
   });
 
   it('calls Engine.context.RampsController.setSelectedPaymentMethod with undefined when payment method is null', () => {
