@@ -1,26 +1,26 @@
 import {
-  SnapStateChange as SnapControllerStateChangeEventType,
-  HandleSnapRequest as SnapControllerHandleRequestActionType,
-  ClearSnapState as SnapControllerClearSnapStateActionType,
-  GetSnap as SnapControllerGetSnapActionType,
-  GetSnapState as SnapControllerGetSnapStateActionType,
-  UpdateSnapState as SnapControllerUpdateSnapStateActionType,
-  GetPermittedSnaps as SnapControllerGetPermittedSnapsActionType,
-  InstallSnaps as SnapControllerInstallSnapsActionType,
-  GetSnapFile as SnapControllerGetSnapFileActionType,
-  SnapInstalled as SnapControllerSnapInstalledEventType,
-  SnapUpdated as SnapControllerSnapUpdatedEventType,
-  SnapUninstalled as SnapControllerSnapUninstalledEventType,
-  SnapEnabled as SnapControllerSnapEnabledEventType,
-  SnapDisabled as SnapControllerSnapDisabledEventType,
-  GetAllSnaps as SnapControllerGetAllSnapsActionType,
-  IsMinimumPlatformVersion as SnapControllerIsMinimumPlatformVersionActionType,
-  CreateInterface,
-  UpdateInterface,
-  ResolveInterface,
-  UpdateInterfaceState,
-  Cancel,
-  Get,
+  SnapControllerStateChangeEvent as SnapControllerStateChangeEventType,
+  SnapControllerHandleRequestAction as SnapControllerHandleRequestActionType,
+  SnapControllerClearSnapStateAction as SnapControllerClearSnapStateActionType,
+  SnapControllerGetSnapAction as SnapControllerGetSnapActionType,
+  SnapControllerGetSnapStateAction as SnapControllerGetSnapStateActionType,
+  SnapControllerUpdateSnapStateAction as SnapControllerUpdateSnapStateActionType,
+  SnapControllerGetPermittedSnapsAction as SnapControllerGetPermittedSnapsActionType,
+  SnapControllerInstallSnapsAction as SnapControllerInstallSnapsActionType,
+  SnapControllerGetSnapFileAction as SnapControllerGetSnapFileActionType,
+  SnapControllerSnapInstalledEvent as SnapControllerSnapInstalledEventType,
+  SnapControllerSnapUpdatedEvent as SnapControllerSnapUpdatedEventType,
+  SnapControllerSnapUninstalledEvent as SnapControllerSnapUninstalledEventType,
+  SnapControllerSnapEnabledEvent as SnapControllerSnapEnabledEventType,
+  SnapControllerSnapDisabledEvent as SnapControllerSnapDisabledEventType,
+  SnapControllerGetAllSnapsAction as SnapControllerGetAllSnapsActionType,
+  SnapControllerIsMinimumPlatformVersionAction as SnapControllerIsMinimumPlatformVersionActionType,
+  SnapInterfaceControllerCreateInterfaceAction as SnapInterfaceControllerCreateInterfaceActionType,
+  SnapInterfaceControllerUpdateInterfaceAction as SnapInterfaceControllerUpdateInterfaceActionType,
+  SnapInterfaceControllerResolveInterfaceAction as SnapInterfaceControllerResolveInterfaceActionType,
+  SnapInterfaceControllerUpdateInterfaceStateAction as SnapInterfaceControllerUpdateInterfaceStateActionType,
+  CronjobControllerCancelAction as CronjobControllerCancelActionType,
+  CronjobControllerGetAction as CronjobControllerGetActionType,
   WebSocketServiceOpenAction as WebSocketServiceOpenActionType,
   WebSocketServiceCloseAction as WebSocketServiceCloseActionType,
   WebSocketServiceGetAllAction as WebSocketServiceGetAllActionType,
@@ -54,7 +54,7 @@ export const SnapControllerClearSnapStateAction: SnapControllerClearSnapStateAct
   'SnapController:clearSnapState';
 
 export const SnapControllerGetSnapAction: SnapControllerGetSnapActionType['type'] =
-  'SnapController:get';
+  'SnapController:getSnap';
 
 export const SnapControllerGetSnapStateAction: SnapControllerGetSnapStateActionType['type'] =
   'SnapController:getSnapState';
@@ -63,38 +63,39 @@ export const SnapControllerUpdateSnapStateAction: SnapControllerUpdateSnapStateA
   'SnapController:updateSnapState';
 
 export const SnapControllerGetPermittedSnapsAction: SnapControllerGetPermittedSnapsActionType['type'] =
-  'SnapController:getPermitted';
+  'SnapController:getPermittedSnaps';
 
 export const SnapControllerInstallSnapsAction: SnapControllerInstallSnapsActionType['type'] =
-  'SnapController:install';
+  'SnapController:installSnaps';
 
 export const SnapControllerGetSnapFileAction: SnapControllerGetSnapFileActionType['type'] =
-  'SnapController:getFile';
+  'SnapController:getSnapFile';
 
 export const SnapControllerGetAllSnapsAction: SnapControllerGetAllSnapsActionType['type'] =
-  'SnapController:getAll';
+  'SnapController:getAllSnaps';
 
 export const SnapControllerIsMinimumPlatformVersionAction: SnapControllerIsMinimumPlatformVersionActionType['type'] =
   'SnapController:isMinimumPlatformVersion';
 
 // SnapInterfaceController Actions
-export const SnapInterfaceControllerCreateInterfaceAction: CreateInterface['type'] =
+export const SnapInterfaceControllerCreateInterfaceAction: SnapInterfaceControllerCreateInterfaceActionType['type'] =
   'SnapInterfaceController:createInterface';
 
-export const SnapInterfaceControllerUpdateInterfaceAction: UpdateInterface['type'] =
+export const SnapInterfaceControllerUpdateInterfaceAction: SnapInterfaceControllerUpdateInterfaceActionType['type'] =
   'SnapInterfaceController:updateInterface';
 
-export const SnapInterfaceControllerResolveInterfaceAction: ResolveInterface['type'] =
+export const SnapInterfaceControllerResolveInterfaceAction: SnapInterfaceControllerResolveInterfaceActionType['type'] =
   'SnapInterfaceController:resolveInterface';
 
-export const SnapInterfaceControllerUpdateInterfaceStateAction: UpdateInterfaceState['type'] =
+export const SnapInterfaceControllerUpdateInterfaceStateAction: SnapInterfaceControllerUpdateInterfaceStateActionType['type'] =
   'SnapInterfaceController:updateInterfaceState';
 
 // CronjobController Actions
-export const CronjobControllerCancelAction: Cancel['type'] =
+export const CronjobControllerCancelAction: CronjobControllerCancelActionType['type'] =
   'CronjobController:cancel';
 
-export const CronjobControllerGetAction: Get['type'] = 'CronjobController:get';
+export const CronjobControllerGetAction: CronjobControllerGetActionType['type'] =
+  'CronjobController:get';
 
 // WebSocketService Actions
 export const WebSocketServiceOpenAction: WebSocketServiceOpenActionType['type'] =

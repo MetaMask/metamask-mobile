@@ -7,6 +7,9 @@ import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountType } from '../../../constants/onboarding';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -27,6 +30,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
 }));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock MetaMetrics for events and getInstance
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
@@ -86,6 +91,24 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: (event) => mockAnalytics.trackEvent(event),
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+        enable: async (enable) => {
+          if (enable === false) {
+            await mockAnalytics.optOut();
+          } else {
+            await mockAnalytics.optIn();
+          }
+        },
+        identify: async (traits) => {
+          mockAnalytics.identify(traits);
+        },
+        isEnabled: () => mockAnalytics.isEnabled(),
+        getAnalyticsId: () => mockAnalytics.getAnalyticsId(),
+      }),
+    );
     (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);

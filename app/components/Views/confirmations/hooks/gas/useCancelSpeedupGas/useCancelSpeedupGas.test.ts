@@ -1,15 +1,19 @@
-import type {
-  FeeMarketEIP1559Values,
-  GasPriceValue,
-  TransactionMeta,
+import {
+  GasFeeEstimateLevel,
+  UserFeeLevel,
+  type FeeMarketEIP1559Values,
+  type GasPriceValue,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   getBumpParamsForCancelSpeedup,
   useCancelSpeedupGas,
+  type BumpParamsResult,
 } from './useCancelSpeedupGas';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useFeeCalculations } from '../useFeeCalculations';
+import type { GasFeeEstimatesInput } from '../../../../../../util/confirmation/gas';
 
 const providerState = { state: { engine: { backgroundState } } } as const;
 
@@ -123,6 +127,7 @@ describe('useCancelSpeedupGas', () => {
     expect(result.current.networkFeeNative).toBe('0');
     expect(result.current.networkFeeFiat).toBeNull();
     expect(result.current.nativeTokenSymbol).toBe('ETH');
+    expect(result.current.isInitialGasReady).toBe(false);
   });
 
   it('returns empty result when tx has no txParams', () => {
@@ -318,6 +323,30 @@ describe('useCancelSpeedupGas', () => {
     );
     expect(result.current.networkFeeDisplay).toContain('ETH');
   });
+
+  it('returns isInitialGasReady=false when previousGas is not set', () => {
+    const { result } = renderHookWithProvider(
+      () => useCancelSpeedupGas({ txId: 'tx-1' }),
+      buildStateWithTransaction(mockTxEip1559),
+    );
+    expect(result.current.isInitialGasReady).toBe(false);
+  });
+
+  it('returns isInitialGasReady=true when previousGas is set', () => {
+    const txWithPreviousGas = {
+      ...mockTxEip1559,
+      previousGas: {
+        maxFeePerGas: '0x174876e800',
+        maxPriorityFeePerGas: '0x59682f00',
+        gasLimit: '0x5208',
+      },
+    } as unknown as TransactionMeta;
+    const { result } = renderHookWithProvider(
+      () => useCancelSpeedupGas({ txId: 'tx-1' }),
+      buildStateWithTransaction(txWithPreviousGas),
+    );
+    expect(result.current.isInitialGasReady).toBe(true);
+  });
 });
 
 describe('getBumpParamsForCancelSpeedup', () => {
@@ -332,22 +361,26 @@ describe('getBumpParamsForCancelSpeedup', () => {
   } as unknown as TransactionMeta;
 
   it('returns EIP-1559 params for speed up', () => {
-    const params = getBumpParamsForCancelSpeedup(eip1559Tx, false);
-    expect(params).toBeDefined();
-    expect((params as FeeMarketEIP1559Values).maxFeePerGas).toBeDefined();
+    const result = getBumpParamsForCancelSpeedup(eip1559Tx, false);
+    expect(result).toBeDefined();
+    const { gasValues, userFeeLevel } = result as BumpParamsResult;
+    expect((gasValues as FeeMarketEIP1559Values).maxFeePerGas).toBeDefined();
     expect(
-      (params as FeeMarketEIP1559Values).maxPriorityFeePerGas,
+      (gasValues as FeeMarketEIP1559Values).maxPriorityFeePerGas,
     ).toBeDefined();
+    expect(userFeeLevel).toBe(UserFeeLevel.CUSTOM);
   });
 
   it('returns EIP-1559 params for cancel with same or higher values than speed up', () => {
-    const speedUpParams = getBumpParamsForCancelSpeedup(eip1559Tx, false);
-    const cancelParams = getBumpParamsForCancelSpeedup(eip1559Tx, true);
-    expect(speedUpParams).toBeDefined();
-    expect(cancelParams).toBeDefined();
+    const speedUpResult = getBumpParamsForCancelSpeedup(eip1559Tx, false);
+    const cancelResult = getBumpParamsForCancelSpeedup(eip1559Tx, true);
+    expect(speedUpResult).toBeDefined();
+    expect(cancelResult).toBeDefined();
 
-    const speedUp = speedUpParams as FeeMarketEIP1559Values;
-    const cancel = cancelParams as FeeMarketEIP1559Values;
+    const speedUp = (speedUpResult as BumpParamsResult)
+      .gasValues as FeeMarketEIP1559Values;
+    const cancel = (cancelResult as BumpParamsResult)
+      .gasValues as FeeMarketEIP1559Values;
     expect(parseInt(cancel.maxFeePerGas ?? '0', 16)).toBeGreaterThanOrEqual(
       parseInt(speedUp.maxFeePerGas ?? '0', 16),
     );
@@ -362,14 +395,119 @@ describe('getBumpParamsForCancelSpeedup', () => {
       chainId: '0x1',
       txParams: { gas: '0x5208', gasPrice: '0x2540be400' },
     } as unknown as TransactionMeta;
-    const params = getBumpParamsForCancelSpeedup(tx, false);
-    expect(params).toBeDefined();
-    expect((params as GasPriceValue).gasPrice).toBeDefined();
+    const result = getBumpParamsForCancelSpeedup(tx, false);
+    expect(result).toBeDefined();
+    const { gasValues, userFeeLevel } = result as BumpParamsResult;
+    expect((gasValues as GasPriceValue).gasPrice).toBeDefined();
+    expect(userFeeLevel).toBe(UserFeeLevel.CUSTOM);
   });
 
   it('returns undefined when tx has no txParams', () => {
     const tx = { id: 'tx-1', chainId: '0x1' } as unknown as TransactionMeta;
     const params = getBumpParamsForCancelSpeedup(tx, false);
     expect(params).toBeUndefined();
+  });
+
+  it('uses market estimate when medium > gas + 10% (EIP-1559)', () => {
+    const lowGasTx = {
+      id: 'tx-3',
+      chainId: '0x1',
+      txParams: {
+        gas: '0x5208',
+        maxFeePerGas: '0x3B9ACA00', // 1 GWEI
+        maxPriorityFeePerGas: '0x3B9ACA00', // 1 GWEI
+      },
+    } as unknown as TransactionMeta;
+
+    const estimates = {
+      medium: {
+        suggestedMaxFeePerGas: '50', // 50 GWEI >> 1.1 GWEI
+        suggestedMaxPriorityFeePerGas: '2',
+      },
+    } as GasFeeEstimatesInput;
+
+    const result = getBumpParamsForCancelSpeedup(
+      lowGasTx,
+      false,
+      estimates,
+    ) as BumpParamsResult;
+    expect(result).toBeDefined();
+    expect(result.userFeeLevel).toBe(GasFeeEstimateLevel.Medium);
+    const gasValues = result.gasValues as FeeMarketEIP1559Values;
+    expect(gasValues.maxFeePerGas).toBeDefined();
+    expect(parseInt(gasValues.maxFeePerGas ?? '0', 16)).toBeGreaterThan(
+      parseInt('0x3B9ACA00', 16) * 1.1,
+    );
+  });
+
+  it('uses 10% bump when medium < gas + 10% (EIP-1559)', () => {
+    const highGasTx = {
+      id: 'tx-4',
+      chainId: '0x1',
+      txParams: {
+        gas: '0x5208',
+        maxFeePerGas: '0x174876e800', // 100 GWEI
+        maxPriorityFeePerGas: '0x59682f00', // 1.5 GWEI
+      },
+    } as unknown as TransactionMeta;
+
+    const estimates = {
+      medium: {
+        suggestedMaxFeePerGas: '25', // 25 GWEI << 110 GWEI (100 * 1.1)
+        suggestedMaxPriorityFeePerGas: '2',
+      },
+    } as GasFeeEstimatesInput;
+
+    const result = getBumpParamsForCancelSpeedup(
+      highGasTx,
+      false,
+      estimates,
+    ) as BumpParamsResult;
+    expect(result).toBeDefined();
+    expect(result.userFeeLevel).toBe(UserFeeLevel.CUSTOM);
+    const gasValues = result.gasValues as FeeMarketEIP1559Values;
+    const bumpedMaxFee = parseInt('0x174876e800', 16) * 1.1;
+    const resultMaxFee = parseInt(gasValues.maxFeePerGas ?? '0', 16);
+    expect(Math.abs(resultMaxFee - bumpedMaxFee)).toBeLessThan(1e9);
+  });
+
+  it('uses market estimate for legacy when medium > gas + 10%', () => {
+    const lowGasLegacyTx = {
+      id: 'tx-5',
+      chainId: '0x1',
+      txParams: {
+        gas: '0x5208',
+        gasPrice: '0x3B9ACA00', // 1 GWEI
+      },
+    } as unknown as TransactionMeta;
+
+    const estimates = {
+      medium: '50', // 50 GWEI >> 1.1 GWEI
+    } as GasFeeEstimatesInput;
+
+    const result = getBumpParamsForCancelSpeedup(
+      lowGasLegacyTx,
+      false,
+      estimates,
+    ) as BumpParamsResult;
+    expect(result).toBeDefined();
+    expect(result.userFeeLevel).toBe(GasFeeEstimateLevel.Medium);
+    const gasValues = result.gasValues as GasPriceValue;
+    expect(gasValues.gasPrice).toBeDefined();
+    expect(parseInt(gasValues.gasPrice ?? '0', 16)).toBeGreaterThan(
+      parseInt('0x3B9ACA00', 16) * 1.1,
+    );
+  });
+
+  it('falls back to 10% bump when no gasFeeEstimates provided', () => {
+    const result = getBumpParamsForCancelSpeedup(
+      eip1559Tx,
+      false,
+    ) as BumpParamsResult;
+    expect(result).toBeDefined();
+    expect(result.userFeeLevel).toBe(UserFeeLevel.CUSTOM);
+    expect(
+      (result.gasValues as FeeMarketEIP1559Values).maxFeePerGas,
+    ).toBeDefined();
   });
 });

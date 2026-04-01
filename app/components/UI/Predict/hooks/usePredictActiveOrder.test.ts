@@ -20,22 +20,49 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+const MOCK_ADDRESS = '0xabc123';
+
+const mockAccountsController = {
+  internalAccounts: {
+    selectedAccount: 'acct-1',
+    accounts: {
+      'acct-1': {
+        address: MOCK_ADDRESS,
+        type: 'eip155:eoa',
+        id: 'acct-1',
+        metadata: {
+          name: 'Account 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: 0,
+          lastSelected: 0,
+        },
+        options: {},
+        methods: [],
+        scopes: [],
+      },
+    },
+  },
+};
+
+const createMockState = (activeBuyOrder: Record<string, unknown> | null) => ({
+  engine: {
+    backgroundState: {
+      PredictController: {
+        activeBuyOrders: activeBuyOrder
+          ? { [MOCK_ADDRESS]: activeBuyOrder }
+          : {},
+      },
+      AccountsController: mockAccountsController,
+    },
+  },
+});
+
 describe('usePredictActiveOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
-        return selector({
-          engine: {
-            backgroundState: {
-              PredictController: {
-                activeBuyOrder: {
-                  state: ActiveOrderState.PREVIEW,
-                },
-              },
-            },
-          },
-        });
+        return selector(createMockState({ state: ActiveOrderState.PREVIEW }));
       }
 
       return undefined;
@@ -63,17 +90,8 @@ describe('usePredictActiveOrder', () => {
       };
       mockUseSelector.mockImplementation((selector) => {
         if (typeof selector === 'function') {
-          return selector({
-            engine: {
-              backgroundState: {
-                PredictController: {
-                  activeBuyOrder: mockActiveOrder,
-                },
-              },
-            },
-          });
+          return selector(createMockState(mockActiveOrder));
         }
-
         return undefined;
       });
 
@@ -85,19 +103,10 @@ describe('usePredictActiveOrder', () => {
     it('returns isDepositing when active order is depositing', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (typeof selector === 'function') {
-          return selector({
-            engine: {
-              backgroundState: {
-                PredictController: {
-                  activeBuyOrder: {
-                    state: ActiveOrderState.DEPOSITING,
-                  },
-                },
-              },
-            },
-          });
+          return selector(
+            createMockState({ state: ActiveOrderState.DEPOSITING }),
+          );
         }
-
         return undefined;
       });
 
@@ -110,19 +119,10 @@ describe('usePredictActiveOrder', () => {
     it('returns isPlacingOrder when active order is placing order', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (typeof selector === 'function') {
-          return selector({
-            engine: {
-              backgroundState: {
-                PredictController: {
-                  activeBuyOrder: {
-                    state: ActiveOrderState.PLACING_ORDER,
-                  },
-                },
-              },
-            },
-          });
+          return selector(
+            createMockState({ state: ActiveOrderState.PLACING_ORDER }),
+          );
         }
-
         return undefined;
       });
 
@@ -135,17 +135,8 @@ describe('usePredictActiveOrder', () => {
     it('returns false flags when there is no active buy order', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (typeof selector === 'function') {
-          return selector({
-            engine: {
-              backgroundState: {
-                PredictController: {
-                  activeBuyOrder: null,
-                },
-              },
-            },
-          });
+          return selector(createMockState(null));
         }
-
         return undefined;
       });
 
