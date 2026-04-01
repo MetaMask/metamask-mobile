@@ -120,23 +120,16 @@ describe('usePerpsWithdrawConfirmation', () => {
     });
   });
 
-  it('logs error to console when addTransactionBatch fails', async () => {
+  it('propagates error when addTransactionBatch fails', async () => {
     const error = new Error('batch failed');
     mockAddTransactionBatch.mockRejectedValueOnce(error);
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
     const { result } = renderHook(() => usePerpsWithdrawConfirmation());
 
-    await act(async () => {
-      await result.current.withdrawWithConfirmation();
-    });
-
-    // Allow the rejected promise .catch to fire
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 0));
-    });
-
-    expect(consoleSpy).toHaveBeenCalledWith('Perps transaction error', error);
-    consoleSpy.mockRestore();
+    await expect(
+      act(async () => {
+        await result.current.withdrawWithConfirmation();
+      }),
+    ).rejects.toThrow('batch failed');
   });
 });

@@ -40,7 +40,7 @@ export function usePerpsWithdrawConfirmation() {
       stack: Routes.PERPS.ROOT,
     });
 
-    addTransactionBatch({
+    await addTransactionBatch({
       from: selectedAccount as Hex,
       origin: ORIGIN_METAMASK,
       networkClientId,
@@ -55,8 +55,6 @@ export function usePerpsWithdrawConfirmation() {
           type: TransactionType.perpsWithdraw,
         },
       ],
-    }).catch((e) => {
-      console.error('Perps transaction error', e);
     });
   }, [navigateToConfirmation, networkClientId, selectedAccount, transferData]);
 
