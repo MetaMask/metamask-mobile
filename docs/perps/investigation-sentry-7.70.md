@@ -96,6 +96,14 @@ flood. The transport-level failure cause is still open.
 
 ## Deterministic Reproduction
 
+**Exact reproduction snapshot**: `4614bd6023`
+
+To reproduce against the preserved RCA harness state:
+
+```bash
+git checkout 4614bd6023
+```
+
 ### Artifacts
 
 - RCA bridge: `app/util/perpsRca.ts`
