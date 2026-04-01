@@ -23,6 +23,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import Routes from '../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
@@ -208,7 +209,11 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
             width={ButtonWidthTypes.Full}
             onPress={() => {
               if (type === 'found') {
-                navigateNextScreen('Rehydrate', 'Onboarding', 'import');
+                navigateNextScreen(
+                  Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+                  'Onboarding',
+                  'import',
+                );
               } else {
                 navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
               }

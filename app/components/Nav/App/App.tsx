@@ -273,7 +273,7 @@ const OnboardingNav = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name="Rehydrate"
+      name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
       component={OAuthRehydration}
       options={{ headerShown: false }}
     />
@@ -930,7 +930,10 @@ const AppFlow = () => {
           cardStyle: { backgroundColor: colors.background.default },
         }}
       />
-      <Stack.Screen name="Rehydrate" component={OAuthRehydration} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.REHYDRATE}
+        component={OAuthRehydration}
+      />
       <Stack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
         component={MaxBrowserTabsModal}

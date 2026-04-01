@@ -8,6 +8,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Platform } from 'react-native';
+import Routes from '../../../constants/navigation/Routes';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -136,10 +137,13 @@ describe('AccountStatus', () => {
 
         fireEvent.press(primaryButton);
 
-        expect(StackActions.replace).toHaveBeenCalledWith('Rehydrate', {
-          previous_screen: 'Onboarding',
-          oauthLoginSuccess: undefined,
-        });
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+          {
+            previous_screen: 'Onboarding',
+            oauthLoginSuccess: undefined,
+          },
+        );
         expect(mockDispatch).toHaveBeenCalledWith(mockReplace);
         expect(trackOnboarding).toHaveBeenCalled();
       });
@@ -178,10 +182,13 @@ describe('AccountStatus', () => {
 
         fireEvent.press(primaryButton);
 
-        expect(StackActions.replace).toHaveBeenCalledWith('Rehydrate', {
-          previous_screen: 'Onboarding',
-          oauthLoginSuccess: true,
-        });
+        expect(StackActions.replace).toHaveBeenCalledWith(
+          Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+          {
+            previous_screen: 'Onboarding',
+            oauthLoginSuccess: true,
+          },
+        );
       });
     });
 
