@@ -109,6 +109,19 @@ export const test = base.extend<TestLevelFixtures>({
       // Create driver and set up test context
       driver = await deviceProvider.getDriver();
 
+      // BrowserStack: remote() resolves as soon as the WebDriver session object
+      // is created on their infrastructure, but the underlying Appium driver
+      // (UiAutomator2 / XCUITest) on the real device may still be bootstrapping
+      // for several seconds. Any command sent during that window — including the
+      // POST /session/:id/timeouts call below — is rejected immediately (typically
+      // in ~44ms) with a Timeout error, causing sporadic flakiness across a suite
+      // run. A short upfront delay eliminates the first failure in the common case;
+      // the retry loop below handles the rare cases where the device needs longer.
+      const isBrowserStack = project.use.device?.provider === 'browserstack';
+      if (isBrowserStack) {
+        await new Promise((r) => setTimeout(r, 6000));
+      }
+
       // Set the implicit timeout for the driver.
       // Wrapped in retry because BrowserStack sessions can transiently reject
       // the setTimeout command before the session is fully initialised.
