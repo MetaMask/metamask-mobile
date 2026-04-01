@@ -269,7 +269,7 @@ describe('Navbar', () => {
         false,
       );
 
-      expect(options.headerTitle).toBeNull();
+      expect(options.headerTitle).toBe('');
     });
   });
 
