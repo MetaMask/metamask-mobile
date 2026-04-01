@@ -43,7 +43,6 @@ import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyt
 import { colors as staticColors } from '../../../../styles/common';
 import { enablePushNotifications } from '../../../../actions/notification/helpers';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
-import Logger from '../../../../util/Logger';
 
 const diameter = 40;
 const spacing = 8;
@@ -233,8 +232,8 @@ class Settings extends PureComponent {
     this.setState({ currentLanguage: language });
 
     if (this.props.isPushNotificationsEnabled) {
-      enablePushNotifications().catch((error) => {
-        Logger.error(error, 'Failed to refresh FCM token after locale change');
+      enablePushNotifications().catch(() => {
+        // Best-effort: token will be refreshed on next app launch
       });
     }
 
