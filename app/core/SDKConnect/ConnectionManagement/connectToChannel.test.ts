@@ -14,15 +14,15 @@ jest.mock('../utils/DevLogger');
 jest.mock('../SDKConnectConstants');
 jest.mock('../handlers/checkPermissions', () => jest.fn());
 
-jest.mock('@metamask/sdk-analytics', () => ({
+jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    track: jest.fn(),
+    trackEvent: jest.fn(),
   },
 }));
 
 // Import the mocked checkPermissions
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { analytics } from '@metamask/sdk-analytics';
+import { analytics } from '../../../util/analytics/analytics';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -275,9 +275,11 @@ describe('connectToChannel', () => {
         initialConnection: true,
       });
 
-      expect(analytics.track).toHaveBeenCalledWith(
-        'wallet_connection_request_received',
-        { anon_id: 'test-anon-id' },
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'wallet_connection_request_received',
+          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+        }),
       );
     });
 
@@ -296,9 +298,11 @@ describe('connectToChannel', () => {
         initialConnection: true,
       });
 
-      expect(analytics.track).toHaveBeenCalledWith(
-        'wallet_connection_user_approved',
-        { anon_id: 'test-anon-id' },
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'wallet_connection_user_approved',
+          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+        }),
       );
     });
 
@@ -325,9 +329,11 @@ describe('connectToChannel', () => {
         initialConnection: true,
       });
 
-      expect(analytics.track).toHaveBeenCalledWith(
-        'wallet_connection_user_rejected',
-        { anon_id: 'test-anon-id' },
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'wallet_connection_user_rejected',
+          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+        }),
       );
     });
   });

@@ -1,9 +1,6 @@
-import { analytics } from '@metamask/sdk-analytics';
-import {
-  MessageType,
-  SendAnalytics,
-  TrackingEvents,
-} from '@metamask/sdk-communication-layer';
+import { MessageType } from '@metamask/sdk-communication-layer';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import Routes from '../../../constants/navigation/Routes';
@@ -80,7 +77,15 @@ async function connectToChannel({
     DevLogger.log(
       `[MM SDK Analytics] event=wallet_connection_request_received anonId=${anonId}`,
     );
-    analytics.track('wallet_connection_request_received', { anon_id: anonId });
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder('wallet_connection_request_received')
+        .addProperties({
+          transport_type: 'socket_relay',
+          sdk_version: originatorInfo?.apiVersion,
+        })
+        .addSensitiveProperties({ anon_id: anonId })
+        .build(),
+    );
   }
 
   try {
@@ -180,9 +185,15 @@ async function connectToChannel({
           DevLogger.log(
             `[MM SDK Analytics] event=wallet_connection_user_approved anonId=${anonId}`,
           );
-          analytics.track('wallet_connection_user_approved', {
-            anon_id: anonId,
-          });
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder('wallet_connection_user_approved')
+              .addProperties({
+                transport_type: 'socket_relay',
+                sdk_version: originatorInfo?.apiVersion,
+              })
+              .addSensitiveProperties({ anon_id: anonId })
+              .build(),
+          );
         }
       } catch (error) {
         DevLogger.log(
@@ -193,20 +204,19 @@ async function connectToChannel({
           DevLogger.log(
             `[MM SDK Analytics] event=wallet_connection_user_rejected anonId=${anonId}`,
           );
-          analytics.track('wallet_connection_user_rejected', {
-            anon_id: anonId,
-          });
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder('wallet_connection_user_rejected')
+              .addProperties({
+                transport_type: 'socket_relay',
+                sdk_version: originatorInfo?.apiVersion,
+              })
+              .addSensitiveProperties({ anon_id: anonId })
+              .build(),
+          );
         }
         // first needs to connect without key exchange to send the event
         await instance.state.connected[id].remote.reject({ channelId: id });
         // Send rejection event without awaiting
-        SendAnalytics(
-          { id, event: TrackingEvents.REJECTED, ...originatorInfo },
-          instance.state.socketServerUrl,
-        ).catch((err: Error) => {
-          Logger.error(err, 'SendAnalytics failed');
-        });
-
         instance.removeChannel({ channelId: id, sendTerminate: true });
         // cleanup connection
         await wait(100); // Add delay for connect modal to be fully closed
