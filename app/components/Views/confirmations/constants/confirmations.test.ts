@@ -2,6 +2,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   FULL_SCREEN_CONFIRMATIONS,
   POST_QUOTE_TRANSACTION_TYPES,
+  REDESIGNED_TRANSACTION_TYPES,
 } from './confirmations';
 
 describe('confirmation constants', () => {
@@ -11,6 +12,12 @@ describe('confirmation constants', () => {
 
   it('includes perps withdraw in post-quote transaction types', () => {
     expect(POST_QUOTE_TRANSACTION_TYPES).toContain(
+      TransactionType.perpsWithdraw,
+    );
+  });
+
+  it('includes perps withdraw in redesigned transaction types', () => {
+    expect(REDESIGNED_TRANSACTION_TYPES).toContain(
       TransactionType.perpsWithdraw,
     );
   });

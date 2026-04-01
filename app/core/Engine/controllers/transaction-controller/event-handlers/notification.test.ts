@@ -63,6 +63,25 @@ describe('handleShowNotification', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('calls watchSubmittedTransaction for perpsWithdraw', () => {
+    const transactionMeta = {
+      type: TransactionType.perpsWithdraw,
+      id: '123',
+      status: 'submitted',
+      time: Date.now(),
+      transaction: {},
+    } as unknown as TransactionMeta;
+
+    handleShowNotification(transactionMeta);
+
+    expect(NotificationManager.watchSubmittedTransaction).toHaveBeenCalledWith(
+      transactionMeta,
+    );
+    expect(NotificationManager.watchSubmittedTransaction).toHaveBeenCalledTimes(
+      1,
+    );
+  });
+
   it('handle undefined transaction type', () => {
     const transactionMeta = {
       type: undefined,
