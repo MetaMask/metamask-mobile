@@ -1550,14 +1550,36 @@ async function main() {
       throw new Error(`No recipe teams directory found: ${teamsDir}`);
     }
 
-    await runRecipe(recipeInput.recipePath, {
+    const runOptions = {
       appRoot,
       artifactsDir: options.artifactsDir,
       dryRun: options.dryRun,
       hud: options.hud,
       singleStep: options.singleStep,
       skipManual: options.skipManual,
-    });
+    };
+
+    // Apply CLI initial conditions before running the recipe
+    if (!options.dryRun) {
+      if (options.account) {
+        console.log(`[setup] switch-account ${options.account}`);
+        trySpawnBridge(appRoot, ['switch-account', options.account]);
+      }
+      if (options.testnet) {
+        const current = rawResultString(
+          trySpawnBridge(appRoot, ['eval', 'Engine.context.PerpsController.state.isTestnet']).result || ''
+        );
+        if (current !== 'true') {
+          console.log('[setup] toggle_testnet (enabling testnet)');
+          trySpawnBridge(appRoot, [
+            'eval-async',
+            'Engine.context.PerpsController.toggleTestnet().then(function(r){return JSON.stringify(r)})',
+          ]);
+        }
+      }
+    }
+
+    await runRecipe(recipeInput.recipePath, runOptions);
   } catch (error) {
     console.error(String(error.message || error));
     process.exit(1);
