@@ -374,13 +374,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       ? !showSkeleton && hasItems
       : !isLoadingSection;
 
-    let isEmpty: boolean;
-    if (isPositionsOnly) {
-      isEmpty = !hasItems;
-    } else {
-      // Default: empty means no positions/orders (trending/discovery may still render).
-      isEmpty = !hasItems;
-    }
+    const isEmpty = !hasItems;
 
     const positionsOnlyHidden = isPositionsOnly && !hasItems && !showSkeleton;
     const itemCount = hasItems
