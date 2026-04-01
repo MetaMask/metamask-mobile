@@ -122,6 +122,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     this.getIsInitialized = getIsInitialized;
   }
 
+  public override clearCache(): void {
+    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.clear();
+    this.connectRetryCounts.clear();
+    super.clearCache();
+  }
+
   /**
    * Schedule a deferred connect() retry with safety checks.
    * Aborts if no subscribers remain for the given cacheKey or max retries exceeded.

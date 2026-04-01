@@ -566,6 +566,30 @@ describe('HyperLiquidClientService', () => {
       );
     });
 
+    it('uses the default limit and forwards an explicit abort signal', async () => {
+      const abortController = new AbortController();
+      mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        signal: abortController.signal,
+      });
+
+      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC',
+          interval: '1h',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        abortController.signal,
+      );
+
+      const request = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
+      expect(request.endTime - request.startTime).toBe(100 * 60 * 60 * 1000);
+    });
+
     it('handles empty candles response', async () => {
       // Arrange
       const mockResponse: any[] = [];

@@ -1,6 +1,8 @@
 import { CandleStreamChannel } from './CandleStreamChannel';
 import {
   CandlePeriod,
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
   TimeDuration,
   type CandleData,
 } from '@metamask/perps-controller';
@@ -38,6 +40,7 @@ describe('CandleStreamChannel', () => {
     channel = new CandleStreamChannel(mockGetIsInitialized);
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockGetIsInitialized.mockReturnValue(true);
 
     // Setup Engine.context.PerpsController mock
     mockSubscribeToCandles = jest.fn();
@@ -389,6 +392,68 @@ describe('CandleStreamChannel', () => {
       expect(mockSubscribeToCandles).toHaveBeenCalled();
     });
 
+    it('should retry deferred connection until the controller initializes', () => {
+      mockGetIsInitialized.mockReturnValue(false);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+      expect(mockSubscribeToCandles).not.toHaveBeenCalled();
+
+      mockGetIsInitialized.mockReturnValue(true);
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectRetryDelayMs);
+
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneWeek,
+        }),
+      );
+    });
+
+    it('uses a lighter initial candle fetch when reconnecting with cached data', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const unsubscribe = channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.(mockCandleData);
+
+      unsubscribe();
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      expect(mockSubscribeToCandles).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneDay,
+        }),
+      );
+    });
+
     it('should disconnect WebSocket via stored cleanup function', () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToCandles.mockReturnValue(mockUnsubscribe);
@@ -734,6 +799,26 @@ describe('CandleStreamChannel', () => {
           candles: [],
         }),
       );
+    });
+
+    it('cancels deferred connect timers on clearCache', () => {
+      mockGetIsInitialized.mockReturnValue(false);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      channel.clearCache();
+      jest.advanceTimersByTime(
+        PERFORMANCE_CONFIG.NavigationParamsDelayMs +
+          PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
+
+      expect(mockSubscribeToCandles).not.toHaveBeenCalled();
     });
   });
 
