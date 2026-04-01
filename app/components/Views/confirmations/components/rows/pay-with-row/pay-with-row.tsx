@@ -73,7 +73,9 @@ export function PayWithRow() {
   // if no payment token has been explicitly selected.
   // Filter out skipIfBalance (optional if user already holds) and allowUnderMinimum
   // (fallback/optional) entries — neither represents the primary destination token.
-  const defaultWithdrawToken = requiredTokens[0];
+  const defaultWithdrawToken = requiredTokens?.find(
+    (token) => !token.skipIfBalance && !token.allowUnderMinimum,
+  );
   const displayToken = useMemo(() => {
     if (isWithdraw) {
       return payToken ?? defaultWithdrawToken ?? null;
