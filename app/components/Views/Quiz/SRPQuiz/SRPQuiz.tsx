@@ -38,6 +38,8 @@ export interface SRPQuizProps {
   route: {
     params: {
       keyringId?: string;
+      /** Forwarded to RevealPrivateCredential when quiz completes (root modal + reveal). */
+      dismissModalStackOnDone?: boolean;
     };
   };
 }
@@ -47,7 +49,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
   // shifting the fence to the ending curly brace.
   const {
     route: {
-      params: { keyringId },
+      params: { keyringId, dismissModalStackOnDone },
     },
   } = props;
   const modalRef = useRef<BottomSheetRef>(null);
@@ -112,8 +114,15 @@ const SRPQuiz = (props: SRPQuizProps) => {
       shouldUpdateNav: true,
       keyringId,
       skipQuiz: true,
+      ...(dismissModalStackOnDone ? { dismissModalStackOnDone: true } : {}),
     });
-  }, [navigation, trackEvent, createEventBuilder, keyringId]);
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    keyringId,
+    dismissModalStackOnDone,
+  ]);
 
   const introduction = useCallback(() => {
     trackEvent(

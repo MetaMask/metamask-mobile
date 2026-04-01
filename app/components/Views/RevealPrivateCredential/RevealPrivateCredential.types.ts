@@ -16,6 +16,12 @@ export interface RevealPrivateCredentialParams {
    * dismissing all overlays (e.g. Accounts sheet, Wallet Details, etc.). Use when returning to home.
    */
   popToTopOnDone?: boolean;
+  /**
+   * When true, Done calls `pop(2)` to dismiss both RevealPrivateCredential and the
+   * underlying `ROOT_MODAL_FLOW` (e.g. Select SRP + quiz). Does not apply to Cancel — user
+   * still returns to the quiz with a single pop.
+   */
+  dismissModalStackOnDone?: boolean;
 }
 
 /** Reveal SRP credential parameters */

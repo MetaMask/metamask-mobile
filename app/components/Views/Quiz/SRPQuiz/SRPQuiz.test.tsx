@@ -111,6 +111,29 @@ describe('SRPQuiz', () => {
     });
   });
 
+  it('forwards dismissModalStackOnDone to RevealPrivateCredential when set', async () => {
+    const keyringId = '123';
+    const props = {
+      route: {
+        params: { keyringId, dismissModalStackOnDone: true },
+      },
+    };
+
+    renderSRPQuiz(props, true);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        {
+          shouldUpdateNav: true,
+          keyringId,
+          skipQuiz: true,
+          dismissModalStackOnDone: true,
+        },
+      );
+    });
+  });
+
   it('should navigate to the learn more article of social login when the learn more button is pressed', async () => {
     const keyringId = '123';
     const props = {
