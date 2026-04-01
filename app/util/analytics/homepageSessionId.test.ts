@@ -12,10 +12,4 @@ describe('HOMEPAGE_APP_SESSION_ID', () => {
   it('is a valid UUID v4', () => {
     expect(HOMEPAGE_APP_SESSION_ID).toMatch(UUID_V4_REGEX);
   });
-
-  it('is stable within a module session (module-level singleton)', () => {
-    // The same import reference is used — module is cached by Jest, so the
-    // exported constant is identical on every access within the same test run.
-    expect(HOMEPAGE_APP_SESSION_ID).toBe(HOMEPAGE_APP_SESSION_ID);
-  });
 });
