@@ -783,6 +783,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastUpdated": null,
         "signature": null,
       },
+      "SocialController": {
+        "followingAddresses": [],
+        "leaderboardEntries": [],
+      },
       "SubjectMetadataController": {
         "subjectMetadata": {},
       },
@@ -1587,6 +1591,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "databaseUnavailable": false,
         "lastUpdated": null,
         "signature": null,
+      },
+      "SocialController": {
+        "followingAddresses": [],
+        "leaderboardEntries": [],
       },
       "SubjectMetadataController": {
         "subjectMetadata": {},
