@@ -1,6 +1,6 @@
+import Engine from '../Engine';
 import AppConstants from '../AppConstants';
 import { selectEvmChainId } from '../../selectors/networkController';
-import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { store } from '../../store';
 
 // eslint-disable-next-line import-x/no-nodejs-modules, import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -21,9 +21,9 @@ class WalletConnectPort extends EventEmitter {
   postMessage = (msg: any) => {
     try {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        const selectedAddress = selectSelectedInternalAccountAddress(
-          store.getState(),
-        );
+        const { internalAccounts } = Engine.context.AccountsController.state;
+        const selectedAddress =
+          internalAccounts.accounts[internalAccounts.selectedAccount]?.address;
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(msg.data.params.chainId, 16),
           accounts: [selectedAddress],
