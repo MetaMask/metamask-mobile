@@ -228,10 +228,8 @@ export function CancelSpeedupModal({
   }, []);
 
   const close = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      onClose();
-    });
-  }, [onClose]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const effectiveConfirmDisabled = confirmDisabled || !isInitialGasReady;
 
