@@ -338,14 +338,17 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                         onLayout={[Function]}
                         style={
                           [
-                            {
-                              "bottom": 0,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
+                            [
+                              {
+                                "bottom": 0,
+                                "justifyContent": "flex-end",
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                              },
+                              undefined,
+                            ],
                             {
                               "paddingBottom": 0,
                             },
@@ -353,27 +356,26 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                         }
                       >
                         <View
+                          collapsable={false}
                           style={
-                            [
-                              {
-                                "backgroundColor": "#0a0d135c",
-                                "bottom": 0,
-                                "left": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                              },
-                              {
-                                "opacity": 0,
-                              },
-                            ]
+                            {
+                              "backgroundColor": "#0a0d135c",
+                              "bottom": 0,
+                              "left": 0,
+                              "opacity": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            }
                           }
                         >
                           <TouchableOpacity
                             onPress={[Function]}
                             style={
                               {
-                                "flex": 1,
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
                               }
                             }
                           />
@@ -410,9 +412,11 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   "borderTopLeftRadius": 24,
                                   "borderTopRightRadius": 24,
                                   "borderWidth": 1,
+                                  "overflow": "hidden",
+                                },
+                                {
                                   "height": 1334,
                                   "maxHeight": 1334,
-                                  "overflow": "hidden",
                                   "paddingBottom": 0,
                                   "shadowColor": "#0000001a",
                                   "shadowOffset": {
@@ -422,6 +426,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   "shadowOpacity": 1,
                                   "shadowRadius": 40,
                                 },
+                                undefined,
                                 {
                                   "transform": [
                                     {
@@ -437,7 +442,10 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "padding": 4,
+                                  "paddingBottom": 4,
+                                  "paddingLeft": 4,
+                                  "paddingRight": 4,
+                                  "paddingTop": 4,
                                 }
                               }
                             >
