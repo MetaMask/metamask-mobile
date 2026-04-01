@@ -102,9 +102,9 @@ jest.mock('../../../../util/test/initial-root-state', () => ({
     },
     AccountTreeController: {
       accountTree: {
-        selectedAccountGroup: '',
         wallets: {},
       },
+      selectedAccountGroup: '',
     },
     PreferencesController: {
       privacyMode: false,
