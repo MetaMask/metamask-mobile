@@ -1825,6 +1825,253 @@ class FixtureBuilder {
       stateToMerge,
     );
 
+    // Ensure AccountsController has entries for every account ID in the tree.
+    // The assets-controllers selector joins AccountTreeController.accountTree with
+    // AccountsController.internalAccounts and crashes if any account ID is missing.
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          // Wallet 1 - Account 1 EVM (already exists as default, but ensure consistency)
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+            id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+            address: DEFAULT_FIXTURE_ACCOUNT,
+            type: 'eip155:eoa',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE,
+              derivationPath: "m/44'/60'/0'/0/0",
+            },
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'HD Key Tree' },
+            },
+          },
+          // Wallet 1 - Account 1 Solana
+          'a1b2c3d4-e5f6-7890-abcd-ef1234567890': {
+            id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            address: 'So1anaAddress1111111111111111111111111111111',
+            type: 'solana:data-account',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE,
+              derivationPath: "m/44'/501'/0'/0'",
+            },
+            methods: ['solana:signTransaction', 'solana:signMessage'],
+            scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'Snap Keyring' },
+            },
+          },
+          // Wallet 1 - Account 2 EVM
+          '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2': {
+            id: '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2',
+            address: '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da',
+            type: 'eip155:eoa',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE,
+              derivationPath: "m/44'/60'/0'/0/1",
+            },
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Account 2',
+              importTime: 1684232000456,
+              keyring: { type: 'HD Key Tree' },
+            },
+          },
+          // Wallet 1 - Account 2 Solana
+          'b2c3d4e5-f6g7-8901-bcde-f23456789012': {
+            id: 'b2c3d4e5-f6g7-8901-bcde-f23456789012',
+            address: 'So1anaAddress2222222222222222222222222222222',
+            type: 'solana:data-account',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE,
+              derivationPath: "m/44'/501'/1'/0'",
+            },
+            methods: ['solana:signTransaction', 'solana:signMessage'],
+            scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+            metadata: {
+              name: 'Account 2',
+              importTime: 1684232000456,
+              keyring: { type: 'Snap Keyring' },
+            },
+          },
+          // Wallet 2 - Account 1 (Secondary SRP)
+          'f47ac10b-58cc-4372-a567-0e02b2c3d479': {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            address: '0xDDFFa077069E1d4d478c5967809f31294E24E674',
+            type: 'eip155:eoa',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE_2,
+              derivationPath: "m/44'/60'/0'/0/0",
+            },
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'HD Key Tree' },
+            },
+          },
+          // Wallet 3 - HD Account 1
+          '6f9d7e2b-d483-6cfe-a348-2g14d4e5f6c3': {
+            id: '6f9d7e2b-d483-6cfe-a348-2g14d4e5f6c3',
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+            type: 'eip155:eoa',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE_3,
+              derivationPath: "m/44'/60'/0'/0/0",
+            },
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'HD Key Tree' },
+            },
+          },
+          // Wallet 3 - HD Account 2
+          '7a0e8c3c-e594-7dg0-b459-3h25e5f6d7d4': {
+            id: '7a0e8c3c-e594-7dg0-b459-3h25e5f6d7d4',
+            address: '0xabcdef1234567890abcdef1234567890abcdef12',
+            type: 'eip155:eoa',
+            options: {
+              entropySource: MOCK_ENTROPY_SOURCE_3,
+              derivationPath: "m/44'/60'/0'/0/1",
+            },
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Account 2',
+              importTime: 1684232000456,
+              keyring: { type: 'HD Key Tree' },
+            },
+          },
+          // QR Hardware Account
+          'b374ca01-3934-e498-e5ba-d3409147f34e': {
+            id: 'b374ca01-3934-e498-e5ba-d3409147f34e',
+            address: '0x9876543210fedcba9876543210fedcba98765432',
+            type: 'eip155:eoa',
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Hardware Account',
+              importTime: 1684232000456,
+              keyring: { type: 'QR Hardware Wallet Device' },
+            },
+          },
+          // Simple Key Pair (Imported Account)
+          '43e1c289-177e-cfbe-6ef3-4b5fb2b66ebc': {
+            id: '43e1c289-177e-cfbe-6ef3-4b5fb2b66ebc',
+            address: '0xfedcba9876543210fedcba9876543210fedcba98',
+            type: 'eip155:eoa',
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Imported Account',
+              importTime: 1684232000456,
+              keyring: { type: 'Simple Key Pair' },
+            },
+          },
+          // Snap Account (Simple Keyring Snap)
+          'e697fe4b-399h-899i-fgh0-h567890124de': {
+            id: 'e697fe4b-399h-899i-fgh0-h567890124de',
+            address: '0x1111222233334444555566667777888899990000',
+            type: 'eip155:eoa',
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            scopes: ['eip155:0'],
+            metadata: {
+              name: 'Snap Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'Snap Keyring' },
+            },
+          },
+          // Bitcoin Wallet Snap Account
+          'f798gf5c-4a0i-9a0j-ghi1-i678901235ef': {
+            id: 'f798gf5c-4a0i-9a0j-ghi1-i678901235ef',
+            address: 'bc1qmock1bitcoinaddress00000000000000000000',
+            type: 'bip122:p2wpkh',
+            options: {},
+            methods: ['btc:signTransaction', 'btc:signMessage'],
+            scopes: ['bip122:000000000019d6689c085ae165831e93'],
+            metadata: {
+              name: 'Bitcoin Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'Snap Keyring' },
+            },
+          },
+          // Solana Wallet Snap Account
+          'g899hg6d-5b1j-0b1k-hij2-j789012346fg': {
+            id: 'g899hg6d-5b1j-0b1k-hij2-j789012346fg',
+            address: 'So1anaSnapAddress333333333333333333333333333',
+            type: 'solana:data-account',
+            options: {},
+            methods: ['solana:signTransaction', 'solana:signMessage'],
+            scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+            metadata: {
+              name: 'Solana Account 1',
+              importTime: 1684232000456,
+              keyring: { type: 'Snap Keyring' },
+            },
+          },
+        },
+      },
+    });
+
     // Also update KeyringController to ensure compatibility with legacy UI
     // This creates the accounts that the legacy account selection UI expects when multichain accounts are disabled
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
