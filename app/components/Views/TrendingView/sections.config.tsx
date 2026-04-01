@@ -23,7 +23,10 @@ import {
   PerpsConnectionProvider,
 } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
-import { IconName as DSIconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
@@ -38,6 +41,9 @@ import type { TrendingFilterContext } from '../../UI/Trending/components/Trendin
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
+import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
+import PredictMarket from '../../UI/Predict/components/PredictMarket';
+import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
@@ -311,15 +317,23 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
     RowItem: ({ item, index: _index }) => (
-      <PredictMarketRowItem market={item as PredictMarketType} />
+      <Box twClassName="py-2">
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-market-list-trending-card-${
+            (item as PredictMarketType).id
+          }`}
+        />
+      </Box>
     ),
     OverrideRowItemSearch: ({ item }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
-    Skeleton: SiteSkeleton,
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
     // Using sites skeleton cause PredictMarketSkeleton has too much spacing
     OverrideSkeletonSearch: SiteSkeleton,
-    Section: SectionCard,
+    Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
         category: 'trending',
@@ -357,18 +371,18 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
 
 // Sorted by order on the main screen
 const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.stocks,
-  SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.predictions,
+  SECTIONS_CONFIG.tokens,
+  SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.sites,
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
 const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.sites,
 ];
