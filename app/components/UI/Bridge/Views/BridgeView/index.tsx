@@ -99,7 +99,7 @@ import type { RootState } from '../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
-import { getQuoteStreamReasonString } from './BridgeView.constants';
+import { getQuoteStreamReasonString } from './BridgeView.utils';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
