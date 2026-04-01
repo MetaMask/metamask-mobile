@@ -46,6 +46,14 @@ export const FEATURE_FLAG_REGISTRY = {
     productionDefault: { nested: 'old' },
     status: FeatureFlagStatus.Active,
   },
+
+  "scriptStyleFlag": {
+    name: 'scriptStyleFlag',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'initial',
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================
@@ -226,6 +234,28 @@ describe('updateRegistryFile', () => {
     expect(beforeFlagB).toMatch(/flagA:\s*\{/u);
     expect(beforeFlagB).toMatch(/productionDefault:\s*false/u);
     expect(beforeFlagB).not.toMatch(/productionDefault:\s*true/u);
+  });
+
+  it('updates productionDefault when registry key is script-quoted (JSON.stringify)', async () => {
+    const result = {
+      newInProduction: [],
+      removedFromProduction: [],
+      valueMismatches: [
+        {
+          name: 'scriptStyleFlag',
+          productionValue: 'updated',
+          registryValue: 'initial',
+        },
+      ],
+      inProdMismatches: [],
+      hasDrift: true,
+    };
+    await updateRegistryFile(result);
+    expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
+    const written = writeFileSyncMock.mock.calls[0][1] as string;
+    expect(written).toMatch(/"scriptStyleFlag":\s*\{/u);
+    const afterQuotedKey = written.split('"scriptStyleFlag":')[1] ?? '';
+    expect(afterQuotedKey).toMatch(/productionDefault:\s*"updated"/u);
   });
 
   it('removes entries no longer in production', async () => {

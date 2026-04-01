@@ -345,6 +345,20 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
+/**
+ * Matches `  "name": {` (script-generated) or `  name: {` (hand-written).
+ */
+function registryEntryLineRegex(name: string): RegExp {
+  return new RegExp(
+    `^  (?:"${escapeRegex(name)}"|${escapeRegex(name)}):\\s*\\{`,
+    'mu',
+  );
+}
+
+function entryOpenBraceIndex(entryMatch: RegExpExecArray): number {
+  return entryMatch.index + entryMatch[0].length - 1;
+}
+
 function serializeValue(value: unknown, indent = 0): string {
   const json = JSON.stringify(value, null, 2);
   if (indent <= 0) {
@@ -429,13 +443,13 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
   // Replace mismatched productionDefault values using brace-depth counting
   for (const { name, productionValue } of result.valueMismatches) {
     const serialized = serializeValue(productionValue, 4);
-    const entryPattern = new RegExp(`^  ${escapeRegex(name)}:\\s*\\{`, 'mu');
+    const entryPattern = registryEntryLineRegex(name);
     const entryMatch = entryPattern.exec(content);
     if (!entryMatch) {
       continue;
     }
 
-    const entryOpenBrace = content.indexOf('{', entryMatch.index + name.length);
+    const entryOpenBrace = entryOpenBraceIndex(entryMatch);
     const entryEnd = findBalancedEnd(content, entryOpenBrace);
     if (entryEnd === -1) {
       continue;
@@ -488,13 +502,13 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
 
   // Flip inProd: false → true and update productionDefault for inProdMismatches
   for (const { name, productionValue } of result.inProdMismatches) {
-    const entryPattern = new RegExp(`^  ${escapeRegex(name)}:\\s*\\{`, 'mu');
+    const entryPattern = registryEntryLineRegex(name);
     const entryMatch = entryPattern.exec(content);
     if (!entryMatch) {
       continue;
     }
 
-    const entryOpenBrace = content.indexOf('{', entryMatch.index + name.length);
+    const entryOpenBrace = entryOpenBraceIndex(entryMatch);
     const entryEnd = findBalancedEnd(content, entryOpenBrace);
     if (entryEnd === -1) {
       continue;
@@ -514,10 +528,7 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
     }
 
     // 2. Update productionDefault (re-find entryEnd after possible content change)
-    const entryOpenBrace2 = content.indexOf(
-      '{',
-      entryMatch.index + name.length,
-    );
+    const entryOpenBrace2 = entryOpenBraceIndex(entryMatch);
     const entryEnd2 = findBalancedEnd(content, entryOpenBrace2);
     if (entryEnd2 === -1) {
       continue;
@@ -568,13 +579,13 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
 
   // Remove entries no longer in production using brace-depth counting
   for (const { name } of result.removedFromProduction) {
-    const entryPattern = new RegExp(`^  ${escapeRegex(name)}:\\s*\\{`, 'mu');
+    const entryPattern = registryEntryLineRegex(name);
     const entryMatch = entryPattern.exec(content);
     if (!entryMatch) {
       continue;
     }
 
-    const openBrace = content.indexOf('{', entryMatch.index + name.length);
+    const openBrace = entryOpenBraceIndex(entryMatch);
     const balancedEnd = findBalancedEnd(content, openBrace);
     if (balancedEnd === -1) {
       continue;
