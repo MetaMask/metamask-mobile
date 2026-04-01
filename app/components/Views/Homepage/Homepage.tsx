@@ -216,11 +216,13 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
           totalSectionsLoaded={totalSectionsLoaded}
           mode={sectionMode}
         />
-        <TopTradersSection
-          ref={topTradersSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
+        {isTopTradersEnabled && (
+          <TopTradersSection
+            ref={topTradersSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
         {isPerpsEnabled && (
           <PerpsConnectionProvider suppressErrorView>
             <PerpsStreamProvider>
@@ -394,11 +396,13 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
-      <TopTradersSection
-        ref={topTradersSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
+      {isTopTradersEnabled && (
+        <TopTradersSection
+          ref={topTradersSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+          totalSectionsLoaded={totalSectionsLoaded}
+        />
+      )}
       <PerpsSection
         ref={perpsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
