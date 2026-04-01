@@ -62,7 +62,7 @@ export interface OAuthServiceConfig {
 }
 
 const getAuthConnectionIdFromClientId = (params: {
-  clientId?: string;
+  clientId: string;
   authConnection: SeedlessAuthConnection;
   authConnectionConfig: OAuthServiceConfig['authConnectionConfig'];
 }): { authConnectionId: string; groupedAuthConnectionId?: string } => {
