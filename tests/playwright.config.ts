@@ -58,7 +58,6 @@ export default defineConfig({
           launchableActivity: 'io.metamask.MainActivity',
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
-        expectTimeout: 30 * 1000,
       },
     },
     {
@@ -90,7 +89,6 @@ export default defineConfig({
           appId: 'io.metamask.MetaMask',
         },
         buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
-        expectTimeout: 30 * 1000,
       },
     },
 
@@ -113,7 +111,6 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
           process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
-        expectTimeout: 30 * 1000,
       },
     },
     {
@@ -133,7 +130,6 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
           process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
-        expectTimeout: 30 * 1000,
       },
     },
     {
@@ -150,7 +146,6 @@ export default defineConfig({
           appId: 'io.metamask.MetaMask',
         },
         buildPath: 'bs://a0ea40650b0a1108e32b27ec93ac73af3b393855', // Just a demo, CI will take care of this
-        expectTimeout: 30 * 1000,
       },
     },
     {
@@ -183,7 +178,6 @@ export default defineConfig({
           launchableActivity: 'io.metamask.MainActivity',
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
-        expectTimeout: 30 * 1000,
       },
     },
     {
@@ -220,7 +214,6 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_ANDROID_SEEDLESS_PERF_APP_URL ??
           process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
-        expectTimeout: 30 * 1000,
       },
     },
     {
@@ -239,7 +232,6 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_IOS_SEEDLESS_PERF_APP_URL ??
           process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
-        expectTimeout: 30 * 1000,
       },
     },
   ],
