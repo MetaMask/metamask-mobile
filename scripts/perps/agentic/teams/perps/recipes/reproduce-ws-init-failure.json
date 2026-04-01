@@ -1,0 +1,129 @@
+{
+  "title": "Reproduce HyperLiquid init failure and prove retry recovery",
+  "description": "Dev-only RCA harness. Arms a one-shot HyperLiquid initialize failure, triggers the same connection manager path used by always-on perps, proves the error becomes visible on a full perps screen, then retries and validates recovery plus market loading.",
+  "initial_conditions": {
+    "testnet": false,
+    "provider": "hyperliquid"
+  },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled"
+      ],
+      "steps": [
+        {
+          "id": "nav-wallet-home",
+          "action": "navigate",
+          "target": "WalletView"
+        },
+        {
+          "id": "assert-rca-bridge",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({available:!!globalThis.__PERPS_RCA__})",
+          "assert": {
+            "operator": "eq",
+            "field": "available",
+            "value": true
+          }
+        },
+        {
+          "id": "clear-rca-state",
+          "action": "eval_sync",
+          "expression": "JSON.stringify(globalThis.__PERPS_RCA__.clear())",
+          "assert": {
+            "operator": "length_gt",
+            "field": "events",
+            "value": -1
+          }
+        },
+        {
+          "id": "arm-next-init-failure",
+          "action": "eval_sync",
+          "expression": "JSON.stringify(globalThis.__PERPS_RCA__.armFailNextWsInitialize())",
+          "assert": {
+            "operator": "eq",
+            "field": "failNextWsInitialize",
+            "value": true
+          }
+        },
+        {
+          "id": "trigger-connect-failure",
+          "action": "eval_async",
+          "expression": "globalThis.__PERPS_RCA__.reproduceConnectionAttempt('wallet_root_harness').then(function(r){return JSON.stringify(r)})",
+          "assert": {
+            "operator": "eq",
+            "field": "success",
+            "value": false
+          }
+        },
+        {
+          "id": "wait-failure-markers",
+          "action": "wait_for",
+          "expression": "(function(){var s=globalThis.__PERPS_RCA__.getState();var markers=(s.events||[]).map(function(e){return e.marker});return JSON.stringify({lastConnectSource:s.lastConnectSource,error:s.connectionState.error,hasConnectRequested:markers.indexOf('connect_requested')!==-1,hasForcedFailure:markers.indexOf('hl_init_forced_failure')!==-1,hasInitFail:markers.indexOf('hl_init_fail')!==-1})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "hasInitFail",
+            "value": true
+          },
+          "timeout_ms": 10000
+        },
+        {
+          "id": "nav-perps-home",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        },
+        {
+          "id": "wait-error-visible-marker",
+          "action": "wait_for",
+          "expression": "(function(){var s=globalThis.__PERPS_RCA__.getState();var markers=(s.events||[]).map(function(e){return e.marker});return JSON.stringify({hasConnectionErrorVisible:markers.indexOf('connection_error_visible')!==-1,error:s.connectionState.error})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "hasConnectionErrorVisible",
+            "value": true
+          },
+          "timeout_ms": 10000
+        },
+        {
+          "id": "retry-connection",
+          "action": "eval_async",
+          "expression": "globalThis.__PERPS_RCA__.retryConnection('recipe_retry').then(function(r){return JSON.stringify(r)})",
+          "assert": {
+            "operator": "eq",
+            "field": "success",
+            "value": true
+          }
+        },
+        {
+          "id": "wait-recovery-state",
+          "action": "wait_for",
+          "expression": "(function(){var s=globalThis.__PERPS_RCA__.getState();var markers=(s.events||[]).map(function(e){return e.marker});return JSON.stringify({hasRetrySuccess:markers.indexOf('retry_success')!==-1,hasInitSuccess:markers.indexOf('hl_init_success')!==-1,recovered:markers.indexOf('retry_success')!==-1&&markers.indexOf('hl_init_success')!==-1&&!s.connectionState.error,error:s.connectionState.error})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "recovered",
+            "value": true
+          },
+          "timeout_ms": 15000
+        },
+        {
+          "id": "prove-markets-load",
+          "action": "flow_ref",
+          "ref": "market-discovery",
+          "params": {
+            "symbol": "BTC"
+          }
+        },
+        {
+          "id": "verify-rca-snapshot",
+          "action": "eval_sync",
+          "expression": "(function(){var s=globalThis.__PERPS_RCA__.getState();var markers=(s.events||[]).map(function(e){return e.marker});return JSON.stringify({hasConnectRequested:markers.indexOf('connect_requested')!==-1,hasForcedFailure:markers.indexOf('hl_init_forced_failure')!==-1,hasInitFail:markers.indexOf('hl_init_fail')!==-1,hasConnectionErrorVisible:markers.indexOf('connection_error_visible')!==-1,hasRetrySuccess:markers.indexOf('retry_success')!==-1,hasInitSuccess:markers.indexOf('hl_init_success')!==-1,recovered:markers.indexOf('retry_success')!==-1&&markers.indexOf('hl_init_success')!==-1&&!s.connectionState.error,lastConnectSource:s.lastConnectSource})})()",
+          "assert": {
+            "operator": "eq",
+            "field": "recovered",
+            "value": true
+          }
+        }
+      ]
+    }
+  }
+}
