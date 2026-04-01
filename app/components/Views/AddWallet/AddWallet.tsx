@@ -25,7 +25,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { AddWalletTestIds } from './AddWallet.testIds';
-import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
 
 interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
@@ -56,7 +55,7 @@ const AddWallet = () => {
         description: 'Via a private key',
         iconName: IconName.Download,
         routeName: 'ImportPrivateKeyView',
-        testID: AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        testID: AddWalletTestIds.IMPORT_ACCOUNT_BUTTON,
         title: strings('accounts.import_account'),
       },
       {
