@@ -123,6 +123,10 @@ describe('PerpsConnectionProvider', () => {
     (PerpsConnectionManager.getActiveProviderName as jest.Mock) = jest
       .fn()
       .mockReturnValue('hyperliquid');
+    (PerpsConnectionManager.ensureConnected as jest.Mock) = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    (PerpsConnectionManager.resetError as jest.Mock) = jest.fn();
   });
 
   afterEach(() => {
@@ -671,6 +675,83 @@ describe('PerpsConnectionProvider', () => {
         expect(mockReconnectWithNewContext).toHaveBeenCalled();
       });
     });
+  });
+
+  it('skips ensureConnected when suppressErrorView is true', async () => {
+    // Arrange: disconnected, not connecting, no error — would normally trigger ensureConnected
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: null,
+    });
+    const mockEnsureConnected =
+      PerpsConnectionManager.ensureConnected as jest.Mock;
+    mockEnsureConnected.mockClear();
+
+    render(
+      <PerpsConnectionProvider suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    // Advance timers to ensure effect has run
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(mockEnsureConnected).not.toHaveBeenCalled();
+  });
+
+  it('handles ensureConnected error on entry gracefully', async () => {
+    // Arrange: disconnected, not connecting, no error — triggers ensureConnected
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: null,
+    });
+    const mockEnsureConnected =
+      PerpsConnectionManager.ensureConnected as jest.Mock;
+    mockEnsureConnected.mockRejectedValueOnce(new Error('connection failed'));
+
+    const { getByText } = render(
+      <PerpsConnectionProvider>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    // The error is caught — children still render
+    await waitFor(() => {
+      expect(getByText('Child Component')).toBeOnTheScreen();
+    });
+    expect(mockEnsureConnected).toHaveBeenCalledWith({
+      source: 'perps_fullscreen_entry',
+    });
+  });
+
+  it('renders children when suppressErrorView is true even with error state', async () => {
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      isDisconnecting: false,
+      isInGracePeriod: false,
+      error: 'Connection failed',
+    });
+
+    const { getByText, queryByTestId } = render(
+      <PerpsConnectionProvider suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    expect(getByText('Child Component')).toBeOnTheScreen();
+    expect(queryByTestId('perps-connection-error')).toBeNull();
   });
 
   it('cleans up polling interval on unmount', () => {
