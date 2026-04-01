@@ -171,8 +171,8 @@ const mockUsePerpsMarketForAsset = jest.fn(() => ({
   error: null,
 }));
 jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
-  usePerpsMarketForAsset: (...args: unknown[]) =>
-    mockUsePerpsMarketForAsset(...args),
+  usePerpsMarketForAsset: (symbol: string | null) =>
+    mockUsePerpsMarketForAsset(symbol),
 }));
 
 jest.mock('../../Earn/selectors/featureFlags', () => ({
