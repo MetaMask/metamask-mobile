@@ -1688,7 +1688,11 @@ export class PerpsStreamManager {
             return entries.length === 1 ? entries[0] : { entries };
           })()
         : {
-            providerNetworkKey: getProviderNetworkKey(controller.state),
+            providerNetworkKey: getProviderNetworkKeyForProvider(
+              controller.state.activeProvider ??
+                PROVIDER_CONFIG.DefaultProvider,
+              controller.state.isTestnet,
+            ),
             data: snapshot,
             timestamp: now,
           };
@@ -1785,7 +1789,11 @@ export class PerpsStreamManager {
             return entries.length === 1 ? entries[0] : { entries };
           })()
         : {
-            providerNetworkKey: getProviderNetworkKey(controller.state),
+            providerNetworkKey: getProviderNetworkKeyForProvider(
+              controller.state.activeProvider ??
+                PROVIDER_CONFIG.DefaultProvider,
+              controller.state.isTestnet,
+            ),
             address,
             positions: positions ?? [],
             orders: orders ?? [],
