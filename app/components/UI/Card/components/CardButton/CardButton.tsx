@@ -46,7 +46,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
       (state.engine.backgroundState.RemoteFeatureFlagController
         ?.cacheTimestamp ?? 0) > 0,
   );
-  const { variant, variantName, isActive } = useABTest(
+  const { variant, variantName } = useABTest(
     CARD_BUTTON_BADGE_AB_KEY,
     CARD_BUTTON_BADGE_VARIANTS,
   );
@@ -63,7 +63,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED).build(),
     );
-  }, [trackEvent, createEventBuilder, isActive, variantName, flagsResolved]);
+  }, [trackEvent, createEventBuilder, variantName, flagsResolved]);
 
   const onPressHandler = () => {
     if (!hasViewedCardButton) {
