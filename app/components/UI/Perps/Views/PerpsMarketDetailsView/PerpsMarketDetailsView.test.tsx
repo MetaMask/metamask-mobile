@@ -435,6 +435,15 @@ jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
@@ -475,9 +484,6 @@ jest.mock('../../hooks', () => ({
     getAccountState: jest.fn(),
     depositWithConfirmation: mockDepositWithConfirmation,
     withdrawWithConfirmation: jest.fn(),
-  })),
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
@@ -1067,10 +1073,12 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(addFundsButton);
       });
 
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: 'Perps',
+      await waitFor(() => {
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          stack: 'Perps',
+        });
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
-      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
