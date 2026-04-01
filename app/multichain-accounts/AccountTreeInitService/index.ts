@@ -24,9 +24,11 @@ export class AccountTreeInitService {
   };
 
   clearState = async (): Promise<void> => {
-    const { AccountTreeController } = Engine.context;
+    const { AccountTreeController, MoneyAccountController } = Engine.context;
 
     AccountTreeController.clearState();
+
+    MoneyAccountController.clearState();
   };
 }
 
