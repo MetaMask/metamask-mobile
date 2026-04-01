@@ -8,7 +8,7 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { StakeConfirmationViewRouteParams } from './StakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
 
@@ -49,7 +49,6 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:test-wallet/ethereum',
           wallets: {
             'keyring:test-wallet': {
               groups: {
@@ -60,6 +59,7 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+        selectedAccountGroup: 'keyring:test-wallet/ethereum',
       },
     },
   },
@@ -80,6 +80,18 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+    }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: {
+        amountWei: '10000000000000000',
+        amountFiat: '26.21',
+        annualRewardRate: '2.6%',
+        annualRewardsETH: '0.00026 ETH',
+        annualRewardsFiat: '$0.68',
+        chainId: '1',
+      } as StakeConfirmationViewRouteParams,
     }),
   };
 });
@@ -116,24 +128,9 @@ expect.addSnapshotSerializer({
 
 describe('StakeConfirmationView', () => {
   it('render matches snapshot', () => {
-    const props: StakeConfirmationViewProps = {
-      route: {
-        key: '1',
-        params: {
-          amountWei: '10000000000000000',
-          amountFiat: '26.21',
-          annualRewardRate: '2.6%',
-          annualRewardsETH: '0.00026 ETH',
-          annualRewardsFiat: '$0.68',
-          chainId: '1',
-        },
-        name: 'params',
-      },
-    };
-
     const { toJSON } = renderWithProvider(
       <Provider store={store}>
-        <StakeConfirmationView {...props} />
+        <StakeConfirmationView />
       </Provider>,
     );
 

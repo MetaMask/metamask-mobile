@@ -26,11 +26,11 @@ import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import {
+  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -42,6 +42,7 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
+import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -80,6 +81,7 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
@@ -170,7 +172,9 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
     selectedToken,
     paymentMethods,
     getBuyWidgetData,
@@ -183,6 +187,7 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -256,14 +261,51 @@ function BuildQuote() {
     }, []),
   );
 
-  // Show "Token Not Available" modal when the selected token is unavailable
-  // for the current provider. Debounced to let the query settle — prevents
-  // the modal from flashing when isTokenUnavailable is briefly true due to
-  // stale cached data before the fresh response arrives.
+  // When no provider is selected (e.g. first-time user in a region without
+  // Transak), pick the first provider that supports the selected token.
+  useEffect(() => {
+    if (
+      !isOnBuildQuoteScreen ||
+      selectedProvider ||
+      !effectiveAssetId ||
+      providers.length === 0
+    ) {
+      return;
+    }
+    const supportingProvider = providers.find(
+      (p) => p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+    );
+    if (supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [
+    isOnBuildQuoteScreen,
+    selectedProvider,
+    effectiveAssetId,
+    providers,
+    setSelectedProvider,
+  ]);
+
+  // When the selected token is unavailable for the current provider:
+  // - If the provider was auto-selected (soft), silently switch to the best
+  //   provider that supports the token.
+  // - Otherwise, show the "Token Not Available" modal so the user can decide.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
+    }
+
+    if (providerAutoSelected && effectiveAssetId) {
+      const supportingProvider = providers.find(
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+      );
+      if (supportingProvider) {
+        setSelectedProvider(supportingProvider, { autoSelected: true });
+        return;
+      }
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -288,6 +330,9 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
+    providerAutoSelected,
+    providers,
+    setSelectedProvider,
   ]);
 
   const {
@@ -311,6 +356,13 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+
+  const amountDisplayString = useMemo(
+    () => `${currencyPrefix}${amount}${currencySuffix}`,
+    [currencyPrefix, currencySuffix, amount],
+  );
+  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
+  const amountLineHeight = amountFontSize + 10;
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -829,31 +881,38 @@ function BuildQuote() {
                 <View style={styles.amountRow}>
                   <Text
                     testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                    variant={TextVariant.HeadingLG}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Regular}
                     color={
                       rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.Error
+                        ? TextColor.ErrorDefault
                         : undefined
                     }
-                    style={styles.mainAmount}
+                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
                     {currencyPrefix}
                     {amount}
                   </Text>
                   <Animated.View
-                    style={[styles.cursor, { opacity: cursorOpacity }]}
+                    style={[
+                      styles.cursor,
+                      {
+                        height: Math.max(amountLineHeight - 4, 16),
+                        opacity: cursorOpacity,
+                      },
+                    ]}
                   />
                   {currencySuffix ? (
                     <Text
-                      variant={TextVariant.HeadingLG}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Regular}
                       color={
                         rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.Error
+                          ? TextColor.ErrorDefault
                           : undefined
                       }
-                      style={styles.mainAmount}
+                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     >
                       {currencySuffix}
                     </Text>
@@ -906,7 +965,7 @@ function BuildQuote() {
                   ) : (
                     selectedProvider && (
                       <Text
-                        variant={TextVariant.BodySM}
+                        variant={TextVariant.BodySm}
                         style={styles.poweredByText}
                       >
                         {strings('fiat_on_ramp.powered_by_provider', {

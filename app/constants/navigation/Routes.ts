@@ -337,6 +337,10 @@ const Routes = {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
   },
+  SOCIAL_LEADERBOARD: {
+    ROOT: 'SocialLeaderboard',
+    VIEW: 'TopTradersView',
+  },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
@@ -394,6 +398,9 @@ const Routes = {
   MONEY: {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
+  },
+  MONEY_ACCOUNT: {
+    ROOT: 'MoneyAccountScreens',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
