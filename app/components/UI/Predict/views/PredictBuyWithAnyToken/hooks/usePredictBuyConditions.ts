@@ -207,13 +207,6 @@ export const usePredictBuyConditions = ({
     [isPreviewCalculating, isUserInputChange],
   );
 
-  const canSelectToken = useMemo(
-    () =>
-      totalPayForPredictBalance > predictBalance ||
-      predictBalance < MINIMUM_BET,
-    [predictBalance, totalPayForPredictBalance],
-  );
-
   useEffect(() => {
     if (
       !isPredictBalanceSelected &&
@@ -240,6 +233,5 @@ export const usePredictBuyConditions = ({
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
-    canSelectToken,
   };
 };
