@@ -90,10 +90,11 @@ export const enrichWithABTests = <
     mergedAssignments.push(assignment);
   }
 
-  event.properties = {
-    ...event.properties,
-    active_ab_tests: mergedAssignments,
+  return {
+    ...event,
+    properties: {
+      ...event.properties,
+      active_ab_tests: mergedAssignments,
+    },
   };
-
-  return event;
 };
