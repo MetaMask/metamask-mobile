@@ -129,7 +129,47 @@ export type PredictCategory =
   | 'hot';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl' | 'nba' | 'ucl';
+export type PredictSportsLeague =
+  | 'nfl'
+  | 'nba'
+  | 'ucl'
+  | 'fif'
+  | 'lal'
+  | 'uef'
+  | 'bra2'
+  | 'tur'
+  | 'col1'
+  | 'mls'
+  | 'mex'
+  | 'bun'
+  | 'chi'
+  | 'epl'
+  | 'cze1'
+  | 'j1100'
+  | 'j2100'
+  | 'fl1'
+  | 'nor'
+  | 'aus'
+  | 'den'
+  | 'sea'
+  | 'kor'
+  | 'ere'
+  | 'spl'
+  | 'bra'
+  | 'por'
+  | 'chi1'
+  | 'per1'
+  | 'lib'
+  | 'cdr'
+  | 'sud'
+  | 'egy1'
+  | 'uel'
+  | 'rou1'
+  | 'col'
+  | 'bol1'
+  | 'itc'
+  | 'dfb'
+  | 'cde';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
