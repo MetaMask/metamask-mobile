@@ -1,6 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import {
   encapsulated,
   EncapsulatedElementType,
@@ -102,10 +103,9 @@ class PerpsDepositView {
   }
 
   async tapContinue(): Promise<void> {
+    await Utilities.waitForElementToBeEnabled(this.continueButtonByText, 10000);
     await Gestures.waitAndTap(this.continueButtonByText, {
       elemDescription: 'Continue (by text) deposit confirmation',
-      checkEnabled: false,
-      checkVisibility: false,
     });
   }
 

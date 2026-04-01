@@ -126,10 +126,24 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         await PerpsDepositView.focusAmount();
         await PerpsDepositView.typeUSD('80');
 
+        // Wait until quote loading state settles and CTA is actionable
+        await Assertions.expectTextNotDisplayed('Insufficient funds', {
+          description:
+            'Insufficient funds message is not displayed before continue',
+          timeout: 15000,
+        });
+        await Assertions.expectTextDisplayed('Continue', {
+          description:
+            'Continue button text is displayed before tapping continue',
+          timeout: 15000,
+        });
+
         // Continue and Confirm
         await PerpsDepositView.tapContinue();
         // Verify review screen shows quote
-        await Assertions.expectTextDisplayed('Transaction fee');
+        await Assertions.expectTextDisplayed('Transaction fee', {
+          description: 'Transaction fee is displayed on review screen',
+        });
         await PerpsDepositView.tapAddFunds();
 
         await PerpsE2EModifiers.applyDepositUSDServer(commandQueueServer, '80');
