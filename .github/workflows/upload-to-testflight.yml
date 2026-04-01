@@ -3,6 +3,9 @@ name: Upload to TestFlight
 # Dedicated workflow to build iOS (via build.yml) and upload to TestFlight.
 # All TestFlight logic lives here; build.yml only builds and uploads artifacts.
 #
+# When skip_build is true, the caller must ensure the IPA artifact
+# (named ios-ipa-{build_name}) already exists in the same workflow run.
+#
 on:
   workflow_call:
     inputs:
@@ -11,14 +14,30 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (exp, beta, rc)'
-        required: true
+        description: 'Build environment / track (exp, beta, rc). Used to derive build_name when build_name is empty.'
+        required: false
         type: string
+        default: 'rc'
       testflight_group:
         description: 'TestFlight external testing group'
         required: false
         type: string
         default: 'MetaMask BETA & Release Candidates'
+      skip_build:
+        description: 'Skip branch creation and build (IPA artifact must already exist in this workflow run)'
+        required: false
+        type: boolean
+        default: false
+      build_name:
+        description: 'Override build/artifact name (default: main-{environment})'
+        required: false
+        type: string
+        default: ''
+      summary_title:
+        description: 'TestFlight upload summary heading'
+        required: false
+        type: string
+        default: 'TestFlight Upload'
   workflow_dispatch:
     inputs:
       source_branch:
@@ -54,6 +73,7 @@ jobs:
   # Create a temporary branch so the version-bump commit can be pushed without
   # hitting branch-protection rules on the source branch (e.g. main).
   prepare-build-branch:
+    if: ${{ !inputs.skip_build }}
     uses: ./.github/workflows/create-build-branch.yml
     with:
       source_branch: ${{ inputs.source_branch }}
@@ -61,6 +81,7 @@ jobs:
 
   build:
     name: Build iOS (${{ inputs.environment || 'rc' }})
+    if: ${{ !inputs.skip_build }}
     needs: [prepare-build-branch]
     uses: ./.github/workflows/build.yml
     with:
@@ -73,24 +94,29 @@ jobs:
   testflight-upload-summary:
     name: TestFlight upload summary
     needs: [build, prepare-build-branch]
+    if: ${{ always() && !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.prepare-build-branch.outputs.build_branch }}
+          ref: ${{ needs.prepare-build-branch.outputs.build_branch || inputs.source_branch }}
       - name: Display TestFlight upload summary
+        env:
+          EFFECTIVE_BUILD_NAME: ${{ inputs.build_name || format('main-{0}', inputs.environment || 'rc') }}
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
           BUILD_NUMBER=$(awk '/versionCode/{print $2}' android/app/build.gradle)
           {
-            echo "### 📲 TestFlight Upload"
+            echo "### 📲 ${{ inputs.summary_title || 'TestFlight Upload' }}"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
             echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
-            echo "| **Build branch** | \`${{ needs.prepare-build-branch.outputs.build_branch }}\` |"
-            echo "| **Build name** | \`main-${{ inputs.environment || 'rc' }}\` |"
+            if [ -n "${{ needs.prepare-build-branch.outputs.build_branch }}" ]; then
+              echo "| **Build branch** | \`${{ needs.prepare-build-branch.outputs.build_branch }}\` |"
+            fi
+            echo "| **Build name** | \`${EFFECTIVE_BUILD_NAME}\` |"
             echo "| **Build version** | \`${BUILD_VERSION}\` |"
             echo "| **Build number** | \`${BUILD_NUMBER}\` |"
             echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
@@ -102,6 +128,7 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [build, testflight-upload-summary]
+    if: ${{ always() && needs.testflight-upload-summary.result == 'success' }}
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
     steps:
       - name: Checkout repository
@@ -119,7 +146,7 @@ jobs:
       - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-main-${{ inputs.environment || 'rc' }}
+          name: ios-ipa-${{ inputs.build_name || format('main-{0}', inputs.environment || 'rc') }}
 
       - name: Find IPA path
         id: ipa
@@ -185,9 +212,11 @@ jobs:
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
 
       - name: Upload to TestFlight
+        env:
+          EFFECTIVE_BUILD_NAME: ${{ inputs.build_name || format('main-{0}', inputs.environment || 'rc') }}
         run: |
           bash scripts/upload-to-testflight.sh \
-            "github_actions_main-${{ inputs.environment || 'rc' }}" \
+            "github_actions_${EFFECTIVE_BUILD_NAME}" \
             "${{ inputs.source_branch }}" \
             "${{ steps.ipa.outputs.path }}" \
             "${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}"
@@ -201,7 +230,7 @@ jobs:
   cleanup-build-branch:
     name: Cleanup build branch
     needs: [prepare-build-branch, upload-ios-testflight]
-    if: always()
+    if: ${{ always() && !inputs.skip_build }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
