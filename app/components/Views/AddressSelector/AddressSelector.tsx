@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +8,8 @@ import { RootState } from '../../../reducers';
 import { AddressSelectorParams } from './AddressSelector.types';
 import { AccountGroupId } from '@metamask/account-api';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -151,7 +150,7 @@ const AddressSelector = () => {
   }, [internalAccountsSpreadByScopes, isEvmOnly, displayOnlyCaipChainIds]);
 
   return (
-    <BottomSheet ref={sheetRef} isFullscreen>
+    <BottomSheet ref={sheetRef} isFullscreen goBack={navigation.goBack}>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('address_selector.select_an_address')}
       </BottomSheetHeader>
