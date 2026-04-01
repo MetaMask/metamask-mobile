@@ -20,7 +20,6 @@ export const TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY =
 export const selectTokenOverviewAdvancedChartEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    return true;
     const remoteFlag =
       remoteFeatureFlags?.[TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY];
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
