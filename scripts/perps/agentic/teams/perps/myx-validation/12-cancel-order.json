@@ -1,0 +1,90 @@
+{
+  "title": "MYX: Place Limit Order + Cancel via UI",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "place-limit",
+          "description": "Place limit buy at 50% of market price",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no markets'});var m=markets[0];var price=parseFloat(m.price.replace(/[^0-9.]/g,''));var limitPrice=String(price*0.5);var size=String(150/price);return p.placeOrder({symbol:m.symbol,isBuy:true,orderType:'limit',size:size,leverage:2,usdAmount:'150',maxSlippageBps:500,currentPrice:price,price:limitPrice}).then(function(r){return JSON.stringify(r)})})})()",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-order",
+          "description": "Poll until order appears in open orders",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 30000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-home",
+          "description": "Navigate to Perps home to see order in UI",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-orders-section",
+          "description": "Wait for orders section action button (Cancel All)",
+          "action": "wait_for",
+          "test_id": "section-header-action-button",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "screenshot-before",
+          "description": "Capture Perps home showing limit order before cancel",
+          "action": "screenshot",
+          "filename": "12-cancel-order-before"
+        },
+        {
+          "id": "press-cancel-all",
+          "description": "Press Cancel All action button on orders section",
+          "action": "press",
+          "test_id": "section-header-action-button"
+        },
+        {
+          "id": "wait-cancel-sheet",
+          "description": "Wait for Cancel All bottom sheet confirm button",
+          "action": "wait_for",
+          "test_id": "bottomsheetfooter-button-subsequent",
+          "timeout_ms": 10000
+        },
+        {
+          "id": "press-confirm-cancel",
+          "description": "Press confirm cancel in bottom sheet",
+          "action": "press",
+          "test_id": "bottomsheetfooter-button-subsequent"
+        },
+        {
+          "id": "verify-cancelled",
+          "description": "Poll until no open orders remain",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture Perps home with no orders",
+          "action": "screenshot",
+          "filename": "12-cancel-order-after"
+        }
+      ]
+    }
+  }
+}

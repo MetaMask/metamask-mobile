@@ -12,13 +12,18 @@ import type {
   KlineDataItemType,
   KlineResolution,
   KlineDataResponse,
+  PlaceOrderParams,
+  PositionTpSlOrderParams,
+  SignerLike,
 } from '@myx-trade/sdk';
-import { MyxClient } from '@myx-trade/sdk';
+import { ChainId, MyxClient } from '@myx-trade/sdk';
 
 import {
+  MYX_MARKETS_CACHE_TTL_MS,
   MYX_PRICE_POLLING_INTERVAL_MS,
+  MYX_COLLATERAL_TOKEN_MAINNET,
+  MYX_COLLATERAL_TOKEN_TESTNET,
   getMYXChainId,
-  getMYXHttpEndpoint,
 } from '../constants/myxConfig';
 import { PERPS_CONSTANTS, ZERO_ADDRESS } from '../constants/perpsConfig';
 import type { PerpsPlatformDependencies } from '../types';
@@ -28,9 +33,12 @@ import type {
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
+  MYXOrderItem,
+  MYXPoolOpenOrder,
   MYXPositionHistoryItem,
   MYXTradeFlowItem,
   MYXGetHistoryOrdersParams,
+  MYXUpdateOrderParams,
 } from '../types/myx-types';
 import { ensureError } from '../utils/errorUtils';
 
@@ -90,7 +98,7 @@ export class MYXClientService {
 
   #marketsCacheTimestamp = 0;
 
-  readonly #marketsCacheTtlMs = 5 * 60 * 1000; // 5 minutes
+  readonly #marketsCacheTtlMs = MYX_MARKETS_CACHE_TTL_MS;
 
   // globalId cache: poolId → globalId (for WS subscriptions)
   readonly #globalIdCache: Map<string, number> = new Map();
@@ -120,7 +128,11 @@ export class MYXClientService {
       );
     }
 
-    // Initialize MyxClient with broker address
+    // Initialize MyxClient with broker address.
+    // The SDK has built-in WS re-auth on reconnect (onBeforeReSubscribe)
+    // that calls subscription.auth(isReconnect=true) if clientAuth is set.
+    // Do NOT override socketConfig.onBeforeReSubscribe — it would replace
+    // the SDK's built-in re-auth logic.
     this.#myxClient = new MyxClient({
       chainId: this.#chainId,
       brokerAddress,
@@ -130,6 +142,11 @@ export class MYXClientService {
     // Connect WS at construction time (always-on, like HyperLiquid).
     // Individual subscriptions (kline, tickers) subscribe/unsubscribe on
     // this already-open socket.
+    this.#myxClient.subscription.on('open', () => {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] WS open (connect or reconnect)',
+      );
+    });
     this.#myxClient.subscription.connect();
 
     this.#deps.debugLogger.log('[MYXClientService] Initialized with SDK', {
@@ -191,10 +208,17 @@ export class MYXClientService {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Fetching markets via SDK');
 
-      const pools = await this.#myxClient.markets.getPoolSymbolAll();
+      const allPools = await this.#myxClient.markets.getPoolSymbolAll();
+
+      // SDK returns pools across all chains (testnet spans 59141 + 421614).
+      // Only pools on our configured chain are tradeable — the broker contract
+      // and getMarketDetail both require a matching chainId.
+      const pools = (allPools || []).filter(
+        (pool: MYXPoolSymbol) => pool.chainId === this.#chainId,
+      );
 
       // Update cache
-      this.#marketsCache = pools || [];
+      this.#marketsCache = pools;
       this.#marketsCacheTimestamp = Date.now();
 
       this.#deps.debugLogger.log('[MYXClientService] Markets fetched', {
@@ -409,12 +433,12 @@ export class MYXClientService {
    * Authenticate the MYX client with signer and access token.
    * Uses promise dedup to prevent concurrent auth attempts.
    *
-   * @param signer - ethers v6 Signer-like object
-   * @param walletClient - viem WalletClient-like object
+   * @param signer - SignerLike adapter (ethers v5/v6 Signer or ISigner)
+   * @param walletClient - viem WalletClient-compatible adapter
    * @param address - User wallet address for token generation
    */
   async authenticate(
-    signer: unknown,
+    signer: SignerLike,
     walletClient: unknown,
     address: string,
   ): Promise<void> {
@@ -428,7 +452,7 @@ export class MYXClientService {
       return;
     }
 
-    this.#authenticating = this.#doAuthenticate(signer, walletClient, address);
+    this.#authenticating = this.#doAuthenticate(walletClient, address);
     try {
       await this.#authenticating;
     } finally {
@@ -436,53 +460,36 @@ export class MYXClientService {
     }
   }
 
-  async #doAuthenticate(
-    signer: unknown,
-    walletClient: unknown,
-    address: string,
-  ): Promise<void> {
+  async #doAuthenticate(walletClient: unknown, address: string): Promise<void> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Authenticating...', {
         address: `${address.slice(0, 6)}...${address.slice(-4)}`,
       });
 
-      // Create getAccessToken callback for the SDK.
-      // The SDK calls this when it needs a fresh token.
-      // Must return {accessToken, expireAt} or undefined.
-      const getAccessToken = async (): Promise<
-        { accessToken: string; expireAt: number } | undefined
-      > => {
-        try {
-          const token = await this.#generateAccessToken(address);
-          if (!token) {
-            return undefined;
-          }
-          // Workaround: MYX WS requires 'sdk.' prefix on access tokens.
-          // The SDK's subscription.auth() omits it — prepend here.
-          // Guard against double-prefix if SDK fixes this in the future.
-          const prefixed = token.accessToken.startsWith('sdk.')
-            ? token.accessToken
-            : `sdk.${token.accessToken}`;
-          return { accessToken: prefixed, expireAt: token.expireAt };
-        } catch (tokenError) {
-          this.#deps.debugLogger.log(
-            '[MYXClientService] Token generation failed',
-            { error: String(tokenError) },
-          );
-          return undefined;
-        }
-      };
-
-      // Call SDK auth with signer, walletClient, and getAccessToken
+      // MYX example pattern: auth with walletClient only.
+      // The SDK handles token generation internally when walletClient is provided.
+      // No signer or getAccessToken callback needed.
       this.#myxClient.auth({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        signer: signer as any,
-        getAccessToken,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        walletClient: walletClient as any,
+        // @ts-expect-error Adapter implements the WalletClient subset the SDK uses at runtime; full viem type unavailable without adding viem
+        walletClient,
       });
 
       this.#authenticatedAddress = address.toLowerCase();
+
+      // Authenticate the WebSocket connection for private subscriptions
+      // (positions, orders). Must be called after myxClient.auth().
+      try {
+        await this.#myxClient.subscription.auth();
+        this.#deps.debugLogger.log(
+          '[MYXClientService] WebSocket auth successful',
+        );
+      } catch (wsAuthError) {
+        // Non-fatal: REST auth succeeded, WS subscriptions will fall back to polling
+        this.#deps.debugLogger.log(
+          '[MYXClientService] WebSocket auth failed (REST auth OK, WS subscriptions will use polling fallback)',
+          { error: String(wsAuthError) },
+        );
+      }
 
       this.#deps.debugLogger.log(
         '[MYXClientService] Authentication successful',
@@ -498,88 +505,6 @@ export class MYXClientService {
       );
       throw wrappedError;
     }
-  }
-
-  // ============================================================================
-  // Token Generation (moved from myxConfig.ts)
-  // ============================================================================
-
-  /**
-   * Compute SHA-256 hex digest using the Web Crypto API (available in React Native).
-   *
-   * @param input - The string to hash.
-   * @returns Hex-encoded SHA-256 digest.
-   */
-  async #sha256Hex(input: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(input);
-    const hashBuffer = await globalThis.crypto.subtle.digest(
-      'SHA-256',
-      data.buffer as ArrayBuffer,
-    );
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  /**
-   * Generate MYX access token via Token API.
-   * Token = SHA256({appId}&{timestamp}&{expireTime}&{address}&{secret})
-   *
-   * @param address - User wallet address.
-   * @returns Access token response with token string and expiry.
-   */
-  async #generateAccessToken(
-    address: string,
-  ): Promise<{ accessToken: string; expireAt: number }> {
-    const { appId, apiSecret } = this.#authConfig;
-
-    if (!appId || !apiSecret) {
-      throw new Error(
-        `MYX credentials not configured for ${this.#network}. Ensure MM_PERPS_MYX_APP_ID and MM_PERPS_MYX_API_SECRET are set in .js.env`,
-      );
-    }
-
-    const timestamp = Math.floor(Date.now() / 1000);
-    const expireTime = timestamp + 86400; // 24 hours
-    const signString = `${appId}&${timestamp}&${expireTime}&${address}&${apiSecret}`;
-    const signature = await this.#sha256Hex(signString);
-
-    // GET request with query params (per SDK integration guide)
-    const params = new URLSearchParams({
-      appId,
-      timestamp: String(timestamp),
-      expireTime: String(expireTime),
-      allowAccount: address,
-      signature,
-    });
-
-    const tokenApiUrl = `${getMYXHttpEndpoint(this.#network)}/openapi/gateway/auth/api_key/create_token`;
-
-    const response = await fetch(`${tokenApiUrl}?${params.toString()}`);
-
-    if (!response.ok) {
-      throw new Error(`MYX token API request failed: ${response.status}`);
-    }
-
-    const result = (await response.json()) as {
-      code: number;
-      data?: { accessToken: string; expireAt: number };
-      message?: string;
-    };
-
-    if (
-      (result.code !== 9200 && result.code !== 0) ||
-      !result.data?.accessToken
-    ) {
-      throw new Error(
-        `MYX token API error: code=${result.code} message=${result.message ?? 'unknown'}`,
-      );
-    }
-
-    return {
-      accessToken: result.data.accessToken,
-      expireAt: result.data.expireAt,
-    };
   }
 
   /**
@@ -648,11 +573,11 @@ export class MYXClientService {
    */
   async getOrders(
     address: string,
-  ): Promise<{ code: number; data?: MYXPositionType[] }> {
+  ): Promise<{ code: number; data?: MYXOrderItem[] }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting orders');
       const result = await this.#myxClient.order.getOrders(address);
-      return result as { code: number; data?: MYXPositionType[] };
+      return result as { code: number; data?: MYXOrderItem[] };
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -689,6 +614,39 @@ export class MYXClientService {
       this.#deps.logger.error(
         wrappedError,
         this.#getErrorContext('getOrderHistory'),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get pool open orders (pending limit/trigger orders only).
+   *
+   * Unlike getOrderHistory which returns all orders including filled market
+   * orders, this returns only pending orders that can be cancelled (TP/SL,
+   * limit orders). Equivalent to Hyperliquid's "open orders".
+   *
+   * @param address - User wallet address.
+   * @returns Array of pending pool open orders.
+   */
+  async getPoolOpenOrders(address: string): Promise<MYXPoolOpenOrder[]> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Getting pool open orders');
+      const accessToken = await this.#myxClient.getAccessToken();
+      const result = await this.#myxClient.api.getPoolOpenOrders(
+        accessToken ?? '',
+        address,
+        this.#chainId as ChainId,
+      );
+      return result.data ?? [];
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getPoolOpenOrders',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getPoolOpenOrders'),
       );
       throw wrappedError;
     }
@@ -737,7 +695,7 @@ export class MYXClientService {
     chainId: number,
     address: string,
     poolId: string,
-  ): Promise<{ code: number; data?: Record<string, unknown> }> {
+  ): Promise<{ code: number; data?: unknown }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting account info', {
         poolId,
@@ -747,7 +705,7 @@ export class MYXClientService {
         address,
         poolId,
       );
-      return result as { code: number; data?: Record<string, unknown> };
+      return result as { code: number; data?: unknown };
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -774,10 +732,14 @@ export class MYXClientService {
   ): Promise<{ code: number; data: string }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting wallet balance');
-      const result = await this.#myxClient.account.getWalletQuoteTokenBalance(
+      const tokenAddress = this.#isTestnet
+        ? MYX_COLLATERAL_TOKEN_TESTNET
+        : MYX_COLLATERAL_TOKEN_MAINNET;
+      const result = await this.#myxClient.account.getWalletQuoteTokenBalance({
         chainId,
         address,
-      );
+        tokenAddress,
+      });
       return result as { code: number; data: string };
     } catch (caughtError) {
       const wrappedError = ensureError(
@@ -805,10 +767,14 @@ export class MYXClientService {
   ): Promise<{ code: number; data: MYXTradeFlowItem[] }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting trade flow');
-      const result = await this.#myxClient.account.getTradeFlow(
-        params,
+      // SDK 1.0.2: getTradeFlow moved from Account to Api, requires accessToken in params.
+      // Access it via api namespace; cast params since our type doesn't include accessToken.
+      const accessToken = await this.#myxClient.getAccessToken();
+      const result = await this.#myxClient.api.getTradeFlow({
+        ...params,
+        accessToken: accessToken ?? '',
         address,
-      );
+      });
       return result as { code: number; data: MYXTradeFlowItem[] };
     } catch (caughtError) {
       const wrappedError = ensureError(
@@ -943,6 +909,47 @@ export class MYXClientService {
     }
   }
 
+  /**
+   * Get base detail for a pool (funding rate, open interest, volume).
+   *
+   * @param poolId - Pool identifier.
+   * @returns Base detail including fundingRate, longPosition, shortPosition, volume.
+   */
+  async getBaseDetail(poolId: string): Promise<{
+    fundingRate: string;
+    longPosition: number;
+    shortPosition: number;
+    volume: string;
+  }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Fetching base detail', {
+        poolId,
+      });
+
+      const result = await this.#myxClient.markets.getBaseDetail({
+        chainId: this.#chainId as ChainId,
+        poolId,
+      });
+
+      return {
+        fundingRate: result.fundingRate ?? '0',
+        longPosition: result.longPosition ?? 0,
+        shortPosition: result.shortPosition ?? 0,
+        volume: result.volume ?? '0',
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getBaseDetail',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getBaseDetail', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
   // ============================================================================
   // Kline WebSocket Subscriptions
   // ============================================================================
@@ -995,6 +1002,515 @@ export class MYXClientService {
         '[MYXClientService] Kline unsubscribe failed (expected during disconnect)',
         { globalId, resolution, error: String(error) },
       );
+    }
+  }
+
+  // ============================================================================
+  // Position & Order WebSocket Subscriptions
+  // ============================================================================
+
+  /**
+   * Subscribe to real-time position updates via WebSocket.
+   * Requires prior WebSocket auth (called automatically in #doAuthenticate).
+   *
+   * @param callback - Called on each position update from the WebSocket.
+   */
+  async subscribeToPositions(callback: (data: unknown) => void): Promise<void> {
+    this.#deps.debugLogger.log(
+      '[MYXClientService] Subscribing to positions WS',
+    );
+    await this.#myxClient.subscription.subscribePosition(callback);
+  }
+
+  /**
+   * Unsubscribe from position WebSocket updates.
+   *
+   * @param callback - The same callback reference passed to subscribeToPositions.
+   */
+  unsubscribeFromPositions(callback: (data: unknown) => void): void {
+    this.#deps.debugLogger.log(
+      '[MYXClientService] Unsubscribing from positions WS',
+    );
+    try {
+      this.#myxClient.subscription.unsubscribePosition(callback);
+    } catch (error) {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Position unsubscribe failed (expected during disconnect)',
+        { error: String(error) },
+      );
+    }
+  }
+
+  /**
+   * Subscribe to real-time order updates via WebSocket.
+   * Requires prior WebSocket auth (called automatically in #doAuthenticate).
+   *
+   * @param callback - Called on each order update from the WebSocket.
+   */
+  async subscribeToOrders(callback: (data: unknown) => void): Promise<void> {
+    this.#deps.debugLogger.log('[MYXClientService] Subscribing to orders WS');
+    await this.#myxClient.subscription.subscribeOrder(callback);
+  }
+
+  /**
+   * Unsubscribe from order WebSocket updates.
+   *
+   * @param callback - The same callback reference passed to subscribeToOrders.
+   */
+  unsubscribeFromOrders(callback: (data: unknown) => void): void {
+    this.#deps.debugLogger.log(
+      '[MYXClientService] Unsubscribing from orders WS',
+    );
+    try {
+      this.#myxClient.subscription.unsubscribeOrder(callback);
+    } catch (error) {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Order unsubscribe failed (expected during disconnect)',
+        { error: String(error) },
+      );
+    }
+  }
+
+  // ============================================================================
+  // Order Operations (Write)
+  // ============================================================================
+
+  /**
+   * Create an increase order (open or add to position).
+   *
+   * @param params - SDK PlaceOrderParams (chainId, address, poolId, size, price in 30-dec, etc.)
+   * @param tradingFee - Trading fee string (raw token amount)
+   * @param marketId - Market ID from getMarketDetail
+   * @returns SDK response with code, message, and optional transaction data.
+   */
+  async createIncreaseOrder(
+    params: PlaceOrderParams,
+    tradingFee: string,
+    marketId: string,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Creating increase order', {
+        marketId,
+        poolId: params.poolId,
+      });
+
+      const result = await this.#myxClient.order.createIncreaseOrder(
+        params,
+        tradingFee,
+        marketId,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.createIncreaseOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('createIncreaseOrder', {
+          marketId,
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Create a decrease order (reduce or close position).
+   *
+   * @param params - SDK PlaceOrderParams
+   * @returns SDK response with code, message, and optional transaction data.
+   */
+  async createDecreaseOrder(
+    params: PlaceOrderParams,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Creating decrease order', {
+        poolId: params.poolId,
+      });
+
+      const result = await this.#myxClient.order.createDecreaseOrder(params);
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.createDecreaseOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('createDecreaseOrder', {
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Cancel an open order.
+   *
+   * @param orderId - The order ID to cancel.
+   * @param chainId - Numeric chain ID (cast to SDK ChainId enum at runtime).
+   * @returns SDK response with code and message.
+   */
+  async cancelOrder(
+    orderId: string,
+    chainId: number,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Cancelling order', {
+        orderId,
+      });
+
+      // SDK expects ChainId enum — numeric values match at runtime
+      const result = await this.#myxClient.order.cancelOrder(
+        orderId,
+        chainId as ChainId,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.cancelOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrder', { orderId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get oracle price for a pool.
+   *
+   * @param poolId - Pool identifier.
+   * @returns Oracle price data including price, publishTime, oracleType.
+   */
+  async getOraclePrice(
+    poolId: string,
+  ): Promise<{ poolId: string; price: string; publishTime: number }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Fetching oracle price', {
+        poolId,
+      });
+
+      const result = await this.#myxClient.utils.getOraclePrice(
+        poolId,
+        this.#chainId,
+      );
+
+      return {
+        poolId: result.poolId,
+        price: result.price,
+        publishTime: result.publishTime,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getOraclePrice',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getOraclePrice', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Create a TP/SL order for an existing position.
+   *
+   * @param params - SDK PositionTpSlOrderParams
+   * @returns SDK response with code, message, and optional transaction data.
+   */
+  async createPositionTpSlOrder(
+    params: PositionTpSlOrderParams,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Creating position TP/SL order',
+        { poolId: params.poolId, positionId: params.positionId },
+      );
+
+      const result =
+        await this.#myxClient.order.createPositionTpSlOrder(params);
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.createPositionTpSlOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('createPositionTpSlOrder', {
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Update an existing order's size, price, TP/SL.
+   *
+   * @param params - SDK UpdateOrderParams (orderId, size, price, tp/sl fields).
+   * @param quoteAddress - Quote token address.
+   * @param chainId - Numeric chain ID.
+   * @param address - User wallet address.
+   * @param marketId - Market ID from getMarketDetail.
+   * @param isTpSlOrder - Whether this is a TP/SL order (optional).
+   * @returns SDK response with code, message, and optional data.
+   */
+  async updateOrderTpSl(
+    params: MYXUpdateOrderParams,
+    quoteAddress: string,
+    chainId: number,
+    address: string,
+    marketId: string,
+    isTpSlOrder?: boolean,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Updating order', {
+        orderId: params.orderId,
+        marketId,
+      });
+
+      const result = await this.#myxClient.order.updateOrderTpSl(
+        params,
+        quoteAddress,
+        chainId,
+        address,
+        marketId,
+        isTpSlOrder,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.updateOrderTpSl',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('updateOrderTpSl', {
+          orderId: params.orderId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Adjust collateral (margin) for an existing position.
+   *
+   * @param params - Adjust collateral parameters.
+   * @param params.poolId - Pool identifier.
+   * @param params.positionId - Position identifier.
+   * @param params.adjustAmount - Amount to adjust (positive = add, negative = remove).
+   * @param params.quoteToken - Quote token address.
+   * @param params.chainId - Numeric chain ID.
+   * @param params.address - User wallet address.
+   * @returns SDK response with code, message, and optional hash.
+   */
+  async adjustCollateral(params: {
+    poolId: string;
+    positionId: string;
+    adjustAmount: string;
+    quoteToken: string;
+    chainId: number;
+    address: string;
+  }): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Adjusting collateral', {
+        poolId: params.poolId,
+        positionId: params.positionId,
+      });
+
+      const result = await this.#myxClient.position.adjustCollateral(params);
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.adjustCollateral',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('adjustCollateral', {
+          poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Cancel multiple orders at once.
+   *
+   * @param orderIds - Array of order IDs to cancel.
+   * @param chainId - Numeric chain ID.
+   * @returns SDK response with code and message.
+   */
+  async cancelOrders(
+    orderIds: string[],
+    chainId: number,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Cancelling orders', {
+        count: orderIds.length,
+      });
+
+      const result = await this.#myxClient.order.cancelOrders(
+        orderIds,
+        chainId as ChainId,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.cancelOrders',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrders', { count: orderIds.length }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get market detail for a pool (includes marketId needed for order creation).
+   *
+   * @param poolId - Pool identifier.
+   * @returns Market detail including marketId, baseSymbol, quoteSymbol.
+   */
+  async getMarketDetail(
+    poolId: string,
+  ): Promise<{ marketId: string; baseSymbol: string; quoteSymbol: string }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Fetching market detail', {
+        poolId,
+      });
+
+      const detail = await this.#myxClient.markets.getMarketDetail({
+        chainId: this.#chainId,
+        poolId,
+      });
+
+      return {
+        marketId: detail.marketId,
+        baseSymbol: detail.baseSymbol,
+        quoteSymbol: detail.quoteSymbol,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getMarketDetail',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getMarketDetail', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get the network (execution) fee for orders on a market.
+   * Keepers require this fee to execute limit/trigger orders.
+   * The SDK's createIncreaseOrder calls this internally, but it's
+   * exposed here for fee estimation and display.
+   *
+   * @param marketId - Market ID from getMarketDetail.
+   * @returns Execution fee amount as a string (in collateral token decimals).
+   */
+  async getNetworkFee(marketId: string): Promise<string> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Getting network fee', {
+        marketId,
+      });
+
+      const fee = await this.#myxClient.utils.getNetworkFee(
+        marketId,
+        this.#chainId,
+      );
+      return String(fee);
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getNetworkFee',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getNetworkFee', { marketId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get pool level config (includes minOrderSizeInUsd).
+   *
+   * @param poolId - Pool identifier.
+   * @returns Pool level config with minOrderSizeInUsd.
+   */
+  async getPoolLevelConfig(
+    poolId: string,
+  ): Promise<{ minOrderSizeInUsd: number }> {
+    const config = await this.#myxClient.markets.getPoolLevelConfig(
+      poolId,
+      this.#chainId,
+    );
+    return {
+      minOrderSizeInUsd: config?.levelConfig?.minOrderSizeInUsd ?? 0,
+    };
+  }
+
+  /**
+   * Get user trading fee rate.
+   *
+   * @param assetClass - Asset class (0 = standard).
+   * @param riskTier - Risk tier (0 = default).
+   * @param chainId - Chain ID override (defaults to configured chain).
+   * @returns Fee rate data with takerFeeRate and makerFeeRate.
+   */
+  async getUserTradingFeeRate(
+    assetClass = 0,
+    riskTier = 0,
+    chainId?: number,
+  ): Promise<{ takerFeeRate: string; makerFeeRate: string }> {
+    try {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Getting user trading fee rate',
+      );
+
+      const result = await this.#myxClient.utils.getUserTradingFeeRate(
+        assetClass,
+        riskTier,
+        chainId ?? this.#chainId,
+      );
+
+      if (result.code !== 0) {
+        const errorMessage = 'message' in result ? result.message : 'unknown';
+        throw new Error(
+          `Fee rate API error: code=${result.code} message=${errorMessage}`,
+        );
+      }
+
+      return {
+        takerFeeRate: String(result.data.takerFeeRate ?? '0'),
+        makerFeeRate: String(result.data.makerFeeRate ?? '0'),
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getUserTradingFeeRate',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getUserTradingFeeRate'),
+      );
+      throw wrappedError;
     }
   }
 

@@ -126,6 +126,12 @@ jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
   PERPS_CONSTANTS: {
     RecentActivityLimit: 3,
+    FallbackDataDisplay: '--',
+  },
+  DECIMAL_PRECISION_CONFIG: {
+    MaxPriceDecimals: 6,
+    MaxSignificantFigures: 5,
+    FallbackSizeDecimals: 6,
   },
   PERPS_EVENT_VALUE: {
     SCREEN_NAME: {
@@ -318,8 +324,8 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       expect(screen.getByText('1.5 ETH')).toBeOnTheScreen();
-      expect(screen.getByText('2.0 ETH')).toBeOnTheScreen();
-      expect(screen.getByText('1.0 ETH')).toBeOnTheScreen();
+      expect(screen.getByText('2 ETH')).toBeOnTheScreen();
+      expect(screen.getByText('1 ETH')).toBeOnTheScreen();
     });
 
     it('renders token logos for each trade', () => {

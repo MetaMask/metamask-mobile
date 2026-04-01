@@ -1,0 +1,149 @@
+{
+  "title": "MYX: Full Trade Lifecycle",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "cleanup-positions",
+          "description": "Close any existing positions to start clean",
+          "action": "eval_ref",
+          "ref": "myx/close-all-positions",
+          "assert": { "operator": "not_null" }
+        },
+        {
+          "id": "wait-clean",
+          "description": "Wait for positions to clear",
+          "action": "wait_for",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 2000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "step1-place-market",
+          "description": "Step 1: Open position via UI",
+          "action": "flow_ref",
+          "ref": "trade-open-market",
+          "params": { "symbol": "META", "side": "long", "usdAmount": "150" }
+        },
+        {
+          "id": "wait-position",
+          "description": "Poll until position appears",
+          "action": "wait_for",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 30000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-home-1",
+          "description": "Navigate to Perps home to show position",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-1",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-after-open",
+          "description": "Capture: position opened",
+          "action": "screenshot",
+          "filename": "14-full-cycle-1-position-opened"
+        },
+        {
+          "id": "step2-tpsl",
+          "description": "Step 2: Set TP (+10%) and SL (-5%) on position",
+          "action": "eval_ref",
+          "ref": "myx/update-tpsl",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "step3-add-margin",
+          "description": "Step 3: Add $10 margin",
+          "action": "eval_ref",
+          "ref": "myx/add-margin",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "verify-enriched",
+          "description": "Verify position has TP/SL and increased margin",
+          "action": "eval_async",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(ps){if(!ps.length)return JSON.stringify({error:'no positions'});var pos=ps[0];return JSON.stringify({symbol:pos.symbol,margin:pos.marginUsed,hasTP:!!pos.takeProfitPrice,hasSL:!!pos.stopLossPrice})})})()",
+          "assert": { "operator": "eq", "field": "hasTP", "value": true }
+        },
+        {
+          "id": "nav-home-2",
+          "description": "Navigate to Perps home to show enriched position",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-2",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-after-tpsl-margin",
+          "description": "Capture: position with TP/SL + added margin",
+          "action": "screenshot",
+          "filename": "14-full-cycle-2-tpsl-margin"
+        },
+        {
+          "id": "step4-close",
+          "description": "Step 4: Close position via UI",
+          "action": "flow_ref",
+          "ref": "trade-close-position",
+          "params": { "symbol": "META" }
+        },
+        {
+          "id": "wait-closed",
+          "description": "Poll until position is gone",
+          "action": "wait_for",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-home-3",
+          "description": "Navigate to Perps home to show clean state",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-3",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-after-close",
+          "description": "Capture: no positions after full cycle",
+          "action": "screenshot",
+          "filename": "14-full-cycle-3-closed"
+        },
+        {
+          "id": "log-check",
+          "description": "Verify no fatal errors in Metro logs",
+          "action": "log_watch",
+          "window_seconds": 120,
+          "must_not_appear": ["FATAL", "Unhandled promise rejection"]
+        }
+      ]
+    }
+  }
+}

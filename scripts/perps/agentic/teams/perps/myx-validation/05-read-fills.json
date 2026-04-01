@@ -1,0 +1,52 @@
+{
+  "title": "MYX: Read Order Fills (PR #myx-write-integration)",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "nav-perps-home",
+          "description": "Navigate to Perps home to show activity",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-perps-home",
+          "description": "Wait for Perps home to render",
+          "action": "wait_for",
+          "route": "PerpsMarketListView"
+        },
+        {
+          "id": "screenshot-activity",
+          "description": "Capture Perps home with recent activity visible",
+          "action": "screenshot",
+          "filename": "05-read-fills-activity"
+        },
+        {
+          "id": "read-fills",
+          "description": "Fetch MYX order fills via provider",
+          "action": "eval_ref",
+          "ref": "myx/fills",
+          "assert": {
+            "operator": "not_null"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -203,7 +203,11 @@ export function usePerpsTrading() {
   const validateOrder = useCallback(
     async (
       params: OrderParams,
-    ): Promise<{ isValid: boolean; error?: string }> => {
+    ): Promise<{
+      isValid: boolean;
+      error?: string;
+      minimumRequired?: number;
+    }> => {
       const controller = Engine.context.PerpsController;
       return controller.validateOrder(params);
     },

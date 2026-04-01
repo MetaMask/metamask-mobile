@@ -958,7 +958,7 @@ export type PerpsProvider = {
   ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific deposit validation
   validateOrder(
     params: OrderParams,
-  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific order validation
+  ): Promise<{ isValid: boolean; error?: string; minimumRequired?: number }>; // Protocol-specific order validation
   validateClosePosition(
     params: ClosePositionParams,
   ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific position close validation

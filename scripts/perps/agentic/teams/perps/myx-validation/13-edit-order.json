@@ -1,0 +1,114 @@
+{
+  "title": "MYX: Place Limit Order + Edit Price + Verify on Home",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "place-limit",
+          "description": "Place limit buy at 50% of market price",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no markets'});var m=markets[0];var price=parseFloat(m.price.replace(/[^0-9.]/g,''));var limitPrice=String(price*0.5);var size=String(150/price);return p.placeOrder({symbol:m.symbol,isBuy:true,orderType:'limit',size:size,leverage:2,usdAmount:'150',maxSlippageBps:500,currentPrice:price,price:limitPrice}).then(function(r){return JSON.stringify(r)})})})()",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-order",
+          "description": "Poll until order appears in open orders",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 30000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "capture-original-price",
+          "description": "Capture original order price before edit",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no provider'});return p.getOpenOrders().then(function(orders){if(!orders.length)return JSON.stringify({error:'no orders'});return JSON.stringify({price:orders[0].price,orderId:orders[0].orderId})})})()",
+          "assert": { "operator": "not_null", "field": "price" }
+        },
+        {
+          "id": "nav-home-before",
+          "description": "Navigate to Perps home to show order before edit",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-before",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-before-edit",
+          "description": "Capture Perps home showing order before edit",
+          "action": "screenshot",
+          "filename": "13-edit-order-before"
+        },
+        {
+          "id": "edit-order",
+          "description": "Edit the order price (+1%)",
+          "action": "eval_ref",
+          "ref": "myx/edit-order",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-edit-confirm",
+          "description": "Wait for edit to propagate",
+          "action": "wait",
+          "ms": 5000
+        },
+        {
+          "id": "verify-price-changed",
+          "description": "Verify order still exists (edit replaces order on MYX)",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(orders){return JSON.stringify({count:orders.length})})})()",
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-home-after",
+          "description": "Navigate to Perps home to show order after edit",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-after",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-after-edit",
+          "description": "Capture Perps home showing edited order",
+          "action": "screenshot",
+          "filename": "13-edit-order-after"
+        },
+        {
+          "id": "cleanup-cancel",
+          "description": "Cancel the edited order",
+          "action": "eval_ref",
+          "ref": "myx/cancel-order",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "verify-cancelled",
+          "description": "Poll until no open orders remain",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        }
+      ]
+    }
+  }
+}

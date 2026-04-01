@@ -382,7 +382,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     await handleClosePosition({
       position: livePosition,
-      size: sizeToClose || '',
+      size: sizeToClose,
       orderType,
       limitPrice: orderType === 'limit' ? limitPrice : undefined,
       trackingData: {

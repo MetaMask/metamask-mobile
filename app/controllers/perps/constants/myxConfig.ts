@@ -5,7 +5,7 @@
  * Based on MYX SDK patterns.
  */
 
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import type {
@@ -91,9 +91,14 @@ export const MYX_PRICE_DECIMALS = 0;
 export const MYX_SIZE_DECIMALS = 18;
 
 /**
- * MYX uses 18 decimals for collateral amounts (USDT on BNB)
+ * Collateral token decimals per network.
+ * Mainnet: USDT on BNB Chain = 18 decimals (verified on-chain)
+ * Testnet: USDC on Linea Sepolia = 6 decimals (verified on-chain)
  */
-export const MYX_COLLATERAL_DECIMALS = 18;
+export const MYX_COLLATERAL_DECIMALS: Record<MYXNetwork, number> = {
+  mainnet: 18,
+  testnet: 6,
+};
 
 // ============================================================================
 // Token Addresses
@@ -107,16 +112,52 @@ export const MYX_COLLATERAL_TOKEN_TESTNET =
   '0xD984fd34f91F92DA0586e1bE82E262fF27DC431b' as const;
 
 /**
- * Collateral token address — mainnet (BUSD on BNB, per pool quoteToken)
+ * Collateral token address — mainnet (USDT on BNB Chain)
+ * Canonical BSC USDT from Ryan's prod_bsc_mainnet config.
  * Note: individual pools may use different quote tokens
  */
 export const MYX_COLLATERAL_TOKEN_MAINNET =
-  '0x8bfc51e1928e91e47c6734983ac018b2fc0adf4e' as const;
+  '0x55d398326f99059fF775485246999027B3197955' as const;
 
-/** @deprecated Use MYX_COLLATERAL_TOKEN_TESTNET */
-export const USDT_BNB_TESTNET = MYX_COLLATERAL_TOKEN_TESTNET;
-/** @deprecated Use MYX_COLLATERAL_TOKEN_MAINNET */
-export const USDT_BNB_MAINNET = MYX_COLLATERAL_TOKEN_MAINNET;
+// ============================================================================
+// Contract Addresses
+// ============================================================================
+
+/**
+ * Block explorer URLs per network for transaction links.
+ */
+export const MYX_BLOCK_EXPLORER_URL: Record<MYXNetwork, string> = {
+  mainnet: 'https://bscscan.com',
+  testnet: 'https://sepolia.lineascan.build',
+};
+
+/**
+ * MYX Account contract addresses — receives collateral deposits (global "Free Margin").
+ * Source: docs/perps/myx/myx-contract-addresses-v2.txt
+ */
+export const MYX_ACCOUNT_CONTRACTS: Record<
+  MYXNetwork,
+  { chainId: CaipChainId; contractAddress: Hex }
+> = {
+  mainnet: {
+    chainId: MYX_MAINNET_CAIP_CHAIN_ID,
+    contractAddress: '0xa32D0550F127fCFF0FA13D21523c5d4a2b86595D' as Hex,
+  },
+  testnet: {
+    chainId: MYX_TESTNET_CAIP_CHAIN_ID,
+    contractAddress: '0xB219526B2DC7Aa25Eb78A8Bd5e0AeaC9880f26Ca' as Hex,
+  },
+};
+
+/**
+ * CAIP asset IDs for MYX collateral tokens
+ */
+export const MYX_COLLATERAL_ASSET_IDS: Record<MYXNetwork, CaipAssetId> = {
+  mainnet:
+    `${MYX_MAINNET_CAIP_CHAIN_ID}/erc20:${MYX_COLLATERAL_TOKEN_MAINNET}/default` as CaipAssetId,
+  testnet:
+    `${MYX_TESTNET_CAIP_CHAIN_ID}/erc20:${MYX_COLLATERAL_TOKEN_TESTNET}/default` as CaipAssetId,
+};
 
 /**
  * Collateral token configuration by network
@@ -170,9 +211,13 @@ export function toMYXPrice(price: number | string): string {
 }
 
 /**
- * Convert MYX SDK size (18 decimals) to standard number
+ * Convert MYX SDK size (18 decimals) to standard number.
  *
- * @param myxSize - Size string in 18-decimal format from SDK
+ * Use this ONLY for raw on-chain / contract-layer values (e.g. from
+ * createIncreaseOrder responses). For REST API responses, use
+ * {@link fromMYXApiSize} — the API already returns human-readable strings.
+ *
+ * @param myxSize - Size string in 18-decimal format from SDK contract layer
  * @returns Standard decimal number
  */
 export function fromMYXSize(myxSize: string): number {
@@ -190,6 +235,24 @@ export function fromMYXSize(myxSize: string): number {
   } catch {
     return 0;
   }
+}
+
+/**
+ * Parse MYX REST API size string to number.
+ *
+ * The MYX REST API (getOrderHistory, listPositions, getPositionHistory, etc.)
+ * returns sizes as human-readable strings (e.g. "0.00136159"), NOT 18-decimal
+ * scaled integers. This is a simple parseFloat.
+ *
+ * @param apiSize - Size string from MYX REST API
+ * @returns Standard decimal number
+ */
+export function fromMYXApiSize(apiSize: string): number {
+  if (!apiSize || apiSize === '0') {
+    return 0;
+  }
+  const parsed = parseFloat(apiSize);
+  return isNaN(parsed) ? 0 : parsed;
 }
 
 /**
@@ -212,12 +275,45 @@ export function toMYXSize(size: number | string): string {
 }
 
 /**
- * Convert MYX SDK collateral (18 decimals) to standard number
+ * Convert a USD amount to the collateral token's native decimal format.
  *
- * @param myxCollateral - Collateral string in 18-decimal format from SDK
+ * Mainnet USDT on BNB = 18 decimals, testnet USDC on Linea Sepolia = 6 decimals.
+ *
+ * @param amount - USD amount as a human-readable number (e.g. 10 for $10)
+ * @param network - 'mainnet' or 'testnet'
+ * @returns Collateral string in the token's native decimal format
+ */
+export function toMYXCollateral(
+  amount: number | string,
+  network: MYXNetwork,
+): string {
+  try {
+    const bn = new BigNumber(amount);
+    if (bn.isNaN()) {
+      return '0';
+    }
+    const decimals = MYX_COLLATERAL_DECIMALS[network];
+    const multiplier = new BigNumber(10).pow(decimals);
+    return bn.multipliedBy(multiplier).toFixed(0);
+  } catch {
+    return '0';
+  }
+}
+
+/**
+ * Convert on-chain collateral value to standard number.
+ *
+ * Use this ONLY for raw on-chain / contract-layer values. For REST API
+ * responses, use {@link fromMYXApiCollateral}.
+ *
+ * @param myxCollateral - Collateral string in token-native decimals from contract
+ * @param network - 'mainnet' or 'testnet'
  * @returns Standard decimal number
  */
-export function fromMYXCollateral(myxCollateral: string): number {
+export function fromMYXCollateral(
+  myxCollateral: string,
+  network: MYXNetwork = 'mainnet',
+): number {
   if (!myxCollateral || myxCollateral === '0') {
     return 0;
   }
@@ -227,11 +323,29 @@ export function fromMYXCollateral(myxCollateral: string): number {
     if (bn.isNaN()) {
       return 0;
     }
-    const divisor = new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS);
+    const divisor = new BigNumber(10).pow(MYX_COLLATERAL_DECIMALS[network]);
     return bn.dividedBy(divisor).toNumber();
   } catch {
     return 0;
   }
+}
+
+/**
+ * Parse MYX REST API collateral/amount string to number.
+ *
+ * The MYX REST API returns collateral, fees, PnL, and balance values as
+ * human-readable strings (e.g. "5.895534", "-0.029124"), NOT 18-decimal
+ * scaled integers. This is a simple parseFloat.
+ *
+ * @param apiCollateral - Collateral/amount string from MYX REST API
+ * @returns Standard decimal number
+ */
+export function fromMYXApiCollateral(apiCollateral: string): number {
+  if (!apiCollateral || apiCollateral === '0') {
+    return 0;
+  }
+  const parsed = parseFloat(apiCollateral);
+  return isNaN(parsed) ? 0 : parsed;
 }
 
 // ============================================================================
@@ -260,20 +374,61 @@ export const MYX_MAX_RETRIES = 3;
 export const MYX_DEFAULT_SLIPPAGE_BPS = 100;
 
 /**
+ * Provider identifier for MYX — used as `providerId` in return types.
+ * Matches the `PerpsProviderType` union member.
+ */
+export const MYX_PROVIDER_ID = 'myx' as const;
+
+/**
  * Maximum leverage supported by MYX (most markets)
  */
 export const MYX_MAX_LEVERAGE = 100;
 
 /**
- * Minimum order size in USD
+ * Minimum order size in USD (static fallback — prefer per-pool config from SDK)
  */
-export const MYX_MINIMUM_ORDER_SIZE_USD = 10;
+export const MYX_MINIMUM_ORDER_SIZE_USD = 100;
 
 /**
- * MYX fee rates (placeholder — will be replaced with per-market rates)
+ * Safety buffer multiplier applied to minimum order size.
+ * Prevents edge-case rejections where on-chain validation uses
+ * slightly different rounding than the client estimate.
  */
-export const MYX_FEE_RATE = 0.0005; // 0.05% total fee rate
-export const MYX_PROTOCOL_FEE_RATE = 0.0005; // Protocol taker fee
+export const MYX_MIN_ORDER_SIZE_BUFFER = 1.1;
+
+/**
+ * Maximum order value in USD for MYX.
+ * MYX is an on-chain AMM — pool liquidity is the natural cap.
+ * This is a generous client-side guardrail; the on-chain contract
+ * will reject orders that exceed pool capacity regardless.
+ */
+export const MYX_MAX_ORDER_VALUE_USD = 1_000_000;
+
+/**
+ * MYX fee rate precision: 1e8 (on-chain RATE_PRECISION).
+ * All fee rates from getUserTradingFeeRate() use this precision.
+ *
+ * Evidence (BSC mainnet, chainId 56):
+ * baseTakerFeeRate = 10000 -> 10000 / 1e8 = 0.01% (base fee)
+ * addOn = 45000 -> 45000 / 1e8 = 0.045% (tier add-on)
+ * takerFeeRate = 55000 -> 55000 / 1e8 = 0.055% (matches MYX docs)
+ */
+export const MYX_FEE_RATE_PRECISION = 100_000_000;
+
+/**
+ * Default MYX taker fee rate (in 1e8 precision).
+ * Observed from getUserTradingFeeRate(0, 0, chainId) on both mainnet and testnet.
+ * Used as fallback when the API call fails.
+ * 55000 / 1e8 = 0.00055 = 0.055%
+ */
+export const MYX_DEFAULT_TAKER_FEE_RATE = 55000;
+
+/**
+ * MYX fee rates as decimals (derived from the above for UI display).
+ * 55000 / 100_000_000 = 0.00055 = 0.055%
+ */
+export const MYX_FEE_RATE = MYX_DEFAULT_TAKER_FEE_RATE / MYX_FEE_RATE_PRECISION; // 0.00055 = 0.055%
+export const MYX_PROTOCOL_FEE_RATE = MYX_FEE_RATE; // Protocol takes the full fee (broker rebate is separate)
 
 /**
  * USDT execution fee token address per network (used for order execution fees)
@@ -282,3 +437,86 @@ export const MYX_EXECUTION_FEE_TOKEN: Record<MYXNetwork, string> = {
   testnet: MYX_COLLATERAL_TOKEN_TESTNET,
   mainnet: MYX_COLLATERAL_TOKEN_MAINNET,
 };
+
+/**
+ * MYX contract price decimals — SDK's createIncreaseOrder uses 30-decimal
+ * contract-layer prices (not human-readable REST API prices).
+ */
+export const MYX_CONTRACT_PRICE_DECIMALS = 30;
+
+/**
+ * Market detail cache TTL in milliseconds (1 minute).
+ * Used for getMarketDetail() results (marketId, globalId).
+ */
+export const MYX_MARKET_DETAIL_CACHE_TTL_MS = 60_000;
+
+/**
+ * Markets list cache TTL in milliseconds (5 minutes).
+ * Used for getPoolSymbolAll() results in MYXClientService.
+ */
+export const MYX_MARKETS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * API access token expiry duration in seconds (24 hours).
+ * Passed to the MYX token API as the `expireTime` parameter.
+ */
+export const MYX_API_TOKEN_EXPIRY_SECONDS = 86_400;
+
+/**
+ * Public JSON-RPC endpoints per MYX network, matching the SDK's internal CHAIN_INFO.
+ */
+export const MYX_RPC_URLS: Record<MYXNetwork, string> = {
+  mainnet: 'https://bsc-dataseed.bnbchain.org',
+  testnet: 'https://rpc.sepolia.linea.build',
+};
+
+/**
+ * Slippage buffer multipliers for market orders.
+ * LONG orders use the high multiplier (accept higher price),
+ * SHORT orders use the low multiplier (accept lower price).
+ */
+export const MYX_SLIPPAGE_BUFFER_HIGH = 1.05;
+export const MYX_SLIPPAGE_BUFFER_LOW = 0.95;
+
+/**
+ * Default limit for history queries (orders, positions, fills).
+ */
+export const MYX_HISTORY_QUERY_LIMIT = 50;
+
+/**
+ * Fallback string returned when a calculation cannot produce a valid price.
+ */
+export const MYX_ZERO_PRICE_FALLBACK = '0.00';
+
+/**
+ * Near-zero threshold for denominator checks in liquidation price calculation.
+ */
+export const MYX_NEAR_ZERO_THRESHOLD = 0.0001;
+
+/**
+ * Maintenance margin multiplier: maintenance leverage = 2 * maxLeverage.
+ * Used in liquidation price calculation per MYX contract logic.
+ */
+export const MYX_MAINTENANCE_MARGIN_MULTIPLIER = 2;
+
+/**
+ * Convert a human-readable price to MYX 30-decimal contract format.
+ *
+ * SDK's createIncreaseOrder expects price as a string scaled by 10^30.
+ * Example: $65,629.50 → "65629500000000000000000000000000000"
+ *
+ * @param price - Human-readable price (number or string)
+ * @returns 30-decimal price string for SDK contract calls
+ */
+export function toMYXContractPrice(price: number | string): string {
+  try {
+    const bn = new BigNumber(price);
+    if (bn.isNaN() || bn.isZero()) {
+      return '0';
+    }
+    const multiplier = new BigNumber(10).pow(MYX_CONTRACT_PRICE_DECIMALS);
+    return bn.multipliedBy(multiplier).toFixed(0);
+  } catch {
+    return '0';
+  }
+}

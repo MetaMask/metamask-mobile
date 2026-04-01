@@ -3435,7 +3435,7 @@ export class PerpsController extends BaseController<
    */
   async validateOrder(
     params: OrderParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
+  ): Promise<{ isValid: boolean; error?: string; minimumRequired?: number }> {
     const provider = this.getActiveProvider();
     const context = this.#createServiceContext('validateOrder');
     return this.#marketDataService.validateOrder({ provider, params, context });

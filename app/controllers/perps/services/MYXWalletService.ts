@@ -1,12 +1,12 @@
 /**
  * MYXWalletService
  *
- * Provides ethers v6 Signer and viem WalletClient adapters for the MYX SDK.
+ * Provides SignerLike and WalletClientLike adapters for the MYX SDK.
  * Routes signing operations through MetaMask's KeyringController via messenger.
  *
- * The MYX SDK requires:
- * - ethers.Signer (v6) for on-chain transaction signing
- * - viem WalletClient for wallet interactions
+ * The MYX SDK (1.0.2+) accepts:
+ * - SignerLike (ethers v5/v6 Signer, ISigner, or WalletClientLike) for auth
+ * - WalletClientLike for on-chain transactions via transport
  * - getAccessToken callback for API auth
  *
  * This service creates lightweight adapter objects that satisfy these interfaces
@@ -15,17 +15,23 @@
 
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type { TypedMessageParams } from '@metamask/keyring-controller';
+import type {
+  TransactionParams,
+  AddTransactionOptions,
+} from '@metamask/transaction-controller';
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import {
   getMYXChainId,
+  MYX_RPC_URLS,
   MYX_TESTNET_CHAIN_ID,
   MYX_MAINNET_CHAIN_ID,
 } from '../constants/myxConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { PerpsPlatformDependencies } from '../types';
+import type { MYXNetwork } from '../types/myx-types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 export class MYXWalletService {
@@ -66,16 +72,14 @@ export class MYXWalletService {
   }
 
   /**
-   * Create an ethers v6 Signer-like object for the MYX SDK.
-   * The MYX SDK uses ethers v6 internally (bundled in its own node_modules).
-   * We return a plain object that satisfies the SDK's usage pattern:
-   * - getAddress(): returns the user's address
-   * - signTypedData(): delegates to MetaMask keyring
+   * Create a SignerLike adapter for the MYX SDK.
+   * Returns a plain object matching the MinimalSignerLike shape
+   * (getAddress + signTypedData) that the SDK normalizes internally.
    *
    * @returns Signer-like adapter object for the MYX SDK.
    */
   public createEthersSigner(): {
-    getAddress: () => Promise<string>;
+    getAddress: () => string;
     signTypedData: (
       domain: Record<string, unknown>,
       types: Record<string, { name: string; type: string }[]>,
@@ -93,7 +97,9 @@ export class MYXWalletService {
     }
 
     return {
-      getAddress: async (): Promise<string> => {
+      // Synchronous: the MYX SDK calls signer.getAddress() without await
+      // (see getUserTradingFeeRate in SDK), so this must return a string, not a Promise.
+      getAddress: (): string => {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -119,8 +125,9 @@ export class MYXWalletService {
         }
 
         // Determine primaryType from types (exclude EIP712Domain)
-        const typeKeys = Object.keys(types).filter((k) => k !== 'EIP712Domain');
-        const primaryType = typeKeys[0] ?? 'EIP712Domain';
+        const primaryType =
+          Object.keys(types).find((k) => k !== 'EIP712Domain') ??
+          'EIP712Domain';
 
         this.#deps.debugLogger.log('MYXWalletService: Signing typed data', {
           address: currentAccount.address,
@@ -145,14 +152,38 @@ export class MYXWalletService {
 
   /**
    * Create a viem WalletClient-like object for the MYX SDK.
-   * The SDK's auth() requires a walletClient parameter.
-   * We provide a minimal object that satisfies the SDK's usage.
+   *
+   * The SDK uses `walletClient.transport` to create an ethers BrowserProvider,
+   * which it then uses for contract calls (gas estimation, sending transactions).
+   * The transport must implement EIP-1193 `request()` to proxy JSON-RPC calls
+   * to the chain RPC, with `eth_sendTransaction` routed through MetaMask's
+   * TransactionController.
    *
    * @returns WalletClient-like adapter object for the MYX SDK.
    */
   public createWalletClient(): {
     account: { address: string };
     chain: { id: number };
+    transport: {
+      request: (args: {
+        method: string;
+        params?: unknown[];
+      }) => Promise<unknown>;
+    };
+    request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+    getAddresses: () => Promise<readonly `0x${string}`[]>;
+    signMessage: (args: {
+      message: string | { raw: Uint8Array };
+    }) => Promise<`0x${string}`>;
+    sendTransaction: (args: {
+      to: `0x${string}`;
+      data?: `0x${string}`;
+      value?: bigint;
+      gas?: bigint;
+      gasPrice?: bigint;
+      maxFeePerGas?: bigint;
+      maxPriorityFeePerGas?: bigint;
+    }) => Promise<`0x${string}`>;
     signTypedData: (args: {
       domain: Record<string, unknown>;
       types: Record<string, { name: string; type: string }[]>;
@@ -168,11 +199,118 @@ export class MYXWalletService {
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
-    const chainId = getMYXChainId(this.#isTestnet ? 'testnet' : 'mainnet');
+    const network: MYXNetwork = this.#isTestnet ? 'testnet' : 'mainnet';
+    const chainId = getMYXChainId(network);
+    const rpcUrl = MYX_RPC_URLS[network];
+
+    // EIP-1193 transport that proxies JSON-RPC to the chain's public endpoint.
+    // eth_sendTransaction is routed through MetaMask's TransactionController.
+    // eth_accounts returns the current user's address.
+    const transport = {
+      request: async (args: {
+        method: string;
+        params?: unknown[];
+      }): Promise<unknown> => {
+        if (args.method === 'eth_accounts') {
+          const currentAccount = getSelectedEvmAccount(
+            this.#messenger.call(
+              'AccountTreeController:getAccountsFromSelectedAccountGroup',
+            ),
+          );
+          return [currentAccount?.address ?? evmAccount.address];
+        }
+
+        if (args.method === 'eth_sendTransaction') {
+          return this.#handleSendTransaction(
+            args.params,
+            evmAccount.address,
+            chainId,
+            transport,
+          );
+        }
+
+        if (args.method === 'eth_chainId') {
+          return `0x${chainId.toString(16)}`;
+        }
+
+        // All other RPC calls (eth_call, eth_estimateGas, eth_getBalance, etc.)
+        // are proxied to the chain's public JSON-RPC endpoint.
+        const response = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method: args.method,
+            params: args.params ?? [],
+          }),
+        });
+
+        const json = (await response.json()) as {
+          result?: unknown;
+          error?: { message: string };
+        };
+        if (json.error) {
+          throw new Error(`RPC error: ${json.error.message}`);
+        }
+        return json.result;
+      },
+    };
 
     return {
       account: { address: evmAccount.address },
       chain: { id: chainId },
+      transport,
+      // viem Client.request — SDK calls this for estimateContractGas/writeContract
+      request: transport.request,
+      // WalletClientLike interface methods
+      getAddresses: (): Promise<readonly `0x${string}`[]> =>
+        Promise.resolve([evmAccount.address as `0x${string}`]),
+      signMessage: async (): Promise<`0x${string}`> => {
+        // MYX SDK uses signTypedData for auth, not signMessage.
+        // signPersonalMessage is not in PerpsController's allowed messenger actions.
+        throw new Error(
+          'signMessage not supported — MYX auth uses signTypedData',
+        );
+      },
+      sendTransaction: async (args: {
+        to: `0x${string}`;
+        data?: `0x${string}`;
+        value?: bigint;
+        gas?: bigint;
+        gasPrice?: bigint;
+        maxFeePerGas?: bigint;
+        maxPriorityFeePerGas?: bigint;
+      }): Promise<`0x${string}`> => {
+        // Convert bigint values to hex strings for eth_sendTransaction
+        const txParams: Record<string, string> = {
+          from: evmAccount.address,
+          to: args.to,
+        };
+        if (args.data) {
+          txParams.data = args.data;
+        }
+        if (args.value !== undefined) {
+          txParams.value = `0x${BigInt(args.value).toString(16)}`;
+        }
+        if (args.gas !== undefined) {
+          txParams.gas = `0x${BigInt(args.gas).toString(16)}`;
+        }
+        if (args.gasPrice !== undefined) {
+          txParams.gasPrice = `0x${BigInt(args.gasPrice).toString(16)}`;
+        }
+        if (args.maxFeePerGas !== undefined) {
+          txParams.maxFeePerGas = `0x${BigInt(args.maxFeePerGas).toString(16)}`;
+        }
+        if (args.maxPriorityFeePerGas !== undefined) {
+          txParams.maxPriorityFeePerGas = `0x${BigInt(args.maxPriorityFeePerGas).toString(16)}`;
+        }
+        const hash = await transport.request({
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        });
+        return hash as `0x${string}`;
+      },
       signTypedData: async (args): Promise<string> => {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
@@ -252,6 +390,75 @@ export class MYXWalletService {
   ): Promise<Hex> {
     const id = accountId ?? (await this.getCurrentAccountId());
     return this.getUserAddressFromAccountId(id);
+  }
+
+  async #handleSendTransaction(
+    params: unknown[] | undefined,
+    fromAddress: string,
+    chainId: number,
+    transport: {
+      request: (args: {
+        method: string;
+        params?: unknown[];
+      }) => Promise<unknown>;
+    },
+  ): Promise<unknown> {
+    const txParams = (params?.[0] ?? {}) as Record<string, string>;
+    const hexChainId: `0x${string}` = `0x${chainId.toString(16)}`;
+    const networkClientId = this.#messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+    if (!networkClientId) {
+      throw new Error(
+        `No network client for chain ${hexChainId}. Add the BNB network first.`,
+      );
+    }
+
+    // If SDK didn't provide gas price, fetch it from the node.
+    // TransactionController with requireApproval:false skips the
+    // approval flow that normally estimates gas pricing.
+    let gasPriceFields: Record<string, string> = {};
+    if (txParams.gasPrice) {
+      gasPriceFields = { gasPrice: txParams.gasPrice };
+    } else if (txParams.maxFeePerGas) {
+      gasPriceFields = {
+        maxFeePerGas: txParams.maxFeePerGas,
+        ...(txParams.maxPriorityFeePerGas
+          ? { maxPriorityFeePerGas: txParams.maxPriorityFeePerGas }
+          : {}),
+      };
+    } else {
+      const gasPrice = await transport.request({
+        method: 'eth_gasPrice',
+        params: [],
+      });
+      if (gasPrice) {
+        gasPriceFields = { gasPrice: gasPrice as string };
+      }
+    }
+
+    const txData: TransactionParams = {
+      from: (txParams.from ?? fromAddress) as Hex,
+      to: txParams.to as Hex,
+      data: txParams.data as Hex,
+      value: (txParams.value ?? '0x0') as Hex,
+      gas: txParams.gas ?? txParams.gasLimit,
+      ...gasPriceFields,
+    };
+
+    const txOptions: AddTransactionOptions = {
+      networkClientId,
+      origin: 'metamask-perps-myx',
+      requireApproval: false,
+    };
+
+    const result = await this.#messenger.call(
+      'TransactionController:addTransaction',
+      txData,
+      txOptions,
+    );
+    return result.result;
   }
 
   public setTestnetMode(isTestnet: boolean): void {

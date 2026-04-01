@@ -1,0 +1,72 @@
+{
+  "title": "MYX: Place Limit Order + Verify on Home",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "place-limit",
+          "description": "Place limit buy at 50% of market price via provider",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no markets'});var m=markets[0];var price=parseFloat(m.price.replace(/[^0-9.]/g,''));var limitPrice=String(price*0.5);var size=String(150/price);return p.placeOrder({symbol:m.symbol,isBuy:true,orderType:'limit',size:size,leverage:2,usdAmount:'150',maxSlippageBps:500,currentPrice:price,price:limitPrice}).then(function(r){return JSON.stringify(r)})})})()",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-order",
+          "description": "Poll until order appears in open orders",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 30000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-home",
+          "description": "Navigate to Perps home to see order in UI",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-load",
+          "description": "Wait for home to render with orders section",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-order-visible",
+          "description": "Capture Perps home showing limit order in Orders section",
+          "action": "screenshot",
+          "filename": "11-limit-order-on-home"
+        },
+        {
+          "id": "cleanup-cancel",
+          "description": "Cancel the limit order",
+          "action": "eval_ref",
+          "ref": "myx/cancel-order",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "verify-cancelled",
+          "description": "Poll until no open orders remain",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        }
+      ]
+    }
+  }
+}

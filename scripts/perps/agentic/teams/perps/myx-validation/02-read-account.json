@@ -1,0 +1,63 @@
+{
+  "title": "MYX: Read Account State (PR #myx-write-integration)",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "nav-perps-home",
+          "description": "Navigate to Perps home to show balance",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-perps-home",
+          "description": "Wait for Perps home to render",
+          "action": "wait_for",
+          "route": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-account-loaded",
+          "description": "Wait for account state to load",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(a){return JSON.stringify({balance:a.availableBalance})})",
+          "assert": {
+            "operator": "not_null",
+            "field": "balance"
+          }
+        },
+        {
+          "id": "screenshot-balance",
+          "description": "Capture Perps home with balance visible",
+          "action": "screenshot",
+          "filename": "02-read-account-balance"
+        },
+        {
+          "id": "read-account",
+          "description": "Fetch MYX account state via provider",
+          "action": "eval_ref",
+          "ref": "myx/account",
+          "assert": {
+            "operator": "not_null",
+            "field": "availableBalance"
+          }
+        }
+      ]
+    }
+  }
+}

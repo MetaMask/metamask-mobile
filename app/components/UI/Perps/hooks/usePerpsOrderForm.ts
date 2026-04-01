@@ -98,12 +98,15 @@ export function usePerpsOrderForm(
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? availableBalance;
 
-  // Determine default amount based on network
-  const defaultAmount =
+  // Determine default amount based on network, respecting per-market minimum
+  const networkDefault =
     currentNetwork === 'mainnet'
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
-
+  const defaultAmount = Math.max(
+    networkDefault,
+    marketData?.minimumOrderSize ?? 0,
+  );
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
     initialLeverage ||
@@ -198,12 +201,24 @@ export function usePerpsOrderForm(
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
   const hasSetInitialAmount = useRef(false);
+  const prevMinimumOrderSize = useRef<number | undefined>(undefined);
   useEffect(() => {
+    // Reset the flag when market minimum becomes available (e.g. async market data load)
+    // so the default amount gets bumped up to respect the per-market minimum
+    const currentMin = marketData?.minimumOrderSize;
+    if (
+      prevMinimumOrderSize.current === undefined &&
+      currentMin !== undefined
+    ) {
+      hasSetInitialAmount.current = false;
+    }
+    prevMinimumOrderSize.current = currentMin;
+
     if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
       setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
       hasSetInitialAmount.current = true;
     }
-  }, [initialAmountValue]);
+  }, [initialAmountValue, marketData?.minimumOrderSize]);
 
   useEffect(() => {
     if (!pendingConfig) return;
@@ -342,15 +357,16 @@ export function usePerpsOrderForm(
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {
-    const minAmount =
+    const networkMin =
       currentNetwork === 'mainnet'
         ? TRADING_DEFAULTS.amount.mainnet
         : TRADING_DEFAULTS.amount.testnet;
+    const minAmount = Math.max(networkMin, marketData?.minimumOrderSize ?? 0);
     setOrderForm((prev) => ({
       ...prev,
       amount: minAmount.toString(),
     }));
-  }, [currentNetwork]);
+  }, [currentNetwork, marketData?.minimumOrderSize]);
 
   return {
     orderForm,

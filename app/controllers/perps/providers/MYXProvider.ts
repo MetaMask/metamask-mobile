@@ -12,16 +12,52 @@
  */
 
 import type { CaipAccountId } from '@metamask/utils';
-import type { KlineResolution } from '@myx-trade/sdk';
+import {
+  Direction as MYXDirection,
+  OperationType as MYXOperationType,
+  OrderType as MYXOrderType,
+  TimeInForce as MYXTimeInForce,
+  TriggerType as MYXTriggerType,
+} from '@myx-trade/sdk';
+import type {
+  KlineResolution,
+  PlaceOrderParams,
+  PositionTpSlOrderParams,
+} from '@myx-trade/sdk';
 
 import { calculateCandleCount } from '../constants/chartConfig';
 import {
   MYX_MAX_LEVERAGE,
   MYX_FEE_RATE,
-  MYX_PROTOCOL_FEE_RATE,
+  MYX_FEE_RATE_PRECISION,
+  MYX_DEFAULT_TAKER_FEE_RATE,
+  MYX_ACCOUNT_CONTRACTS,
+  MYX_BLOCK_EXPLORER_URL,
+  MYX_COLLATERAL_ASSET_IDS,
+  MYX_DEFAULT_SLIPPAGE_BPS,
+  MYX_EXECUTION_FEE_TOKEN,
+  MYX_HISTORY_QUERY_LIMIT,
+  MYX_MAINTENANCE_MARGIN_MULTIPLIER,
+  MYX_MARKET_DETAIL_CACHE_TTL_MS,
+  MYX_MIN_ORDER_SIZE_BUFFER,
+  MYX_MAX_ORDER_VALUE_USD,
+  MYX_MINIMUM_ORDER_SIZE_USD,
+  MYX_NEAR_ZERO_THRESHOLD,
+  MYX_ZERO_PRICE_FALLBACK,
+  MYX_PRICE_POLLING_INTERVAL_MS,
+  MYX_SLIPPAGE_BUFFER_HIGH,
+  MYX_SLIPPAGE_BUFFER_LOW,
+  toMYXSize,
+  toMYXCollateral,
+  toMYXContractPrice,
+  fromMYXPrice,
 } from '../constants/myxConfig';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  CLOSE_POSITION_CONFIG,
+  PERPS_CONSTANTS,
+} from '../constants/perpsConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { MYXClientService } from '../services/MYXClientService';
 import { MYXWalletService } from '../services/MYXWalletService';
 import { WebSocketConnectionState } from '../types';
@@ -83,13 +119,15 @@ import type {
   WithdrawResult,
   RawLedgerUpdate,
 } from '../types';
-import { MYXOrderStatusEnum } from '../types/myx-types';
 import type {
   MYXAuthConfig,
   MYXKlineDataResponse,
+  MYXNetwork,
   MYXPoolSymbol,
   MYXTicker,
+  MYXUpdateOrderParams,
 } from '../types/myx-types';
+import { MYXOrderStatusEnum } from '../types/myx-types';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
 import {
@@ -98,6 +136,7 @@ import {
   adaptPriceFromMYX,
   adaptPositionFromMYX,
   adaptOrderFromMYX,
+  adaptOrderItemFromMYX,
   adaptOrderFillFromMYX,
   adaptAccountStateFromMYX,
   adaptCandleFromMYX,
@@ -108,14 +147,29 @@ import {
   buildPoolSymbolMap,
   toMYXKlineResolution,
 } from '../utils/myxAdapter';
+import { validateOrderParams } from '../utils/orderValidation';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 const MYX_NOT_SUPPORTED_ERROR = 'MYX trading not yet supported';
-const MYX_BLOCK_EXPLORER_URL = 'https://bscscan.com';
-const MYX_TESTNET_EXPLORER_URL = 'https://sepolia.arbiscan.io';
+
+/** Shape of SDK result.data for write operations (order placement, close, TP/SL). */
+type MYXTxResultData = { transactionHash?: string; orderId?: string };
+
+/**
+ * Safely extract transaction result data from SDK response.
+ *
+ * @param data - Raw result.data from the MYX SDK.
+ * @returns Typed result with transactionHash/orderId, or undefined if not an object.
+ */
+function extractTxResult(data: unknown): MYXTxResultData | undefined {
+  if (data && typeof data === 'object') {
+    return data as MYXTxResultData;
+  }
+  return undefined;
+}
 
 // ============================================================================
 // MYXProvider
@@ -152,6 +206,27 @@ export class MYXProvider implements PerpsProvider {
 
   // Ticker cache for price data
   readonly #tickersCache: Map<string, MYXTicker> = new Map();
+
+  // Pool-level config cache (min order sizes) — refreshed every 60s
+  readonly #poolConfigCache: Map<
+    string,
+    { minOrderSizeInUsd: number; timestamp: number }
+  > = new Map();
+
+  // Market detail cache (funding rate, OI, volume, oracle price) — refreshed every 60s
+  readonly #marketDetailCache: Map<
+    string,
+    {
+      funding: number;
+      openInterest: number;
+      volume: number;
+      oraclePrice?: string;
+      timestamp: number;
+    }
+  > = new Map();
+
+  // Pools currently being fetched by #refreshMarketDetails (prevents duplicate requests)
+  readonly #marketDetailInflight: Set<string> = new Set();
 
   // Auth dedup promise
   #authPromise: Promise<void> | null = null;
@@ -206,6 +281,174 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
+  /**
+   * Reverse-lookup poolId from symbol via poolSymbolMap.
+   *
+   * @param symbol - The trading pair symbol to resolve.
+   * @returns The poolId if found, otherwise undefined.
+   */
+  #resolvePoolId(symbol: string): string | undefined {
+    for (const [pid, sym] of this.#poolSymbolMap) {
+      if (sym === symbol) {
+        return pid;
+      }
+    }
+    return undefined;
+  }
+
+  // Fetch per-pool minimum order size in USD, falling back to the static constant.
+  async #getMinimumOrderSize(symbol: string): Promise<number> {
+    try {
+      const poolId = this.#resolvePoolId(symbol);
+      if (poolId) {
+        const poolConfig = await this.#clientService.getPoolLevelConfig(poolId);
+        if (poolConfig.minOrderSizeInUsd > 0) {
+          return poolConfig.minOrderSizeInUsd;
+        }
+      }
+    } catch {
+      // Non-fatal: use static fallback
+    }
+    return MYX_MINIMUM_ORDER_SIZE_USD;
+  }
+
+  /**
+   * Common preamble for authenticated write operations.
+   * Ensures auth, returns wallet address, chainId, and network.
+   *
+   * @returns Authenticated context with address, chainId, and network.
+   */
+  async #getAuthContext(): Promise<{
+    address: string;
+    chainId: number;
+    network: MYXNetwork;
+  }> {
+    await this.#ensureAuthenticated();
+    const walletService = this.#getWalletService();
+    return {
+      address: walletService.getUserAddress(),
+      chainId: this.#clientService.getChainId(),
+      network: this.#clientService.getNetwork(),
+    };
+  }
+
+  /**
+   * Resolve symbol to poolId and find the user's open position in that pool.
+   * Returns the raw SDK position data needed for close/TPSL/margin operations.
+   *
+   * @param symbol - The trading pair symbol to look up.
+   * @param address - The user's wallet address for position lookup.
+   * @returns Pool ID and raw position, or an error object.
+   */
+  async #resolvePositionForSymbol(
+    symbol: string,
+    address: string,
+  ): Promise<
+    | { poolId: string; rawPos: import('../types/myx-types').MYXPositionType }
+    | { error: string }
+  > {
+    const poolId = this.#resolvePoolId(symbol);
+    if (!poolId) {
+      return { error: `No MYX pool found for symbol "${symbol}"` };
+    }
+
+    const posResult = await this.#clientService.listPositions(address);
+    const rawPositions = (posResult.data ?? []).filter(
+      (pos) => pos.size && pos.size !== '0' && pos.poolId === poolId,
+    );
+
+    if (rawPositions.length === 0) {
+      return { error: `No open position found for ${symbol}` };
+    }
+
+    return { poolId, rawPos: rawPositions[0] };
+  }
+
+  // Fetch the current ticker price for a pool. Returns 0 on failure.
+  async #fetchTickerPrice(poolId: string): Promise<number> {
+    const tickers = await this.#clientService.getTickers([poolId]);
+    const price = Number.parseFloat(tickers[0]?.price ?? '0');
+    return Number.isNaN(price) ? 0 : price;
+  }
+
+  // Validate order size against per-pool minimum.
+  async #validateOrderSize(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string; minimumRequired?: number }> {
+    const minimumOrderSize = await this.#getMinimumOrderSize(params.symbol);
+    let orderValueUSD: number;
+
+    if (params.usdAmount) {
+      orderValueUSD = Number.parseFloat(params.usdAmount);
+    } else {
+      const size = Number.parseFloat(params.size || '0');
+      const priceForValidation =
+        params.currentPrice ??
+        (params.price && params.orderType === 'limit'
+          ? Number.parseFloat(params.price)
+          : undefined);
+
+      if (!priceForValidation) {
+        return {
+          isValid: false,
+          error: PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED,
+        };
+      }
+
+      orderValueUSD = size * priceForValidation;
+    }
+
+    const minimumWithBuffer = minimumOrderSize * MYX_MIN_ORDER_SIZE_BUFFER;
+    if (!Number.isFinite(orderValueUSD) || orderValueUSD < minimumWithBuffer) {
+      return {
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+        minimumRequired: Math.ceil(minimumWithBuffer),
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  // Validate leverage constraints.
+  async #validateLeverage(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    if (params.leverage && params.symbol) {
+      const maxLeverage = await this.getMaxLeverage(params.symbol);
+      if (params.leverage < 1 || params.leverage > maxLeverage) {
+        return {
+          isValid: false,
+          error: PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID,
+        };
+      }
+    }
+
+    if (
+      params.leverage &&
+      params.existingPositionLeverage &&
+      params.leverage < params.existingPositionLeverage
+    ) {
+      return {
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION,
+      };
+    }
+
+    if (params.currentPrice && params.leverage) {
+      const orderValue = Number.parseFloat(params.size) * params.currentPrice;
+
+      if (orderValue > MYX_MAX_ORDER_VALUE_USD) {
+        return {
+          isValid: false,
+          error: PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED,
+        };
+      }
+    }
+
+    return { isValid: true };
+  }
+
   // ============================================================================
   // Initialization & Lifecycle
   // ============================================================================
@@ -245,6 +488,9 @@ export class MYXProvider implements PerpsProvider {
       this.#poolsCache = [];
       this.#poolSymbolMap.clear();
       this.#tickersCache.clear();
+      this.#poolConfigCache.clear();
+      this.#marketDetailCache.clear();
+      this.#marketDetailInflight.clear();
 
       return { success: true };
     } catch (caughtError) {
@@ -372,7 +618,29 @@ export class MYXProvider implements PerpsProvider {
     const walletClient = this.#walletService.createWalletClient();
     const address = this.#walletService.getUserAddress();
 
-    await this.#clientService.authenticate(signer, walletClient, address);
+    // Adapt signer to SignerLike shape (getAddress must return Promise<string>)
+    const signerLike: import('@myx-trade/sdk').SignerLike = {
+      getAddress: (): Promise<string> => Promise.resolve(signer.getAddress()),
+      signMessage: (): Promise<string> =>
+        Promise.reject(new Error('signMessage not implemented')),
+      sendTransaction: (): Promise<{ hash: string }> =>
+        Promise.reject(new Error('sendTransaction not implemented via signer')),
+      signTypedData: signer.signTypedData
+        ? (params: {
+            domain: Record<string, unknown>;
+            types: Record<string, unknown>;
+            primaryType: string;
+            message: Record<string, unknown>;
+          }): Promise<string> =>
+            signer.signTypedData(
+              params.domain,
+              params.types as Record<string, { name: string; type: string }[]>,
+              params.message,
+            )
+        : undefined,
+    };
+
+    await this.#clientService.authenticate(signerLike, walletClient, address);
   }
 
   /**
@@ -399,7 +667,39 @@ export class MYXProvider implements PerpsProvider {
       this.#poolsCache = filterMYXExclusiveMarkets(pools);
       this.#poolSymbolMap = buildPoolSymbolMap(this.#poolsCache);
 
-      return this.#poolsCache.map((pool) => adaptMarketFromMYX(pool));
+      // Fetch per-pool minimum order sizes in parallel (cached for 60s)
+      const now = Date.now();
+      const poolMinSizes = await Promise.all(
+        this.#poolsCache.map(async (pool) => {
+          const cached = this.#poolConfigCache.get(pool.poolId);
+          if (
+            cached &&
+            now - cached.timestamp < MYX_MARKET_DETAIL_CACHE_TTL_MS
+          ) {
+            return cached.minOrderSizeInUsd > 0
+              ? cached.minOrderSizeInUsd
+              : undefined;
+          }
+          try {
+            const config = await this.#clientService.getPoolLevelConfig(
+              pool.poolId,
+            );
+            this.#poolConfigCache.set(pool.poolId, {
+              minOrderSizeInUsd: config.minOrderSizeInUsd,
+              timestamp: now,
+            });
+            return config.minOrderSizeInUsd > 0
+              ? config.minOrderSizeInUsd
+              : undefined;
+          } catch {
+            return undefined; // Fall back to static constant in adapter
+          }
+        }),
+      );
+
+      return this.#poolsCache.map((pool, i) =>
+        adaptMarketFromMYX(pool, poolMinSizes[i]),
+      );
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getMarkets');
       this.#deps.logger.error(
@@ -459,11 +759,12 @@ export class MYXProvider implements PerpsProvider {
   // ============================================================================
 
   subscribeToPrices(params: SubscribePricesParams): () => void {
-    const { symbols, callback, includeOrderBook } = params;
+    const { symbols, callback, includeOrderBook, includeMarketData } = params;
 
     this.#deps.debugLogger.log('[MYXProvider] Setting up price subscription', {
       symbols: symbols.length,
       includeOrderBook,
+      includeMarketData,
     });
 
     // Map symbols to pool IDs
@@ -488,18 +789,38 @@ export class MYXProvider implements PerpsProvider {
 
     // Start price polling
     this.#clientService.startPricePolling(poolIds, (tickers) => {
+      // When includeMarketData is true, refresh market details (funding/OI) every 60s
+      if (includeMarketData) {
+        this.#refreshMarketDetails(poolIds);
+      }
+
       // Convert tickers to PriceUpdate format
       const updates: PriceUpdate[] = tickers.map((ticker) => {
         const symbol = this.#poolSymbolMap.get(ticker.poolId) ?? ticker.poolId;
         const { price, change24h } = this.#getAdaptedPrice(ticker);
 
-        return {
+        const update: PriceUpdate = {
           symbol,
           price,
           timestamp: Date.now(),
           percentChange24h: change24h.toFixed(2),
-          providerId: 'myx',
+          providerId: this.protocolId,
         };
+
+        if (includeMarketData) {
+          const cached = this.#marketDetailCache.get(ticker.poolId);
+          // Prefer oracle price from SDK, fall back to ticker price
+          update.markPrice = cached?.oraclePrice ?? price;
+
+          if (cached) {
+            update.funding = cached.funding;
+            update.openInterest = cached.openInterest;
+            // Use USD volume from getBaseDetail (ticker.volume is token-denominated)
+            update.volume24h = cached.volume;
+          }
+        }
+
+        return update;
       });
 
       callback(updates);
@@ -510,6 +831,55 @@ export class MYXProvider implements PerpsProvider {
       this.#deps.debugLogger.log('[MYXProvider] Unsubscribing from prices');
       this.#clientService.stopPricePolling();
     };
+  }
+
+  /**
+   * Refresh market detail cache (funding rate + OI) for subscribed pools.
+   * Only fetches if cache is stale (>60s).
+   *
+   * @param poolIds - Pool IDs to refresh market details for.
+   */
+  #refreshMarketDetails(poolIds: string[]): void {
+    const MARKET_DETAIL_TTL_MS = MYX_MARKET_DETAIL_CACHE_TTL_MS;
+    const now = Date.now();
+
+    for (const poolId of poolIds) {
+      const cached = this.#marketDetailCache.get(poolId);
+      if (cached && now - cached.timestamp < MARKET_DETAIL_TTL_MS) {
+        continue;
+      }
+
+      // Skip if a request is already in flight for this pool
+      if (this.#marketDetailInflight.has(poolId)) {
+        continue;
+      }
+      this.#marketDetailInflight.add(poolId);
+
+      Promise.all([
+        this.#clientService.getBaseDetail(poolId),
+        this.#clientService.getOraclePrice(poolId).catch(() => null),
+      ])
+        .then(([detail, oracle]) => {
+          this.#marketDetailCache.set(poolId, {
+            funding: Number.parseFloat(detail.fundingRate || '0'),
+            openInterest:
+              Number.parseFloat(String(detail.longPosition) || '0') +
+              Number.parseFloat(String(detail.shortPosition) || '0'),
+            volume: Number.parseFloat(detail.volume || '0'),
+            oraclePrice: oracle?.price,
+            timestamp: Date.now(),
+          });
+          return undefined;
+        })
+        .catch(() => {
+          // Non-fatal: delete stale entry so next tick retries instead of
+          // serving indefinitely stale data.
+          this.#marketDetailCache.delete(poolId);
+        })
+        .finally(() => {
+          this.#marketDetailInflight.delete(poolId);
+        });
+    }
   }
 
   #getAdaptedPrice(ticker: MYXTicker): {
@@ -524,8 +894,16 @@ export class MYXProvider implements PerpsProvider {
   // ============================================================================
 
   getDepositRoutes(_params?: GetSupportedPathsParams): AssetRoute[] {
-    // Stage 1: No deposit support
-    return [];
+    const network: MYXNetwork = this.#isTestnet ? 'testnet' : 'mainnet';
+    const accountInfo = MYX_ACCOUNT_CONTRACTS[network];
+
+    return [
+      {
+        assetId: MYX_COLLATERAL_ASSET_IDS[network],
+        chainId: accountInfo.chainId,
+        contractAddress: accountInfo.contractAddress,
+      },
+    ];
   }
 
   getWithdrawalRoutes(_params?: GetSupportedPathsParams): AssetRoute[] {
@@ -537,70 +915,782 @@ export class MYXProvider implements PerpsProvider {
   // Trading Operations (Stage 1 - All Stubbed)
   // ============================================================================
 
-  async placeOrder(_params: OrderParams): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async placeOrder(params: OrderParams): Promise<OrderResult> {
+    try {
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] START', {
+        symbol: params.symbol,
+        isBuy: params.isBuy,
+        size: params.size,
+        orderType: params.orderType,
+        usdAmount: params.usdAmount,
+        leverage: params.leverage,
+      });
+
+      const { address, chainId, network } = await this.#getAuthContext();
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Auth OK', {
+        address,
+        chainId,
+        network,
+      });
+
+      // Resolve symbol → poolId
+      const poolId = this.#resolvePoolId(params.symbol);
+      if (!poolId) {
+        this.#deps.debugLogger.log('[MYXProvider.placeOrder] Unknown symbol', {
+          symbol: params.symbol,
+          available: [...this.#poolSymbolMap.values()],
+        });
+        return {
+          success: false,
+          error: `Unknown symbol: ${params.symbol}. Available: ${[...this.#poolSymbolMap.values()].join(', ')}`,
+        };
+      }
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Pool resolved', {
+        poolId,
+      });
+
+      // Get marketId (required for createIncreaseOrder)
+      const marketDetail = await this.#clientService.getMarketDetail(poolId);
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Market detail', {
+        marketId: marketDetail.marketId,
+        baseSymbol: marketDetail.baseSymbol,
+      });
+
+      // Get trading fee rate
+      this.#deps.debugLogger.log(
+        '[MYXProvider.placeOrder] Fetching fee rate...',
+      );
+      const feeRates = await this.#clientService.getUserTradingFeeRate(
+        0,
+        0,
+        chainId,
+      );
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Fee rates', {
+        takerFeeRate: feeRates.takerFeeRate,
+        makerFeeRate: feeRates.makerFeeRate,
+      });
+
+      // Compute collateral in the token's native decimals (USDT=18, USDC=6)
+      const usdAmount = params.usdAmount
+        ? Number.parseFloat(params.usdAmount)
+        : Number.parseFloat(params.size) *
+          (params.currentPrice ?? Number.parseFloat(params.price ?? '0'));
+
+      // Validate minimum order size with 10% buffer for price movement
+      const minOrderSize = await this.#getMinimumOrderSize(params.symbol);
+      const minOrderSizeWithBuffer = minOrderSize * MYX_MIN_ORDER_SIZE_BUFFER;
+      if (!Number.isFinite(usdAmount) || usdAmount < minOrderSizeWithBuffer) {
+        return {
+          success: false,
+          error: `Order size $${usdAmount.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces)} is below minimum $${Math.ceil(minOrderSizeWithBuffer)}`,
+        };
+      }
+
+      const collateralAmount = toMYXCollateral(usdAmount, network);
+
+      // Compute trading fee: collateral * takerFeeRate / 1e8
+      const takerFeeRate = BigInt(
+        feeRates.takerFeeRate || String(MYX_DEFAULT_TAKER_FEE_RATE),
+      );
+      const tradingFee = (
+        (BigInt(collateralAmount) * takerFeeRate) /
+        BigInt(MYX_FEE_RATE_PRECISION)
+      ).toString();
+
+      // Determine price in 30-decimal format.
+      // For market orders without an explicit price, fetch current market price
+      // and apply 5% buffer: LONG → high accepted price, SHORT → low.
+      let orderPrice = params.price ?? String(params.currentPrice ?? 0);
+      if (orderPrice === '0' || orderPrice === '') {
+        const tickerPriceNum = await this.#fetchTickerPrice(poolId);
+        if (!tickerPriceNum) {
+          return {
+            success: false,
+            error: 'Could not fetch current market price',
+          };
+        }
+        const slippageMultiplier = params.isBuy
+          ? MYX_SLIPPAGE_BUFFER_HIGH
+          : MYX_SLIPPAGE_BUFFER_LOW;
+        orderPrice = String(tickerPriceNum * slippageMultiplier);
+      }
+      const price30Dec = toMYXContractPrice(orderPrice);
+
+      const direction = params.isBuy ? MYXDirection.LONG : MYXDirection.SHORT;
+
+      const sdkOrderType =
+        params.orderType === 'limit' ? MYXOrderType.LIMIT : MYXOrderType.MARKET;
+
+      // Limit orders need a trigger type so the keeper knows when to execute:
+      //   LONG limit (buy low):  LTE — trigger when price ≤ limit
+      //   SHORT limit (sell high): GTE — trigger when price ≥ limit
+      // Market orders use NONE — execute immediately.
+      let triggerType: (typeof MYXTriggerType)[keyof typeof MYXTriggerType] =
+        MYXTriggerType.NONE;
+      if (params.orderType === 'limit') {
+        triggerType = params.isBuy ? MYXTriggerType.LTE : MYXTriggerType.GTE;
+      }
+
+      // Build SDK PlaceOrderParams
+      const sdkParams: PlaceOrderParams = {
+        chainId,
+        address,
+        poolId,
+        positionId: '', // Falsy → SDK uses placeOrderWithSalt for new positions
+        orderType: sdkOrderType,
+        triggerType,
+        direction,
+        collateralAmount,
+        size: toMYXSize(params.size),
+        price: price30Dec,
+        timeInForce: MYXTimeInForce.IOC,
+        postOnly: false,
+        slippagePct: String(params.maxSlippageBps ?? MYX_DEFAULT_SLIPPAGE_BPS),
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+        leverage: params.leverage ?? 1,
+        tpSize: '0',
+        tpPrice: params.takeProfitPrice
+          ? toMYXContractPrice(params.takeProfitPrice)
+          : '0',
+        slSize: '0',
+        slPrice: params.stopLossPrice
+          ? toMYXContractPrice(params.stopLossPrice)
+          : '0',
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] SDK params', {
+        symbol: params.symbol,
+        poolId,
+        marketId: marketDetail.marketId,
+        direction: params.isBuy ? 'LONG' : 'SHORT',
+        orderType: params.orderType,
+        collateralAmount,
+        size: sdkParams.size,
+        price: price30Dec,
+        leverage: sdkParams.leverage,
+        tradingFee,
+      });
+
+      this.#deps.debugLogger.log(
+        '[MYXProvider.placeOrder] Calling createIncreaseOrder...',
+      );
+      const result = await this.#clientService.createIncreaseOrder(
+        sdkParams,
+        tradingFee,
+        marketDetail.marketId,
+      );
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] SDK result', {
+        code: result.code,
+        message: result.message,
+        data: result.data,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX order failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      // Extract transaction hash if available
+      const data = extractTxResult(result.data);
+
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] SUCCESS', {
+        orderId: data?.transactionHash ?? data?.orderId,
+      });
+
+      return {
+        success: true,
+        orderId: data?.transactionHash ?? data?.orderId,
+        providerId: this.protocolId,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.placeOrder');
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('placeOrder', { symbol: params.symbol }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
-  async editOrder(_params: EditOrderParams): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    try {
+      const { address, chainId, network } = await this.#getAuthContext();
+
+      // Resolve symbol → poolId
+      const poolId = this.#resolvePoolId(params.newOrder.symbol);
+      if (!poolId) {
+        return {
+          success: false,
+          error: `Unknown symbol: ${params.newOrder.symbol}`,
+        };
+      }
+
+      // Get marketId (required by SDK updateOrderTpSl)
+      const marketDetail = await this.#clientService.getMarketDetail(poolId);
+      const quoteToken = MYX_EXECUTION_FEE_TOKEN[network];
+
+      // Build SDK UpdateOrderParams
+      const sdkParams: MYXUpdateOrderParams = {
+        orderId: String(params.orderId),
+        size: toMYXSize(params.newOrder.size),
+        price: toMYXContractPrice(params.newOrder.price ?? '0'),
+        tpSize: '0',
+        tpPrice: params.newOrder.takeProfitPrice
+          ? toMYXContractPrice(params.newOrder.takeProfitPrice)
+          : '0',
+        slSize: '0',
+        slPrice: params.newOrder.stopLossPrice
+          ? toMYXContractPrice(params.newOrder.stopLossPrice)
+          : '0',
+        useOrderCollateral: true,
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider.editOrder] SDK params', {
+        orderId: sdkParams.orderId,
+        poolId,
+        marketId: marketDetail.marketId,
+        size: sdkParams.size,
+        price: sdkParams.price,
+        quoteToken,
+      });
+
+      const result = await this.#clientService.updateOrderTpSl(
+        sdkParams,
+        quoteToken,
+        chainId,
+        address,
+        marketDetail.marketId,
+      );
+
+      this.#deps.debugLogger.log('[MYXProvider.editOrder] SDK result', {
+        code: result.code,
+        message: result.message,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX edit failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      return {
+        success: true,
+        orderId: String(params.orderId),
+        providerId: this.protocolId,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.editOrder');
+      this.#deps.debugLogger.log('[MYXProvider.editOrder] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('editOrder', {
+          orderId: String(params.orderId),
+        }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
-  async cancelOrder(_params: CancelOrderParams): Promise<CancelOrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
+    try {
+      await this.#ensureAuthenticated();
+      const chainId = this.#clientService.getChainId();
+
+      this.#deps.debugLogger.log('[MYXProvider.cancelOrder] START', {
+        orderId: params.orderId,
+        symbol: params.symbol,
+      });
+
+      const result = await this.#clientService.cancelOrder(
+        params.orderId,
+        chainId,
+      );
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX cancel failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      return {
+        success: true,
+        orderId: params.orderId,
+        providerId: this.protocolId,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.cancelOrder');
+      this.#deps.debugLogger.log('[MYXProvider.cancelOrder] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrder', { orderId: params.orderId }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async cancelOrders(
-    _params: BatchCancelOrdersParams,
+    params: BatchCancelOrdersParams,
   ): Promise<CancelOrdersResult> {
-    return {
-      success: false,
-      successCount: 0,
-      failureCount: 0,
-      results: [],
-    };
+    try {
+      await this.#ensureAuthenticated();
+      const chainId = this.#clientService.getChainId();
+      this.#deps.debugLogger.log('[MYXProvider.cancelOrders] START', {
+        count: params.length,
+      });
+
+      const orderIds = params.map((entry) => entry.orderId);
+      const result = await this.#clientService.cancelOrders(orderIds, chainId);
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          successCount: 0,
+          failureCount: params.length,
+          results: params.map((entry) => ({
+            orderId: entry.orderId,
+            symbol: entry.symbol,
+            success: false,
+            error:
+              `MYX batch cancel failed: code=${result.code} ${result.message ?? ''}`.trim(),
+          })),
+        };
+      }
+
+      return {
+        success: true,
+        successCount: params.length,
+        failureCount: 0,
+        results: params.map((entry) => ({
+          orderId: entry.orderId,
+          symbol: entry.symbol,
+          success: true,
+        })),
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.cancelOrders');
+      this.#deps.debugLogger.log('[MYXProvider.cancelOrders] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('cancelOrders'),
+      );
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: params.length,
+        results: params.map((entry) => ({
+          orderId: entry.orderId,
+          symbol: entry.symbol,
+          success: false,
+          error: wrappedError.message,
+        })),
+      };
+    }
   }
 
-  async closePosition(_params: ClosePositionParams): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    try {
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] START', {
+        symbol: params.symbol,
+        size: params.size,
+        orderType: params.orderType,
+      });
+
+      const { address, chainId, network } = await this.#getAuthContext();
+
+      const resolved = await this.#resolvePositionForSymbol(
+        params.symbol,
+        address,
+      );
+      if ('error' in resolved) {
+        return { success: false, error: resolved.error };
+      }
+      const { poolId, rawPos } = resolved;
+
+      // Determine close size — keep as string to avoid float precision loss.
+      // parseFloat round-trips lose least-significant digits, leaving dust
+      // when the 18-decimal integer is reconstructed by toMYXSize().
+      // Treat empty string as "close full position" (same as undefined).
+      // Math.abs: adapted positions carry sign convention (negative for shorts)
+      // but SDK expects unsigned size — direction is determined from rawPos.
+      const rawSizeStr =
+        (params.size === '' ? undefined : params.size) ?? rawPos.size;
+      const closeSizeNum = Math.abs(Number.parseFloat(rawSizeStr));
+      const closeSizeStr = String(closeSizeNum);
+
+      if (!closeSizeNum || Number.isNaN(closeSizeNum)) {
+        return {
+          success: false,
+          error: 'Invalid close size',
+        };
+      }
+
+      // Determine close price — apply slippage: LONG sells low, SHORT buys high
+      const slippage =
+        rawPos.direction === MYXDirection.LONG
+          ? MYX_SLIPPAGE_BUFFER_LOW
+          : MYX_SLIPPAGE_BUFFER_HIGH;
+      let closePrice: number;
+      if (params.price) {
+        closePrice = Number.parseFloat(params.price);
+      } else {
+        const basePrice =
+          params.currentPrice ?? (await this.#fetchTickerPrice(poolId));
+        if (!basePrice) {
+          return {
+            success: false,
+            error: 'Could not fetch current market price for close',
+          };
+        }
+        closePrice = basePrice * slippage;
+      }
+
+      // SDK expects 30-decimal price and 18-decimal size
+      const sdkOrderType =
+        params.orderType === 'limit' ? MYXOrderType.LIMIT : MYXOrderType.MARKET;
+
+      // Limit close orders need trigger type:
+      // Closing a LONG (sell) → GTE — trigger when price ≥ limit
+      // Closing a SHORT (buy) → LTE — trigger when price ≤ limit
+      let closeTriggerType: (typeof MYXTriggerType)[keyof typeof MYXTriggerType] =
+        MYXTriggerType.NONE;
+      if (params.orderType === 'limit') {
+        closeTriggerType =
+          rawPos.direction === MYXDirection.LONG
+            ? MYXTriggerType.GTE
+            : MYXTriggerType.LTE;
+      }
+
+      const { userLeverage } = rawPos;
+
+      const sdkParams: PlaceOrderParams = {
+        chainId,
+        address,
+        poolId,
+        positionId: rawPos.positionId,
+        orderType: sdkOrderType,
+        triggerType: closeTriggerType,
+        direction: rawPos.direction,
+        collateralAmount: '0',
+        size: toMYXSize(closeSizeStr),
+        price: toMYXContractPrice(closePrice),
+        timeInForce: MYXTimeInForce.IOC,
+        postOnly: false,
+        slippagePct: String(params.maxSlippageBps ?? MYX_DEFAULT_SLIPPAGE_BPS),
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+        leverage: userLeverage,
+        tpSize: '0',
+        tpPrice: '0',
+        slSize: '0',
+        slPrice: '0',
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] SDK params', {
+        symbol: params.symbol,
+        poolId,
+        positionId: rawPos.positionId,
+        direction: rawPos.direction === MYXDirection.LONG ? 'LONG' : 'SHORT',
+        closeSize: closeSizeStr,
+        closePrice,
+        leverage: userLeverage,
+      });
+
+      const result = await this.#clientService.createDecreaseOrder(sdkParams);
+
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] SDK result', {
+        code: result.code,
+        message: result.message,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX close failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      const data = extractTxResult(result.data);
+
+      return {
+        success: true,
+        orderId: data?.transactionHash ?? data?.orderId,
+        providerId: this.protocolId,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.closePosition',
+      );
+      this.#deps.debugLogger.log('[MYXProvider.closePosition] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('closePosition', { symbol: params.symbol }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async closePositions(
-    _params: ClosePositionsParams,
+    params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
-    return {
-      success: false,
-      successCount: 0,
-      failureCount: 0,
-      results: [],
-    };
+    try {
+      await this.#ensureAuthenticated();
+      const positions = await this.getPositions();
+
+      // Filter: closeAll or specific symbols
+      const toClose =
+        params.closeAll || !params.symbols?.length
+          ? positions
+          : positions.filter((pos) => params.symbols?.includes(pos.symbol));
+
+      if (toClose.length === 0) {
+        return { success: true, successCount: 0, failureCount: 0, results: [] };
+      }
+
+      const results: ClosePositionsResult['results'] = [];
+      let successCount = 0;
+      let failureCount = 0;
+
+      // Sequential close — each is an on-chain tx, parallel would flood the nonce.
+      // Omit size so closePosition uses the fresh position from #resolvePositionForSymbol,
+      // avoiding stale snapshot data after async gaps between closes.
+      for (const position of toClose) {
+        const result = await this.closePosition({
+          symbol: position.symbol,
+        });
+        if (result.success) {
+          successCount += 1;
+          results.push({ symbol: position.symbol, success: true });
+        } else {
+          failureCount += 1;
+          results.push({
+            symbol: position.symbol,
+            success: false,
+            error: result.error,
+          });
+        }
+      }
+
+      return {
+        success: failureCount === 0,
+        successCount,
+        failureCount,
+        results,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.closePositions',
+      );
+      this.#deps.debugLogger.log('[MYXProvider.closePositions] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('closePositions'),
+      );
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: 1,
+        results: [
+          { symbol: 'unknown', success: false, error: wrappedError.message },
+        ],
+      };
+    }
   }
 
   async updatePositionTPSL(
-    _params: UpdatePositionTPSLParams,
+    params: UpdatePositionTPSLParams,
   ): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+    try {
+      this.#deps.debugLogger.log('[MYXProvider.updatePositionTPSL] START', {
+        symbol: params.symbol,
+        takeProfitPrice: params.takeProfitPrice,
+        stopLossPrice: params.stopLossPrice,
+      });
+
+      const { address, chainId, network } = await this.#getAuthContext();
+
+      const resolved = await this.#resolvePositionForSymbol(
+        params.symbol,
+        address,
+      );
+      if ('error' in resolved) {
+        return { success: false, error: resolved.error };
+      }
+      const { poolId, rawPos } = resolved;
+      const { userLeverage } = rawPos;
+
+      // TP/SL size defaults to full position (close entire position on trigger)
+      const positionSize = toMYXSize(rawPos.size);
+
+      const sdkParams: PositionTpSlOrderParams = {
+        chainId,
+        address,
+        poolId,
+        positionId: rawPos.positionId,
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+        tpTriggerType:
+          rawPos.direction === MYXDirection.LONG
+            ? MYXTriggerType.GTE
+            : MYXTriggerType.LTE,
+        slTriggerType:
+          rawPos.direction === MYXDirection.LONG
+            ? MYXTriggerType.LTE
+            : MYXTriggerType.GTE,
+        direction: rawPos.direction,
+        leverage: userLeverage,
+        tpPrice: params.takeProfitPrice
+          ? toMYXContractPrice(params.takeProfitPrice)
+          : '0',
+        tpSize: params.takeProfitPrice ? positionSize : '0',
+        slPrice: params.stopLossPrice
+          ? toMYXContractPrice(params.stopLossPrice)
+          : '0',
+        slSize: params.stopLossPrice ? positionSize : '0',
+        slippagePct: String(MYX_DEFAULT_SLIPPAGE_BPS),
+      };
+
+      this.#deps.debugLogger.log(
+        '[MYXProvider.updatePositionTPSL] SDK params',
+        {
+          poolId,
+          positionId: rawPos.positionId,
+          tpPrice: sdkParams.tpPrice,
+          slPrice: sdkParams.slPrice,
+        },
+      );
+
+      const result =
+        await this.#clientService.createPositionTpSlOrder(sdkParams);
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX TP/SL failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      const data = extractTxResult(result.data);
+
+      return {
+        success: true,
+        orderId: data?.transactionHash ?? data?.orderId,
+        providerId: this.protocolId,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.updatePositionTPSL',
+      );
+      this.#deps.debugLogger.log('[MYXProvider.updatePositionTPSL] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('updatePositionTPSL', {
+          symbol: params.symbol,
+        }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
-  async updateMargin(_params: UpdateMarginParams): Promise<MarginResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async updateMargin(params: UpdateMarginParams): Promise<MarginResult> {
+    try {
+      this.#deps.debugLogger.log('[MYXProvider.updateMargin] START', {
+        symbol: params.symbol,
+        amount: params.amount,
+      });
+
+      const { address, chainId, network } = await this.#getAuthContext();
+
+      const resolved = await this.#resolvePositionForSymbol(
+        params.symbol,
+        address,
+      );
+      if ('error' in resolved) {
+        return { success: false, error: resolved.error };
+      }
+      const { poolId, rawPos } = resolved;
+      const adjustAmount = toMYXCollateral(
+        Number.parseFloat(params.amount),
+        network,
+      );
+
+      // Quote token is the collateral token (USDC/USDT), not the account contract
+      const quoteToken = MYX_EXECUTION_FEE_TOKEN[network];
+
+      const result = await this.#clientService.adjustCollateral({
+        poolId,
+        positionId: rawPos.positionId,
+        adjustAmount,
+        quoteToken,
+        chainId,
+        address,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX margin adjustment failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      return {
+        success: true,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.updateMargin');
+      this.#deps.debugLogger.log('[MYXProvider.updateMargin] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('updateMargin', { symbol: params.symbol }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async withdraw(_params: WithdrawParams): Promise<WithdrawResult> {
@@ -624,10 +1714,7 @@ export class MYXProvider implements PerpsProvider {
         return [];
       }
 
-      // Filter out zero-size positions
-      return result.data
-        .filter((pos) => pos.size && pos.size !== '0')
-        .map((pos) => adaptPositionFromMYX(pos, this.#poolSymbolMap));
+      return this.#adaptAndEnrichPositions(result.data, address);
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getPositions');
       this.#deps.debugLogger.log('[MYXProvider] getPositions failed', {
@@ -638,6 +1725,110 @@ export class MYXProvider implements PerpsProvider {
     }
   }
 
+  /**
+   * Adapt raw MYX positions and enrich with ticker prices and TP/SL from trigger orders.
+   * Shared by getPositions() (REST) and WS position subscription callback.
+   *
+   * @param rawPositions - Raw MYX position data from SDK.
+   * @param address - User wallet address for TP/SL order lookup.
+   * @returns Adapted positions with ticker prices and TP/SL injected.
+   */
+  async #adaptAndEnrichPositions(
+    rawPositions: import('../types/myx-types').MYXPositionType[],
+    address: string,
+  ): Promise<Position[]> {
+    const activePositions = rawPositions.filter(
+      (pos) => pos.size && pos.size !== '0',
+    );
+
+    if (activePositions.length === 0) {
+      return [];
+    }
+
+    // Fetch tickers for mark prices (PnL + liquidation calculation)
+    const posPoolIds = [...new Set(activePositions.map((pos) => pos.poolId))];
+    const tickerPriceMap = new Map<string, number>();
+    try {
+      const tickers = await this.#clientService.getTickers(posPoolIds);
+      for (const ticker of tickers) {
+        const price = Number.parseFloat(ticker.price);
+        if (!Number.isNaN(price) && price > 0) {
+          tickerPriceMap.set(ticker.poolId, price);
+        }
+      }
+    } catch {
+      // Non-fatal: positions still returned without PnL
+    }
+
+    // Fetch open orders to cross-reference TP/SL trigger orders with positions.
+    // MYX TP/SL are separate trigger orders, not position attributes.
+    // We match by positionId and inject takeProfitPrice/stopLossPrice.
+    const tpslByPosition = await this.#fetchTpslByPosition(address);
+
+    return activePositions.map((pos) => {
+      const position = adaptPositionFromMYX(
+        pos,
+        this.#poolSymbolMap,
+        tickerPriceMap.get(pos.poolId),
+      );
+      // Inject TP/SL from trigger orders
+      const tpsl = tpslByPosition.get(pos.positionId);
+      if (tpsl) {
+        position.takeProfitPrice = tpsl.takeProfitPrice;
+        position.stopLossPrice = tpsl.stopLossPrice;
+      }
+      return position;
+    });
+  }
+
+  /**
+   * Fetch TP/SL trigger order prices grouped by positionId.
+   * Used by both REST getPositions and WS position callback.
+   *
+   * @param address - User wallet address for order lookup.
+   * @returns Map of positionId to TP/SL prices.
+   */
+  async #fetchTpslByPosition(
+    address: string,
+  ): Promise<
+    Map<string, { takeProfitPrice?: string; stopLossPrice?: string }>
+  > {
+    const tpslByPosition = new Map<
+      string,
+      { takeProfitPrice?: string; stopLossPrice?: string }
+    >();
+    try {
+      const ordersResult = await this.#clientService.getOrders(address);
+      if (ordersResult.data && Array.isArray(ordersResult.data)) {
+        for (const order of ordersResult.data) {
+          if (
+            (order.orderType === MYXOrderType.STOP ||
+              order.orderType === MYXOrderType.CONDITIONAL) &&
+            order.operation === MYXOperationType.DECREASE &&
+            order.positionId
+          ) {
+            const existing = tpslByPosition.get(order.positionId) ?? {};
+            const priceStr = fromMYXPrice(order.price).toString();
+            // For LONG: GTE = TP, LTE = SL
+            // For SHORT: LTE = TP, GTE = SL
+            const isLong = order.direction === MYXDirection.LONG;
+            const isGTE = order.triggerType === MYXTriggerType.GTE;
+            const isTakeProfit = isLong ? isGTE : !isGTE;
+            if (isTakeProfit) {
+              existing.takeProfitPrice = priceStr;
+            } else {
+              existing.stopLossPrice = priceStr;
+            }
+            tpslByPosition.set(order.positionId, existing);
+          }
+        }
+      }
+    } catch {
+      // Non-fatal: positions still returned without TP/SL
+    }
+    return tpslByPosition;
+  }
+
   async getAccountState(
     _params?: GetAccountStateParams,
   ): Promise<AccountState> {
@@ -646,36 +1837,39 @@ export class MYXProvider implements PerpsProvider {
       const address = this.#getWalletService().getUserAddress();
       const chainId = this.#clientService.getChainId();
 
-      // Fetch wallet balance
-      let walletBalance: string | undefined;
-      try {
-        const balanceResult =
-          await this.#clientService.getWalletQuoteTokenBalance(
-            chainId,
-            address,
-          );
-        walletBalance = String(balanceResult.data ?? '0');
-      } catch {
-        // Non-fatal: wallet balance is supplementary
-        walletBalance = '0';
-      }
-
-      // Try to get account info from first pool
-      let accountInfo: Record<string, unknown> | undefined;
-      if (this.#poolsCache.length > 0) {
+      // Get account info — try pools until one returns valid data.
+      // Account balances (freeAmount, walletBalance) are global across pools,
+      // but the on-chain call fails with 0x for pools the user hasn't interacted with.
+      let accountData: unknown;
+      for (const pool of this.#poolsCache) {
         try {
           const infoResult = await this.#clientService.getAccountInfo(
             chainId,
             address,
-            this.#poolsCache[0].poolId,
+            pool.poolId,
           );
-          accountInfo = infoResult.data;
+          if (infoResult.data !== undefined) {
+            accountData = infoResult.data;
+            break;
+          }
         } catch {
-          // Non-fatal: we'll return what we have
+          // Try next pool
         }
       }
 
-      return adaptAccountStateFromMYX(accountInfo, walletBalance);
+      // Fetch positions for weighted ROE calculation (non-fatal if it fails)
+      let positions: Position[] = [];
+      try {
+        positions = await this.getPositions();
+      } catch {
+        // Non-fatal: account state still returned without ROE
+      }
+
+      return adaptAccountStateFromMYX(
+        accountData,
+        this.#clientService.getNetwork(),
+        positions,
+      );
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -700,7 +1894,7 @@ export class MYXProvider implements PerpsProvider {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();
       const result = await this.#clientService.getOrderHistory(
-        { limit: 50 },
+        { limit: MYX_HISTORY_QUERY_LIMIT },
         address,
       );
 
@@ -723,8 +1917,19 @@ export class MYXProvider implements PerpsProvider {
 
   async getOpenOrders(_params?: GetOrdersParams): Promise<Order[]> {
     try {
-      const allOrders = await this.getOrders();
-      return allOrders.filter((order) => order.status === 'open');
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+
+      // Use order.getOrders (returns active/pending orders) instead of
+      // api.getPoolOpenOrders (requires access token which may be null).
+      const result = await this.#clientService.getOrders(address);
+      if (!result.data || !Array.isArray(result.data)) {
+        return [];
+      }
+
+      return result.data.map((order) =>
+        adaptOrderItemFromMYX(order, this.#poolSymbolMap),
+      );
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -743,7 +1948,7 @@ export class MYXProvider implements PerpsProvider {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();
       const result = await this.#clientService.getOrderHistory(
-        { limit: 50 },
+        { limit: MYX_HISTORY_QUERY_LIMIT },
         address,
       );
 
@@ -778,7 +1983,7 @@ export class MYXProvider implements PerpsProvider {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();
       const result = await this.#clientService.getTradeFlow(
-        { limit: 50 },
+        { limit: MYX_HISTORY_QUERY_LIMIT },
         address,
       );
 
@@ -823,7 +2028,7 @@ export class MYXProvider implements PerpsProvider {
       await this.#ensureAuthenticated();
       const address = this.#getWalletService().getUserAddress();
       const result = await this.#clientService.getTradeFlow(
-        { limit: 50 },
+        { limit: MYX_HISTORY_QUERY_LIMIT },
         address,
       );
 
@@ -852,19 +2057,110 @@ export class MYXProvider implements PerpsProvider {
   async validateDeposit(
     _params: DepositParams,
   ): Promise<{ isValid: boolean; error?: string }> {
-    return { isValid: false, error: MYX_NOT_SUPPORTED_ERROR };
+    return { isValid: true };
   }
 
   async validateOrder(
-    _params: OrderParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    return { isValid: false, error: MYX_NOT_SUPPORTED_ERROR };
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string; minimumRequired?: number }> {
+    try {
+      const basicValidation = validateOrderParams({
+        coin: params.symbol,
+        size: params.size,
+        price: params.price,
+        orderType: params.orderType,
+      });
+      if (!basicValidation.isValid) {
+        return basicValidation;
+      }
+
+      // Full closes bypass minimum order size check
+      if (!(params.reduceOnly && params.isFullClose)) {
+        const sizeCheckResult = await this.#validateOrderSize(params);
+        if (!sizeCheckResult.isValid) {
+          return sizeCheckResult;
+        }
+      }
+
+      const leverageCheck = await this.#validateLeverage(params);
+      if (!leverageCheck.isValid) {
+        return leverageCheck;
+      }
+
+      return { isValid: true };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.validateOrder',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('validateOrder', {
+          symbol: params.symbol,
+        }),
+      );
+      return {
+        isValid: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async validateClosePosition(
-    _params: ClosePositionParams,
+    params: ClosePositionParams,
   ): Promise<{ isValid: boolean; error?: string }> {
-    return { isValid: false, error: MYX_NOT_SUPPORTED_ERROR };
+    try {
+      if (!params.symbol) {
+        return { isValid: false, error: PERPS_ERROR_CODES.ORDER_COIN_REQUIRED };
+      }
+
+      if (params.orderType === 'limit' && !params.price) {
+        return {
+          isValid: false,
+          error: PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED,
+        };
+      }
+
+      // Validate close size for partial closes (full closes bypass minimum check)
+      if (params.size) {
+        const closeSize = Number.parseFloat(params.size);
+        if (Number.isNaN(closeSize) || closeSize <= 0) {
+          return { isValid: false, error: PERPS_ERROR_CODES.ORDER_SIZE_MIN };
+        }
+
+        const price = params.currentPrice
+          ? Number.parseFloat(params.currentPrice.toString())
+          : undefined;
+
+        if (price) {
+          const minimumOrderSize = await this.#getMinimumOrderSize(
+            params.symbol,
+          );
+          const minimumWithBuffer =
+            minimumOrderSize * MYX_MIN_ORDER_SIZE_BUFFER;
+          if (closeSize * price < minimumWithBuffer) {
+            return { isValid: false, error: PERPS_ERROR_CODES.ORDER_SIZE_MIN };
+          }
+        }
+      }
+
+      return { isValid: true };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.validateClosePosition',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('validateClosePosition', {
+          symbol: params.symbol,
+        }),
+      );
+      return {
+        isValid: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async validateWithdrawal(
@@ -878,15 +2174,74 @@ export class MYXProvider implements PerpsProvider {
   // ============================================================================
 
   async calculateLiquidationPrice(
-    _params: LiquidationPriceParams,
+    params: LiquidationPriceParams,
   ): Promise<string> {
-    return '0';
+    const { entryPrice, leverage, direction, asset } = params;
+
+    if (
+      !Number.isFinite(entryPrice) ||
+      !Number.isFinite(leverage) ||
+      entryPrice <= 0 ||
+      leverage <= 0
+    ) {
+      return MYX_ZERO_PRICE_FALLBACK;
+    }
+
+    let maxLeverage = PERPS_CONSTANTS.DefaultMaxLeverage;
+    if (asset) {
+      try {
+        maxLeverage = await this.getMaxLeverage(asset);
+      } catch (error) {
+        this.#deps.debugLogger.log(
+          '[MYXProvider] Failed to get max leverage for liq price, using default',
+          { asset, error },
+        );
+      }
+    }
+
+    const maintenanceLeverage = MYX_MAINTENANCE_MARGIN_MULTIPLIER * maxLeverage;
+    const maintenanceMarginRatio = 1 / maintenanceLeverage;
+    const side = direction === 'long' ? 1 : -1;
+
+    const initialMargin = 1 / leverage;
+    const maintenanceMargin = 1 / maintenanceLeverage;
+
+    if (initialMargin < maintenanceMargin) {
+      return MYX_ZERO_PRICE_FALLBACK;
+    }
+
+    try {
+      const marginAvailable = initialMargin - maintenanceMargin;
+      const denominator = 1 - maintenanceMarginRatio * side;
+
+      if (Math.abs(denominator) < MYX_NEAR_ZERO_THRESHOLD) {
+        return String(entryPrice);
+      }
+
+      const liquidationPrice =
+        entryPrice - (side * marginAvailable * entryPrice) / denominator;
+
+      return String(Math.max(0, liquidationPrice));
+    } catch (error) {
+      this.#deps.logger.error(
+        ensureError(error, 'MYXProvider.calculateLiquidationPrice'),
+        this.#getErrorContext('calculateLiquidationPrice', {
+          asset: params.asset,
+          entryPrice: params.entryPrice,
+          leverage: params.leverage,
+          direction: params.direction,
+        }),
+      );
+      return MYX_ZERO_PRICE_FALLBACK;
+    }
   }
 
   async calculateMaintenanceMargin(
-    _params: MaintenanceMarginParams,
+    params: MaintenanceMarginParams,
   ): Promise<number> {
-    return 0;
+    const { asset } = params;
+    const maxLeverage = await this.getMaxLeverage(asset);
+    return 1 / (MYX_MAINTENANCE_MARGIN_MULTIPLIER * maxLeverage);
   }
 
   async getMaxLeverage(_asset: string): Promise<number> {
@@ -894,58 +2249,291 @@ export class MYXProvider implements PerpsProvider {
   }
 
   async calculateFees(
-    _params: FeeCalculationParams,
+    params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    return {
-      feeRate: MYX_FEE_RATE,
-      protocolFeeRate: MYX_PROTOCOL_FEE_RATE,
+    // Fetch dynamic fee rate from MYX API, fall back to default constant
+    let feeRateDecimal = MYX_FEE_RATE;
+    try {
+      const chainId = this.#clientService.getChainId();
+      const rates = await this.#clientService.getUserTradingFeeRate(
+        0,
+        0,
+        chainId,
+      );
+      const rateNum = Number.parseInt(rates.takerFeeRate, 10);
+      if (rateNum > 0) {
+        feeRateDecimal = rateNum / MYX_FEE_RATE_PRECISION;
+      }
+    } catch {
+      // Non-fatal: use static fallback
+    }
+
+    const result: FeeCalculationResult = {
+      feeRate: feeRateDecimal,
+      protocolFeeRate: feeRateDecimal,
+      metamaskFeeRate: 0, // Broker revenue comes via referral rebates, not a separate fee line
     };
+
+    if (params.amount) {
+      const parsedAmount = Number.parseFloat(params.amount);
+      if (Number.isFinite(parsedAmount) && parsedAmount > 0) {
+        result.feeAmount = parsedAmount * feeRateDecimal;
+        result.protocolFeeAmount = parsedAmount * feeRateDecimal;
+        result.metamaskFeeAmount = 0;
+      }
+    }
+
+    return result;
   }
 
   // ============================================================================
-  // Subscriptions (Stage 1 - No-op)
+  // Subscriptions (REST polling + WS for instant trade events)
+  // MYX WS does not send initial snapshot on subscribe, and does not push
+  // continuous position updates (mark price / PnL). REST polling handles
+  // those. WS fires instantly on state changes (trade placed, filled, closed)
+  // so the UI updates without waiting for the next poll cycle.
   // ============================================================================
 
   subscribeToPositions(params: SubscribePositionsParams): () => void {
-    // Stage 1: No position tracking - immediately call back with empty array
-    // to signal loading is complete (no data to show)
-    setTimeout(() => params.callback([]), 0);
+    let cancelled = false;
+    let wsCallback: ((data: unknown) => void) | null = null;
+    let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const pollPositions = async (): Promise<void> => {
+      if (cancelled) {
+        return;
+      }
+      try {
+        const positions = await this.getPositions();
+        if (!cancelled) {
+          params.callback(positions);
+        }
+      } catch {
+        // Non-fatal: keep polling
+      }
+      if (!cancelled) {
+        pollTimeout = setTimeout(pollPositions, MYX_PRICE_POLLING_INTERVAL_MS);
+      }
+    };
+
+    const setup = async (): Promise<void> => {
+      try {
+        await this.#ensureAuthenticated();
+
+        // WS subscription for instant trade notifications
+        try {
+          wsCallback = (rawData: unknown): void => {
+            if (cancelled) {
+              return;
+            }
+            const posData = rawData as Record<string, unknown>;
+            this.#deps.debugLogger.log('[MYXProvider] WS:position event', {
+              symbol:
+                this.#poolSymbolMap.get(posData.poolId as string) ??
+                posData.poolId,
+              size: posData.size,
+              direction: posData.direction,
+            });
+            // WS event = state changed, fetch fresh data immediately
+            pollPositions().catch((wsErr: unknown) => {
+              this.#deps.debugLogger.log(
+                '[MYXProvider] WS:position fetch error',
+                {
+                  error: String(wsErr),
+                },
+              );
+            });
+          };
+
+          await this.#clientService.subscribeToPositions(wsCallback);
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Position WS + polling active',
+          );
+        } catch (wsError) {
+          wsCallback = null;
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Position WS failed, polling only',
+            {
+              error: String(wsError),
+            },
+          );
+        }
+      } catch {
+        // Auth failed — polling still works
+      }
+
+      // Start polling (first call also serves as initial data load)
+      pollPositions().catch(() => {
+        // Error handled inside
+      });
+    };
+
+    setup().catch((error) => {
+      this.#deps.debugLogger.log('[MYXProvider] subscribeToPositions error', {
+        error: String(error),
+      });
+    });
+
     return () => {
-      /* noop */
+      cancelled = true;
+      if (wsCallback) {
+        this.#clientService.unsubscribeFromPositions(wsCallback);
+      }
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
     };
   }
 
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
-    // Stage 1: No fill tracking - immediately call back with empty array
-    setTimeout(() => params.callback([]), 0);
+    // MYX SDK has no WebSocket fill streaming — use REST polling.
+    let cancelled = false;
+    let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const fetchAndNotify = async (): Promise<void> => {
+      if (cancelled) {
+        return;
+      }
+      try {
+        const fills = await this.getOrderFills();
+        if (!cancelled) {
+          params.callback(fills);
+        }
+      } catch {
+        // Non-fatal: keep polling
+      }
+      if (!cancelled) {
+        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+      }
+    };
+
+    fetchAndNotify().catch((error) => {
+      this.#deps.debugLogger.log('[MYXProvider] subscribeToOrderFills error', {
+        error: String(error),
+      });
+    });
+
     return () => {
-      /* noop */
+      cancelled = true;
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
     };
   }
 
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
-    // Stage 1: No order tracking - immediately call back with empty array
-    setTimeout(() => params.callback([]), 0);
+    let cancelled = false;
+    let wsCallback: ((data: unknown) => void) | null = null;
+    let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const pollOrders = async (): Promise<void> => {
+      if (cancelled) {
+        return;
+      }
+      try {
+        const orders = await this.getOpenOrders();
+        if (!cancelled) {
+          params.callback(orders);
+        }
+      } catch {
+        // Non-fatal: keep polling
+      }
+      if (!cancelled) {
+        pollTimeout = setTimeout(pollOrders, MYX_PRICE_POLLING_INTERVAL_MS);
+      }
+    };
+
+    const setup = async (): Promise<void> => {
+      try {
+        await this.#ensureAuthenticated();
+
+        try {
+          wsCallback = (rawData: unknown): void => {
+            if (cancelled) {
+              return;
+            }
+            const orderData = rawData as Record<string, unknown>;
+            this.#deps.debugLogger.log('[MYXProvider] WS:order event', {
+              orderId: orderData.orderId,
+              status: orderData.status,
+              orderType: orderData.orderType,
+            });
+            pollOrders().catch((wsErr: unknown) => {
+              this.#deps.debugLogger.log('[MYXProvider] WS:order fetch error', {
+                error: String(wsErr),
+              });
+            });
+          };
+
+          await this.#clientService.subscribeToOrders(wsCallback);
+          this.#deps.debugLogger.log('[MYXProvider] Order WS + polling active');
+        } catch (wsError) {
+          wsCallback = null;
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Order WS failed, polling only',
+            {
+              error: String(wsError),
+            },
+          );
+        }
+      } catch {
+        // Auth failed — polling still works
+      }
+
+      pollOrders().catch(() => {
+        // Error handled inside
+      });
+    };
+
+    setup().catch((error) => {
+      this.#deps.debugLogger.log('[MYXProvider] subscribeToOrders error', {
+        error: String(error),
+      });
+    });
+
     return () => {
-      /* noop */
+      cancelled = true;
+      if (wsCallback) {
+        this.#clientService.unsubscribeFromOrders(wsCallback);
+      }
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
     };
   }
 
   subscribeToAccount(params: SubscribeAccountParams): () => void {
-    // Stage 1: Empty account state - immediately call back
-    setTimeout(
-      () =>
-        params.callback({
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-        }),
-      0,
-    );
+    // MYX SDK has no WebSocket account streaming — use REST polling.
+    let cancelled = false;
+    let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const fetchAndNotify = async (): Promise<void> => {
+      if (cancelled) {
+        return;
+      }
+      try {
+        const account = await this.getAccountState();
+        if (!cancelled) {
+          params.callback(account);
+        }
+      } catch {
+        // Non-fatal: keep polling
+      }
+      if (!cancelled) {
+        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+      }
+    };
+
+    // Fetch immediately
+    fetchAndNotify().catch(() => {
+      // Error handled inside
+    });
+
     return () => {
-      /* noop */
+      cancelled = true;
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
     };
   }
 
@@ -1035,9 +2623,9 @@ export class MYXProvider implements PerpsProvider {
 
           const newCandle = adaptCandleFromMYXWebSocket(data.data);
           const { candles } = currentCandleData;
-          const lastCandle = candles[candles.length - 1];
+          const lastCandle = candles.at(-1);
 
-          if (lastCandle && lastCandle.time === newCandle.time) {
+          if (lastCandle?.time === newCandle.time) {
             // Same timestamp: update existing candle (live tick)
             currentCandleData = {
               ...currentCandleData,
@@ -1156,9 +2744,8 @@ export class MYXProvider implements PerpsProvider {
   // ============================================================================
 
   getBlockExplorerUrl(address?: string): string {
-    const baseUrl = this.#isTestnet
-      ? MYX_TESTNET_EXPLORER_URL
-      : MYX_BLOCK_EXPLORER_URL;
+    const network = this.#isTestnet ? 'testnet' : 'mainnet';
+    const baseUrl = MYX_BLOCK_EXPLORER_URL[network];
 
     return address ? `${baseUrl}/address/${address}` : baseUrl;
   }

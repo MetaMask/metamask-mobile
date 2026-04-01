@@ -8,19 +8,23 @@
  * Formatters are injected via MarketDataFormatters interface (same pattern as marketDataTransform.ts).
  *
  * Key differences from HyperLiquid:
- * - API prices are normal floats (SDK contract layer uses 30 decimals internally)
- * - Sizes use 18 decimals (vs HyperLiquid's szDecimals per asset)
+ * - REST API returns human-readable strings for prices, sizes, collateral, fees, PnL
+ * - Only the SDK contract layer (createIncreaseOrder) uses 18/30-decimal scaling
  * - Multiple pools can exist per symbol (MPM model)
  * - USDT collateral (vs USDC)
  */
 
 import {
   fromMYXPrice,
-  fromMYXSize,
+  fromMYXApiSize,
+  fromMYXApiCollateral,
   fromMYXCollateral,
   MYX_MAX_LEVERAGE,
+  MYX_MIN_ORDER_SIZE_BUFFER,
   MYX_MINIMUM_ORDER_SIZE_USD,
+  MYX_PROVIDER_ID,
 } from '../constants/myxConfig';
+import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
   AccountState,
   CandleStick,
@@ -38,13 +42,19 @@ import {
   MYXDirection,
   MYXDirectionEnum,
   MYXOperationEnum,
+  MYXOperationType,
   MYXOrderStatusEnum,
+  MYXOrderType,
   MYXOrderTypeEnum,
   MYXExecTypeEnum,
   MYXTradeFlowTypeEnum,
+  MYXTriggerType,
 } from '../types/myx-types';
 import type {
+  MYXNetwork,
   MYXPoolSymbol,
+  MYXPoolOpenOrder,
+  MYXOrderItem,
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
@@ -88,22 +98,28 @@ function formatChange(
  * Transform MYX Pool/Market info to MetaMask Perps API MarketInfo format
  *
  * @param pool - Pool symbol data from MYX SDK (PoolSymbolAllResponse)
+ * @param poolMinOrderSizeUsd - Per-pool minimum order size in USD (from getPoolLevelConfig)
  * @returns MetaMask Perps API market info object
  */
-export function adaptMarketFromMYX(pool: MYXPoolSymbol): MarketInfo {
+export function adaptMarketFromMYX(
+  pool: MYXPoolSymbol,
+  poolMinOrderSizeUsd?: number,
+): MarketInfo {
   // Extract base symbol from pool data
   const symbol = pool.baseSymbol || extractSymbolFromPoolId(pool.poolId);
 
-  // MYX uses fixed 18 decimals for sizes
-  const szDecimals = 18;
-
+  // MYX has no exchange-defined size step (unlike HyperLiquid).
+  // Use the app-wide fallback which caps at 6 decimals per perps-rules-decimals.md.
   return {
     name: symbol,
-    szDecimals,
+    szDecimals: DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     maxLeverage: MYX_MAX_LEVERAGE,
     marginTableId: 0, // MYX doesn't use margin tables like HyperLiquid
-    minimumOrderSize: MYX_MINIMUM_ORDER_SIZE_USD,
-    providerId: 'myx',
+    minimumOrderSize: Math.round(
+      Math.max(poolMinOrderSizeUsd ?? 0, MYX_MINIMUM_ORDER_SIZE_USD) *
+        MYX_MIN_ORDER_SIZE_BUFFER,
+    ),
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -173,7 +189,7 @@ export function adaptMarketDataFromMYX(
     change24h: formattedChange,
     change24hPercent: formattedChangePercent,
     volume: formattedVolume,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -302,16 +318,18 @@ function getTokenName(symbol: string): string {
  *
  * @param pos - MYX position from SDK
  * @param poolSymbolMap - Map of poolId to symbol
+ * @param markPrice - Optional current mark price for PnL/liq calculation
  * @returns MetaMask Position object
  */
 export function adaptPositionFromMYX(
   pos: MYXPositionType,
   poolSymbolMap: Map<string, string>,
+  markPrice?: number,
 ): Position {
   const symbol = poolSymbolMap.get(pos.poolId) ?? pos.poolId;
-  const sizeNum = fromMYXSize(pos.size);
+  const sizeNum = fromMYXApiSize(pos.size);
   const entryPriceNum = fromMYXPrice(pos.entryPrice);
-  const collateralNum = fromMYXCollateral(pos.collateralAmount);
+  const collateralNum = fromMYXApiCollateral(pos.collateralAmount);
 
   // Direction: 0 = LONG (positive size), 1 = SHORT (negative size)
   const isLong = pos.direction === MYXDirection.LONG;
@@ -320,24 +338,41 @@ export function adaptPositionFromMYX(
   // Position value = size * entry price
   const positionValue = Math.abs(sizeNum * entryPriceNum);
 
-  // Leverage = position value / collateral (approximate)
-  const leverage = collateralNum > 0 ? positionValue / collateralNum : 1;
+  // Leverage: prefer SDK runtime field, fall back to calculation
+  const runtimePos = pos as unknown as { userLeverage?: number };
+  const leverage =
+    runtimePos.userLeverage ??
+    (collateralNum > 0 ? Math.round(positionValue / collateralNum) : 1);
+
+  // PnL: calculate from mark price if available
+  const pnl = markPrice ? (markPrice - entryPriceNum) * signedSize : 0;
+
+  // Liquidation price (isolated margin approximation)
+  let liquidationPrice: string | null = null;
+  if (leverage > 0 && entryPriceNum > 0) {
+    const liqPrice = isLong
+      ? entryPriceNum * (1 - 1 / leverage)
+      : entryPriceNum * (1 + 1 / leverage);
+    liquidationPrice = liqPrice.toString();
+  }
+
+  const roe = collateralNum > 0 ? pnl / collateralNum : 0;
 
   return {
     symbol,
     size: signedSize.toString(),
     entryPrice: entryPriceNum.toString(),
     positionValue: positionValue.toString(),
-    unrealizedPnl: '0', // Requires mark price - will be enriched by WS or separate call
+    unrealizedPnl: pnl.toString(),
     marginUsed: collateralNum.toString(),
     leverage: {
       type: 'isolated',
-      value: Math.round(leverage),
+      value: leverage,
       rawUsd: collateralNum.toString(),
     },
-    liquidationPrice: null, // Requires separate calculation
+    liquidationPrice,
     maxLeverage: MYX_MAX_LEVERAGE,
-    returnOnEquity: '0',
+    returnOnEquity: roe.toString(),
     cumulativeFunding: {
       allTime: '0',
       sinceOpen: '0',
@@ -347,7 +382,7 @@ export function adaptPositionFromMYX(
     stopLossPrice: undefined,
     takeProfitCount: 0,
     stopLossCount: 0,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -374,8 +409,8 @@ export function adaptOrderFromMYX(
     historyOrder.poolId;
 
   const priceNum = fromMYXPrice(historyOrder.price);
-  const sizeNum = fromMYXSize(historyOrder.size);
-  const filledSizeNum = fromMYXSize(historyOrder.filledSize);
+  const sizeNum = fromMYXApiSize(historyOrder.size);
+  const filledSizeNum = fromMYXApiSize(historyOrder.filledSize);
   const remainingSize = Math.max(0, sizeNum - filledSizeNum);
 
   // Map direction
@@ -389,19 +424,23 @@ export function adaptOrderFromMYX(
   }
 
   // Map status
-  let status: Order['status'] = 'open';
+  let status: Order['status'];
   switch (historyOrder.orderStatus) {
     case MYXOrderStatusEnum.Successful:
+    case MYXOrderStatusEnum.PartialFilled:
       status = 'filled';
       break;
     case MYXOrderStatusEnum.Cancelled:
-      status = 'canceled';
-      break;
     case MYXOrderStatusEnum.Expired:
       status = 'canceled';
       break;
     default:
       status = 'open';
+  }
+
+  // Override: fully filled orders may have stale API status
+  if (remainingSize === 0 && filledSizeNum > 0) {
+    status = 'filled';
   }
 
   // Detect trigger orders
@@ -433,7 +472,121 @@ export function adaptOrderFromMYX(
     detailedOrderType,
     reduceOnly:
       historyOrder.operation === MYXOperationEnum.Decrease ? true : undefined,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
+  };
+}
+
+/**
+ * Adapt MYX pool open order (pending limit/trigger) to MetaMask Order.
+ *
+ * PoolOpenOrder represents pending TP/SL or limit orders that can be cancelled.
+ * This is the MYX equivalent of Hyperliquid's "open orders".
+ *
+ * @param order - MYX pool open order from getPoolOpenOrders
+ * @param poolSymbolMap - Map of poolId to symbol
+ * @returns MetaMask Order object
+ */
+export function adaptPoolOpenOrderFromMYX(
+  order: MYXPoolOpenOrder,
+  poolSymbolMap: Map<string, string>,
+): Order {
+  const symbol = poolSymbolMap.get(order.poolId) ?? order.poolId;
+  const triggerPriceNum = fromMYXPrice(order.triggerPrice);
+  const sizeNum = fromMYXApiSize(order.amount);
+
+  // triggerType: 1 = TP, 2 = SL
+  const isTP = order.triggerType === 1;
+  const isTrigger = true;
+  const detailedOrderType = isTP ? 'Take Profit' : 'Stop Loss';
+
+  // PoolOpenOrder does not include direction; default to 'sell' (reduce-only).
+  // TP/SL orders are always reduce-only, closing existing positions.
+  const side: 'buy' | 'sell' = 'sell';
+
+  return {
+    orderId: String(order.orderId),
+    symbol,
+    side,
+    orderType: 'limit',
+    size: sizeNum.toString(),
+    originalSize: sizeNum.toString(),
+    price: triggerPriceNum.toString(),
+    filledSize: '0',
+    remainingSize: sizeNum.toString(),
+    status: 'open',
+    timestamp: order.txTime,
+    isTrigger,
+    detailedOrderType,
+    reduceOnly: true,
+    providerId: MYX_PROVIDER_ID,
+  };
+}
+
+/**
+ * Adapt MYX OrderItem (from order.getOrders) to MetaMask Order.
+ *
+ * order.getOrders() returns active/pending orders (limit, trigger).
+ * Unlike getPoolOpenOrders (which requires an access token that may be null),
+ * this endpoint works reliably with just the user address.
+ *
+ * @param order - MYX OrderItem from order.getOrders
+ * @param poolSymbolMap - Map of poolId to symbol
+ * @returns MetaMask Order object
+ */
+export function adaptOrderItemFromMYX(
+  order: MYXOrderItem,
+  poolSymbolMap: Map<string, string>,
+): Order {
+  const symbol =
+    order.baseSymbol ?? poolSymbolMap.get(order.poolId) ?? order.poolId;
+
+  const priceNum = fromMYXPrice(order.price);
+  const sizeNum = fromMYXApiSize(order.size);
+  const filledSizeNum = fromMYXApiSize(order.filledSize);
+  const remainingSize = Math.max(0, sizeNum - filledSizeNum);
+
+  const side: 'buy' | 'sell' =
+    order.direction === MYXDirection.LONG ? 'buy' : 'sell';
+  const isTrigger =
+    order.orderType === MYXOrderType.STOP ||
+    order.orderType === MYXOrderType.CONDITIONAL;
+  const orderType: 'market' | 'limit' =
+    order.orderType === MYXOrderType.LIMIT ? 'limit' : 'market';
+  const reduceOnly =
+    order.operation === MYXOperationType.DECREASE ? true : undefined;
+  // TP/SL trigger orders are tied to the full position (decrease with trigger)
+  const isPositionTpsl =
+    isTrigger && order.operation === MYXOperationType.DECREASE;
+
+  // Determine if this is a TP or SL based on triggerType:
+  // For LONG positions: TP triggers when price >= target (GTE=1), SL when price <= target (LTE=2)
+  // For SHORT positions: TP triggers when price <= target (LTE=2), SL when price >= target (GTE=1)
+  let detailedOrderType: string | undefined;
+  if (isTrigger) {
+    const isLong = order.direction === MYXDirection.LONG;
+    const isGTE = order.triggerType === MYXTriggerType.GTE;
+    const isTakeProfit = isLong ? isGTE : !isGTE;
+    detailedOrderType = isTakeProfit ? 'Take Profit' : 'Stop Loss';
+  }
+
+  return {
+    orderId: String(order.orderId),
+    symbol,
+    side,
+    orderType,
+    size: sizeNum.toString(),
+    originalSize: sizeNum.toString(),
+    price: priceNum.toString(),
+    filledSize: filledSizeNum.toString(),
+    remainingSize: remainingSize.toString(),
+    status: 'open',
+    timestamp: order.txTime,
+    isTrigger,
+    isPositionTpsl,
+    triggerPrice: isTrigger ? priceNum.toString() : undefined,
+    detailedOrderType,
+    reduceOnly,
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -442,34 +595,157 @@ export function adaptOrderFromMYX(
 // ============================================================================
 
 /**
+ * Parse MYX getAccountInfo response.
+ *
+ * SDK <1.0: 7-element array (tuple) [freeAmount, walletBalance, ...]
+ * SDK 1.0.2+: keyed object with freeMargin, walletBalance, freeBaseAmount,
+ * baseProfit, quoteProfit, reservedAmount, releaseTime
+ *
+ * @param data - Raw response data (array or object)
+ * @returns Parsed account fields as strings
+ */
+// SDK AccountInfo type (from @myx-trade/sdk v1.0.6):
+//   { freeMargin, walletBalance, freeBaseAmount, baseProfit, quoteProfit,
+//     reservedAmount, releaseTime }
+//
+// Mapping to our internal representation:
+//   SDK field        | MYX UI label              | Our field
+//   -----------------|---------------------------|------------------
+//   freeMargin       | Free Margin               | freeAmount
+//   walletBalance    | Wallet Balance            | walletBalance
+//   reservedAmount   | Reserved Amount           | reservedAmount
+//   quoteProfit      | Locked Realized PnL USDC  | lockedRealizedPnl
+//   freeBaseAmount   | Withdrawable META         | (not mapped)
+//   baseProfit       | Locked Realized PnL META  | (not mapped)
+//   releaseTime      | Unlock timer              | (not mapped)
+//
+// Note: the SDK does NOT return orderHoldInUSD, totalCollateral, or unrealizedPnl.
+// Those were assumed in an earlier version. Unrealized PnL comes from positions,
+// not from getAccountInfo().
+function parseAccountTuple(data: unknown): {
+  freeAmount: string;
+  walletBalance: string;
+  reservedAmount: string;
+  orderHoldInUSD: string;
+  totalCollateral: string;
+  lockedRealizedPnl: string;
+  unrealizedPnl: string;
+} {
+  const zero = {
+    freeAmount: '0',
+    walletBalance: '0',
+    reservedAmount: '0',
+    orderHoldInUSD: '0',
+    totalCollateral: '0',
+    lockedRealizedPnl: '0',
+    unrealizedPnl: '0',
+  };
+
+  const str = (val: unknown): string =>
+    typeof val === 'string' ||
+    typeof val === 'number' ||
+    typeof val === 'bigint'
+      ? String(val)
+      : '0';
+
+  if (Array.isArray(data)) {
+    return {
+      freeAmount: str(data[0]),
+      walletBalance: str(data[1]),
+      reservedAmount: str(data[2]),
+      orderHoldInUSD: str(data[3]),
+      totalCollateral: str(data[4]),
+      lockedRealizedPnl: str(data[5]),
+      unrealizedPnl: str(data[6]),
+    };
+  }
+
+  if (data && typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    return {
+      freeAmount: str(obj.freeMargin ?? obj.freeAmount),
+      walletBalance: str(obj.walletBalance),
+      reservedAmount: str(obj.reservedAmount),
+      orderHoldInUSD: '0',
+      totalCollateral: '0',
+      lockedRealizedPnl: str(obj.quoteProfit ?? obj.lockedRealizedPnl),
+      unrealizedPnl: '0',
+    };
+  }
+
+  return zero;
+}
+
+/**
  * Adapt MYX account info response to MetaMask AccountState.
  *
- * @param accountInfo - Raw account info from MYX SDK
- * @param walletBalance - Wallet USDT balance (from getWalletQuoteTokenBalance)
+ * Balance formula (validated via PoC showAccount.ts):
+ * availableBalance = freeAmount + walletBalance
+ * totalBalance = freeAmount + walletBalance + reservedAmount + unrealizedPnl
+ * marginUsed = reservedAmount
+ *
+ * Tuple values are in token-native decimals (USDT=18, USDC=6).
+ *
+ * @param accountInfo - Raw account info from MYX SDK (7-element tuple or keyed object)
+ * @param network - 'mainnet' or 'testnet' (for collateral decimal scaling)
+ * @param positions - Active positions for weighted ROE calculation
  * @returns MetaMask AccountState
  */
 export function adaptAccountStateFromMYX(
-  accountInfo: Record<string, unknown> | undefined,
-  walletBalance?: string,
+  accountInfo: unknown,
+  network: MYXNetwork = 'mainnet',
+  positions?: Position[],
 ): AccountState {
-  // accountInfo structure varies; extract what we can
-  // TODO: Verify SDK semantics — if totalCollateral already includes unrealizedPnl,
-  // the totalBalance formula below double-counts. Needs SDK documentation check.
-  const rawCollateral = accountInfo?.totalCollateral ?? '0';
-  const rawPnl = accountInfo?.unrealizedPnl ?? '0';
-  const marginUsed = accountInfo ? fromMYXCollateral(String(rawCollateral)) : 0;
-  const unrealizedPnl = accountInfo ? fromMYXCollateral(String(rawPnl)) : 0;
-  const balance = walletBalance ? fromMYXCollateral(walletBalance) : 0;
+  // MYX getAccountInfo() returns an AccountInfo object. Mapping to AccountState:
+  //
+  //   SDK field        | MYX UI label              | AccountState field
+  //   -----------------|---------------------------|-------------------
+  //   freeMargin       | Free Margin               | (part of availableBalance)
+  //   walletBalance    | Wallet Balance            | (part of availableBalance)
+  //   reservedAmount   | Reserved Amount           | marginUsed
+  //   quoteProfit      | Locked Realized PnL USDC  | NOT MAPPED (parsed but not in AccountState)
+  //   freeBaseAmount   | Withdrawable META         | NOT MAPPED (base-asset, not quote)
+  //   baseProfit       | Locked Realized PnL META  | NOT MAPPED (base-asset, not quote)
+  //   releaseTime      | Unlock timer              | NOT MAPPED
+  //
+  // Unrealized PnL is NOT in getAccountInfo() — it comes from summing
+  // position-level unrealized PnL via getPositions().
+  //
+  // The "NOT MAPPED" quote fields could be exposed via subAccountBreakdown
+  // if the UI needs the full MYX margin breakdown.
+  const acct = parseAccountTuple(accountInfo);
 
-  const totalBalance = balance + marginUsed + unrealizedPnl;
-  const availableBalance = balance;
+  const freeAmount = fromMYXCollateral(acct.freeAmount, network);
+  const walletBal = fromMYXCollateral(acct.walletBalance, network);
+  const reservedAmount = fromMYXCollateral(acct.reservedAmount, network);
+
+  // Unrealized PnL is not in getAccountInfo() — sum from positions
+  let unrealizedPnl = 0;
+  let returnOnEquity = '0';
+  if (positions && positions.length > 0) {
+    let weightedRoe = 0;
+    let totalMargin = 0;
+    for (const pos of positions) {
+      unrealizedPnl += Number.parseFloat(pos.unrealizedPnl || '0');
+      const roe = Number.parseFloat(pos.returnOnEquity || '0');
+      const margin = Number.parseFloat(pos.marginUsed || '0');
+      weightedRoe += roe * margin;
+      totalMargin += margin;
+    }
+    returnOnEquity =
+      totalMargin > 0 ? ((weightedRoe / totalMargin) * 100).toString() : '0';
+  }
+
+  const availableBalance = freeAmount + walletBal;
+  const totalBalance = freeAmount + walletBal + reservedAmount + unrealizedPnl;
+  const marginUsed = reservedAmount;
 
   return {
     availableBalance: availableBalance.toString(),
     totalBalance: totalBalance.toString(),
     marginUsed: marginUsed.toString(),
     unrealizedPnl: unrealizedPnl.toString(),
-    returnOnEquity: '0',
+    returnOnEquity,
   };
 }
 
@@ -490,11 +766,11 @@ export function adaptOrderFillFromMYX(
 ): OrderFill {
   const symbol =
     order.baseSymbol ?? poolSymbolMap.get(order.poolId) ?? order.poolId;
-  const sizeNum = fromMYXSize(order.filledSize || order.size);
+  const sizeNum = fromMYXApiSize(order.filledSize || order.size);
   const priceNum = fromMYXPrice(order.lastPrice || order.price);
   const side = order.direction === MYXDirectionEnum.Long ? 'buy' : 'sell';
-  const feeNum = fromMYXCollateral(order.tradingFee || '0');
-  const pnlNum = fromMYXCollateral(order.realizedPnl || '0');
+  const feeNum = fromMYXApiCollateral(order.tradingFee || '0');
+  const pnlNum = fromMYXApiCollateral(order.realizedPnl || '0');
 
   let orderType: OrderFill['orderType'] = 'regular';
   if (order.execType === MYXExecTypeEnum.TP) {
@@ -505,6 +781,11 @@ export function adaptOrderFillFromMYX(
     orderType = 'liquidation';
   }
 
+  // Map direction to UI-expected format: "Open Long", "Close Short", etc.
+  const isIncrease = order.operation === MYXOperationEnum.Increase;
+  const isLong = order.direction === MYXDirectionEnum.Long;
+  const directionLabel = `${isIncrease ? 'Open' : 'Close'} ${isLong ? 'Long' : 'Short'}`;
+
   return {
     orderId: String(order.orderId),
     symbol,
@@ -512,13 +793,13 @@ export function adaptOrderFillFromMYX(
     size: sizeNum.toString(),
     price: priceNum.toString(),
     pnl: pnlNum.toString(),
-    direction: side,
+    direction: directionLabel,
     fee: feeNum.toString(),
     feeToken: 'USDT',
     timestamp: order.txTime,
     success: order.orderStatus === MYXOrderStatusEnum.Successful,
     orderType,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -544,7 +825,7 @@ export function adaptFundingFromMYX(
     )
     .map((flow) => {
       const symbol = poolSymbolMap.get(flow.poolId) ?? flow.poolId;
-      const amountUsd = fromMYXCollateral(flow.fundingFee);
+      const amountUsd = fromMYXApiCollateral(flow.fundingFee);
       return {
         symbol,
         amountUsd: amountUsd.toString(),
@@ -576,7 +857,7 @@ export function adaptUserHistoryFromMYX(
     )
     .map((flow) => {
       const isDeposit = flow.type === MYXTradeFlowTypeEnum.MarginAccountDeposit;
-      const amount = fromMYXCollateral(flow.collateralAmount || '0');
+      const amount = fromMYXApiCollateral(flow.collateralAmount || '0');
       return {
         id: String(flow.orderId),
         timestamp: flow.txTime,

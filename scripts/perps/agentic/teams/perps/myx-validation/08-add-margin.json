@@ -1,0 +1,145 @@
+{
+  "title": "MYX: Add Margin to Position (PR #myx-write-integration)",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready",
+        "perps.sufficient_balance"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "open-position",
+          "description": "Open a position via UI flow",
+          "action": "flow_ref",
+          "ref": "trade-open-market",
+          "params": { "symbol": "META", "side": "long", "usdAmount": "150" }
+        },
+        {
+          "id": "wait-position",
+          "description": "Poll until position appears",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to META market detail to show position",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-position-card",
+          "description": "Wait for position card to render",
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "scroll-to-margin-before",
+          "description": "Scroll to show margin value before adding",
+          "action": "scroll",
+          "test_id": "perps-market-details-scroll-view",
+          "offset": 500
+        },
+        {
+          "id": "screenshot-before",
+          "description": "Capture position with margin ~$150 before adding",
+          "action": "screenshot",
+          "filename": "08-margin-before"
+        },
+        {
+          "id": "add-margin",
+          "description": "Add $10 margin via controller",
+          "action": "eval_ref",
+          "ref": "myx/add-margin",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-margin-updated",
+          "description": "Wait for margin to increase (position refresh)",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({margin:0});return p.getPositions().then(function(r){if(!r.length)return JSON.stringify({margin:0});return JSON.stringify({margin:parseFloat(r[0].marginUsed)})})})()",
+          "timeout_ms": 30000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "margin", "value": 155 }
+        },
+        {
+          "id": "nav-market-detail-after",
+          "description": "Navigate back to see updated margin",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-position-card-after",
+          "description": "Wait for position card with updated margin",
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "scroll-to-margin-after",
+          "description": "Scroll to show updated margin value",
+          "action": "scroll",
+          "test_id": "perps-market-details-scroll-view",
+          "offset": 500
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture position with margin ~$160 after adding $10",
+          "action": "screenshot",
+          "filename": "08-margin-after"
+        },
+        {
+          "id": "cleanup",
+          "description": "Close the position",
+          "action": "eval_ref",
+          "ref": "myx/close-position",
+          "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-closed",
+          "description": "Poll until position is gone",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        }
+      ]
+    }
+  }
+}

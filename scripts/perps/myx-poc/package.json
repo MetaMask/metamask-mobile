@@ -1,0 +1,15 @@
+{
+  "name": "myx-poc",
+  "private": true,
+  "description": "MYX SDK standalone reference scripts",
+  "scripts": {
+    "markets": "yarn tsx listMarkets.ts",
+    "account": "yarn tsx showAccount.ts",
+    "orders": "yarn tsx listOrders.ts",
+    "place": "yarn tsx placeOrder.ts",
+    "close": "yarn tsx closeOrder.ts",
+    "edit": "yarn tsx editOrder.ts",
+    "margin": "yarn tsx addMargin.ts"
+  },
+  "dependencies": {}
+}

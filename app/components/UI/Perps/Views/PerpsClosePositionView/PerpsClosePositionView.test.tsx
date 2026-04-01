@@ -2074,7 +2074,7 @@ describe('PerpsClosePositionView', () => {
       // realizedPnl = unrealizedPnl = 150 (from defaultPerpsPositionMock)
       expect(handleClosePosition).toHaveBeenCalledWith({
         position: defaultPerpsPositionMock,
-        size: '',
+        size: undefined,
         orderType: 'market',
         limitPrice: undefined,
         trackingData: {
@@ -2087,6 +2087,7 @@ describe('PerpsClosePositionView', () => {
           feeDiscountPercentage: undefined,
           estimatedPoints: undefined,
           inputMethod: 'default',
+          source: undefined,
         },
         marketPrice: '3000.00',
         // Slippage parameters added in USD-as-source-of-truth refactor

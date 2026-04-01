@@ -1,0 +1,85 @@
+{
+  "title": "MYX: Close Single Position (PR #myx-write-integration)",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready",
+        "perps.sufficient_balance"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "open-position",
+          "description": "Open a position via UI flow",
+          "action": "flow_ref",
+          "ref": "trade-open-market",
+          "params": { "symbol": "META", "side": "long", "usdAmount": "150" }
+        },
+        {
+          "id": "wait-position",
+          "description": "Poll until position appears",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "close-position",
+          "description": "Close position via UI: press Close Long -> confirm",
+          "action": "flow_ref",
+          "ref": "trade-close-position",
+          "params": { "symbol": "META" }
+        },
+        {
+          "id": "verify-closed",
+          "description": "Verify position is gone",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-market-after",
+          "description": "Navigate to market detail to show Long/Short buttons (no position)",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-long-button",
+          "description": "Wait for Long button (confirms position is gone)",
+          "action": "wait_for",
+          "test_id": "perps-market-details-long-button",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture market detail with no position",
+          "action": "screenshot",
+          "filename": "09-close-position-after"
+        }
+      ]
+    }
+  }
+}

@@ -150,6 +150,13 @@ const REGISTRY = {
     assert: { operator: 'eq', field: 'enabled', value: false },
     hint: 'Disable homepageRedesignV1: Settings → Experimental → Feature Flags → homepageRedesignV1.',
   },
+  'perps.myx_testnet_ready': {
+    description: 'MYX provider is active, testnet is enabled, and provider is authenticated',
+    async: true,
+    expression: '(function(){ var c=Engine.context.PerpsController; var s=c.state; if(!s.isTestnet) return Promise.resolve(JSON.stringify({ready:false,reason:"testnet not enabled"})); if(s.activeProvider!=="myx") return Promise.resolve(JSON.stringify({ready:false,reason:"active provider is "+s.activeProvider+", not myx"})); var p=c.providers.get("myx"); if(!p) return Promise.resolve(JSON.stringify({ready:false,reason:"myx provider not registered"})); return p.isReadyToTrade().then(function(r){ return JSON.stringify({ready:r.ready,address:r.authenticatedAddress||null}); }); })()',
+    assert: { operator: 'eq', field: 'ready', value: true },
+    hint: 'Enable testnet, switch to MYX provider, and ensure broker address is configured:\n  1. Toggle testnet: eval-async "Engine.context.PerpsController.toggleTestnet()"\n  2. Switch provider: eval-async "Engine.context.PerpsController.switchProvider(\'myx\')"\n  3. Set MM_PERPS_MYX_BROKER_ADDRESS_TESTNET in .js.env',
+  },
 };
 
 module.exports = REGISTRY;

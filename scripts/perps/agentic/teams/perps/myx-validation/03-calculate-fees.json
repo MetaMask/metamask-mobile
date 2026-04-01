@@ -1,0 +1,85 @@
+{
+  "title": "MYX: Calculate Fees (PR #myx-write-integration)",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "nav-market",
+          "description": "Navigate to META market detail to show trade context",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-market-render",
+          "description": "Wait for market detail to render",
+          "action": "wait_for",
+          "test_id": "perps-market-details-long-button"
+        },
+        {
+          "id": "screenshot-market",
+          "description": "Capture market detail screen",
+          "action": "screenshot",
+          "filename": "03-calculate-fees-market"
+        },
+        {
+          "id": "calculate-fees",
+          "description": "Calculate fees for a $1000 trade",
+          "action": "eval_ref",
+          "ref": "myx/fees",
+          "assert": {
+            "operator": "not_null"
+          }
+        },
+        {
+          "id": "verify-protocol-rate",
+          "description": "Verify protocol fee rate is greater than zero",
+          "action": "eval_ref",
+          "ref": "myx/fee-breakdown",
+          "assert": {
+            "operator": "gt",
+            "field": "fees.protocolFeeRate",
+            "value": 0
+          }
+        },
+        {
+          "id": "verify-broker-status",
+          "description": "Verify MetaMask broker fee is zero (referral rebate not yet configured)",
+          "action": "eval_ref",
+          "ref": "myx/fee-breakdown",
+          "assert": {
+            "operator": "eq",
+            "field": "fees.metamaskFeeRate",
+            "value": 0
+          }
+        }
+      ]
+    }
+  }
+}

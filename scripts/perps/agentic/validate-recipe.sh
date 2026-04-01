@@ -282,8 +282,15 @@ while IFS= read -r sj; do
       ;;
     eval_ref)
       REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
-      echo "  -> eval-ref perps/$REF"
-      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-ref "perps/$REF" 2>/dev/null)
+      # Resolve eval ref: check if first part is a known team dir, otherwise prepend perps/
+      IFS='/' read -ra REF_PARTS <<< "$REF"
+      if [ ${#REF_PARTS[@]} -ge 2 ] && [ -d "$SD/teams/${REF_PARTS[0]}" ]; then
+        FULL_REF="$REF"
+      else
+        FULL_REF="perps/$REF"
+      fi
+      echo "  -> eval-ref $FULL_REF"
+      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-ref "$FULL_REF" 2>/dev/null)
       ;;
     log_watch)
       WS=$(node -p "JSON.parse(process.argv[1]).window_seconds||10" "$sj")

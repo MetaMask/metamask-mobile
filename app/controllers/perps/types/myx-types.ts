@@ -17,6 +17,7 @@ export type { TickerDataItem as MYXTicker } from '@myx-trade/sdk';
 // Position & order types from SDK
 export type { PositionType as MYXPositionType } from '@myx-trade/sdk';
 export type { HistoryOrderItem as MYXHistoryOrderItem } from '@myx-trade/sdk';
+export type { PoolOpenOrder as MYXPoolOpenOrder } from '@myx-trade/sdk';
 export type { PositionHistoryItem as MYXPositionHistoryItem } from '@myx-trade/sdk';
 export type { TradeFlowItem as MYXTradeFlowItem } from '@myx-trade/sdk';
 export type { KlineDataItemType as MYXKlineData } from '@myx-trade/sdk';
@@ -35,6 +36,39 @@ export type MYXKlineWsData = {
   v: string; // Volume
 };
 export type { KlineDataResponse as MYXKlineDataResponse } from '@myx-trade/sdk';
+
+// OrderItem is declared in @myx-trade/sdk but not exported — define locally.
+// Returned by order.getOrders() for active/pending limit and trigger orders.
+export type MYXOrderItem = {
+  baseSymbol: string;
+  chainId: number;
+  collateralAmount: string;
+  direction: number; // 0=LONG, 1=SHORT
+  executionFeeAmount: string;
+  executionFeeToken: string | null;
+  filledAmount: string;
+  filledSize: string;
+  operation: number; // 0=INCREASE, 1=DECREASE
+  orderId: number;
+  orderType: number; // 0=MARKET, 1=LIMIT
+  poolId: string;
+  positionId: string;
+  postOnly: 0 | 1;
+  price: string;
+  quoteSymbol: string;
+  size: string;
+  slPrice: string | null;
+  slSize: string | null;
+  slippagePct: number;
+  tif: number;
+  tpPrice: string | null;
+  tpSize: string | null;
+  triggerType: number;
+  txHash: string;
+  txTime: number;
+  user: string;
+  useLeverage: number;
+};
 
 // SDK enums (re-exported as types since they're const objects in the SDK)
 export {
@@ -60,6 +94,44 @@ export {
 export type { PlaceOrderParams as MYXPlaceOrderParams } from '@myx-trade/sdk';
 export type { PositionTpSlOrderParams as MYXPositionTpSlOrderParams } from '@myx-trade/sdk';
 export type { GetHistoryOrdersParams as MYXGetHistoryOrdersParams } from '@myx-trade/sdk';
+
+// UpdateOrderParams is declared in the SDK but not exported — define locally.
+// Matches the SDK's `updateOrderTpSl` first parameter signature.
+export type MYXUpdateOrderParams = {
+  orderId: string;
+  size: string;
+  price: string;
+  tpSize: string;
+  tpPrice: string;
+  slSize: string;
+  slPrice: string;
+  useOrderCollateral: boolean;
+  executionFeeToken: string;
+};
+
+// ============================================================================
+// Wallet Client Adapter Type
+// ============================================================================
+
+/**
+ * Minimal WalletClient-like interface for the MYX SDK.
+ * The SDK expects viem's WalletClient but we provide a lightweight adapter
+ * (created by MYXWalletService) without importing viem as a dependency.
+ */
+export type MYXWalletClientLike = {
+  account: { address: string };
+  chain: { id: number };
+  transport: {
+    request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  };
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  getAddresses: () => Promise<readonly `0x${string}`[]>;
+  signMessage: (args: {
+    message: string | { raw: Uint8Array };
+  }) => Promise<`0x${string}`>;
+  sendTransaction: (args: Record<string, unknown>) => Promise<`0x${string}`>;
+  signTypedData: (args: Record<string, unknown>) => Promise<string>;
+};
 
 // ============================================================================
 // Network Configuration Types
