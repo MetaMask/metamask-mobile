@@ -271,13 +271,11 @@ export function CancelSpeedupModal({
         useNativeDriver
         onBackdropPress={onClose}
         onBackButtonPress={onClose}
-        onSwipeComplete={onClose}
-        swipeDirection="down"
-        propagateSwipe
       >
         <BottomSheet
           ref={bottomSheetRef}
           shouldNavigateBack={false}
+          onClose={onClose}
           style={styles.bottomSheetDialogSheet}
         >
           <HeaderCompactStandard title={title} onClose={close} />
