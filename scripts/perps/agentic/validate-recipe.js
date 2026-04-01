@@ -965,6 +965,17 @@ async function runExecutableNode(node, context, options = {}) {
   }
   console.log(`[${node.id || '?'}] ${describeStep(node)}`);
 
+  if (runOptions.dryRun) {
+    stats.skipped += 1;
+    console.log('  [DRY RUN - not executed]');
+    console.log('');
+    finalizeNodeRecord(context, node, {
+      next: node.next || '', note: 'dry run', startedAt, status: 'dry_run',
+    });
+    context.currentStepRef.current = null;
+    return { next: node.next || '' };
+  }
+
   if (node.when && !evaluateWorkflowCondition(node.when, context)) {
     if (shouldCountNode(node)) {
       stats.skipped += 1;
@@ -986,17 +997,6 @@ async function runExecutableNode(node, context, options = {}) {
     console.log('');
     finalizeNodeRecord(context, node, {
       next: node.next || '', note: 'unless condition matched', startedAt, status: 'skipped',
-    });
-    context.currentStepRef.current = null;
-    return { next: node.next || '' };
-  }
-
-  if (runOptions.dryRun) {
-    stats.skipped += 1;
-    console.log('  [DRY RUN - not executed]');
-    console.log('');
-    finalizeNodeRecord(context, node, {
-      next: node.next || '', note: 'dry run', startedAt, status: 'dry_run',
     });
     context.currentStepRef.current = null;
     return { next: node.next || '' };
