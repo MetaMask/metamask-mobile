@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   selectPaymentMethods,
   selectProviders,
+  selectTokens,
   selectUserRegion,
 } from '../../../../selectors/rampsController';
 import { type PaymentMethod } from '@metamask/ramps-controller';
@@ -63,6 +64,7 @@ export interface UseRampsPaymentMethodsResult {
 export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedPaymentMethod } = useSelector(selectPaymentMethods);
   const { selected: selectedProvider } = useSelector(selectProviders);
+  const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
   const queryEnabled = Boolean(
@@ -75,7 +77,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: '', // not used in the query key; provider scope is sufficient
+      assetId: selectedToken?.assetId ?? '', // passed to API but not in the query key
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,
