@@ -268,6 +268,13 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.UserStorageController',
     'engine.backgroundState.AuthenticationController',
 
+    // ── Token state (account-address-keyed, changes on every fresh wallet) ──
+    // useEnsureMusdTokenRegistered registers mUSD at app startup, adding entries
+    // under allTokens[chainId][accountAddress]. Since the fixture validation test
+    // creates a fresh wallet each run, the account address differs between runs,
+    // making this subtree non-deterministic.
+    'engine.backgroundState.TokensController.allTokens',
+
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
     'engine.backgroundState.TransactionController.transactionBatches',
