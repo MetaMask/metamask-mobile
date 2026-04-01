@@ -21,6 +21,10 @@ import { shouldStartLoadWithRequest } from '../../../../../../../util/browser';
 import { useAnalytics } from '../../../../../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { redactUrlForAnalytics } from '../../../../utils/redactUrlForAnalytics';
+import {
+  PROVIDER_EVENT_BRIDGE_SCRIPT,
+  handleProviderEventMessage,
+} from '../../../../utils/providerEventBridge';
 
 export interface WebviewModalParams {
   sourceUrl: string;
@@ -100,6 +104,13 @@ function WebviewModal() {
     [],
   );
 
+  const handleWebViewMessage = useCallback(
+    (event: { nativeEvent: { data: string } }) => {
+      handleProviderEventMessage(event.nativeEvent.data);
+    },
+    [],
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -150,6 +161,10 @@ function WebviewModal() {
                   setWebviewError(webviewHttpError);
                 }
               }}
+              onMessage={__DEV__ ? handleWebViewMessage : undefined}
+              injectedJavaScript={
+                __DEV__ ? PROVIDER_EVENT_BRIDGE_SCRIPT : undefined
+              }
               allowsInlineMediaPlayback
               enableApplePay
               paymentRequestEnabled

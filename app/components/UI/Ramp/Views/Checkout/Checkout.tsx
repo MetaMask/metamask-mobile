@@ -38,6 +38,10 @@ import {
 } from '../../utils/checkoutCallbackRegistry';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
+import {
+  PROVIDER_EVENT_BRIDGE_SCRIPT,
+  handleProviderEventMessage,
+} from '../../utils/providerEventBridge';
 
 interface CheckoutParams {
   url: string;
@@ -364,6 +368,13 @@ const Checkout = () => {
     [],
   );
 
+  const handleWebViewMessage = useCallback(
+    (event: { nativeEvent: { data: string } }) => {
+      handleProviderEventMessage(event.nativeEvent.data, providerName);
+    },
+    [providerName],
+  );
+
   const sharedHeader = (
     <HeaderCompactStandard
       onClose={handleClosePress}
@@ -462,6 +473,10 @@ const Checkout = () => {
                 : onNavigationStateChange
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          onMessage={__DEV__ ? handleWebViewMessage : undefined}
+          injectedJavaScript={
+            __DEV__ ? PROVIDER_EVENT_BRIDGE_SCRIPT : undefined
+          }
           testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>
