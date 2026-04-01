@@ -187,7 +187,6 @@ export const unrestrictedMethods = Object.freeze([
   'snap_trackEvent',
   'snap_cancelBackgroundEvent',
   'snap_getBackgroundEvents',
-  'snap_experimentalProviderRequest',
   'snap_openWebSocket',
   'snap_sendWebSocketMessage',
   'snap_closeWebSocket',

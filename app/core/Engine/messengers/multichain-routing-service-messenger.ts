@@ -1,9 +1,5 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
-import { MultichainRouterMessenger } from '@metamask/snaps-controllers';
+import { Messenger } from '@metamask/messenger';
+import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
 import {
   KeyringControllerAddNewKeyringAction,
   KeyringControllerGetKeyringsByTypeAction,
@@ -11,26 +7,23 @@ import {
 import { RootMessenger } from '../types';
 
 /**
- * Get the MultichainRouterMessenger for the MultichainRouter.
+ * Get the multichain routing service messenger for the multichain routing
+ * service.
  *
  * @param rootMessenger - The root messenger.
- * @returns The MultichainRouterMessenger.
+ * @returns The multichain routing service messenger.
  */
-export function getMultichainRouterMessenger(
+export function getMultichainRoutingServiceMessenger(
   rootMessenger: RootMessenger,
-): MultichainRouterMessenger {
-  const messenger = new Messenger<
-    'MultichainRouter',
-    MessengerActions<MultichainRouterMessenger>,
-    MessengerEvents<MultichainRouterMessenger>,
-    RootMessenger
-  >({
-    namespace: 'MultichainRouter',
+): MultichainRoutingServiceMessenger {
+  const messenger: MultichainRoutingServiceMessenger = new Messenger({
+    namespace: 'MultichainRoutingService',
     parent: rootMessenger,
   });
+
   rootMessenger.delegate({
     actions: [
-      'SnapController:getAll',
+      'SnapController:getRunnableSnaps',
       'SnapController:handleRequest',
       'PermissionController:getPermissions',
       'AccountsController:listMultichainAccounts',
@@ -38,6 +31,7 @@ export function getMultichainRouterMessenger(
     events: [],
     messenger,
   });
+
   return messenger;
 }
 
@@ -45,27 +39,31 @@ type AllowedInitializationActions =
   | KeyringControllerAddNewKeyringAction
   | KeyringControllerGetKeyringsByTypeAction;
 
-export type MultichainRouterInitMessenger = ReturnType<
-  typeof getMultichainRouterInitMessenger
+export type MultichainRoutingServiceInitMessenger = ReturnType<
+  typeof getMultichainRoutingServiceInitMessenger
 >;
 
 /**
- * Get the MultichainRouterInitMessenger for the MultichainRouter.
+ * Get the multichain routing service init messenger for the multichain routing
+ * service.
  * multichain router is allowed to handle.
  *
  * @param rootMessenger - The root messenger.
- * @returns The MultichainRouterInitMessenger.
+ * @returns The multichain routing service init messenger.
  */
-export function getMultichainRouterInitMessenger(rootMessenger: RootMessenger) {
+export function getMultichainRoutingServiceInitMessenger(
+  rootMessenger: RootMessenger,
+) {
   const messenger = new Messenger<
-    'MultichainRouterInit',
+    'MultichainRoutingServiceInit',
     AllowedInitializationActions,
     never,
     RootMessenger
   >({
-    namespace: 'MultichainRouterInit',
+    namespace: 'MultichainRoutingServiceInit',
     parent: rootMessenger,
   });
+
   rootMessenger.delegate({
     actions: [
       'KeyringController:addNewKeyring',
@@ -74,5 +72,6 @@ export function getMultichainRouterInitMessenger(rootMessenger: RootMessenger) {
     events: [],
     messenger,
   });
+
   return messenger;
 }

@@ -1,15 +1,15 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
-  getMultichainRouterInitMessenger,
-  getMultichainRouterMessenger,
-  MultichainRouterInitMessenger,
-} from '../messengers/multichain-router-messenger';
+  getMultichainRoutingServiceInitMessenger,
+  getMultichainRoutingServiceMessenger,
+  MultichainRoutingServiceInitMessenger,
+} from '../messengers/multichain-routing-service-messenger.ts';
 import { ControllerInitRequest } from '../types';
-import { multichainRouterInit } from './multichain-router-init';
+import { multichainRoutingServiceInit } from './multichain-routing-service-init.ts';
 import {
-  MultichainRouter,
-  MultichainRouterMessenger,
+  MultichainRoutingService,
+  MultichainRoutingServiceMessenger,
 } from '@metamask/snaps-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -17,8 +17,8 @@ jest.mock('@metamask/snaps-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<
-    MultichainRouterMessenger,
-    MultichainRouterInitMessenger
+    MultichainRoutingServiceMessenger,
+    MultichainRoutingServiceInitMessenger
   >
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
@@ -27,23 +27,23 @@ function getInitRequestMock(): jest.Mocked<
 
   const requestMock = {
     ...buildControllerInitRequestMock(baseMessenger),
-    controllerMessenger: getMultichainRouterMessenger(baseMessenger),
-    initMessenger: getMultichainRouterInitMessenger(baseMessenger),
+    controllerMessenger: getMultichainRoutingServiceMessenger(baseMessenger),
+    initMessenger: getMultichainRoutingServiceInitMessenger(baseMessenger),
   };
 
   return requestMock;
 }
 
-describe('MultichainRouterInit', () => {
+describe('MultichainRoutingServiceInit', () => {
   it('initializes the controller', () => {
-    const { controller } = multichainRouterInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(MultichainRouter);
+    const { controller } = multichainRoutingServiceInit(getInitRequestMock());
+    expect(controller).toBeInstanceOf(MultichainRoutingService);
   });
 
   it('passes the proper arguments to the controller', () => {
-    multichainRouterInit(getInitRequestMock());
+    multichainRoutingServiceInit(getInitRequestMock());
 
-    const controllerMock = jest.mocked(MultichainRouter);
+    const controllerMock = jest.mocked(MultichainRoutingService);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       withSnapKeyring: expect.any(Function),

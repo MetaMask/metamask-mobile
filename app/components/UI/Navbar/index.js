@@ -424,7 +424,7 @@ export function getOnboardingNavbarOptions(
             />
           </View>
         )
-      : null,
+      : '',
     headerRight: headerRightHide,
     headerLeft: headerLeftHide,
     headerTintColor: themeColors.primary.default,

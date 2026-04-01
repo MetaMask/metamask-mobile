@@ -60,6 +60,8 @@ const selectAccountTreeStateForBalances = createSelector(
   (accountTreeControllerState): AccountTreeControllerState =>
     ({
       accountTree: accountTreeControllerState.accountTree,
+      selectedAccountGroup:
+        accountTreeControllerState.selectedAccountGroup ?? '',
       // Mobile may not define these metadata fields yet; fall back to empty objects
       // They are optional in the pure function usage path we take
       accountGroupsMetadata:

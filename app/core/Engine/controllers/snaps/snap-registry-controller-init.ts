@@ -1,6 +1,8 @@
-import { JsonSnapsRegistry } from '@metamask/snaps-controllers';
+import {
+  SnapRegistryController,
+  SnapRegistryControllerMessenger,
+} from '@metamask/snaps-controllers';
 import { ControllerInitFunction } from '../../types';
-import { SnapsRegistryMessenger } from '../../messengers/snaps';
 import { getVersion } from 'react-native-device-info';
 import { SemVerVersion } from '@metamask/utils';
 
@@ -12,17 +14,17 @@ import { SemVerVersion } from '@metamask/utils';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const snapsRegistryInit: ControllerInitFunction<
-  JsonSnapsRegistry,
-  SnapsRegistryMessenger
+export const snapRegistryControllerInit: ControllerInitFunction<
+  SnapRegistryController,
+  SnapRegistryControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
 
-  const controller = new JsonSnapsRegistry({
-    // @ts-expect-error: `persistedState.SnapsRegistry` is not compatible
+  const controller = new SnapRegistryController({
+    // @ts-expect-error: `persistedState.SnapRegistryController` is not compatible
     // with the expected type.
     // TODO: Look into the type mismatch.
-    state: persistedState.SnapsRegistry,
+    state: persistedState.SnapRegistryController,
     messenger: controllerMessenger,
     refetchOnAllowlistMiss: requireAllowlist,
     clientConfig: {
