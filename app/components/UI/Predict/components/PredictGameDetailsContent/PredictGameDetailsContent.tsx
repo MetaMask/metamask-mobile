@@ -65,7 +65,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   return (
     <SafeAreaView
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
-      style={tw.style('flex-1')}
+      style={tw.style('flex-1 bg-default')}
       edges={['left', 'right']}
     >
       <Box

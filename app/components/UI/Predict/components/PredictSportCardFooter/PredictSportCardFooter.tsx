@@ -76,6 +76,13 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   const handleBetPress = useCallback(
     (token: PredictOutcomeToken) => {
+      const matchingOutcome =
+        market.outcomes.find((marketOutcome) =>
+          marketOutcome.tokens.some(
+            (marketToken) => marketToken.id === token.id,
+          ),
+        ) ?? market.outcomes?.[0];
+
       executeGuardedAction(
         () => {
           // When accessed from Carousel, we're outside the Predict navigator,
@@ -87,7 +94,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           navigateToBuyPreview(
             {
               market,
-              outcome,
+              outcome: matchingOutcome,
               outcomeToken: token,
               entryPoint: resolvedEntryPoint,
             },
@@ -105,7 +112,6 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       resolvedEntryPoint,
       navigateToBuyPreview,
       market,
-      outcome,
     ],
   );
 

@@ -8,6 +8,7 @@ import {
 } from '../../../../components/UI/Predict/controllers/PredictController';
 import { predictControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { ActiveOrderState } from '../../../../components/UI/Predict';
 
 jest.mock(
   '../../../../components/UI/Predict/controllers/PredictController',
@@ -73,6 +74,7 @@ describe('predict controller init', () => {
       withdrawTransaction: null,
       selectedPaymentToken: null,
       accountMeta: {},
+      activeBuyOrders: {},
     };
 
     initRequestMock.persistedState = {

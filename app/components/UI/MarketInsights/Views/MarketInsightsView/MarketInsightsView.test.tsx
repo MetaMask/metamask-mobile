@@ -345,6 +345,24 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER)).toBeNull();
   });
 
+  it('configures background video to mix with other audio', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    const backgroundVideo = getByTestId(
+      MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION,
+    );
+
+    expect(backgroundVideo.props.ignoreSilentSwitch).toBe('obey');
+    expect(backgroundVideo.props.mixWithOthers).toBe('mix');
+  });
+
   it('renders report content and handles tweet/swap/buy actions', () => {
     mockUseMarketInsights.mockReturnValue({
       report: {
