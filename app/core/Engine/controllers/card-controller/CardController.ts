@@ -76,6 +76,7 @@ export class CardController extends BaseController<
 > {
   private readonly providers: Record<string, ICardProvider>;
   private currentSession: CardAuthSession | null = null;
+  #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor({
     messenger,
@@ -112,52 +113,68 @@ export class CardController extends BaseController<
     });
 
     // Re-check when the account tree changes (account added/removed).
-    // The selector extracts a stable key; handler fires only when it changes,
-    // avoiding redundant API calls on unrelated state updates.
+    // The selector traverses all wallet→group→account IDs so the handler fires
+    // for both new wallets and new accounts added within an existing wallet.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
         this.#triggerCardholderCheck();
       },
       (state) =>
-        Object.keys(state.accountTree?.wallets ?? {})
+        Object.values(state.accountTree?.wallets ?? {})
+          .flatMap((wallet) =>
+            Object.values(wallet.groups ?? {}).flatMap(
+              (group) => group.accounts ?? [],
+            ),
+          )
           .sort()
           .join(','),
     );
   }
 
   #triggerCardholderCheck(): void {
-    const { internalAccounts } = this.messenger.call(
-      'AccountsController:getState',
-    );
-    const evmAccounts = Object.values(internalAccounts.accounts).filter((acc) =>
-      isEthAccount(acc),
-    );
-    if (!evmAccounts.length) return;
+    // Debounce: coalesce rapid consecutive triggers (e.g. KeyringController:unlock
+    // and AccountTreeController:stateChange both fire on wallet unlock) into a
+    // single API call. The account list is sampled inside the callback so it
+    // always reflects the latest state.
+    if (this.#cardholderCheckTimer !== undefined) {
+      clearTimeout(this.#cardholderCheckTimer);
+    }
+    this.#cardholderCheckTimer = setTimeout(() => {
+      this.#cardholderCheckTimer = undefined;
 
-    const caipAccountIds = evmAccounts.map(
-      (acc) => `eip155:0:${acc.address}` as `${string}:${string}:${string}`,
-    );
+      const { internalAccounts } = this.messenger.call(
+        'AccountsController:getState',
+      );
+      const evmAccounts = Object.values(internalAccounts.accounts).filter(
+        (acc) => isEthAccount(acc),
+      );
+      if (!evmAccounts.length) return;
 
-    const featureState = this.messenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
-    const cardFeature = featureState.remoteFeatureFlags?.cardFeature as
-      | { constants?: { accountsApiUrl?: string } }
-      | undefined;
-    const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
-    if (!accountsApiUrl) return;
+      const caipAccountIds = evmAccounts.map(
+        (acc) => `eip155:0:${acc.address}` as `${string}:${string}:${string}`,
+      );
 
-    this.checkCardholderAccounts(caipAccountIds, accountsApiUrl).catch(
-      (error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: '#triggerCardholderCheck' },
-          },
-        }),
-    );
+      const featureState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      const cardFeature = featureState.remoteFeatureFlags?.cardFeature as
+        | { constants?: { accountsApiUrl?: string } }
+        | undefined;
+      const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
+      if (!accountsApiUrl) return;
+
+      this.checkCardholderAccounts(caipAccountIds, accountsApiUrl).catch(
+        (error) =>
+          Logger.error(error as Error, {
+            tags: { feature: 'card' },
+            context: {
+              name: 'CardController',
+              data: { method: '#triggerCardholderCheck' },
+            },
+          }),
+      );
+    }, 50);
   }
 
   /**
