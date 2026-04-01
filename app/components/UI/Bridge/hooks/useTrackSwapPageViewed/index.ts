@@ -75,9 +75,6 @@ export const useTrackSwapPageViewed = () => {
               abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
           },
         }),
-        ...(activeABTests.length > 0 && {
-          active_ab_tests: activeABTests,
-        }),
       };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)

@@ -17,15 +17,11 @@
  *   },
  * );
  *
- * // Track with single JSON property (no per-test schema changes)
- * trackEvent('Screen Viewed', {
- *   screen: 'details',
- *   ...(isActive && {
- *     active_ab_tests: [
- *       { key: 'swapsSWAPS4135AbtestButtonColor', value: variantName },
- *     ],
- *   }),
- * });
+ * const buttonColor = variant.color;
+ *
+ * if (isActive) {
+ *   // Optionally branch UI or copy for an active experiment assignment
+ * }
  * ```
  */
 
@@ -112,53 +108,8 @@ const rememberExposureAssignment = (assignmentKey: string) => {
  * }
  * ```
  *
- * @example Tracking A/B test in analytics
- * ```typescript
- * const { variantName, isActive } = useABTest(
- *   'swapsSWAPS4135AbtestButtonStyle',
- *   {
- *   control: { style: 'default' },
- *   bold: { style: 'bold' },
- *   },
- * );
- *
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.BUTTON_CLICKED)
- *     .addProperties({
- *       button_id: 'submit',
- *       ...(isActive && {
- *         active_ab_tests: [
- *           { key: 'swapsSWAPS4135AbtestButtonStyle', value: variantName },
- *         ],
- *       }),
- *     })
- *     .build()
- * );
- * ```
- *
- * @example Multiple concurrent tests
- * ```typescript
- * const buttonTest = useABTest('swapsSWAPS4135AbtestButtonColor', {
- *   control: { color: 'green' },
- *   treatment: { color: 'blue' },
- * });
- *
- * const ctaTest = useABTest('swapsSWAPS4135AbtestCtaText', {
- *   control: { text: 'Get Started' },
- *   urgent: { text: 'Start Now!' },
- * });
- *
- * trackEvent('Screen Viewed', {
- *   active_ab_tests: [
- *     ...(buttonTest.isActive
- *       ? [{ key: 'swapsSWAPS4135AbtestButtonColor', value: buttonTest.variantName }]
- *       : []),
- *     ...(ctaTest.isActive
- *       ? [{ key: 'swapsSWAPS4135AbtestCtaText', value: ctaTest.variantName }]
- *       : []),
- *   ],
- * });
- * ```
+ * Business-event attribution (`active_ab_tests`) is configured separately
+ * through the A/B analytics mapping flow documented in `docs/ab-testing.md`.
  */
 export function useABTest<T extends ABTestVariants>(
   flagKey: string,

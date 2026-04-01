@@ -1,17 +1,18 @@
 import React, { useCallback, useMemo } from 'react';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
+import Engine from '../../../../../core/Engine';
 import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
-import { useTrackInputAmountChange } from './useTrackInputAmountChange';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -36,7 +37,19 @@ export const GaslessQuickPickOptions = ({
     variantName === NumpadQuickActionsVariant.Treatment
       ? NumpadQuickActionsVariant.Treatment
       : NumpadQuickActionsVariant.Control;
-  const trackInputAmountChange = useTrackInputAmountChange();
+  const trackInputAmountChange = useCallback(
+    ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.InputChanged,
+        {
+          input: 'token_amount_source',
+          input_value: inputValue,
+          ...(preset && { input_amount_preset: preset }),
+        },
+      );
+    },
+    [],
+  );
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {

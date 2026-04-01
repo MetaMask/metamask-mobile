@@ -61,15 +61,7 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
     });
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)
-        .addProperties({
-          ...(isActive && {
-            active_ab_tests: [
-              { key: CARD_BUTTON_BADGE_AB_KEY, value: variantName },
-            ],
-          }),
-        })
-        .build(),
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED).build(),
     );
   }, [trackEvent, createEventBuilder, isActive, variantName, flagsResolved]);
 
