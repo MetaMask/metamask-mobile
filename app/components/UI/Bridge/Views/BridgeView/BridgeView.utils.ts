@@ -2,7 +2,7 @@ import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 
 export const getQuoteStreamReasonString = (
-  reason: QuoteStreamCompleteReason,
+  reason?: QuoteStreamCompleteReason,
 ): string => {
   switch (reason) {
     case QuoteStreamCompleteReason.RETRY:

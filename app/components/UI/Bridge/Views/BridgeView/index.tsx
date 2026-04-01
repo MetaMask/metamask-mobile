@@ -237,6 +237,7 @@ const BridgeView = () => {
     destTokenAmount,
     isNoQuotesAvailable,
     blockaidError,
+    quoteFetchError,
     shouldShowPriceImpactWarning,
     needsNewQuote,
   } = useBridgeQuoteData({
@@ -462,7 +463,7 @@ const BridgeView = () => {
           </Box>
 
           <Box gap={3} twClassName="mx-4">
-            {quoteStreamComplete?.reason
+            {quoteStreamComplete?.reason || quoteFetchError
               ? (() => {
                   const quoteStreamErrorBannerStyle = {
                     borderLeftWidth: 4,
@@ -481,7 +482,7 @@ const BridgeView = () => {
                         />
                       }
                       description={getQuoteStreamReasonString(
-                        quoteStreamComplete.reason,
+                        quoteStreamComplete?.reason,
                       )}
                     />
                   );

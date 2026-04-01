@@ -53,8 +53,8 @@ describe('getQuoteStreamReasonString', () => {
     expect(mockStrings).toHaveBeenCalledWith(expectedKey);
   });
 
-  it('falls back to the retry string for unknown reasons', () => {
-    getQuoteStreamReasonString('UNKNOWN' as QuoteStreamCompleteReason);
+  it('returns the retry string when called with no argument', () => {
+    getQuoteStreamReasonString();
 
     expect(mockStrings).toHaveBeenCalledWith(
       'bridge.quote_stream_complete_retry',
