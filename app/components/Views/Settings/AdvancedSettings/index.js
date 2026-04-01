@@ -39,7 +39,8 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
@@ -220,10 +221,6 @@ class AdvancedSettings extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Analytics injected by withAnalyticsAwareness HOC
-     */
-    analytics: PropTypes.object,
-    /**
      * Boolean that checks if smart transactions is enabled
      */
     smartTransactionsOptInStatus: PropTypes.bool,
@@ -281,9 +278,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   trackMetricsEvent = (event, properties) => {
-    this.props.analytics.trackEvent(
-      this.props.analytics
-        .createEventBuilder(event)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
         .addProperties({
           location: 'Advanced Settings',
           ...properties,
@@ -495,7 +491,4 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setShowFiatOnTestnets(showFiatOnTestnets)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withAnalyticsAwareness(AdvancedSettings));
+export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSettings);

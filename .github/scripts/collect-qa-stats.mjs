@@ -982,6 +982,35 @@ async function collectPerformanceTestCounts() {
 }
 
 // ---------------------------------------------------------------------------
+// Feature flag E2E coverage
+// Delegates to tests/feature-flags/feature-flag-coverage-report.ts (single source of truth).
+// Requires `yarn install` in the workflow so ts-node is available.
+// ---------------------------------------------------------------------------
+
+const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
+
+async function collectFeatureFlagCoverage() {
+  console.log('[feature_flags] running coverage report via ts-node...');
+  execSync('yarn ts-node tests/feature-flags/feature-flag-coverage-report.ts', { stdio: 'pipe' });
+
+  const report = JSON.parse(await readFile(FF_REPORT_PATH, 'utf8'));
+  const { summary } = report;
+
+  console.log(`[feature_flags] total: ${summary.totalFlags}, active: ${summary.activeFlags}, coverage: ${summary.coveragePercentage}%`);
+
+  return {
+    total_flags: summary.totalFlags,
+    active_flags: summary.activeFlags,
+    deprecated_flags: summary.deprecatedFlags,
+    in_prod_flags: summary.inProdFlags,
+    full_coverage_flags: summary.fullCoverage,
+    partial_coverage_flags: summary.partialCoverage,
+    default_only_flags: summary.defaultOnlyCoverage,
+    coverage_percentage: summary.coveragePercentage,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -994,6 +1023,7 @@ async function main() {
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
+    { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
   ];
 
   for (const { namespace, collect } of collectors) {

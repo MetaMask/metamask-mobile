@@ -40,6 +40,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
@@ -243,6 +244,11 @@ jest.mock('../SecureKeychain', () => ({
 
 jest.mock('../OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
+}));
+
+const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+jest.mock('../../util/environment', () => ({
+  isE2EMockOAuth: () => mockIsE2EMockOAuth(),
 }));
 
 jest.mock('../BackupVault/backupVault', () => ({
@@ -1211,6 +1217,67 @@ describe('Authentication', () => {
         }
       });
 
+      it('skips createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is true', async () => {
+        mockIsE2EMockOAuth.mockReturnValue(true);
+
+        const mockDispatchLocal = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatchLocal,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const createWalletSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+          .mockResolvedValue(undefined);
+        const backupSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createAndBackupSeedPhrase')
+          .mockResolvedValue(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        });
+
+        expect(createWalletSpy).toHaveBeenCalledWith('password');
+        expect(backupSpy).not.toHaveBeenCalled();
+
+        createWalletSpy.mockRestore();
+        backupSpy.mockRestore();
+        mockIsE2EMockOAuth.mockReturnValue(false);
+      });
+
+      it('calls createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is not set', async () => {
+        mockIsE2EMockOAuth.mockReturnValue(false);
+
+        const mockDispatchLocal = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatchLocal,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const createWalletSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+          .mockResolvedValue(undefined);
+        const backupSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createAndBackupSeedPhrase')
+          .mockResolvedValue(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        });
+
+        expect(backupSpy).toHaveBeenCalledWith('password');
+        expect(createWalletSpy).not.toHaveBeenCalled();
+
+        createWalletSpy.mockRestore();
+        backupSpy.mockRestore();
+      });
+
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndKeychain', async () => {
         const fallbackMockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1482,6 +1549,15 @@ describe('Authentication', () => {
   });
 
   describe('resetPassword', () => {
+    beforeEach(() => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: false },
+        }),
+      } as unknown as ReduxStore);
+    });
+
     it('calls SecureKeychain.resetGenericPassword', async () => {
       const resetGenericPasswordSpy = jest.spyOn(
         SecureKeychain,
@@ -1491,6 +1567,29 @@ describe('Authentication', () => {
       await Authentication.resetPassword();
 
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
+    });
+
+    it('clears auth storage flags and syncs Redux security state', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+        }),
+      } as unknown as ReduxStore);
+
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+
+      await Authentication.resetPassword();
+
+      expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
+      expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
+      expect(removeItemSpy).toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
     });
 
     it('throws AuthenticationError when SecureKeychain fails', async () => {
@@ -3819,6 +3918,9 @@ describe('Authentication', () => {
         setCompletedOnboarding(false),
       );
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        clearSeedlessOnboarding(),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -5063,6 +5165,111 @@ describe('Authentication', () => {
           authType: AUTHENTICATION_TYPE.BIOMETRIC,
           password: passwordToUse,
           fallbackToPassword: false,
+        });
+      });
+
+      describe('when biometric authentication fails due to changed biometrics', () => {
+        const userNotAuthenticatedError = new Error('User not authenticated');
+
+        beforeEach(() => {
+          const Engine = jest.requireMock('../Engine');
+          // Mock submitPassword to throw the user not authenticated error.
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce(userNotAuthenticatedError);
+        });
+
+        it('shows biometric changed alert when error contains USER_NOT_AUTHENTICATED', async () => {
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+          const resetPasswordSpy = jest
+            .spyOn(Authentication, 'resetPassword')
+            .mockResolvedValueOnce();
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(alertSpy).toHaveBeenCalledWith(
+            strings('login.biometric_changed'),
+            strings('login.biometric_changed_alert_desc'),
+            [
+              {
+                text: strings('login.biometric_changed_alert_confirm'),
+                onPress: expect.any(Function),
+              },
+            ],
+            {
+              cancelable: false,
+            },
+          );
+
+          alertSpy.mockRestore();
+          resetPasswordSpy.mockRestore();
+        });
+
+        it('calls lockApp with reset enabled when alert confirm button is pressed', async () => {
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+          const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(lockAppSpy).toHaveBeenCalledWith({
+            reset: true,
+            navigateToLogin: false,
+          });
+
+          alertSpy.mockRestore();
+          lockAppSpy.mockRestore();
+        });
+
+        it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {
+          const Engine = jest.requireMock('../Engine');
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockReset();
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce(new Error('Some other error'));
+
+          const alertSpy = jest.spyOn(Alert, 'alert');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('Some other error');
+
+          expect(alertSpy).not.toHaveBeenCalled();
+
+          alertSpy.mockRestore();
+        });
+
+        it('does not show alert when error is not an Error instance', async () => {
+          const Engine = jest.requireMock('../Engine');
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockReset();
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce('User not authenticated string');
+
+          const alertSpy = jest.spyOn(Alert, 'alert');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated string');
+
+          expect(alertSpy).not.toHaveBeenCalled();
+
+          alertSpy.mockRestore();
         });
       });
     });

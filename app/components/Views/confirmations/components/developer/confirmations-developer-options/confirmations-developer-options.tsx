@@ -25,6 +25,10 @@ import { selectSelectedInternalAccountAddress } from '../../../../../../selector
 import { RootState } from '../../../../../../reducers';
 import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
 import { ARBITRUM_USDC } from '../../../constants/perps';
+import {
+  selectMoneyAccountDepositEnabledFlag,
+  selectMoneyAccountWithdrawEnabledFlag,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -33,12 +37,21 @@ const POLYGON_USDCE_ADDRESS =
 const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
 
 export function ConfirmationsDeveloperOptions() {
+  const isMoneyAccountDepositEnabled = useSelector(
+    selectMoneyAccountDepositEnabledFlag,
+  );
+  const isMoneyAccountWithdrawEnabled = useSelector(
+    selectMoneyAccountWithdrawEnabledFlag,
+  );
+
   return (
     <>
       <PredictDeposit />
       <PredictClaim />
       <PredictWithdraw />
       <PerpsWithdraw />
+      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
+      {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
   );
 }
@@ -121,6 +134,50 @@ function PredictDeposit() {
       description="Trigger a Predict deposit confirmation."
       buttonLabel="Deposit"
       onPress={handleDeposit}
+    />
+  );
+}
+
+function MoneyAccountDeposit() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleDeposit = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Money Account Deposit"
+      description="Trigger a Money Account deposit confirmation."
+      buttonLabel="Deposit"
+      onPress={handleDeposit}
+      testID={ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON}
+    />
+  );
+}
+
+function MoneyAccountWithdraw() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleWithdraw = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.moneyAccountWithdraw,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Money Account Withdraw"
+      description="Trigger a Money Account withdraw confirmation."
+      buttonLabel="Withdraw"
+      onPress={handleWithdraw}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_WITHDRAW_BUTTON
+      }
     />
   );
 }

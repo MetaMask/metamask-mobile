@@ -21,6 +21,7 @@ import {
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
+import useRewardsToast from '../../hooks/useRewardsToast';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_ONBOARD_TERMS_URL } from '../Onboarding/constants';
 import RewardsErrorBanner from '../RewardsErrorBanner';
@@ -49,6 +50,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
 }) => {
   const navigation = useNavigation();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
+  const { showToast, RewardsToastOptions } = useRewardsToast();
   const geolocation = useSelector(getDetectedGeolocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
 
@@ -72,12 +74,19 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
 
   const handleOptIn = useCallback(async () => {
     try {
-      await optInToCampaign(campaign.id);
-      onClose?.();
+      const result = await optInToCampaign(campaign.id);
+      if (result?.optedIn) {
+        showToast(
+          RewardsToastOptions.success(
+            strings('rewards.campaign.opt_in_success_toast'),
+          ),
+        );
+        onClose?.();
+      }
     } catch {
       // Error is handled by the hook; sheet stays open so user can retry
     }
-  }, [optInToCampaign, campaign.id, onClose]);
+  }, [optInToCampaign, campaign.id, showToast, RewardsToastOptions, onClose]);
 
   const handleTermsPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
