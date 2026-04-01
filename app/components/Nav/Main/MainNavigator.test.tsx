@@ -5,11 +5,52 @@ import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.72.0'),
+}));
+
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
     Screen: 'Screen',
   }),
+}));
+
+jest.mock('@react-navigation/bottom-tabs', () => ({
+  createBottomTabNavigator: jest.fn().mockReturnValue({
+    Navigator: 'TabNavigator',
+    Screen: 'TabScreen',
+  }),
+}));
+
+const mockSelectPerpsEnabledFlag = jest.fn();
+const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectMarketInsightsEnabled = jest.fn();
+const mockSelectMarketInsightsPerpsEnabled = jest.fn();
+
+jest.mock('../../UI/Perps', () => ({
+  PerpsScreenStack: () => 'PerpsScreenStack',
+  PerpsModalStack: () => 'PerpsModalStack',
+  PerpsTutorialCarousel: () => 'PerpsTutorialCarousel',
+  selectPerpsEnabledFlag: (state: unknown) => mockSelectPerpsEnabledFlag(state),
+}));
+
+jest.mock('../../UI/Predict', () => ({
+  PredictScreenStack: () => 'PredictScreenStack',
+  PredictModalStack: () => 'PredictModalStack',
+  selectPredictEnabledFlag: (state: unknown) =>
+    mockSelectPredictEnabledFlag(state),
+}));
+
+jest.mock('../../UI/MarketInsights', () => ({
+  MarketInsightsView: () => 'MarketInsightsView',
+  selectMarketInsightsEnabled: (state: unknown) =>
+    mockSelectMarketInsightsEnabled(state),
+}));
+
+jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
+  selectMarketInsightsPerpsEnabled: (state: unknown) =>
+    mockSelectMarketInsightsPerpsEnabled(state),
 }));
 
 describe('MainNavigator', () => {
@@ -144,5 +185,847 @@ describe('MainNavigator', () => {
     expect(featureFlagOverrideScreen?.component.name).toBe(
       'FeatureFlagOverride',
     );
+  });
+
+  describe('Screen Registration', () => {
+    const getScreenProps = (
+      container: ReturnType<typeof renderWithProvider>,
+    ) => {
+      interface ScreenChild {
+        name: string;
+        component: { name: string };
+      }
+      return container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => ({
+          name: child.props.name,
+          component: child.props.component,
+        })) as ScreenChild[];
+    };
+
+    it('includes Home screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const homeScreen = screenProps?.find((screen) => screen?.name === 'Home');
+
+      expect(homeScreen).toBeDefined();
+    });
+
+    it('includes TokensFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const tokensScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.WALLET.TOKENS_FULL_VIEW,
+      );
+
+      expect(tokensScreen).toBeDefined();
+    });
+
+    it('includes DeFiFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const defiScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.WALLET.DEFI_FULL_VIEW,
+      );
+
+      expect(defiScreen).toBeDefined();
+    });
+
+    it('includes CashTokensFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const cashTokensScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+
+      expect(cashTokensScreen).toBeDefined();
+    });
+
+    it('includes Bridge routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const bridgeScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.BRIDGE.ROOT,
+      );
+
+      expect(bridgeScreen).toBeDefined();
+    });
+
+    it('includes Earn routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const earnScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.EARN.ROOT,
+      );
+
+      expect(earnScreen).toBeDefined();
+    });
+
+    it('includes Card routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const cardScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.CARD.ROOT,
+      );
+
+      expect(cardScreen).toBeDefined();
+    });
+
+    it('includes Ramp BUY route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const rampBuyScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.RAMP.BUY,
+      );
+
+      expect(rampBuyScreen).toBeDefined();
+    });
+
+    it('includes Ramp SELL route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const rampSellScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.RAMP.SELL,
+      );
+
+      expect(rampSellScreen).toBeDefined();
+    });
+
+    it('includes Deposit route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const depositScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.DEPOSIT.ID,
+      );
+
+      expect(depositScreen).toBeDefined();
+    });
+
+    it('includes Settings view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const settingsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.SETTINGS_VIEW,
+      );
+
+      expect(settingsScreen).toBeDefined();
+    });
+
+    it('includes QRTabSwitcher route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const qrScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.QR_TAB_SWITCHER,
+      );
+
+      expect(qrScreen).toBeDefined();
+    });
+
+    it('includes Notifications view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const notificationsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.NOTIFICATIONS.VIEW,
+      );
+
+      expect(notificationsScreen).toBeDefined();
+    });
+
+    it('includes Explore Search route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const exploreScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.EXPLORE_SEARCH,
+      );
+
+      expect(exploreScreen).toBeDefined();
+    });
+  });
+
+  describe('Conditional Screen Rendering', () => {
+    const getScreenProps = (
+      container: ReturnType<typeof renderWithProvider>,
+    ) => {
+      interface ScreenChild {
+        name: string;
+        component: { name: string };
+      }
+      return container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => ({
+          name: child.props.name,
+          component: child.props.component,
+        })) as ScreenChild[];
+    };
+
+    beforeEach(() => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(false);
+      mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+    });
+
+    it('includes Perps routes when perps feature flag is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.ROOT,
+      );
+
+      expect(perpsRootScreen).toBeDefined();
+    });
+
+    it('excludes Perps routes when perps feature flag is disabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.ROOT,
+      );
+
+      expect(perpsRootScreen).toBeUndefined();
+    });
+
+    it('includes Perps tutorial route when perps is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsTutorialScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.TUTORIAL,
+      );
+
+      expect(perpsTutorialScreen).toBeDefined();
+    });
+
+    it('includes Perps transaction routes when perps is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const positionScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.POSITION_TRANSACTION,
+      );
+      const orderScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.ORDER_TRANSACTION,
+      );
+      const fundingScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.FUNDING_TRANSACTION,
+      );
+
+      expect(positionScreen).toBeDefined();
+      expect(orderScreen).toBeDefined();
+      expect(fundingScreen).toBeDefined();
+    });
+
+    it('includes Predict routes when predict feature flag is enabled', () => {
+      mockSelectPredictEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const predictRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PREDICT.ROOT,
+      );
+
+      expect(predictRootScreen).toBeDefined();
+    });
+
+    it('excludes Predict routes when predict feature flag is disabled', () => {
+      mockSelectPredictEnabledFlag.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const predictRootScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PREDICT.ROOT,
+      );
+
+      expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes Market Insights view when feature flag is enabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const marketInsightsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+      );
+
+      expect(marketInsightsScreen).toBeDefined();
+    });
+
+    it('excludes Market Insights view when feature flag is disabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const marketInsightsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+      );
+
+      expect(marketInsightsScreen).toBeUndefined();
+    });
+
+    it('includes multiple conditional routes when all flags are enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+      mockSelectPredictEnabledFlag.mockReturnValue(true);
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+
+      expect(
+        screenProps?.find((screen) => screen?.name === Routes.PERPS.ROOT),
+      ).toBeDefined();
+      expect(
+        screenProps?.find((screen) => screen?.name === Routes.PREDICT.ROOT),
+      ).toBeDefined();
+      expect(
+        screenProps?.find(
+          (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+        ),
+      ).toBeDefined();
+    });
+
+    it('includes Market Insights when perps insights flag is enabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockSelectMarketInsightsPerpsEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const marketInsightsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+      );
+
+      expect(marketInsightsScreen).toBeDefined();
+    });
+
+    it('excludes Market Insights when both insights flags are disabled', () => {
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockSelectMarketInsightsPerpsEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const marketInsightsScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.MARKET_INSIGHTS.VIEW,
+      );
+
+      expect(marketInsightsScreen).toBeUndefined();
+    });
+
+    it('includes Perps modal routes when perps is enabled', () => {
+      mockSelectPerpsEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const perpsModalScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PERPS.MODALS.ROOT,
+      );
+
+      expect(perpsModalScreen).toBeDefined();
+    });
+
+    it('includes Predict modal routes when predict is enabled', () => {
+      mockSelectPredictEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const predictModalScreen = screenProps?.find(
+        (screen) => screen?.name === Routes.PREDICT.MODALS.ROOT,
+      );
+
+      expect(predictModalScreen).toBeDefined();
+    });
+  });
+
+  describe('Additional Screen Routes', () => {
+    const getScreenProps = (
+      container: ReturnType<typeof renderWithProvider>,
+    ) => {
+      interface ScreenChild {
+        name: string;
+        component: { name: string };
+      }
+      return container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => ({
+          name: child.props.name,
+          component: child.props.component,
+        })) as ScreenChild[];
+    };
+
+    it('includes CollectiblesDetails screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === 'CollectiblesDetails',
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes DeprecatedNetworkDetails screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.DEPRECATED_NETWORK_DETAILS,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes TrendingTokensFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === 'TrendingTokensFullView',
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes RWATokensFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'RWATokensFullView');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Webview screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'Webview');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Send screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'Send');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes AddBookmarkView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'AddBookmarkView');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes OfflineModeView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'OfflineModeView');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes NftDetails screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'NftDetails');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes NftDetailsFullImage screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === 'NftDetailsFullImage',
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes AddAsset screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'AddAsset');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes ConfirmAddAsset screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes StakeScreens route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'StakeScreens');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes StakeModals route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'StakeModals');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Bridge modal routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.BRIDGE.MODALS.ROOT,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Earn modal routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.EARN.MODALS.ROOT,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes SetPasswordFlow screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'SetPasswordFlow');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes GeneralSettings screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'GeneralSettings');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes NotificationsOptInStack screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.NOTIFICATIONS.OPT_IN_STACK,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes DeFiProtocolPositionDetails screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === 'DeFiProtocolPositionDetails',
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Asset screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === 'Asset');
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes SitesFullView screen', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.SITES_FULL_VIEW,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Browser home screen in main navigator', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === Routes.BROWSER.HOME);
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Ramp processing info modal route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.RAMP.MODALS.PROCESSING_INFO,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Card routes', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find((s) => s?.name === Routes.CARD.ROOT);
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes NFTs full view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.WALLET.NFTS_FULL_VIEW,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Token Selection route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.RAMP.TOKEN_SELECTION,
+      );
+
+      expect(screen).toBeDefined();
+    });
+  });
+
+  it('includes TopTradersView screen when Social Leaderboard remote flag is enabled', () => {
+    const stateWithSocialLeaderboard = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const container = renderWithProvider(<MainNavigator />, {
+      state: stateWithSocialLeaderboard,
+    });
+
+    interface ScreenChild {
+      name: string;
+      component: { name: string };
+    }
+    const screenProps: ScreenChild[] = container.root.children
+      .filter(
+        (child): child is ReactTestInstance =>
+          typeof child === 'object' &&
+          'type' in child &&
+          'props' in child &&
+          child.type?.toString() === 'Screen',
+      )
+      .map((child) => ({
+        name: child.props.name,
+        component: child.props.component,
+      }));
+
+    const topTradersScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.VIEW,
+    );
+
+    expect(topTradersScreen).toBeDefined();
+    expect(topTradersScreen?.component.name).toBe('TopTradersView');
   });
 });

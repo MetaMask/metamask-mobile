@@ -2314,6 +2314,135 @@ describe('polymarket utils', () => {
       expect(result).toEqual([]);
       expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    describe('negRisk outcome label resolution', () => {
+      it('non-negRisk position outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: false,
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position without eventSlug outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: undefined,
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position with non-draw-capable league eventSlug outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'politics-election-2024',
+            slug: 'politics-election-2024-candidate-a',
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position with UCL eventSlug and draw suffix resolves to Draw', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-draw',
+            outcome: 'Draw',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Draw');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation with teamLookup resolves to team name', async () => {
+        const mockTeamLookup = jest.fn(
+          (league: string, abbreviation: string) => {
+            if (league === 'ucl' && abbreviation === 'mci') {
+              return {
+                id: 'team-1',
+                name: 'Manchester City',
+                logo: 'https://example.com/mci.png',
+                abbreviation: 'mci',
+                color: 'team-blue',
+                alias: 'City',
+              };
+            }
+            return undefined;
+          },
+        );
+
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-mci',
+            outcome: 'Manchester City',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({
+          positions,
+          teamLookup: mockTeamLookup,
+        });
+
+        expect(result[0].outcome).toBe('Manchester City');
+        expect(mockTeamLookup).toHaveBeenCalledWith('ucl', 'mci');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation without teamLookup resolves to uppercase abbreviation', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-mci',
+            outcome: 'MCI',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('MCI');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation with teamLookup returning undefined resolves to uppercase abbreviation', async () => {
+        const mockTeamLookup = jest.fn(() => undefined);
+
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-xyz',
+            outcome: 'XYZ',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({
+          positions,
+          teamLookup: mockTeamLookup,
+        });
+
+        expect(result[0].outcome).toBe('XYZ');
+      });
+    });
   });
 
   describe('getPredictPositionStatus', () => {
