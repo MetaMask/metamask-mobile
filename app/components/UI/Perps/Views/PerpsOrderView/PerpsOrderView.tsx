@@ -324,7 +324,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Market data hook with automatic error toast handling (deferred)
 
-  // Temporarily commented out
   const { marketData, isLoading: isMarketDataLoading } = usePerpsMarketData({
     asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
