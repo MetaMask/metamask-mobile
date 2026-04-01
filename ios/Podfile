@@ -165,6 +165,27 @@ post_install do |installer|
     end
   end
 
+  # Fix fmt compilation error with Xcode 26 / Clang 21 consteval strictness
+  # The fmt library's consteval detection doesn't account for broken consteval
+  # in newer Apple Clang versions. Patch base.h to force consteval off.
+  Dir.glob(installer.sandbox.root + "fmt/include/fmt/base.h") do |file|
+    begin
+      system "chmod +w #{file}"
+      contents = File.read(file)
+      modified = contents.gsub(
+        /defined\(__apple_build_version__\) && __apple_build_version__ < 14000029L/,
+        'defined(__apple_build_version__)'
+      )
+      if !File.writable?(file)
+        system "sudo chmod +w #{file}"
+      end
+      File.write(file, modified)
+      system "chmod -w #{file}"
+    rescue => e
+      Pod::UI.warn "Failed to modify fmt base.h: #{e.message}"
+    end
+  end
+
   # This is necessary for Xcode 14, because it signs resource bundles by default
   # when building for devices.
   installer.target_installation_results.pod_target_installation_results
