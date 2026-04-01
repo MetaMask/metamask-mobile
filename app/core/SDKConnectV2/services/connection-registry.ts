@@ -264,11 +264,15 @@ export class ConnectionRegistry {
       a.info.expiresAt <= b.info.expiresAt ? a : b,
     );
 
-    logger.debug(
-      'Connection cap reached, evicting oldest connection:',
-      oldest.id,
-    );
-    await this.disconnect(oldest.id);
+    try {
+      logger.debug(
+        'Connection cap reached, evicting oldest connection:',
+        oldest.id,
+      );
+      await this.disconnect(oldest.id);
+    } catch (error) {
+      logger.error('Failed to evict oldest connection:', oldest.id, error);
+    }
   }
 
   /**
