@@ -1,8 +1,8 @@
-import { analytics } from '@metamask/sdk-analytics';
-import { isAnalyticsTrackedRpcMethod } from '@metamask/sdk-communication-layer';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
-import { RPC_METHODS } from '../SDKConnectConstants';
+import { ANALYTICS_TRACKED_RPC_METHODS, RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import Routes from '../../../constants/navigation/Routes';
@@ -25,22 +25,29 @@ export const handleSendMessage = async ({
     const anonId = connection.originatorInfo?.anonId;
 
     if (
-      isAnalyticsTrackedRpcMethod(method) &&
+      ANALYTICS_TRACKED_RPC_METHODS.includes(method) &&
       msgId &&
       msgId !== 'undefined' &&
       anonId
     ) {
-      if (msg?.data?.error) {
-        DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`,
-        );
-        analytics.track('wallet_action_user_rejected', { anon_id: anonId });
-      } else {
-        DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`,
-        );
-        analytics.track('wallet_action_user_approved', { anon_id: anonId });
-      }
+      const eventName = msg?.data?.error
+        ? 'wallet_action_user_rejected'
+        : 'wallet_action_user_approved';
+
+      DevLogger.log(
+        `[MM SDK Analytics] event=${eventName} anonId=${anonId}`,
+      );
+
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(eventName)
+          .addProperties({
+            transport_type: 'socket_relay',
+            sdk_version: connection.originatorInfo?.apiVersion,
+            rpc_method: method,
+          })
+          .addSensitiveProperties({ anon_id: anonId })
+          .build(),
+      );
     }
 
     // handle multichain rpc call responses separately
