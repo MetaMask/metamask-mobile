@@ -4,6 +4,8 @@ import TronStakingLearnMoreModal from '.';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 
@@ -23,12 +25,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 // LearnMoreModalFooter (child component) still uses useMetrics - mock it
 jest.mock('../../../../../hooks/useMetrics', () => {
@@ -96,8 +93,12 @@ const renderModal = () =>
   );
 
 describe('TronStakingLearnMoreModal', () => {
+  let mockHook: ReturnType<typeof createMockUseAnalyticsHook>;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHook = createMockUseAnalyticsHook({ trackEvent: mockTrackEvent });
+    jest.mocked(useAnalytics).mockReturnValue(mockHook);
     mockUseTronStakeApy.mockReturnValue({
       apyPercent: '4.5%',
       isLoading: false,
@@ -195,7 +196,7 @@ describe('TronStakingLearnMoreModal', () => {
 
       fireEvent.press(getByText('Learn more'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect(jest.mocked(mockHook.createEventBuilder)).toHaveBeenCalledWith(
         MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();

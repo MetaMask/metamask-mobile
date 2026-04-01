@@ -11,7 +11,7 @@ import TokenValueStack from '../../components/StakingConfirmation/TokenValueStac
 import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useSelector } from 'react-redux';
