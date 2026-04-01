@@ -80,7 +80,7 @@ export class BrowserStackConfigBuilder {
             captureContent: true,
           },
           networkLogs: true,
-          appiumVersion: '3.1.0',
+          appiumVersion: '2.19.0',
           idleTimeout: 180,
           deviceName: device.name,
           osVersion: device.osVersion,
