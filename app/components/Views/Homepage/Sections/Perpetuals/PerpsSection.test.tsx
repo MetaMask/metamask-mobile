@@ -1350,7 +1350,7 @@ describe('PerpsSection', () => {
       );
     });
 
-    it('passes isEmpty: false when trending markets are shown', () => {
+    it('passes isEmpty: true when trending markets are shown (no positions/orders = empty state)', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [makeTrendingMarket()],
         isLoading: false,
@@ -1364,7 +1364,7 @@ describe('PerpsSection', () => {
       );
 
       expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({ isEmpty: false }),
+        expect.objectContaining({ isEmpty: true }),
       );
     });
 

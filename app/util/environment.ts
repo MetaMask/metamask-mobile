@@ -6,9 +6,6 @@
 export const isProduction = (): boolean =>
   process.env.METAMASK_ENVIRONMENT === 'production';
 
-export const isGatorPermissionsFeatureEnabled = (): boolean =>
-  process.env.GATOR_PERMISSIONS_ENABLED?.toString() === 'true';
-
 export const isE2EMockOAuth = (): boolean =>
   process.env.E2E_MOCK_OAUTH === 'true';
 

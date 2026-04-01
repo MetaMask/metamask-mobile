@@ -86,9 +86,9 @@ const createMockState = (): DeepPartial<RootState> => ({
     backgroundState: {
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: MOCK_GROUP_ID_1,
           wallets: {},
         },
+        selectedAccountGroup: MOCK_GROUP_ID_1,
       },
       AccountsController: {
         internalAccounts: {
