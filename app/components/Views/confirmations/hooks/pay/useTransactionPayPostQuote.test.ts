@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayPostQuote } from './useTransactionPayPostQuote';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
@@ -181,5 +182,58 @@ describe('useTransactionPayPostQuote', () => {
     rerender();
 
     expect(setTransactionConfigMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('sets isHyperliquidSource=true and no refundTo for perpsWithdraw', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
+      type: TransactionType.perpsWithdraw,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as {
+      isPostQuote?: boolean;
+      refundTo?: Hex;
+      isHyperliquidSource?: boolean;
+    };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.isHyperliquidSource).toBe(true);
+    expect(config.refundTo).toBeUndefined();
+    expect(computeProxyAddressMock).not.toHaveBeenCalled();
+  });
+
+  it('does not set isHyperliquidSource for non-perps withdrawals', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
+      type: TransactionType.predictWithdraw,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as {
+      isPostQuote?: boolean;
+      refundTo?: Hex;
+      isHyperliquidSource?: boolean;
+    };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.refundTo).toBe(PROXY_ADDRESS_MOCK);
+    expect(config.isHyperliquidSource).toBeUndefined();
   });
 });
