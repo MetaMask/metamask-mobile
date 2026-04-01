@@ -1,154 +1,169 @@
-# Sentry 7.70 Perps Error Spike Investigation
+# Perps WebSocket Investigation
 
-**Date**: 2026-04-01
-**Release under investigation**: `io.metamask@7.70.0+4130` / `io.metamask.MetaMask@7.70.0+4130`
-**SDK version**: `@nktkas/hyperliquid@0.30.2` (unchanged since 7.66)
-**Related PR**: #28141 / #28176 (rate limit exhaustion fix)
+**Updated**: 2026-04-01
+**Original trigger**: 7.70 Sentry spike
+**Scope now**: websocket init failures and error amplification across always-on Perps lifecycle
 
----
+## Status
 
-## Executive Summary
+The previous version of this report was too confident about the wrong thing. We did
+**not** prove that the spike is simply "iOS background WebSocket death" or "just
+noise". What we did prove is narrower and more useful:
 
-The Sentry dashboard ("Perps Health") shows a sharp spike in total perps errors. In the **last 7 days**, 7.70.0 accounts for **217K perps errors** (149K iOS + 68K Android). The dominant error is `"Failed to establish WebSocket connection"` — **95K events in 3 days alone**.
+- the real exception `WebSocketRequestError: Failed to establish WebSocket connection`
+  occurs without the RCA harness
+- the same app-level failure path exists on both iOS and Android
+- Perps always-on moved HyperLiquid init into wallet lifecycle
+- foreground lifecycle is amplifying attempts by forcing reconnects too aggressively
+- when init fails at the wrong time, full-screen Perps can show a blocking error view
+- the rate-limit issue fixed by `#28176` is separate from this websocket lifecycle issue
 
-### Root Cause: Always-On WS + iOS Background Killing
+## Verified Findings
 
-PR #27103 ("always-on socket connection") in 7.70.0 creates WS connections at app startup instead of on-demand. When iOS backgrounds the app (~30s), it kills the WebSocket. The `@nktkas/rews` reconnecting library tries `maxRetries: 5` reconnections with `connectionTimeout: 10_000ms` each. If the network is unstable (cellular, low signal), all 5 fail in ~60 seconds, the rews instance **permanently terminates**, and every subsequent perps operation fails.
+### 1. The RCA harness did not create the real error
 
-**Why iOS is 4x worse than Android**: iOS is far more aggressive about killing background WebSocket connections. Android keeps them alive longer.
+`app/controllers/perps/utils/perpsRca.ts` only adds:
 
-**Why it spiked with 7.70.0**: Before #27103, the WS was created on-demand when the user opened perps. Now it's always-on, so it's alive when the app backgrounds — and gets killed.
+- deterministic fault injection
+- structured local RCA markers
+- helper methods for recipe-driven repro
 
-### Error Volume (last 3 days, 7.70.0 only)
+It did **not** invent the underlying exception. We saw the real production-style error
+in the live app log without forcing it:
 
-| Error | iOS | Android | Total |
-|---|---|---|---|
-| **Failed to establish WebSocket connection** | 76,166 | 19,300 | **95,466** |
-| Unknown error [...getMarkets] | 7,132 | 2,279 | 9,411 |
-| Unknown WS request: undefined | 4,263 | 6,353 | 10,616 |
-| Unknown [...fetchHistoricalCandles] | 4,230 | — | 4,230 |
-| Unknown [...subscribeToCandles] | 4,224 | — | 4,224 |
-| WebSocket connection closed | 3,309 | 4,271 | 7,580 |
-| Aborted | 1,148 | 1,624 | 2,772 |
-| 429 Too Many Requests | 563 | — | 563 |
+- `WebSocketRequestError: Failed to establish WebSocket connection`
+- `PerpsConnectionManager: Connection failed`
 
-**Total: ~135K events in 3 days** from 7.70.0 alone.
+### 2. Always-on changed the population of connection attempts
 
-### Error Volume by Release (last 7 days)
+`PerpsAlwaysOnProvider` starts Perps connection work from wallet-root. That means
+HyperLiquid init is no longer limited to "user explicitly opened Perps". It now happens
+for eligible wallet sessions during app lifecycle.
 
-| Release | Events |
-|---|---|
-| io.metamask.MetaMask@7.70.0+4130 (iOS) | 149,105 |
-| io.metamask@7.70.0+4130 (Android) | 68,101 |
-| io.metamask.MetaMask@7.71.0+4199 (iOS) | 6,746 |
-| io.metamask@7.69.0+4015 (Android) | 5,164 |
-| io.metamask.MetaMask@7.69.0+4015 (iOS) | 2,802 |
+### 3. Foreground handling is a major amplifier
 
----
+The later foreground lifecycle change made `AppState -> active` call
+`ensureConnected()`, and that path forces a teardown + reconnect. So the error volume is
+not explained by one cold start. It is multiplied by:
 
-## The Two Problems
+- app launch
+- foreground return
+- reconnect after lifecycle/network transitions
 
-### Problem 1: "Failed to establish WebSocket connection" (95K/3d)
+This is a much better explanation for the large error volume than a tiny startup delay.
 
-**The #1 error.** This is NOT a server outage. It's a client-side reconnection failure.
+### 4. This is not proven to be iOS-only
 
-**Chain**:
+The app-level mechanism is cross-platform. We also saw the exact error locally on iOS,
+and the same exception exists in Sentry across both platforms. Platform-specific
+frequency may differ, but the lifecycle bug is not iOS-only.
+
+### 5. User impact is real, but intermittent
+
+We proved the UI consequence with a deterministic repro:
+
+- if HyperLiquid init fails
+- and the user is on a full Perps surface
+- `PerpsConnectionProvider` can render the blocking connection error view
+- retry can recover successfully
+
+We did **not** prove that spontaneous launch-time blocking is common. Normal simulator
+launches often succeed or recover before the user notices. So the honest conclusion is:
+
+- not every event is user-visible
+- not every event is harmless noise either
+
+### 6. `#28176` is not the websocket fix
+
+`#28176` reduces rate-limit exhaustion during rapid market switching. That work is valid,
+but it addresses a different path from the websocket lifecycle flood.
+
+## Root Cause Statement
+
+The app-level root cause is:
+
+1. always-on moved HyperLiquid websocket init from explicit Perps entry to wallet
+   lifecycle
+2. foreground lifecycle later forced a full reconnect on every `active`
+3. those non-interactive attempts are much more frequent than explicit Perps entry
+4. failures in those attempts were then logged and sometimes surfaced like hard Perps
+   connection failures
+
+What we **have not** proven yet is the lower-level transport reason that
+`wsTransport.ready()` sometimes fails in production. The lifecycle amplification is the
+confirmed root cause for the flood; the transport-level cause remains open.
+
+## Deterministic Reproduction
+
+### Files
+
+- RCA bridge: `app/controllers/perps/utils/perpsRca.ts`
+- Recipe: `scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json`
+
+### What the recipe proves
+
+The recipe arms a one-shot HyperLiquid init failure, triggers the same connection manager
+path used by always-on Perps, verifies the error becomes visible on a full Perps screen,
+then retries and verifies recovery plus market loading.
+
+### Run it
+
+```bash
+cd /Users/deeeed/dev/metamask/metamask-mobile-4-ws
+yarn a:status
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json \
+  --skip-manual
 ```
-App startup → always-on WS connects (#27103)
-    → User backgrounds app
-        → iOS kills WS after ~30s
-            → rews tries 5 reconnections (maxRetries: 5)
-                → All fail (cellular/unstable network, ~60s total)
-                    → rews permanently terminates (terminationSignal aborted)
-                        → transport.ready() rejects immediately
-                            → "Failed to establish WebSocket connection" → Sentry
+
+### Expected RCA markers
+
+The happy-path repro sequence is:
+
+- `connect_requested`
+- `hl_init_start`
+- `hl_init_forced_failure`
+- `hl_init_fail`
+- `connection_error_visible`
+- `retry_requested`
+- `hl_init_success`
+- `retry_success`
+
+## Recording a Reviewable Video
+
+The recipe runner already supports the HUD overlay documented in
+`docs/perps/perps-agentic-feedback-loop.md`, so reviewers can see the active step while
+the flow runs.
+
+To record the iOS simulator while the recipe runs:
+
+```bash
+cd /Users/deeeed/dev/metamask/metamask-mobile-4-ws
+mkdir -p .agent/videos
+xcrun simctl io booted recordVideo .agent/videos/reproduce-ws-init-failure.mp4
 ```
 
-**Key code paths**:
-- `@nktkas/rews/esm/mod.js:113`: `if (++this._attempt > this.reconnectOptions.maxRetries)` → permanent termination
-- `@nktkas/rews/esm/mod.js:139`: `_cleanup()` → `this._abortController.abort(error)` → terminationSignal forever aborted
-- `@nktkas/hyperliquid/esm/src/transport/websocket/mod.js:129`: `ready()` checks `combinedSignal.aborted` → immediate reject
-- `HyperLiquidClientService.ts:152`: `await this.#wsTransport.ready()` in `initialize()` → catch → Sentry (line 188)
+Then, in another shell, run:
 
-**Why it's noise**: When the app is backgrounded and the network is flaky, WS connection failures are **expected**. They should not produce Sentry errors. The app will retry on foregrounding.
+```bash
+cd /Users/deeeed/dev/metamask/metamask-mobile-4-ws
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json \
+  --skip-manual
+```
 
-**Reproduction**: Set `url: 'wss://localhost:1/ws'` in the `WebSocketTransport` constructor options → navigate to perps → exact same error fires.
+Stop the recording with `Ctrl+C` in the `recordVideo` shell.
 
-### Problem 2: Rate Limit Exhaustion (cascade errors)
+## Fix Direction
 
-**The original investigation target.** Rapid market switching creates too many WS subscriptions + REST calls → HyperLiquid rate limits (429) → if sustained, server drops the WS → all pending operations fail → N Sentry events per drop.
+This should stay separate from `#28176`.
 
-**Status of fixes on `feature/metamask-metamask-mobile-28141`**:
+The minimal correct websocket fix direction is:
 
-| Fix | Status | Impact |
-|---|---|---|
-| CandleStreamChannel 500ms debounce | Done | Prevents WS churn during rapid switching |
-| AbortController on candleSnapshot REST | Done | Cancels in-flight REST on navigation away |
-| Reduce initial candle fetch (500 → 168) | Done | Lighter REST payload |
-| Race guards in .then() handlers | Done | Prevents stale promise leaks |
+- keep Perps always-on
+- stop forcing a full reconnect on every foreground when the socket is still healthy
+- make wallet-root/tutorial preload failures best-effort instead of hard user-facing
+  failures
+- keep interactive Perps-entry failures visible
 
-**Recipe validation**: 28/28 steps pass with zero rate limit errors when the fixes are active. However, the recipe can still occasionally fail because `getUserFills` (REST) and candle subscriptions for the last-visited market still consume rate limit budget.
-
----
-
-## What Needs Fixing
-
-### P0: Stop logging expected background failures to Sentry
-
-The `initialize()` catch block at `HyperLiquidClientService.ts:188` logs every WS connection failure to Sentry. When the app is backgrounded or the network is temporarily unavailable, these are expected — not actionable errors.
-
-**Approach**: Check app state (foreground/background) before logging. If backgrounded, suppress. If foregrounded and this is a retry, log at warning level, not error.
-
-### P1: Reduce rate limit exhaustion further
-
-The current debounce fixes help but don't eliminate 429s. Remaining sources:
-- `getUserFills` fires on every market detail mount (2 REST calls each, no cache/debounce)
-- Candle subscriptions re-created on revisit even when cache is warm
-- Each market detail mount triggers ~10 hooks creating multiple subscriptions
-
-### P2: Error cascade deduplication
-
-One connection drop still produces N Sentry events. The fix is not to suppress errors but to report the right thing once:
-- Detect cascade (multiple errors from same transport within 1s)
-- Emit one aggregated event with WS state context
-- Suppress errors during intentional cleanup (`isUnsubscribed`, `isClearing`)
-
----
-
-## Reproduction
-
-### "Failed to establish WebSocket connection" (reproduced locally)
-
-In `HyperLiquidClientService.ts` `#createTransports()`, add `url: 'wss://localhost:1/ws'` to the `WebSocketTransport` constructor options. Navigate to perps. The exact Sentry error fires within seconds.
-
-### Rate limit exhaustion (reproduced locally)
-
-Recipe at `.task/28141/artifacts/recipe.json` — rapid switching between 8 markets. Without the branch fixes: 31 x `429 Too Many Requests`. With fixes: 0 errors (recipe passes 28/28).
-
----
-
-## Release & Deployment Status
-
-| Version | Contains rate limit fix? | Production status |
-|---|---|---|
-| **7.70.0+4130** | NO | **Active in app stores** — 217K perps errors/7d |
-| **7.71.0+4199** | NO | RC/QA — 7K perps errors/7d (internal) |
-| **7.69.0+4015** | NO | Previous release — 8K perps errors/7d |
-| **#28141 branch** | YES (Layer 1) | In progress, not shipped |
-
----
-
-## Proposed Actions
-
-### Immediate
-1. **Land #28141** with rate limit mitigation (already validated via recipe)
-2. **Suppress background WS failures** — don't Sentry-log `"Failed to establish WebSocket connection"` when app is backgrounded
-3. **Ship to production** via OTA or 7.72.0
-
-### Short-term
-4. **Cache/debounce `getUserFills`** — fires 2 REST calls per market detail mount
-5. **Skip candle REST fetch on warm cache** — `connectNow()` still fetches even when cache has data
-
-### Medium-term
-6. **Increase rews maxRetries or add app-level retry-on-foreground** — 5 retries in 60s is too aggressive for mobile
-7. **Error cascade deduplication** — 1 Sentry event per connection drop, not N
+That is the basis of the follow-up websocket branch / PR.
