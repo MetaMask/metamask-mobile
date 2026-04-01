@@ -783,6 +783,166 @@ describe('BuildQuote', () => {
           continueButton.props.accessibilityState?.disabled,
       ).toBe(true);
     });
+
+    it('hides change-provider option when provider returns a limit error', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByLabelText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByLabelText('View error details'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            showChangeProvider: false,
+          }),
+        }),
+      );
+    });
+
+    it('shows change-provider option for generic errors without provider message', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [{ provider: 'moonpay' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByLabelText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByLabelText('View error details'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            showChangeProvider: true,
+          }),
+        }),
+      );
+    });
+
+    it('does not pass error details to modal for provider limit errors', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByLabelText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByLabelText('View error details'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            errorMessage: 'Minimum order amount is $30.00 USD',
+          }),
+        }),
+      );
+    });
+
+    it('shows first provider error when multiple providers return errors', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+            {
+              provider: 'transak',
+              error: 'Amount too low for this provider',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
+      expect(queryByText('Amount too low for this provider')).toBeNull();
+    });
+
+    it('does not show provider error when some quotes succeed', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [WIDGET_PROVIDER_QUOTE],
+          error: [
+            {
+              provider: 'transak',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText('Minimum order amount is $30.00 USD')).toBeNull();
+      expect(queryByText(/encountered an error/i)).toBeNull();
+    });
+
+    it('does not show provider error while quotes are loading', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: true,
+        error: null,
+      });
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText('Minimum order amount is $30.00 USD')).toBeNull();
+    });
   });
 
   describe('handleNativeProviderContinue', () => {
