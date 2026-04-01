@@ -99,7 +99,7 @@ import {
   executionServiceInit,
   snapControllerInit,
   snapInterfaceControllerInit,
-  snapsRegistryInit,
+  snapRegistryControllerInit,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
@@ -171,7 +171,7 @@ import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
-import { multichainRouterInit } from './controllers/multichain-router-init';
+import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
@@ -336,7 +336,7 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
-        SnapsRegistry: snapsRegistryInit,
+        SnapRegistryController: snapRegistryControllerInit,
         SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         NotificationServicesController: notificationServicesControllerInit,
@@ -352,7 +352,7 @@ export class Engine {
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
-        MultichainRouter: multichainRouterInit,
+        MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
@@ -459,7 +459,7 @@ export class Engine {
     const executionService = controllersByName.ExecutionService;
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
-    const snapsRegistry = controllersByName.SnapsRegistry;
+    const snapRegistryController = controllersByName.SnapRegistryController;
     const webSocketService = controllersByName.WebSocketService;
     const notificationServicesController =
       controllersByName.NotificationServicesController;
@@ -544,7 +544,7 @@ export class Engine {
       ExecutionService: executionService,
       SnapController: snapController,
       SnapInterfaceController: snapInterfaceController,
-      SnapsRegistry: snapsRegistry,
+      SnapRegistryController: snapRegistryController,
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
@@ -1371,7 +1371,7 @@ export default {
       NotificationServicesPushController,
       SnapController,
       SnapInterfaceController,
-      SnapsRegistry,
+      SnapRegistryController,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1444,7 +1444,7 @@ export default {
         NotificationServicesPushController.state,
       SnapController: SnapController.state,
       SnapInterfaceController: SnapInterfaceController.state,
-      SnapsRegistry: SnapsRegistry.state,
+      SnapRegistryController: SnapRegistryController.state,
       SubjectMetadataController: SubjectMetadataController.state,
       UserStorageController: UserStorageController.state,
       ///: END:ONLY_INCLUDE_IF

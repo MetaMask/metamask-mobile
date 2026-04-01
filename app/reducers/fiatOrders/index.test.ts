@@ -1134,8 +1134,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -1234,8 +1234,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
@@ -1466,8 +1466,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -1568,8 +1568,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
@@ -1932,8 +1932,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -2142,8 +2142,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -2242,8 +2242,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',

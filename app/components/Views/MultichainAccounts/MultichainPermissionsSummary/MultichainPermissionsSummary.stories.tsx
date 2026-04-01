@@ -207,7 +207,6 @@ const mockStoreState = {
       },
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: MOCK_GROUP_ID_1,
           wallets: {
             'wallet-1': {
               id: 'wallet-1',
@@ -220,6 +219,7 @@ const mockStoreState = {
             },
           },
         },
+        selectedAccountGroup: MOCK_GROUP_ID_1,
         accountGroupsMetadata: {},
         accountWalletsMetadata: {},
       },

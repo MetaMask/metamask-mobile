@@ -10,6 +10,7 @@ exports[`PredictGameDetailsContent matches snapshot 1`] = `
   }
   style={
     {
+      "backgroundColor": "#ffffff",
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,

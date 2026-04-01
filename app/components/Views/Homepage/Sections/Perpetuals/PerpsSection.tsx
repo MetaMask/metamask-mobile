@@ -280,7 +280,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       sectionName: HomeSectionNames.PERPS,
       sectionIndex,
       totalSectionsLoaded,
-      isEmpty: !hasItems && trendingMarkets.length === 0,
+      isEmpty: !hasItems,
       itemCount: hasItems ? displayPositions.length + displayOrders.length : 0,
     });
 
