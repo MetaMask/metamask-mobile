@@ -76,20 +76,24 @@ function killProcessOnPort(port: number): void {
 
 /**
  * Execute a single Maestro flow:
- * 1. Parse fixture/mock tags from YAML
- * 2. Build fixture from presets registry
- * 3. Start MockServerE2E and FixtureServer
+ * 1. Parse fixture/mock tags from YAML — each is optional
+ * 2. If fixture tag present: build fixture, start FixtureServer
+ * 3. If mock tag present: start MockServerE2E with default + override mocks
  * 4. Optionally transform the flow file (e.g. rewrite screenshots)
  * 5. Run Maestro test
  * 6. Teardown: stop servers, clean up temp files
  */
 export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
   const { flowPath, deviceUdid, transformFlow } = options;
-  const fixtureServer = new FixtureServer();
+  let fixtureServer: FixtureServer | null = null;
+  let mockServer: MockServerE2E | null = null;
   let tempFlowPath: string | null = null;
 
-  // 1. Resolve optional mock override from YAML `mock:` tag
+  // 1. Parse tags — both are optional
+  const fixtureTag = parseFixtureTag(flowPath);
   const mockTagName = parseMockTag(flowPath);
+
+  // 2. Resolve mock override if mock tag is present
   const testSpecificMock = mockTagName
     ? getMockOverride(mockTagName)
     : undefined;
@@ -101,52 +105,39 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     };
   }
 
-  const mockServer = new MockServerE2E({
-    events: DEFAULT_MOCKS,
-    testSpecificMock,
-  });
-
   try {
-    // 2. Parse fixture tag
-    const fixtureTag = parseFixtureTag(flowPath);
-    if (!fixtureTag) {
-      return {
-        flowPath,
-        passed: false,
-        error: 'No fixture: tag found in flow',
-      };
-    }
-
-    // 3. Build fixture
-    const fixture = buildFromTag(fixtureTag);
-
-    // 4. Start mock server for deterministic API responses and feature flags.
-    // The app's shim.js auto-detects this via health check on localhost:8000
-    // and proxies all HTTP traffic through it, giving us stable UI state.
-    killProcessOnPort(MOCK_SERVER_PORT);
-    mockServer.setServerPort(MOCK_SERVER_PORT);
-    await mockServer.start();
-    await mockNotificationServices(mockServer.server);
-    await setupRemoteFeatureFlagsMock(mockServer.server);
+    // 3. Start mock server only if mock: tag is present
     if (mockTagName) {
-      console.log(`  Mock override applied: ${mockTagName}`);
+      mockServer = new MockServerE2E({
+        events: DEFAULT_MOCKS,
+        testSpecificMock,
+      });
+      killProcessOnPort(MOCK_SERVER_PORT);
+      mockServer.setServerPort(MOCK_SERVER_PORT);
+      await mockServer.start();
+      await mockNotificationServices(mockServer.server);
+      await setupRemoteFeatureFlagsMock(mockServer.server);
+      console.log(
+        `  Mock server started on port ${MOCK_SERVER_PORT} (${mockTagName})`,
+      );
     }
 
-    console.log(`  Mock server started on port ${MOCK_SERVER_PORT}`);
+    // 4. Start fixture server only if fixture: tag is present
+    if (fixtureTag) {
+      const fixture = buildFromTag(fixtureTag);
+      fixtureServer = new FixtureServer();
+      killProcessOnPort(FIXTURE_SERVER_PORT);
+      fixtureServer.setServerPort(FIXTURE_SERVER_PORT);
+      await fixtureServer.start();
+      fixtureServer.loadJsonState(fixture, null);
+      console.log(`  Fixture server started on port ${FIXTURE_SERVER_PORT}`);
+    }
 
-    // 5. Start fixture server on the well-known fallback port.
-    killProcessOnPort(FIXTURE_SERVER_PORT);
-    fixtureServer.setServerPort(FIXTURE_SERVER_PORT);
-    await fixtureServer.start();
-    fixtureServer.loadJsonState(fixture, null);
-    console.log(`  Fixture server started on port ${FIXTURE_SERVER_PORT}`);
-
-    // 6. The flow itself handles app launch via Maestro's clearState + launchApp
-    //    commands, which ensures the app starts fresh and refetches from the fixture
-    //    server. We just terminate any stale instance before Maestro takes over.
+    // 5. Terminate any stale app instance before Maestro takes over.
+    //    The flow itself handles app launch via Maestro's clearState + launchApp.
     terminateApp(deviceUdid);
 
-    // 7. Optionally transform the flow file (e.g. rewrite assertScreenshot → takeScreenshot)
+    // 6. Optionally transform the flow file (e.g. rewrite assertScreenshot → takeScreenshot)
     let maestroFlowPath = flowPath;
     if (transformFlow) {
       tempFlowPath = transformFlow(flowPath);
@@ -155,7 +146,7 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
       }
     }
 
-    // 8. Run Maestro (async spawn so the Node event loop stays unblocked
+    // 7. Run Maestro (async spawn so the Node event loop stays unblocked
     //    and the fixture/mock servers can serve requests while Maestro runs)
     const maestroPassed = await new Promise<boolean>((resolve) => {
       const child = spawn(
@@ -180,15 +171,19 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
   } finally {
     // Teardown — stop servers but leave the app running for easier debugging
 
-    if (mockServer.isStarted()) {
+    if (mockServer?.isStarted()) {
       await mockServer.stop();
     }
-    killProcessOnPort(MOCK_SERVER_PORT);
+    if (mockTagName) {
+      killProcessOnPort(MOCK_SERVER_PORT);
+    }
 
-    if (fixtureServer.isStarted()) {
+    if (fixtureServer?.isStarted()) {
       await fixtureServer.stop();
     }
-    killProcessOnPort(FIXTURE_SERVER_PORT);
+    if (fixtureTag) {
+      killProcessOnPort(FIXTURE_SERVER_PORT);
+    }
 
     if (tempFlowPath) {
       try {

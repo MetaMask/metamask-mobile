@@ -1,11 +1,11 @@
 import { existsSync, readdirSync, statSync, rmSync } from 'fs';
 import path from 'path';
 import { getBootedSimulatorUdid } from './device';
-import { parseFixtureTag } from './parse-tags';
 import { runFlow, RunFlowOptions, RunFlowResult } from './run-flow';
 
 /**
- * Recursively discover all .yaml files in a directory that have a fixture: tag.
+ * Recursively discover all .yaml/.yml flow files in a directory.
+ * Skips shared/ directories (those are sub-flows, not top-level test flows).
  */
 export function discoverFlows(dir: string): string[] {
   const flows: string[] = [];
@@ -13,16 +13,11 @@ export function discoverFlows(dir: string): string[] {
   for (const entry of readdirSync(dir)) {
     const fullPath = path.join(dir, entry);
     if (statSync(fullPath).isDirectory()) {
-      // Skip shared/ — those are sub-flows, not top-level test flows
       if (entry !== 'shared') {
         flows.push(...discoverFlows(fullPath));
       }
     } else if (entry.endsWith('.yaml') || entry.endsWith('.yml')) {
-      // Only include flows that have a fixture tag
-      const tag = parseFixtureTag(fullPath);
-      if (tag) {
-        flows.push(fullPath);
-      }
+      flows.push(fullPath);
     }
   }
 
@@ -40,7 +35,8 @@ export interface OrchestratorOptions {
 
 /**
  * Shared Maestro orchestrator CLI.
- * Parses --flow arguments, discovers flows, runs each one with fixture/mock servers.
+ * Parses --flow arguments, discovers flows, runs each one.
+ * Fixture and mock servers are started only when flows declare the corresponding tags.
  * Can be used directly or wrapped by test-type-specific CLIs (e.g. visual).
  */
 export async function orchestrate(options: OrchestratorOptions): Promise<void> {
@@ -94,7 +90,7 @@ export async function orchestrate(options: OrchestratorOptions): Promise<void> {
   }
 
   if (flowPaths.length === 0) {
-    console.error('No flows with fixture: tags found.');
+    console.error('No flow files found.');
     process.exit(1);
   }
 

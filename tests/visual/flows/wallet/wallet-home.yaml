@@ -4,6 +4,7 @@ appId: io.metamask.MetaMask
 tags:
   - visual
   - fixture:default
+  - mock:default
 ---
 
 # Clear app state and relaunch so ReadOnlyNetworkStore refetches from fixture server.

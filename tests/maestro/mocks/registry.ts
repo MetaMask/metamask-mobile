@@ -9,12 +9,17 @@ export type TestMock = (server: Mockttp) => Promise<void>;
 
 /**
  * Registry of named mock overrides that can be referenced from flow YAML
- * via `mock:<name>` tags. Each entry maps to a function that configures
- * high-priority mockttp rules, overriding the default mock responses.
+ * via `mock:<name>` tags.
  *
- * Example YAML tag: `mock:send-balances`
+ * - `mock:default` — starts MockServerE2E with DEFAULT_MOCKS only (no extra overrides)
+ * - `mock:<name>` — starts MockServerE2E with DEFAULT_MOCKS + the named override function
+ *
+ * Flows without a `mock:` tag will not start a mock server at all.
  */
 const registry: Record<string, TestMock> = {
+  default: async () => {
+    /* no extra overrides — DEFAULT_MOCKS only */
+  },
   'send-balances': setupSendBalancesMock,
 };
 
