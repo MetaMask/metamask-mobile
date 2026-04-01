@@ -623,10 +623,19 @@ export type PerpsControllerEvents = ControllerStateChangeEvent<
 >;
 
 /**
+ * The action which can be used to retrieve the state of the
+ * {@link PerpsController}.
+ */
+export type PerpsControllerGetStateAction = ControllerGetStateAction<
+  'PerpsController',
+  PerpsControllerState
+>;
+
+/**
  * PerpsController actions
  */
 export type PerpsControllerActions =
-  | ControllerGetStateAction<'PerpsController', PerpsControllerState>
+  | PerpsControllerGetStateAction
   | PerpsControllerMethodActions;
 
 /**
@@ -668,42 +677,90 @@ type BlockedRegionList = {
 };
 
 const MESSENGER_EXPOSED_METHODS = [
-  'placeOrder',
-  'editOrder',
+  'calculateFees',
+  'calculateLiquidationPrice',
+  'calculateMaintenanceMargin',
   'cancelOrder',
   'cancelOrders',
+  'clearDepositResult',
+  'clearPendingTradeConfiguration',
+  'clearPendingTransactionRequests',
+  'clearWithdrawResult',
   'closePosition',
   'closePositions',
-  'withdraw',
-  'getPositions',
+  'completeWithdrawalFromHistory',
+  'depositWithConfirmation',
+  'depositWithOrder',
+  'disconnect',
+  'editOrder',
+  'fetchHistoricalCandles',
+  'flipPosition',
+  'getAccountState',
+  'getActiveProvider',
+  'getActiveProviderOrNull',
+  'getAvailableDexs',
+  'getBlockExplorerUrl',
+  'getCachedMarketDataForActiveProvider',
+  'getCachedUserDataForActiveProvider',
+  'getCurrentNetwork',
+  'getFunding',
+  'getHistoricalPortfolio',
+  'getMarketDataWithPrices',
+  'getMarketFilterPreferences',
+  'getMarkets',
+  'getMaxLeverage',
+  'getOpenOrders',
+  'getOrderBookGrouping',
   'getOrderFills',
   'getOrders',
-  'getOpenOrders',
-  'getFunding',
-  'getAccountState',
-  'getMarkets',
-  'refreshEligibility',
-  'toggleTestnet',
-  'disconnect',
-  'calculateFees',
-  'markTutorialCompleted',
-  'markFirstOrderCompleted',
-  'getHistoricalPortfolio',
-  'resetFirstTimeUserState',
-  'clearPendingTransactionRequests',
-  'saveTradeConfiguration',
-  'getTradeConfiguration',
-  'saveMarketFilterPreferences',
-  'getMarketFilterPreferences',
-  'savePendingTradeConfiguration',
   'getPendingTradeConfiguration',
-  'clearPendingTradeConfiguration',
-  'getOrderBookGrouping',
-  'saveOrderBookGrouping',
-  'setSelectedPaymentToken',
+  'getPositions',
+  'getTradeConfiguration',
+  'getWatchlistMarkets',
+  'getWebSocketConnectionState',
+  'getWithdrawalProgress',
+  'getWithdrawalRoutes',
+  'init',
+  'isCurrentlyReinitializing',
+  'isFirstTimeUserOnCurrentNetwork',
+  'isWatchlistMarket',
+  'markFirstOrderCompleted',
+  'markTutorialCompleted',
+  'placeOrder',
+  'reconnect',
+  'refreshEligibility',
+  'resetFirstTimeUserState',
   'resetSelectedPaymentToken',
+  'saveMarketFilterPreferences',
+  'saveOrderBookGrouping',
+  'savePendingTradeConfiguration',
+  'saveTradeConfiguration',
+  'setLiveDataConfig',
+  'setSelectedPaymentToken',
   'startEligibilityMonitoring',
+  'startMarketDataPreload',
   'stopEligibilityMonitoring',
+  'stopMarketDataPreload',
+  'subscribeToAccount',
+  'subscribeToCandles',
+  'subscribeToConnectionState',
+  'subscribeToOICaps',
+  'subscribeToOrderBook',
+  'subscribeToOrderFills',
+  'subscribeToOrders',
+  'subscribeToPositions',
+  'subscribeToPrices',
+  'switchProvider',
+  'toggleTestnet',
+  'toggleWatchlistMarket',
+  'updateMargin',
+  'updatePositionTPSL',
+  'updateWithdrawalProgress',
+  'updateWithdrawalStatus',
+  'validateClosePosition',
+  'validateOrder',
+  'validateWithdrawal',
+  'withdraw',
 ] as const;
 
 /**

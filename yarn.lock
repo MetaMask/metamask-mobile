@@ -8871,10 +8871,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/messenger@npm:1.0.0"
-  checksum: 10/ab1219a922d5acc86f2b1b557d79c75ca0c5f42572f50da8a2337bc5c8feb1ae95c0aaa2d2ee55b677acd4401fb2cc9c2dbacca7513edcddf20d88fb73fa7bea
+"@metamask/messenger@npm:@metamask-previews/messenger@1.0.0-preview-16512b784":
+  version: 1.0.0-preview-16512b784
+  resolution: "@metamask-previews/messenger@npm:1.0.0-preview-16512b784"
+  dependencies:
+    "@metamask/utils": "npm:^11.9.0"
+    yargs: "npm:^17.7.2"
+  peerDependencies:
+    eslint: ">=8"
+    typescript: ~5.3.3
+  bin:
+    messenger-generate-action-types: ./dist/generate-action-types/cli.mjs
+  checksum: 10/58e958dabd89205f6e79a91afca7b229e6378d4f5957e9dff772085d59d4397cb71aeec7cd338b5c63be08d9332af19a5087624d45f47610066f7611bd620bce
   languageName: node
   linkType: hard
 

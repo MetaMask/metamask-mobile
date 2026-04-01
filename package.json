@@ -13,8 +13,10 @@
     "gem:bundle:install": "bundle install --gemfile=ios/Gemfile",
     "clean:android": "rm -rf android/app/build",
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
-    "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache",
-    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache",
+    "generate-action-types": "messenger-generate-action-types --fix app/controllers/perps",
+    "generate-action-types:check": "messenger-generate-action-types --check app/controllers/perps",
+    "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache && yarn generate-action-types:check",
+    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache && yarn generate-action-types",
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
@@ -160,6 +162,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/messenger": "npm:@metamask-previews/messenger@1.0.0-preview-16512b784",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
