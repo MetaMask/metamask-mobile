@@ -19,6 +19,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -1541,6 +1542,7 @@ class AuthenticationService {
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
     ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearSeedlessOnboarding());
   };
 
   /**
