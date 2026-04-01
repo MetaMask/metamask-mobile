@@ -51,6 +51,10 @@ jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictDefaultPaymentToken', () => ({
+  usePredictDefaultPaymentToken: jest.fn(),
+}));
+
 jest.mock('../../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));

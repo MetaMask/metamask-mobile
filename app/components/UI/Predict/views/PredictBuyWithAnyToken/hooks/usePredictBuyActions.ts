@@ -18,8 +18,6 @@ import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
@@ -39,7 +37,6 @@ export const usePredictBuyActions = ({
   const { activeOrder, clearActiveOrderTransactionId } =
     usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
-  const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -69,7 +66,6 @@ export const usePredictBuyActions = ({
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        resetSelectedPaymentToken();
         initPayWithAnyToken();
       }
     });
@@ -80,7 +76,6 @@ export const usePredictBuyActions = ({
     initPayWithAnyToken,
     payWithAnyTokenEnabled,
     PredictController,
-    resetSelectedPaymentToken,
   ]);
 
   useEffect(() => {

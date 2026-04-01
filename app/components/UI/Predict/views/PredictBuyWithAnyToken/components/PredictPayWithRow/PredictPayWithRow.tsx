@@ -25,6 +25,7 @@ import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
+import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
 
 interface PredictPayWithRowProps {
   disabled?: boolean;
@@ -33,6 +34,7 @@ interface PredictPayWithRowProps {
 export function PredictPayWithRow({
   disabled = false,
 }: PredictPayWithRowProps) {
+  usePredictDefaultPaymentToken();
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
