@@ -70,18 +70,21 @@ const PerpsTooltipView: React.FC = () => {
       ref={bottomSheetRef}
       shouldNavigateBack
       goBack={navigation.goBack}
+      testID="perps-tooltip-bottom-sheet"
     >
       {!hasCustomHeader && (
-        <BottomSheetHeader>
+        <BottomSheetHeader testID="perps-tooltip-bottom-sheet-header">
           <Text variant={TextVariant.HeadingMD}>{title}</Text>
         </BottomSheetHeader>
       )}
       <View style={styles.contentContainer}>{renderContent()}</View>
       <BottomSheetFooter
+        testID="perps-tooltip-bottom-sheet-footer"
         primaryButtonProps={{
           children: strings('perps.tooltips.got_it_button'),
           onPress: handleGotItPress,
           size: ButtonSize.Lg,
+          testID: 'perps-tooltip-bottom-sheet-footer-got-it-button',
         }}
         style={styles.footerContainer}
       />
