@@ -409,7 +409,7 @@ describe('useUnifiedTxActions', () => {
     });
 
     it('clamps EIP-1559 priority fee up to previousGas × rate when below minimum', async () => {
-      const { result } = renderHook(() => useUnifiedTxActions());
+      const { result } = renderUnifiedTxActions();
       const tx = { id: 'clamp-speedup' } as unknown as TransactionMeta;
 
       (getPreviousGasFromController as jest.Mock).mockImplementation(
@@ -503,7 +503,7 @@ describe('useUnifiedTxActions', () => {
     });
 
     it('clamps EIP-1559 priority fee up to previousGas × rate when below minimum', async () => {
-      const { result } = renderHook(() => useUnifiedTxActions());
+      const { result } = renderUnifiedTxActions();
       const tx = { id: 'clamp-cancel' } as unknown as TransactionMeta;
 
       (getPreviousGasFromController as jest.Mock).mockImplementation(

@@ -92,11 +92,6 @@ jest.mock('../../../../../../core/ToastService/ToastService', () => ({
   default: { showToast: jest.fn() },
 }));
 
-jest.mock('../../../../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: { showToast: jest.fn() },
-}));
-
 jest.mock('../../../context/gas-fee-modal-transaction', () => ({
   GasFeeModalTransactionProvider: ({
     children,
