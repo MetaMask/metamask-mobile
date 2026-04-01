@@ -173,10 +173,17 @@ export const GOOGLE_WALLET_BUTTON_BY_LANGUAGE: Record<string, SvgComponent> = {
 };
 
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const NativeAddToWalletButton: React.ComponentType<AddToWalletButtonProps> | null =
-  Platform.OS === 'ios'
-    ? require('@expensify/react-native-wallet').AddToWalletButton
-    : null;
+let NativeAddToWalletButton: React.ComponentType<AddToWalletButtonProps> | null =
+  null;
+if (Platform.OS === 'ios') {
+  try {
+    NativeAddToWalletButton =
+      require('@expensify/react-native-wallet').AddToWalletButton ?? null;
+  } catch {
+    // Native module not available (e.g. autolinking disabled on iOS)
+    NativeAddToWalletButton = null;
+  }
+}
 
 const ANDROID_BUTTON_WIDTH = 300;
 const ANDROID_BUTTON_HEIGHT = 48;
