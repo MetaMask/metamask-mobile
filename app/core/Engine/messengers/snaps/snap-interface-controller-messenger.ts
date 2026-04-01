@@ -35,7 +35,7 @@ export function getSnapInterfaceControllerMessenger(
       'PhishingController:testOrigin',
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
-      'SnapController:get',
+      'SnapController:getSnap',
       'MultichainAssetsController:getState',
       'AccountsController:getSelectedMultichainAccount',
       'AccountsController:getAccountByAddress',
