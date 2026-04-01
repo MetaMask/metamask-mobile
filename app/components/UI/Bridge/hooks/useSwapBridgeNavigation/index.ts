@@ -44,6 +44,7 @@ import {
   HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
   HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
 } from '../../../../Views/Homepage/abTestConfig';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -58,13 +59,13 @@ export const isAssetFromTrending = (asset: unknown) =>
   'isFromTrending' in asset &&
   asset.isFromTrending === true;
 
-/** True when the asset was opened from the homepage “Trending tokens” section (separate-trending layout). */
-export const isAssetFromHomepageTrendingSection = (asset: unknown): boolean =>
+/** True when Token Details source is homepage dedicated trending tokens section. */
+export const isAssetFromHomepageTrendingSource = (asset: unknown): boolean =>
   typeof asset === 'object' &&
   asset !== null &&
-  'fromHomepageTrendingSection' in asset &&
-  (asset as { fromHomepageTrendingSection?: boolean })
-    .fromHomepageTrendingSection === true;
+  'source' in asset &&
+  (asset as { source?: TokenDetailsSource }).source ===
+    TokenDetailsSource.HomepageTrending;
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -289,8 +290,8 @@ export const useSwapBridgeNavigation = ({
       const isFromTrending = isFromTrendingSession || isFromTrendingAsset;
 
       const fromHomepageTrendingSection =
-        isAssetFromHomepageTrendingSection(effectiveSourceTokenBase) ||
-        isAssetFromHomepageTrendingSection(effectiveDestTokenBase);
+        isAssetFromHomepageTrendingSource(effectiveSourceTokenBase) ||
+        isAssetFromHomepageTrendingSource(effectiveDestTokenBase);
 
       dispatch(
         setTransactionActiveAbTests(

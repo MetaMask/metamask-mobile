@@ -48,6 +48,7 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -198,12 +199,19 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
-    const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
+    const isPositionsTokenRowsLoading =
+      isPositionsOnly &&
+      !isZeroBalanceAccount &&
+      displayTokenKeys.length === 0 &&
+      sortedTokenKeys.length === 0;
+    const sectionIsEmpty = isPositionsOnly
+      ? !isPositionsTokenRowsLoading && displayTokenKeys.length === 0
+      : isZeroBalanceAccount || showTokensError;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef:
         isPositionsOnly && isZeroBalanceAccount ? null : sectionViewRef,
-      isLoading: false,
+      isLoading: isPositionsTokenRowsLoading,
       sectionName: analyticsName,
       sectionIndex,
       totalSectionsLoaded,
@@ -363,7 +371,7 @@ const TokensSectionTrendingOnly = forwardRef<
                     key={token.assetId}
                     token={token}
                     position={index}
-                    fromHomepageTrendingSection
+                    tokenDetailsSource={TokenDetailsSource.HomepageTrending}
                   />
                 ))}
           </SectionRow>

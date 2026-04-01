@@ -15,6 +15,8 @@ export enum TokenDetailsSource {
   Trending = 'trending',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
+  /** Dedicated homepage trending-tokens section (A/B treatment layout) */
+  HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Fallback when source cannot be determined */

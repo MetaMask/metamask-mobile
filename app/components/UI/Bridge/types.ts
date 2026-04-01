@@ -25,8 +25,6 @@ export interface BridgeToken {
   aggregators?: string[];
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
-  /** Propagated from Token Details when opened from homepage trending section */
-  fromHomepageTrendingSection?: boolean;
 }
 
 export enum BridgeViewMode {

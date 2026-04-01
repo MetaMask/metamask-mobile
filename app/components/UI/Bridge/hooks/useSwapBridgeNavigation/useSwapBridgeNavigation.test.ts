@@ -14,6 +14,7 @@ import {
 } from '../../../../../util/analytics/actionButtonTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../../../../Views/Homepage/abTestConfig';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -1307,8 +1308,8 @@ describe('useSwapBridgeNavigation', () => {
 
       const trendingHomepageToken: BridgeToken = {
         ...mockSourceToken,
-        fromHomepageTrendingSection: true,
-      };
+        source: TokenDetailsSource.HomepageTrending,
+      } as BridgeToken;
 
       const { result } = renderHookWithProvider(
         () =>

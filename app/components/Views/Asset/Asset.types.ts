@@ -28,5 +28,4 @@ export interface AssetViewParams {
   source?: string;
   scrollToMerklRewards?: boolean;
   rwaData?: TokenRwaData;
-  fromHomepageTrendingSection?: boolean;
 }
