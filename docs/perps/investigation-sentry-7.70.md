@@ -1,112 +1,113 @@
-# Perps WebSocket Investigation
+# Perps WebSocket Lifecycle Investigation
 
-**Updated**: 2026-04-01
-**Original trigger**: 7.70 Sentry spike
-**Scope now**: websocket init failures and error amplification across always-on Perps lifecycle
+**Updated**: 2026-04-01  
+**Original trigger**: Sentry spike starting in 7.70  
+**Current scope**: `WebSocketRequestError: Failed to establish WebSocket connection`
 
-## Status
+## Summary
 
-The previous version of this report was too confident about the wrong thing. We did
-**not** prove that the spike is simply "iOS background WebSocket death" or "just
-noise". What we did prove is narrower and more useful:
+This issue is not explained by the rate-limit bug fixed in `#28176`, and it is not
+accurate to describe it as only "iOS background noise".
 
-- the real exception `WebSocketRequestError: Failed to establish WebSocket connection`
-  occurs without the RCA harness
-- the same app-level failure path exists on both iOS and Android
-- Perps always-on moved HyperLiquid init into wallet lifecycle
-- foreground lifecycle is amplifying attempts by forcing reconnects too aggressively
-- when init fails at the wrong time, full-screen Perps can show a blocking error view
-- the rate-limit issue fixed by `#28176` is separate from this websocket lifecycle issue
+The confirmed app-level root cause is websocket lifecycle amplification:
 
-## Verified Findings
+- `#27103` moved HyperLiquid init into wallet-root always-on lifecycle
+- foreground handling was later changed to force reconnects aggressively on `active`
+- that greatly increased non-interactive websocket init attempts
+- failures in those attempts were logged like hard Perps connection failures
 
-### 1. The RCA harness did not create the real error
+This explains why error volume jumped after always-on was introduced without requiring
+all users to see a blocking error screen.
 
-`app/controllers/perps/utils/perpsRca.ts` only adds:
+## What Is Confirmed
+
+### 1. The real exception happens without the RCA harness
+
+The RCA helper at `app/util/perpsRca.ts` only adds:
 
 - deterministic fault injection
 - structured local RCA markers
-- helper methods for recipe-driven repro
+- helper methods for recipe-driven reproduction
 
-It did **not** invent the underlying exception. We saw the real production-style error
-in the live app log without forcing it:
+It did not invent the real exception. We observed the production-style failure locally
+without forcing it:
 
 - `WebSocketRequestError: Failed to establish WebSocket connection`
 - `PerpsConnectionManager: Connection failed`
 
-### 2. Always-on changed the population of connection attempts
+### 2. Always-on changed when websocket init happens
 
-`PerpsAlwaysOnProvider` starts Perps connection work from wallet-root. That means
-HyperLiquid init is no longer limited to "user explicitly opened Perps". It now happens
-for eligible wallet sessions during app lifecycle.
+`PerpsAlwaysOnProvider` starts Perps connection work from wallet-root, so HyperLiquid
+init is no longer limited to explicit Perps entry. It now runs as part of normal wallet
+lifecycle for eligible sessions.
 
-### 3. Foreground handling is a major amplifier
+### 3. Foreground reconnect behavior is a major amplifier
 
-The later foreground lifecycle change made `AppState -> active` call
-`ensureConnected()`, and that path forces a teardown + reconnect. So the error volume is
-not explained by one cold start. It is multiplied by:
+Foreground return now calls `ensureConnected()`, and that path forces teardown +
+reconnect behavior too aggressively. The error count is therefore multiplied by:
 
 - app launch
 - foreground return
-- reconnect after lifecycle/network transitions
+- reconnect after lifecycle or network transitions
 
-This is a much better explanation for the large error volume than a tiny startup delay.
+This is the strongest app-level explanation for the large event count.
 
-### 4. This is not proven to be iOS-only
+### 4. The app-level issue is cross-platform
 
-The app-level mechanism is cross-platform. We also saw the exact error locally on iOS,
-and the same exception exists in Sentry across both platforms. Platform-specific
-frequency may differ, but the lifecycle bug is not iOS-only.
+The lifecycle path exists on both iOS and Android. We also saw the exact websocket error
+locally on iOS. Platform frequency may differ, but the app-level bug is not limited to
+one platform.
 
-### 5. User impact is real, but intermittent
+### 5. User impact is real but intermittent
 
-We proved the UI consequence with a deterministic repro:
+We proved the user-visible path with deterministic reproduction:
 
 - if HyperLiquid init fails
 - and the user is on a full Perps surface
 - `PerpsConnectionProvider` can render the blocking connection error view
-- retry can recover successfully
+- retry can recover and markets load again
 
-We did **not** prove that spontaneous launch-time blocking is common. Normal simulator
-launches often succeed or recover before the user notices. So the honest conclusion is:
+We did **not** prove that normal launch commonly lands users on that screen. Many
+sessions will likely recover before the user notices. So the right conclusion is:
 
 - not every event is user-visible
-- not every event is harmless noise either
+- not every event is harmless noise
 
-### 6. `#28176` is not the websocket fix
+### 6. This is separate from `#28176`
 
-`#28176` reduces rate-limit exhaustion during rapid market switching. That work is valid,
-but it addresses a different path from the websocket lifecycle flood.
+`#28176` addresses rapid market-switching rate-limit exhaustion. That fix is valid, but
+it does not address the websocket lifecycle flood described here.
 
 ## Root Cause Statement
 
-The app-level root cause is:
+The confirmed app-level root cause is:
 
 1. always-on moved HyperLiquid websocket init from explicit Perps entry to wallet
    lifecycle
-2. foreground lifecycle later forced a full reconnect on every `active`
-3. those non-interactive attempts are much more frequent than explicit Perps entry
-4. failures in those attempts were then logged and sometimes surfaced like hard Perps
-   connection failures
+2. foreground lifecycle then multiplied attempts by reconnecting too aggressively
+3. those non-interactive attempts happen much more often than explicit Perps entry
+4. failures in those attempts were reported like hard Perps failures
 
-What we **have not** proven yet is the lower-level transport reason that
-`wsTransport.ready()` sometimes fails in production. The lifecycle amplification is the
-confirmed root cause for the flood; the transport-level cause remains open.
+## What Is Still Not Proven
+
+We have **not** yet proven the lower-level transport reason that
+`wsTransport.ready()` fails in production. The lifecycle amplification explains the
+flood. The transport-level failure cause is still open.
 
 ## Deterministic Reproduction
 
-### Files
+### Artifacts
 
-- RCA bridge: `app/controllers/perps/utils/perpsRca.ts`
+- RCA bridge: `app/util/perpsRca.ts`
 - Recipe: `scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json`
 
 ### What the recipe proves
 
-The recipe arms a one-shot HyperLiquid init failure, triggers the same connection manager
-path used by always-on Perps, verifies the error becomes visible on a full Perps screen,
+The recipe arms a one-shot HyperLiquid init failure, triggers the same connection
+manager path used by always-on Perps, verifies the blocking Perps connection error view,
 then retries and verifies recovery plus market loading.
 
-### Run it
+### Run
 
 ```bash
 cd /Users/deeeed/dev/metamask/metamask-mobile-4
@@ -118,8 +119,6 @@ bash scripts/perps/agentic/validate-recipe.sh \
 
 ### Expected RCA markers
 
-The happy-path repro sequence is:
-
 - `connect_requested`
 - `hl_init_start`
 - `hl_init_forced_failure`
@@ -129,13 +128,9 @@ The happy-path repro sequence is:
 - `hl_init_success`
 - `retry_success`
 
-## Recording a Reviewable Video
+## Optional Video Capture
 
-The recipe runner already supports the HUD overlay documented in
-`docs/perps/perps-agentic-feedback-loop.md`, so reviewers can see the active step while
-the flow runs.
-
-To record the iOS simulator while the recipe runs:
+To record the iOS simulator while running the recipe:
 
 ```bash
 cd /Users/deeeed/dev/metamask/metamask-mobile-4
@@ -143,27 +138,17 @@ mkdir -p .agent/videos
 xcrun simctl io booted recordVideo .agent/videos/reproduce-ws-init-failure.mp4
 ```
 
-Then, in another shell, run:
+Then run the recipe in another shell and stop recording with `Ctrl+C`.
 
-```bash
-cd /Users/deeeed/dev/metamask/metamask-mobile-4
-bash scripts/perps/agentic/validate-recipe.sh \
-  scripts/perps/agentic/teams/perps/recipes/reproduce-ws-init-failure.json \
-  --skip-manual
-```
+## Recommended Fix Direction
 
-Stop the recording with `Ctrl+C` in the `recordVideo` shell.
+This should remain separate from `#28176`.
 
-## Fix Direction
-
-This should stay separate from `#28176`.
-
-The minimal correct websocket fix direction is:
+Minimal correct fix direction:
 
 - keep Perps always-on
-- stop forcing a full reconnect on every foreground when the socket is still healthy
-- make wallet-root/tutorial preload failures best-effort instead of hard user-facing
-  failures
-- keep interactive Perps-entry failures visible
+- do not force full reconnect on every foreground if the socket is still healthy
+- treat wallet-root and tutorial preload failures as best-effort
+- keep interactive Perps-entry failures user-visible
 
-That is the basis of the follow-up websocket branch / PR.
+This reduces lifecycle churn without removing always-on behavior.

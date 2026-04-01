@@ -8,6 +8,10 @@ import {
 } from '@nktkas/hyperliquid';
 
 import { getPerpsConnectionAttemptContext } from '../../../util/perpsConnectionAttemptContext';
+import {
+  consumePerpsRcaFailNextWsInitialize,
+  logPerpsRca,
+} from '../../../util/perpsRca';
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -122,8 +126,15 @@ export class HyperLiquidClientService {
    */
   public async initialize(wallet: HyperLiquidWalletParams): Promise<void> {
     const network = this.#isTestnet ? 'testnet' : 'mainnet';
+    const attemptContext = getPerpsConnectionAttemptContext();
+    const source = attemptContext?.source ?? 'unspecified';
 
     try {
+      logPerpsRca('hl_init_start', {
+        network,
+        source,
+      });
+
       this.#updateConnectionState(WebSocketConnectionState.Connecting);
       this.#createTransports();
 
@@ -150,11 +161,23 @@ export class HyperLiquidClientService {
         transport: this.#wsTransport,
       });
 
+      if (consumePerpsRcaFailNextWsInitialize()) {
+        logPerpsRca('hl_init_forced_failure', {
+          network,
+          source,
+        });
+        throw new Error('PERPS_RCA_FORCED_WS_INIT_FAILURE');
+      }
+
       // Wait for WebSocket to actually be ready before setting CONNECTED
       // This ensures we have a real connection, not just client objects
       await this.#wsTransport.ready();
 
       this.#updateConnectionState(WebSocketConnectionState.Connected);
+      logPerpsRca('hl_init_success', {
+        network,
+        source,
+      });
 
       this.#deps.debugLogger.log('HyperLiquid SDK clients initialized', {
         testnet: this.#isTestnet,
@@ -187,7 +210,11 @@ export class HyperLiquidClientService {
       );
       this.#updateConnectionState(WebSocketConnectionState.Disconnected);
 
-      const attemptContext = getPerpsConnectionAttemptContext();
+      logPerpsRca('hl_init_fail', {
+        error: errorInstance.message,
+        network,
+        source,
+      });
 
       if (attemptContext?.suppressError) {
         this.#deps.debugLogger.log(

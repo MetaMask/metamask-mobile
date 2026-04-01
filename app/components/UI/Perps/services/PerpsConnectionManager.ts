@@ -35,6 +35,11 @@ import {
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
 import { withPerpsConnectionAttemptContext } from '../../../../util/perpsConnectionAttemptContext';
+import {
+  logPerpsRca,
+  registerPerpsRcaBridge,
+  setPerpsRcaLastConnectSource,
+} from '../../../../util/perpsRca';
 
 interface ConnectOptions {
   source?: string;
@@ -642,9 +647,29 @@ class PerpsConnectionManagerClass {
     }
   }
 
+  async reproduceConnectionAttemptForRca(source: string): Promise<void> {
+    if (!__DEV__) {
+      throw new Error('PERPS_RCA_UNAVAILABLE');
+    }
+
+    await this.performActualDisconnection({ force: true });
+    this.connectionRefCount = 0;
+    this.resetError();
+    await this.connect({
+      source,
+      suppressError: false,
+    });
+  }
+
   async connect(options?: ConnectOptions): Promise<void> {
     const source = options?.source ?? 'unspecified';
     const suppressError = this.shouldSuppressConnectionError(options);
+
+    setPerpsRcaLastConnectSource(source);
+    logPerpsRca('connect_requested', {
+      source,
+      suppressError,
+    });
 
     // Cancel any active grace period when reconnecting
     if (this.isInGracePeriod) {
@@ -1419,5 +1444,58 @@ class PerpsConnectionManagerClass {
 }
 
 export const PerpsConnectionManager = PerpsConnectionManagerClass.getInstance();
+
+registerPerpsRcaBridge({
+  getConnectionState: () => PerpsConnectionManager.getConnectionState(),
+  reproduceConnectionAttempt: async (source: string) => {
+    try {
+      await PerpsConnectionManager.reproduceConnectionAttemptForRca(source);
+
+      return {
+        success: true,
+        source,
+        connectionState: PerpsConnectionManager.getConnectionState(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        source,
+        error: ensureError(
+          error,
+          'PerpsConnectionManager.reproduceConnectionAttempt',
+        ).message,
+        connectionState: PerpsConnectionManager.getConnectionState(),
+      };
+    }
+  },
+  retryConnection: async (source: string) => {
+    logPerpsRca('retry_requested', { source });
+
+    try {
+      await PerpsConnectionManager.reconnectWithNewContext({ force: true });
+      logPerpsRca('retry_success', { source });
+
+      return {
+        success: true,
+        source,
+        connectionState: PerpsConnectionManager.getConnectionState(),
+      };
+    } catch (error) {
+      logPerpsRca('retry_fail', {
+        source,
+        error: ensureError(error, 'PerpsConnectionManager.retryConnection')
+          .message,
+      });
+
+      return {
+        success: false,
+        source,
+        error: ensureError(error, 'PerpsConnectionManager.retryConnection')
+          .message,
+        connectionState: PerpsConnectionManager.getConnectionState(),
+      };
+    }
+  },
+});
 
 export default PerpsConnectionManager;
