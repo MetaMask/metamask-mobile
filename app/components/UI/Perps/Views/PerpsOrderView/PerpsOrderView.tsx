@@ -172,12 +172,16 @@ interface OrderRouteParams {
   assetsASSETS2493AbtestTokenDetailsLayout?: string;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
+  defaultSzDecimals?: number;
+  defaultMaxLeverage?: number;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   /** A/B test variant for token details layout */
   routeAbTestTokenDetailsLayout?: string;
+  defaultSzDecimals?: number;
+  defaultMaxLeverage?: number;
 }
 
 /**
@@ -194,6 +198,8 @@ interface PerpsOrderViewContentProps {
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
   routeAbTestTokenDetailsLayout,
+  defaultSzDecimals,
+  defaultMaxLeverage,
 }) => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
@@ -317,10 +323,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
    */
 
   // Market data hook with automatic error toast handling (deferred)
-  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
+
+  // Temporarily commented out
+  const { marketData } = usePerpsMarketData({
     asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
   });
+
+  const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
+  const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
+  const isLoadingMarketData = szDecimals === null || maxLeverage === null;
 
   // Check if user has an existing position for this market
   const { existingPosition: currentMarketPosition } = useHasExistingPosition({
@@ -430,7 +442,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
     symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
-    throttleMs: 1000,
+    throttleMs: isDataReady ? 0 : 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
@@ -544,15 +556,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       price: assetData.price,
       // Defensive fallback if market data fails to load - prevents crashes
       // Real szDecimals should come from market data (varies by asset)
-      szDecimals:
-        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
-  }, [
-    orderForm.amount,
-    assetData.price,
-    marketData?.szDecimals,
-    isLoadingMarketData,
-  ]);
+  }, [orderForm.amount, assetData.price, szDecimals, isLoadingMarketData]);
 
   const marginRequired = useMemo(() => {
     if (!isLoadingMarketData && orderForm.amount) {
@@ -760,7 +766,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: orderForm.amount,
-      szDecimals: marketData?.szDecimals,
+      szDecimals,
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -789,7 +795,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     navigation,
     setTakeProfitPrice,
     setStopLossPrice,
-    marketData?.szDecimals,
+    szDecimals,
   ]);
 
   const handleAmountPress = () => {
@@ -1826,9 +1832,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }}
         leverage={orderForm.leverage}
         minLeverage={1}
-        maxLeverage={
-          marketData?.maxLeverage || PERPS_CONSTANTS.DefaultMaxLeverage
-        }
+        maxLeverage={maxLeverage || PERPS_CONSTANTS.DefaultMaxLeverage}
         currentPrice={assetData.price}
         direction={orderForm.direction}
         asset={orderForm.asset}
@@ -1939,6 +1943,8 @@ const PerpsOrderView: React.FC = () => {
     existingPosition,
     hideTPSL = false,
     assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+    defaultSzDecimals,
+    defaultMaxLeverage,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
@@ -1959,6 +1965,8 @@ const PerpsOrderView: React.FC = () => {
       <PerpsOrderViewContent
         hideTPSL={hideTPSL}
         routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+        defaultSzDecimals={defaultSzDecimals}
+        defaultMaxLeverage={defaultMaxLeverage}
       />
     </PerpsOrderProvider>
   );
