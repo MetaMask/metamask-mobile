@@ -395,4 +395,57 @@ describe('useHomeSessionSummary', () => {
       jest.useRealTimers();
     });
   });
+
+  describe('AB resolution does not trigger blur cleanup', () => {
+    it('does not fire session_summary when AB values change while focused', () => {
+      let cleanup: (() => void) | undefined;
+      let lastCallback: unknown;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        if (lastCallback !== callback) {
+          cleanup?.();
+          cleanup = (callback as () => (() => void) | undefined)();
+          lastCallback = callback;
+        }
+      });
+
+      let abVariantName = 'control';
+      let abIsActive = false;
+      mockUseABTest.mockImplementation(() => ({
+        variantName: abVariantName,
+        isActive: abIsActive,
+        variant: { separateTrending: abIsActive },
+      }));
+
+      const { rerender } = renderHook(() =>
+        useHomeSessionSummary({ totalSectionsLoaded: 5 }),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      // Simulate async AB resolution while user is still on homepage.
+      abVariantName = 'treatment';
+      abIsActive = true;
+      rerender();
+
+      // Must not fire a blur event just because AB state changed.
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      // Actual blur should emit exactly once with the latest AB payload.
+      act(() => {
+        cleanup?.();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          active_ab_tests: [
+            {
+              key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+              value: 'treatment',
+            },
+          ],
+        }),
+      );
+    });
+  });
 });

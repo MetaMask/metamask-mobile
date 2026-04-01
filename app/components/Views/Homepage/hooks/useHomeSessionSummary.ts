@@ -46,6 +46,8 @@ const useHomeSessionSummary = ({
   const visitIdRef = useRef(visitId);
   const entryPointRef = useRef(entryPoint);
   const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
+  const isActiveRef = useRef(isActive);
+  const variantNameRef = useRef(variantName);
 
   useEffect(() => {
     visitIdRef.current = visitId;
@@ -56,6 +58,12 @@ const useHomeSessionSummary = ({
   useEffect(() => {
     totalSectionsLoadedRef.current = totalSectionsLoaded;
   }, [totalSectionsLoaded]);
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+  useEffect(() => {
+    variantNameRef.current = variantName;
+  }, [variantName]);
 
   useFocusEffect(
     useCallback(
@@ -73,11 +81,11 @@ const useHomeSessionSummary = ({
               total_sections_loaded: totalSectionsLoadedRef.current,
               entry_point: entryPointRef.current,
               session_time: sessionTime,
-              ...(isActive && {
+              ...(isActiveRef.current && {
                 active_ab_tests: [
                   {
                     key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-                    value: variantName,
+                    value: variantNameRef.current,
                   },
                 ],
               }),
@@ -85,13 +93,7 @@ const useHomeSessionSummary = ({
             .build(),
         );
       },
-      [
-        trackEvent,
-        createEventBuilder,
-        getViewedSectionCount,
-        isActive,
-        variantName,
-      ],
+      [trackEvent, createEventBuilder, getViewedSectionCount],
     ),
   );
 };

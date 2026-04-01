@@ -290,6 +290,54 @@ const usePredictNavigationHandlers = ({
   };
 };
 
+const usePredictionsCommonSetup = ({
+  sectionNameOverride,
+  titleOverride,
+}: {
+  sectionNameOverride?: HomeSectionName;
+  titleOverride?: string;
+}) => {
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const queryClient = useQueryClient();
+  const title = titleOverride ?? strings('homepage.sections.predictions');
+  const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+  const { clearTransactionAbTests } =
+    useHomepageTrendingSectionTransactionAbTests();
+  const { handleViewAllPredictions, handleViewAllFromPositions, handlePositionPress } =
+    usePredictNavigationHandlers({
+      onBeforeNavigateToList: clearTransactionAbTests,
+      onBeforeNavigateToMarketDetails: clearTransactionAbTests,
+    });
+
+  return {
+    isPredictEnabled,
+    queryClient,
+    title,
+    analyticsName,
+    clearTransactionAbTests,
+    handleViewAllPredictions,
+    handleViewAllFromPositions,
+    handlePositionPress,
+  };
+};
+
+const useRefreshPredictPositions = ({
+  queryClient,
+  refetchPositions,
+}: {
+  queryClient: ReturnType<typeof useQueryClient>;
+  refetchPositions: () => Promise<unknown>;
+}) =>
+  useCallback(async () => {
+    const addr = getEvmAccountFromSelectedAccountGroup()?.address;
+    const invalidatePnl = addr
+      ? queryClient.invalidateQueries({
+          queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
+        })
+      : Promise.resolve();
+    await Promise.all([refetchPositions(), invalidatePnl]);
+  }, [queryClient, refetchPositions]);
+
 const usePredictPositionsSectionData = () => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
@@ -361,20 +409,19 @@ const PredictionsSectionDefault = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const queryClient = useQueryClient();
-    const title = titleOverride ?? strings('homepage.sections.predictions');
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { clearTransactionAbTests } =
-      useHomepageTrendingSectionTransactionAbTests();
     const {
+      isPredictEnabled,
+      queryClient,
+      title,
+      analyticsName,
+      clearTransactionAbTests,
       handleViewAllPredictions,
       handleViewAllFromPositions,
       handlePositionPress,
-    } = usePredictNavigationHandlers({
-        onBeforeNavigateToList: clearTransactionAbTests,
-        onBeforeNavigateToMarketDetails: clearTransactionAbTests,
-      });
+    } = usePredictionsCommonSetup({
+      sectionNameOverride,
+      titleOverride,
+    });
     const {
       privacyMode,
       positions,
@@ -424,15 +471,14 @@ const PredictionsSectionDefault = forwardRef<
       enabled: isPredictEnabled,
     });
 
+    const refreshPositions = useRefreshPredictPositions({
+      queryClient,
+      refetchPositions,
+    });
+
     const refresh = useCallback(async () => {
-      const addr = getEvmAccountFromSelectedAccountGroup()?.address;
-      const invalidatePnl = addr
-        ? queryClient.invalidateQueries({
-            queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
-          })
-        : Promise.resolve();
-      await Promise.all([refetchPositions(), refetchMarkets(), invalidatePnl]);
-    }, [queryClient, refetchPositions, refetchMarkets]);
+      await Promise.all([refreshPositions(), refetchMarkets()]);
+    }, [refreshPositions, refetchMarkets]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -492,17 +538,17 @@ const PredictionsSectionPositionsOnly = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const queryClient = useQueryClient();
-    const title = titleOverride ?? strings('homepage.sections.predictions');
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { clearTransactionAbTests } =
-      useHomepageTrendingSectionTransactionAbTests();
-    const { handleViewAllFromPositions, handlePositionPress } =
-      usePredictNavigationHandlers({
-        onBeforeNavigateToList: clearTransactionAbTests,
-        onBeforeNavigateToMarketDetails: clearTransactionAbTests,
-      });
+    const {
+      isPredictEnabled,
+      queryClient,
+      title,
+      analyticsName,
+      handleViewAllFromPositions,
+      handlePositionPress,
+    } = usePredictionsCommonSetup({
+      sectionNameOverride,
+      titleOverride,
+    });
     const {
       privacyMode,
       positions,
@@ -528,15 +574,10 @@ const PredictionsSectionPositionsOnly = forwardRef<
       itemCount,
     });
 
-    const refresh = useCallback(async () => {
-      const addr = getEvmAccountFromSelectedAccountGroup()?.address;
-      const invalidatePnl = addr
-        ? queryClient.invalidateQueries({
-            queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
-          })
-        : Promise.resolve();
-      await Promise.all([refetchPositions(), invalidatePnl]);
-    }, [queryClient, refetchPositions]);
+    const refresh = useRefreshPredictPositions({
+      queryClient,
+      refetchPositions,
+    });
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
