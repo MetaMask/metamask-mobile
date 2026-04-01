@@ -22,9 +22,10 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
@@ -318,9 +319,9 @@ const Checkout = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
         isFullscreen
         keyboardAvoidingViewEnabled={false}
+        goBack={navigation.goBack}
       >
         {sharedHeader}
         <ScreenLayout>
@@ -348,6 +349,7 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        goBack={navigation.goBack}
       >
         {sharedHeader}
         <WebView
@@ -397,6 +399,7 @@ const Checkout = () => {
       shouldNavigateBack
       isFullscreen
       keyboardAvoidingViewEnabled={false}
+      goBack={navigation.goBack}
     >
       {sharedHeader}
       <ScreenLayout>

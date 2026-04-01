@@ -1,11 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -99,9 +98,9 @@ function ProcessingInfoModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
       isInteractable={false}
       testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
+      goBack={navigation.goBack}
     >
       <HeaderCompactStandard
         onClose={handleClose}

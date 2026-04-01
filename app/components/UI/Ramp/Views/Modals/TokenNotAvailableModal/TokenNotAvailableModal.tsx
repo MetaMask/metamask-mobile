@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -9,9 +11,6 @@ import {
   ButtonVariant,
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -157,9 +156,9 @@ function TokenNotAvailableModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
+      goBack={navigation.goBack}
     >
       <HeaderCompactStandard
         title={strings('fiat_on_ramp.token_unavailable_modal.title')}

@@ -4,10 +4,12 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -33,6 +35,7 @@ export const createErrorDetailsModalNavigationDetails =
   );
 
 function ErrorDetailsModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -42,7 +45,7 @@ function ErrorDetailsModal() {
   const { errorMessage } = useParams<ErrorDetailsModalParams>();
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <View style={styles.headerContainer}>
           <Icon

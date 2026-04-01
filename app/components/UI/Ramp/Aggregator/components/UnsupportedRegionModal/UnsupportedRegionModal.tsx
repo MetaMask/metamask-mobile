@@ -6,10 +6,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -62,7 +63,11 @@ function UnsupportedRegionModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable={false}
+      goBack={navigation.goBack}
+    >
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.region.unsupported')}

@@ -20,9 +20,11 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { AnimationDuration } from '../../../../../../component-library/constants/animation.constants';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -63,6 +65,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const countryListRef = useRef<FlatList<Region>>(null);
   const stateListRef = useRef<FlatList<Region>>(null);
@@ -329,9 +332,9 @@ function RegionSelectorModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
+      goBack={navigation.goBack}
     >
       <HeaderCompactStandard
         title={

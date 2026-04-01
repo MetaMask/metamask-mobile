@@ -3,9 +3,10 @@ import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
@@ -166,7 +167,11 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={handleDismiss}
+      goBack={navigation.goBack}
+    >
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}

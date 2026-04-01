@@ -1,9 +1,11 @@
 import React, { useCallback, useRef, useContext } from 'react';
 import { Linking } from 'react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  IconName,
+} from '@metamask/design-system-react-native';
 import {
   IconName as ComponentLibraryIconName,
   IconColor as ComponentLibraryIconColor,
@@ -21,7 +23,6 @@ import {
   ToastVariants,
 } from '../../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../../components/MenuItem';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { useRampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
@@ -112,7 +113,7 @@ function ConfigurationModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <BottomSheetHeader onClose={handleClosePress}>
         {strings('deposit.configuration_modal.title')}
       </BottomSheetHeader>

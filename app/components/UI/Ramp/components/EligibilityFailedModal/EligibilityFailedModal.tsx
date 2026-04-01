@@ -1,6 +1,9 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -8,10 +11,7 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { useNavigation } from '@react-navigation/native';
 
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -29,6 +29,7 @@ export const createEligibilityFailedModalNavigationDetails =
   );
 
 function EligibilityFailedModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -45,9 +46,9 @@ function EligibilityFailedModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
       isInteractable={false}
       testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
+      goBack={navigation.goBack}
     >
       <BottomSheetHeader
         onClose={handleClose}
