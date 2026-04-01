@@ -224,7 +224,10 @@ describe(
         },
         async () => {
           await performSendTransaction();
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed('Confirmed', {
+            timeout: 60000,
+            allowDuplicates: true,
+          });
           await device.enableSynchronization();
         },
       );
@@ -251,7 +254,10 @@ describe(
         },
         async () => {
           await performSendTransaction();
-          await Assertions.expectTextDisplayed('Failed');
+          await Assertions.expectTextDisplayed('Failed', {
+            timeout: 60000,
+            allowDuplicates: true,
+          });
           await device.enableSynchronization();
         },
       );

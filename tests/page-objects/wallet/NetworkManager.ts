@@ -7,7 +7,6 @@ import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
-import TestHelpers from '../../helpers';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 
 class NetworkManager {
@@ -186,9 +185,37 @@ class NetworkManager {
    * Open the network manager
    */
   async openNetworkManager(): Promise<void> {
-    await Gestures.waitAndTap(this.openNetworkManagerButton, {
-      elemDescription: 'Open Network Manager Button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        if (await this.isNetworkManagerVisible()) {
+          return;
+        }
+
+        await Assertions.expectElementToBeVisible(
+          this.openNetworkManagerButton,
+          {
+            timeout: 3000,
+            description: 'Open Network Manager Button should be visible',
+          },
+        );
+        await Gestures.waitAndTap(this.openNetworkManagerButton, {
+          elemDescription: 'Open Network Manager Button',
+          timeout: 3000,
+        });
+        await Assertions.expectElementToBeVisible(
+          this.networkManagerBottomSheet,
+          {
+            timeout: 3000,
+            description: 'Network Manager Bottom Sheet should appear',
+          },
+        );
+      },
+      {
+        timeout: 30000,
+        description: 'Open network manager',
+      },
+    );
+
     await this.waitForNetworkManagerToLoad();
   }
 
@@ -333,9 +360,10 @@ class NetworkManager {
       elemDescription: 'Network Manager Bottom Sheet',
       timeout: 10000,
     });
-    // Wait for bottom sheet animation to complete
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation
+    await Assertions.expectElementToBeVisible(this.popularNetworksTab, {
+      elemDescription: 'Popular Networks Tab',
+      timeout: 10000,
+    });
   }
 
   /**

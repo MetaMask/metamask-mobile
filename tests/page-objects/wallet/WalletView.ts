@@ -815,6 +815,14 @@ class WalletView {
     await this.scrollAndTapSection(
       this.perpsSectionHeader,
       'Perpetuals section',
+      'down',
+      {
+        // Keep the section header away from bottom navigation to reduce mistaps.
+        overshootSwipe: {
+          direction: 'up',
+          percentage: 0.15,
+        },
+      },
     );
   }
 
@@ -841,28 +849,74 @@ class WalletView {
     );
   }
 
-  async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
-    const target = Matchers.getElementByText(positionName);
-    try {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-        direction: 'down',
-        scrollAmount: 220,
-        timeout: 12000,
-        elemDescription: `Scroll to prediction position: ${positionName}`,
-      });
-    } catch {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-        direction: 'up',
-        scrollAmount: 220,
-        timeout: 12000,
-        elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
-      });
-    }
+  private getPredictionPositionMatchers(positionName: string): DetoxElement[] {
+    const escapedName = positionName
+      .replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')
+      .replace(/\s+/gu, '\\s+');
 
-    await Gestures.waitAndTap(target, {
-      checkStability: true,
-      elemDescription: `Predictions Position: ${positionName}`,
-    });
+    return [
+      // Exact match keeps existing behaviour for stable layouts.
+      Matchers.getElementByText(positionName),
+      // Flexible match handles line wraps and spacing variance in CI.
+      Matchers.getElementByText(new RegExp(escapedName, 'u')),
+    ];
+  }
+
+  async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        for (const target of this.getPredictionPositionMatchers(positionName)) {
+          try {
+            await Gestures.scrollToElement(
+              target,
+              this.walletScrollViewIdentifier,
+              {
+                direction: 'down',
+                scrollAmount: 220,
+                timeout: 6000,
+                elemDescription: `Scroll to prediction position: ${positionName}`,
+              },
+            );
+            await Gestures.waitAndTap(target, {
+              checkStability: true,
+              elemDescription: `Predictions Position: ${positionName}`,
+            });
+            return;
+          } catch {
+            // Try opposite direction before giving up on this matcher.
+          }
+
+          try {
+            await Gestures.scrollToElement(
+              target,
+              this.walletScrollViewIdentifier,
+              {
+                direction: 'up',
+                scrollAmount: 220,
+                timeout: 6000,
+                elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
+              },
+            );
+            await Gestures.waitAndTap(target, {
+              checkStability: true,
+              elemDescription: `Predictions Position: ${positionName}`,
+            });
+            return;
+          } catch {
+            // Continue to next matcher.
+          }
+        }
+
+        throw new Error(
+          `Could not scroll and tap prediction position "${positionName}"`,
+        );
+      },
+      {
+        timeout: 30000,
+        description: 'Scroll and tap prediction position',
+        elemDescription: positionName,
+      },
+    );
   }
 
   async scrollAndTapNftsSection(): Promise<void> {

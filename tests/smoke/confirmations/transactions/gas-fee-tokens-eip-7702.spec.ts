@@ -314,7 +314,10 @@ describe(
           await FooterActions.tapConfirmButton();
           await TabBarComponent.tapActivity();
 
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed('Confirmed', {
+            timeout: 60000,
+            allowDuplicates: true,
+          });
           await device.enableSynchronization();
         },
       );

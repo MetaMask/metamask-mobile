@@ -1,5 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import {
   PerpsMarketBalanceActionsSelectorsIDs,
@@ -46,17 +47,27 @@ class PerpsTabView {
   }
 
   async tapAddFundsButton(): Promise<void> {
-    // Prefer new market add funds button; fallback to legacy id
-    const useMarketButton = await Utilities.isElementVisible(
-      this.marketAddFundsButton,
-      1500,
+    await Utilities.executeWithRetry(
+      async () => {
+        // Prefer new market add funds button; fallback to legacy id
+        const useMarketButton = await Utilities.isElementVisible(
+          this.marketAddFundsButton,
+          1000,
+        );
+        const target = useMarketButton
+          ? this.marketAddFundsButton
+          : this.addFundsButton;
+        await Gestures.waitAndTap(target, {
+          elemDescription: 'Perps Add Funds Button',
+          checkStability: true,
+          timeout: 2000,
+        });
+      },
+      {
+        timeout: 20000,
+        description: 'Tap Perps Add Funds Button',
+      },
     );
-    const target = useMarketButton
-      ? this.marketAddFundsButton
-      : this.addFundsButton;
-    await Gestures.waitAndTap(target, {
-      elemDescription: 'Perps Add Funds Button',
-    });
   }
 
   get marketAddFundsButton(): DetoxElement {
@@ -84,34 +95,53 @@ class PerpsTabView {
   }
 
   async getBalance(): Promise<number> {
-    // Prefer explicit value elements; fallback to balance button for accessibility labels
-    const isMarketValueVisible = await Utilities.isElementVisible(
-      this.marketBalanceValue,
-      1500,
+    let parsedBalance = 0;
+    await Utilities.executeWithRetry(
+      async () => {
+        // Prefer explicit value elements; fallback to balance button for accessibility labels
+        const isMarketValueVisible = await Utilities.isElementVisible(
+          this.marketBalanceValue,
+          1000,
+        );
+        const isLegacyValueVisible = await Utilities.isElementVisible(
+          this.balanceValue,
+          1000,
+        );
+
+        const targetElement: DetoxElement = isMarketValueVisible
+          ? this.marketBalanceValue
+          : isLegacyValueVisible
+            ? this.balanceValue
+            : this.balanceButton; // final fallback to button
+
+        await Assertions.expectElementToBeVisible(targetElement, {
+          timeout: 2000,
+          description: 'Perps balance value source should be visible',
+        });
+
+        const attributes = await (
+          (await targetElement) as IndexableNativeElement
+        ).getAttributes();
+        const balanceText =
+          (attributes as { text?: string; label?: string; value?: string })
+            .text ||
+          (attributes as { text?: string; label?: string; value?: string })
+            .label ||
+          (attributes as { text?: string; label?: string; value?: string })
+            .value ||
+          '0';
+
+        // Extract numeric value from balance text (remove currency symbols, commas, etc.)
+        const numericValue = balanceText.replace(/[^0-9.-]/g, '');
+        parsedBalance = parseFloat(numericValue) || 0;
+      },
+      {
+        timeout: 15000,
+        description: 'Read Perps balance',
+      },
     );
-    const isLegacyValueVisible = await Utilities.isElementVisible(
-      this.balanceValue,
-      1000,
-    );
 
-    const targetElement: DetoxElement = isMarketValueVisible
-      ? this.marketBalanceValue
-      : isLegacyValueVisible
-        ? this.balanceValue
-        : this.balanceButton; // final fallback to button
-
-    const attributes = await (
-      (await targetElement) as IndexableNativeElement
-    ).getAttributes();
-    const balanceText =
-      (attributes as { text?: string; label?: string; value?: string }).text ||
-      (attributes as { text?: string; label?: string; value?: string }).label ||
-      (attributes as { text?: string; label?: string; value?: string }).value ||
-      '0';
-
-    // Extract numeric value from balance text (remove currency symbols, commas, etc.)
-    const numericValue = balanceText.replace(/[^0-9.-]/g, '');
-    return parseFloat(numericValue) || 0;
+    return parsedBalance;
   }
 }
 
