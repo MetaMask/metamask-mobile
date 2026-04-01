@@ -6542,6 +6542,9 @@
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
+      "perps_withdraw": {
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+      },
       "predict_withdraw": {
         "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
@@ -6773,7 +6776,11 @@
     "got_it": "Got it",
     "price_impact_warning_title": "High price impact",
     "price_impact_error_title": "Very high price impact",
-    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate.",
+    "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
+    "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
+    "token_warning_modal_suspicious_title": "Suspicious token",
+    "token_warning_modal_malicious_title": "Malicious token"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
