@@ -44,10 +44,6 @@ describe('PerpsOrderContext', () => {
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
     balanceForValidation: 1000,
-    marketData: null,
-    isLoadingMarketData: false,
-    marketDataError: null,
-    refetchMarketData: jest.fn(),
   };
 
   beforeEach(() => {

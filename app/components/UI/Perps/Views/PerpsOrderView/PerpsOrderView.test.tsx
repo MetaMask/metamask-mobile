@@ -49,6 +49,7 @@ import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
+  usePerpsMarketData,
   usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderForm,
@@ -760,15 +761,6 @@ const defaultMockHooks = {
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
     balanceForValidation: 1000,
-    marketData: {
-      name: 'ETH',
-      szDecimals: 6,
-      maxLeverage: 50,
-      marginTableId: 1,
-    },
-    isLoadingMarketData: false,
-    marketDataError: null,
-    refetchMarketData: jest.fn(),
   },
 };
 
@@ -913,6 +905,19 @@ describe('PerpsOrderView', () => {
       ask: '3001',
     });
 
+    // Mock the new hooks
+    (usePerpsMarketData as jest.Mock).mockReturnValue({
+      marketData: {
+        name: 'ETH',
+        szDecimals: 6,
+        maxLeverage: 50,
+        marginTableId: 1,
+      },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
     (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
       liquidationPrice: '2850.00',
       isCalculating: false,
@@ -953,15 +958,6 @@ describe('PerpsOrderView', () => {
         marginRequired: '11',
         positionSize: '0.0037',
       },
-      marketData: {
-        name: 'ETH',
-        szDecimals: 6,
-        maxLeverage: 50,
-        marginTableId: 1,
-      },
-      isLoadingMarketData: false,
-      marketDataError: null,
-      refetchMarketData: jest.fn(),
     });
   });
 

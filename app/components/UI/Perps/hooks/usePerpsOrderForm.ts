@@ -6,7 +6,6 @@ import {
   getMaxAllowedAmount,
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
-  type MarketInfo,
   type OrderFormState,
 } from '@metamask/perps-controller';
 import {
@@ -45,14 +44,6 @@ export interface UsePerpsOrderFormReturn {
   maxPossibleAmount: number;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
-  /** Market metadata for the current asset (szDecimals, maxLeverage, etc.) */
-  marketData: MarketInfo | null;
-  /** Whether market data is still loading */
-  isLoadingMarketData: boolean;
-  /** Error message if market data fetch failed */
-  marketDataError: string | null;
-  /** Re-fetch market data on demand */
-  refetchMarketData: () => void;
 }
 
 /**
@@ -79,12 +70,7 @@ export function usePerpsOrderForm(
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const {
-    marketData,
-    isLoading: isLoadingMarketData,
-    error: marketDataError,
-    refetch: refetchMarketData,
-  } = usePerpsMarketData(initialAsset);
+  const { marketData } = usePerpsMarketData(initialAsset);
 
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
@@ -382,9 +368,5 @@ export function usePerpsOrderForm(
     handleMinAmount,
     maxPossibleAmount,
     balanceForValidation: balanceForMax,
-    marketData,
-    isLoadingMarketData,
-    marketDataError,
-    refetchMarketData,
   };
 }
