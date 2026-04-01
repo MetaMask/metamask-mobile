@@ -14,7 +14,7 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '../../../Box/Box';
+import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -32,7 +32,15 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
+  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
+import { TokenFeatureType } from '@metamask/bridge-controller';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
   useNavigation,
   useRoute,
@@ -59,6 +67,7 @@ import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
+  Pressable,
   ScrollView,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -140,6 +149,7 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const tokenWarning = useSelector(selectDestTokenWarning);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -475,6 +485,60 @@ const BridgeView = () => {
               isQuoteSponsored={isQuoteSponsored}
             />
           </Box>
+
+          {contentMode === 'quote' && tokenWarning
+            ? (() => {
+                const isMalicious =
+                  tokenWarning.type === TokenFeatureType.MALICIOUS;
+                const bannerColors = isMalicious
+                  ? colors.error
+                  : colors.warning;
+                const bannerStyle = {
+                  borderLeftWidth: 4,
+                  borderColor: bannerColors.default,
+                  backgroundColor: bannerColors.muted,
+                  paddingLeft: 8,
+                  marginHorizontal: 16,
+                };
+                const navigateToModal = () =>
+                  navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                    screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                    params: {
+                      warningType: tokenWarning.type,
+                      description: tokenWarning.description,
+                      mode: TokenWarningModalMode.Info,
+                      location,
+                    },
+                  });
+                return (
+                  <Pressable onPress={navigateToModal}>
+                    <BannerBase
+                      style={bannerStyle}
+                      startAccessory={
+                        <Icon
+                          name={
+                            isMalicious ? IconName.Danger : IconName.Warning
+                          }
+                          color={bannerColors.default}
+                          size={IconSize.Lg}
+                        />
+                      }
+                      description={
+                        isMalicious
+                          ? strings('bridge.token_warning_malicious_banner', {
+                              token: destToken?.symbol,
+                            })
+                          : strings('bridge.token_warning_suspicious_banner', {
+                              token: destToken?.symbol,
+                            })
+                      }
+                      onClose={navigateToModal}
+                      closeButtonProps={{ iconName: IconName.ArrowRight }}
+                    />
+                  </Pressable>
+                );
+              })()
+            : null}
 
           <Box style={styles.dynamicContent}>
             {contentMode === 'loading' ? (
