@@ -148,11 +148,6 @@ export const useTrendingRequest = (options: {
   maxVolume24hUsd?: number;
   minMarketCap?: number;
   maxMarketCap?: number;
-  /**
-   * When false, skips the initial fetch, polling, and clears local state.
-   * @default true
-   */
-  enabled?: boolean;
 }) => {
   const {
     chainIds: providedChainIds = [],
@@ -162,7 +157,6 @@ export const useTrendingRequest = (options: {
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
-    enabled = true,
   } = options;
 
   // Use provided chainIds or default to trending networks
@@ -196,17 +190,13 @@ export const useTrendingRequest = (options: {
     Awaited<ReturnType<typeof getTrendingTokens>>
   >([]);
 
-  const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [error, setError] = useState<Error | null>(null);
 
   const fetchTrendingTokens = useCallback(
     async (fetchOptions: FetchOptions = {}) => {
       const { isSilentUpdate = false } = fetchOptions;
-
-      if (!enabled) {
-        return;
-      }
 
       if (!stableChainIds.length) {
         if (!isSilentUpdate) {
@@ -262,28 +252,13 @@ export const useTrendingRequest = (options: {
       maxVolume24hUsd,
       minMarketCap,
       maxMarketCap,
-      enabled,
     ],
   );
 
-  // Invalidate in-flight work and clear state when disabled
+  // Automatically trigger fetch when options change
   useEffect(() => {
-    if (!enabled) {
-      requestIdRef.current += 1;
-      setIsLoading(false);
-      setResults([]);
-      setError(null);
-      initialLoadCompleteRef.current = false;
-    }
-  }, [enabled]);
-
-  // Automatically trigger fetch when options change (only while enabled)
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
     fetchTrendingTokens();
-  }, [enabled, fetchTrendingTokens]);
+  }, [fetchTrendingTokens]);
 
   // Track if initial load has completed successfully
   useEffect(() => {
@@ -296,9 +271,6 @@ export const useTrendingRequest = (options: {
 
   // Refresh interval effect
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
     // Don't poll if we are loading, or initial fetch did not return data
     if (
       isLoading ||
@@ -315,7 +287,7 @@ export const useTrendingRequest = (options: {
     return () => {
       clearInterval(pollingInterval);
     };
-  }, [enabled, isLoading, results.length, error, fetchTrendingTokens]);
+  }, [isLoading, results.length, error, fetchTrendingTokens]);
 
   return {
     results,

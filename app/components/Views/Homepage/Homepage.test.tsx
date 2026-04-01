@@ -567,6 +567,10 @@ describe('Homepage', () => {
     });
 
     it('includes whats_happening section in treatment variant', () => {
+      jest
+        .requireMock('../../../selectors/featureFlagController/whatsHappening')
+        .selectWhatsHappeningEnabled.mockReturnValue(true);
+
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();

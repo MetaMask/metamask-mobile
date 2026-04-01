@@ -66,7 +66,7 @@ const MAX_TOKENS_DISPLAYED = 5;
  * For zero balance accounts, shows popular tokens with buy buttons
  * For accounts with balance, shows the user's token holdings
  */
-const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
+const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
   (
     {
       sectionIndex,
@@ -94,14 +94,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
-
-    const isTrendingOnly = mode === 'trending-only';
-
-    const {
-      results: trendingTokens,
-      isLoading: isTrendingLoading,
-      fetch: fetchTrendingTokens,
-    } = useTrendingRequest({ enabled: isTrendingOnly });
 
     const {
       removeTokenState,
@@ -181,10 +173,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const isPositionsOnly = mode === 'positions-only';
 
     const refresh = useCallback(async () => {
-      if (isTrendingOnly) {
-        await fetchTrendingTokens();
-        return;
-      }
       if (isZeroBalanceAccount) {
         await popularTokensListRef.current?.refresh();
       } else {
@@ -200,8 +188,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         }
       }
     }, [
-      isTrendingOnly,
-      fetchTrendingTokens,
       isZeroBalanceAccount,
       isSolanaSelected,
       evmNetworkConfigurationsForRefresh,
@@ -210,36 +196,13 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    const trendingTokensToDisplay = useMemo(
-      () => trendingTokens.slice(0, MAX_TOKENS_DISPLAYED),
-      [trendingTokens],
-    );
-
-    const itemCount = isTrendingOnly
-      ? trendingTokensToDisplay.length
-      : isZeroBalanceAccount
-        ? 0
-        : displayTokenKeys.length;
-
-    const sectionIsEmpty = isTrendingOnly
-      ? !isTrendingLoading && trendingTokensToDisplay.length === 0
-      : isZeroBalanceAccount || showTokensError;
-
-    const trendingSectionWillRender =
-      isTrendingOnly &&
-      !isTrendingLoading &&
-      trendingTokensToDisplay.length > 0;
+    const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
+    const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef:
-        isPositionsOnly && isZeroBalanceAccount
-          ? null
-          : isTrendingOnly
-            ? trendingSectionWillRender
-              ? sectionViewRef
-              : null
-            : sectionViewRef,
-      isLoading: isTrendingOnly ? isTrendingLoading : false,
+        isPositionsOnly && isZeroBalanceAccount ? null : sectionViewRef,
+      isLoading: false,
       sectionName: analyticsName,
       sectionIndex,
       totalSectionsLoaded,
@@ -248,12 +211,8 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     });
 
     const handleViewAllTokens = useCallback(() => {
-      if (isTrendingOnly) {
-        navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
-      } else {
-        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
-      }
-    }, [navigation, isTrendingOnly]);
+      navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+    }, [navigation]);
 
     const handleTokensRetry = useCallback(async () => {
       setHasTokensError(false);
@@ -263,34 +222,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     // positions-only: hide when account has no tokens
     if (isPositionsOnly && isZeroBalanceAccount) {
       return null;
-    }
-
-    // trending-only: show trending tokens with market cap & volume
-    if (isTrendingOnly) {
-      if (!isTrendingLoading && trendingTokensToDisplay.length === 0) {
-        return null;
-      }
-
-      return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllTokens} />
-            <SectionRow>
-              {isTrendingLoading
-                ? Array.from({ length: 3 }, (_, i) => (
-                    <TrendingTokensSkeleton key={`skeleton-${i}`} />
-                  ))
-                : trendingTokensToDisplay.map((token, index) => (
-                    <TrendingTokenRowItem
-                      key={token.assetId}
-                      token={token}
-                      position={index}
-                    />
-                  ))}
-            </SectionRow>
-          </Box>
-        </View>
-      );
     }
 
     return (
@@ -343,6 +274,97 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         />
       </View>
     );
+  },
+);
+
+const TokensSectionTrendingOnly = forwardRef<
+  SectionRefreshHandle,
+  TokensSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const navigation = useNavigation();
+    const title = titleOverride ?? strings('homepage.sections.tokens');
+    const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
+    const {
+      results: trendingTokens,
+      isLoading: isTrendingLoading,
+      fetch: fetchTrendingTokens,
+    } = useTrendingRequest({});
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        refresh: async () => {
+          await fetchTrendingTokens();
+        },
+      }),
+      [fetchTrendingTokens],
+    );
+
+    const trendingTokensToDisplay = useMemo(
+      () => trendingTokens.slice(0, MAX_TOKENS_DISPLAYED),
+      [trendingTokens],
+    );
+
+    const itemCount = trendingTokensToDisplay.length;
+    const willRender = !isTrendingLoading && itemCount > 0;
+
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading: isTrendingLoading,
+      sectionName: analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: !isTrendingLoading && itemCount === 0,
+      itemCount,
+    });
+
+    const handleViewAllTokens = useCallback(() => {
+      navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
+    }, [navigation]);
+
+    if (!isTrendingLoading && itemCount === 0) {
+      return null;
+    }
+
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <Box gap={3}>
+          <SectionHeader title={title} onPress={handleViewAllTokens} />
+          <SectionRow>
+            {isTrendingLoading
+              ? Array.from({ length: 3 }, (_, i) => (
+                  <TrendingTokensSkeleton key={`skeleton-${i}`} />
+                ))
+              : trendingTokensToDisplay.map((token, index) => (
+                  <TrendingTokenRowItem
+                    key={token.assetId}
+                    token={token}
+                    position={index}
+                  />
+                ))}
+          </SectionRow>
+        </Box>
+      </View>
+    );
+  },
+);
+
+const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
+  ({ mode = 'default', ...props }, ref) => {
+    if (mode === 'trending-only') {
+      return <TokensSectionTrendingOnly {...props} ref={ref} />;
+    }
+    return <TokensSectionMain {...props} mode={mode} ref={ref} />;
   },
 );
 
