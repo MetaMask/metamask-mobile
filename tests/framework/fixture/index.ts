@@ -63,6 +63,52 @@ function getSessionIdFromAnnotations(
   return annotations?.find((a) => a.type === 'sessionId')?.description ?? null;
 }
 
+/**
+ * Polls the driver with a lightweight session-scoped command until the
+ * underlying Appium driver on the remote device is fully ready to accept
+ * commands.
+ *
+ * Why this is needed:
+ * BrowserStack's remote() resolves as soon as the WebDriver session object is
+ * created on their hub, but the actual device driver (UiAutomator2 / XCUITest)
+ * continues bootstrapping for several seconds afterward. Any session-scoped
+ * command sent during that window — including POST /session/:id/timeouts — is
+ * rejected immediately (~44ms) with a Timeout error. A blind fixed delay is a
+ * probabilistic guess; this probe is deterministic: it does not proceed until
+ * the driver actually answers.
+ *
+ * getWindowSize() is used because:
+ * - It is session-scoped (exercises the full hub → Appium → device path)
+ * - It is the lightest read command that works on both iOS and Android
+ * - It has a well-defined success state (returns width + height) and fails fast when the driver is not yet ready
+ *
+ * @param driver - The WebdriverIO browser instance
+ * @param options.pollIntervalMs - How long to wait between attempts (default 500ms)
+ * @param options.timeoutMs - Maximum time to wait before giving up (default 30s)
+ */
+async function waitForDriverReady(
+  driver: WebdriverIO.Browser,
+  options: { pollIntervalMs?: number; timeoutMs?: number } = {},
+): Promise<void> {
+  const { pollIntervalMs = 500, timeoutMs = 120_000 } = options;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    try {
+      await driver.getWindowSize();
+      return;
+    } catch {
+      await new Promise((r) => setTimeout(r, pollIntervalMs));
+    }
+  }
+
+  throw new Error(
+    `BrowserStack Appium driver did not become ready within ${timeoutMs}ms. ` +
+      `The device driver (UiAutomator2/XCUITest) may still be bootstrapping. ` +
+      `Consider increasing the timeoutMs option.`,
+  );
+}
+
 export const test = base.extend<TestLevelFixtures>({
   // eslint-disable-next-line no-empty-pattern
   currentDeviceDetails: async ({}, use, testInfo) => {
@@ -108,6 +154,14 @@ export const test = base.extend<TestLevelFixtures>({
     try {
       // Create driver and set up test context
       driver = await deviceProvider.getDriver();
+
+      // BrowserStack: wait until the device driver is actually ready before
+      // sending any session-scoped commands. See waitForDriverReady() for full
+      // context on why this is necessary.
+      const isBrowserStack = project.use.device?.provider === 'browserstack';
+      if (isBrowserStack) {
+        await waitForDriverReady(driver);
+      }
 
       // Set the implicit timeout for the driver.
       // Wrapped in retry because BrowserStack sessions can transiently reject
