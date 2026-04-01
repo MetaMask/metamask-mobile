@@ -92,6 +92,89 @@ Nodes are keyed by ID. Each node has an `action`, and most have a `next` pointer
 }
 ```
 
+### Branching with `switch`
+
+A `switch` node evaluates conditions against the execution context (env, inputs, vars, last result) and routes to different branches. Each case has a `when` assertion and a `next` target. An optional `default` catches unmatched cases.
+
+```json
+{
+  "check-position": {
+    "action": "eval_ref",
+    "ref": "positions",
+    "save_as": "positions",
+    "assert": { "operator": "not_null" },
+    "next": "decide"
+  },
+  "decide": {
+    "action": "switch",
+    "cases": [
+      {
+        "label": "has positions",
+        "when": { "operator": "length_gt", "field": "vars.positions.length", "value": 0 },
+        "next": "close-first"
+      },
+      {
+        "label": "no positions",
+        "when": { "operator": "length_eq", "field": "vars.positions.length", "value": 0 },
+        "next": "open-new"
+      }
+    ],
+    "default": "open-new"
+  },
+  "close-first": { "action": "call", "ref": "trade-close-position", "params": { "symbol": "BTC" }, "next": "open-new" },
+  "open-new": { "action": "call", "ref": "trade-open-market", "params": { "symbol": "BTC" }, "next": "done" },
+  "done": { "action": "end", "status": "pass" }
+}
+```
+
+### Conditional Guards (`when` / `unless`)
+
+Any executable node can have a `when` or `unless` guard. If the condition doesn't match, the node is skipped and execution continues to `next`.
+
+```json
+{
+  "maybe-close": {
+    "action": "call",
+    "ref": "trade-close-position",
+    "params": { "symbol": "BTC" },
+    "when": { "operator": "gt", "field": "vars.positionCount", "value": 0 },
+    "next": "done"
+  }
+}
+```
+
+The guard evaluates against the execution context which includes:
+- `env` — appRoot, recipePath, team
+- `inputs` — resolved template parameters
+- `vars` — values saved via `save_as` on prior nodes
+- `last` — result of the most recent node
+- `nodes` — per-node execution records
+
+### Setup and Teardown Hooks
+
+Linear step arrays that run before/after the workflow graph. Teardown always runs, even on failure.
+
+```json
+{
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked"],
+      "setup": [
+        { "id": "enable-testnet", "action": "toggle_testnet", "enabled": true }
+      ],
+      "entry": "open-position",
+      "nodes": {
+        "open-position": { "action": "call", "ref": "trade-open-market", "next": "done" },
+        "done": { "action": "end", "status": "pass" }
+      },
+      "teardown": [
+        { "id": "close-all", "action": "eval_async", "expression": "Engine.context.PerpsController.closeAllPositions().then(function(r){return JSON.stringify(r)})", "assert": { "operator": "not_null" } }
+      ]
+    }
+  }
+}
+```
+
 ### Eval Refs
 
 Named CDP eval expressions. Two locations:
