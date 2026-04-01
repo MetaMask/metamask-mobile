@@ -49,6 +49,39 @@ jest.mock('./AnimatedGradientBorder', () => ({
     MockAnimatedGradientBorder(props),
 }));
 
+let capturedOnSlideStart: (() => void) | null = null;
+jest.mock('./SlidingTextCarousel', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return ({
+    texts,
+    onSlideStart,
+  }: {
+    texts: string[];
+    onSlideStart?: () => void;
+  }) => {
+    capturedOnSlideStart = onSlideStart ?? null;
+    return (
+      <View>
+        <Text>{texts[0]}</Text>
+      </View>
+    );
+  };
+});
+
+let capturedDisclaimerProps: {
+  isVisible: boolean;
+  onClose: () => void;
+} | null = null;
+jest.mock('./MarketInsightsDisclaimerBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return (props: { isVisible: boolean; onClose: () => void }) => {
+    capturedDisclaimerProps = props;
+    return props.isVisible ? (
+      <View testID="mock-disclaimer-bottom-sheet" />
+    ) : null;
+  };
+});
+
 /**
  * Finds the first node whose `onLayout` is not a Jest mock (skips
  * `useViewportTracking`'s mocked `onLayout`) so card `handleLayout` can be fired.
@@ -92,6 +125,8 @@ describe('MarketInsightsEntryCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedOnVisible = null;
+    capturedOnSlideStart = null;
+    capturedDisclaimerProps = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -293,6 +328,70 @@ describe('MarketInsightsEntryCard', () => {
 
     act(() => {
       capturedOnVisible?.();
+    });
+
+    expect(getAnimationKey()).toBe(1);
+  });
+
+  it('opens the disclaimer sheet when the info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    expect(capturedDisclaimerProps?.isVisible).toBe(false);
+
+    fireEvent.press(getByTestId('market-insights-info-button'));
+
+    expect(capturedDisclaimerProps?.isVisible).toBe(true);
+  });
+
+  it('closes the disclaimer sheet when onClose is called', () => {
+    const { getByTestId } = renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    fireEvent.press(getByTestId('market-insights-info-button'));
+    expect(capturedDisclaimerProps?.isVisible).toBe(true);
+
+    act(() => {
+      capturedDisclaimerProps?.onClose();
+    });
+
+    expect(capturedDisclaimerProps?.isVisible).toBe(false);
+  });
+
+  it('increments the border animation key when a carousel slide starts', () => {
+    MockAnimatedGradientBorder.mockClear();
+
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    const getAnimationKey = () => {
+      const calls = MockAnimatedGradientBorder.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      return (lastCall[0] as Record<string, unknown>).animationKey;
+    };
+
+    expect(getAnimationKey()).toBe(0);
+
+    act(() => {
+      capturedOnSlideStart?.();
     });
 
     expect(getAnimationKey()).toBe(1);
