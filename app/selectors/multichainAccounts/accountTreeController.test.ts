@@ -285,7 +285,6 @@ describe('AccountTreeController Selectors', () => {
       const state = createStateWithSelectedAccount(
         {
           accountTree: {
-            selectedAccountGroup: groupId,
             wallets: {
               [walletId]: {
                 id: walletId,
@@ -296,6 +295,7 @@ describe('AccountTreeController Selectors', () => {
               },
             },
           },
+          selectedAccountGroup: groupId,
         },
         'account2',
       );
@@ -314,7 +314,6 @@ describe('AccountTreeController Selectors', () => {
       const state = createStateWithSelectedAccount(
         {
           accountTree: {
-            selectedAccountGroup: missingGroupId,
             wallets: {
               [walletId]: {
                 id: walletId,
@@ -323,6 +322,7 @@ describe('AccountTreeController Selectors', () => {
               },
             },
           },
+          selectedAccountGroup: missingGroupId,
         },
         'account1',
       );
@@ -836,8 +836,8 @@ describe('AccountTreeController Selectors', () => {
                 groups: { [groupId1]: { accounts: [ACCOUNT_ID_1] } },
               },
             },
-            selectedAccountGroup: groupId1,
           },
+          selectedAccountGroup: groupId1,
         },
         ACCOUNT_ID_1,
       );
@@ -862,8 +862,8 @@ describe('AccountTreeController Selectors', () => {
                 },
               },
             },
-            selectedAccountGroup: groupId1,
           },
+          selectedAccountGroup: groupId1,
           internalAccount: {
             // Associated with `groupId2`, but this should not interfere with the actual
             // selected account group.
@@ -1345,9 +1345,9 @@ describe('AccountTreeController Selectors', () => {
     it('returns undefined when selectedAccountGroup is undefined', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: undefined,
           wallets: {},
         },
+        selectedAccountGroup: undefined,
       });
 
       const result = selectSelectedAccountGroupId(mockState);
@@ -1357,7 +1357,6 @@ describe('AccountTreeController Selectors', () => {
     it('returns selected account group ID', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: 'keyring:1/ethereum',
           wallets: {
             [WALLET_ID_1]: {
               id: WALLET_ID_1,
@@ -1366,6 +1365,7 @@ describe('AccountTreeController Selectors', () => {
             },
           },
         },
+        selectedAccountGroup: 'keyring:1/ethereum',
       });
 
       const result = selectSelectedAccountGroupId(mockState);
@@ -1767,8 +1767,8 @@ describe('AccountTreeController Selectors', () => {
         {
           accountTree: {
             wallets: { [walletId]: wallet },
-            selectedAccountGroup: groupId,
           },
+          selectedAccountGroup: groupId,
         },
         true,
         internalAccounts,
@@ -1827,8 +1827,8 @@ describe('AccountTreeController Selectors', () => {
         {
           accountTree: {
             wallets: { [walletId]: wallet },
-            selectedAccountGroup: groupId,
           },
+          selectedAccountGroup: groupId,
         },
         true,
         internalAccounts,

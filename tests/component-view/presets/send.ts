@@ -129,7 +129,6 @@ export function buildTronSendFixture(
         },
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: TRON_SEND_GROUP_ID,
             wallets: {
               [TRON_SEND_WALLETS_KEY]: {
                 id: TRON_SEND_WALLETS_KEY,
@@ -143,6 +142,7 @@ export function buildTronSendFixture(
                       name: 'Group 1',
                       pinned: false,
                       hidden: false,
+                      lastSelected: 0,
                     },
                     accounts: TRON_SEND_ACCOUNT_IDS,
                   },
@@ -150,6 +150,7 @@ export function buildTronSendFixture(
               },
             },
           },
+          selectedAccountGroup: TRON_SEND_GROUP_ID,
         },
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
