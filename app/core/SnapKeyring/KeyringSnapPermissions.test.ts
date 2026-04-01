@@ -19,6 +19,7 @@ describe('keyringSnapPermissionsBuilder', () => {
     subjectCacheLimit: 100,
     messenger: {
       registerActionHandler: jest.fn(),
+      registerMethodActionHandlers: jest.fn(),
       registerInitialEventPayload: jest.fn(),
       publish: jest.fn(),
       // TODO: Replace `any` with type

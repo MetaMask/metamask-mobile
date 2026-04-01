@@ -24,18 +24,9 @@ export const bridgeStatusControllerInit: ControllerInitFunction<
       state: persistedState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
-      addTransactionFn: (
-        ...args: Parameters<typeof transactionController.addTransaction>
-      ) => transactionController.addTransaction(...args),
-      estimateGasFeeFn: (
-        ...args: Parameters<typeof transactionController.estimateGasFee>
-      ) => transactionController.estimateGasFee(...args),
       addTransactionBatchFn: (
         ...args: Parameters<typeof transactionController.addTransactionBatch>
       ) => transactionController.addTransactionBatch(...args),
-      updateTransactionFn: (
-        ...args: Parameters<typeof transactionController.updateTransaction>
-      ) => transactionController.updateTransaction(...args),
       traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
