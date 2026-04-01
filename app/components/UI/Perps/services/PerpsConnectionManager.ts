@@ -758,9 +758,14 @@ class PerpsConnectionManagerClass {
           traceSpan,
         );
 
-        // Check if timeout fired during health check - respect timeout decision
-        if (this.error === PERPS_ERROR_CODES.CONNECTION_TIMEOUT) {
-          // Timeout already set error state, bail out early without overriding
+        // Check if timeout fired during health check - respect timeout decision.
+        // The timeout handler always sets isConnecting=false (even when
+        // suppressError is true), so checking that flag detects the timeout
+        // regardless of whether an error was surfaced to the UI.
+        if (
+          !this.isConnecting ||
+          this.error === PERPS_ERROR_CODES.CONNECTION_TIMEOUT
+        ) {
           traceData = {
             success: false,
             error: 'Connection timeout during health check',
