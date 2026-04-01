@@ -555,12 +555,39 @@ describe('HyperLiquidClientService', () => {
           },
         ],
       });
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'BTC', // SDK uses 'coin' terminology
-        interval: '1h',
-        startTime: expect.any(Number),
-        endTime: expect.any(Number),
+      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC', // SDK uses 'coin' terminology
+          interval: '1h',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        undefined,
+      );
+    });
+
+    it('uses the default limit and forwards an explicit abort signal', async () => {
+      const abortController = new AbortController();
+      mockInfoClientWs.candleSnapshot = jest.fn().mockResolvedValue([]);
+
+      await service.fetchHistoricalCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        signal: abortController.signal,
       });
+
+      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC',
+          interval: '1h',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        abortController.signal,
+      );
+
+      const request = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
+      expect(request.endTime - request.startTime).toBe(100 * 60 * 60 * 1000);
     });
 
     it('handles empty candles response', async () => {
@@ -623,12 +650,15 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Assert
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'ETH', // SDK uses 'coin' terminology
-        interval: '5m',
-        startTime: expect.any(Number),
-        endTime: expect.any(Number),
-      });
+      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'ETH', // SDK uses 'coin' terminology
+          interval: '5m',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        undefined,
+      );
 
       // Verify time range calculation
       const callArgs = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
@@ -798,6 +828,7 @@ describe('HyperLiquidClientService', () => {
           coin: 'BTC',
           interval: '1h',
         }),
+        expect.any(AbortSignal),
       );
 
       // Assert - callback invoked with historical data
@@ -1165,6 +1196,33 @@ describe('HyperLiquidClientService', () => {
       // we already unsubscribed before the async chain completed
       expect(mockCandleSubscription).not.toHaveBeenCalled();
       expect(callback).not.toHaveBeenCalled(); // Callback should not be invoked after unsubscribe
+    });
+
+    it('suppresses error when cleanup aborts in-flight REST call', async () => {
+      // Arrange - make snapshot reject with abort error
+      const abortError = new Error('AbortError');
+      abortError.name = 'AbortError';
+      mockInfoClientWs.candleSnapshot = jest.fn().mockRejectedValue(abortError);
+
+      const onError = jest.fn();
+      const callback = jest.fn();
+
+      // Act - subscribe then immediately unsubscribe (triggers abort)
+      const unsubscribe = service.subscribeToCandles({
+        symbol: 'BTC',
+        interval: '1h' as ValidCandleInterval,
+        callback,
+        onError,
+      });
+
+      unsubscribe();
+
+      // Wait for async rejection to propagate
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Assert - error suppressed (abort is intentional), callback not invoked
+      expect(onError).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('cleans up WebSocket when unsubscribed during subscription establishment', async () => {
