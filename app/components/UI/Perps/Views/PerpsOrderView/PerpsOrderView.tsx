@@ -325,14 +325,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Market data hook with automatic error toast handling (deferred)
 
   // Temporarily commented out
-  const { marketData } = usePerpsMarketData({
+  const { marketData, isLoading: isMarketDataLoading } = usePerpsMarketData({
     asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
   });
 
   const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
   const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
-  const isLoadingMarketData = szDecimals === null || maxLeverage === null;
+  const isLoadingMarketData =
+    isMarketDataLoading && (szDecimals === null || maxLeverage === null);
 
   // Check if user has an existing position for this market
   const { existingPosition: currentMarketPosition } = useHasExistingPosition({
