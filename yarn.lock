@@ -8871,18 +8871,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger@npm:@metamask-previews/messenger@1.0.0-preview-16512b784":
-  version: 1.0.0-preview-16512b784
-  resolution: "@metamask-previews/messenger@npm:1.0.0-preview-16512b784"
+"@metamask/messenger@npm:^1.0.0, @metamask/messenger@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/messenger@npm:1.1.0"
   dependencies:
     "@metamask/utils": "npm:^11.9.0"
     yargs: "npm:^17.7.2"
   peerDependencies:
     eslint: ">=8"
-    typescript: ~5.3.3
+    typescript: ">=5.0.0"
   bin:
     messenger-generate-action-types: ./dist/generate-action-types/cli.mjs
-  checksum: 10/58e958dabd89205f6e79a91afca7b229e6378d4f5957e9dff772085d59d4397cb71aeec7cd338b5c63be08d9332af19a5087624d45f47610066f7611bd620bce
+  checksum: 10/ea2b25c4d8cae8d60dd4365738763752283b27eca17cae749b3fedf6733207c180de917715a6ccb8b41f7c06ee769b82b01de5c43ed20c182b3fe6a0cf5c1ae1
   languageName: node
   linkType: hard
 
@@ -35429,7 +35429,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^3.2.0"
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/messenger": "npm:^1.1.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"

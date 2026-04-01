@@ -162,7 +162,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/messenger": "npm:@metamask-previews/messenger@1.0.0-preview-16512b784",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
@@ -267,7 +266,7 @@
     "@metamask/keyring-utils": "^3.2.0",
     "@metamask/logging-controller": "^8.0.0",
     "@metamask/message-signing-snap": "^1.1.2",
-    "@metamask/messenger": "^1.0.0",
+    "@metamask/messenger": "^1.1.0",
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
