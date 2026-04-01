@@ -204,6 +204,7 @@ export interface AssetOverviewContentProps {
   inLockPeriodBalance?: string;
   readyForWithdrawalBalance?: string;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  onMarketInsightsDisclaimerPress?: () => void;
 
   // Security & Trust
   /** Resolved security data owned by the parent (TokenDetails). */
@@ -251,6 +252,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   inLockPeriodBalance,
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
+  onMarketInsightsDisclaimerPress,
   securityData,
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
@@ -854,6 +856,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   report={marketInsightsReport}
                   timeAgo={marketInsightsTimeAgo}
                   onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={onMarketInsightsDisclaimerPress}
                   caip19Id={marketInsightsCaip19Id ?? undefined}
                   testID="market-insights-entry-card"
                 />

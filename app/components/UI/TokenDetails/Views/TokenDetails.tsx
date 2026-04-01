@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -40,6 +46,7 @@ import MultichainTransactionsView from '../../../Views/MultichainTransactionsVie
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -71,6 +78,8 @@ const TokenDetails: React.FC<{
 }> = ({ token, onMarketInsightsDisplayResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
+    useState(false);
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -238,6 +247,9 @@ const TokenDetails: React.FC<{
                 })
             : undefined
         }
+        onMarketInsightsDisclaimerPress={() =>
+          setIsInsightsDisclaimerVisible(true)
+        }
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
@@ -315,6 +327,11 @@ const TokenDetails: React.FC<{
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
+        />
+      )}
+      {isInsightsDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
     </View>
