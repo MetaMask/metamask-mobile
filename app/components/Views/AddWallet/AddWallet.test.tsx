@@ -7,6 +7,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import AddWallet from './AddWallet';
 import { AddWalletTestIds } from './AddWallet.testIds';
+import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -90,7 +91,7 @@ describe('AddWallet', () => {
       name: 'AddWallet',
     });
 
-    fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_ACCOUNT_BUTTON));
+    fireEvent.press(screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON));
 
     expect(mockedNavigate).toHaveBeenCalledWith('ImportPrivateKeyView');
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
