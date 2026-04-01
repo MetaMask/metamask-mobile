@@ -55,7 +55,6 @@ describe('useEarningsHistory', () => {
         },
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: groupId,
             wallets: {
               [walletId]: {
                 id: walletId,
@@ -69,6 +68,7 @@ describe('useEarningsHistory', () => {
               },
             },
           },
+          selectedAccountGroup: groupId,
         },
       },
     },

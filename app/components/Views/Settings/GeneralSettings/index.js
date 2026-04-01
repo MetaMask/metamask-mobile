@@ -41,6 +41,8 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
+import { enablePushNotifications } from '../../../../actions/notification/helpers';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
 const diameter = 40;
 const spacing = 8;
@@ -207,6 +209,10 @@ class Settings extends PureComponent {
      * App theme
      */
     // appTheme: PropTypes.string,
+    /**
+     * Whether push notifications are currently enabled
+     */
+    isPushNotificationsEnabled: PropTypes.bool,
   };
 
   state = {
@@ -224,6 +230,13 @@ class Settings extends PureComponent {
     if (language === this.state.currentLanguage) return;
     setLocale(language);
     this.setState({ currentLanguage: language });
+
+    if (this.props.isPushNotificationsEnabled) {
+      enablePushNotifications().catch(() => {
+        // Best-effort: token will be refreshed on next app launch
+      });
+    }
+
     setTimeout(() => this.props.navigation.navigate('Home'), 100);
   };
 
@@ -547,6 +560,7 @@ const mapStateToProps = (state) => ({
   avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
   // appTheme: state.user.appTheme,
 });
 
