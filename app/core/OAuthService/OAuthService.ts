@@ -40,13 +40,6 @@ import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
 
-const getPlatformFromClientId = (clientId?: string): SupportedPlatforms => {
-  if (Device.isAndroid() || clientId === GoogleWebGID) {
-    return SupportedPlatforms.Android;
-  }
-  return SupportedPlatforms.IOS;
-};
-
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
 }
@@ -67,6 +60,19 @@ export interface OAuthServiceConfig {
   web3AuthNetwork: Web3AuthNetwork;
   authServerUrl: string;
 }
+
+const getAuthConnectionIdFromClientId = (params: {
+  clientId?: string;
+  authConnection: SeedlessAuthConnection;
+  authConnectionConfig: OAuthServiceConfig['authConnectionConfig'];
+}): { authConnectionId: string; groupedAuthConnectionId?: string } => {
+  const { clientId, authConnection, authConnectionConfig } = params;
+
+  if (Device.isAndroid() || clientId === GoogleWebGID) {
+    return authConnectionConfig[SupportedPlatforms.Android][authConnection];
+  }
+  return authConnectionConfig[SupportedPlatforms.IOS][authConnection];
+};
 
 interface OAuthServiceLocalState {
   userId?: string;
@@ -124,7 +130,7 @@ export class OAuthService {
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
     authConnection: SeedlessAuthConnection,
-    clientId?: string,
+    clientId: string,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       const { userId, accountName } = this.localState;
@@ -133,14 +139,15 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      const platform = getPlatformFromClientId(clientId);
-
       if (isE2EMockOAuth()) {
         return QAMockOAuthService.mockSeedlessHandleResult(accountName);
       }
 
-      const authConnectionConfig =
-        this.config.authConnectionConfig[platform]?.[authConnection];
+      const authConnectionConfig = getAuthConnectionIdFromClientId({
+        clientId,
+        authConnection,
+        authConnectionConfig: this.config.authConnectionConfig,
+      });
 
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
@@ -202,6 +209,7 @@ export class OAuthService {
     const result = await this.handleSeedlessAuthenticate(
       data,
       loginHandler.authConnection as SeedlessAuthConnection,
+      loginHandler.options.clientId,
     );
 
     this.#dispatchPostLogin(result);

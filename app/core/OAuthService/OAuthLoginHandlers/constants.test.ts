@@ -96,8 +96,8 @@ describe('Error handling with missing environment variables', () => {
         WEB3AUTH_NETWORK: '',
         AUTH_SERVER_URL: '',
         IOS_APPLE_CLIENT_ID: 'test-ios-apple-client-id',
-        ANDROID_WEB_GOOGLE_CLIENT_ID: 'test-android-google-client-id',
-        ANDROID_WEB_APPLE_CLIENT_ID: 'test-android-apple-client-id',
+        ANDROID_GOOGLE_SERVER_CLIENT_ID: 'test-android-google-client-id',
+        ANDROID_APPLE_CLIENT_ID: 'test-android-apple-client-id',
         AUTH_CONNECTION_ID: 'test-auth-connection-id',
         GROUPED_AUTH_CONNECTION_ID: 'test-grouped-auth-connection-id',
       };
