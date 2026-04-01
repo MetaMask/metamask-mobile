@@ -20,12 +20,14 @@ import reducer, {
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
+  selectDestTokenWarning,
 } from '.';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { TokenFeatureType } from '@metamask/bridge-controller';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 
@@ -752,6 +754,57 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithSelection, resetBridgeState());
 
       expect(newState.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
+  describe('selectDestTokenWarning', () => {
+    const buildStateWithWarnings = (tokenWarnings: unknown[]) => {
+      const state = cloneDeep(mockRootState);
+      state.engine.backgroundState.BridgeController = {
+        ...state.engine.backgroundState.BridgeController,
+        tokenWarnings,
+      } as any;
+      return state as unknown as RootState;
+    };
+
+    it('returns undefined when there are no token warnings', () => {
+      const state = buildStateWithWarnings([]);
+      expect(selectDestTokenWarning(state)).toBeUndefined();
+    });
+
+    it('returns the first warning regardless of type', () => {
+      const first = {
+        type: TokenFeatureType.WARNING,
+        feature_id: 'warn-1',
+        description: 'First warning',
+      };
+      const second = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'Malicious token',
+      };
+      const state = buildStateWithWarnings([first, second]);
+      expect(selectDestTokenWarning(state)).toEqual(first);
+    });
+
+    it('returns a MALICIOUS warning when it is first', () => {
+      const malicious = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'Malicious token',
+      };
+      const state = buildStateWithWarnings([malicious]);
+      expect(selectDestTokenWarning(state)).toEqual(malicious);
+    });
+
+    it('returns a WARNING when it is first', () => {
+      const warning = {
+        type: TokenFeatureType.WARNING,
+        feature_id: 'warn-1',
+        description: 'Suspicious token',
+      };
+      const state = buildStateWithWarnings([warning]);
+      expect(selectDestTokenWarning(state)).toEqual(warning);
     });
   });
 

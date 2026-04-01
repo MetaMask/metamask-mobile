@@ -7,7 +7,7 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         {
@@ -15,19 +15,19 @@
           "symbol": "{{symbol}}"
         }
       ],
-      "steps": [
-        {
-          "id": "assert-order-exists",
+      "entry": "assert-order-exists",
+      "nodes": {
+        "assert-order-exists": {
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
           "assert": {
             "operator": "gt",
             "field": "count",
             "value": 0
-          }
+          },
+          "next": "nav-market-detail"
         },
-        {
-          "id": "nav-market-detail",
+        "nav-market-detail": {
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -40,40 +40,45 @@
               "volume": "0",
               "maxLeverage": "100"
             }
-          }
+          },
+          "next": "wait-render"
         },
-        {
-          "id": "wait-render",
+        "wait-render": {
           "action": "wait_for",
-          "test_id": "perps-compact-order-row-first"
+          "test_id": "perps-compact-order-row-first",
+          "next": "press-first-order"
         },
-        {
-          "id": "press-first-order",
+        "press-first-order": {
           "description": "Tap first compact order row to navigate to order details",
           "action": "press",
-          "test_id": "perps-compact-order-row-first"
+          "test_id": "perps-compact-order-row-first",
+          "next": "wait-order-details"
         },
-        {
-          "id": "wait-order-details",
+        "wait-order-details": {
           "action": "wait_for",
-          "test_id": "perps-order-details-cancel-button"
+          "test_id": "perps-order-details-cancel-button",
+          "next": "press-cancel-button"
         },
-        {
-          "id": "press-cancel-button",
+        "press-cancel-button": {
           "action": "press",
-          "test_id": "perps-order-details-cancel-button"
+          "test_id": "perps-order-details-cancel-button",
+          "next": "wait-cancel"
         },
-        {
-          "id": "wait-cancel",
+        "wait-cancel": {
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
           "assert": {
             "operator": "eq",
             "field": "count",
             "value": 0
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }
