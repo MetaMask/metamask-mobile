@@ -33,7 +33,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### PR risk labels (automated)
 
-- **`risk:low`**, **`risk:medium`**, **`risk:high`**, **`risk:critical`**: Applied by the **AI PR analysis** workflow (`.github/workflows/ai-pr-analysis.yml`) from the MetaMask `ai-analyzer` composite action.
+- **`risk:low`**, **`risk:medium`**, **`risk:high`**, **`risk:critical`**: Applied by **`.github/workflows/ai-pr-risk-analysis.yml`** using the MetaMask `ai-analyzer` composite action.
 
 ### Block merge if any is present
 

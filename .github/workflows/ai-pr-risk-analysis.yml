@@ -1,10 +1,24 @@
-name: AI PR Risk Analysis
+name: AI PR risk analysis
 
 on:
-  workflow_call:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
+    name: Analyze
+    if: >-
+      github.event_name == 'pull_request'
+      && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
+      && github.event.pull_request.draft == false
+      && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'release/'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -15,7 +29,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Release tag for MetaMask/ai-analyzer.
       # https://github.com/MetaMask/ai-analyzer/releases
       - name: Checkout AI Analyzer
         uses: actions/checkout@v4
