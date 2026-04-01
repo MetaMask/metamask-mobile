@@ -1,4 +1,7 @@
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
@@ -28,7 +31,7 @@ jest.mock('../../../store', () => ({
 
 describe('asyncInit', () => {
   let mockInstance = {} as unknown as SDKConnect;
-  let mockNavigation = {} as unknown as NavigationContainerRef;
+  let mockNavigation = {} as unknown as NavigationContainerRef<ParamListBase>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,7 +48,7 @@ describe('asyncInit', () => {
 
     mockNavigation = {
       /* mock properties and methods as needed */
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<ParamListBase>;
   });
 
   it('should set the navigation reference in the instance state', async () => {
