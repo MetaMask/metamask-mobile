@@ -1325,8 +1325,6 @@ const Wallet = ({
         <NetworkConnectionBanner />
       </View>
       <>
-        <AccountGroupBalance />
-
         <AssetDetailsActions
           displayBuyButton={displayBuyButton}
           displaySwapsButton={displaySwapsButton}
