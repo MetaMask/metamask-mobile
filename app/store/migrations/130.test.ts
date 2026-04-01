@@ -1,6 +1,5 @@
 import migrate from './130';
 import { ensureValidState } from './util';
-import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -73,7 +72,7 @@ describe('migration 130', () => {
 
   it('does not change non-DEPOSIT orders even when data.id differs from order.id', () => {
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      provider: 'AGGREGATOR',
       id: 'top-level-id',
       data: { id: '/providers/path/order-1' },
     };
@@ -91,7 +90,7 @@ describe('migration 130', () => {
   it('does not change DEPOSIT orders when data.id matches order.id', () => {
     const canonicalId = '/providers/transak-native-staging/orders/abc';
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: canonicalId,
       data: { id: canonicalId },
     };
@@ -109,7 +108,7 @@ describe('migration 130', () => {
   it('sets order.id from data.id when they differ for DEPOSIT orders', () => {
     const canonicalId = '/providers/transak-native-staging/orders/uuid-123';
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: 'uuid-123',
       data: { id: canonicalId },
     };
@@ -129,7 +128,7 @@ describe('migration 130', () => {
 
   it('does not modify DEPOSIT orders without data', () => {
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: 'only-top',
     };
     const state = {
@@ -145,7 +144,7 @@ describe('migration 130', () => {
 
   it('does not modify DEPOSIT orders when data.id is missing', () => {
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: 'top',
       data: { other: true },
     };
@@ -162,7 +161,7 @@ describe('migration 130', () => {
 
   it('does not modify DEPOSIT orders when data.id is not a string', () => {
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: 'top',
       data: { id: 12345 },
     };
@@ -180,7 +179,7 @@ describe('migration 130', () => {
   it('sets id from data.id when order.id is missing', () => {
     const canonicalId = '/providers/transak-native-staging/orders/only-in-data';
     const order = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       data: { id: canonicalId },
     };
     const state = {
@@ -200,17 +199,17 @@ describe('migration 130', () => {
   it('migrates only matching DEPOSIT orders in a mixed list', () => {
     const canonicalId = '/providers/transak-native-staging/orders/full';
     const depositFixed = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: 'short',
       data: { id: canonicalId },
     };
     const depositOk = {
-      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      provider: 'DEPOSIT',
       id: canonicalId,
       data: { id: canonicalId },
     };
     const other = {
-      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      provider: 'AGGREGATOR',
       id: 'agg-1',
     };
     const state = {

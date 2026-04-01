@@ -1,13 +1,12 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 
 /**
  * Migration 130: Align fiat `order.id` with embedded deposit `order.data.id`
  *
  * Background:
- * - Some persisted deposit (`FIAT_ORDER_PROVIDERS.DEPOSIT`) orders stored a short `providerOrderId` in `order.id` while `order.data.id` held the canonical deposit order identifier (SDK / deep-link path form).
+ * - Some persisted deposit (`'DEPOSIT'` provider) orders stored a short `providerOrderId` in `order.id` while `order.data.id` held the canonical deposit order identifier (SDK / deep-link path form).
  * - The client now uses `depositOrder.id` as the single source of truth when building `FiatOrder` objects, so top-level `id` must match `data.id` for lookups and navigation (e.g. `getOrderById`, Order Processing).
  *
  * Changes:
@@ -39,7 +38,8 @@ export default function migrate(state: unknown): unknown {
         return order;
       }
 
-      if (order.provider !== FIAT_ORDER_PROVIDERS.DEPOSIT) {
+      // Persisted value for deposit orders; do not import FIAT_ORDER_PROVIDERS (migration must stay stable).
+      if (order.provider !== 'DEPOSIT') {
         return order;
       }
 
