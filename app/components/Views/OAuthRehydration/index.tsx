@@ -573,9 +573,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
       );
 
-      syncMarketingOptInAfterUnlock().catch((err) => {
-        Logger.error(err, 'Failed to sync marketing opt-in after unlock');
-      });
+      // run syncMarketingOptInAfterUnlock in the background
+      syncMarketingOptInAfterUnlock();
 
       await upgradeKeychainAuthAfterSuccessfulUnlock();
 
