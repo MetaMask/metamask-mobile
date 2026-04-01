@@ -119,12 +119,15 @@ export class HyperLiquidSubscriptionService {
 
   // Track in-progress activeAssetCtx subscription promises to prevent leaks
   // when cleanup fires before the async subscription resolves (#28141)
-  readonly #pendingActiveAssetPromises = new Map<string, Promise<void>>();
+  readonly #pendingActiveAssetPromises = new Map<
+    string,
+    Promise<void | undefined>
+  >();
 
   readonly #globalBboSubscriptions = new Map<string, ISubscription>();
 
   // Track in-progress BBO subscription promises to prevent leaks (#28141)
-  readonly #pendingBboPromises = new Map<string, Promise<void>>();
+  readonly #pendingBboPromises = new Map<string, Promise<void | undefined>>();
 
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
@@ -2637,11 +2640,13 @@ export class HyperLiquidSubscriptionService {
         if (this.#pendingActiveAssetPromises.get(symbol) === promise) {
           this.#pendingActiveAssetPromises.delete(symbol);
         }
-        // Stale subscription: cleanup was called while pending, OR a newer
-        // subscription already won the race. Unsubscribe to prevent leaks.
+        // Stale subscription: cleanup was called while pending, a newer
+        // subscription already won the race, OR a different pending promise
+        // exists (rapid away-and-back before this one resolved). (#28141)
         if (
           (this.#symbolSubscriberCounts.get(symbol) ?? 0) <= 0 ||
-          this.#globalActiveAssetSubscriptions.has(symbol)
+          this.#globalActiveAssetSubscriptions.has(symbol) ||
+          this.#pendingActiveAssetPromises.has(symbol)
         ) {
           return sub.unsubscribe();
         }
@@ -2664,7 +2669,7 @@ export class HyperLiquidSubscriptionService {
         );
       });
 
-    this.#pendingActiveAssetPromises.set(symbol, promise as Promise<void>);
+    this.#pendingActiveAssetPromises.set(symbol, promise);
   }
 
   /**
@@ -3118,11 +3123,13 @@ export class HyperLiquidSubscriptionService {
         if (this.#pendingBboPromises.get(symbol) === promise) {
           this.#pendingBboPromises.delete(symbol);
         }
-        // Stale subscription: cleanup was called while pending, OR a newer
-        // subscription already won the race. Unsubscribe to prevent leaks.
+        // Stale subscription: cleanup was called while pending, a newer
+        // subscription already won the race, OR a different pending promise
+        // exists (rapid away-and-back before this one resolved). (#28141)
         if (
           (this.#orderBookSubscribers.get(symbol)?.size ?? 0) <= 0 ||
-          this.#globalBboSubscriptions.has(symbol)
+          this.#globalBboSubscriptions.has(symbol) ||
+          this.#pendingBboPromises.has(symbol)
         ) {
           return sub.unsubscribe();
         }
@@ -3145,7 +3152,7 @@ export class HyperLiquidSubscriptionService {
         );
       });
 
-    this.#pendingBboPromises.set(symbol, promise as Promise<void>);
+    this.#pendingBboPromises.set(symbol, promise);
   }
 
   /**

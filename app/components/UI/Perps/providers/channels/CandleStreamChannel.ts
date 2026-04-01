@@ -276,7 +276,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       Engine.context.PerpsController.isCurrentlyReinitializing()
     ) {
       // Not ready yet — re-defer
-      this.deferConnect(symbol, interval, cacheKey, 200);
+      this.deferConnect(
+        symbol,
+        interval,
+        cacheKey,
+        PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
       return;
     }
 
