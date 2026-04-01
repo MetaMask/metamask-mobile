@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -80,6 +80,7 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockGoToSwaps = jest.fn();
+const mockHandleStickySwapPress = jest.fn();
 const mockOnBuy = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
@@ -217,6 +218,7 @@ describe('TokenDetails', () => {
       goToSwaps: mockGoToSwaps,
       handleBuyPress: jest.fn(),
       handleSellPress: jest.fn(),
+      handleStickySwapPress: mockHandleStickySwapPress,
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
@@ -286,6 +288,14 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
+    it('passes scrollToTopOnNav when sticky Swap is pressed', () => {
+      const { getByText } = render(<TokenDetails />);
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockHandleStickySwapPress).toHaveBeenCalledTimes(1);
+    });
+
     it('shows only Swap when user has eligible tokens but token is not buyable', () => {
       mockUseTokenBuyability.mockReturnValue({
         isBuyable: false,
@@ -306,6 +316,7 @@ describe('TokenDetails', () => {
         goToSwaps: mockGoToSwaps,
         handleBuyPress: jest.fn(),
         handleSellPress: jest.fn(),
+        handleStickySwapPress: mockHandleStickySwapPress,
         hasEligibleSwapTokens: false,
         networkModal: null,
       });

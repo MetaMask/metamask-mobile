@@ -21,10 +21,10 @@
     }
   },
   "access_restricted": {
-    "title": "Access restricted",
-    "description_line1": "This wallet address has been flagged during compliance screening. As a result, some MetaMask services are unavailable.",
-    "description_line2": "If you believe this is an error, contact support to request a review.",
-    "contact_support": "Contact support"
+    "title": "Acesso restrito",
+    "description_line1": "Este endereço de carteira foi sinalizado durante a verificação de conformidade. Como resultado, alguns serviços da MetaMask estão indisponíveis.",
+    "description_line2": "Se você acredita que isso é um erro, entre em contato com o suporte para solicitar uma revisão.",
+    "contact_support": "Falar com o suporte"
   },
   "alert_system": {
     "alert_modal": {
@@ -476,7 +476,10 @@
     "biometric_authentication_cancelled": "Autenticação biométrica cancelada",
     "biometric_authentication_cancelled_title": "Configuração biométrica falhou",
     "biometric_authentication_cancelled_description": "Reconfigure a autenticação biométrica nas configurações.",
-    "biometric_authentication_cancelled_button": "Confirmar"
+    "biometric_authentication_cancelled_button": "Confirmar",
+    "biometric_changed": "Alteração da biometria",
+    "biometric_changed_alert_desc": "Seus dados biométricos foram alterados. Reative a biometria nas configurações.",
+    "biometric_changed_alert_confirm": "Confirmar"
   },
   "connect_hardware": {
     "title_select_hardware": "Conectar uma carteira de hardware",
@@ -1008,6 +1011,11 @@
       "see_more": "Ver mais"
     }
   },
+  "social_leaderboard": {
+    "top_traders_view": {
+      "title": "Top Traders"
+    }
+  },
   "perps": {
     "basic_functionality_disabled_title": "Perps (futuros perpétuos) não disponíveis",
     "title": "Perps",
@@ -1477,8 +1485,8 @@
       "stop_loss_invalid_price": "O stop loss deve ser um preço {{direction}} {{priceType}}",
       "stop_loss_beyond_liquidation_error": "O stop loss deve ser um preço de liquidação {{direction}}",
       "stop_loss_order_view_warning": "O stop loss é um preço de liquidação {{direction}}",
-      "take_profit_wrong_side_warning": "Take profit must be {{direction}} {{priceType}} price. Update or clear it to place the order.",
-      "stop_loss_wrong_side_warning": "Stop loss must be {{direction}} {{priceType}} price. Update or clear it to place the order.",
+      "take_profit_wrong_side_warning": "O Take Profit deve estar {{direction}} do preço {{priceType}}. Atualize ou remova-o para enviar a ordem.",
+      "stop_loss_wrong_side_warning": "O stop loss deve estar {{direction}} do preço {{priceType}}. Atualize ou remova-o para enviar a ordem.",
       "above": "acima",
       "below": "abaixo",
       "done": "Pronto",
@@ -2309,6 +2317,7 @@
       "cashing_out_subtitle": "Estimado: {{time}} segundos",
       "placing_prediction": "Colocando uma previsão",
       "prediction_placed": "Previsão colocada",
+      "prediction_failed": "Failed to place prediction",
       "order_failed": "Falha na ordem",
       "payments_made_in_usdc": "Todos os pagamentos são feitos em USDC",
       "prediction_insufficient_funds": "Fundos insuficientes. Você pode usar até {{amount}}.",
@@ -2322,6 +2331,7 @@
       "order_failed_title": "Ordem falhou",
       "order_failed_body": "Não havia liquidez suficiente a esse preço. Deseja tentar novamente?",
       "try_again": "Tentar novamente",
+      "view": "Ver",
       "yes_buy": "Sim, compre",
       "yes_sell": "Sim, venda"
     },
@@ -2376,7 +2386,8 @@
       "unknown_error": "Ocorreu um erro desconhecido",
       "order_not_fully_filled": "Não foi possível executar sua ordem",
       "buy_order_not_fully_filled": "Não há ações suficientes disponíveis ao preço de mercado para executar sua ordem neste momento.",
-      "sell_order_not_fully_filled": "Demanda ao preço de mercado insuficiente para resgatar neste momento."
+      "sell_order_not_fully_filled": "Demanda ao preço de mercado insuficiente para resgatar neste momento.",
+      "preview_not_available": "No preview available"
     },
     "game_details_footer": {
       "pick_a_winner": "Escolha um ganhador",
@@ -3993,6 +4004,7 @@
     "tx_review_predict_deposit": "Previsões creditadas",
     "tx_review_predict_claim": "Ganhos resgatados",
     "tx_review_predict_withdraw": "Previsões retiradas",
+    "tx_review_perps_withdraw": "Perps sacados",
     "tx_review_musd_conversion": "Conversão de mUSD",
     "claim": "Resgatar",
     "sent_ether": "ETH enviado",
@@ -5992,6 +6004,7 @@
     "percentage_bonus": "{{percentage}}% de bônus",
     "claimable_bonus": "Bônus resgatável",
     "claim_bonus": "Resgatar bônus",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "O bônus será pago em {{networkName}}.",
     "percentage_bonus_on_linea": "Bônus de {{percentage}}% na Linea",
     "claim": "Resgatar",
@@ -6151,54 +6164,54 @@
     "your_stablecoins": "Suas stablecoins"
   },
   "money": {
-    "title": "Money",
+    "title": "Dinheiro",
     "apy_label": "{{percentage}}% APY",
     "action": {
-      "add": "Add",
-      "transfer": "Transfer",
-      "card": "Card"
+      "add": "Adicionar",
+      "transfer": "Transferir",
+      "card": "Cartão"
     },
     "your_position": {
-      "title": "Your position",
-      "current_rate": "Current rate",
-      "lifetime_earnings": "Lifetime earnings",
-      "available_balance": "Avail. balance"
+      "title": "Sua posição",
+      "current_rate": "Taxa atual",
+      "lifetime_earnings": "Ganhos vitalícios",
+      "available_balance": "Saldo disponível"
     },
     "how_it_works": {
-      "title": "How it works",
-      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
-      "musd_name": "MetaMask USD",
+      "title": "Como funciona",
+      "description": "Mantenha mUSD em uma Conta Monetária e ganhe automaticamente. mUSD é lastreado em dólar, sempre líquido e pronto para gastar, negociar ou enviar quando você quiser.",
+      "musd_name": "USD MetaMask",
       "musd_symbol": "mUSD",
-      "add": "Add"
+      "add": "Adicionar"
     },
     "potential_earnings": {
-      "title": "Potential earnings",
-      "amount": "+$26,800",
-      "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "convert": "Convert",
-      "no_fee": "No fee",
-      "see_earnings": "See potential earnings"
+      "title": "Ganhos potenciais",
+      "amount": "+US$ 26.800",
+      "description": "Veja como seu dinheiro pode render ao longo do tempo convertendo suas criptomoedas em mUSD.",
+      "convert": "Converter",
+      "no_fee": "Nenhuma taxa",
+      "see_earnings": "Veja ganhos potenciais"
     },
     "metamask_card": {
-      "title": "MetaMask Card",
-      "subtitle": "Spend your money anywhere.",
-      "virtual_card": "Virtual card",
-      "metal_card": "Metal card",
-      "cashback": "{{percentage}}% cashback",
-      "get_now": "Get now"
+      "title": "Cartão MetaMask",
+      "subtitle": "Gaste seu dinheiro onde desejar.",
+      "virtual_card": "Cartão virtual",
+      "metal_card": "Cartão Metal",
+      "cashback": "{{percentage}}% de cashback",
+      "get_now": "Adquira já"
     },
     "why_metamask_money": {
-      "title": "Why MetaMask Money?",
-      "benefit_auto_earn": "Auto-earn ",
-      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
-      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
-      "benefit_spend_cashback": "1-3% cashback",
-      "benefit_global": "Send and receive money globally with no middle man",
-      "learn_more": "Learn more"
+      "title": "Por que usar o MetaMask Money?",
+      "benefit_auto_earn": "Ganhe automaticamente ",
+      "benefit_dollar_backed": "Seu dinheiro é mantido em mUSD, uma stablecoin lastreada em dólar na proporção de 1:1",
+      "benefit_liquidity": "Liquidez total sem períodos de bloqueio, para que você possa negociar ou sacar quando quiser.",
+      "benefit_spend_prefix": "Gaste em mais de 150 milhões de estabelecimentos comerciais com o cartão MetaMask e ganhe",
+      "benefit_spend_cashback": "1-3% de cashback",
+      "benefit_global": "Envie e receba dinheiro globalmente sem intermediários",
+      "learn_more": "Saiba mais"
     },
     "footer": {
-      "add_money": "Add money"
+      "add_money": "Adicionar dinheiro"
     }
   },
   "stake": {
@@ -6497,9 +6510,10 @@
       "switch_account_type": "Atualização da conta",
       "approve": "Aprovar solicitação",
       "perps_deposit": "Adicionar fundos",
+      "perps_withdraw": "Sacar",
       "predict_deposit": "Adicionar fundos de previsão",
       "predict_withdraw": "Sacar",
-      "perps_withdraw": "Withdraw"
+      "money_account_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Este site quer permissão para gastar seus tokens.",
@@ -6625,7 +6639,7 @@
     "nested_transaction_heading": "Transação {{index}}",
     "transaction": "Transações",
     "available_balance": "Saldo disponível: ",
-    "available_perps_balance": "Available Perps balance: ",
+    "available_perps_balance": "Saldo de perps disponível: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Adicionar fundos",
     "deposit_edit_amount_predict_withdraw": "Sacar",
@@ -6810,7 +6824,13 @@
     "oauth_error_button": "Tentar novamente",
     "no_internet_connection_title": "Não é possível conectar",
     "no_internet_connection_description": "Sua conexão de internet está instável. Verifique sua conexão e tente novamente.",
-    "no_internet_connection_button": "Tentar novamente"
+    "no_internet_connection_button": "Tentar novamente",
+    "ios_need_update_title": "É necessário atualizar o iOS",
+    "ios_need_update_description": "O login do Google no MetaMask em breve exigirá ",
+    "ios_need_update_description_version": "iOS 17.4 ou superior",
+    "ios_need_update_description_end": ". Você pode continuar usando o Google Sign-In neste dispositivo por enquanto, mas ele não será mais compatível em uma atualização futura.",
+    "ios_need_update_description2": "Você ainda pode acessar sua carteira usando a mesma conta do Google em um dispositivo compatível ou na extensão MetaMask. Recomendamos fortemente que você faça backup da sua Frase de Recuperação Secreta para garantir acesso ininterrupto.",
+    "ios_need_update_button": "Continuar"
   },
   "password_hint": {
     "title": "Dica de senha",
@@ -7430,7 +7450,9 @@
       "loading": "Carregando tokens disponíveis...",
       "load_error": "Não foi possível carregar os tokens. Tente novamente.",
       "retry": "Tentar novamente",
-      "on_linea": "na Linea"
+      "on_linea": "na Linea",
+      "account_label": "Conta",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -7881,6 +7903,7 @@
       "daily_bonus": "Bônus diário resgatável",
       "annualized_bonus": "Bônus anualizado",
       "disclaimer": "Este valor é apenas uma estimativa. O bônus está sujeito a alterações.",
+      "disclaimer_brief": "O bônus é uma estimativa e pode sofrer alterações.",
       "buy_button": "Comprar mUSD",
       "swap_button": "Converter para mUSD"
     },
@@ -7919,8 +7942,8 @@
     "campaign": {
       "starts_date": "Começa em {{date}}",
       "ends_date": "Termina em {{date}}",
-      "ended_date": "Ended {{date}}",
-      "pill_up_next": "Em seguida",
+      "ended_date": "Encerrado em {{date}}",
+      "pill_up_next": "Em breve",
       "pill_active": "Em tempo real",
       "pill_complete": "Concluído",
       "enter_now": "Insira agora",
@@ -7932,7 +7955,8 @@
       "opt_in_sheet_link_text": "Termos de uso suplementares e aviso de privacidade",
       "opt_in_sheet_description_post_link": "Rastrearemos a atividade onchain para recompensar você automaticamente.",
       "geo_restriction_banner_title": "Não disponível em sua região",
-      "geo_restriction_banner_description": "Esta campanha não está disponível na sua região devido a regulamentos locais."
+      "geo_restriction_banner_description": "Esta campanha não está disponível na sua região devido a regulamentos locais.",
+      "opt_in_success_toast": "Pronto!"
     },
     "campaign_mechanics": {
       "title": "Mecânica"
@@ -7945,9 +7969,59 @@
       "opted_in": "Você optou por participar desta campanha",
       "opt_in_error": "Falha ao optar por participar. Tente novamente.",
       "join_campaign": "Participe da campanha",
+      "entries_closed_title": "Inscrições encerradas",
+      "entries_closed_description": "Você perdeu o prazo de adesão",
+      "competition_closed_title": "Competition no longer open",
+      "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Verificando status de participação",
       "swap": "Troca",
       "how_it_works": "Como funciona"
+    },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Sua posição",
+      "rank": "Meu rank",
+      "tier": "Meu nível",
+      "rate_of_return": "Retorno",
+      "total_deposited": "Total depositado",
+      "current_value": "Valor atual",
+      "not_found": "Ainda não está na tabela de classificação. Volte mais tarde.",
+      "updated_at": "Última atualização: {{time}}",
+      "error_loading": "Não foi possível carregar sua posição",
+      "error_loading_description": "Ocorreu um erro ao carregar sua posição na tabela de classificação. Tente novamente.",
+      "retry": "Tentar novamente"
+    },
+    "ondo_campaign_portfolio": {
+      "title": "My Positions",
+      "total_value": "Valor total",
+      "portfolio_pnl": "P&L",
+      "portfolio_pnl_percent": "P&L (%)",
+      "summary_cost_basis": "Base de custo",
+      "summary_net_deposit": "Depósito líquido",
+      "position_current_value": "Valor",
+      "position_unrealized_pnl": "P&L",
+      "updated_at": "Última atualização: {{time}}",
+      "error_loading": "Falha ao carregar posições.",
+      "error_loading_description": "Ocorreu um erro ao carregar suas posições. Tente novamente.",
+      "retry": "Tentar novamente",
+      "loading": "Carregando posições...",
+      "empty": "Nenhuma posição encontrada ainda.",
+      "empty_description": "Abra uma posição em ativos tokenizados do mundo real e comece a ganhar recompensas.",
+      "empty_cta": "Abrir uma posição",
+      "position_units": "{{units}} ações"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Tabela de classificação",
+      "your_position": "Sua posição",
+      "of_total": "de {{total}} participantes",
+      "total_participants": "{{count}} participantes",
+      "updated_at": "Última atualização: {{time}}",
+      "error_loading": "Falha ao carregar a tabela de classificação",
+      "error_loading_description": "Ocorreu um erro ao carregar a tabela de classificação. Tente novamente.",
+      "error_loading_position": "Não foi possível carregar sua posição",
+      "retry": "Tentar novamente",
+      "no_data": "Sem dados disponíveis na tabela de classificação",
+      "no_entries_in_tier": "Ainda não há participantes neste nível",
+      "not_yet_computed": "A tabela de classificação ainda não foi calculada. Volte mais tarde."
     },
     "campaigns_preview": {
       "title": "Campanhas",
@@ -7983,6 +8057,7 @@
       "musd_conversion": "Convertido para mUSD",
       "musd_claim": "mUSD reivindicado",
       "perps_deposit": "Conta de perpétuos financiados",
+      "perps_withdraw": "Sacar",
       "predict_claim": "Ganhos resgatados",
       "predict_deposit": "Conta Predict creditada",
       "predict_withdraw": "Sacar",
@@ -8010,6 +8085,7 @@
       "musd_convert_send": "Enviado {{sourceSymbol}} de {{sourceChain}}",
       "musd_claim": "Reivindicar mUSD",
       "perps_deposit": "Adicionar fundos",
+      "perps_withdraw": "Sacar",
       "predict_deposit": "Adicionar fundos",
       "swap": "Trocar tokens",
       "swap_approval": "Aprovar tokens"
@@ -8082,6 +8158,7 @@
     "sites": "Sites",
     "popular_sites": "Websites populares",
     "search_sites": "Pesquisar websites",
+    "view_all": "Exibir tudo",
     "enable_basic_functionality": "Ativar funcionalidade básica",
     "basic_functionality_disabled_title": "A opção Explorar não está disponível",
     "basic_functionality_disabled_description": "Não é possível obter os metadados necessários quando a funcionalidade básica está desativada.",
@@ -8199,6 +8276,7 @@
       "perpetuals": "Perpétuos",
       "predictions": "Previsões",
       "whats_happening": "O que está acontecendo",
+      "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolítica",
         "macro": "Macro",
