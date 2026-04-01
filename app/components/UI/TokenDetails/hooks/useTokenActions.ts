@@ -379,13 +379,17 @@ export const useTokenActions = ({
     const hasPositiveBalance = (a: { fiat?: { balance?: number } }) =>
       (a.fiat?.balance ?? 0) > 0;
 
+    console.log('useTokenActions', {
+      token,
+      userAssets,
+    });
     // Priority 1: Find highest USD value token on same chain (with positive balance)
     // Note: assetId contains the token address for EVM assets
     const sameChainAssets = userAssets
       .filter(
         (a) =>
           a.chainId === token.chainId &&
-          !areAddressesEqual(a.assetId, token.address) &&
+          !areAddressesEqual(a.address, token.address) &&
           hasPositiveBalance(a),
       )
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
