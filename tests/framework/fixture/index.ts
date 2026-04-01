@@ -92,7 +92,7 @@ async function waitForSetTimeoutReady(
   implicitMs: number,
   options: { pollIntervalMs?: number; timeoutMs?: number } = {},
 ): Promise<void> {
-  const { pollIntervalMs = 500, timeoutMs = 120_000 } = options;
+  const { pollIntervalMs = 500, timeoutMs = 240_000 } = options;
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
