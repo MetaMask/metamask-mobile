@@ -26,9 +26,8 @@ import {
 
 /**
  * @deprecated Please update your code to use `BannerBase` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BannerBase/README.md}
- * @since @metamask/design-system-react-native@0.11.0
+ * @see {link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BannerBase/README.md | MMDS README}
+ * @see {link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#bannerbase-component | Migration Guide}
  */
 const BannerBase: React.FC<BannerBaseProps> = ({
   style,
