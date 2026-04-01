@@ -64,19 +64,15 @@ const Root = () => {
     };
 
     const initializeFlow = async () => {
-      if (hasCheckedToken.current) return;
-      hasCheckedToken.current = true;
-
-      const createdOrder = orders.find(
-        (order) => order.state === FIAT_ORDER_STATES.CREATED,
-      );
-
-      if (!createdOrder) {
-        navigateToDefaultRoute();
+      // 1. If token has already been checked, do not run again.
+      if (hasCheckedToken.current) {
         return;
       }
 
+      // 2. Default until vault / SDK hydration succeeds.
       let isAuthenticatedFromToken = false;
+
+      // 3. Attempt to restore auth from stored token; mark checked after the attempt finishes.
       try {
         isAuthenticatedFromToken = await withTimeout(
           checkExistingToken(),
@@ -87,11 +83,35 @@ const Root = () => {
           error as Error,
           'Deposit Root: checkExistingToken failed or timed out',
         );
+      } finally {
+        hasCheckedToken.current = true;
       }
 
-      if (!isAuthenticatedFromToken) {
-        const [routeName, navParams] = createEnterEmailNavDetails({
-          redirectToRootAfterAuth: true,
+      // 4. Resume in-progress deposit order if any.
+      const createdOrder = orders.find(
+        (order) => order.state === FIAT_ORDER_STATES.CREATED,
+      );
+
+      // 5. Created order: require auth or continue to bank details.
+      if (createdOrder) {
+        if (!isAuthenticatedFromToken) {
+          const [routeName, navParams] = createEnterEmailNavDetails({
+            redirectToRootAfterAuth: true,
+          });
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: routeName,
+                params: { ...navParams, animationEnabled: false },
+              },
+            ],
+          });
+          return;
+        }
+
+        const [routeName, navParams] = createBankDetailsNavDetails({
+          orderId: createdOrder.id,
         });
         navigation.reset({
           index: 0,
@@ -105,18 +125,8 @@ const Root = () => {
         return;
       }
 
-      const [routeName, navParams] = createBankDetailsNavDetails({
-        orderId: createdOrder.id,
-      });
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: routeName,
-            params: { ...navParams, animationEnabled: false },
-          },
-        ],
-      });
+      // 6. No created order: default entry (Build Quote); honor deeplink / intent flags when present.
+      navigateToDefaultRoute();
     };
 
     initializeFlow().catch((error) => {
