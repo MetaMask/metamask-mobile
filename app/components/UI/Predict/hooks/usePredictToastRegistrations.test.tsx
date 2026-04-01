@@ -786,7 +786,7 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('does not invalidate queries on depositing status', () => {
+    it('invalidates positions queries on depositing status', () => {
       const handler = getHandler();
 
       handler(
@@ -798,7 +798,11 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(mockInvalidateQueries).not.toHaveBeenCalled();
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
     });
 
     it('shows prediction placed toast on confirmed status', () => {

@@ -8,6 +8,7 @@ import {
   PlaceOrderParams,
 } from '../../../types';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -182,10 +183,19 @@ export const usePredictBuyActions = ({
   useEffect(() => {
     if (currentState === ActiveOrderState.DEPOSITING) {
       if (didInitiateOrderRef.current) {
-        navigation.dispatch(StackActions.pop());
+        didInitiateOrderRef.current = false;
+        const marketId = preview?.marketId ?? analyticsProperties?.marketId;
+        navigation.dispatch(
+          StackActions.replace(Routes.PREDICT.MARKET_DETAILS, { marketId }),
+        );
       }
     }
-  }, [currentState, navigation]);
+  }, [
+    currentState,
+    navigation,
+    preview?.marketId,
+    analyticsProperties?.marketId,
+  ]);
 
   return {
     handleConfirm,

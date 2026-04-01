@@ -10,6 +10,7 @@ import {
 } from '../../../types';
 
 const mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
 const mockOnConfirmActionsReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockUnsubscribe = jest.fn();
@@ -62,6 +63,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     dispatch: mockDispatch,
+    navigate: mockNavigate,
     addListener: mockAddListener,
   }),
 }));
@@ -464,6 +466,38 @@ describe('usePredictBuyActions', () => {
     );
   });
 
+  describe('depositing effect', () => {
+    it('replaces screen with market details when handleConfirm was called before DEPOSITING', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(createDefaultParams());
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace('PredictMarketDetails', {
+          marketId: 'market-1',
+        }),
+      );
+    });
+
+    it('does not navigate when handleConfirm was not called before DEPOSITING', () => {
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REPLACE' }),
+      );
+    });
+  });
+
   describe('success effect', () => {
     it('calls onPlaceOrderSuccess when state is SUCCESS', () => {
       mockActiveOrder = { state: ActiveOrderState.SUCCESS };
@@ -495,6 +529,27 @@ describe('usePredictBuyActions', () => {
       rerender(createDefaultParams());
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('does not pop when DEPOSITING transition already replaced the screen', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+      rerender(createDefaultParams());
+
+      mockDispatch.mockClear();
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(createDefaultParams());
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
     });
   });
 });

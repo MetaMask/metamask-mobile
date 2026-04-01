@@ -1503,6 +1503,18 @@ export class PredictController extends BaseController<
         }
       });
 
+      try {
+        await this.provider.createOptimisticPositionFromPreview({
+          address: activeOrderAddress,
+          preview: params.preview,
+        });
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to create optimistic position at deposit',
+          { error: error instanceof Error ? error.message : String(error) },
+        );
+      }
+
       this.messenger.publish('PredictController:transactionStatusChanged', {
         type: 'order',
         status: 'depositing',
@@ -1682,6 +1694,13 @@ export class PredictController extends BaseController<
           state.selectedPaymentToken = null;
         }
       });
+
+      if (isBuyWithAnyToken) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          preview.outcomeTokenId,
+        );
+      }
 
       traceData = { success: false, error: errorMessage };
 
@@ -2573,6 +2592,7 @@ export class PredictController extends BaseController<
         ? this.pendingOrderPreviews[transactionId]
         : null;
       const marketId = pendingOrder?.analyticsProperties?.marketId;
+      const outcomeTokenId = pendingOrder?.preview?.outcomeTokenId;
 
       const isBackgroundOrder =
         transactionId !== undefined &&
@@ -2580,6 +2600,10 @@ export class PredictController extends BaseController<
 
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
+      }
+
+      if (outcomeTokenId) {
+        this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
       if (this.state.activeBuyOrders[address]) {

@@ -338,6 +338,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
       if (type === 'order') {
         if (status === 'depositing') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
           showPendingToast({
             showToast,
             title: strings('predict.order.prediction_in_progress'),
