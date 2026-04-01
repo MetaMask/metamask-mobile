@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: 'TestFlight Upload'
+      distribute_external:
+        description: 'Whether to distribute the build to external testers (false = upload only, avoids App Manager role requirement)'
+        required: false
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       source_branch:
@@ -63,6 +68,11 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+      distribute_external:
+        description: 'Distribute to external testers (false = upload only)'
+        required: true
+        type: boolean
+        default: true
 
 # contents: write required by build.yml update-build-version job (version bump)
 permissions:
@@ -219,7 +229,8 @@ jobs:
             "github_actions_${EFFECTIVE_BUILD_NAME}" \
             "${{ inputs.source_branch }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}"
+            "${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}" \
+            "${{ inputs.distribute_external }}"
 
       - name: Cleanup API Key
         if: always()
