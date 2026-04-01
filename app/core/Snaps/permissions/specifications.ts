@@ -6,15 +6,15 @@ import { keyringSnapPermissionsBuilder } from '../../SnapKeyring/keyringSnapsPer
 import { ControllerGetStateAction } from '@metamask/base-controller';
 import { Messenger } from '@metamask/messenger';
 import {
-  ClearSnapState,
-  CreateInterface,
-  GetInterface,
-  GetSnap,
-  GetSnapState,
-  HandleSnapRequest,
+  SnapControllerClearSnapStateAction,
+  SnapInterfaceControllerCreateInterfaceAction,
+  SnapInterfaceControllerGetInterfaceAction,
+  SnapControllerGetSnapAction,
+  SnapControllerGetSnapStateAction,
+  SnapControllerHandleRequestAction,
   SnapInterfaceControllerSetInterfaceDisplayedAction,
-  UpdateInterface,
-  UpdateSnapState,
+  SnapInterfaceControllerUpdateInterfaceAction,
+  SnapControllerUpdateSnapStateAction,
 } from '@metamask/snaps-controllers';
 import { CurrencyRateController } from '@metamask/assets-controllers';
 import {
@@ -42,23 +42,23 @@ import { getMnemonic, getMnemonicSeed } from './utils';
 
 export type SnapPermissionSpecificationsActions =
   | ApprovalControllerAddRequestAction
-  | ClearSnapState
+  | SnapControllerClearSnapStateAction
   | ControllerGetStateAction<
       'CurrencyRateController',
       CurrencyRateController['state']
     >
-  | CreateInterface
-  | GetInterface
-  | GetSnap
-  | GetSnapState
-  | HandleSnapRequest
+  | SnapInterfaceControllerCreateInterfaceAction
+  | SnapInterfaceControllerGetInterfaceAction
+  | SnapControllerGetSnapAction
+  | SnapControllerGetSnapStateAction
+  | SnapControllerHandleRequestAction
   | KeyringControllerGetKeyringsByTypeAction
   | KeyringControllerWithKeyringAction
   | MaybeUpdateState
   | PreferencesControllerGetStateAction
   | TestOrigin
-  | UpdateSnapState
-  | UpdateInterface
+  | SnapControllerUpdateSnapStateAction
+  | SnapInterfaceControllerUpdateInterfaceAction
   | KeyringControllerGetStateAction
   | HasPermission
   | SnapInterfaceControllerSetInterfaceDisplayedAction;
@@ -103,7 +103,7 @@ export const getSnapPermissionSpecifications = (
     getMnemonic: getMnemonic.bind(null, messenger),
     getMnemonicSeed: getMnemonicSeed.bind(null, messenger),
     getUnlockPromise: getUnlockPromise.bind(this),
-    getSnap: messenger.call.bind(messenger, 'SnapController:get'),
+    getSnap: messenger.call.bind(messenger, 'SnapController:getSnap'),
     handleSnapRpcRequest: messenger.call.bind(
       messenger,
       'SnapController:handleRequest',
