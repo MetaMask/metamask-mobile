@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
 import {
@@ -276,6 +277,186 @@ describe('AdvancedChart', () => {
     expect(onCrosshairMove).toHaveBeenCalledWith(crosshairData);
   });
 
+  it('calls onChartInteracted when WebView posts CHART_INTERACTED', () => {
+    const onChartInteracted = jest.fn();
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartInteracted={onChartInteracted}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'CHART_INTERACTED',
+            payload: { interaction_type: 'zoom' },
+          }),
+        },
+      });
+    });
+
+    expect(onChartInteracted).toHaveBeenCalledWith({
+      interaction_type: 'zoom',
+    });
+  });
+
+  it('calls onChartTradingViewClicked and opens browser when WebView navigates to tradingview.com', () => {
+    const onChartTradingViewClicked = jest.fn();
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as void);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartTradingViewClicked={onChartTradingViewClicked}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    const url = 'https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT';
+    let shouldStart = true;
+    act(() => {
+      shouldStart = webView.props.onShouldStartLoadWithRequest({ url });
+    });
+
+    expect(shouldStart).toBe(false);
+    expect(openSpy).toHaveBeenCalledWith(url);
+    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
+    openSpy.mockRestore();
+  });
+
+  it('debounces duplicate TradingView navigation requests', () => {
+    const onChartTradingViewClicked = jest.fn();
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as void);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartTradingViewClicked={onChartTradingViewClicked}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    const url = 'https://s.tradingview.com/some-path';
+    act(() => {
+      expect(webView.props.onShouldStartLoadWithRequest({ url })).toBe(false);
+      expect(webView.props.onShouldStartLoadWithRequest({ url })).toBe(false);
+    });
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
+    openSpy.mockRestore();
+  });
+
+  it('allows non-TradingView WebView navigations', () => {
+    const onChartTradingViewClicked = jest.fn();
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as void);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartTradingViewClicked={onChartTradingViewClicked}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    const url = 'https://charting-assets.static.metamask.io/library/abc.js';
+    let shouldStart = false;
+    act(() => {
+      shouldStart = webView.props.onShouldStartLoadWithRequest({ url });
+    });
+
+    expect(shouldStart).toBe(true);
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(onChartTradingViewClicked).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
+
+  it('calls onChartTradingViewClicked when WebView onOpenWindow targets tradingview.com', () => {
+    const onChartTradingViewClicked = jest.fn();
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as void);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartTradingViewClicked={onChartTradingViewClicked}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    const url = 'https://www.tradingview.com/widget';
+    act(() => {
+      webView.props.onOpenWindow({
+        nativeEvent: { targetUrl: url },
+      });
+    });
+
+    expect(openSpy).toHaveBeenCalledWith(url);
+    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
+    openSpy.mockRestore();
+  });
+
+  it('opens browser for non-TradingView onOpenWindow URLs', () => {
+    const onChartTradingViewClicked = jest.fn();
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as void);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartTradingViewClicked={onChartTradingViewClicked}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    const url = 'https://example.com/popup';
+    act(() => {
+      webView.props.onOpenWindow({
+        nativeEvent: { targetUrl: url },
+      });
+    });
+
+    expect(openSpy).toHaveBeenCalledWith(url);
+    expect(onChartTradingViewClicked).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
+
+  it('opens browser when WebView posts CHART_TRADINGVIEW_CLICKED with url payload', () => {
+    const onChartTradingViewClicked = jest.fn();
+    const openSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as void);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onChartTradingViewClicked={onChartTradingViewClicked}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    const url = 'https://www.tradingview.com/from-bridge';
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'CHART_TRADINGVIEW_CLICKED',
+            payload: { url },
+          }),
+        },
+      });
+    });
+
+    expect(openSpy).toHaveBeenCalledWith(url);
+    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
+    openSpy.mockRestore();
+  });
+
   it('calls onRequestMoreHistory when WebView requests more data', () => {
     const onRequestMoreHistory = jest.fn();
     const { getByTestId } = render(
@@ -298,6 +479,39 @@ describe('AdvancedChart', () => {
     });
 
     expect(onRequestMoreHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it('posts RESOLVE_DEFERRED_GET_BARS when API has no more history and WebView needs older bars', () => {
+    const onRequestMoreHistory = jest.fn();
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvHasMoreHistory={false}
+        onRequestMoreHistory={onRequestMoreHistory}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    mockPostMessage.mockClear();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'NEED_MORE_HISTORY',
+            payload: { oldestTimestamp: 1000000 },
+          }),
+        },
+      });
+    });
+
+    expect(onRequestMoreHistory).not.toHaveBeenCalled();
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({ type: 'RESOLVE_DEFERRED_GET_BARS' }),
+    );
   });
 
   it('sends SET_POSITION_LINES when positionLines prop changes', () => {

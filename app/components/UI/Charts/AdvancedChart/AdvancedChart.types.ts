@@ -169,6 +169,7 @@ export function resolveLineChromeOptions(
 
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
+  | 'RESOLVE_DEFERRED_GET_BARS'
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
@@ -223,6 +224,7 @@ export type SetLineChromePayload = ResolvedLineChromeOptions;
 
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
+  | { type: 'RESOLVE_DEFERRED_GET_BARS'; payload?: Record<string, never> }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
@@ -244,6 +246,12 @@ export interface CrosshairMovePayload {
   data: CrosshairData | null;
 }
 
+export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';
+
+export interface ChartInteractedPayload {
+  interaction_type: ChartInteractionType;
+}
+
 export interface NeedMoreHistoryPayload {
   oldestTimestamp: number;
 }
@@ -259,6 +267,8 @@ export type WebViewToRNMessage =
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
+  | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
+  | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'NEED_MORE_HISTORY'; payload: NeedMoreHistoryPayload }
   | { type: 'ERROR'; payload: ErrorPayload }
   | { type: 'DEBUG'; payload: { message: string } };
@@ -332,6 +342,29 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         },
       };
 
+    case 'CHART_INTERACTED':
+      if (
+        obj.interaction_type === 'zoom' ||
+        obj.interaction_type === 'pan' ||
+        obj.interaction_type === 'tooltip'
+      ) {
+        return {
+          type,
+          payload: {
+            interaction_type: obj.interaction_type,
+          },
+        };
+      }
+      return null;
+
+    case 'CHART_TRADINGVIEW_CLICKED':
+      return {
+        type,
+        payload: {
+          ...(typeof obj.url === 'string' ? { url: obj.url } : {}),
+        },
+      };
+
     case 'ERROR':
       if (typeof obj.message === 'string') {
         return {
@@ -381,6 +414,12 @@ export interface AdvancedChartProps {
    * without having to independently track their own oldest candle.
    */
   onRequestMoreHistory?: (params: { oldestTimestamp: number }) => void;
+  /**
+   * When false, the Price API has no older page (`hasNext: false`). On `NEED_MORE_HISTORY`, RN
+   * tells the WebView to resolve the deferred `getBars` with `noData` so the chart can finish init.
+   * Omit or leave undefined for consumers that always paginate (e.g. Perps) or handle history elsewhere.
+   */
+  ohlcvHasMoreHistory?: boolean;
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
@@ -418,6 +457,16 @@ export interface AdvancedChartProps {
   onError?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
+  /**
+   * User-driven chart interaction from the WebView: zoom (bar spacing), pan (visible range), or
+   * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
+   */
+  onChartInteracted?: (payload: ChartInteractedPayload) => void;
+  /**
+   * WebView is about to navigate to tradingview.com (e.g. user tapped attribution logo).
+   * Native layer opens the URL in the system browser and cancels in-WebView navigation.
+   */
+  onChartTradingViewClicked?: () => void;
 
   /**
    * When true, keeps the native skeleton overlay on top of the WebView (in addition to

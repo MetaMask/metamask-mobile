@@ -7,8 +7,10 @@ import React, {
   useState,
   forwardRef,
 } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
@@ -44,6 +46,21 @@ import {
 /** Hide layout skeleton if WebView never sends `CHART_LAYOUT_SETTLED` (e.g. older HTML). */
 const LAYOUT_SETTLE_FALLBACK_MS = 2500;
 
+/** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
+const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
+
+/**
+ * Opens a URL via InAppBrowser (Safari VC / Chrome Custom Tabs) with a
+ * fallback to Linking.openURL. Fire-and-forget so callers stay synchronous.
+ */
+const openInAppBrowser = (url: string) => {
+  InAppBrowser.isAvailable()
+    .then((available) =>
+      available ? InAppBrowser.open(url) : Linking.openURL(url),
+    )
+    .catch(() => Linking.openURL(url).catch(() => undefined));
+};
+
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
     {
@@ -52,6 +69,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       onRequestMoreHistory,
+      ohlcvHasMoreHistory,
       indicators = [],
       positionLines,
       chartType,
@@ -62,6 +80,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartReady,
       onError,
       onCrosshairMove,
+      onChartInteracted,
+      onChartTradingViewClicked,
       isLoading = false,
       lineChrome,
     },
@@ -91,6 +111,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
+    const tradingViewOpenInterceptRef = useRef(0);
 
     const htmlContent = useMemo(
       () =>
@@ -191,6 +212,33 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [isChartReady, postMessage],
     );
 
+    /**
+     * Opens a TradingView URL in the in-app browser, fires analytics,
+     * and dedupes across onOpenWindow and postMessage channels.
+     */
+    const handleTradingViewOpen = useCallback(
+      (url: string) => {
+        const now = Date.now();
+        if (
+          now - tradingViewOpenInterceptRef.current <
+          TRADINGVIEW_OPEN_DEBOUNCE_MS
+        ) {
+          return;
+        }
+        tradingViewOpenInterceptRef.current = now;
+        openInAppBrowser(url);
+        onChartTradingViewClicked?.();
+      },
+      [onChartTradingViewClicked],
+    );
+
+    const handleOpenWindow = useCallback(
+      (event: WebViewOpenWindowEvent) => {
+        handleTradingViewOpen(event.nativeEvent.targetUrl);
+      },
+      [handleTradingViewOpen],
+    );
+
     // ---- WebView message handling ----
 
     const handleMessage = useCallback(
@@ -234,8 +282,24 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onCrosshairMove?.(message.payload.data);
             break;
 
+          case 'CHART_INTERACTED':
+            onChartInteracted?.(message.payload);
+            break;
+
+          case 'CHART_TRADINGVIEW_CLICKED': {
+            const bridgeUrl = message.payload?.url;
+            if (typeof bridgeUrl === 'string' && bridgeUrl.length > 0) {
+              handleTradingViewOpen(bridgeUrl);
+            }
+            break;
+          }
+
           case 'NEED_MORE_HISTORY':
-            onRequestMoreHistory?.(message.payload);
+            if (ohlcvHasMoreHistory === false) {
+              postMessage({ type: 'RESOLVE_DEFERRED_GET_BARS' });
+            } else {
+              onRequestMoreHistory?.(message.payload);
+            }
             break;
 
           case 'ERROR':
@@ -263,7 +327,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onChartReady,
         onError,
         onCrosshairMove,
+        onChartInteracted,
+        handleTradingViewOpen,
         onRequestMoreHistory,
+        ohlcvHasMoreHistory,
+        postMessage,
       ],
     );
 
@@ -472,6 +540,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
             style={styles.webview}
             onMessage={handleMessage}
+            onOpenWindow={handleOpenWindow}
             onError={handleWebViewError}
             onLoadEnd={handleLoadEnd}
             originWhitelist={['*']}

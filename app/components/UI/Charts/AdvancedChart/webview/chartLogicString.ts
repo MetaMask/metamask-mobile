@@ -42,6 +42,15 @@ window.lineLastPriceShapeId = null;
 /** Bumped when \`ohlcvData\` is replaced or last bar changes; visible-range dot refresh ignores stale timers. */
 window.lineChartOhlcvEpoch = 0;
 
+/** Skip \`CHART_INTERACTED\` (zoom / pan) while data/layout updates run. */
+window.__mmSuppressChartInteractUntil = 0;
+/** One \`CHART_INTERACTED\` tooltip per crosshair session (until dismiss). */
+window.__mmTooltipChartInteractSent = false;
+
+function suppressChartUserInteraction(ms) {
+  window.__mmSuppressChartInteractUntil = Date.now() + (ms || 600);
+}
+
 /**
  * When true, we defer \`CHART_LAYOUT_SETTLED\` until the datafeed delivers a post-reload response
  * (see \`beginDeferredLayoutSettleAfterOhlcvReload\`) or until the fallback timer fires.
@@ -200,7 +209,11 @@ function handleMessage(event) {
     var message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
+    if (
+      !window.isChartReady &&
+      message.type !== 'SET_OHLCV_DATA' &&
+      message.type !== 'RESOLVE_DEFERRED_GET_BARS'
+    ) {
       window.pendingMessages.push(message);
       return;
     }
@@ -208,6 +221,9 @@ function handleMessage(event) {
     switch (message.type) {
       case 'SET_OHLCV_DATA':
         handleSetOHLCVData(message.payload);
+        break;
+      case 'RESOLVE_DEFERRED_GET_BARS':
+        resolveDeferredGetBarsNoData();
         break;
       case 'ADD_INDICATOR':
         handleAddIndicator(message.payload);
@@ -387,6 +403,8 @@ function detectResolution(data) {
 
 function handleSetOHLCVData(payload) {
   if (!payload || !payload.data || payload.data.length === 0) return;
+
+  suppressChartUserInteraction(700);
 
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
@@ -1336,7 +1354,10 @@ function subscribeLastCloseLabelUpdates() {
     });
   } catch (e) {}
   try {
-    window.chartWidget.subscribe('panes_height_changed', tickIfCustomPriceLabels);
+    window.chartWidget.subscribe(
+      'panes_height_changed',
+      tickIfCustomPriceLabels,
+    );
   } catch (e) {}
   try {
     window.chartWidget
@@ -1413,6 +1434,114 @@ function eachChartDocument(fn) {
       fn(iframe.contentDocument);
     }
   } catch (e2) {}
+}
+
+var TV_EXTERNAL_BRIDGE_DEBOUNCE_MS = 600;
+
+function isTradingViewExternalHostname(hostname) {
+  if (!hostname) return false;
+  var h = String(hostname).toLowerCase();
+  return (
+    h === 'tradingview.com' ||
+    h === 'www.tradingview.com' ||
+    /\\.tradingview\\.com$/.test(h)
+  );
+}
+
+function isTradingViewExternalHref(href) {
+  if (!href) return false;
+  try {
+    var base =
+      typeof window !== 'undefined' && window.location
+        ? window.location.href
+        : 'https://localhost/';
+    var u = new URL(href, base);
+    return isTradingViewExternalHostname(u.hostname);
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Same-origin chart iframe + Android: WebView often skips shouldOverrideUrlLoading for subframes.
+ * Intercept window.open + real <a> navigations here and let RN open the browser (deduped there).
+ */
+function installTradingViewExternalOpenBridge() {
+  function sendTvClicked(url) {
+    sendToReactNative('CHART_TRADINGVIEW_CLICKED', url ? { url: url } : {});
+  }
+
+  function handleTradingViewLinkCapture(ev) {
+    var t = ev.target;
+    if (!t || typeof t.closest !== 'function') {
+      return;
+    }
+    var a = t.closest('a');
+    if (!a || !a.href || !isTradingViewExternalHref(a.href)) {
+      return;
+    }
+    var now = Date.now();
+    if (
+      now - (window.__mmLastTvExternalBridgeAt || 0) <
+      TV_EXTERNAL_BRIDGE_DEBOUNCE_MS
+    ) {
+      return;
+    }
+    window.__mmLastTvExternalBridgeAt = now;
+    try {
+      ev.preventDefault();
+      ev.stopPropagation();
+    } catch (e1) {}
+    sendTvClicked(a.href);
+  }
+
+  function patchWindowOpen(win) {
+    if (!win || !win.open || win.__mmTvOpenPatched) {
+      return;
+    }
+    win.__mmTvOpenPatched = true;
+    var origOpen = win.open.bind(win);
+    win.open = function (url, name, specs) {
+      if (url != null && url !== '' && isTradingViewExternalHref(String(url))) {
+        var now2 = Date.now();
+        if (
+          now2 - (window.__mmLastTvExternalBridgeAt || 0) <
+          TV_EXTERNAL_BRIDGE_DEBOUNCE_MS
+        ) {
+          return null;
+        }
+        window.__mmLastTvExternalBridgeAt = now2;
+        sendTvClicked(String(url));
+        return null;
+      }
+      return origOpen(url, name, specs);
+    };
+  }
+
+  function applyAll() {
+    patchWindowOpen(window);
+    eachChartDocument(function (doc) {
+      try {
+        patchWindowOpen(doc.defaultView);
+      } catch (e2) {}
+      if (doc && doc.addEventListener && !doc.__mmTvLinkCaptureInstalled) {
+        doc.__mmTvLinkCaptureInstalled = true;
+        doc.addEventListener('click', handleTradingViewLinkCapture, true);
+      }
+    });
+  }
+
+  applyAll();
+  try {
+    var container = document.getElementById('tv_chart_container');
+    var iframe = container && container.querySelector('iframe');
+    if (iframe) {
+      iframe.addEventListener('load', applyAll);
+    }
+  } catch (e3) {}
+  setTimeout(applyAll, 200);
+  setTimeout(applyAll, 800);
+  setTimeout(applyAll, 2000);
 }
 
 function removeInjectedStyleByIdFromChartDocs(styleId) {
@@ -1747,6 +1876,8 @@ function updateCandleVolumeScaleColumnVisibility() {
 }
 
 function handleSetChartType(payload) {
+  suppressChartUserInteraction(500);
+
   if (!window.chartWidget) return;
 
   var type = payload.type;
@@ -2236,12 +2367,7 @@ function getLineEndDotTimeAndPriceFromSeries(chart) {
         if (last) {
           var tvT = parseTimeFromTvDataLast(last);
           var tvC = parseCloseFromTvDataLast(last);
-          if (
-            tvT !== null &&
-            isFinite(tvT) &&
-            tvC !== null &&
-            isFinite(tvC)
-          ) {
+          if (tvT !== null && isFinite(tvT) && tvC !== null && isFinite(tvC)) {
             var timeSec =
               tvT >= 1e12 ? Math.floor(tvT / 1000) : Math.floor(tvT);
             return { timeSec: timeSec, price: tvC };
@@ -2527,7 +2653,11 @@ function removeLineEndDot() {
  * dot; stale async \`createShape\` calls can leave orphans with no \`lineEndDotShapeId\` reference.
  */
 function sweepOrphanLineChartIconShapes() {
-  if (window.currentChartType !== 2 || !window.chartWidget || !window.isChartReady) {
+  if (
+    window.currentChartType !== 2 ||
+    !window.chartWidget ||
+    !window.isChartReady
+  ) {
     return;
   }
   try {
@@ -2737,6 +2867,8 @@ function createVolumeStudy(useOverlay) {
 function handleToggleVolume(payload) {
   if (!window.chartWidget || !window.isChartReady || !payload) return;
 
+  suppressChartUserInteraction(600);
+
   var useOverlay = payload.volumeOverlay === true;
 
   if (!payload.visible) {
@@ -2875,6 +3007,26 @@ function resolvePendingGetBars(pending) {
   finishDeferredGetBars(bars, { noData: false });
 }
 
+/**
+ * Price API has no older page (\`hasNext: false\`). TradingView still has a deferred \`getBars\`
+ * after NEED_MORE_HISTORY — complete it with noData so \`onChartReady\` can run.
+ */
+function resolveDeferredGetBarsNoData() {
+  var pending = window.pendingGetBarsCallback;
+  if (!pending) {
+    return;
+  }
+  window.pendingGetBarsCallback = null;
+  try {
+    pending.onResult([], { noData: true });
+    if (window.__mmLayoutSettlePending) {
+      queueTryCompleteLayoutSettleAfterData();
+    }
+  } catch (e) {
+    /* Defensive: TradingView callback should not throw */
+  }
+}
+
 var customDatafeed = {
   onReady: function (callback) {
     setTimeout(function () {
@@ -2984,7 +3136,9 @@ var customDatafeed = {
       sendToReactNative('NEED_MORE_HISTORY', { oldestTimestamp: oldestTs });
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
-      onError(error.message);
+      onError(
+        error && error.message ? error.message : String(error),
+      );
     }
   },
 
@@ -3035,7 +3189,9 @@ function loadLibrary() {
 // Chart Initialization
 // ============================================
 function initChart() {
-  if (window.chartWidget) return;
+  if (window.chartWidget) {
+    return;
+  }
 
   if (typeof TradingView === 'undefined') {
     libraryLoadAttempts++;
@@ -3138,6 +3294,7 @@ function initChart() {
     });
 
     window.chartWidget.onChartReady(function () {
+      suppressChartUserInteraction(1500);
       window.isChartReady = true;
       window.__mmLayoutSettlePending = false;
       clearMmLayoutSettleFallbackTimer();
@@ -3206,6 +3363,91 @@ function initChart() {
 
       sendToReactNative('CHART_READY', {});
 
+      installTradingViewExternalOpenBridge();
+
+      // Chart interaction analytics: zoom vs pan (tooltip handled with crosshair).
+      window.__mmChartInteractZoomDebounce = null;
+      window.__mmChartInteractPanDebounce = null;
+      window.__mmChartInteractZoomLastFired = 0;
+
+      // Count a zoom: user changed bar width (pinch or zoom). We wait 450ms and send one event.
+      // We store when that happened so we do not also count a pan for the same finger action.
+      function scheduleChartInteractZoom() {
+        if (Date.now() < window.__mmSuppressChartInteractUntil) {
+          return;
+        }
+        if (window.__mmChartInteractZoomDebounce) {
+          clearTimeout(window.__mmChartInteractZoomDebounce);
+        }
+        window.__mmChartInteractZoomDebounce = setTimeout(function () {
+          window.__mmChartInteractZoomDebounce = null;
+          if (Date.now() < window.__mmSuppressChartInteractUntil) {
+            return;
+          }
+          if (!window.chartWidget || !window.isChartReady) {
+            return;
+          }
+          sendToReactNative('CHART_INTERACTED', {
+            interaction_type: 'zoom',
+          });
+          window.__mmChartInteractZoomLastFired = Date.now();
+        }, 450);
+      }
+
+      // Count a pan: user slid the chart sideways. We wait 450ms and send one event.
+      // Right after a zoom we skip for 500ms, because zoom already shifts what you see on screen.
+      function scheduleChartInteractPan() {
+        if (Date.now() < window.__mmSuppressChartInteractUntil) {
+          return;
+        }
+        if (
+          Date.now() - window.__mmChartInteractZoomLastFired <
+          500
+        ) {
+          return;
+        }
+        if (window.__mmChartInteractPanDebounce) {
+          clearTimeout(window.__mmChartInteractPanDebounce);
+        }
+        window.__mmChartInteractPanDebounce = setTimeout(function () {
+          window.__mmChartInteractPanDebounce = null;
+          if (Date.now() < window.__mmSuppressChartInteractUntil) {
+            return;
+          }
+          if (
+            Date.now() - window.__mmChartInteractZoomLastFired <
+            500
+          ) {
+            return;
+          }
+          if (!window.chartWidget || !window.isChartReady) {
+            return;
+          }
+          sendToReactNative('CHART_INTERACTED', {
+            interaction_type: 'pan',
+          });
+        }, 450);
+      }
+
+      try {
+        window.chartWidget
+          .activeChart()
+          .getTimeScale()
+          .barSpacingChanged()
+          .subscribe(null, function () {
+            scheduleChartInteractZoom();
+          });
+      } catch (e) {}
+
+      try {
+        window.chartWidget
+          .activeChart()
+          .onVisibleRangeChanged()
+          .subscribe(null, function () {
+            scheduleChartInteractPan();
+          });
+      } catch (e) {}
+
       // Set up crosshair move listener for OHLC overlay
       // TradingView activates crosshair on long-press internally.
       // We forward all crosshair data and dismiss on short tap.
@@ -3213,6 +3455,7 @@ function initChart() {
         window.ohlcvBarVisible = false;
         window.ohlcvBarShownAt = 0;
         window.ohlcvDismissUntil = 0;
+        window.__mmTooltipChartInteractSent = false;
 
         window.chartWidget
           .activeChart()
@@ -3250,6 +3493,12 @@ function initChart() {
               }
             }
             if (closestBar) {
+              if (!window.__mmTooltipChartInteractSent) {
+                sendToReactNative('CHART_INTERACTED', {
+                  interaction_type: 'tooltip',
+                });
+                window.__mmTooltipChartInteractSent = true;
+              }
               sendToReactNative('CROSSHAIR_MOVE', {
                 data: {
                   time: closestBar.time,
@@ -3282,6 +3531,7 @@ function initChart() {
             window.ohlcvDismissUntil = Date.now() + 800;
             hideCustomCrosshairLabels();
             setTimeout(function () {
+              window.__mmTooltipChartInteractSent = false;
               sendToReactNative('CROSSHAIR_MOVE', { data: null });
             }, 50);
           }
@@ -3291,8 +3541,10 @@ function initChart() {
       }
     });
   } catch (error) {
+    var errMsg =
+      error && error.message ? String(error.message) : String(error);
     sendToReactNative('ERROR', {
-      message: 'Failed to initialize chart: ' + error.message,
+      message: 'Failed to initialize chart: ' + errMsg,
     });
   }
 }

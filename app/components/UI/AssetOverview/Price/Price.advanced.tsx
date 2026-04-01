@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Svg, { Path } from 'react-native-svg';
@@ -16,6 +16,7 @@ import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
+  type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
 } from '../../Charts/AdvancedChart/AdvancedChart.types';
@@ -32,6 +33,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -113,6 +116,7 @@ const PriceAdvanced = ({
   comparePrice,
   isLoading,
 }: PriceAdvancedProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const [chartType, setChartType] = useState<ChartType>(ChartType.Line);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
@@ -125,14 +129,57 @@ const PriceAdvanced = ({
     [],
   );
 
+  const handleChartInteracted = useCallback(
+    (payload: ChartInteractedPayload) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: payload.interaction_type,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
+  const handleChartTradingViewClicked = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_TRADINGVIEW_CLICKED).build(),
+    );
+  }, [createEventBuilder, trackEvent]);
+
   const toggleChartType = useCallback(() => {
-    setChartType((prev) => {
-      const next =
-        prev === ChartType.Candles ? ChartType.Line : ChartType.Candles;
-      if (next !== ChartType.Candles) setCrosshairData(null);
-      return next;
-    });
-  }, []);
+    const next =
+      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
+    if (next !== ChartType.Candles) {
+      setCrosshairData(null);
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_TYPE_CHANGED)
+        .addProperties({
+          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+        })
+        .build(),
+    );
+    setChartType(next);
+  }, [chartType, createEventBuilder, trackEvent]);
+
+  const handleTimeRangeSelect = useCallback(
+    (range: TimeRange) => {
+      if (range === timeRange) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_TIMEFRAME_CHANGED)
+          .addProperties({
+            chart_timeframe: range,
+          })
+          .build(),
+      );
+      setTimeRange(range);
+    },
+    [createEventBuilder, timeRange, trackEvent],
+  );
 
   const assetId = useMemo(
     () => formatAddressToAssetId(asset.address, asset.chainId as Hex) ?? '',
@@ -154,6 +201,7 @@ const PriceAdvanced = ({
     isLoading: chartLoading,
     error: chartError,
     fetchMoreHistory,
+    hasMore,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
@@ -169,6 +217,15 @@ const PriceAdvanced = ({
   const hasInsufficientData = ohlcvData.length === 1;
   const showEmptyState = !chartLoading && (!hasChartData || !!chartError);
 
+  useEffect(() => {
+    if (!showEmptyState) {
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
+    );
+  }, [showEmptyState, createEventBuilder, trackEvent]);
+
   return (
     <>
       <View style={styles.wrapper}>
@@ -177,7 +234,7 @@ const PriceAdvanced = ({
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
             variant={TextVariant.DisplayLg}
           >
-            {isLoading ? (
+            {chartLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder
                   backgroundColor={theme.colors.background.section}
@@ -196,7 +253,7 @@ const PriceAdvanced = ({
           </Text>
         )}
         <Text allowFontScaling={false}>
-          {isLoading ? (
+          {chartLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}
@@ -264,8 +321,11 @@ const PriceAdvanced = ({
               indicators={indicators}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
+              ohlcvHasMoreHistory={hasMore}
               onRequestMoreHistory={fetchMoreHistory}
               onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
             />
           )}
         </View>
@@ -276,7 +336,7 @@ const PriceAdvanced = ({
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
               selected={timeRange}
-              onSelect={setTimeRange}
+              onSelect={handleTimeRangeSelect}
               chartType={chartType}
               onChartTypeToggle={toggleChartType}
             />

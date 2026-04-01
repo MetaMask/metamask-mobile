@@ -55,27 +55,10 @@ function arrangeNockOhlcvAPI404Response() {
     .reply(404);
 }
 
-function arrangePollingNockOhlcvAPISuccessResponse(
-  opts: {
-    query?: Record<string, string>;
-    body?: Partial<OHLCVApiResponse>;
-  } = {
-    query: { timePeriod: '1h' },
-    body: { data: [] },
-  },
-) {
-  return nock(OHLCV_HOST)
-    .get(`/v3/ohlcv-chart/${ASSET_ID}`)
-    .query(opts.query ?? {})
-    .reply(200, createSuccessBody(opts.body))
-    .persist();
-}
-
 function arrangeDefaultOptions() {
   return {
     assetId: ASSET_ID,
     timePeriod: '1d' as const,
-    enabled: true,
   };
 }
 
@@ -86,7 +69,6 @@ function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
 describe('useOHLCVChart - initial load', () => {
   beforeEach(() => {
     nock.disableNetConnect();
-    arrangePollingNockOhlcvAPISuccessResponse();
   });
 
   afterEach(() => {
@@ -157,23 +139,6 @@ describe('useOHLCVChart - initial load', () => {
     expect(result.current.hasMore).toBe(true);
   });
 
-  it('does not fetch when enabled is false', async () => {
-    const scope = arrangeNockOhlcvAPISuccessResponse();
-
-    const { result } = renderUseOHLCVChart({
-      ...arrangeDefaultOptions(),
-      enabled: false,
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(scope.isDone()).toBe(false);
-    expect(result.current.ohlcvData).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
-  });
-
   it('does not fetch when assetId is empty', async () => {
     const scope = arrangeNockOhlcvAPISuccessResponse();
 
@@ -194,9 +159,6 @@ describe('useOHLCVChart - initial load', () => {
 describe('useOHLCVChart - query parameters', () => {
   beforeEach(() => {
     nock.disableNetConnect();
-    arrangePollingNockOhlcvAPISuccessResponse({
-      query: { timePeriod: '1h', interval: '1m', vsCurrency: 'eur' },
-    });
   });
 
   afterEach(() => {
@@ -229,7 +191,6 @@ describe('useOHLCVChart - query parameters', () => {
 describe('useOHLCVChart - fetchMoreHistory', () => {
   beforeEach(() => {
     nock.disableNetConnect();
-    arrangePollingNockOhlcvAPISuccessResponse();
   });
 
   afterEach(() => {
