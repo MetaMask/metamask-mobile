@@ -22,6 +22,7 @@ export const createUnsupportedTokenModalNavigationDetails =
   );
 
 function UnsupportedTokenModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});

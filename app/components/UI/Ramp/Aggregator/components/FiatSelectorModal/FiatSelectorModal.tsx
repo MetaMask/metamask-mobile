@@ -10,9 +10,11 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useRampSDK } from '../../sdk';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
@@ -39,6 +41,7 @@ export const createFiatSelectorModalNavigationDetails =
   );
 
 function FiatSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<FiatCurrency>>(null);
 
@@ -134,7 +137,7 @@ function FiatSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={strings('fiat_on_ramp_aggregator.select_region_currency')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

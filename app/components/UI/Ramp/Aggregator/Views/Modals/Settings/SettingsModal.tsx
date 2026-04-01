@@ -1,11 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  IconName,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import MenuItem from '../../../../components/MenuItem';
@@ -64,7 +65,7 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <BottomSheetHeader onClose={handleClosePress}>
         {strings('fiat_on_ramp_aggregator.settings_modal.title')}
       </BottomSheetHeader>

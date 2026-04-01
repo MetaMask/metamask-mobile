@@ -7,9 +7,6 @@ import { useSelector } from 'react-redux';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -42,9 +39,12 @@ import NetworksFilterBar from '../../../Deposit/components/NetworksFilterBar';
 import { CaipChainId } from '@metamask/utils';
 import NetworksFilterSelector from '../../../Deposit/components/NetworksFilterSelector/NetworksFilterSelector';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -59,6 +59,7 @@ export const createTokenSelectModalNavigationDetails =
   );
 
 function TokenSelectModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
 
@@ -243,7 +244,7 @@ function TokenSelectModal() {
   }, [tokens]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

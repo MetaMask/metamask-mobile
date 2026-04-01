@@ -158,9 +158,9 @@ function TokenNotAvailableModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      goBack={navigation.goBack}
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
+      goBack={navigation.goBack}
     >
       <HeaderCompactStandard
         title={strings('fiat_on_ramp.token_unavailable_modal.title')}

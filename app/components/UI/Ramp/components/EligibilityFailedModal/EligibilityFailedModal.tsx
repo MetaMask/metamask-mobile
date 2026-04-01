@@ -29,8 +29,8 @@ export const createEligibilityFailedModalNavigationDetails =
   );
 
 function EligibilityFailedModal() {
-  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
   const navigateToContactSupport = useCallback(() => {

@@ -6,9 +6,11 @@ import { Payment } from '@consensys/on-ramp-sdk';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 
 import PaymentMethod from '../PaymentMethod';
@@ -37,6 +39,7 @@ export const createPaymentMethodSelectorModalNavigationDetails =
   );
 
 function PaymentMethodSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { paymentMethods, location } =
     useParams<PaymentMethodSelectorModalParams>();
@@ -100,7 +103,7 @@ function PaymentMethodSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

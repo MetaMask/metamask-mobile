@@ -11,9 +11,6 @@ import TokenListItem from '../../../../components/TokenListItem';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
@@ -31,7 +28,12 @@ import { useDepositCryptoCurrencyNetworkName } from '../../../hooks/useDepositCr
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { TextColor } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { getRampRoutingDecision } from '../../../../../../../reducers/fiatOrders';
 
@@ -46,6 +48,7 @@ export const createTokenSelectorModalNavigationDetails =
   );
 
 function TokenSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
   const [searchString, setSearchString] = useState('');
@@ -167,7 +170,7 @@ function TokenSelectorModal() {
   }, [supportedTokens]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={
           isEditingNetworkFilter

@@ -27,9 +27,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../../hooks/useHandleSuccessfulOrder';
 import Logger from '../../../../../../util/Logger';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -192,9 +193,9 @@ const CheckoutWebView = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
         isFullscreen
         keyboardAvoidingViewEnabled={false}
+        goBack={navigation.goBack}
       >
         <BottomSheetHeader
           endAccessory={
@@ -227,6 +228,7 @@ const CheckoutWebView = () => {
         shouldNavigateBack
         isFullscreen
         keyboardAvoidingViewEnabled={false}
+        goBack={navigation.goBack}
       >
         <BottomSheetHeader
           endAccessory={
@@ -266,6 +268,7 @@ const CheckoutWebView = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        goBack={navigation.goBack}
       >
         <BottomSheetHeader
           endAccessory={
@@ -315,6 +318,7 @@ const CheckoutWebView = () => {
       shouldNavigateBack
       isFullscreen
       keyboardAvoidingViewEnabled={false}
+      goBack={navigation.goBack}
     >
       <BottomSheetHeader
         endAccessory={

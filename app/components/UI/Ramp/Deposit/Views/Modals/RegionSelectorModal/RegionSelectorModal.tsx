@@ -7,9 +7,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -47,6 +49,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
 
@@ -225,7 +228,7 @@ function RegionSelectorModal() {
   }, [scrollToTop]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={strings('deposit.region_modal.select_a_region')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

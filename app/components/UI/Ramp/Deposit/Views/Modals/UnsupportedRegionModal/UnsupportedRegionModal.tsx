@@ -7,10 +7,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -78,7 +79,11 @@ function UnsupportedRegionModal() {
   }, [navigation]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable={false}
+      goBack={navigation.goBack}
+    >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.unsupported_region_modal.title')}

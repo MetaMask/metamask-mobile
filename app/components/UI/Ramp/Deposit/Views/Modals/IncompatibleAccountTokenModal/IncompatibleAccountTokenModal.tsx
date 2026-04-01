@@ -10,10 +10,12 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -34,6 +36,7 @@ export const createIncompatibleAccountTokenModalNavigationDetails =
   );
 
 function IncompatibleAccountTokenModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const chainId = useSelector(selectChainId);
 
@@ -45,7 +48,7 @@ function IncompatibleAccountTokenModal() {
   const networkName = DEPOSIT_NETWORKS_BY_CHAIN_ID[caipNetworkId]?.name;
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
           {strings('deposit.incompatible_token_acount_modal.title')}

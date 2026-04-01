@@ -8,9 +8,11 @@ import Icon, {
   IconName,
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -40,6 +42,7 @@ export const createPaymentMethodSelectorModalNavigationDetails =
   );
 
 function PaymentMethodSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
   const { height: screenHeight } = useWindowDimensions();
@@ -118,7 +121,7 @@ function PaymentMethodSelectorModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderCompactStandard
         title={strings('deposit.payment_modal.select_a_payment_method')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

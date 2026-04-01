@@ -25,6 +25,7 @@ export const createRampUnsupportedModalNavigationDetails =
   );
 
 function RampUnsupportedModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
 

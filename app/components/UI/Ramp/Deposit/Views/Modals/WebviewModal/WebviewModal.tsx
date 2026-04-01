@@ -1,8 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   createNavigationDetails,
@@ -31,6 +33,7 @@ export const createWebviewModalNavigationDetails =
   );
 
 function WebviewModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const previousUrlRef = useRef<string | null>(null);
   const { sourceUrl, handleNavigationStateChange } =
@@ -62,10 +65,10 @@ function WebviewModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
       isFullscreen
       isInteractable={!Device.isAndroid()}
       keyboardAvoidingViewEnabled={false}
+      goBack={navigation.goBack}
     >
       <HeaderCompactStandard
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
