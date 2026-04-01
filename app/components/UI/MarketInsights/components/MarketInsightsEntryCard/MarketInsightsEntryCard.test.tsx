@@ -49,6 +49,25 @@ jest.mock('./AnimatedGradientBorder', () => ({
     MockAnimatedGradientBorder(props),
 }));
 
+let capturedOnSlideStart: (() => void) | null = null;
+jest.mock('./SlidingTextCarousel', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return ({
+    texts,
+    onSlideStart,
+  }: {
+    texts: string[];
+    onSlideStart?: () => void;
+  }) => {
+    capturedOnSlideStart = onSlideStart ?? null;
+    return (
+      <View>
+        <Text>{texts[0]}</Text>
+      </View>
+    );
+  };
+});
+
 /**
  * Finds the first node whose `onLayout` is not a Jest mock (skips
  * `useViewportTracking`'s mocked `onLayout`) so card `handleLayout` can be fired.
@@ -92,6 +111,7 @@ describe('MarketInsightsEntryCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedOnVisible = null;
+    capturedOnSlideStart = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -293,6 +313,50 @@ describe('MarketInsightsEntryCard', () => {
 
     act(() => {
       capturedOnVisible?.();
+    });
+
+    expect(getAnimationKey()).toBe(1);
+  });
+
+  it('calls onDisclaimerPress when the info button is pressed', () => {
+    const onDisclaimerPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        onDisclaimerPress={onDisclaimerPress}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    fireEvent.press(getByTestId('market-insights-info-button'));
+
+    expect(onDisclaimerPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('increments the border animation key when a carousel slide starts', () => {
+    MockAnimatedGradientBorder.mockClear();
+
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    const getAnimationKey = () => {
+      const calls = MockAnimatedGradientBorder.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      return (lastCall[0] as Record<string, unknown>).animationKey;
+    };
+
+    expect(getAnimationKey()).toBe(0);
+
+    act(() => {
+      capturedOnSlideStart?.();
     });
 
     expect(getAnimationKey()).toBe(1);

@@ -9,7 +9,7 @@ The registry auto-discovers and merges all team pre-conditions at load time.
 teams/
   perps/
     flows/              ← flow JSON files (validated by validate-flow-schema.js)
-    recipes/            ← integration-level recipes that compose flows via flow_ref
+    recipes/            ← integration-level recipes that compose flows via call action
     evals/              ← named eval collections (core.json, setup.json, ...)
     evals.json          ← quick CDP eval refs (positions, auth, balances, ...)
     pre-conditions.js   ← perps.* checks
@@ -79,7 +79,7 @@ node scripts/perps/agentic/cdp-bridge.js eval-ref --list
 
 ## Recipes
 
-Recipes live in `teams/<team>/recipes/`. They compose multiple flows via `flow_ref` for integration-level validation — proving that end-to-end scenarios work across flow boundaries.
+Recipes live in `teams/<team>/recipes/`. They compose multiple flows via the `call` action for integration-level validation — proving that end-to-end scenarios work across flow boundaries.
 
 ```bash
 # Run a recipe against the live app

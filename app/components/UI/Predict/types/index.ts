@@ -129,7 +129,47 @@ export type PredictCategory =
   | 'hot';
 
 // Sports league types
-export type PredictSportsLeague = 'nfl' | 'nba';
+export type PredictSportsLeague =
+  | 'nfl'
+  | 'nba'
+  | 'ucl'
+  | 'fif'
+  | 'lal'
+  | 'uef'
+  | 'bra2'
+  | 'tur'
+  | 'col1'
+  | 'mls'
+  | 'mex'
+  | 'bun'
+  | 'chi'
+  | 'epl'
+  | 'cze1'
+  | 'j1100'
+  | 'j2100'
+  | 'fl1'
+  | 'nor'
+  | 'aus'
+  | 'den'
+  | 'sea'
+  | 'kor'
+  | 'ere'
+  | 'spl'
+  | 'bra'
+  | 'por'
+  | 'chi1'
+  | 'per1'
+  | 'lib'
+  | 'cdr'
+  | 'sud'
+  | 'egy1'
+  | 'uel'
+  | 'rou1'
+  | 'col'
+  | 'bol1'
+  | 'itc'
+  | 'dfb'
+  | 'cde';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -164,6 +204,10 @@ export type PredictGamePeriod =
   | 'OT' // Overtime
   | 'FT' // Final
   | 'VFT' // Verified fulltime (when closed=true)
+  | '1H' // First Half (soccer)
+  | '2H' // Second Half (soccer)
+  | 'ET' // Extra Time (soccer)
+  | 'PK' // Penalties (soccer)
   | (string & {}); // Escape hatch for future sports with different period formats
 
 // Game data attached to market
@@ -209,6 +253,7 @@ export type PredictOutcome = {
   tokens: PredictOutcomeToken[];
   volume: number;
   groupItemTitle: string;
+  groupItemThreshold?: number;
   negRisk?: boolean;
   tickSize?: string;
   resolvedBy?: string;

@@ -1,8 +1,10 @@
-import { AbstractExecutionService } from '@metamask/snaps-controllers';
+import {
+  ExecutionService,
+  ExecutionServiceMessenger,
+} from '@metamask/snaps-controllers';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import { ControllerInitFunction } from '../../types';
-import { ExecutionServiceMessenger } from '../../messengers/snaps';
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
@@ -18,7 +20,7 @@ import { SnapId } from '@metamask/snaps-sdk';
  * @returns The initialized controller.
  */
 export const executionServiceInit: ControllerInitFunction<
-  AbstractExecutionService<unknown>,
+  ExecutionService,
   ExecutionServiceMessenger
 > = ({ controllerMessenger }) => {
   /**
