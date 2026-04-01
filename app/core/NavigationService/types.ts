@@ -305,10 +305,6 @@ export interface RootStackParamList extends ParamListBase {
   };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
-  RewardsOnboarding1: undefined;
-  RewardsOnboarding2: undefined;
-  RewardsOnboarding3: undefined;
-  RewardsOnboarding4: undefined;
 
   // Modal routes
   DeleteWalletModal: undefined;

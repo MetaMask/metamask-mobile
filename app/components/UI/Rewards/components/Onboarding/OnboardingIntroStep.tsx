@@ -24,6 +24,12 @@ import { REWARDS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import storageWrapper from '../../../../../store/storage-wrapper';
 import OnboardingNoActiveSeasonStep from './OnboardingNoActiveSeasonStep';
 
+export interface OnboardingIntroStepProps {
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
+}
+
 /**
  * OnboardingIntroStep Component
  *
@@ -31,7 +37,7 @@ import OnboardingNoActiveSeasonStep from './OnboardingNoActiveSeasonStep';
  * Handles geo validation, account type checking, and always shows the
  * no-active-season sign-up variant.
  */
-const OnboardingIntroStep: React.FC = () => {
+const OnboardingIntroStep: React.FC<OnboardingIntroStepProps> = () => {
   // Navigation and Redux hooks
   const navigation = useNavigation();
   const dispatch = useDispatch();
