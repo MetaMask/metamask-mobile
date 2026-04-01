@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import useHomeSessionSummary from './useHomeSessionSummary';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 
 // --- @react-navigation/native mock ---
 jest.mock('@react-navigation/native', () => ({
@@ -25,6 +26,16 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockUseABTest = jest.fn(() => ({
+  variantName: 'control',
+  isActive: false,
+  variant: { separateTrending: false },
+}));
+jest.mock('../../../../hooks', () => ({
+  useABTest: (...args: unknown[]) =>
+    Reflect.apply(mockUseABTest, undefined, args),
 }));
 
 // --- Scroll context mock ---
@@ -78,6 +89,11 @@ const setupFocusBlur = () => {
 describe('useHomeSessionSummary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockReturnValue({
+      variantName: 'control',
+      isActive: false,
+      variant: { separateTrending: false },
+    });
     mockGetViewedSectionCount = jest.fn(() => 3);
     mockNotifySectionViewed = jest.fn();
     mockContextValue = {
@@ -287,6 +303,48 @@ describe('useHomeSessionSummary', () => {
         entry_point: HomepageEntryPoints.NAVIGATED_BACK,
       });
       expect(typeof props.session_time).toBe('number');
+    });
+
+    it('includes active_ab_tests when homepage trending AB test is active', () => {
+      mockUseABTest.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+        variant: { separateTrending: true },
+      });
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      act(() => {
+        simulateBlur();
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          active_ab_tests: [
+            {
+              key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+              value: 'treatment',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('does not include active_ab_tests when homepage trending AB test is inactive', () => {
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      act(() => {
+        simulateBlur();
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          active_ab_tests: expect.anything(),
+        }),
+      );
     });
   });
 

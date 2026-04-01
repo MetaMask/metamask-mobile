@@ -3,6 +3,7 @@ import type { View } from 'react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import useHomeViewedEvent, { HomeSectionNames } from './useHomeViewedEvent';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 
 // --- Analytics mock ---
 const mockTrackEvent = jest.fn();
@@ -17,6 +18,16 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockUseABTest = jest.fn(() => ({
+  variantName: 'control',
+  isActive: false,
+  variant: { separateTrending: false },
+}));
+jest.mock('../../../../hooks', () => ({
+  useABTest: (...args: unknown[]) =>
+    Reflect.apply(mockUseABTest, undefined, args),
 }));
 
 // --- Scroll context mock ---
@@ -83,6 +94,11 @@ const defaultParams = {
 describe('useHomeViewedEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockReturnValue({
+      variantName: 'control',
+      isActive: false,
+      variant: { separateTrending: false },
+    });
     scrollSubscribers = [];
     mockContextValue = {
       subscribeToScroll: mockSubscribeToScroll,
@@ -488,6 +504,47 @@ describe('useHomeViewedEvent', () => {
       );
 
       expect(mockTrackEvent).toHaveBeenCalledWith(builtEvent);
+    });
+
+    it('includes active_ab_tests when homepage trending AB test is active', () => {
+      mockUseABTest.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+        variant: { separateTrending: true },
+      });
+
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          active_ab_tests: [
+            {
+              key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+              value: 'treatment',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('does not include active_ab_tests when homepage trending AB test is inactive', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          active_ab_tests: expect.anything(),
+        }),
+      );
     });
   });
 
