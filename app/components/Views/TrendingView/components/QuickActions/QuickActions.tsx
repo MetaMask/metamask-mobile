@@ -20,6 +20,7 @@ import {
   type SectionIcon,
 } from '../../sections.config';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+import { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 const SectionIconRenderer: React.FC<{
   icon: SectionIcon;
@@ -56,7 +57,7 @@ interface QuickActionsProps {
  * a corresponding button will automatically appear here.
  */
 const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const sectionsArray = useSectionsArray();
 

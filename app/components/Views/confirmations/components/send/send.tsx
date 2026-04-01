@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../../util/theme';
 import { SendContextProvider } from '../../context/send-context';
 import { SendMetricsContextProvider } from '../../context/send-context/send-metrics-context';
 import { Confirm } from '../confirm';
@@ -15,13 +16,18 @@ import { useEmptyNavHeaderForConfirmations } from '../../hooks/ui/useEmptyNavHea
 const Stack = createStackNavigator();
 
 export const Send = () => {
+  const { colors } = useTheme();
   const sendNavigationOptions = useSendNavbar();
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
     <SendContextProvider>
       <SendMetricsContextProvider>
-        <Stack.Navigator headerMode="screen">
+        <Stack.Navigator
+          screenOptions={{
+            cardStyle: { backgroundColor: colors.background.default },
+          }}
+        >
           <Stack.Screen
             name={Routes.SEND.AMOUNT}
             component={Amount}

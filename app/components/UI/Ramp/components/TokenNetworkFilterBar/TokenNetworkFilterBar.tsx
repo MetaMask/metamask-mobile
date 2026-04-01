@@ -4,14 +4,14 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+  ButtonVariant,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './TokenNetworkFilterBar.styles';
 
@@ -58,19 +58,20 @@ function TokenNetworkFilterBar({
     >
       <Button
         variant={
-          isAllSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
+          isAllSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
         }
         size={ButtonSize.Sm}
-        label={
-          <Text
-            color={isAllSelected ? TextColor.Inverse : TextColor.Default}
-            variant={TextVariant.BodyMD}
-          >
-            {strings('unified_ramp.networks_filter_bar.all_networks')}
-          </Text>
-        }
         onPress={handleAllPress}
-      />
+      >
+        <Text
+          color={
+            isAllSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
+          }
+          variant={TextVariant.BodyMd}
+        >
+          {strings('unified_ramp.networks_filter_bar.all_networks')}
+        </Text>
+      </Button>
       {networks.map((chainId) => {
         const isSelected =
           !isAllSelected && (networkFilter?.includes(chainId) ?? false);
@@ -81,28 +82,27 @@ function TokenNetworkFilterBar({
           <Button
             key={chainId}
             variant={
-              isSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
+              isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             size={ButtonSize.Sm}
-            label={
-              <>
-                <AvatarNetwork
-                  imageSource={networkImageSource}
-                  name={displayName}
-                  size={AvatarSize.Xs}
-                  style={styles.selectedNetworkIcon}
-                />
-
-                <Text
-                  color={isSelected ? TextColor.Inverse : TextColor.Default}
-                  variant={TextVariant.BodyMD}
-                >
-                  {displayName}
-                </Text>
-              </>
+            startAccessory={
+              <AvatarNetwork
+                imageSource={networkImageSource}
+                name={displayName}
+                size={AvatarSize.Xs}
+              />
             }
             onPress={() => handleNetworkPress(chainId)}
-          />
+          >
+            <Text
+              color={
+                isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault
+              }
+              variant={TextVariant.BodyMd}
+            >
+              {displayName}
+            </Text>
+          </Button>
         );
       })}
     </ScrollView>

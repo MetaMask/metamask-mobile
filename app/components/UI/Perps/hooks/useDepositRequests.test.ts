@@ -117,7 +117,6 @@ describe('useDepositRequests', () => {
         backgroundState: {
           AccountTreeController: {
             accountTree: {
-              selectedAccountGroup: 'keyring:wallet1/1',
               wallets: {
                 'keyring:wallet1': {
                   id: 'keyring:wallet1',
@@ -133,6 +132,7 @@ describe('useDepositRequests', () => {
                 },
               },
             },
+            selectedAccountGroup: 'keyring:wallet1/1',
           },
           AccountsController: {
             internalAccounts: {
