@@ -37,6 +37,7 @@ import {
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 
 interface CheckoutParams {
   url: string;
@@ -106,6 +107,7 @@ const Checkout = () => {
   const initialUriRef = useRef(uri);
   const callbackKeyRef = useRef(callbackKey);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
+  const loadStartTimeRef = useRef<number | null>(null);
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
   useEffect(() => {
@@ -192,8 +194,36 @@ const Checkout = () => {
     addPrecreatedOrder,
   ]);
 
+  const trackUrlChange = useCallback(
+    (navUrl: string) => {
+      const isCallbackUrl = navUrl.startsWith(callbackBaseUrl);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGE)
+          .addProperties({
+            location: 'Checkout',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
+            provider_name: providerName ?? undefined,
+            url_path: redactUrlForAnalytics(navUrl),
+            is_callback_url: isCallbackUrl,
+            order_id: effectiveOrderId ?? undefined,
+          })
+          .build(),
+      );
+    },
+    [
+      createEventBuilder,
+      trackEvent,
+      rampRoutingDecision,
+      providerName,
+      effectiveOrderId,
+    ],
+  );
+
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
+      trackUrlChange(navState.url);
+
       if (
         !hasCallbackFlow ||
         isRedirectionHandledRef.current ||
@@ -268,6 +298,7 @@ const Checkout = () => {
       getOrderFromCallback,
       isV2Enabled,
       params?.cryptocurrency,
+      trackUrlChange,
     ],
   );
 
@@ -291,12 +322,41 @@ const Checkout = () => {
     (navState: { url: string }) => {
       if (navState.url !== previousUrlRef.current) {
         previousUrlRef.current = navState.url;
+        trackUrlChange(navState.url);
         if (callbackKeyRef.current) {
           getCheckoutCallback(callbackKeyRef.current)?.(navState);
         }
       }
     },
-    [],
+    [trackUrlChange],
+  );
+
+  const handleLoadStart = useCallback(() => {
+    loadStartTimeRef.current = Date.now();
+  }, []);
+
+  const handleLoadEnd = useCallback(
+    (syntheticEvent: { nativeEvent: { url: string } }) => {
+      const { url: loadedUrl } = syntheticEvent.nativeEvent;
+      const durationMs = loadStartTimeRef.current
+        ? Date.now() - loadStartTimeRef.current
+        : 0;
+      loadStartTimeRef.current = null;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETE)
+          .addProperties({
+            location: 'Checkout',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
+            provider_name: providerName ?? undefined,
+            url_path: redactUrlForAnalytics(loadedUrl),
+            load_duration_ms: durationMs,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent, rampRoutingDecision, providerName],
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
@@ -358,10 +418,25 @@ const Checkout = () => {
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             const errorUrl = nativeEvent.url;
-            if (
+            const isInitialUrl =
               errorUrl === initialUriRef.current ||
-              errorUrl.startsWith(callbackBaseUrl)
-            ) {
+              errorUrl.startsWith(callbackBaseUrl);
+
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR)
+                .addProperties({
+                  location: 'Checkout',
+                  ramp_type: 'UNIFIED_BUY_2',
+                  ramp_routing: rampRoutingDecision ?? undefined,
+                  provider_name: providerName ?? undefined,
+                  url_path: redactUrlForAnalytics(errorUrl),
+                  status_code: nativeEvent.statusCode,
+                  is_initial_url: isInitialUrl,
+                })
+                .build(),
+            );
+
+            if (isInitialUrl) {
               const webviewHttpError = strings(
                 'fiat_on_ramp_aggregator.webview_received_error',
                 { code: nativeEvent.statusCode },
@@ -377,6 +452,8 @@ const Checkout = () => {
           enableApplePay
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
+          onLoadStart={handleLoadStart}
+          onLoadEnd={handleLoadEnd}
           onNavigationStateChange={
             hasCallbackFlow
               ? handleNavigationStateChange

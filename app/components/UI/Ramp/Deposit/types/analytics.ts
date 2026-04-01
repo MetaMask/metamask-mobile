@@ -400,6 +400,35 @@ interface RampsToastButtonClicked {
   ramp_type: 'UNIFIED_BUY_2';
 }
 
+interface RampsCheckoutUrlChange {
+  location: string;
+  ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
+  provider_name?: string;
+  url_path: string;
+  is_callback_url: boolean;
+  order_id?: string;
+}
+
+interface RampsCheckoutLoadComplete {
+  location: string;
+  ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
+  provider_name?: string;
+  url_path: string;
+  load_duration_ms: number;
+}
+
+interface RampsCheckoutHttpError {
+  location: string;
+  ramp_type: 'UNIFIED_BUY_2';
+  ramp_routing?: UnifiedRampRoutingType;
+  provider_name?: string;
+  url_path: string;
+  status_code: number;
+  is_initial_url: boolean;
+}
+
 export interface AnalyticsEvents {
   RAMPS_BUTTON_CLICKED: RampsButtonClicked;
   RAMPS_DEPOSIT_CASH_BUTTON_CLICKED: RampsDepositCashButtonClicked;
@@ -445,4 +474,7 @@ export interface AnalyticsEvents {
   RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED: RampsUnsupportedTokenTooltipClicked;
   RAMPS_INFO_TOOLTIP_CLICKED: RampsInfoTooltipClicked;
   RAMPS_TOAST_BUTTON_CLICKED: RampsToastButtonClicked;
+  RAMPS_CHECKOUT_URL_CHANGE: RampsCheckoutUrlChange;
+  RAMPS_CHECKOUT_LOAD_COMPLETE: RampsCheckoutLoadComplete;
+  RAMPS_CHECKOUT_HTTP_ERROR: RampsCheckoutHttpError;
 }
