@@ -365,7 +365,7 @@ const PredictionsSectionDefault = forwardRef<
     const queryClient = useQueryClient();
     const title = titleOverride ?? strings('homepage.sections.predictions');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { applyTagForDedicatedTrendingSection, clearTransactionAbTests } =
+    const { clearTransactionAbTests } =
       useHomepageTrendingSectionTransactionAbTests();
     const {
       handleViewAllPredictions,
