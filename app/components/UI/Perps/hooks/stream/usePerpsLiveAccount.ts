@@ -6,8 +6,6 @@ import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 export interface UsePerpsLiveAccountOptions {
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */
   throttleMs?: number;
-  /** Whether to subscribe to stream updates (default: true) */
-  enabled?: boolean;
 }
 
 export interface UsePerpsLiveAccountReturn {
@@ -30,22 +28,16 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
-  const { throttleMs = 1000, enabled = true } = options;
+  const { throttleMs = 1000 } = options;
   const [account, setAccount] = useState<AccountState | null>(() =>
     getPreloadedData<AccountState>('cachedAccountState'),
   );
   const [isInitialLoading, setIsInitialLoading] = useState(
-    () => enabled && !hasPreloadedData('cachedAccountState'),
+    () => !hasPreloadedData('cachedAccountState'),
   );
   const streamManager = usePerpsStream();
 
   useEffect(() => {
-    if (!enabled) {
-      setAccount(null);
-      setIsInitialLoading(false);
-      return;
-    }
-
     if (!streamManager) return;
 
     // Mark as no longer loading once we get first update
@@ -63,7 +55,7 @@ export function usePerpsLiveAccount(
     });
 
     return unsubscribe;
-  }, [enabled, streamManager, throttleMs]);
+  }, [streamManager, throttleMs]);
 
   return { account, isInitialLoading };
 }

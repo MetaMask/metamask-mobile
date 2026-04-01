@@ -96,28 +96,6 @@ describe('useTrendingRequest', () => {
     unmount();
   });
 
-  it('does not fetch or poll when enabled is false', async () => {
-    const spyGetTrendingTokens = jest.spyOn(
-      assetsControllers,
-      'getTrendingTokens',
-    );
-    spyGetTrendingTokens.mockResolvedValue([] as never);
-
-    renderHookWithProvider(() =>
-      useTrendingRequest({
-        chainIds: ['eip155:1'],
-        enabled: false,
-      }),
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(10 * 60 * 1000);
-    });
-
-    expect(spyGetTrendingTokens).not.toHaveBeenCalled();
-    spyGetTrendingTokens.mockRestore();
-  });
-
   it('sets isLoading to true during fetch', async () => {
     const spyGetTrendingTokens = jest.spyOn(
       assetsControllers,

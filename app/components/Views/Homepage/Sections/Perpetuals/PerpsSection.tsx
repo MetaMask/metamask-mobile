@@ -238,8 +238,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
     const isPositionsOnly = mode === 'positions-only';
-    const isTrendingOnly = mode === 'trending-only';
-    const shouldLoadPositions = !isTrendingOnly;
     const shouldLoadMarkets = !isPositionsOnly;
     const { error: connectionError, reconnectWithNewContext } =
       usePerpsConnection();
@@ -255,19 +253,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
         throttleMs: HOMEPAGE_THROTTLE_MS,
-        enabled: shouldLoadPositions,
       });
 
     const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
       usePerpsLiveAccount({
         throttleMs: HOMEPAGE_THROTTLE_MS,
-        enabled: shouldLoadPositions,
       });
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
       hideTpSl: true,
       throttleMs: HOMEPAGE_THROTTLE_MS,
-      enabled: shouldLoadPositions,
     });
 
     const hookLoading = positionsLoading || ordersLoading;

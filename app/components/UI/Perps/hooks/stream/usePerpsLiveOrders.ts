@@ -13,8 +13,6 @@ export interface UsePerpsLiveOrdersOptions {
   hideTpSl?: boolean;
   /** Filter out all reduce-only orders */
   hideReduceOnly?: boolean;
-  /** Whether to subscribe to stream updates (default: true) */
-  enabled?: boolean;
 }
 
 export interface UsePerpsLiveOrdersReturn {
@@ -37,31 +35,18 @@ export interface UsePerpsLiveOrdersReturn {
 export function usePerpsLiveOrders(
   options: UsePerpsLiveOrdersOptions = {},
 ): UsePerpsLiveOrdersReturn {
-  const {
-    throttleMs = 0,
-    hideTpSl = false,
-    hideReduceOnly = false,
-    enabled = true,
-  } = options; // No throttling by default for instant updates
+  const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
   const [orders, setOrders] = useState<Order[]>(
     () => getPreloadedData<Order[]>('cachedOrders') ?? EMPTY_ORDERS,
   );
   const [isInitialLoading, setIsInitialLoading] = useState(
-    () => enabled && !hasPreloadedData('cachedOrders'),
+    () => !hasPreloadedData('cachedOrders'),
   );
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);
 
   useEffect(() => {
-    if (!enabled) {
-      hasReceivedFirstUpdate.current = false;
-      setIsInitialLoading(false);
-      lastOrdersRef.current = EMPTY_ORDERS;
-      setOrders(EMPTY_ORDERS);
-      return;
-    }
-
     const unsubscribe = stream.orders.subscribe({
       callback: (newOrders) => {
         if (newOrders === null || newOrders === undefined) {
@@ -99,7 +84,7 @@ export function usePerpsLiveOrders(
     return () => {
       unsubscribe();
     };
-  }, [enabled, stream, throttleMs]);
+  }, [stream, throttleMs]);
 
   // Filter orders based on requested display options
   const filteredOrders = useMemo(() => {

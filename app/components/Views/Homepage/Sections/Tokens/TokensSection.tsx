@@ -96,8 +96,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
-    useTrendingRequest({ enabled: false });
-
     const {
       removeTokenState,
       showRemoveMenu,
@@ -226,7 +224,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     });
 
     const handleViewAllTokens = useCallback(() => {
-        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+      navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
     }, [navigation]);
 
     const handleTokensRetry = useCallback(async () => {
@@ -313,7 +311,7 @@ const TokensSectionTrendingOnly = forwardRef<
       results: trendingTokens,
       isLoading: isTrendingLoading,
       fetch: fetchTrendingTokens,
-    } = useTrendingRequest({ enabled: true });
+    } = useTrendingRequest({});
 
     useImperativeHandle(
       ref,

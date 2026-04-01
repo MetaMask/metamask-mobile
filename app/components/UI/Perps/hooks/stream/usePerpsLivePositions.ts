@@ -13,8 +13,6 @@ export interface UsePerpsLivePositionsOptions {
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
   useLivePnl?: boolean;
-  /** Whether to subscribe to stream updates (default: true) */
-  enabled?: boolean;
 }
 
 export interface UsePerpsLivePositionsReturn {
@@ -99,10 +97,10 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false, enabled = true } = options; // No live PnL by default to avoid unnecessary re-renders
+  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const [isInitialLoading, setIsInitialLoading] = useState(
-    () => enabled && !hasPreloadedData('cachedPositions'),
+    () => !hasPreloadedData('cachedPositions'),
   );
   const hasReceivedFirstUpdate = useRef(false);
 
@@ -123,13 +121,6 @@ export function usePerpsLivePositions(
 
   // Subscribe to position updates
   useEffect(() => {
-    if (!enabled) {
-      hasReceivedFirstUpdate.current = false;
-      setIsInitialLoading(false);
-      setRawPositions(EMPTY_POSITIONS);
-      return;
-    }
-
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         if (newPositions === null) {
@@ -157,11 +148,11 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [enabled, stream, throttleMs]);
+  }, [stream, throttleMs]);
 
   // Subscribe to price updates for real-time PnL recalculation (only if useLivePnl is true)
   useEffect(() => {
-    if (!enabled || !useLivePnl) {
+    if (!useLivePnl) {
       return undefined;
     }
 
@@ -175,7 +166,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [enabled, stream, throttleMs, useLivePnl]);
+  }, [stream, throttleMs, useLivePnl]);
 
   return {
     positions,
