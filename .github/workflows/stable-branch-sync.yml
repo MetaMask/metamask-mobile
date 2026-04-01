@@ -8,7 +8,7 @@ permissions:
 on:
   push:
     branches:
-      - stable
+        - stable
 
 jobs:
   get-stable-version:
@@ -18,18 +18,18 @@ jobs:
     outputs:
       stable-version: ${{ steps.resolve-stable-version.outputs.stable_version }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        - name: Checkout
+          uses: actions/checkout@v4
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        - name: Configure Git
+          run: |
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Get stable release version
-        id: resolve-stable-version
-        run: ./get-stable-released-version.sh
-        working-directory: '.github/scripts'
+        - name: Get stable release version
+          id: resolve-stable-version
+          run: ./get-stable-released-version.sh
+          working-directory: '.github/scripts'
 
   run-stable-sync:
     name: Run Stable branch sync
