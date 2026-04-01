@@ -32,7 +32,7 @@ import AppConstants from '../../../../core/AppConstants';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
-import { isQa } from '../../../../util/test/utils';
+import { isProduction } from '../../../../util/environment';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -227,9 +227,9 @@ class AppInformation extends PureComponent {
               />
             </TouchableOpacity>
             <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
-            {isQa ? (
+            {!isProduction() ? (
               <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
+                {`${process.env.METAMASK_ENVIRONMENT?.toUpperCase()} | Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 
