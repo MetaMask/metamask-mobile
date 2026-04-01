@@ -9,8 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.72.0]
 
+### Uncategorized
+
+- chore(release): sync stable to main for version 7.70.1 (#27913)
+- Added a checkbox to upload sourcemap on build mobile workflow (#27750)
+- chore: consolidate source_branch and ref in build.yml (#27768)
+- chore(release): sync stable to main for version 7.72.0 (#27809)
+
 ### Added
 
+- Card Spending limit screen analytics include Linea mUSD fiat balance, top card-supported asset by fiat, and top wallet-wide (#27981)
+  asset by fiat when the screen is viewed.
+- Upgrade @metamask/seedless-onboarding-controller to v9.0.0 (#27859)
+- Added new workflow runway_ios_rc_workflow (#27662)
 - Added check to hide Speed up and Cancel buttons in the activity list and transaction details when the user has selected another token to pay for gas (#27404)
 - Added skeleton-style quote loading UI during swaps (#27174)
 - Added Earn Rewards preview section to the Rewards Dashboard with geo-gated mUSD calculator and MetaMask Card earn cards (#27684)
@@ -59,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: replace static hex colors with design tokens in test files (#26396)
 - Fixed Perps PnL comma formatting (#27815)
 - Fixed incorrect aggregated PnL and order size for multi-fill trades on Perps market and home (#27906)
 - Fixed HIP-3 market category labels for URNM (commodity) and USAR (stock) (#27910)
