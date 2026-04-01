@@ -17,29 +17,28 @@ import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
-  showOrderPlacedToast: () => void;
-  invalidateOrderQueries: () => void;
 }
 
 export const usePredictBuyActions = ({
   preview,
   analyticsProperties,
   setIsConfirming,
-  showOrderPlacedToast,
-  invalidateOrderQueries,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
   const { onConfirm: onApprovalConfirm, approvalRequest } =
     useApprovalRequest();
   const { onReject } = useConfirmActions();
-  const { activeOrder } = usePredictActiveOrder();
+  const { activeOrder, clearActiveOrderTransactionId } =
+    usePredictActiveOrder();
   const { placeOrder, initPayWithAnyToken } = usePredictTrading();
+  const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -47,6 +46,7 @@ export const usePredictBuyActions = ({
   );
 
   const hasInitializedPayWithAnyTokenRef = useRef(false);
+  const didInitiateOrderRef = useRef(false);
 
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -68,12 +68,19 @@ export const usePredictBuyActions = ({
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
+        resetSelectedPaymentToken();
         initPayWithAnyToken();
       }
     });
 
     return unsubscribe;
-  }, [navigation, initPayWithAnyToken, payWithAnyTokenEnabled]);
+  }, [
+    navigation,
+    initPayWithAnyToken,
+    payWithAnyTokenEnabled,
+    PredictController,
+    resetSelectedPaymentToken,
+  ]);
 
   useEffect(() => {
     if (!payWithAnyTokenEnabled) {
@@ -82,9 +89,14 @@ export const usePredictBuyActions = ({
 
     return navigation.addListener('beforeRemove', () => {
       onReject(undefined, true);
-      PredictController.onPlaceOrderEnd();
+      clearActiveOrderTransactionId();
     });
-  }, [navigation, payWithAnyTokenEnabled, PredictController, onReject]);
+  }, [
+    navigation,
+    payWithAnyTokenEnabled,
+    onReject,
+    clearActiveOrderTransactionId,
+  ]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
@@ -105,11 +117,9 @@ export const usePredictBuyActions = ({
   );
 
   const handleConfirm = useCallback(async () => {
+    didInitiateOrderRef.current = true;
     setIsConfirming(true);
 
-    // Only capture transactionId for PAY_WITH_ANY_TOKEN flow (deposit-order linking).
-    // Balance flow doesn't need it — passing undefined lets isCurrentActiveBuyOrder
-    // match without a strict transactionId check.
     const transactionId =
       currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
         ? approvalRequest?.id
@@ -162,19 +172,12 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (currentState === ActiveOrderState.SUCCESS) {
-      invalidateOrderQueries();
-      showOrderPlacedToast();
-      PredictController.onPlaceOrderEnd();
-      navigation.dispatch(StackActions.pop());
+      PredictController.onPlaceOrderSuccess();
+      if (didInitiateOrderRef.current) {
+        navigation.dispatch(StackActions.pop());
+      }
     }
-  }, [
-    PredictController,
-    currentState,
-    invalidateOrderQueries,
-    navigation,
-    setIsConfirming,
-    showOrderPlacedToast,
-  ]);
+  }, [PredictController, currentState, navigation]);
 
   return {
     handleConfirm,

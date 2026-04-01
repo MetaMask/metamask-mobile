@@ -73,6 +73,7 @@ const mockAccountGroup1 = {
     name: 'Account 1',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
     entropy: { groupIndex: 0 },
   },
 };
@@ -85,6 +86,7 @@ const mockAccountGroup2 = {
     name: 'Account 2',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
     entropy: { groupIndex: 1 },
   },
 };
@@ -106,8 +108,8 @@ const mockAccountTreeControllerState: DeepPartial<AccountTreeControllerState> =
           },
         },
       },
-      selectedAccountGroup: mockAccountGroupId1,
     },
+    selectedAccountGroup: mockAccountGroupId1,
   };
 
 const initialState = {

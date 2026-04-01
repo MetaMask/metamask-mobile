@@ -40,7 +40,7 @@ import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
+
 import {
   selectPredictFakOrdersEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
@@ -62,8 +62,6 @@ const PredictBuyWithAnyToken = () => {
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   const { isPlacingOrder } = usePredictActiveOrder();
-  const { showOrderPlacedToast, invalidateOrderQueries } =
-    usePredictPlaceOrder();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -175,8 +173,6 @@ const PredictBuyWithAnyToken = () => {
     analyticsProperties,
     preview,
     setIsConfirming,
-    showOrderPlacedToast,
-    invalidateOrderQueries,
   });
 
   useEffect(() => {
