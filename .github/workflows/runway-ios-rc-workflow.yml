@@ -3,7 +3,7 @@
 # Runway iOS RC Workflow
 #
 # Triggered from Runway to either:
-# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
+# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts is bumped), or
 # - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
 #
 # When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
