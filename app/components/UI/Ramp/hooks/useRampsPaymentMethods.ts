@@ -108,8 +108,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     let target: PaymentMethod | null = null;
 
     if (selectedPaymentMethod) {
-      target =
-        methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
+      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
     }
 
     if (!target) {
@@ -122,7 +121,11 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     } else {
       autoSelectingRef.current = false;
     }
-  }, [paymentMethodsQuery.data, selectedPaymentMethod, setSelectedPaymentMethod]);
+  }, [
+    paymentMethodsQuery.data,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+  ]);
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {

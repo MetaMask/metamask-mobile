@@ -306,7 +306,9 @@ describe('useRampsPaymentMethods', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
-    let resolveQuery: (value: { payments: PaymentMethod[] }) => void;
+    let resolveQuery: (value: { payments: PaymentMethod[] }) => void = () => {
+      // noop, overwritten by mock
+    };
     (
       Engine.context.RampsController.getPaymentMethods as jest.Mock
     ).mockImplementation(
@@ -325,7 +327,7 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.isSuccess).toBe(false);
 
     await act(async () => {
-      resolveQuery!({ payments: mockPaymentMethods });
+      resolveQuery({ payments: mockPaymentMethods });
     });
 
     await waitFor(() => {
@@ -358,9 +360,7 @@ describe('useRampsPaymentMethods', () => {
       expect(result.current.status).toBe('success');
     });
 
-    expect(result.current.selectedPaymentMethod).toEqual(
-      mockPaymentMethods[1],
-    );
+    expect(result.current.selectedPaymentMethod).toEqual(mockPaymentMethods[1]);
   });
 
   it('setSelectedPaymentMethod is stable across re-renders', async () => {
@@ -371,10 +371,9 @@ describe('useRampsPaymentMethods', () => {
       Engine.context.RampsController.getPaymentMethods as jest.Mock
     ).mockResolvedValue({ payments: mockPaymentMethods });
 
-    const { result, rerender } = renderHook(
-      () => useRampsPaymentMethods(),
-      { wrapper: Wrapper },
-    );
+    const { result, rerender } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
 
     const firstRef = result.current.setSelectedPaymentMethod;
 
