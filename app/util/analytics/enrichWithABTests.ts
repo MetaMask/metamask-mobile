@@ -2,10 +2,12 @@ import { resolveABTestAssignment } from '../abTest';
 import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
 import type { StateWithPartialEngine } from '../../selectors/featureFlagController/types';
 import { AB_TEST_ANALYTICS_MAPPINGS } from './abTestAnalyticsRegistry';
-import type {
-  ABTestAnalyticsMapping,
-  ActiveABTestAssignment,
-} from './abTestAnalytics.types';
+import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
+
+interface ActiveABTestAssignment {
+  key: string;
+  value: string;
+}
 
 const hasEventName = (
   mapping: ABTestAnalyticsMapping,

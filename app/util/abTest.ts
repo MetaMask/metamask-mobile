@@ -1,4 +1,4 @@
-export interface ABTestResolution {
+interface ABTestResolution {
   variantName: string;
   isActive: boolean;
 }
