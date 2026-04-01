@@ -39,54 +39,6 @@ jest.mock('./components/Onboarding/OnboardingIntroStep', () => {
   };
 });
 
-jest.mock('./components/Onboarding/OnboardingStep1', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingStep1() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-step-1' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 1'),
-    );
-  };
-});
-
-jest.mock('./components/Onboarding/OnboardingStep2', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingStep2() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-step-2' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 2'),
-    );
-  };
-});
-
-jest.mock('./components/Onboarding/OnboardingStep3', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingStep3() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-step-3' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 3'),
-    );
-  };
-});
-
-jest.mock('./components/Onboarding/OnboardingStep4', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingStep4() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-step-4' },
-      ReactActual.createElement(Text, null, 'Onboarding Step 4'),
-    );
-  };
-});
-
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -214,58 +166,6 @@ describe('OnboardingNavigator', () => {
       // Assert
       await waitFor(() => {
         expect(getByTestId('rewards-onboarding-intro-step')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders step 1 when activeStep is STEP_1', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_1);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-step-1')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders step 2 when activeStep is STEP_2', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-step-2')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders step 3 when activeStep is STEP_3', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_3);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-step-3')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders step 4 when activeStep is STEP_4', async () => {
-      // Arrange
-      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_4);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-step-4')).toBeOnTheScreen();
       });
     });
 
