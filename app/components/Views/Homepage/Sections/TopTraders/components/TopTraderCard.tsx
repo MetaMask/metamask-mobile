@@ -117,19 +117,18 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       </Box>
 
       {/* Follow / Following button pinned to bottom */}
-      <Box alignItems={BoxAlignItems.Center}>
-        <Button
-          variant={
-            trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Sm}
-          onPress={() => onFollowPress(trader.id)}
-        >
-          {trader.isFollowing
-            ? strings('social_leaderboard.following')
-            : strings('social_leaderboard.follow')}
-        </Button>
-      </Box>
+      <Button
+        variant={
+          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+        }
+        size={ButtonSize.Sm}
+        twClassName="self-center"
+        onPress={() => onFollowPress(trader.id)}
+      >
+        {trader.isFollowing
+          ? strings('social_leaderboard.following')
+          : strings('social_leaderboard.follow')}
+      </Button>
     </Box>
   );
 };

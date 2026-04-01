@@ -7532,9 +7532,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/social-controllers@npm:0.0.0-preview-26038d8d3":
-  version: 0.0.0-preview-26038d8d3
-  resolution: "@metamask-previews/social-controllers@npm:0.0.0-preview-26038d8d3"
+"@metamask-previews/social-controllers@npm:0.0.0-preview-ac7a6cc51":
+  version: 0.0.0-preview-ac7a6cc51
+  resolution: "@metamask-previews/social-controllers@npm:0.0.0-preview-ac7a6cc51"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/base-data-service": "npm:^0.1.1"
@@ -7542,7 +7542,7 @@ __metadata:
     "@metamask/messenger": "npm:^1.0.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/469e24fd2531f3e4691d87c222651a07d747a8d40af3004728efcd148fbe441d992198643fca0135bbc781c78da54ba6a237065cf17137aba6cb2ac92306d633
+  checksum: 10/c8c89cec2125d1e1ad278bf7c9915e55aedd78d57591375cfb6dd24eac2666df363c3f3110b960cd5f34530b15e6b58245a550aa29d3853206ab7b60152bae31
   languageName: node
   linkType: hard
 
@@ -35581,7 +35581,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/social-controllers": "npm:0.0.0-preview-26038d8d3"
+    "@metamask-previews/social-controllers": "npm:0.0.0-preview-ac7a6cc51"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^5.0.0"
