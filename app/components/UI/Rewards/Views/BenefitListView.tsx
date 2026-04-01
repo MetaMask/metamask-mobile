@@ -6,10 +6,7 @@ import { useSelector } from 'react-redux';
 import { FlatList, ListRenderItem, RefreshControl } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  selectBenefits,
-  selectBenefitsLoading,
-} from '../../../../reducers/benefits/selectors.ts';
+import { selectBenefits } from '../../../../reducers/benefits/selectors.ts';
 import { useBenefits } from '../hooks/useBenefits.ts';
 import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 import BenefitCard from '../components/Benefits/BenefitCard.tsx';
@@ -18,13 +15,13 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import { useNavigation } from '@react-navigation/native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import TheMiracleFooter from '../components/Benefits/TheMiracleFooter.tsx';
+import BenefitEmptyList from '../components/Benefits/BenefitEmptyList.tsx';
 
 const BenefitListView = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
 
   const benefits = useSelector(selectBenefits);
-  const isLoading = useSelector(selectBenefitsLoading);
   const [refreshing, setRefreshing] = useState(false);
 
   const { getAllBenefits } = useBenefits();
@@ -50,26 +47,12 @@ const BenefitListView = () => {
     }
   }, [getAllBenefits]);
 
+  const hasBenefits = useMemo(() => benefits.length > 0, [benefits.length]);
+
   const renderBenefitItem: ListRenderItem<SubscriptionBenefitDto> = useCallback(
     ({ item }) => <BenefitCard benefit={item} />,
     [],
   );
-
-  const renderFooter = useCallback(() => {
-    if (isLoading || benefits?.length === 0) return null;
-    return <TheMiracleFooter />;
-  }, [isLoading, benefits?.length]);
-
-  const emptyComponent = useMemo(() => {
-    if (isLoading || refreshing) return null;
-    return (
-      <Box twClassName="flex-1 items-center justify-center">
-        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-          No benefits available
-        </Text>
-      </Box>
-    );
-  }, [isLoading, refreshing]);
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitsListView">
@@ -84,15 +67,15 @@ const BenefitListView = () => {
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
-        {benefits?.length === 0 ? (
-          emptyComponent
+        {!hasBenefits ? (
+          <BenefitEmptyList />
         ) : (
           <Box twClassName="h-full p-4">
             <FlatList
               data={benefits}
               renderItem={renderBenefitItem}
               keyExtractor={(item) => item.id.toString()}
-              ListFooterComponent={renderFooter}
+              ListFooterComponent={<TheMiracleFooter />}
               ListHeaderComponent={
                 <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
                   {strings('rewards.benefits.list_header')}
