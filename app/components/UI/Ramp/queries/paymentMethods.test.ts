@@ -28,6 +28,6 @@ describe('rampsPaymentMethodsOptions', () => {
       '/providers/transak',
     ]);
     expect(typeof opts.queryFn).toBe('function');
-    expect(opts.staleTime).toBe(5 * 60 * 1000);
+    expect(opts.staleTime).toBe(0);
   });
 });

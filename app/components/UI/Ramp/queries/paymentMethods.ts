@@ -41,5 +41,5 @@ export const rampsPaymentMethodsOptions = (params: PaymentMethodsQueryParams) =>
 
       return response.payments;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes — payment methods rarely change
+    staleTime: 0, // always run queryFn so controller state stays in sync
   });
