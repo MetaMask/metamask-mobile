@@ -334,7 +334,9 @@ describe('useRampsPaymentMethods', () => {
       expect(result.current.status).toBe('success');
     });
 
-    expect(result.current.isLoading).toBe(false);
+    // isLoading remains true because no payment method is selected yet
+    // (auto-selection was triggered but Redux hasn't updated in this test)
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.isSuccess).toBe(true);
     expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
   });
