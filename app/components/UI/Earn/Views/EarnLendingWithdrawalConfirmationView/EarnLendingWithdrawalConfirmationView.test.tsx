@@ -165,7 +165,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: 'keyring:test-wallet/ethereum',
             wallets: {
               'keyring:test-wallet': {
                 id: 'keyring:test-wallet',
@@ -180,6 +179,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
               },
             },
           },
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
         },
       },
     },
@@ -1064,7 +1064,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             AccountTreeController: {
               accountTree: {
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
                 wallets: {
                   'keyring:test-wallet': {
                     id: 'keyring:test-wallet',
@@ -1077,6 +1076,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
                   },
                 },
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
           },
         },

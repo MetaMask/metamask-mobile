@@ -363,7 +363,7 @@ const DetectedTokensFlow = () => (
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
     <Stack.Screen
       name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation as ScreenComponent}
+      component={DetectedTokensConfirmation}
       options={{ presentation: 'modal' }}
     />
   </Stack.Navigator>
@@ -728,7 +728,7 @@ const MultichainAccountDetails = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
-        component={AccountDetails as ScreenComponent}
+        component={AccountDetails}
         initialParams={route?.params}
       />
       <Stack.Screen
@@ -755,7 +755,7 @@ const MultichainAccountGroupDetails = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-        component={AccountGroupDetails as ScreenComponent}
+        component={AccountGroupDetails}
         initialParams={route?.params}
       />
       <Stack.Screen
@@ -768,7 +768,7 @@ const MultichainAccountGroupDetails = () => {
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={WalletDetails as ScreenComponent}
+        component={WalletDetails}
         initialParams={route?.params}
         options={{
           headerShown: false,

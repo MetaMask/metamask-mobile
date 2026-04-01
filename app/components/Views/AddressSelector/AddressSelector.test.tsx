@@ -65,7 +65,6 @@ const mockInitialState = {
       },
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID,
           wallets: {
             [ACCOUNT_WALLET_ID]: {
               id: ACCOUNT_WALLET_ID,
@@ -79,6 +78,7 @@ const mockInitialState = {
             },
           },
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID,
       },
     },
   },
