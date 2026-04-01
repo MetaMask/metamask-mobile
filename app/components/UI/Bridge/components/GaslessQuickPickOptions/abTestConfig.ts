@@ -1,5 +1,5 @@
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
 
 export const NUMPAD_QUICK_ACTIONS_AB_KEY =
@@ -33,6 +33,6 @@ export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapp
     validVariants: Object.values(NumpadQuickActionsVariant),
     eventNames: [
       UnifiedSwapBridgeEventName.InputChanged,
-      MetaMetricsEvents.SWAP_PAGE_VIEWED.category,
+      EVENT_NAME.SWAP_PAGE_VIEWED,
     ],
   };

@@ -1,4 +1,4 @@
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
 export const TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY =
@@ -32,5 +32,5 @@ export const TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING: ABTestAnal
   {
     flagKey: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     validVariants: Object.values(TokenSelectorBalanceLayoutVariant),
-    eventNames: [MetaMetricsEvents.SWAP_PAGE_VIEWED.category],
+    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
   };
