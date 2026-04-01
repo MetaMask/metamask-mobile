@@ -21,6 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { LimitType } from '../../../hooks/useSpendingLimit';
 import { sanitizeCustomLimit } from '../../../util/sanitizeCustomLimit';
 import LimitOptionItem from './LimitOptionItem';
+import { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 interface SpendingLimitOptionsNavigationDetails {
   currentLimitType: LimitType;
@@ -37,7 +38,7 @@ export const createSpendingLimitOptionsNavigationDetails =
 
 const SpendingLimitOptionsSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { currentLimitType, currentCustomLimit, callerRoute, callerParams } =
     useParams<SpendingLimitOptionsNavigationDetails>();
 
@@ -54,14 +55,11 @@ const SpendingLimitOptionsSheet: React.FC = () => {
 
   const handleConfirm = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        callerRoute as never,
-        {
-          ...callerParams,
-          returnedLimitType: limitType,
-          returnedCustomLimit: customLimit,
-        } as never,
-      );
+      navigation.navigate(callerRoute, {
+        ...callerParams,
+        returnedLimitType: limitType,
+        returnedCustomLimit: customLimit,
+      });
     });
   }, [navigation, callerRoute, callerParams, limitType, customLimit]);
 
