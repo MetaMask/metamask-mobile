@@ -574,7 +574,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
 
       // run syncMarketingOptInAfterUnlock in the background
-      syncMarketingOptInAfterUnlock();
+      await syncMarketingOptInAfterUnlock();
 
       await upgradeKeychainAuthAfterSuccessfulUnlock();
 
