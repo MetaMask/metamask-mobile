@@ -523,7 +523,7 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
-      it('transitions to connecting state when retrying', async () => {
+      it('transitions to connecting state when retrying a connection error', async () => {
         const { result } = renderWithActions();
 
         act(() => {
@@ -551,6 +551,45 @@ describe('HardwareWalletProvider', () => {
         });
 
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
+      });
+
+      it('closes flow instead of retrying after a signing error', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.AwaitingConfirmation,
+        );
+
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('Signing failed'),
+          );
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+
+        mockAdapterInstance.ensureDeviceReady.mockClear();
+
+        const internalRetry =
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
+        await act(async () => {
+          await internalRetry();
+        });
+
+        expect(mockAdapterInstance.ensureDeviceReady).not.toHaveBeenCalled();
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
       });
     });
   });

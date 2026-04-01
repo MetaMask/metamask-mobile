@@ -212,6 +212,10 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+jest.mock('../../MarketInsights', () => ({
+  MarketInsightsDisclaimerBottomSheet: () => null,
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
