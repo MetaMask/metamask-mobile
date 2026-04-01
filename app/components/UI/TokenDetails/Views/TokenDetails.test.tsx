@@ -155,6 +155,17 @@ jest.mock('../../Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => false),
 }));
 
+const mockUsePerpsMarketForAsset = jest.fn(() => ({
+  hasPerpsMarket: false,
+  marketData: null,
+  isLoading: false,
+  error: null,
+}));
+jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: (...args: unknown[]) =>
+    mockUsePerpsMarketForAsset(...args),
+}));
+
 jest.mock('../../Earn/selectors/featureFlags', () => ({
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
@@ -337,6 +348,7 @@ describe('TokenDetails', () => {
           token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
           token_symbol: 'DAI',
           market_insights_displayed: true,
+          has_perps_market: false,
         }),
       );
     });
@@ -360,6 +372,7 @@ describe('TokenDetails', () => {
           token_address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           token_symbol: 'USDC',
           market_insights_displayed: true,
+          has_perps_market: false,
         }),
       );
     });

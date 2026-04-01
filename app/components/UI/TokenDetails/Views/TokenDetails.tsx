@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -26,6 +32,7 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import { selectPerpsEnabledFlag } from '../../Perps';
+import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { TraceName, endTrace } from '../../../../util/trace';
 import {
   isNetworkRampNativeTokenSupported,
@@ -56,6 +63,77 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
     },
   });
+};
+
+/**
+ * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
+ * Includes ab_tests property when navigating from the token list and the
+ * token list layout A/B test is active.
+ */
+const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { variantName, isTestActive } = useTokenDetailsABTest();
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  return useCallback(
+    ({
+      isMarketInsightsDisplayed,
+      severity,
+      hasPerpsMarket,
+    }: {
+      isMarketInsightsDisplayed: boolean;
+      severity: string | undefined;
+      hasPerpsMarket: boolean;
+    }) => {
+      const source = params.source ?? TokenDetailsSource.Unknown;
+      const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
+
+      if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
+        return;
+      }
+
+      const hasBalance =
+        params.balance !== undefined &&
+        params.balance !== null &&
+        params.balance !== '0' &&
+        params.balance !== '';
+
+      const eventProperties = {
+        source,
+        chain_id: params.chainId,
+        token_symbol: params.symbol,
+        token_address: params.address,
+        token_name: params.name,
+        has_balance: hasBalance,
+        market_insights_displayed: isMarketInsightsDisplayed,
+        severity,
+        has_perps_market: hasPerpsMarket,
+        // A/B test attribution — each experiment is independent
+        ...(isTestActive && {
+          ab_tests: {
+            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+          },
+        }),
+      };
+      const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties(eventProperties)
+        .build();
+      trackEvent(event);
+      lastTrackedTokenKeyRef.current = tokenTrackingKey;
+    },
+    [
+      createEventBuilder,
+      isTestActive,
+      params.address,
+      params.balance,
+      params.chainId,
+      params.name,
+      params.source,
+      params.symbol,
+      trackEvent,
+      variantName,
+    ],
+  );
 };
 
 /**
@@ -94,7 +172,6 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
-  // A/B test hook for layout selection
   const { useNewLayout } = useTokenDetailsABTest();
 
   useEffect(() => {
@@ -322,79 +399,6 @@ const TokenDetails: React.FC<{
 };
 
 /**
- * Fires TOKEN_DETAILS_OPENED for both V2 and legacy Asset view.
- * Includes ab_tests property when navigating from the token list and the
- * token list layout A/B test is active.
- */
-const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const { variantName, isTestActive } = useTokenDetailsABTest();
-  const lastTrackedTokenKeyRef = useRef<string | null>(null);
-
-  return useCallback(
-    ({
-      isMarketInsightsDisplayed,
-      severity,
-    }: {
-      isMarketInsightsDisplayed: boolean;
-      severity: string | undefined;
-    }) => {
-      const source = params.source ?? TokenDetailsSource.Unknown;
-      const tokenTrackingKey = `${params.chainId ?? ''}:${params.address ?? ''}:${params.symbol ?? ''}:${source}`;
-
-      if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
-        return;
-      }
-
-      const hasBalance =
-        params.balance !== undefined &&
-        params.balance !== null &&
-        params.balance !== '0' &&
-        params.balance !== '';
-
-      const isFromTokenList =
-        source === TokenDetailsSource.MobileTokenList ||
-        source === TokenDetailsSource.MobileTokenListPage ||
-        source === TokenDetailsSource.HomeSection;
-
-      const eventProperties = {
-        source,
-        chain_id: params.chainId,
-        token_symbol: params.symbol,
-        token_address: params.address,
-        token_name: params.name,
-        has_balance: hasBalance,
-        market_insights_displayed: isMarketInsightsDisplayed,
-        severity,
-        // A/B test attribution — each experiment is independent
-        ...(isTestActive && {
-          ab_tests: {
-            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
-          },
-        }),
-      };
-      const event = createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-        .addProperties(eventProperties)
-        .build();
-      trackEvent(event);
-      lastTrackedTokenKeyRef.current = tokenTrackingKey;
-    },
-    [
-      createEventBuilder,
-      isTestActive,
-      params.address,
-      params.balance,
-      params.chainId,
-      params.name,
-      params.source,
-      params.symbol,
-      trackEvent,
-      variantName,
-    ],
-  );
-};
-
-/**
  * TokenDetailsRouteWrapper screen
  * Reads token from React Navigation route.params and renders TokenDetails.
  */
@@ -402,23 +406,60 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
 
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
+    usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
+  /**
+   * Defer TOKEN_DETAILS_OPENED until perps market lookup settles when perps is on.
+   * Ref + stable callback avoids re-running AssetOverviewContent's insights effect
+   * when `hasPerpsMarket` changes (which caused max update depth with setState deferral).
+   */
+  const pendingInsightsRef = useRef<{
+    isDisplayed: boolean;
+    severity: string | undefined;
+  } | null>(null);
+  const [tokenDetailsOpenedFlushNonce, setTokenDetailsOpenedFlushNonce] =
+    useState(0);
+
+  const flushTokenDetailsOpenedIfReady = useCallback(() => {
+    const pending = pendingInsightsRef.current;
+    if (!pending) {
+      return;
+    }
+    if (isPerpsEnabled && isPerpsMarketLoading) {
+      return;
+    }
+    trackTokenDetailsOpened({
+      isMarketInsightsDisplayed: pending.isDisplayed,
+      severity: pending.severity,
+      hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
+    });
+    pendingInsightsRef.current = null;
+  }, [
+    hasPerpsMarket,
+    isPerpsEnabled,
+    isPerpsMarketLoading,
+    trackTokenDetailsOpened,
+  ]);
+
   const handleMarketInsightsDisplayResolved = useCallback(
-    ({
-      isDisplayed,
-      severity,
-    }: {
-      isDisplayed: boolean;
-      severity: string | undefined;
-    }) => {
-      trackTokenDetailsOpened({
-        isMarketInsightsDisplayed: isDisplayed,
-        severity,
-      });
+    (payload: { isDisplayed: boolean; severity: string | undefined }) => {
+      pendingInsightsRef.current = payload;
+      setTokenDetailsOpenedFlushNonce((n) => n + 1);
     },
-    [trackTokenDetailsOpened],
+    [],
   );
+
+  useEffect(() => {
+    pendingInsightsRef.current = null;
+  }, [token.address, token.chainId, token.symbol]);
+
+  useEffect(() => {
+    flushTokenDetailsOpenedIfReady();
+  }, [flushTokenDetailsOpenedIfReady, tokenDetailsOpenedFlushNonce]);
 
   return (
     <TokenDetails
