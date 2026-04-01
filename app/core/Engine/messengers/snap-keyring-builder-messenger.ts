@@ -43,7 +43,7 @@ export function getSnapKeyringBuilderMessenger(
       'KeyringController:getAccounts',
       'PhishingController:maybeUpdateState',
       'PhishingController:testOrigin',
-      'SnapController:get',
+      'SnapController:getSnap',
       'SnapController:handleRequest',
       'SnapController:isMinimumPlatformVersion',
     ],

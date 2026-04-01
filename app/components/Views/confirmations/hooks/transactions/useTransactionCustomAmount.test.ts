@@ -445,6 +445,48 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('8642.46');
     });
 
+    it('to percentage of perps available balance', async () => {
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {
+            availableBalance: '500.00',
+          },
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      expect(result.current.amountFiat).toBe('250');
+    });
+
+    it('returns 0 for perps withdraw when no available balance', async () => {
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {},
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('0');
+    });
+
     it('sets isMax to false when percentage is not 100 and isMaxAmount is true', async () => {
       useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
