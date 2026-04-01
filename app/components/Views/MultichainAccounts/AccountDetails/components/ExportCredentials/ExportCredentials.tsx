@@ -82,7 +82,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
     if (account.options.entropySource) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId: account.options.entropySource,
+        params: {
+          keyringId: account.options.entropySource,
+          dismissModalStackOnDone: true,
+        },
       });
     }
   }, [navigate, account.options.entropySource]);

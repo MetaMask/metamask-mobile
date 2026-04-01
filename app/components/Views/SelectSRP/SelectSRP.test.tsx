@@ -84,7 +84,10 @@ describe('SelectSRP', () => {
     );
     expect(mockedNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      keyringId: mockKeyring1.metadata.id,
+      params: {
+        keyringId: mockKeyring1.metadata.id,
+        dismissModalStackOnDone: true,
+      },
     });
   });
 });

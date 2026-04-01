@@ -1339,6 +1339,85 @@ describe('RevealPrivateCredential', () => {
       // which proves updateNavBar returns early without calling navigation.setOptions()
       expect(mockSetOptions).not.toHaveBeenCalled();
     });
+
+    it('calls navigation.pop(2) on Done when dismissModalStackOnDone is true', async () => {
+      const mockPop = jest.fn();
+      const mockNavigation = {
+        pop: mockPop,
+        setOptions: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({
+            skipQuiz: true,
+            shouldUpdateNav: true,
+            dismissModalStackOnDone: true,
+          })}
+          navigation={mockNavigation}
+          cancel={() => null}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        ),
+      );
+
+      expect(mockPop).toHaveBeenCalledWith(2);
+    });
+
+    it('calls navigation.pop once on Cancel when dismissModalStackOnDone is true', async () => {
+      const mockPop = jest.fn();
+      const mockNavigation = {
+        pop: mockPop,
+        setOptions: jest.fn(),
+      };
+      mockReauthenticate.mockRejectedValue(
+        new Error(
+          `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password`,
+        ),
+      );
+
+      const { getByTestId } = renderWithProviders(
+        <RevealPrivateCredential
+          route={createDefaultRoute({
+            skipQuiz: true,
+            shouldUpdateNav: true,
+            dismissModalStackOnDone: true,
+          })}
+          navigation={mockNavigation}
+          cancel={undefined as unknown as () => void}
+          showCancelButton
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        ),
+      );
+
+      expect(mockPop).toHaveBeenCalledTimes(1);
+      expect(mockPop).toHaveBeenCalledWith();
+    });
   });
 
   describe('analytics', () => {
