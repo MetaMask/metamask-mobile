@@ -52,3 +52,17 @@ export const METHODS_TO_DELAY: { [method: string]: boolean } = {
   ...METHODS_TO_REDIRECT,
   [RPC_METHODS.ETH_REQUESTACCOUNTS]: false,
 };
+
+export const ANALYTICS_TRACKED_RPC_METHODS: string[] = [
+  'eth_sendTransaction',
+  'eth_signTypedData',
+  'eth_signTransaction',
+  'personal_sign',
+  'wallet_requestPermissions',
+  'wallet_switchEthereumChain',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'metamask_connectSign',
+  'metamask_connectWith',
+  'metamask_batch',
+];
