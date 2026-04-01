@@ -74,10 +74,6 @@ const useHomeViewedEvent = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasFiredRef = useRef(false);
-  // Set to true the first time the section enters the viewport, independent of
-  // whether fireEvent actually succeeded (e.g. deferred due to empty homepageUserId).
-  // Lets the retry effect below re-fire without needing to re-check scroll position.
-  const wasVisibleRef = useRef(false);
 
   const fireEvent = useCallback(() => {
     if (hasFiredRef.current) return;
@@ -139,7 +135,6 @@ const useHomeViewedEvent = ({
   // Reset on each homepage visit so the event re-fires.
   useEffect(() => {
     hasFiredRef.current = false;
-    wasVisibleRef.current = false;
   }, [visitId]);
 
   // For sections that do NOT render (empty / error / disabled): fire once
@@ -178,7 +173,6 @@ const useHomeViewedEvent = ({
         // the viewport so tall sections fire reliably.
         const threshold = Math.min(height * 0.3, viewportHeight * 0.3);
         if (visiblePx >= threshold) {
-          wasVisibleRef.current = true;
           fireEvent();
         }
       });
@@ -200,17 +194,6 @@ const useHomeViewedEvent = ({
     subscribeToScroll,
     fireEvent,
   ]);
-
-  // Retry fireEvent when its identity changes (e.g. homepageUserId just loaded).
-  // The scroll effect re-checks current visibility, but if the user scrolled
-  // past the section before the ID arrived, measureInWindow won't see it.
-  // wasVisibleRef captures that the section was already in the viewport, so we
-  // can fire without needing to re-check scroll position.
-  useEffect(() => {
-    if (wasVisibleRef.current) {
-      fireEvent();
-    }
-  }, [fireEvent]);
 
   // Sections attach this to their root View's onLayout prop. onLayout fires
   // after the native layout pass, at which point measureInWindow returns real
