@@ -14,6 +14,7 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { isDrawCapableLeague } from '../../constants/sports';
 import { formatVolume } from '../../utils/format';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictGameDetailsFooterProps } from './PredictGameDetailsFooter.types';
@@ -43,6 +44,10 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
     market.status !== 'open' || market.game?.status === 'ended';
   const hasClaimableWinnings = claimableAmount > 0;
   const showClaimButton = hasClaimableWinnings && onClaimPress;
+  const labelKey =
+    market.game?.league && isDrawCapableLeague(market.game.league)
+      ? 'predict.game_details_footer.make_your_prediction'
+      : 'predict.game_details_footer.pick_a_winner';
 
   if (isMarketClosed && !hasClaimableWinnings) {
     return null;
@@ -70,7 +75,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
               color={TextColor.TextAlternative}
               testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.LABEL}`}
             >
-              {strings('predict.game_details_footer.pick_a_winner')}
+              {strings(labelKey)}
             </Text>
             <ButtonIcon
               size={ButtonIconSize.Sm}

@@ -31,7 +31,7 @@ const mockPop = jest.fn();
 const mockNavigation = {
   goBack: jest.fn(),
   setOptions: mockSetOptions,
-  dangerouslyGetParent: () => ({ pop: mockPop }),
+  getParent: () => ({ pop: mockPop }),
   isFocused: jest.fn(() => true),
 };
 jest.mock('@react-navigation/native', () => ({

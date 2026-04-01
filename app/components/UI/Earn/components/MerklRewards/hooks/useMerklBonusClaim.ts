@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
@@ -99,20 +99,41 @@ export const useMerklBonusClaim = (
 
   const eligibleAsset = isEligible ? asset : undefined;
 
-  const { claimableReward, hasClaimedBefore } = useMerklRewards({
-    asset: eligibleAsset,
-  });
+  const { claimableReward, hasClaimedBefore, rewardsFetchVersion } =
+    useMerklRewards({
+      asset: eligibleAsset,
+    });
   const { hasPendingClaim } = usePendingMerklClaim();
   const {
     claimRewards,
     isClaiming,
     error: claimError,
   } = useMerklClaimTransaction(eligibleAsset);
+  const [claimLockFetchVersion, setClaimLockFetchVersion] = useState<
+    number | null
+  >(null);
+  const latestRewardsFetchVersionRef = useRef(rewardsFetchVersion);
+  useEffect(() => {
+    latestRewardsFetchVersionRef.current = rewardsFetchVersion;
+  }, [rewardsFetchVersion]);
+  const isClaimLocked =
+    claimLockFetchVersion !== null &&
+    claimLockFetchVersion === rewardsFetchVersion;
+
+  const claimRewardsWithSessionLock = useCallback(async () => {
+    const claimResult = await claimRewards();
+    // Keep CTA hidden until the next rewards refetch resolves.
+    if (claimResult) {
+      setClaimLockFetchVersion(latestRewardsFetchVersionRef.current);
+    }
+    return claimResult;
+  }, [claimRewards]);
 
   const hasClaimableBonus =
     isEligible &&
     isClaimableBonusAboveThreshold(claimableReward) &&
-    !hasPendingClaim;
+    !hasPendingClaim &&
+    !isClaimLocked;
 
   const hasFiredCtaAvailableEvent = useRef(false);
 
@@ -159,11 +180,12 @@ export const useMerklBonusClaim = (
     }
 
     return {
-      claimableReward: isClaimableBonusAboveThreshold(claimableReward)
-        ? claimableReward
-        : null,
+      claimableReward:
+        !isClaimLocked && isClaimableBonusAboveThreshold(claimableReward)
+          ? claimableReward
+          : null,
       hasPendingClaim,
-      claimRewards,
+      claimRewards: claimRewardsWithSessionLock,
       isClaiming,
       error: claimError,
     };
@@ -171,8 +193,9 @@ export const useMerklBonusClaim = (
     isEligible,
     claimableReward,
     hasPendingClaim,
-    claimRewards,
+    claimRewardsWithSessionLock,
     isClaiming,
     claimError,
+    isClaimLocked,
   ]);
 };
