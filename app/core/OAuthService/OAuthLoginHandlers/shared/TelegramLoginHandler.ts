@@ -1,7 +1,7 @@
 // TODO: Replace this temporary dependency once Telegram auth flow is finalized.
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import { openAuthSessionAsync } from 'expo-web-browser';
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import {
   AuthConnection,
   AuthRequestParams,
@@ -115,16 +115,68 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       }),
     );
 
+    const initialUrl = await Linking.getInitialURL();
+    Logger.log('[TelegramLogin] current initial url before auth:', initialUrl);
+    const callbackUrl = await this.loginWithAuthSession(authorizationUrl);
+
+    Logger.log('[TelegramLogin] expected redirect uri:', this.redirectUri);
+    const callbackParams = Object.fromEntries(
+      new URL(callbackUrl).searchParams.entries(),
+    );
+
+    Logger.log('[TelegramLogin] auth session callback url:', callbackUrl);
+    Logger.log(
+      '[TelegramLogin] auth session callback params:',
+      JSON.stringify(callbackParams),
+    );
+    Alert.alert(
+      'Telegram Callback',
+      `URL:\n${callbackUrl}\n\nParams:\n${JSON.stringify(
+        callbackParams,
+        null,
+        2,
+      )}`,
+    );
+
+    const returnedState = callbackParams.state;
+    if (returnedState !== expectedState) {
+      throw new OAuthError(
+        `Telegram OAuth state mismatch. Expected ${expectedState}, received ${returnedState}`,
+        OAuthErrorType.InvalidOauthStateError,
+      );
+    }
+
+    const code = callbackParams.code;
+    if (!code) {
+      throw new OAuthError(
+        'Telegram callback did not include an authorization code. Check the console log payload from the callback.',
+        OAuthErrorType.TelegramLoginError,
+      );
+    }
+
+    return {
+      authConnection: this.authConnection,
+      code,
+      state: returnedState,
+      clientId: this.clientId,
+      redirectUri: this.redirectUri,
+      codeVerifier,
+    };
+  }
+
+  async loginWithAuthSession(authorizationUrl: string): Promise<string> {
     const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
       Logger.log('[TelegramLogin] raw incoming app url:', url);
     });
 
-    const initialUrl = await Linking.getInitialURL();
-    Logger.log('[TelegramLogin] current initial url before auth:', initialUrl);
-
     const result = await openAuthSessionAsync(
       authorizationUrl,
       this.redirectUri,
+      {
+        createTask: true,
+        showInRecents: true,
+        useProxyActivity: true,
+      },
     );
 
     linkingSubscription.remove();
@@ -136,42 +188,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     Logger.log('[TelegramLogin] raw auth session result type:', result.type);
 
     if (result.type === 'success') {
-      const callbackUrl = result.url;
-      Logger.log('[TelegramLogin] expected redirect uri:', this.redirectUri);
-      const callbackParams = Object.fromEntries(
-        new URL(callbackUrl).searchParams.entries(),
-      );
-
-      Logger.log('[TelegramLogin] auth session callback url:', callbackUrl);
-      Logger.log(
-        '[TelegramLogin] auth session callback params:',
-        JSON.stringify(callbackParams),
-      );
-
-      const returnedState = callbackParams.state;
-      if (returnedState !== expectedState) {
-        throw new OAuthError(
-          `Telegram OAuth state mismatch. Expected ${expectedState}, received ${returnedState}`,
-          OAuthErrorType.InvalidOauthStateError,
-        );
-      }
-
-      const code = callbackParams.code;
-      if (!code) {
-        throw new OAuthError(
-          'Telegram callback did not include an authorization code. Check the console log payload from the callback.',
-          OAuthErrorType.TelegramLoginError,
-        );
-      }
-
-      return {
-        authConnection: this.authConnection,
-        code,
-        state: returnedState,
-        clientId: this.clientId,
-        redirectUri: this.redirectUri,
-        codeVerifier,
-      };
+      return result.url;
     }
 
     if (result.type === 'cancel') {
