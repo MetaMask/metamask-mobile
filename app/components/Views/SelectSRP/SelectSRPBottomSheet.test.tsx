@@ -47,7 +47,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           children: React.ReactNode;
           goBack?: () => void;
         },
-        _ref: ReactLib.Ref<unknown>,
+        _ref: React.Ref<unknown>,
       ) => (
         <MockView testID="mock-bottom-sheet">
           <TouchableOpacity
