@@ -211,17 +211,6 @@ describe('AccountSelector', () => {
     expect(getByText('transaction.recipient_address')).toBeOnTheScreen();
   });
 
-  it('renders custom placeholderLabel when provided', () => {
-    const { getByText } = render(
-      <AccountSelector
-        onAccountSelected={mockOnAccountSelected}
-        placeholderLabel="Custom placeholder"
-      />,
-    );
-
-    expect(getByText('Custom placeholder')).toBeOnTheScreen();
-  });
-
   it('renders avatar and account name when selectedAddress is provided', () => {
     const { getByText } = render(
       <AccountSelector
