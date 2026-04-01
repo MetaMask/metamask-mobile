@@ -4,7 +4,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
-import fixtureData from '../../Homepage/Sections/TopTraders/__fixtures__/leaderboardResponse.json';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 
 const mockGoBack = jest.fn();
@@ -19,16 +18,35 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-/** Map fixture JSON entries to the TopTrader UI type. */
-const fixtureTraders: TopTrader[] = fixtureData.traders.map((entry) => ({
-  id: entry.profileId,
-  rank: entry.rank,
-  username: entry.name,
-  avatarUri: entry.imageUrl,
-  percentageChange: (entry.roi30d ?? 0) * 100,
-  pnlValue: entry.pnl30d,
-  isFollowing: false,
-}));
+const fixtureTraders: TopTrader[] = [
+  {
+    id: 'trader-1',
+    rank: 1,
+    username: 'sniperliquid.hl',
+    avatarUri: 'https://example.com/avatar1.png',
+    percentageChange: 43,
+    pnlValue: 963146.8,
+    isFollowing: false,
+  },
+  {
+    id: 'trader-2',
+    rank: 2,
+    username: 'nervousdegen',
+    avatarUri: 'https://example.com/avatar2.png',
+    percentageChange: 359,
+    pnlValue: 474751.45,
+    isFollowing: false,
+  },
+  {
+    id: 'trader-3',
+    rank: 3,
+    username: 'baznocap',
+    avatarUri: 'https://example.com/avatar3.png',
+    percentageChange: 617,
+    pnlValue: 374735.16,
+    isFollowing: false,
+  },
+];
 
 const mockUseTopTraders: UseTopTradersResult = {
   traders: fixtureTraders,
@@ -79,7 +97,7 @@ describe('TopTradersView', () => {
     );
   });
 
-  it('renders all 15 traders from fixture data', () => {
+  it('renders all traders', () => {
     renderWithProvider(<TopTradersView />);
     fixtureTraders.forEach((trader) => {
       expect(screen.getByText(trader.username)).toBeOnTheScreen();
@@ -91,9 +109,8 @@ describe('TopTradersView', () => {
     expect(screen.getByText('1.')).toBeOnTheScreen();
   });
 
-  it('renders correct ROI for the first trader (43%)', () => {
+  it('renders the ROI for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    // roi30d = 0.43, multiplied by 100 = 43.0%
     expect(screen.getByText('+43.0%')).toBeOnTheScreen();
   });
 
