@@ -10,6 +10,7 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
+  selectPredictActiveBuyOrder,
   selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
@@ -135,6 +136,87 @@ describe('Predict Controller Selectors', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectPredictActiveBuyOrder', () => {
+    const mockAccountsController = {
+      internalAccounts: {
+        selectedAccount: 'acct-1',
+        accounts: {
+          'acct-1': {
+            address: '0xabc123',
+            type: 'eip155:eoa',
+            id: 'acct-1',
+            metadata: {
+              name: 'Account 1',
+              keyring: { type: 'HD Key Tree' },
+              importTime: 0,
+              lastSelected: 0,
+            },
+            options: {},
+            methods: [],
+            scopes: [],
+          },
+        },
+      },
+    };
+
+    it('returns active buy order for the selected account address', () => {
+      const activeBuyOrder = {
+        state: 'preview',
+        transactionId: 'tx-1',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: { '0xabc123': activeBuyOrder },
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toEqual(activeBuyOrder);
+    });
+
+    it('returns null when no order exists for the selected address', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: {},
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
 
       expect(result).toBeNull();
     });

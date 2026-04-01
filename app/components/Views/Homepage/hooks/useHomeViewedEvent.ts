@@ -12,6 +12,7 @@ export const HomeSectionNames = {
   DEFI: 'defi',
   PREDICT: 'predict',
   NFTS: 'nfts',
+  TOP_TRADERS: 'top_traders',
 } as const;
 
 export type HomeSectionName =
