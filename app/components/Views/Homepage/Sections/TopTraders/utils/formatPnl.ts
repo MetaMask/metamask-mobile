@@ -21,5 +21,13 @@ export function formatPnl(value: number): string {
 }
 
 function addCommas(n: number): string {
-  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const str = n.toString();
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    if (i > 0 && (str.length - i) % 3 === 0) {
+      result += ',';
+    }
+    result += str[i];
+  }
+  return result;
 }
