@@ -63,53 +63,6 @@ function getSessionIdFromAnnotations(
   return annotations?.find((a) => a.type === 'sessionId')?.description ?? null;
 }
 
-/**
- * Polls POST /session/:id/timeouts (the implicit wait setter) until it
- * succeeds, confirming the Appium driver is fully ready to accept commands.
- *
- * Why this is needed:
- * BrowserStack's remote() resolves as soon as the WebDriver session object is
- * created on their hub, but the actual device driver (UiAutomator2 / XCUITest)
- * continues bootstrapping for several seconds afterward. During that window,
- * session-scoped commands are rejected immediately (~26-44ms) with a Timeout
- * error — including POST /session/:id/timeouts itself.
- *
- * Why not use getWindowSize() as the probe:
- * getWindowSize() and setTimeout go through different code paths on BrowserStack's
- * Appium server. The window endpoint can succeed while the timeouts endpoint is
- * still not ready — as confirmed by observing getWindowSize() succeed at 00:07
- * followed immediately by setTimeout failing at 00:07 in the same session.
- * Using setTimeout as its own probe is the only way to guarantee the exact
- * endpoint we need is ready before we depend on it.
- *
- * @param driver - The WebdriverIO browser instance
- * @param implicitMs - The implicit wait value to set (used as both probe and final value)
- * @param options.pollIntervalMs - How long to wait between attempts (default 500ms)
- * @param options.timeoutMs - Maximum time to wait before giving up (default 120s)
- */
-async function waitForSetTimeoutReady(
-  driver: WebdriverIO.Browser,
-  implicitMs: number,
-  options: { pollIntervalMs?: number; timeoutMs?: number } = {},
-): Promise<void> {
-  const { pollIntervalMs = 500, timeoutMs = 240_000 } = options;
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    try {
-      await driver.setTimeout({ implicit: implicitMs });
-      return;
-    } catch {
-      await new Promise((r) => setTimeout(r, pollIntervalMs));
-    }
-  }
-
-  throw new Error(
-    `BrowserStack Appium driver did not accept setTimeout within ${timeoutMs}ms. ` +
-      `The device driver (UiAutomator2/XCUITest) may still be bootstrapping.`,
-  );
-}
-
 export const test = base.extend<TestLevelFixtures>({
   // eslint-disable-next-line no-empty-pattern
   currentDeviceDetails: async ({}, use, testInfo) => {
@@ -155,19 +108,6 @@ export const test = base.extend<TestLevelFixtures>({
     try {
       // Create driver and set up test context
       driver = await deviceProvider.getDriver();
-
-      // Set the implicit timeout for the driver.
-      // On BrowserStack, POST /session/:id/timeouts is polled until it succeeds
-      // because the Appium driver (UiAutomator2/XCUITest) continues bootstrapping
-      // after remote() returns and rejects commands during that window.
-      // On emulators the call is made directly — no polling needed.
-      const implicitMs = project.use.expectTimeout ?? DEFAULT_IMPLICIT_WAIT_MS;
-      const isBrowserStack = project.use.device?.provider === 'browserstack';
-      if (isBrowserStack) {
-        await waitForSetTimeoutReady(driver, implicitMs);
-      } else {
-        await driver.setTimeout({ implicit: implicitMs });
-      }
 
       // Make driver globally accessible for utilities
       globalThis.driver = driver;
