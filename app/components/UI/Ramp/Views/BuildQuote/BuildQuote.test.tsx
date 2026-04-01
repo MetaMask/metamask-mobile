@@ -718,6 +718,73 @@ describe('BuildQuote', () => {
     });
   });
 
+  describe('provider quote error (out-of-bounds / limits)', () => {
+    it('shows provider error message when quotes response has errors and no successful quotes', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Minimum order amount is $30.00 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
+    });
+
+    it('shows generic no-quotes error when quotes response has errors without messages', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [{ provider: 'moonpay' }],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText(/encountered an error/i)).toBeTruthy();
+    });
+
+    it('disables continue button when provider returns a limit error', () => {
+      mockUseRampsQuotes.mockReturnValue({
+        data: {
+          success: [],
+          error: [
+            {
+              provider: 'moonpay',
+              error: 'Maximum order amount is $10,000 USD',
+            },
+          ],
+        },
+        loading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+  });
+
   describe('handleNativeProviderContinue', () => {
     beforeEach(() => {
       mockUseRampsController.mockReturnValue({

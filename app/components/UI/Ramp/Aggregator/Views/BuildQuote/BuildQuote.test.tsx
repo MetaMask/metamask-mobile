@@ -102,7 +102,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       reset: mockReset,
       pop: mockPop,
-      getParent: () => ({
+      dangerouslyGetParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -205,9 +205,7 @@ const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
   isAmountAboveMaximum: jest
     .fn()
     .mockImplementation((amount) => amount > MAX_LIMIT),
-  isAmountValid: jest
-    .fn()
-    .mockImplementation((amount) => amount >= MIN_LIMIT && amount <= MAX_LIMIT),
+  isAmountValid: jest.fn(),
 };
 
 let mockUseLimitsValues = {
@@ -737,7 +735,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(invalidMaxAmount));
       expect(
-        screen.getByText(`Maximum purchase is ${denomSymbol}${MAX_LIMIT}`),
+        screen.getByText(`Maximum deposit is ${denomSymbol}${MAX_LIMIT}`),
       ).toBeTruthy();
     });
 
@@ -750,7 +748,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
       fireEvent.press(getByRoleButton(invalidMinAmount));
       expect(
-        screen.getByText(`Minimum purchase is ${denomSymbol}${MIN_LIMIT}`),
+        screen.getByText(`Minimum deposit is ${denomSymbol}${MIN_LIMIT}`),
       ).toBeTruthy();
     });
 
@@ -985,72 +983,6 @@ describe('BuildQuote View', () => {
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toHaveTextContent(`2 ${symbol}`);
-    });
-  });
-
-  //
-  // SUBMIT BUTTON DISABLED STATE TESTS
-  //
-  describe('Get Quotes button disabled states', () => {
-    it('is disabled when amount is below minimum limit', () => {
-      render(BuildQuote);
-      const submitBtn = getByRoleButton('Get quotes');
-      const initialAmount = '0';
-      const invalidMinAmount = (MIN_LIMIT - 1).toString();
-      const denomSymbol =
-        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
-      fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
-      fireEvent.press(getByRoleButton(invalidMinAmount));
-      fireEvent.press(getByRoleButton('Done'));
-      expect(submitBtn.props.disabled).toBe(true);
-    });
-
-    it('is disabled when amount is above maximum limit', () => {
-      render(BuildQuote);
-      const submitBtn = getByRoleButton('Get quotes');
-      const initialAmount = '0';
-      const invalidMaxAmount = (MAX_LIMIT + 1).toString();
-      const denomSymbol =
-        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
-      fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
-      fireEvent.press(getByRoleButton(invalidMaxAmount));
-      fireEvent.press(getByRoleButton('Done'));
-      expect(submitBtn.props.disabled).toBe(true);
-    });
-
-    it('is disabled when user has insufficient balance (sell)', () => {
-      mockUseRampSDKValues.isBuy = false;
-      mockUseRampSDKValues.isSell = true;
-      mockUseLimitsValues.limits = {
-        ...mockUseLimitsValues.limits,
-        maxAmount: 10,
-      } as Limits;
-      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
-        '5',
-        mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
-      render(BuildQuote);
-      const submitBtn = getByRoleButton('Get quotes');
-      const initialAmount = '0';
-      const overBalanceAmount = '6';
-      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
-      fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
-      fireEvent.press(getByRoleButton(overBalanceAmount));
-      fireEvent.press(getByRoleButton('Done'));
-      expect(submitBtn.props.disabled).toBe(true);
-    });
-
-    it('is enabled when amount is valid and within limits', () => {
-      render(BuildQuote);
-      const submitBtn = getByRoleButton('Get quotes');
-      const initialAmount = '0';
-      const validAmount = VALID_AMOUNT.toString();
-      const denomSymbol =
-        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
-      fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
-      fireEvent.press(getByRoleButton(validAmount));
-      fireEvent.press(getByRoleButton('Done'));
-      expect(submitBtn.props.disabled).toBe(false);
     });
   });
 

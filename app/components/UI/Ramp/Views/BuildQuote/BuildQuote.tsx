@@ -841,6 +841,11 @@ function BuildQuote() {
     quotesResponse !== null &&
     selectedQuote === null;
 
+  const providerQuoteError = useMemo(() => {
+    if (!hasNoQuotes || !quotesResponse?.error?.length) return undefined;
+    return quotesResponse.error[0]?.error;
+  }, [hasNoQuotes, quotesResponse?.error]);
+
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {
         provider: selectedProvider.name,
@@ -957,9 +962,14 @@ function BuildQuote() {
                     />
                   ) : hasNoQuotes ? (
                     <TruncatedError
-                      error={strings('fiat_on_ramp.encountered_error')}
-                      errorDetails={noQuotesErrorMessage}
-                      showChangeProvider
+                      error={
+                        providerQuoteError ||
+                        strings('fiat_on_ramp.encountered_error')
+                      }
+                      errorDetails={
+                        providerQuoteError ? undefined : noQuotesErrorMessage
+                      }
+                      showChangeProvider={!providerQuoteError}
                       amount={amountAsNumber}
                     />
                   ) : (
