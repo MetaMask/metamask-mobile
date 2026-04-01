@@ -69,8 +69,9 @@ export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const GoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 export const TelegramAuthServerUrl = 'https://firm-correct-ram.ngrok-free.app';
-export const TelegramAuthServerInitiatePath =
-  '/api/v2/telegram/login/initiate';
+export const TelegramAuthServerInitiatePath = '/api/v2/telegram/login/initiate';
+export const TelegramAuthServerVerifyPath = '/api/v2/telegram/login/verify';
+export const TelegramMintPath = 'api/v1/oauth/mint';
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
@@ -121,11 +122,11 @@ export const AuthConnectionConfig: Record<
   SupportedPlatforms,
   Partial<
     Record<
-    AuthConnection,
-    {
-      authConnectionId: string;
-      groupedAuthConnectionId?: string;
-    }
+      AuthConnection,
+      {
+        authConnectionId: string;
+        groupedAuthConnectionId?: string;
+      }
     >
   >
 > = {

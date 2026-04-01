@@ -21,6 +21,7 @@ export enum AuthConnection {
 export interface LoginHandlerCodeResult {
   authConnection: AuthConnection;
   code: string;
+  state?: string;
   clientId: string;
   redirectUri?: string;
   codeVerifier?: string;
@@ -65,9 +66,14 @@ export interface AuthRequestIdTokenParams {
   code_verifier?: string;
 }
 
+export interface AuthRequestMintTokenParams {
+  id_token: string;
+}
+
 export type AuthRequestParams =
   | AuthRequestCodeParams
-  | AuthRequestIdTokenParams;
+  | AuthRequestIdTokenParams
+  | AuthRequestMintTokenParams;
 
 // return type for auth request with
 // grant type : authorization_code, access_type: offline

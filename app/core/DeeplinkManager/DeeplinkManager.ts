@@ -135,14 +135,12 @@ export class DeeplinkManager {
       if (!url) {
         return;
       }
-      console.log('[DeeplinkManager] initial URL:', url);
       Logger.log(`handleDeeplink:: got initial URL ${url}`);
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
-      console.log('[DeeplinkManager] incoming URL event:', url);
       handleDeeplink({ uri: url });
     });
 

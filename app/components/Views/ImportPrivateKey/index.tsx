@@ -50,7 +50,7 @@ const ImportPrivateKey = () => {
   const isSRP =
     authConnection !== AuthConnection.Apple &&
     authConnection !== AuthConnection.Google &&
-    authConnection !== 'telegram';
+    authConnection !== AuthConnection.Telegram;
 
   useEffect(() => {
     mounted.current = true;
