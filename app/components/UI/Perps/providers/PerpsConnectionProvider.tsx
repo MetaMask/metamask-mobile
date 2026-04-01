@@ -16,7 +16,6 @@ import {
 } from '@metamask/perps-controller';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { logPerpsRca } from '../../../../util/perpsRca';
 
 export interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -278,12 +277,6 @@ export const PerpsConnectionProvider: React.FC<
       return;
     }
 
-    logPerpsRca('connection_error_visible', {
-      error: connectionState.error,
-      isFullScreen,
-      suppressErrorView,
-    });
-
     if (lastErrorBreadcrumbRef.current === connectionState.error) {
       return;
     }
@@ -298,7 +291,7 @@ export const PerpsConnectionProvider: React.FC<
       },
     });
     lastErrorBreadcrumbRef.current = connectionState.error;
-  }, [connectionState.error, isFullScreen, retryAttempts, suppressErrorView]);
+  }, [connectionState.error, retryAttempts]);
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error
@@ -312,29 +305,17 @@ export const PerpsConnectionProvider: React.FC<
 
     const handleRetry = async () => {
       // Increment retry attempts first to ensure back button shows immediately
-      const nextRetryAttempt = retryAttempts + 1;
       setRetryAttempts((prev) => prev + 1);
-      logPerpsRca('retry_requested', {
-        retryAttempt: nextRetryAttempt,
-      });
 
       try {
         // Use reconnectWithNewContext with force flag for full reset including WebSocket and cached data
         // This ensures we properly recover from stuck connection states by canceling any pending operations
         await PerpsConnectionManager.reconnectWithNewContext({ force: true });
-        logPerpsRca('retry_success', {
-          retryAttempt: nextRetryAttempt,
-        });
 
         // If we reach here, connection succeeded
         // Reset retry attempts and let polling update the state
         setRetryAttempts(0);
       } catch (err) {
-        logPerpsRca('retry_fail', {
-          retryAttempt: nextRetryAttempt,
-          error: ensureError(err, 'PerpsConnectionProvider.handleRetry')
-            .message,
-        });
         // Breadcrumb only — avoid flooding Sentry with a new event on every retry
         addBreadcrumb({
           category: 'perps.connection',
