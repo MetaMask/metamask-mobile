@@ -43,10 +43,6 @@ const migration = (state: unknown): unknown => {
       return state;
     }
 
-    if (state.security?.dataCollectionForMarketing !== true) {
-      return state;
-    }
-
     if (!hasProperty(state, 'onboarding') || !isObject(state.onboarding)) {
       return state;
     }

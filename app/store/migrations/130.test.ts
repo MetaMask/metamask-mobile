@@ -23,10 +23,6 @@ interface TestState {
       [key: string]: unknown;
     };
   };
-  security?: {
-    dataCollectionForMarketing?: boolean | null;
-    [key: string]: unknown;
-  };
   onboarding?: {
     seedless?: {
       pendingSocialLoginMarketingConsentBackfill?: string | null;
@@ -59,7 +55,6 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
           OtherController: { someData: true },
         },
       },
-      security: { dataCollectionForMarketing: true },
       onboarding: {},
     };
 
@@ -80,7 +75,6 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
           },
         },
       },
-      security: { dataCollectionForMarketing: true },
       onboarding: {},
     };
 
@@ -99,31 +93,11 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
           SeedlessOnboardingController: { authConnection: 'google' },
         },
       },
-      security: { dataCollectionForMarketing: true },
     };
 
     const result = migrate(state);
 
     expect(result).toBe(state);
-  });
-
-  it('returns state unchanged if dataCollectionForMarketing is false', () => {
-    const state: TestState = {
-      engine: {
-        backgroundState: {
-          SeedlessOnboardingController: { authConnection: 'google' },
-        },
-      },
-      security: { dataCollectionForMarketing: false },
-      onboarding: {},
-    };
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
-    expect(
-      state.onboarding?.seedless?.pendingSocialLoginMarketingConsentBackfill,
-    ).toBeUndefined();
   });
 
   it('stores the authConnection in onboarding.seedless for eligible social login users', () => {
@@ -133,7 +107,6 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
           SeedlessOnboardingController: { authConnection: 'google' },
         },
       },
-      security: { dataCollectionForMarketing: true },
       onboarding: {
         seedless: {
           pendingSocialLoginMarketingConsentBackfill: null,
@@ -156,9 +129,6 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
           SeedlessOnboardingController: { authConnection: 'apple' },
         },
       },
-      security: {
-        dataCollectionForMarketing: true,
-      },
       onboarding: {
         seedless: {
           pendingSocialLoginMarketingConsentBackfill: 'google',
@@ -173,14 +143,13 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
     ).toBe('apple');
   });
 
-  it('creates onboarding.seedless when it is missing', () => {
+  it('creates onboarding.seedless when it is missing (migration does not gate on marketing consent)', () => {
     const state: TestState = {
       engine: {
         backgroundState: {
           SeedlessOnboardingController: { authConnection: 'google' },
         },
       },
-      security: { dataCollectionForMarketing: true },
       onboarding: {},
     };
 
@@ -192,25 +161,23 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
   });
 
   it('captures exceptions and returns state unchanged on unexpected errors', () => {
+    const onboarding: Record<string, unknown> = {};
+    Object.defineProperty(onboarding, 'seedless', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        throw new Error('Unexpected migration failure');
+      },
+    });
+
     const state: TestState = {
       engine: {
         backgroundState: {
           SeedlessOnboardingController: { authConnection: 'google' },
         },
       },
-      security: { dataCollectionForMarketing: true },
-      onboarding: {
-        seedless: {
-          pendingSocialLoginMarketingConsentBackfill: null,
-        },
-      },
+      onboarding,
     };
-
-    Object.defineProperty(state, 'security', {
-      get() {
-        throw new Error('Unexpected migration failure');
-      },
-    });
 
     const result = migrate(state);
 
