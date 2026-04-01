@@ -392,6 +392,10 @@
     "lastUpdated": null,
     "signature": null
   },
+  "SocialController": {
+    "followingAddresses": [],
+    "leaderboardEntries": []
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
