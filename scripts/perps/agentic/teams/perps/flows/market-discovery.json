@@ -18,60 +18,60 @@
     }
   },
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         "perps.feature_enabled"
       ],
-      "steps": [
-        {
-          "id": "nav-market-list",
+      "entry": "nav-market-list",
+      "nodes": {
+        "nav-market-list": {
           "action": "navigate",
-          "target": "PerpsTrendingView"
+          "target": "PerpsTrendingView",
+          "next": "wait-market-data"
         },
-        {
-          "id": "wait-market-data",
+        "wait-market-data": {
           "action": "wait_for",
-          "route": "PerpsTrendingView"
+          "route": "PerpsTrendingView",
+          "next": "select-category"
         },
-        {
-          "id": "select-category",
+        "select-category": {
           "action": "eval_sync",
           "expression": "(function(){var cat='{{category}}';if(!cat)return JSON.stringify({skipped:true,category:'all'});var r=globalThis.__AGENTIC__.pressTestId('perps-market-list-sort-filters-categories-'+cat);return JSON.stringify({selected:true,category:cat})})()",
           "assert": {
             "operator": "not_null"
-          }
+          },
+          "next": "search-symbol"
         },
-        {
-          "id": "search-symbol",
+        "search-symbol": {
           "action": "eval_sync",
           "expression": "(function(){var q='{{search}}';if(!q)return JSON.stringify({skipped:true});globalThis.__AGENTIC__.setInput('perps-market-list-search-bar',q);return JSON.stringify({searched:true,query:q})})()",
           "assert": {
             "operator": "not_null"
-          }
+          },
+          "next": "wait-filter"
         },
-        {
-          "id": "wait-filter",
+        "wait-filter": {
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
           "assert": {
             "operator": "gt",
             "field": "count",
             "value": 0
-          }
+          },
+          "next": "assert-symbol-in-list"
         },
-        {
-          "id": "assert-symbol-in-list",
+        "assert-symbol-in-list": {
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!m,symbol:m?m.symbol:null})})",
           "assert": {
             "operator": "eq",
             "field": "found",
             "value": true
-          }
+          },
+          "next": "nav-market-detail"
         },
-        {
-          "id": "nav-market-detail",
+        "nav-market-detail": {
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -84,18 +84,23 @@
               "volume": "0",
               "maxLeverage": "100"
             }
-          }
+          },
+          "next": "wait-price-load"
         },
-        {
-          "id": "wait-price-load",
+        "wait-price-load": {
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({price:m?m.price:'0'})})",
           "assert": {
             "operator": "not_null",
             "field": "price"
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }
