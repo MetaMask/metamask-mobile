@@ -1,8 +1,14 @@
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
+import Device from '../../../util/device';
+import ReduxService from '../../redux';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
+import {
+  DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
+  selectLegacyIosGoogleConfigEnabled,
+} from '../../../selectors/featureFlagController/legacyIosGoogleConfig';
 
 export const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
@@ -55,13 +61,48 @@ export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
 
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
-export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
+export const GoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
 // Use universal link for OAuth redirect
-export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
+export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
+
+export const shouldUseLegacyIosGoogleConfig = () => {
+  if (!Device.isIos()) {
+    return false;
+  }
+
+  try {
+    return selectLegacyIosGoogleConfigEnabled(ReduxService.store.getState());
+  } catch {
+    return DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED;
+  }
+};
+
+export const getIosGoogleConfig = () => {
+  if (
+    shouldUseLegacyIosGoogleConfig() ||
+    (Device.isIos() && Device.comparePlatformVersionTo('17.4') < 0)
+  ) {
+    if (!IosGoogleRedirectUri || !IosGID) {
+      throw new Error('IosGoogleConfig is not set');
+    }
+    return {
+      clientId: IosGID,
+      redirectUri: IosGoogleRedirectUri,
+    };
+  }
+
+  if (!GoogleWebGID) {
+    throw new Error('GoogleWebGID is not set');
+  }
+  return {
+    clientId: GoogleWebGID,
+    redirectUri: GoogleRedirectUri,
+  };
+};
 
 export enum SupportedPlatforms {
   Android = 'android',

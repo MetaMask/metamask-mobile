@@ -27,6 +27,7 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
+  clearSeedlessOnboarding,
 } from '../../../actions/onboarding';
 import {
   AccountType,
@@ -866,6 +867,7 @@ const Onboarding = () => {
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
+        dispatch(clearSeedlessOnboarding());
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: {
@@ -876,7 +878,6 @@ const Onboarding = () => {
             createWallet: actionType === 'create',
           },
         });
-        // else
       } else if (actionType === 'create') {
         await onPressCreate();
       } else {
@@ -889,6 +890,7 @@ const Onboarding = () => {
       onPressImport,
       onPressContinueWithGoogle,
       onPressContinueWithApple,
+      dispatch,
     ],
   );
 
