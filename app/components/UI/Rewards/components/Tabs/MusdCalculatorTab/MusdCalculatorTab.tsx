@@ -29,7 +29,7 @@ import {
 } from '../../../../Earn/constants/musd';
 import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { RewardsMetricsButtons } from '../../../utils';
 
 const ANNUAL_BONUS_RATE = 0.03;

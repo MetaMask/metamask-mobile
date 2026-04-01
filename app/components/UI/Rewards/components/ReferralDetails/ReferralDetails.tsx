@@ -18,7 +18,8 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { RewardsMetricsButtons } from '../../utils';
 
 interface ReferralDetailsProps {
@@ -38,7 +39,7 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
 
   const { fetchReferralDetails } = useReferralDetails();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleCopyCode = async () => {
     if (referralCode) {
