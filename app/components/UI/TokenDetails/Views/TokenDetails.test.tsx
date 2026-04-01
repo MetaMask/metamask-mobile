@@ -164,7 +164,7 @@ jest.mock('../../Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => false),
 }));
 
-const mockUsePerpsMarketForAsset = jest.fn(() => ({
+const mockUsePerpsMarketForAsset = jest.fn((_symbol: string | null) => ({
   hasPerpsMarket: false,
   marketData: null,
   isLoading: false,
