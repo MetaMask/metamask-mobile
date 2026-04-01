@@ -218,7 +218,7 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          'Migration 129: Failed to mark pending social login marketing consent backfill',
+          'Migration 130: Failed to mark pending social login marketing consent backfill',
         ),
       }),
     );
