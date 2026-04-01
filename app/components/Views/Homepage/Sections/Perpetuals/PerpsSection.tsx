@@ -62,6 +62,158 @@ const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
 const HOMEPAGE_THROTTLE_MS = 5000;
 
+interface UsePerpsTrendingCarouselDataArgs {
+  skipInitialFetch?: boolean;
+}
+
+const usePerpsNavigationHandlers = () => {
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+
+  const navigateToTutorialOrScreen = useCallback(
+    (screen: string, params: Record<string, unknown>) => {
+      if (isFirstTimePerpsUser) {
+        navigation.navigate(Routes.PERPS.TUTORIAL, {
+          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+          redirectScreen: screen,
+          redirectParams: params,
+        });
+      } else {
+        navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+      }
+    },
+    [isFirstTimePerpsUser, navigation],
+  );
+
+  const handleViewAllPerps = useCallback(() => {
+    navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
+      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    });
+  }, [navigateToTutorialOrScreen]);
+
+  const handleViewMorePerps = useCallback(() => {
+    navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
+      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    });
+  }, [navigateToTutorialOrScreen]);
+
+  const handleTilePress = useCallback(
+    (market: PerpsMarketData) => {
+      navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
+        market,
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      });
+    },
+    [navigateToTutorialOrScreen],
+  );
+
+  return {
+    navigateToTutorialOrScreen,
+    handleViewAllPerps,
+    handleViewMorePerps,
+    handleTilePress,
+  };
+};
+
+const usePerpsTrendingCarouselData = ({
+  skipInitialFetch = false,
+}: UsePerpsTrendingCarouselDataArgs) => {
+  const { markets, isLoading: marketsLoading } = usePerpsMarkets({
+    skipInitialFetch,
+  });
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+
+  const safeWatchlistSymbols = useMemo(
+    () => watchlistSymbols ?? [],
+    [watchlistSymbols],
+  );
+
+  const watchlistMarkets = useMemo(() => {
+    if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
+    const marketBySymbol = new Map(markets.map((m) => [m.symbol, m]));
+    return safeWatchlistSymbols
+      .map((sym) => marketBySymbol.get(sym))
+      .filter((m): m is PerpsMarketDataWithVolumeNumber => m != null);
+  }, [markets, safeWatchlistSymbols]);
+
+  const trendingMarkets = useMemo(() => {
+    if (markets.length === 0) return [];
+    const wlSet = new Set(watchlistMarkets.map((m) => m.symbol));
+    return filterAndSortMarkets({
+      marketData: markets,
+      showZeroVolume: false,
+    })
+      .filter((m) => !wlSet.has(m.symbol))
+      .slice(0, Math.max(0, MAX_TRENDING_MARKETS - watchlistMarkets.length));
+  }, [markets, watchlistMarkets]);
+
+  const allCarouselMarkets = useMemo(
+    () =>
+      [...(watchlistMarkets ?? []), ...(trendingMarkets ?? [])].slice(
+        0,
+        MAX_TRENDING_MARKETS,
+      ),
+    [watchlistMarkets, trendingMarkets],
+  );
+
+  const watchlistSymbolSet = useMemo(
+    () => new Set((watchlistMarkets ?? []).map((m) => m.symbol)),
+    [watchlistMarkets],
+  );
+
+  return {
+    markets,
+    marketsLoading,
+    allCarouselMarkets,
+    watchlistSymbolSet,
+  };
+};
+
+interface PerpsTrendingCarouselProps {
+  markets: PerpsMarketDataWithVolumeNumber[];
+  watchlistSymbolSet: Set<string>;
+  sparklines: Record<string, number[] | undefined>;
+  onPressMarket: (market: PerpsMarketData) => void;
+  onPressViewMore: () => void;
+}
+
+const PerpsTrendingCarousel = ({
+  markets,
+  watchlistSymbolSet,
+  sparklines,
+  onPressMarket,
+  onPressViewMore,
+}: PerpsTrendingCarouselProps) => {
+  const tw = useTailwind();
+  if (markets.length === 0) {
+    return null;
+  }
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={tw.style('px-4 gap-2.5')}
+      testID="homepage-trending-perps-carousel"
+    >
+      {markets.map((market) => (
+        <PerpsMarketTileCard
+          key={market.symbol}
+          market={market}
+          sparklineData={sparklines[market.symbol]}
+          showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
+          onPress={onPressMarket}
+        />
+      ))}
+      <ViewMoreCard
+        onPress={onPressViewMore}
+        twClassName="w-[180px] flex-1"
+        testID="perps-view-more-card"
+      />
+    </ScrollView>
+  );
+};
+
 /**
  * PerpsSection — single "Perpetuals" section on the homepage.
  *
@@ -82,9 +234,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const tw = useTailwind();
-    const navigation =
-      useNavigation<NavigationProp<PerpsNavigationParamList>>();
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
     const isPositionsOnly = mode === 'positions-only';
@@ -93,6 +242,12 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       usePerpsConnection();
     const { track } = usePerpsEventTracking();
     const privacyMode = useSelector(selectPrivacyMode);
+    const {
+      navigateToTutorialOrScreen,
+      handleViewAllPerps,
+      handleViewMorePerps,
+      handleTilePress,
+    } = usePerpsNavigationHandlers();
 
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
@@ -123,11 +278,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const showSkeleton = hookLoading || deferredLoading;
 
-    const { markets, isLoading: marketsLoading } = usePerpsMarkets({
-      skipInitialFetch: !shouldLoadMarkets,
-    });
-    const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
-    const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+    const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
+      usePerpsTrendingCarouselData({
+        skipInitialFetch: !shouldLoadMarkets,
+      });
 
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
@@ -146,6 +300,15 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     // When user has no positions/orders, keep skeleton visible until markets load.
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
     const showTrending = !showSkeleton && !hasItems && !marketsLoading;
+    const carouselSymbols = useMemo(
+      () =>
+        showTrending && !isPositionsOnly
+          ? allCarouselMarkets.map((m) => m.symbol)
+          : [],
+      [allCarouselMarkets, isPositionsOnly, showTrending],
+    );
+    const { sparklines, refresh: refreshSparklines } =
+      useHomepageSparklines(carouselSymbols);
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
@@ -163,55 +326,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return { valueText, tone };
     }, [perpsAccount, showHomepageUnrealizedPnl]);
 
-    const safeWatchlistSymbols = useMemo(
-      () => watchlistSymbols ?? [],
-      [watchlistSymbols],
-    );
-
-    const watchlistMarkets = useMemo(() => {
-      if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
-      const marketBySymbol = new Map(markets.map((m) => [m.symbol, m]));
-      return safeWatchlistSymbols
-        .map((sym) => marketBySymbol.get(sym))
-        .filter((m): m is PerpsMarketDataWithVolumeNumber => m != null);
-    }, [markets, safeWatchlistSymbols]);
-
-    const trendingMarkets = useMemo(() => {
-      if (markets.length === 0) return [];
-      const wlSet = new Set(watchlistMarkets.map((m) => m.symbol));
-      return filterAndSortMarkets({
-        marketData: markets,
-        showZeroVolume: false,
-      })
-        .filter((m) => !wlSet.has(m.symbol))
-        .slice(0, Math.max(0, MAX_TRENDING_MARKETS - watchlistMarkets.length));
-    }, [markets, watchlistMarkets]);
-
-    const allCarouselMarkets = useMemo(
-      () =>
-        [...(watchlistMarkets ?? []), ...(trendingMarkets ?? [])].slice(
-          0,
-          MAX_TRENDING_MARKETS,
-        ),
-      [watchlistMarkets, trendingMarkets],
-    );
-
-    const watchlistSymbolSet = useMemo(
-      () => new Set((watchlistMarkets ?? []).map((m) => m.symbol)),
-      [watchlistMarkets],
-    );
-
-    const shouldShowCarousel = showTrending && !isPositionsOnly;
-    const carouselSymbols = useMemo(
-      () =>
-        shouldShowCarousel
-          ? (allCarouselMarkets ?? []).map((m) => m.symbol)
-          : [],
-      [shouldShowCarousel, allCarouselMarkets],
-    );
-    const { sparklines, refresh: refreshSparklines } =
-      useHomepageSparklines(carouselSymbols);
-
     useImperativeHandle(
       ref,
       () => ({
@@ -225,33 +339,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       }),
       [connectionError, reconnectWithNewContext, refreshSparklines],
     );
-
-    const navigateToTutorialOrScreen = useCallback(
-      (screen: string, params: Record<string, unknown>) => {
-        if (isFirstTimePerpsUser) {
-          navigation.navigate(Routes.PERPS.TUTORIAL, {
-            source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-            redirectScreen: screen,
-            redirectParams: params,
-          });
-        } else {
-          navigation.navigate(Routes.PERPS.ROOT, { screen, params });
-        }
-      },
-      [isFirstTimePerpsUser, navigation],
-    );
-
-    const handleViewAllPerps = useCallback(() => {
-      navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      });
-    }, [navigateToTutorialOrScreen]);
-
-    const handleViewMorePerps = useCallback(() => {
-      navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      });
-    }, [navigateToTutorialOrScreen]);
 
     const handlePositionPress = useCallback(
       (position: Position) => {
@@ -275,41 +362,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       },
       [navigateToTutorialOrScreen, markets, track],
     );
-
-    const handleTilePress = useCallback(
-      (market: PerpsMarketData) => {
-        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-          market,
-          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-        });
-      },
-      [navigateToTutorialOrScreen],
-    );
-
-    const trendingCarousel =
-      allCarouselMarkets.length > 0 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-2.5')}
-          testID="homepage-trending-perps-carousel"
-        >
-          {(allCarouselMarkets ?? []).map((market) => (
-            <PerpsMarketTileCard
-              key={market.symbol}
-              market={market}
-              sparklineData={sparklines[market.symbol]}
-              showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-              onPress={handleTilePress}
-            />
-          ))}
-          <ViewMoreCard
-            onPress={handleViewMorePerps}
-            twClassName="w-[180px] flex-1"
-            testID="perps-view-more-card"
-          />
-        </ScrollView>
-      ) : null;
 
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
@@ -406,7 +458,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               </Box>
             </SectionRow>
           ) : (
-            trendingCarousel
+            <PerpsTrendingCarousel
+              markets={allCarouselMarkets}
+              watchlistSymbolSet={watchlistSymbolSet}
+              sparklines={sparklines}
+              onPressMarket={handleTilePress}
+              onPressViewMore={handleViewMorePerps}
+            />
           )}
         </Box>
       </View>
@@ -428,55 +486,14 @@ const PerpsSectionTrendingOnly = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const tw = useTailwind();
-    const navigation =
-      useNavigation<NavigationProp<PerpsNavigationParamList>>();
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
-    const { markets, isLoading: marketsLoading } = usePerpsMarkets();
-    const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
-    const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-
-    const safeWatchlistSymbols = useMemo(
-      () => watchlistSymbols ?? [],
-      [watchlistSymbols],
-    );
-
-    const watchlistMarkets = useMemo(() => {
-      if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
-      const marketBySymbol = new Map(markets.map((m) => [m.symbol, m]));
-      return safeWatchlistSymbols
-        .map((sym) => marketBySymbol.get(sym))
-        .filter((m): m is PerpsMarketDataWithVolumeNumber => m != null);
-    }, [markets, safeWatchlistSymbols]);
-
-    const trendingMarkets = useMemo(() => {
-      if (markets.length === 0) return [];
-      const wlSet = new Set(watchlistMarkets.map((m) => m.symbol));
-      return filterAndSortMarkets({
-        marketData: markets,
-        showZeroVolume: false,
-      })
-        .filter((m) => !wlSet.has(m.symbol))
-        .slice(0, Math.max(0, MAX_TRENDING_MARKETS - watchlistMarkets.length));
-    }, [markets, watchlistMarkets]);
-
-    const allCarouselMarkets = useMemo(
-      () =>
-        [...(watchlistMarkets ?? []), ...(trendingMarkets ?? [])].slice(
-          0,
-          MAX_TRENDING_MARKETS,
-        ),
-      [watchlistMarkets, trendingMarkets],
-    );
-
-    const watchlistSymbolSet = useMemo(
-      () => new Set((watchlistMarkets ?? []).map((m) => m.symbol)),
-      [watchlistMarkets],
-    );
-
+    const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
+      usePerpsNavigationHandlers();
+    const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
+      usePerpsTrendingCarouselData({});
     const carouselSymbols = useMemo(
-      () => (allCarouselMarkets ?? []).map((m) => m.symbol),
+      () => allCarouselMarkets.map((m) => m.symbol),
       [allCarouselMarkets],
     );
     const { sparklines, refresh: refreshSparklines } =
@@ -490,43 +507,6 @@ const PerpsSectionTrendingOnly = forwardRef<
         },
       }),
       [refreshSparklines],
-    );
-
-    const navigateToTutorialOrScreen = useCallback(
-      (screen: string, params: Record<string, unknown>) => {
-        if (isFirstTimePerpsUser) {
-          navigation.navigate(Routes.PERPS.TUTORIAL, {
-            source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-            redirectScreen: screen,
-            redirectParams: params,
-          });
-        } else {
-          navigation.navigate(Routes.PERPS.ROOT, { screen, params });
-        }
-      },
-      [isFirstTimePerpsUser, navigation],
-    );
-
-    const handleViewAllPerps = useCallback(() => {
-      navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      });
-    }, [navigateToTutorialOrScreen]);
-
-    const handleViewMorePerps = useCallback(() => {
-      navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      });
-    }, [navigateToTutorialOrScreen]);
-
-    const handleTilePress = useCallback(
-      (market: PerpsMarketData) => {
-        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-          market,
-          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-        });
-      },
-      [navigateToTutorialOrScreen],
     );
 
     const itemCount = allCarouselMarkets.length;
@@ -553,27 +533,13 @@ const PerpsSectionTrendingOnly = forwardRef<
               <PerpsPositionSkeleton />
             </SectionRow>
           ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-2.5')}
-              testID="homepage-trending-perps-carousel"
-            >
-              {(allCarouselMarkets ?? []).map((market) => (
-                <PerpsMarketTileCard
-                  key={market.symbol}
-                  market={market}
-                  sparklineData={sparklines[market.symbol]}
-                  showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-                  onPress={handleTilePress}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewMorePerps}
-                twClassName="w-[180px] flex-1"
-                testID="perps-view-more-card"
-              />
-            </ScrollView>
+            <PerpsTrendingCarousel
+              markets={allCarouselMarkets}
+              watchlistSymbolSet={watchlistSymbolSet}
+              sparklines={sparklines}
+              onPressMarket={handleTilePress}
+              onPressViewMore={handleViewMorePerps}
+            />
           )}
         </Box>
       </View>

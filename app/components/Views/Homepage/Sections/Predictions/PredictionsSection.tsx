@@ -160,6 +160,78 @@ function getPredictHomepageUnrealizedPnlRowState(input: {
   };
 }
 
+interface HomepagePredictPositionsProps {
+  title: string;
+  onViewAll: () => void;
+  privacyMode: boolean;
+  isLoadingPositions: boolean;
+  positions: PredictPosition[];
+  isLoadingClaimable: boolean;
+  totalClaimableValue: number;
+  predictHomepageUnrealizedPnl: PredictHomepageUnrealizedPnlRowState;
+  onClaim: () => Promise<void>;
+  onPositionPress: (position: PredictPosition) => void;
+}
+
+const HomepagePredictPositions = ({
+  title,
+  onViewAll,
+  privacyMode,
+  isLoadingPositions,
+  positions,
+  isLoadingClaimable,
+  totalClaimableValue,
+  predictHomepageUnrealizedPnl,
+  onClaim,
+  onPositionPress,
+}: HomepagePredictPositionsProps) => (
+  <Box gap={3}>
+    <Box gap={1}>
+      <SectionHeader
+        title={title}
+        onPress={onViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+      />
+      {predictHomepageUnrealizedPnl.show && (
+        <HomepageSectionUnrealizedPnlRow
+          isLoading={predictHomepageUnrealizedPnl.isLoading}
+          valueText={predictHomepageUnrealizedPnl.valueText}
+          tone={predictHomepageUnrealizedPnl.tone}
+          label={strings('predict.unrealized_pnl_label')}
+          testID="homepage-predict-unrealized-pnl"
+        />
+      )}
+    </Box>
+    <Box>
+      {isLoadingPositions ? (
+        <>
+          <PredictPositionRowSkeleton />
+          <PredictPositionRowSkeleton />
+        </>
+      ) : (
+        positions.map((position) => (
+          <PredictPositionRow
+            key={`${position.outcomeId}:${position.outcomeIndex}`}
+            position={position}
+            onPress={onPositionPress}
+            privacyMode={Boolean(privacyMode)}
+          />
+        ))
+      )}
+      {!isLoadingPositions &&
+        !isLoadingClaimable &&
+        totalClaimableValue > 0 && (
+          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+            <PredictClaimButton
+              amount={privacyMode ? undefined : totalClaimableValue}
+              onPress={onClaim}
+            />
+          </Box>
+        )}
+    </Box>
+  </Box>
+);
+
 const usePredictNavigationHandlers = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -186,6 +258,63 @@ const usePredictNavigationHandlers = () => {
   return { handleViewAllPredictions, handlePositionPress };
 };
 
+const usePredictPositionsSectionData = () => {
+  const privacyMode = useSelector(selectPrivacyMode);
+  const { claim } = usePredictClaim();
+
+  const {
+    positions,
+    isLoading: isLoadingPositions,
+    error: positionsError,
+    refetch: refetchPositions,
+  } = usePredictPositionsForHomepage();
+  const { totalClaimableValue, isLoading: isLoadingClaimable } =
+    usePredictPositionsForHomepage({
+      claimable: true,
+    });
+
+  const handleClaim = useCallback(async () => {
+    await claim();
+  }, [claim]);
+
+  const hasPositions = positions.length > 0;
+  const {
+    data: predictUnrealizedPnL,
+    isLoading: isPredictUnrealizedPnLLoading,
+  } = useUnrealizedPnL({
+    enabled: hasPositions,
+  });
+
+  const predictHomepageUnrealizedPnl = useMemo(
+    () =>
+      getPredictHomepageUnrealizedPnlRowState({
+        hasPositions,
+        privacyMode,
+        isPnlLoading: isPredictUnrealizedPnLLoading,
+        pnl: predictUnrealizedPnL,
+      }),
+    [
+      hasPositions,
+      privacyMode,
+      isPredictUnrealizedPnLLoading,
+      predictUnrealizedPnL,
+    ],
+  );
+
+  return {
+    privacyMode,
+    positions,
+    isLoadingPositions,
+    positionsError,
+    refetchPositions,
+    totalClaimableValue,
+    isLoadingClaimable,
+    handleClaim,
+    hasPositions,
+    predictHomepageUnrealizedPnl,
+  };
+};
+
 const PredictionsSectionDefault = forwardRef<
   SectionRefreshHandle,
   PredictionsSectionProps
@@ -201,60 +330,29 @@ const PredictionsSectionDefault = forwardRef<
   ) => {
     const sectionViewRef = useRef<View>(null);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const privacyMode = useSelector(selectPrivacyMode);
     const queryClient = useQueryClient();
     const title = titleOverride ?? strings('homepage.sections.predictions');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { claim } = usePredictClaim();
     const { handleViewAllPredictions, handlePositionPress } =
       usePredictNavigationHandlers();
-
     const {
+      privacyMode,
       positions,
-      isLoading: isLoadingPositions,
-      error: positionsError,
-      refetch: refetchPositions,
-    } = usePredictPositionsForHomepage();
-
+      isLoadingPositions,
+      positionsError,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData();
     const {
       markets,
       isLoading: isLoadingMarkets,
       error: marketsError,
       refetch: refetchMarkets,
     } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
-
-    const { totalClaimableValue, isLoading: isLoadingClaimable } =
-      usePredictPositionsForHomepage({
-        claimable: true,
-      });
-
-    const handleClaim = useCallback(async () => {
-      await claim();
-    }, [claim]);
-
-    const hasPositions = positions.length > 0;
-    const {
-      data: predictUnrealizedPnL,
-      isLoading: isPredictUnrealizedPnLLoading,
-    } = useUnrealizedPnL({
-      enabled: hasPositions,
-    });
-
-    const predictHomepageUnrealizedPnl = useMemo(
-      () =>
-        getPredictHomepageUnrealizedPnlRowState({
-          hasPositions,
-          privacyMode,
-          isPnlLoading: isPredictUnrealizedPnLLoading,
-          pnl: predictUnrealizedPnL,
-        }),
-      [
-        hasPositions,
-        privacyMode,
-        isPredictUnrealizedPnLLoading,
-        predictUnrealizedPnL,
-      ],
-    );
 
     const isLoading = isLoadingPositions || isLoadingMarkets;
     const hasError =
@@ -297,53 +395,18 @@ const PredictionsSectionDefault = forwardRef<
     if (hasPositions || isLoadingPositions) {
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <Box gap={1}>
-              <SectionHeader
-                title={title}
-                onPress={handleViewAllPredictions}
-                testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                  'predictions',
-                )}
-              />
-              {predictHomepageUnrealizedPnl.show && (
-                <HomepageSectionUnrealizedPnlRow
-                  isLoading={predictHomepageUnrealizedPnl.isLoading}
-                  valueText={predictHomepageUnrealizedPnl.valueText}
-                  tone={predictHomepageUnrealizedPnl.tone}
-                  label={strings('predict.unrealized_pnl_label')}
-                  testID="homepage-predict-unrealized-pnl"
-                />
-              )}
-            </Box>
-            <Box>
-              {isLoadingPositions ? (
-                <>
-                  <PredictPositionRowSkeleton />
-                  <PredictPositionRowSkeleton />
-                </>
-              ) : (
-                positions.map((position) => (
-                  <PredictPositionRow
-                    key={`${position.outcomeId}:${position.outcomeIndex}`}
-                    position={position}
-                    onPress={handlePositionPress}
-                    privacyMode={Boolean(privacyMode)}
-                  />
-                ))
-              )}
-              {!isLoadingPositions &&
-                !isLoadingClaimable &&
-                totalClaimableValue > 0 && (
-                  <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-                    <PredictClaimButton
-                      amount={privacyMode ? undefined : totalClaimableValue}
-                      onPress={handleClaim}
-                    />
-                  </Box>
-                )}
-            </Box>
-          </Box>
+          <HomepagePredictPositions
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            privacyMode={privacyMode}
+            isLoadingPositions={isLoadingPositions}
+            positions={positions}
+            isLoadingClaimable={isLoadingClaimable}
+            totalClaimableValue={totalClaimableValue}
+            predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+            onClaim={handleClaim}
+            onPositionPress={handlePositionPress}
+          />
         </View>
       );
     }
@@ -381,51 +444,22 @@ const PredictionsSectionPositionsOnly = forwardRef<
   ) => {
     const sectionViewRef = useRef<View>(null);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const privacyMode = useSelector(selectPrivacyMode);
     const queryClient = useQueryClient();
     const title = titleOverride ?? strings('homepage.sections.predictions');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { claim } = usePredictClaim();
     const { handleViewAllPredictions, handlePositionPress } =
       usePredictNavigationHandlers();
-
     const {
+      privacyMode,
       positions,
-      isLoading: isLoadingPositions,
-      refetch: refetchPositions,
-    } = usePredictPositionsForHomepage();
-    const { totalClaimableValue, isLoading: isLoadingClaimable } =
-      usePredictPositionsForHomepage({
-        claimable: true,
-      });
-
-    const handleClaim = useCallback(async () => {
-      await claim();
-    }, [claim]);
-
-    const hasPositions = positions.length > 0;
-    const {
-      data: predictUnrealizedPnL,
-      isLoading: isPredictUnrealizedPnLLoading,
-    } = useUnrealizedPnL({
-      enabled: hasPositions,
-    });
-
-    const predictHomepageUnrealizedPnl = useMemo(
-      () =>
-        getPredictHomepageUnrealizedPnlRowState({
-          hasPositions,
-          privacyMode,
-          isPnlLoading: isPredictUnrealizedPnLLoading,
-          pnl: predictUnrealizedPnL,
-        }),
-      [
-        hasPositions,
-        privacyMode,
-        isPredictUnrealizedPnLLoading,
-        predictUnrealizedPnL,
-      ],
-    );
+      isLoadingPositions,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData();
 
     const willRender = isPredictEnabled && !isLoadingPositions && hasPositions;
     const itemCount = hasPositions ? positions.length : 0;
@@ -458,53 +492,18 @@ const PredictionsSectionPositionsOnly = forwardRef<
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <Box gap={1}>
-            <SectionHeader
-              title={title}
-              onPress={handleViewAllPredictions}
-              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                'predictions',
-              )}
-            />
-            {predictHomepageUnrealizedPnl.show && (
-              <HomepageSectionUnrealizedPnlRow
-                isLoading={predictHomepageUnrealizedPnl.isLoading}
-                valueText={predictHomepageUnrealizedPnl.valueText}
-                tone={predictHomepageUnrealizedPnl.tone}
-                label={strings('predict.unrealized_pnl_label')}
-                testID="homepage-predict-unrealized-pnl"
-              />
-            )}
-          </Box>
-          <Box>
-            {isLoadingPositions ? (
-              <>
-                <PredictPositionRowSkeleton />
-                <PredictPositionRowSkeleton />
-              </>
-            ) : (
-              positions.map((position) => (
-                <PredictPositionRow
-                  key={`${position.outcomeId}:${position.outcomeIndex}`}
-                  position={position}
-                  onPress={handlePositionPress}
-                  privacyMode={Boolean(privacyMode)}
-                />
-              ))
-            )}
-            {!isLoadingPositions &&
-              !isLoadingClaimable &&
-              totalClaimableValue > 0 && (
-                <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-                  <PredictClaimButton
-                    amount={privacyMode ? undefined : totalClaimableValue}
-                    onPress={handleClaim}
-                  />
-                </Box>
-              )}
-          </Box>
-        </Box>
+        <HomepagePredictPositions
+          title={title}
+          onViewAll={handleViewAllPredictions}
+          privacyMode={privacyMode}
+          isLoadingPositions={isLoadingPositions}
+          positions={positions}
+          isLoadingClaimable={isLoadingClaimable}
+          totalClaimableValue={totalClaimableValue}
+          predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+          onClaim={handleClaim}
+          onPositionPress={handlePositionPress}
+        />
       </View>
     );
   },
