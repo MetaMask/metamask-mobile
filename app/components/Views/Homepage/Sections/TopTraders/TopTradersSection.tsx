@@ -92,7 +92,7 @@ const TopTradersSection = forwardRef<
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
-          testID="homepage-top-traders-scroll"
+          testID="homepage-top-traders-carousel"
         >
           {isLoading
             ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)

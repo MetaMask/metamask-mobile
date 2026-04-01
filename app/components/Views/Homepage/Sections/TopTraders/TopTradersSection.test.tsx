@@ -5,7 +5,18 @@ import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 
+const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
+
+jest.mock('./hooks', () => ({
+  useTopTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    error: null,
+    refresh: mockRefetch,
+    toggleFollow: jest.fn(),
+  })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
