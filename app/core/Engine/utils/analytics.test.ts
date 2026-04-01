@@ -89,7 +89,7 @@ describe('trackEvent', () => {
     it('enriches allowlisted events before calling the analytics controller', () => {
       jest.mocked(store.getState).mockReturnValue(
         createStateWithFeatureFlags({
-          cardCARD338AbtestAttentionBadge: 'treatment',
+          cardCARD338AbtestAttentionBadge: 'withBadge',
         }),
       );
 
@@ -113,7 +113,7 @@ describe('trackEvent', () => {
             active_ab_tests: [
               {
                 key: 'cardCARD338AbtestAttentionBadge',
-                value: 'treatment',
+                value: 'withBadge',
               },
             ],
           },
