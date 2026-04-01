@@ -98,12 +98,16 @@ jest.mock('../../util/environment', () => ({
 }));
 
 import OAuthLoginService from './OAuthService';
-const mockLoginHandlerResponse = jest.fn().mockImplementation(() => ({
+const defaultLoginHandlerResponse = () => ({
   idToken: MOCK_JWT_TOKEN,
   authConnection: AuthConnection.Google,
   clientId: 'clientId',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
-}));
+});
+
+const mockLoginHandlerResponse = jest
+  .fn()
+  .mockImplementation(defaultLoginHandlerResponse);
 
 const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
   id_token: MOCK_JWT_TOKEN,
@@ -180,6 +184,7 @@ describe('OAuth login service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLoginHandlerResponse.mockImplementation(defaultLoginHandlerResponse);
     mockDispatch = jest.fn();
     mockDeviceIsAndroid.mockReturnValue(false);
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -275,6 +280,12 @@ describe('OAuth login service', () => {
   });
 
   it('uses Android auth connection config when persisted onboarding clientId matches the web Google client', async () => {
+    mockLoginHandlerResponse.mockImplementation(() => ({
+      idToken: MOCK_JWT_TOKEN,
+      authConnection: AuthConnection.Google,
+      clientId: 'mock-android-google-client-id',
+      web3AuthNetwork: Web3AuthNetwork.Mainnet,
+    }));
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({
         security: { allowLoginWithRememberMe: true },
