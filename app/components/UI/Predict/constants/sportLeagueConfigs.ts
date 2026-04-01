@@ -37,6 +37,8 @@ export interface SportLeagueConfig {
   TeamIcon?: React.FC<SportTeamIconProps>;
   /** Possession indicator icon. If omitted, possession is not rendered. */
   PossessionIcon?: React.FC<SportPossessionIconProps>;
+  /** League logo URL for carousel/card headers. If omitted, no logo is shown. */
+  leagueLogo?: string;
 }
 
 /**

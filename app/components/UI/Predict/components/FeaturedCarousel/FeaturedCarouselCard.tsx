@@ -9,6 +9,10 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -125,8 +129,8 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
       <Box style={styles.cardContainer}>
         <Box twClassName="flex-1">
           {market.image && (
-            <Box alignItems={BoxAlignItems.Center} twClassName="mb-2">
-              <Box twClassName="w-10 h-10 rounded-full bg-muted overflow-hidden">
+            <Box alignItems={BoxAlignItems.Center} twClassName="mb-3">
+              <Box twClassName="w-6 h-6 rounded-lg bg-muted overflow-hidden">
                 <Image
                   source={{ uri: market.image }}
                   style={tw.style('w-full h-full')}
@@ -138,8 +142,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
 
           <Text
             testID={FEATURED_CAROUSEL_TEST_IDS.CARD_TITLE(index)}
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
+            variant={TextVariant.HeadingMd}
             color={TextColor.TextDefault}
             numberOfLines={2}
             twClassName="text-center mb-4"
@@ -182,13 +185,14 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                     twClassName="mt-1 gap-1"
                   >
                     <Text
-                      variant={TextVariant.BodySm}
+                      variant={TextVariant.BodyXs}
+                      fontWeight={FontWeight.Medium}
                       color={TextColor.TextAlternative}
                     >
                       {formatPrice(BET_AMOUNT)} {String.fromCharCode(0x2192)}
                     </Text>
                     <Text
-                      variant={TextVariant.BodySm}
+                      variant={TextVariant.BodyXs}
                       color={TextColor.SuccessDefault}
                       fontWeight={FontWeight.Medium}
                     >
@@ -232,7 +236,11 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="mt-4"
         >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {remainingOptions > 0 &&
               `+ ${remainingOptions} ${strings(
                 remainingOptions === 1
@@ -240,14 +248,45 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                   : 'predict.outcomes_plural',
               )}`}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
           >
-            {formattedEndDate && `${formattedEndDate} · `}$
-            {formatVolume(totalVolume)} {strings('predict.volume_abbreviated')}
-          </Text>
+            {formattedEndDate && (
+              <>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.IconAlternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                >
+                  {formattedEndDate}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  ·
+                </Text>
+              </>
+            )}
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              ${formatVolume(totalVolume)}{' '}
+              {strings('predict.volume_abbreviated')}
+            </Text>
+          </Box>
         </Box>
       </Box>
     </TouchableOpacity>

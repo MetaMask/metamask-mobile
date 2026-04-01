@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -9,13 +9,17 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket,
@@ -36,8 +40,11 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { isDrawCapableLeague } from '../../constants/sports';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
+
+const LEAGUE_LOGO_SIZE = 15;
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
 import {
@@ -47,7 +54,7 @@ import {
   getPayoutDisplay,
 } from './FeaturedCarouselCard.utils';
 
-const TEAM_LOGO_SIZE = 48;
+const TEAM_LOGO_SIZE = 32;
 
 const LEAGUE_DISPLAY_NAMES: Record<string, string> = {
   nfl: 'NFL',
@@ -72,6 +79,17 @@ const getTimeRemaining = (
   const totalMins = LEAGUE_TOTAL_MINUTES[game.league] ?? 90;
   const remaining = Math.max(0, totalMins - elapsedMins);
   return `${remaining} mins`;
+};
+
+const formatScheduledTime = (startTime: string): string => {
+  const dateObj = new Date(startTime);
+  const formatter = getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return formatter.format(dateObj);
 };
 
 interface FeaturedCarouselSportCardProps {
@@ -113,10 +131,15 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   }, [game, gameUpdate]);
 
   const isLive = liveData.status === 'ongoing';
+  const isScheduled = liveData.status === 'scheduled';
   const leagueName =
     LEAGUE_DISPLAY_NAMES[game.league] ?? game.league.toUpperCase();
   const liveText = isLive ? (liveData.elapsed ?? '') : '';
   const timeRemaining = getTimeRemaining(game, liveData.elapsed);
+  const scheduledTime = isScheduled
+    ? formatScheduledTime(game.startTime)
+    : null;
+  const footerTimeText = timeRemaining ?? scheduledTime;
 
   const outcome = market.outcomes[0];
   const homeToken =
@@ -199,13 +222,23 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             justifyContent={BoxJustifyContent.Center}
             twClassName="mb-3 gap-2"
           >
+            {config.leagueLogo && (
+              <Image
+                source={{ uri: config.leagueLogo }}
+                style={tw.style({
+                  width: LEAGUE_LOGO_SIZE,
+                  height: LEAGUE_LOGO_SIZE * 0.8,
+                })}
+                resizeMode="contain"
+              />
+            )}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
               {leagueName}
             </Text>
-            {isLive && liveText && (
+            {isLive && liveText ? (
               <>
                 <Text
                   variant={TextVariant.BodySm}
@@ -221,7 +254,22 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                   Live {liveText}
                 </Text>
               </>
-            )}
+            ) : scheduledTime ? (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  ·
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {scheduledTime}
+                </Text>
+              </>
+            ) : null}
           </Box>
 
           <Box
@@ -279,13 +327,14 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                   twClassName="mt-0.5 gap-1"
                 >
                   <Text
-                    variant={TextVariant.BodySm}
+                    variant={TextVariant.BodyXs}
+                    fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                   >
                     {formatPrice(BET_AMOUNT)} {String.fromCharCode(0x2192)}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySm}
+                    variant={TextVariant.BodyXs}
                     color={TextColor.SuccessDefault}
                     fontWeight={FontWeight.Medium}
                   >
@@ -310,13 +359,14 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                   twClassName="mt-0.5 gap-1"
                 >
                   <Text
-                    variant={TextVariant.BodySm}
+                    variant={TextVariant.BodyXs}
+                    fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                   >
                     {formatPrice(BET_AMOUNT)} {String.fromCharCode(0x2192)}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySm}
+                    variant={TextVariant.BodyXs}
                     color={TextColor.SuccessDefault}
                     fontWeight={FontWeight.Medium}
                   >
@@ -395,7 +445,11 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="mt-4"
         >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {remainingOptions > 0 &&
               `+ ${remainingOptions} ${strings(
                 remainingOptions === 1
@@ -403,14 +457,45 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
                   : 'predict.outcomes_plural',
               )}`}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
           >
-            {timeRemaining && `${timeRemaining} · `}${formatVolume(totalVolume)}{' '}
-            {strings('predict.volume_abbreviated')}
-          </Text>
+            {footerTimeText && (
+              <>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Xs}
+                  color={IconColor.IconAlternative}
+                />
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                >
+                  {footerTimeText}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  ·
+                </Text>
+              </>
+            )}
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              ${formatVolume(totalVolume)}{' '}
+              {strings('predict.volume_abbreviated')}
+            </Text>
+          </Box>
         </Box>
       </Box>
     </TouchableOpacity>

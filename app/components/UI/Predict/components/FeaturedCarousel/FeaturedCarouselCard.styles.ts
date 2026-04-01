@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     cardContainer: {
       backgroundColor: theme.colors.background.section,
-      borderRadius: 16,
+      borderRadius: 12,
       padding: 16,
       height: '100%',
       justifyContent: 'space-between',

@@ -51,7 +51,7 @@ export const PaginationDots: React.FC<PaginationDotsProps> = ({
   return (
     <Box
       testID={FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS}
-      twClassName="flex-row justify-center items-center gap-1 mt-3"
+      twClassName="flex-row justify-center items-center gap-2 mt-3"
     >
       {Array.from({ length: count }).map((_, dotPosition) => (
         <View
@@ -59,8 +59,9 @@ export const PaginationDots: React.FC<PaginationDotsProps> = ({
           style={tw.style(
             'h-2 rounded-full',
             dotPosition === activeIndex
-              ? 'bg-icon-alternative w-5'
+              ? 'bg-icon-alternative'
               : 'bg-icon-muted w-2',
+            dotPosition === activeIndex && { width: 35 },
           )}
         />
       ))}
