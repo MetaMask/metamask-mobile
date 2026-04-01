@@ -100,6 +100,7 @@ import {
   ButtonSize,
   ButtonVariant,
   Text,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -1115,6 +1116,14 @@ const Onboarding = () => {
               </Box>
             )}
           </Box>
+
+          {existingUser && !loading && (
+            <Box twClassName="mb-10 -mt-10">
+              <TextButton onPress={onLogin}>
+                {strings('onboarding.unlock')}
+              </TextButton>
+            </Box>
+          )}
         </ScrollView>
 
         <FadeOutOverlay />
