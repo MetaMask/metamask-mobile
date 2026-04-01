@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useABTest } from '../../../../../hooks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -9,51 +8,12 @@ import {
   selectSourceToken,
   selectAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-} from '../../components/GaslessQuickPickOptions/abTestConfig';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-} from '../../components/TokenSelectorItem.abTestConfig';
 
 export const useTrackSwapPageViewed = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const abTestContext = useSelector(selectAbTestContext);
-  const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
-    useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
-  const {
-    variantName: tokenSelectorVariantName,
-    isActive: isTokenSelectorAbActive,
-  } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
-
-  const activeABTests = useMemo(
-    () => [
-      ...(isNumpadAbActive
-        ? [{ key: NUMPAD_QUICK_ACTIONS_AB_KEY, value: numpadVariantName }]
-        : []),
-      ...(isTokenSelectorAbActive
-        ? [
-            {
-              key: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-              value: tokenSelectorVariantName,
-            },
-          ]
-        : []),
-    ],
-    [
-      isNumpadAbActive,
-      numpadVariantName,
-      isTokenSelectorAbActive,
-      tokenSelectorVariantName,
-    ],
-  );
 
   const hasTrackedPageView = useRef(false);
 
@@ -82,12 +42,5 @@ export const useTrackSwapPageViewed = () => {
           .build(),
       );
     }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    activeABTests,
-    abTestContext,
-  ]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, abTestContext]);
 };
