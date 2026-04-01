@@ -63,7 +63,7 @@ export const usePerpsHomeData = ({
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Get connection state to guard REST calls that require an initialized controller
-  const { isConnected, isInitialized } = usePerpsConnection();
+  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
 
   // Fetch positions via WebSocket with throttling for performance
   const { positions, isInitialLoading: isPositionsLoading } =
@@ -94,8 +94,10 @@ export const usePerpsHomeData = ({
   // Note: We don't track loading state - WebSocket data displays immediately,
   // REST fills merge silently in the background via mergedFills
   useEffect(() => {
-    // Guard: Skip REST fetch until connection is ready
-    if (!isConnected || !isInitialized) {
+    // Clear REST history whenever the perps context is reconnecting so we
+    // never blend the previous account/provider's fills into the new context.
+    if (!isConnected || !isInitialized || isConnecting) {
+      setRestFills([]);
       return;
     }
 
@@ -121,7 +123,7 @@ export const usePerpsHomeData = ({
     return () => {
       isMounted = false;
     };
-  }, [isConnected, isInitialized]);
+  }, [isConnected, isInitialized, isConnecting]);
 
   // Merge REST + WebSocket fills with deduplication
   // Live fills take precedence over REST fills (more up-to-date)
@@ -386,7 +388,7 @@ export const usePerpsHomeData = ({
         positions: isPositionsLoading,
         orders: isOrdersLoading,
         markets: isMarketsLoading,
-        activity: isFillsLoading,
+        activity: isFillsLoading || isConnecting,
       };
       return loading;
     })(),

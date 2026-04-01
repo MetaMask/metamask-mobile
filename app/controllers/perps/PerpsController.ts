@@ -997,6 +997,46 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Resolve the provider ids that should participate in aggregated cache reads.
+   *
+   * Providers can still be registering when the first render happens, so we
+   * also look at cache keys to recover disk-hydrated provider snapshots before
+   * `init()` finishes populating `this.providers`.
+   *
+   * @param cacheKeys - Cache keys currently present in the relevant cache map.
+   * @returns Provider ids that should be included in aggregated reads.
+   */
+  #getAggregatedCacheProviderIds(cacheKeys: string[]): string[] {
+    const providerIds = new Set<string>();
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    for (const [providerId] of this.providers) {
+      providerIds.add(providerId);
+    }
+
+    for (const key of cacheKeys) {
+      const [providerId, network] = key.split(':');
+      if (
+        !providerId ||
+        network !== currentNetwork ||
+        providerId === 'aggregated'
+      ) {
+        continue;
+      }
+
+      if (
+        providerId === 'hyperliquid' ||
+        (providerId === 'myx' && this.#isMYXProviderEnabled()) ||
+        this.providers.has(providerId as PerpsProviderType)
+      ) {
+        providerIds.add(providerId);
+      }
+    }
+
+    return Array.from(providerIds);
+  }
+
+  /**
    * Read cached market data for the currently active provider (or aggregated).
    * Returns null when no valid cache exists or when cache has expired.
    *
@@ -1016,7 +1056,9 @@ export class PerpsController extends BaseController<
       // Assemble from all registered provider entries
       const assembled: PerpsMarketData[] = [];
       let oldestTimestamp = Infinity;
-      for (const [providerId] of this.providers) {
+      for (const providerId of this.#getAggregatedCacheProviderIds(
+        Object.keys(cache),
+      )) {
         const key = this.#marketCacheKey(
           providerId,
           this.#providerIsTestnet(providerId),
@@ -1119,7 +1161,9 @@ export class PerpsController extends BaseController<
       let defaultAccountState: AccountState | null = null;
       let hasValidEntry = false;
 
-      for (const [providerId] of this.providers) {
+      for (const providerId of this.#getAggregatedCacheProviderIds(
+        Object.keys(cache),
+      )) {
         const key = this.#marketCacheKey(
           providerId,
           this.#providerIsTestnet(providerId),
@@ -2952,6 +2996,8 @@ export class PerpsController extends BaseController<
 
       if (marketsRaw) {
         try {
+          const staleHydratedTimestamp =
+            Date.now() - PerpsController.#preloadGuardMs * 10 - 1;
           const parsed = JSON.parse(marketsRaw) as
             | {
                 providerNetworkKey: string;
@@ -2999,7 +3045,13 @@ export class PerpsController extends BaseController<
                 this.update((state) => {
                   state.cachedMarketDataByProvider[entry.providerNetworkKey] = {
                     data: strippedData,
-                    timestamp: entry.timestamp,
+                    // Disk-hydrated market snapshots are only for structural
+                    // first paint. Keep them TTL-stale so the stream manager
+                    // still fetches fresh prices on connect.
+                    timestamp: Math.min(
+                      entry.timestamp,
+                      staleHydratedTimestamp,
+                    ),
                   };
                 });
                 marketCount += strippedData.length;

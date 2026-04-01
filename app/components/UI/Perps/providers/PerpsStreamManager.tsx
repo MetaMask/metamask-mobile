@@ -48,6 +48,17 @@ function getEvmAccountFromSelectedAccountGroup() {
   return findEvmAccount(accounts as InternalAccount[]);
 }
 
+function getProviderNetworkKeyForProvider(
+  providerId: string,
+  isTestnet: boolean,
+): string {
+  const providerIsTestnet =
+    providerId === 'myx'
+      ? PROVIDER_CONFIG.MYX_TESTNET_ONLY || isTestnet
+      : isTestnet;
+  return `${providerId}:${providerIsTestnet ? 'testnet' : 'mainnet'}`;
+}
+
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
@@ -1642,16 +1653,50 @@ export class PerpsStreamManager {
     if (!snapshot || snapshot.length === 0) return;
 
     const controller = Engine.context.PerpsController;
-    const providerNetworkKey = getProviderNetworkKey(controller.state);
+    const payload =
+      controller.state.activeProvider === 'aggregated'
+        ? (() => {
+            const entriesByKey = new Map<
+              string,
+              {
+                providerNetworkKey: string;
+                data: PerpsMarketData[];
+                timestamp: number;
+              }
+            >();
+
+            for (const market of snapshot) {
+              const providerId =
+                market.providerId ?? PROVIDER_CONFIG.DefaultProvider;
+              const providerNetworkKey = getProviderNetworkKeyForProvider(
+                providerId,
+                controller.state.isTestnet,
+              );
+              const existing = entriesByKey.get(providerNetworkKey);
+              if (existing) {
+                existing.data.push(market);
+              } else {
+                entriesByKey.set(providerNetworkKey, {
+                  providerNetworkKey,
+                  data: [market],
+                  timestamp: now,
+                });
+              }
+            }
+
+            const entries = Array.from(entriesByKey.values());
+            return entries.length === 1 ? entries[0] : { entries };
+          })()
+        : {
+            providerNetworkKey: getProviderNetworkKey(controller.state),
+            data: snapshot,
+            timestamp: now,
+          };
 
     this.marketDiskWriteTime = now;
     StorageWrapper.setItem(
       PERPS_DISK_CACHE_MARKETS,
-      JSON.stringify({
-        providerNetworkKey,
-        data: snapshot,
-        timestamp: now,
-      }),
+      JSON.stringify(payload),
     )?.catch(() => {
       /* fire-and-forget */
     });
@@ -1677,19 +1722,81 @@ export class PerpsStreamManager {
     if (!positions || !orders || !account) return;
 
     const controller = Engine.context.PerpsController;
-    const providerNetworkKey = getProviderNetworkKey(controller.state);
+    const payload =
+      controller.state.activeProvider === 'aggregated'
+        ? (() => {
+            const entriesByKey = new Map<
+              string,
+              {
+                providerNetworkKey: string;
+                address: string;
+                positions: Position[];
+                orders: Order[];
+                accountState: AccountState | null;
+                timestamp: number;
+              }
+            >();
+
+            const ensureEntry = (providerId: string) => {
+              const providerNetworkKey = getProviderNetworkKeyForProvider(
+                providerId,
+                controller.state.isTestnet,
+              );
+              let entry = entriesByKey.get(providerNetworkKey);
+              if (!entry) {
+                entry = {
+                  providerNetworkKey,
+                  address,
+                  positions: [],
+                  orders: [],
+                  accountState: null,
+                  timestamp: now,
+                };
+                entriesByKey.set(providerNetworkKey, entry);
+              }
+              return entry;
+            };
+
+            for (const position of positions) {
+              ensureEntry(
+                position.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+              ).positions.push(position);
+            }
+
+            for (const order of orders) {
+              ensureEntry(
+                order.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+              ).orders.push(order);
+            }
+
+            if (account) {
+              ensureEntry(
+                account.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+              ).accountState = account;
+            }
+
+            const entries = Array.from(entriesByKey.values()).filter(
+              (entry) =>
+                entry.positions.length > 0 ||
+                entry.orders.length > 0 ||
+                entry.accountState !== null,
+            );
+
+            return entries.length === 1 ? entries[0] : { entries };
+          })()
+        : {
+            providerNetworkKey: getProviderNetworkKey(controller.state),
+            address,
+            positions: positions ?? [],
+            orders: orders ?? [],
+            accountState: account ?? null,
+            timestamp: now,
+          };
 
     this.userDiskWriteTime = now;
     StorageWrapper.setItem(
       PERPS_DISK_CACHE_USER_DATA,
-      JSON.stringify({
-        providerNetworkKey,
-        address,
-        positions: positions ?? [],
-        orders: orders ?? [],
-        accountState: account ?? null,
-        timestamp: now,
-      }),
+      JSON.stringify(payload),
     )?.catch(() => {
       /* fire-and-forget */
     });

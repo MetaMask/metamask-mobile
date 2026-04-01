@@ -5169,9 +5169,13 @@ describe('PerpsController', () => {
       expect(cached?.data[0].change24hPercent).toBe(
         PERPS_CONSTANTS.FallbackPercentageDisplay,
       );
+      expect(ctrl.getCachedMarketDataForActiveProvider()).toBeNull();
+      expect(
+        ctrl.getCachedMarketDataForActiveProvider({ skipTTL: true }),
+      ).toHaveLength(1);
     });
 
-    it('hydrates multi-provider market data from disk at construction time', () => {
+    it('hydrates multi-provider market data from disk before providers register', () => {
       const timestamp = Date.now();
       const diskMarkets = {
         entries: [
@@ -5223,14 +5227,15 @@ describe('PerpsController', () => {
           ...getDefaultPerpsControllerState(),
           activeProvider: 'aggregated',
         },
+        clientConfig: {
+          providerCredentials: {
+            myx: {
+              enabled: true,
+            },
+          },
+        } as never,
         infrastructure: infra,
       });
-      ctrl.testSetProviders(
-        new Map([
-          ['hyperliquid', createMockHyperLiquidProvider()],
-          ['myx', createMockHyperLiquidProvider() as unknown as PerpsProvider],
-        ]),
-      );
 
       const aggregated = ctrl.getCachedMarketDataForActiveProvider({
         skipTTL: true,
@@ -5240,6 +5245,68 @@ describe('PerpsController', () => {
         'BTC',
         'ETH',
       ]);
+    });
+
+    it('hydrates aggregated user data from disk before providers register', () => {
+      const timestamp = Date.now();
+      const diskUserData = {
+        entries: [
+          {
+            providerNetworkKey: 'hyperliquid:mainnet',
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+            positions: [createMockPosition({ symbol: 'BTC', size: '1.0' })],
+            orders: [],
+            accountState: {
+              totalBalance: '5000',
+              availableBalance: '4000',
+              marginUsed: '1000',
+              unrealizedPnl: '0',
+              returnOnEquity: '0',
+              providerId: 'hyperliquid',
+            },
+            timestamp,
+          },
+          {
+            providerNetworkKey: 'myx:mainnet',
+            address: '0x1234567890abcdef1234567890abcdef12345678',
+            positions: [createMockPosition({ symbol: 'MYX', size: '2.0' })],
+            orders: [],
+            accountState: null,
+            timestamp,
+          },
+        ],
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_USER_DATA) {
+            return JSON.stringify(diskUserData);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: {
+          ...getDefaultPerpsControllerState(),
+          activeProvider: 'aggregated',
+        },
+        clientConfig: {
+          providerCredentials: {
+            myx: {
+              enabled: true,
+            },
+          },
+        } as never,
+        infrastructure: infra,
+      });
+
+      const aggregated = ctrl.getCachedUserDataForActiveProvider({
+        skipTTL: true,
+      });
+      expect(aggregated?.positions).toHaveLength(2);
+      expect(aggregated?.accountState?.providerId).toBe('hyperliquid');
     });
 
     it('hydrates user data from disk at construction time', () => {
