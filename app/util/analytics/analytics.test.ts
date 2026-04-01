@@ -64,6 +64,7 @@ jest.mock('../Logger');
 import { analytics } from './analytics';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
+import initialRootState from '../test/initial-root-state';
 import {
   selectAnalyticsEnabled,
   selectAnalyticsOptedIn,
@@ -126,9 +127,14 @@ describe('analytics', () => {
 
     it('enriches allowlisted events before queueing them', () => {
       mockedStore.getState.mockReturnValue({
+        ...initialRootState,
         engine: {
+          ...initialRootState.engine,
           backgroundState: {
+            ...initialRootState.engine.backgroundState,
             RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
               remoteFeatureFlags: {
                 cardCARD338AbtestAttentionBadge: 'withBadge',
               },
@@ -136,7 +142,7 @@ describe('analytics', () => {
             },
           },
         },
-      } as ReturnType<typeof mockedStore.getState>);
+      } as ReturnType<typeof store.getState>);
 
       const event: AnalyticsTrackingEvent = {
         name: 'Card Button Viewed',

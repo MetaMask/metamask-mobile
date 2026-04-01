@@ -4,6 +4,7 @@ import type { ControllerMessenger } from '../types';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { store } from '../../../store';
+import initialRootState from '../../../util/test/initial-root-state';
 
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/analytics/AnalyticsEventBuilder');
@@ -12,6 +13,26 @@ jest.mock('../../../store', () => ({
     getState: jest.fn(),
   },
 }));
+
+type RemoteFeatureFlags =
+  typeof initialRootState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags;
+
+const createStateWithFeatureFlags = (
+  remoteFeatureFlags: RemoteFeatureFlags,
+): ReturnType<typeof store.getState> => ({
+  ...initialRootState,
+  engine: {
+    ...initialRootState.engine,
+    backgroundState: {
+      ...initialRootState.engine.backgroundState,
+      RemoteFeatureFlagController: {
+        ...initialRootState.engine.backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags,
+        localOverrides: {},
+      },
+    },
+  },
+});
 
 describe('trackEvent', () => {
   let mockInitMessenger: ControllerMessenger;
@@ -66,18 +87,11 @@ describe('trackEvent', () => {
     });
 
     it('enriches allowlisted events before calling the analytics controller', () => {
-      jest.mocked(store.getState).mockReturnValue({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                cardCARD338AbtestAttentionBadge: 'withBadge',
-              },
-              localOverrides: {},
-            },
-          },
-        },
-      } as ReturnType<typeof store.getState>);
+      jest.mocked(store.getState).mockReturnValue(
+        createStateWithFeatureFlags({
+          cardCARD338AbtestAttentionBadge: 'treatment',
+        }),
+      );
 
       const event = {
         name: 'Card Button Viewed',
@@ -99,7 +113,7 @@ describe('trackEvent', () => {
             active_ab_tests: [
               {
                 key: 'cardCARD338AbtestAttentionBadge',
-                value: 'withBadge',
+                value: 'treatment',
               },
             ],
           },
@@ -194,18 +208,11 @@ describe('trackEvent', () => {
       });
 
       it('inherits A/B enrichment when buildAndTrackEvent forwards a matching event', () => {
-        jest.mocked(store.getState).mockReturnValue({
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  cardCARD338AbtestAttentionBadge: 'control',
-                },
-                localOverrides: {},
-              },
-            },
-          },
-        } as ReturnType<typeof store.getState>);
+        jest.mocked(store.getState).mockReturnValue(
+          createStateWithFeatureFlags({
+            cardCARD338AbtestAttentionBadge: 'control',
+          }),
+        );
 
         const mockEvent = {
           name: 'Card Button Viewed',

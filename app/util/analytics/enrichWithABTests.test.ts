@@ -1,9 +1,10 @@
+import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import { enrichWithABTests } from './enrichWithABTests';
 
 const createEvent = (
   name: string,
-  properties: Record<string, unknown> = {},
+  properties: AnalyticsEventProperties = {},
 ): AnalyticsTrackingEvent => ({
   name,
   properties,
