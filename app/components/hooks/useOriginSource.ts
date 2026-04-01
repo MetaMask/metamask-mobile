@@ -37,7 +37,7 @@ export const useOriginSource = ({
   // V2 connections use the bare session UUID as the permission-system origin.
   // Look it up in the v2Connections store (populated by
   // HostApplicationAdapter.syncConnectionList, keyed by connection ID).
-  if (isUUID(origin) && v2Connections[origin]) {
+  if (isUUID(origin) && v2Connections?.[origin]) {
     return SourceType.SDK_CONNECT_V2;
   }
 
