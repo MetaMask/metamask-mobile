@@ -400,6 +400,9 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
   },
+  MONEY_ACCOUNT: {
+    ROOT: 'MoneyAccountScreens',
+  },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',

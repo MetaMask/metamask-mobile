@@ -36,6 +36,7 @@ import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetwor
  * their refresh functionality via refs.
  */
 const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
+  const cashSectionRef = useRef<SectionRefreshHandle>(null);
   const tokensSectionRef = useRef<SectionRefreshHandle>(null);
   const whatsHappeningSectionRef = useRef<SectionRefreshHandle>(null);
   const perpsSectionRef = useRef<SectionRefreshHandle>(null);
@@ -111,6 +112,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const refresh = useCallback(async () => {
     await Promise.allSettled([
+      cashSectionRef.current?.refresh(),
       tokensSectionRef.current?.refresh(),
       whatsHappeningSectionRef.current?.refresh(),
       perpsSectionRef.current?.refresh(),
@@ -131,6 +133,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
     >
       <CashSection
+        ref={cashSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
