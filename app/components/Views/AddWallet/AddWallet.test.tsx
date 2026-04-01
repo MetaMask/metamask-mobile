@@ -91,7 +91,11 @@ describe('AddWallet', () => {
       name: 'AddWallet',
     });
 
-    fireEvent.press(screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+      ),
+    );
 
     expect(mockedNavigate).toHaveBeenCalledWith('ImportPrivateKeyView');
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
