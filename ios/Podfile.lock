@@ -27,11 +27,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - BrazeKit (14.0.4)
-  - BrazeLocation (14.0.4):
-    - BrazeKit (= 14.0.4)
-  - BrazeUI (14.0.4):
-    - BrazeKit (= 14.0.4)
+  - BrazeKit (14.0.2)
+  - BrazeLocation (14.0.2):
+    - BrazeKit (= 14.0.2)
+  - BrazeUI (14.0.2):
+    - BrazeKit (= 14.0.2)
   - BVLinearGradient (2.8.3):
     - React-Core
   - CocoaAsyncSocket (7.6.5)
@@ -3521,9 +3521,9 @@ SPEC CHECKSUMS:
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   braze-react-native-sdk: 65cb601695ec808e3739227864bfcb76f67cafaa
-  BrazeKit: ba951d2299c1d16b541cf35cdd7250d03e28a0fb
-  BrazeLocation: d6938a737f123bb9e6632246d1abea40eeb12768
-  BrazeUI: 1d733e1dea4d81f95f261b52cc6e4b91a0eccca8
+  BrazeKit: 737bca0f11642c9d9b962d7eb587e6fe1ce7262c
+  BrazeLocation: d3d2055b25d1a0e4ae10b1166a783e959317f0ca
+  BrazeUI: ec3eacaa39838b5ded7cfecd77d12b2e8ffea9c4
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385

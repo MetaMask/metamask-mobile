@@ -406,11 +406,6 @@ project.afterEvaluate {
 }
 
 dependencies {
-    // Braze: MainApplication registers BrazeActivityLifecycleCallbackListener. The app module must
-    // compile against the SDK directly; autolinking does not put Braze on :app's compile classpath.
-    // Keep in sync with node_modules/@braze/react-native-sdk/android/build.gradle (wrapper_braze_sdk_version).
-    implementation "com.braze:android-sdk-ui:41.1.1"
-
     // The version of react-native is set by the React Native Gradle Plugin
     implementation(files("../libs/ecies.aar"))
     implementation("com.facebook.react:react-android")
