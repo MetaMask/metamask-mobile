@@ -55,8 +55,8 @@ const mockState = ({
                 },
               },
             },
-            selectedAccountGroup: 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/0',
           },
+          selectedAccountGroup: 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ/0',
         },
         AccountsController: {
           internalAccounts: {
@@ -1185,10 +1185,7 @@ describe('selectAsset', () => {
           ...state.engine.backgroundState,
           AccountTreeController: {
             ...state.engine.backgroundState.AccountTreeController,
-            accountTree: {
-              ...state.engine.backgroundState.AccountTreeController.accountTree,
-              selectedAccountGroup: selectedGroup,
-            },
+            selectedAccountGroup: selectedGroup,
           },
           AccountsController: {
             ...state.engine.backgroundState.AccountsController,
@@ -1232,6 +1229,7 @@ describe('selectAsset', () => {
         name: 'Account Group 2',
         pinned: false,
         hidden: false,
+        lastSelected: 0,
         entropy: {
           groupIndex: 1,
         },
