@@ -174,19 +174,25 @@ Flow logic (deposit → order chaining, error handling, state transitions) lives
 
 ## Active Order Lifecycle
 
-The `activeBuyOrder` in `PredictControllerState` tracks the full lifecycle of a single buy order from preview to completion. Only one order can be active at a time. All state transitions are owned by `PredictController` methods — hooks react to state changes via effects rather than driving transitions themselves.
+The `activeBuyOrders` map in `PredictControllerState` tracks the full lifecycle of buy orders **per account address**. Each address can have at most one active order at a time. All state transitions are owned by `PredictController` methods — hooks react to state changes via effects rather than driving transitions themselves.
+
+The active order **persists across navigation**. When a user places a deposit-and-order bet and navigates away, the order state (DEPOSITING, PLACING_ORDER) is preserved. The user cannot place a second order while one is in-flight — the UI blocks interaction via `isPlacingOrder`. When the background order completes, `onPlaceOrderSuccess()` resets the entry to PREVIEW (never null).
 
 When the active order enters `PAY_WITH_ANY_TOKEN` and `placeOrder()` is called, the controller stores the preview and analytics in an in-memory `pendingOrderPreviews` map keyed by `transactionId`. After the deposit transaction confirms, `handleTransactionSideEffects()` looks up the stored preview and automatically calls `placeOrder()` to complete the order.
 
 ### State Shape
 
 ```typescript
-activeBuyOrder: {
-  transactionId?: string;                          // Transaction ID linking deposit to order (for deposit-and-order flow)
-  state: ActiveOrderState;                         // Current lifecycle state
-  error?: string;                                  // Error message from failed operations
-} | null;
+activeBuyOrders: {
+  [address: string]: {
+    transactionId?: string;    // Transaction ID linking deposit to order (deposit-and-order flow only)
+    state: ActiveOrderState;   // Current lifecycle state
+    error?: string;            // Error message from failed operations
+  };
+};
 ```
+
+Entries are lazily created by `initPayWithAnyToken()` on first buy screen mount for a given address. Default state is `{}` (empty map). The selector `selectPredictActiveBuyOrder` resolves the current account address to read the correct entry.
 
 ### ActiveOrderState
 
@@ -196,7 +202,7 @@ enum ActiveOrderState {
   PAY_WITH_ANY_TOKEN = 'pay_with_any_token', // External token selected, deposit-and-order tx prepared in background
   DEPOSITING = 'depositing', // Deposit transaction in progress (set by placeOrder when state is PAY_WITH_ANY_TOKEN)
   PLACING_ORDER = 'placing_order', // Order submission in flight
-  SUCCESS = 'success', // Order completed, about to dismiss
+  SUCCESS = 'success', // Order completed, about to reset
 }
 ```
 
@@ -204,7 +210,7 @@ enum ActiveOrderState {
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PREVIEW: initPayWithAnyToken()
+    [*] --> PREVIEW: initPayWithAnyToken() [creates entry if absent]
 
     PREVIEW --> PAY_WITH_ANY_TOKEN: selectPaymentToken(external token)
     PAY_WITH_ANY_TOKEN --> PREVIEW: selectPaymentToken(balance token)
@@ -213,38 +219,50 @@ stateDiagram-v2
     PAY_WITH_ANY_TOKEN --> DEPOSITING: placeOrder() [external token selected]
 
     DEPOSITING --> PLACING_ORDER: handleTransactionSideEffects(depositAndOrder confirmed) → placeOrder()
-    DEPOSITING --> PREVIEW: handleTransactionSideEffects(depositAndOrder failed) [sets error, retries initPayWithAnyToken]
+    DEPOSITING --> PAY_WITH_ANY_TOKEN: handleTransactionSideEffects(depositAndOrder failed) [sets error, retries initPayWithAnyToken]
 
     PLACING_ORDER --> SUCCESS: placeOrder() succeeds
     PLACING_ORDER --> PREVIEW: placeOrder() fails [sets error, clears payment token, retries initPayWithAnyToken]
 
-    SUCCESS --> [*]: onPlaceOrderEnd() + navigation pop
+    SUCCESS --> PREVIEW: onPlaceOrderSuccess() [resets to initial state]
 ```
 
 Notes:
 
-- Back navigation or approval rejection triggers `onPlaceOrderEnd()`, which clears the active order, payment token, and deposit preview.
-- Deposit failure resets to `PREVIEW`, stores the error on `activeBuyOrder.error`, clears `transactionId`, and automatically retries `initPayWithAnyToken()`.
+- The active order is **never set to null** during normal flows. On SUCCESS, `onPlaceOrderSuccess()` resets the entry to `{ state: PREVIEW }` instead of removing it. On navigation back, `beforeRemove` clears only the `transactionId` (via `clearActiveOrderTransactionId()`) and rejects pending approvals — it does not clear the order entry.
+- Deposit failure resets to `PAY_WITH_ANY_TOKEN`, stores the error on `activeBuyOrders[address].error`, clears `transactionId`, and automatically retries `initPayWithAnyToken()`.
 - Order failure resets to `PREVIEW`, stores the error, clears `selectedPaymentToken`, and if a `transactionId` was present, clears it and retries `initPayWithAnyToken()`.
-- The `transitionEnd` listener in `usePredictBuyActions` triggers `initPayWithAnyToken()` once on initial mount to prepare the deposit-and-order batch when an external token is selected.
+- The `transitionEnd` listener in `usePredictBuyActions` triggers `resetSelectedPaymentToken()` then `initPayWithAnyToken()` once on initial mount to prepare the deposit-and-order batch. This ensures each new buy screen starts with Predict balance selected.
+- `initPayWithAnyToken()` guards against duplicate calls: if the order is already in DEPOSITING or PLACING_ORDER, it returns early. If the order is in stale SUCCESS (from a background completion), it resets via `onPlaceOrderSuccess()` first.
 - Transaction status events (`TransactionController:transactionStatusUpdated`) for `predictDepositAndOrder` are handled by `handleTransactionSideEffects()` in the controller, which chains deposit confirmation into `placeOrder()` automatically using the preview stored in `pendingOrderPreviews`.
 - When `placeOrder()` is called while the active order state is `PAY_WITH_ANY_TOKEN`, it transitions to `DEPOSITING`, stores the preview in `pendingOrderPreviews[transactionId]`, and returns early. The actual order placement happens when the deposit transaction confirms.
-- On successful order placement, foreground flows invalidate order-related queries in Predict hooks, while background flows publish `PredictController:transactionStatusChanged` events that trigger app-level query invalidation and toast notifications.
+
+### Foreground vs Background Notification
+
+Order success always publishes a `PredictController:transactionStatusChanged` event (for toast + query invalidation). Order **failure** events use `transactionId` matching to distinguish foreground from background:
+
+- **Foreground** (user on buy screen): `params.transactionId` matches `activeBuyOrders[address].transactionId` → error shown inline on screen, no toast.
+- **Background** (user navigated away): `transactionId` was cleared on navigation back via `clearActiveOrderTransactionId()`, so no match → toast fires.
+- **Balance flow** (no `transactionId`): error always shown inline, no toast (balance orders complete fast).
+
+The `didInitiateOrderRef` in `usePredictBuyActions` tracks whether the current screen instance initiated the order. On SUCCESS, navigation only pops if the ref is true — preventing a background completion from dismissing a different buy screen.
+
 - State transitions are gated behind the `predictWithAnyToken` feature flag — when disabled, `placeOrder()` behaves as a direct order without active order state management.
 
 ### Controller Methods (State Transitions)
 
-| Method                      | Transition                           | Notes                                                                                                                                                      |
-| --------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `initPayWithAnyToken()`     | Sets `transactionId` on active order | Prepares deposit-and-order batch via provider; initializes to `PREVIEW` if no active order exists; guards against duplicates                               |
-| `selectPaymentToken()`      | `PREVIEW ↔ PAY_WITH_ANY_TOKEN`      | Toggles between balance and external token; sets/clears `selectedPaymentToken` and clears error                                                            |
-| `placeOrder()`              | `PAY_WITH_ANY_TOKEN -> DEPOSITING`   | When external token selected: stores preview in `pendingOrderPreviews`, transitions to `DEPOSITING`, returns early                                         |
-| `placeOrder()`              | `PREVIEW -> PLACING_ORDER`           | When balance selected: submits order directly to provider                                                                                                  |
-| `placeOrder()`              | `PLACING_ORDER -> SUCCESS`           | On successful order completion; optimistically updates balance; foreground hooks invalidate queries, and background flows publish an order confirmed event |
-| `placeOrder()`              | `PLACING_ORDER -> PREVIEW`           | On order failure; stores error, clears payment token; if `transactionId` present, clears it and retries `initPayWithAnyToken()`                            |
-| `onPlaceOrderEnd()`         | `-> null`                            | Clears active order, payment token, and deposit preview                                                                                                    |
-| `clearOrderError()`         | (no state change)                    | Removes error from active order                                                                                                                            |
-| `setSelectedPaymentToken()` | (no state change)                    | Directly sets or clears the selected payment token in state                                                                                                |
+| Method                            | Transition                            | Notes                                                                                                                                          |
+| --------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `initPayWithAnyToken()`           | Creates entry or resets stale SUCCESS | Prepares deposit-and-order batch via provider; creates `{ state: PREVIEW }` entry if absent; guards against DEPOSITING/PLACING_ORDER in-flight |
+| `selectPaymentToken()`            | `PREVIEW ↔ PAY_WITH_ANY_TOKEN`       | Toggles between balance and external token; sets/clears `selectedPaymentToken` and clears error                                                |
+| `placeOrder()`                    | `PAY_WITH_ANY_TOKEN -> DEPOSITING`    | When external token selected: stores preview in `pendingOrderPreviews`, transitions to `DEPOSITING`, returns early                             |
+| `placeOrder()`                    | `PREVIEW -> PLACING_ORDER`            | When balance selected: submits order directly to provider                                                                                      |
+| `placeOrder()`                    | `PLACING_ORDER -> SUCCESS`            | On successful order completion; optimistically updates balance; always publishes order confirmed event                                         |
+| `placeOrder()`                    | `PLACING_ORDER -> PREVIEW`            | On order failure; stores error, clears payment token; publishes failed event only for background orders (transactionId mismatch)               |
+| `onPlaceOrderSuccess()`           | `-> PREVIEW`                          | Resets active order entry to `{ state: PREVIEW }` and clears `selectedPaymentToken`                                                            |
+| `clearActiveOrderTransactionId()` | (clears transactionId only)           | Called on navigation back to signal the screen is no longer handling the order; enables background toast for subsequent failures               |
+| `clearOrderError()`               | (no state change)                     | Removes error from active order                                                                                                                |
+| `setSelectedPaymentToken()`       | (no state change)                     | Directly sets or clears the selected payment token in state                                                                                    |
 
 ## Core Types and Utilities
 
