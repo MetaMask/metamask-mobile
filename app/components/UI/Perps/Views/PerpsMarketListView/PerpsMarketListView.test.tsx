@@ -98,9 +98,7 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(() => ({
     depositWithConfirmation: jest.fn().mockResolvedValue({}),
   })),
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue({}),
-  })),
+  usePerpsNetworkManagement: jest.fn(() => ({})),
   usePerpsAccount: jest.fn(() => ({
     account: null,
     isLoading: false,

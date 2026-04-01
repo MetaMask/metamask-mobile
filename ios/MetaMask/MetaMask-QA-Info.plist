@@ -120,5 +120,9 @@
 	<string>$(MM_BRANCH_KEY_LIVE)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+  <key>braze_api_key</key>
+	<string>$(MM_BRAZE_API_KEY_IOS)</string>
+	<key>braze_sdk_endpoint</key>
+	<string>$(MM_BRAZE_SDK_ENDPOINT)</string>
 </dict>
 </plist>
