@@ -318,15 +318,6 @@ const Onboarding = () => {
       }
     }, [navigation, route]);
 
-  const onLogin = useCallback(async (): Promise<void> => {
-    if (!passwordSet) {
-      await Authentication.resetVault();
-      navigation.dispatch(StackActions.replace(Routes.ONBOARDING.HOME_NAV));
-    } else {
-      await Authentication.lockApp({ navigateToLogin: true });
-    }
-  }, [navigation, passwordSet]);
-
   const handleExistingUser = useCallback(
     async (action: () => void | Promise<void>): Promise<void> => {
       if (state.existingUser) {
