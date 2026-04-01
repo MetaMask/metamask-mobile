@@ -45,6 +45,7 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
   TransactionType.musdConversion,

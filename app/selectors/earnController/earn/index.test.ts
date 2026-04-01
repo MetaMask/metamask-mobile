@@ -733,8 +733,8 @@ describe('Earn Controller Selectors', () => {
           AccountTreeController: {
             accountTree: {
               wallets: {},
-              selectedAccountGroup: null,
             },
+            selectedAccountGroup: null,
           },
           MultichainNetworkController: {
             isEvmSelected: true,
