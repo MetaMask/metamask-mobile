@@ -241,11 +241,11 @@ jobs:
 
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            yarn run-playwright:${{ inputs.platform }}-onboarding-bs
+            WDIO_LOG_LEVEL=debug yarn run-playwright:${{ inputs.platform }}-onboarding-bs
           elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
-            yarn run-playwright:mm-connect-${{ inputs.platform }}-bs
+            WDIO_LOG_LEVEL=debug yarn run-playwright:mm-connect-${{ inputs.platform }}-bs
           else
-            yarn run-playwright:${{ inputs.platform }}-bs
+            WDIO_LOG_LEVEL=debug yarn run-playwright:${{ inputs.platform }}-bs
           fi
 
           echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
