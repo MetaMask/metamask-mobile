@@ -252,16 +252,24 @@ export default class AppwrightGestures {
     } = {},
   ): Promise<void> {
     const { maxRetries = 3, retryDelay = 1000, finalTimeout = 2000 } = options;
-    let retries = maxRetries;
-    const packageId = AppwrightSelectors.isIOS(deviceInstance)
-      ? APP_PACKAGE_IDS.IOS
-      : APP_PACKAGE_IDS.ANDROID;
+    const isAndroid = AppwrightSelectors.isAndroid(deviceInstance);
+    const packageId = isAndroid ? APP_PACKAGE_IDS.ANDROID : APP_PACKAGE_IDS.IOS;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const webDriverClient = (deviceInstance as any).webDriverClient;
 
+    // timeout: 0 skips the post-termination app-state check in UIAutomator2,
+    // which otherwise throws "'x' is still running after 500ms timeout" when
+    // Android briefly restarts the process after force-stop.
+    const args = isAndroid
+      ? { appId: packageId, timeout: 0 }
+      : { bundleId: packageId };
+
+    let retries = maxRetries;
     while (retries > 0) {
       try {
-        const result = await deviceInstance.terminateApp(packageId);
+        await webDriverClient.executeScript('mobile: terminateApp', [args]);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
-        return result;
+        return;
       } catch (error) {
         console.log('Error terminating app', packageId);
         retries--;
