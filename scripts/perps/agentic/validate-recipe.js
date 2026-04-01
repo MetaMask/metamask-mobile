@@ -1257,11 +1257,12 @@ async function executeSwitchNode(node, context) {
     throw new Error(`Switch node "${node.id}" did not resolve a branch target`);
   }
 
-  context.stats.passed += 1;
   const label = selected.label ? ` (${selected.label})` : '';
   if (selected.assumed) {
+    context.stats.skipped += 1;
     console.log(`  [DRY RUN - assuming${label || ' first branch'} -> ${selected.next}]`);
   } else {
+    context.stats.passed += 1;
     console.log(`  branch -> ${selected.next}${label}`);
   }
   console.log('  PASS');
@@ -1272,7 +1273,7 @@ async function executeSwitchNode(node, context) {
     next: selected.next,
     note: selected.assumed ? 'dry run branch assumption' : '',
     startedAt,
-    status: context.runOptions.dryRun ? 'dry_run' : 'pass',
+    status: selected.assumed ? 'dry_run' : 'pass',
   });
   context.currentStepRef.current = null;
   return { next: selected.next };
@@ -1397,7 +1398,10 @@ async function runRecipe(recipePath, runOptions, flowParams = {}, depth = 0) {
     console.log(`${prefix}Team: ${defaultTeam}`);
   }
   if (hooks.pre_conditions?.length) {
-    console.log(`${prefix}Pre-conditions: ${hooks.pre_conditions.join(', ')}`);
+    const pcLabels = hooks.pre_conditions.map((spec) =>
+      typeof spec === 'string' ? spec : spec.name || JSON.stringify(spec)
+    );
+    console.log(`${prefix}Pre-conditions: ${pcLabels.join(', ')}`);
   }
   if (hooks.setup?.length) {
     console.log(`${prefix}Setup: ${hooks.setup.length} step(s)`);
