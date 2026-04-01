@@ -139,8 +139,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockGetMarketingOptInStatus = jest.fn().mockResolvedValue({
+  is_opt_in: false,
+});
+
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
+  getMarketingOptInStatus: (...args: unknown[]) =>
+    mockGetMarketingOptInStatus(...args),
 }));
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -223,6 +229,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
+      expect(mockGetMarketingOptInStatus).toHaveBeenCalled();
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
@@ -923,6 +930,7 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
+      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
