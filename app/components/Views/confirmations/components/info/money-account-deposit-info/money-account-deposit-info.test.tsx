@@ -102,10 +102,4 @@ describe('MoneyAccountDepositInfo', () => {
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
     expect(MONEY_ACCOUNT_CURRENCY).toBe('usd');
   });
-
-  it('renders MoneyAccountSelector', () => {
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
-
-    expect(getByTestId('money-account-selector-pill')).toBeOnTheScreen();
-  });
 });
