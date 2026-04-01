@@ -50,9 +50,6 @@ const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
 };
 
-const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
-const RPC_WALLET_ADDETHEREUMCHAIN = 'wallet_addEthereumChain';
-
 interface BackgroundBridgeFactory {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   create: (options: any) => BackgroundBridge;
@@ -69,9 +66,7 @@ class WalletConnect2Session {
   private timeoutRef: NodeJS.Timeout | null = null;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
-  private requestByRequestId: {
-    [requestId: string]: WalletKitTypes.SessionRequest;
-  } = {};
+
   private _isHandlingRequest = false;
 
   public session: SessionTypes.Struct;
@@ -534,7 +529,6 @@ class WalletConnect2Session {
       JSON.stringify(requestEvent, null, 2),
     );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
-    this.requestByRequestId[requestEvent.id] = requestEvent;
 
     if (this.timeoutRef) {
       // Always clear the timeout ref on new message, it is only used for wallet_switchEthereumChain auto reject on android
