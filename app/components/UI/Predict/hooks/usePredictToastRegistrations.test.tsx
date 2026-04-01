@@ -755,6 +755,52 @@ describe('usePredictToastRegistrations', () => {
   });
 
   describe('order transactions', () => {
+    it('shows pending toast with spinner on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          hasNoTimeout: false,
+          startAccessory: expect.any(Object),
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress_description',
+              isBold: false,
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('does not invalidate queries on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    });
+
     it('shows prediction placed toast on confirmed status', () => {
       const handler = getHandler();
 

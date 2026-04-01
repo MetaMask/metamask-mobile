@@ -274,7 +274,8 @@ export type PredictTransactionEventStatus =
   | 'approved'
   | 'confirmed'
   | 'failed'
-  | 'rejected';
+  | 'rejected'
+  | 'depositing';
 
 export interface PredictControllerTransactionStatusChangedEvent {
   type: 'PredictController:transactionStatusChanged';
@@ -1501,6 +1502,14 @@ export class PredictController extends BaseController<
             transactionId;
         }
       });
+
+      this.messenger.publish('PredictController:transactionStatusChanged', {
+        type: 'order',
+        status: 'depositing',
+        senderAddress: activeOrderAddress,
+        marketId: params.analyticsProperties?.marketId,
+      });
+
       return {
         success: false,
         response: { status: 'deposit_in_progress' },

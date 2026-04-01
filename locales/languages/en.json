@@ -2323,6 +2323,8 @@
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
+      "prediction_in_progress": "Prediction in progress",
+      "prediction_in_progress_description": "Your prediction will be placed shortly",
       "prediction_failed": "Failed to place prediction",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",

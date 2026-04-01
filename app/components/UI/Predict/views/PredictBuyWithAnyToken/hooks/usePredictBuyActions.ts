@@ -179,6 +179,14 @@ export const usePredictBuyActions = ({
     }
   }, [PredictController, currentState, navigation]);
 
+  useEffect(() => {
+    if (currentState === ActiveOrderState.DEPOSITING) {
+      if (didInitiateOrderRef.current) {
+        navigation.dispatch(StackActions.pop());
+      }
+    }
+  }, [currentState, navigation]);
+
   return {
     handleConfirm,
     placeOrder: handlePlaceOrder,

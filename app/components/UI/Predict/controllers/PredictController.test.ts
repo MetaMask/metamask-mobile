@@ -7574,6 +7574,84 @@ describe('PredictController', () => {
       );
     });
 
+    it('publishes order depositing event when transitioning to depositing state', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'depositing',
+              senderAddress: MOCK_ADDRESS,
+              marketId: 'market-1',
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not publish order depositing event when flag is disabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller, messenger }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+        const handler = jest.fn();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          handler,
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview,
+          transactionId: 'tx-deposit-1',
+        });
+
+        expect(handler).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'order',
+            status: 'depositing',
+          }),
+        );
+      });
+    });
+
     it('sets activeOrder to success after provider order placement succeeds', async () => {
       const mockResult = {
         success: true as const,
