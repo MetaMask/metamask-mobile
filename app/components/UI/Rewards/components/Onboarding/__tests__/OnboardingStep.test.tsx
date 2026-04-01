@@ -2,10 +2,6 @@ import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { Text, Linking, PanResponder } from 'react-native';
 import OnboardingStep from '../OnboardingStep';
-import OnboardingStep1 from '../OnboardingStep1';
-import OnboardingStep2 from '../OnboardingStep2';
-import OnboardingStep3 from '../OnboardingStep3';
-import OnboardingStep4 from '../OnboardingStep4';
 import { renderWithProviders } from '../testUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
