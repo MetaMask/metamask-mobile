@@ -53,7 +53,6 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
@@ -77,11 +76,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentInputWord, setCurrentInputWord] = useState('');
-
-  // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useSelector(
-    selectImportSrpWordSuggestionEnabledFlag,
-  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -329,7 +323,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           {strings('import_new_secret_recovery_phrase.cta_text')}
         </Button>
       </Box>
-      {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
+      {isKeyboardVisible && (
         <KeyboardStickyView
           offset={{ closed: 0, opened: 0 }}
           style={tw.style('absolute bottom-0 left-0 right-0')}
