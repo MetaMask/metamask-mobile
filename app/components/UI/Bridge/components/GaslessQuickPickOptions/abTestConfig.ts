@@ -11,6 +11,17 @@ export enum NumpadQuickActionsVariant {
 }
 export type NumpadQuickAction = number | 'MAX';
 
+// Some unit tests fully mock `@metamask/bridge-controller` without this enum.
+// Resolve event names defensively so unrelated imports do not crash at module load.
+const getBridgeEventNames = (
+  ...eventKeys: (keyof typeof UnifiedSwapBridgeEventName)[]
+) =>
+  eventKeys.flatMap((eventKey) => {
+    const eventName = UnifiedSwapBridgeEventName?.[eventKey];
+
+    return eventName ? [eventName] : [];
+  });
+
 export const NUMPAD_QUICK_ACTIONS_VARIANTS: Record<
   NumpadQuickActionsVariant,
   readonly NumpadQuickAction[]
@@ -32,7 +43,7 @@ export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapp
     flagKey: NUMPAD_QUICK_ACTIONS_AB_KEY,
     validVariants: Object.values(NumpadQuickActionsVariant),
     eventNames: [
-      UnifiedSwapBridgeEventName.InputChanged,
+      ...getBridgeEventNames('InputChanged'),
       EVENT_NAME.SWAP_PAGE_VIEWED,
     ],
   };
