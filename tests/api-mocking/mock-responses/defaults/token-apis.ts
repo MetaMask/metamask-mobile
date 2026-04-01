@@ -39,7 +39,7 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'TOKEN',
         decimals: 18,
-        occurences: 1,
+        occurrences: 1,
         aggregators: [],
         name: 'Mock Token',
         iconUrl: '',
