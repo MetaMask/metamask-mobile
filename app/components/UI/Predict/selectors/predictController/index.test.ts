@@ -142,7 +142,29 @@ describe('Predict Controller Selectors', () => {
   });
 
   describe('selectPredictActiveBuyOrder', () => {
-    it('returns active buy order when it exists', () => {
+    const mockAccountsController = {
+      internalAccounts: {
+        selectedAccount: 'acct-1',
+        accounts: {
+          'acct-1': {
+            address: '0xabc123',
+            type: 'eip155:eoa',
+            id: 'acct-1',
+            metadata: {
+              name: 'Account 1',
+              keyring: { type: 'HD Key Tree' },
+              importTime: 0,
+              lastSelected: 0,
+            },
+            options: {},
+            methods: [],
+            scopes: [],
+          },
+        },
+      },
+    };
+
+    it('returns active buy order for the selected account address', () => {
       const activeBuyOrder = {
         state: 'preview',
         transactionId: 'tx-1',
@@ -152,8 +174,9 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: {
-              activeBuyOrder,
+              activeBuyOrders: { '0xabc123': activeBuyOrder },
             },
+            AccountsController: mockAccountsController,
           },
         },
       };
@@ -164,13 +187,14 @@ describe('Predict Controller Selectors', () => {
       expect(result).toEqual(activeBuyOrder);
     });
 
-    it('returns null when active buy order is null', () => {
+    it('returns null when no order exists for the selected address', () => {
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              activeBuyOrder: null,
+              activeBuyOrders: {},
             },
+            AccountsController: mockAccountsController,
           },
         },
       };
@@ -186,6 +210,7 @@ describe('Predict Controller Selectors', () => {
         engine: {
           backgroundState: {
             PredictController: undefined,
+            AccountsController: mockAccountsController,
           },
         },
       };

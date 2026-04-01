@@ -161,6 +161,25 @@ export function updateTransactionGasFees(
   return TransactionController.updateTransactionGasFees(...args);
 }
 
+export function updatePreviousGasParams(
+  ...args: Parameters<BaseTransactionController['updatePreviousGasParams']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updatePreviousGasParams(...args);
+}
+
+/**
+ * Reads the latest `previousGas` for a transaction.
+ */
+export function getPreviousGasFromController(txId: string | null | undefined) {
+  if (!txId) return undefined;
+  const { TransactionController } = Engine.context;
+  const tx = TransactionController.getTransactions({
+    searchCriteria: { id: txId },
+  })?.[0];
+  return tx?.previousGas;
+}
+
 export const getNetworkNonce = async (
   { from }: { from: string },
   networkClientId: NetworkClientId,
