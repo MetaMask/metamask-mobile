@@ -1128,6 +1128,11 @@ const CardHome = () => {
 
       try {
         await removeCardBaanxToken();
+        // Sync controller state: token is now gone so validateAndRefreshSession
+        // will mark CardController.isAuthenticated = false without an API call.
+        await Engine.context.CardController.validateAndRefreshSession().catch(
+          () => undefined,
+        );
 
         if (isComponentUnmountedRef.current) {
           return;

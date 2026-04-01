@@ -5,9 +5,10 @@ import type {
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import type {
-  AccountsControllerListMultichainAccountsAction,
-  AccountsControllerStateChangeEvent,
-} from '@metamask/accounts-controller';
+  AccountTreeControllerGetStateAction,
+  AccountTreeControllerStateChangeEvent,
+} from '@metamask/account-tree-controller';
+import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
 import type { KeyringControllerUnlockEvent } from '@metamask/keyring-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
@@ -41,11 +42,12 @@ export type CardControllerEvents = ControllerStateChangeEvent<
 >;
 
 type CardControllerAllowedActions =
-  | AccountsControllerListMultichainAccountsAction
+  | AccountsControllerGetStateAction
+  | AccountTreeControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction;
 
 type CardControllerAllowedEvents =
-  | AccountsControllerStateChangeEvent
+  | AccountTreeControllerStateChangeEvent
   | KeyringControllerUnlockEvent;
 
 export type CardControllerMessenger = Messenger<

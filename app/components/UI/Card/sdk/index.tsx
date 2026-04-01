@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 
 import Logger from '../../../../util/Logger';
+import Engine from '../../../../core/Engine';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -133,12 +134,10 @@ export const CardSDKProvider = ({
   }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
-    if (!sdk) {
-      throw new Error('SDK not available for logout');
-    }
-
     try {
-      await sdk.logout();
+      // CardController.logout() calls the provider API, removes stored tokens,
+      // and sets isAuthenticated = false in controller state.
+      await Engine.context.CardController.logout();
     } catch (error) {
       Logger.error(error as Error, {
         message: '[CardSDK] Logout failed, clearing local state anyway',
@@ -149,7 +148,7 @@ export const CardSDKProvider = ({
     queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [sdk, dispatch, queryClient]);
+  }, [dispatch, queryClient]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(

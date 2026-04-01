@@ -8,8 +8,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   setIsAuthenticatedCard as setIsAuthenticatedAction,
   setUserCardLocation,
+  selectUserCardLocation,
 } from '../../../../core/redux/slices/card';
-import { selectCardUserLocation } from '../../../../selectors/cardController';
+import Engine from '../../../../core/Engine';
 
 /**
  * Maps CardError types to user-friendly localized error messages
@@ -67,7 +68,7 @@ const useCardProviderAuthentication =
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
     const [otpError, setOtpError] = useState<string | null>(null);
-    const location = useSelector(selectCardUserLocation);
+    const location = useSelector(selectUserCardLocation);
     const { sdk } = useCardSDK();
 
     const clearOtpError = useCallback(() => {
@@ -159,6 +160,10 @@ const useCardProviderAuthentication =
             refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
             location,
           });
+
+          // Sync controller state: sets CardController.isAuthenticated = true
+          // and providerData.baanx.location, so route guards read the correct state.
+          await Engine.context.CardController.validateAndRefreshSession();
 
           setError(null);
           dispatch(setIsAuthenticatedAction(true));

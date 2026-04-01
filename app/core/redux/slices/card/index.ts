@@ -99,6 +99,11 @@ export const selectIsDaimoDemo = createSelector(
   (card) => card.isDaimoDemo,
 );
 
+export const selectUserCardLocation = createSelector(
+  selectCardState,
+  (card) => card.userCardLocation,
+);
+
 export const selectOnboardingId = createSelector(
   selectCardState,
   (card) => card.onboarding.onboardingId,

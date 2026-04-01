@@ -28,10 +28,11 @@ export function getCardControllerMessenger(
   rootMessenger.delegate({
     messenger,
     actions: [
-      'AccountsController:listMultichainAccounts',
+      'AccountsController:getState',
+      'AccountTreeController:getState',
       'RemoteFeatureFlagController:getState',
     ],
-    events: ['AccountsController:stateChange', 'KeyringController:unlock'],
+    events: ['AccountTreeController:stateChange', 'KeyringController:unlock'],
   });
 
   return messenger;

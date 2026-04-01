@@ -16,7 +16,6 @@ import {
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
-import type { InternalAccount } from '@metamask/accounts-controller';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -102,7 +101,7 @@ export class CardController extends BaseController<
 
   #subscribeToEvents(): void {
     // On app unlock: run both cardholder check AND session verification
-    this.messagingSystem.subscribe('KeyringController:unlock', () => {
+    this.messenger.subscribe('KeyringController:unlock', () => {
       this.#triggerCardholderCheck();
       this.validateAndRefreshSession().catch((error) =>
         Logger.error(error as Error, {
@@ -112,38 +111,35 @@ export class CardController extends BaseController<
       );
     });
 
-    // Re-check when EVM account set changes (account added/removed).
+    // Re-check when the account tree changes (account added/removed).
     // The selector extracts a stable key; handler fires only when it changes,
-    // avoiding redundant API calls on unrelated account data updates.
-    this.messagingSystem.subscribe(
-      'AccountsController:stateChange',
+    // avoiding redundant API calls on unrelated state updates.
+    this.messenger.subscribe(
+      'AccountTreeController:stateChange',
       (_key: string) => {
         this.#triggerCardholderCheck();
       },
       (state) =>
-        Object.values(state.internalAccounts.accounts)
-          .filter((acc) => isEthAccount(acc as InternalAccount))
-          .map((acc) => (acc as InternalAccount).address.toLowerCase())
+        Object.keys(state.accountTree?.wallets ?? {})
           .sort()
           .join(','),
     );
   }
 
   #triggerCardholderCheck(): void {
-    const accounts = this.messagingSystem.call(
-      'AccountsController:listMultichainAccounts',
+    const { internalAccounts } = this.messenger.call(
+      'AccountsController:getState',
     );
-    const evmAccounts = accounts.filter((acc) =>
-      isEthAccount(acc as InternalAccount),
+    const evmAccounts = Object.values(internalAccounts.accounts).filter((acc) =>
+      isEthAccount(acc),
     );
     if (!evmAccounts.length) return;
 
     const caipAccountIds = evmAccounts.map(
-      (acc) =>
-        `eip155:0:${(acc as InternalAccount).address}` as `${string}:${string}:${string}`,
+      (acc) => `eip155:0:${acc.address}` as `${string}:${string}:${string}`,
     );
 
-    const featureState = this.messagingSystem.call(
+    const featureState = this.messenger.call(
       'RemoteFeatureFlagController:getState',
     );
     const cardFeature = featureState.remoteFeatureFlags?.cardFeature as

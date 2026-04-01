@@ -24,6 +24,7 @@ import Logger from '../../../../util/Logger';
 import { View } from 'react-native';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
+import { selectCardUserLocation } from '../../../../selectors/cardController';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -89,6 +90,7 @@ describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
   const mockSelectCardFeatureFlag = jest.mocked(selectCardFeatureFlag);
+  const mockSelectCardUserLocation = jest.mocked(selectCardUserLocation);
   const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
   const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
   const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
@@ -131,6 +133,9 @@ describe('CardSDK Context', () => {
       }
       if (selector === mockSelectOnboardingId) {
         return onboardingId;
+      }
+      if (selector === mockSelectCardUserLocation) {
+        return userCardLocation ?? 'international';
       }
       return null;
     });
@@ -210,7 +215,7 @@ describe('CardSDK Context', () => {
       // Then: SDK should be created with feature flag
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        userCardLocation: null,
+        userCardLocation: 'international',
       });
     });
 
@@ -743,7 +748,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        null,
+        'international',
       );
     });
 
@@ -809,7 +814,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        null,
+        'international',
       );
       expect(result.current.user).toBe(null);
     });
@@ -836,7 +841,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        null,
+        'international',
       );
       expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
       expect(mockDispatch).toHaveBeenCalledWith({
@@ -870,7 +875,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        null,
+        'international',
       );
       expect(mockGetErrorMessage).toHaveBeenCalledWith(mockError);
       // Verify resetOnboardingState was NOT dispatched
@@ -943,7 +948,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'existing-onboarding-id',
-        null,
+        'international',
       );
     });
 
@@ -970,7 +975,7 @@ describe('CardSDK Context', () => {
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
-        null,
+        'international',
       );
       expect(result.current.user).toEqual(mockUserResponse);
     });

@@ -27,8 +27,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   setOnboardingId,
   setUserCardLocation,
+  selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
-import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -49,7 +49,7 @@ const CardAuthentication = () => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const location = useSelector(selectCardUserLocation);
+  const location = useSelector(selectUserCardLocation);
   const [otpData, setOtpData] = useState<{
     userId: string;
     maskedPhoneNumber?: string;
