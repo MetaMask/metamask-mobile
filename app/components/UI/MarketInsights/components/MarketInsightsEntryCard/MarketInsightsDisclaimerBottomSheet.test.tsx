@@ -6,12 +6,30 @@ import MarketInsightsDisclaimerBottomSheet from './MarketInsightsDisclaimerBotto
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
+    const ReactLib = jest.requireActual('react');
     const { View: MockView } = jest.requireActual('react-native');
 
     return {
       __esModule: true,
-      default: ({ children }: { children: React.ReactNode }) => (
-        <MockView testID="mock-bottom-sheet">{children}</MockView>
+      default: ReactLib.forwardRef(
+        (
+          {
+            children,
+            onClose: onCloseProp,
+          }: { children: React.ReactNode; onClose?: () => void },
+          ref: React.Ref<{
+            onOpenBottomSheet: () => void;
+            onCloseBottomSheet: () => void;
+          }>,
+        ) => {
+          ReactLib.useImperativeHandle(ref, () => ({
+            onOpenBottomSheet: jest.fn(),
+            onCloseBottomSheet: jest.fn().mockImplementation(() => {
+              onCloseProp?.();
+            }),
+          }));
+          return <MockView testID="mock-bottom-sheet">{children}</MockView>;
+        },
       ),
     };
   },
