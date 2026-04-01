@@ -40,8 +40,13 @@ import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
+import {
+  BET_AMOUNT,
+  calculateRemainingOptions,
+  calculateTotalVolume,
+  getPayoutDisplay,
+} from './FeaturedCarouselCard.utils';
 
-const BET_AMOUNT = 100;
 const TEAM_LOGO_SIZE = 48;
 
 const LEAGUE_DISPLAY_NAMES: Record<string, string> = {
@@ -54,11 +59,6 @@ const LEAGUE_TOTAL_MINUTES: Record<string, number> = {
   nba: 48,
   nfl: 60,
   ucl: 90,
-};
-
-const getPayoutDisplay = (price: number): string => {
-  if (price <= 0 || price >= 1) return formatPrice(BET_AMOUNT);
-  return formatPrice(BET_AMOUNT / price);
 };
 
 const getTimeRemaining = (
@@ -163,17 +163,12 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     [market, outcome, entryPoint, executeGuardedAction, navigateToBuyPreview],
   );
 
-  const totalVolume = market.outcomes.reduce((sum, o) => {
-    const vol =
-      typeof o.volume === 'string' ? parseFloat(o.volume) : o.volume || 0;
-    return sum + vol;
-  }, 0);
-  const totalOutcomes = market.outcomes.reduce(
-    (sum, o) => sum + o.tokens.length,
-    0,
-  );
   const visibleButtons = drawToken ? 3 : 2;
-  const remainingOptions = Math.max(0, totalOutcomes - visibleButtons);
+  const totalVolume = calculateTotalVolume(market.outcomes);
+  const remainingOptions = calculateRemainingOptions(
+    market.outcomes,
+    visibleButtons,
+  );
 
   const renderTeamLogo = (team: typeof game.homeTeam, testID?: string) =>
     config.TeamIcon ? (

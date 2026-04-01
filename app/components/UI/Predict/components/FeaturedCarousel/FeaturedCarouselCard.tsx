@@ -37,20 +37,18 @@ import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
+import {
+  BET_AMOUNT,
+  calculateRemainingOptions,
+  calculateTotalVolume,
+  getPayoutDisplay,
+} from './FeaturedCarouselCard.utils';
 
 interface FeaturedCarouselCardProps {
   market: PredictMarket;
   index: number;
   entryPoint?: PredictEntryPoint;
 }
-
-const BET_AMOUNT = 100;
-
-const getPayoutDisplay = (price: number): string => {
-  if (price <= 0 || price >= 1) return formatPrice(BET_AMOUNT);
-  const payout = BET_AMOUNT / price;
-  return formatPrice(payout);
-};
 
 const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   market,
@@ -97,19 +95,8 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   );
 
   const displayOutcomes = market.outcomes.slice(0, 2);
-  const totalOutcomes = market.outcomes.reduce(
-    (sum, o) => sum + o.tokens.length,
-    0,
-  );
-  const remainingOptions = Math.max(0, totalOutcomes - 2);
-
-  const totalVolume = market.outcomes.reduce((sum, outcome) => {
-    const vol =
-      typeof outcome.volume === 'string'
-        ? parseFloat(outcome.volume)
-        : outcome.volume || 0;
-    return sum + vol;
-  }, 0);
+  const remainingOptions = calculateRemainingOptions(market.outcomes, 2);
+  const totalVolume = calculateTotalVolume(market.outcomes);
 
   if (market.game) {
     return (
