@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ramps Debug Dashboard</title>
+    <style>
+      :root {
+        --bg-primary: #0d1117;
+        --bg-secondary: #161b22;
+        --bg-tertiary: #21262d;
+        --border: #30363d;
+        --text-primary: #f0f6fc;
+        --text-secondary: #c9d1d9;
+        --text-muted: #8b949e;
+        --text-dim: #484f58;
+        --blue: #58a6ff;
+        --green: #3fb950;
+        --yellow: #d29922;
+        --red: #f85149;
+        --purple: #bc8cff;
+        --cyan: #79c0ff;
+        --font-mono:
+          'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
+          sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg-primary);
+        color: var(--text-secondary);
+        font-family: var(--font-sans);
+        font-size: 13px;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        gap: 16px;
+      }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .topbar-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: 0.3px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--red);
+        flex-shrink: 0;
+      }
+      .status-dot.connected {
+        background: var(--green);
+      }
+      .status-text {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .topbar-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .topbar-btn:hover {
+        background: var(--border);
+      }
+      .timestamp {
+        font-size: 11px;
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+      }
+      .main {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      .panel {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .panel-state {
+        flex: 1;
+        min-width: 0;
+        border-right: 1px solid var(--border);
+      }
+      .panel-methods {
+        width: 480px;
+        flex-shrink: 0;
+      }
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .panel-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+      .panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 0;
+      }
+      .panel-body::-webkit-scrollbar {
+        width: 6px;
+      }
+      .panel-body::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+      }
+      .panel-body::-webkit-scrollbar-thumb:hover {
+        background: var(--border);
+      }
+      .search-bar {
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .search-input {
+        width: 100%;
+        padding: 5px 8px;
+        font-size: 12px;
+        font-family: var(--font-mono);
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text-secondary);
+        outline: none;
+      }
+      .search-input:focus {
+        border-color: var(--blue);
+      }
+      .search-input::placeholder {
+        color: var(--text-dim);
+      }
+      .json-tree {
+        padding: 0 8px;
+      }
+      .json-node {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 20px;
+      }
+      .json-row {
+        display: flex;
+        align-items: flex-start;
+        padding: 0 4px;
+        border-radius: 3px;
+        cursor: default;
+        min-height: 20px;
+      }
+      .json-row:hover {
+        background: rgba(136, 198, 255, 0.04);
+      }
+      .json-toggle {
+        width: 16px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-dim);
+        font-size: 10px;
+        flex-shrink: 0;
+        user-select: none;
+      }
+      .json-toggle:hover {
+        color: var(--text-secondary);
+      }
+      .json-indent {
+        display: inline-block;
+        width: 16px;
+        flex-shrink: 0;
+      }
+      .json-key {
+        color: var(--cyan);
+      }
+      .json-colon {
+        color: var(--text-dim);
+        margin: 0 4px;
+      }
+      .json-string {
+        color: #a5d6ff;
+      }
+      .json-number {
+        color: var(--cyan);
+      }
+      .json-boolean {
+        color: var(--red);
+      }
+      .json-null {
+        color: var(--text-dim);
+        font-style: italic;
+      }
+      .json-bracket {
+        color: var(--text-dim);
+      }
+      .json-preview {
+        color: var(--text-dim);
+        font-style: italic;
+        margin-left: 4px;
+      }
+      .json-size {
+        color: var(--text-dim);
+        font-size: 11px;
+        margin-left: 6px;
+      }
+      .json-hidden {
+        display: none;
+      }
+      .state-section {
+        margin: 0 8px 4px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .state-section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        background: var(--bg-secondary);
+        cursor: pointer;
+        user-select: none;
+      }
+      .state-section-header:hover {
+        background: var(--bg-tertiary);
+      }
+      .state-section-chevron {
+        font-size: 10px;
+        color: var(--text-dim);
+        width: 12px;
+        transition: transform 0.15s;
+      }
+      .state-section-chevron.open {
+        transform: rotate(90deg);
+      }
+      .state-section-name {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .state-section-badges {
+        display: flex;
+        gap: 4px;
+        margin-left: auto;
+      }
+      .badge {
+        font-size: 10px;
+        font-family: var(--font-mono);
+        font-weight: 600;
+        padding: 1px 6px;
+        border-radius: 10px;
+        background: var(--bg-tertiary);
+        color: var(--text-dim);
+      }
+      .badge-loading {
+        background: #2d1b00;
+        color: var(--yellow);
+      }
+      .badge-error {
+        background: #3d1014;
+        color: var(--red);
+      }
+      .badge-selected {
+        background: #0c2d1e;
+        color: var(--green);
+      }
+      .badge-count {
+        background: var(--bg-tertiary);
+        color: var(--text-muted);
+      }
+      .badge-null {
+        background: var(--bg-tertiary);
+        color: var(--text-dim);
+      }
+      .state-section-body {
+        border-top: 1px solid var(--border);
+        padding: 4px 0;
+        display: none;
+      }
+      .state-section-body.open {
+        display: block;
+      }
+      .method-entry {
+        padding: 8px 12px;
+        margin: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        cursor: pointer;
+        background: var(--bg-secondary);
+      }
+      .method-entry:hover {
+        border-color: var(--blue);
+        background: rgba(136, 198, 255, 0.04);
+      }
+      .method-entry.has-error {
+        border-left: 3px solid var(--red);
+      }
+      .method-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .method-name {
+        color: var(--purple);
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .method-duration {
+        color: var(--text-dim);
+        font-size: 10px;
+        padding: 1px 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+      }
+      .method-duration.slow {
+        color: var(--yellow);
+        background: rgba(210, 153, 34, 0.1);
+      }
+      .method-duration.very-slow {
+        color: var(--red);
+        background: rgba(248, 81, 73, 0.1);
+      }
+      .method-badges {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+      }
+      .method-cache-badge {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .method-cache-badge.cache-hit {
+        color: var(--green);
+        background: rgba(63, 185, 80, 0.15);
+      }
+      .method-cache-badge.cache-miss {
+        color: var(--cyan);
+        background: rgba(121, 192, 255, 0.1);
+      }
+      .method-time {
+        color: var(--text-dim);
+        font-size: 10px;
+      }
+      .method-url {
+        color: var(--text-dim);
+        font-size: 10px;
+        margin-top: 3px;
+        word-break: break-all;
+        line-height: 15px;
+      }
+      .method-url-label {
+        color: var(--text-dim);
+        font-weight: 600;
+        margin-right: 4px;
+      }
+      .method-url-value {
+        color: var(--blue);
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .method-url-value:hover {
+        text-decoration: underline;
+      }
+      .method-url-path {
+        color: var(--text-secondary);
+      }
+      .method-args-labeled {
+        color: var(--text-muted);
+        margin-top: 4px;
+        font-size: 11px;
+        line-height: 17px;
+      }
+      .method-arg-label {
+        color: var(--text-dim);
+      }
+      .method-arg-value {
+        color: var(--text-secondary);
+      }
+      .method-arg-null {
+        color: var(--text-dim);
+        font-style: italic;
+      }
+      .method-detail {
+        display: none;
+        margin-top: 6px;
+        padding: 6px 8px;
+        background: var(--bg-primary);
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 250px;
+        overflow-y: auto;
+        color: var(--text-secondary);
+      }
+      .method-detail.open {
+        display: block;
+      }
+      .method-error {
+        color: var(--red);
+      }
+      .method-result-summary {
+        color: var(--text-muted);
+        margin-top: 3px;
+        font-size: 10px;
+      }
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-dim);
+        gap: 8px;
+        padding: 24px;
+        text-align: center;
+      }
+      .empty-state-icon {
+        font-size: 32px;
+        opacity: 0.5;
+      }
+      .empty-state-text {
+        font-size: 13px;
+      }
+      .empty-state-hint {
+        font-size: 11px;
+        font-family: var(--font-mono);
+      }
+      .patch-entry {
+        padding: 3px 12px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        line-height: 18px;
+      }
+      .patch-entry.collapsible {
+        cursor: pointer;
+        border-radius: 3px;
+      }
+      .patch-entry.collapsible:hover {
+        background: rgba(136, 198, 255, 0.04);
+      }
+      .patch-op {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 1px 5px;
+        border-radius: 3px;
+        text-transform: uppercase;
+      }
+      .patch-op-replace {
+        color: var(--yellow);
+        background: rgba(210, 153, 34, 0.1);
+      }
+      .patch-op-add {
+        color: var(--green);
+        background: rgba(63, 185, 80, 0.1);
+      }
+      .patch-op-remove {
+        color: var(--red);
+        background: rgba(248, 81, 73, 0.1);
+      }
+      .patch-path {
+        color: var(--cyan);
+      }
+      .patch-arrow {
+        color: var(--text-dim);
+        margin: 0 6px;
+      }
+      .patch-value {
+        color: var(--text-secondary);
+      }
+      .patch-value-preview {
+        color: var(--text-muted);
+        font-style: italic;
+      }
+      .patch-detail {
+        display: none;
+        margin: 4px 0 2px 24px;
+        padding: 6px 8px;
+        background: var(--bg-primary);
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .patch-detail.open {
+        display: block;
+      }
+      .patch-detail pre {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-secondary);
+        white-space: pre-wrap;
+        word-break: break-all;
+        margin: 0;
+      }
+      .resize-handle {
+        width: 4px;
+        cursor: col-resize;
+        background: transparent;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .resize-handle:hover,
+      .resize-handle.active {
+        background: var(--blue);
+      }
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-secondary);
+        flex-shrink: 0;
+      }
+      .tab {
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+      }
+      .tab:hover {
+        color: var(--text-secondary);
+      }
+      .tab.active {
+        color: var(--text-primary);
+        border-bottom-color: var(--blue);
+      }
+      .tab-panel {
+        display: none;
+        flex: 1;
+        overflow-y: auto;
+      }
+      .tab-panel.active {
+        display: flex;
+        flex-direction: column;
+      }
+      .widget-entry {
+        padding: 8px 12px;
+        margin: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        cursor: pointer;
+        background: var(--bg-secondary);
+      }
+      .widget-entry:hover {
+        border-color: var(--blue);
+        background: rgba(136, 198, 255, 0.04);
+      }
+      .widget-entry.has-error {
+        border-left: 3px solid var(--red);
+      }
+      .widget-entry.has-error .widget-status {
+        color: var(--red);
+      }
+      .widget-status-ok {
+        color: var(--green);
+      }
+      .widget-response-body {
+        margin-top: 6px;
+        padding: 6px 8px;
+        background: var(--bg-primary);
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 300px;
+        overflow-y: auto;
+        font-size: 11px;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Ramps Debug</span>
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Disconnected</span>
+      </div>
+      <div class="topbar-right">
+        <span class="timestamp" id="lastUpdate"></span>
+        <button class="topbar-btn" id="btnClear" title="Clear method log">
+          Clear Log
+        </button>
+        <button
+          class="topbar-btn"
+          id="btnCollapseAll"
+          title="Collapse all state sections"
+        >
+          Collapse All
+        </button>
+        <button
+          class="topbar-btn"
+          id="btnExpandAll"
+          title="Expand all state sections"
+        >
+          Expand All
+        </button>
+      </div>
+    </div>
+    <div class="main">
+      <div class="panel panel-state" id="panelState">
+        <div class="search-bar">
+          <input
+            class="search-input"
+            id="stateSearch"
+            type="text"
+            placeholder="Filter state keys..."
+          />
+        </div>
+        <div class="panel-body" id="stateBody">
+          <div class="empty-state" id="stateEmpty">
+            <div class="empty-state-icon">{ }</div>
+            <div class="empty-state-text">Waiting for state...</div>
+            <div class="empty-state-hint">Run the mobile app in dev mode</div>
+          </div>
+        </div>
+      </div>
+      <div class="resize-handle" id="resizeHandle"></div>
+      <div class="panel panel-methods" id="panelMethods">
+        <div class="tabs">
+          <div class="tab active" data-tab="methods">Methods</div>
+          <div class="tab" data-tab="patches">Patches</div>
+          <div class="tab" data-tab="widget">Widget URL</div>
+        </div>
+        <div class="tab-panel active" id="tabMethods">
+          <div class="panel-body" id="methodsBody">
+            <div class="empty-state" id="methodsEmpty">
+              <div class="empty-state-icon">( )</div>
+              <div class="empty-state-text">No method calls yet</div>
+              <div class="empty-state-hint">
+                Interact with the ramp flow in the app
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tabPatches">
+          <div class="panel-body" id="patchesBody">
+            <div class="empty-state" id="patchesEmpty">
+              <div class="empty-state-icon">&Delta;</div>
+              <div class="empty-state-text">No state patches yet</div>
+              <div class="empty-state-hint">
+                Patches appear when controller state changes
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tabWidget">
+          <div class="panel-body" id="widgetBody">
+            <div class="empty-state" id="widgetEmpty">
+              <div class="empty-state-icon">&#x1F4CE;</div>
+              <div class="empty-state-text">No widget URL requests yet</div>
+              <div class="empty-state-hint">
+                Use an <strong>aggregator</strong> provider (MoonPay, Banxa, etc.),
+                not Transak Native. Change amount, tap Continue on Build Quote.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      (function () {
+        /** @param {string} html */
+        function trustedHtml(html) {
+          if (typeof window.DOMPurify === 'undefined') {
+            return html;
+          }
+          return window.DOMPurify.sanitize(String(html ?? ''), {
+            ADD_ATTR: ['data-key', 'data-path'],
+          });
+        }
+
+        let ws = null;
+        let currentState = null;
+        const expandedPaths = new Set();
+        const STATE_SECTIONS = [
+          'userRegion',
+          'providers',
+          'tokens',
+          'paymentMethods',
+          'countries',
+          'nativeProviders',
+          'requests',
+        ];
+        const openSections = new Set([
+          'userRegion',
+          'providers',
+          'tokens',
+          'paymentMethods',
+          'nativeProviders',
+        ]);
+
+        const HIDDEN_METHODS = new Set(['executeRequest']);
+        const METHOD_ARG_LABELS = {
+          init: [],
+          hydrateState: [],
+          getCountries: [],
+          setUserRegion: ['region'],
+          getTokens: ['region', 'action', 'options'],
+          setSelectedToken: ['assetId'],
+          getProviders: ['region', 'options'],
+          setSelectedProvider: ['providerId'],
+          getPaymentMethods: ['region', 'options'],
+          setSelectedPaymentMethod: ['paymentMethodId'],
+          getQuotes: ['options'],
+          getBuyWidgetData: ['quote'],
+          getOrder: ['providerCode', 'orderCode', 'wallet'],
+          getOrderFromCallback: ['providerCode', 'callbackUrl', 'wallet'],
+          getRequestState: ['cacheKey'],
+          abortRequest: ['cacheKey'],
+          transakSetApiKey: ['apiKey'],
+          transakSetAccessToken: ['token'],
+          transakClearAccessToken: [],
+          transakSetAuthenticated: ['isAuthenticated'],
+          transakResetState: [],
+          transakSendUserOtp: ['email'],
+          transakVerifyUserOtp: ['email', 'otp'],
+          transakLogout: [],
+          transakGetUserDetails: [],
+          transakGetBuyQuote: ['params'],
+          transakGetKycRequirement: ['params'],
+          transakGetAdditionalRequirements: ['quoteId'],
+          transakCreateOrder: ['params'],
+          transakGetOrder: ['orderId'],
+          transakGetUserLimits: ['params'],
+          transakRequestOtt: [],
+          transakGeneratePaymentWidgetUrl: ['params'],
+          transakSubmitPurposeOfUsageForm: ['purpose'],
+          transakPatchUser: ['data'],
+          transakSubmitSsnDetails: ['params'],
+          transakConfirmPayment: ['params'],
+          transakGetTranslation: ['params'],
+          transakGetIdProofStatus: ['params'],
+          transakCancelOrder: ['depositOrderId'],
+          transakCancelAllActiveOrders: [],
+          transakGetActiveOrders: [],
+        };
+
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const lastUpdate = document.getElementById('lastUpdate');
+        const stateBody = document.getElementById('stateBody');
+        const stateEmpty = document.getElementById('stateEmpty');
+        const methodsBody = document.getElementById('methodsBody');
+        const methodsEmpty = document.getElementById('methodsEmpty');
+        const patchesBody = document.getElementById('patchesBody');
+        const patchesEmpty = document.getElementById('patchesEmpty');
+        const widgetBody = document.getElementById('widgetBody');
+        const widgetEmpty = document.getElementById('widgetEmpty');
+        const btnClear = document.getElementById('btnClear');
+        const btnCollapseAll = document.getElementById('btnCollapseAll');
+        const btnExpandAll = document.getElementById('btnExpandAll');
+        const stateSearch = document.getElementById('stateSearch');
+        const resizeHandle = document.getElementById('resizeHandle');
+        const panelMethods = document.getElementById('panelMethods');
+
+        document.querySelectorAll('.tab').forEach((tab) => {
+          tab.addEventListener('click', () => {
+            document
+              .querySelectorAll('.tab')
+              .forEach((t) => t.classList.remove('active'));
+            document
+              .querySelectorAll('.tab-panel')
+              .forEach((p) => p.classList.remove('active'));
+            tab.classList.add('active');
+            document
+              .getElementById('tab' + capitalize(tab.dataset.tab))
+              .classList.add('active');
+          });
+        });
+        function capitalize(s) {
+          return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        let isResizing = false;
+        resizeHandle.addEventListener('mousedown', (e) => {
+          isResizing = true;
+          resizeHandle.classList.add('active');
+          e.preventDefault();
+        });
+        document.addEventListener('mousemove', (e) => {
+          if (!isResizing) return;
+          const newWidth =
+            document.querySelector('.main').getBoundingClientRect().width -
+            e.clientX;
+          if (newWidth >= 250 && newWidth <= 800)
+            panelMethods.style.width = newWidth + 'px';
+        });
+        document.addEventListener('mouseup', () => {
+          isResizing = false;
+          resizeHandle.classList.remove('active');
+        });
+
+        function connect() {
+          const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+          ws = new WebSocket(`${proto}//${location.host}`);
+          ws.onopen = () => {
+            statusDot.classList.add('connected');
+            statusText.textContent = 'Server connected';
+          };
+          ws.onclose = () => {
+            statusDot.classList.remove('connected');
+            statusText.textContent = 'Disconnected';
+            setTimeout(connect, 2000);
+          };
+          ws.onerror = () => ws.close();
+          ws.onmessage = (e) => {
+            try {
+              handleMessage(JSON.parse(e.data));
+            } catch {}
+          };
+        }
+
+        function handleMessage(msg) {
+          switch (msg.type) {
+            case 'state':
+              currentState = msg.state;
+              statusDot.classList.add('connected');
+              statusText.textContent = 'Mobile connected';
+              lastUpdate.textContent = formatTime(msg.timestamp);
+              renderState();
+              if (msg.patches && msg.patches.length > 0)
+                renderPatches(msg.patches, msg.timestamp);
+              break;
+            case 'method':
+              renderMethod(msg);
+              break;
+            case 'widget-url-request':
+              if (msg.details) renderWidgetRequest(msg.details);
+              break;
+            case 'mobile-connected':
+              statusText.textContent = 'Mobile connected';
+              break;
+            case 'mobile-disconnected':
+              statusText.textContent = 'Mobile disconnected';
+              break;
+          }
+        }
+
+        function renderState() {
+          if (!currentState) return;
+          stateEmpty.style.display = 'none';
+          const filter = stateSearch.value.toLowerCase().trim();
+          const sections = STATE_SECTIONS.filter(
+            (k) => currentState[k] !== undefined,
+          );
+          const extraKeys = Object.keys(currentState).filter(
+            (k) => !STATE_SECTIONS.includes(k),
+          );
+          const allKeys = [...sections, ...extraKeys];
+          let html = '';
+          for (const key of allKeys) {
+            if (
+              filter &&
+              !key.toLowerCase().includes(filter) &&
+              !jsonContains(currentState[key], filter)
+            )
+              continue;
+            html += renderStateSection(key, currentState[key]);
+          }
+          const scrollTop = stateBody.scrollTop;
+          stateBody.innerHTML = trustedHtml(
+            html ||
+              '<div class="empty-state"><div class="empty-state-text">No matching keys</div></div>',
+          );
+          stateBody.scrollTop = scrollTop;
+          stateBody
+            .querySelectorAll('.state-section-header')
+            .forEach((header) => {
+              header.addEventListener('click', () => {
+                const key = header.dataset.key;
+                const body = header.nextElementSibling;
+                const chevron = header.querySelector('.state-section-chevron');
+                if (openSections.has(key)) {
+                  openSections.delete(key);
+                  body.classList.remove('open');
+                  chevron.classList.remove('open');
+                } else {
+                  openSections.add(key);
+                  body.classList.add('open');
+                  chevron.classList.add('open');
+                }
+              });
+            });
+          attachJsonToggles(stateBody);
+        }
+
+        function renderStateSection(key, value) {
+          const isOpen = openSections.has(key);
+          const safeKey = esc(String(key));
+          return `<div class="state-section">
+      <div class="state-section-header" data-key="${safeKey}">
+        <span class="state-section-chevron ${isOpen ? 'open' : ''}">&#9654;</span>
+        <span class="state-section-name">${safeKey}</span>
+        <span class="state-section-badges">${getSectionBadges(key, value)}</span>
+      </div>
+      <div class="state-section-body ${isOpen ? 'open' : ''}">
+        <div class="json-tree">${renderJson(value, key, 0)}</div>
+      </div>
+    </div>`;
+        }
+
+        function getSectionBadges(key, value) {
+          if (value === null || value === undefined)
+            return '<span class="badge badge-null">null</span>';
+          let b = '';
+          if (typeof value === 'object') {
+            if (key === 'nativeProviders') {
+              return getNativeProvidersBadges(value);
+            }
+            if (value.isLoading)
+              b += '<span class="badge badge-loading">loading</span>';
+            if (value.error)
+              b += `<span class="badge badge-error">error: ${esc(String(value.error))}</span>`;
+            if (value.selected !== undefined && value.selected !== null) {
+              const label = value.selected?.name || value.selected?.id || 'yes';
+              b += `<span class="badge badge-selected">selected: ${esc(String(label))}</span>`;
+            }
+            if (Array.isArray(value.data))
+              b += `<span class="badge badge-count">${value.data.length} items</span>`;
+            else if (value.data && typeof value.data === 'object')
+              b += `<span class="badge badge-count">${Object.keys(value.data).length} keys</span>`;
+          }
+          return b;
+        }
+
+        function getNativeProvidersBadges(value) {
+          let b = '';
+          const providerNames = Object.keys(value);
+          b += `<span class="badge badge-count">${providerNames.length} provider${providerNames.length !== 1 ? 's' : ''}</span>`;
+          for (const name of providerNames) {
+            const prov = value[name];
+            if (!prov || typeof prov !== 'object') continue;
+            if (prov.isAuthenticated) {
+              b += `<span class="badge badge-selected">${esc(name)}: authed</span>`;
+            }
+            for (const sub of ['userDetails', 'buyQuote', 'kycRequirement']) {
+              if (prov[sub]?.isLoading)
+                b += `<span class="badge badge-loading">${esc(name)}.${sub}</span>`;
+              if (prov[sub]?.error)
+                b += `<span class="badge badge-error">${esc(name)}.${sub}</span>`;
+            }
+          }
+          return b;
+        }
+
+        function renderJson(value, path, depth) {
+          if (value === null) return '<span class="json-null">null</span>';
+          if (value === undefined)
+            return '<span class="json-null">undefined</span>';
+          const type = typeof value;
+          if (type === 'string')
+            return `<span class="json-string">"${esc(truncate(value, 500))}"</span>`;
+          if (type === 'number')
+            return `<span class="json-number">${value}</span>`;
+          if (type === 'boolean')
+            return `<span class="json-boolean">${value}</span>`;
+          if (Array.isArray(value))
+            return value.length === 0
+              ? '<span class="json-bracket">[]</span>'
+              : renderExpandable(value, path, depth, true);
+          if (type === 'object') {
+            const keys = Object.keys(value);
+            return keys.length === 0
+              ? '<span class="json-bracket">{}</span>'
+              : renderExpandable(value, path, depth, false);
+          }
+          return `<span class="json-string">${esc(String(value))}</span>`;
+        }
+
+        function renderExpandable(obj, path, depth, isArray) {
+          const keys = isArray ? obj.map((_, i) => i) : Object.keys(obj);
+          const isExpanded = expandedPaths.has(path);
+          const ob = isArray ? '[' : '{',
+            cb = isArray ? ']' : '}';
+          const preview = getPreview(obj, isArray);
+          let html = `<span class="json-toggle" data-path="${esc(path)}">${isExpanded ? '&#9660;' : '&#9654;'}</span><span class="json-bracket">${ob}</span>`;
+          if (!isExpanded) {
+            html += `<span class="json-preview">${esc(preview)}</span><span class="json-size">${keys.length} ${keys.length === 1 ? 'item' : 'items'}</span><span class="json-bracket">${cb}</span>`;
+            return html;
+          }
+          html += '<div class="json-children">';
+          const limit = Math.min(keys.length, 200);
+          for (let i = 0; i < limit; i++) {
+            const k = keys[i];
+            html += `<div class="json-row"><span class="json-indent"></span><span class="json-key" ${isArray ? 'style="color:var(--text-dim)"' : ''}>${esc(String(k))}</span><span class="json-colon">:</span>${renderJson(obj[k], path + '.' + k, depth + 1)}</div>`;
+          }
+          if (keys.length > limit)
+            html += `<div class="json-row"><span class="json-indent"></span><span class="json-preview">... ${keys.length - limit} more items</span></div>`;
+          html += `</div><div class="json-row"><span class="json-bracket">${cb}</span></div>`;
+          return html;
+        }
+
+        function getPreview(obj, isArray) {
+          if (isArray) {
+            const s = obj.slice(0, 3).map((v) => primitivePreview(v));
+            return (obj.length <= 3 ? s : [...s, '...']).join(', ');
+          }
+          const keys = Object.keys(obj);
+          return (keys.length <= 3 ? keys : [...keys.slice(0, 3), '...']).join(
+            ', ',
+          );
+        }
+        function primitivePreview(v) {
+          if (v === null) return 'null';
+          if (typeof v === 'string') return '"' + truncate(v, 20) + '"';
+          if (typeof v === 'object')
+            return Array.isArray(v) ? `[${v.length}]` : '{...}';
+          return String(v);
+        }
+
+        function attachJsonToggles(container) {
+          container.querySelectorAll('.json-toggle').forEach((toggle) => {
+            toggle.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const path = toggle.dataset.path;
+              if (expandedPaths.has(path)) expandedPaths.delete(path);
+              else expandedPaths.add(path);
+              renderState();
+            });
+          });
+        }
+
+        function jsonContains(value, filter) {
+          if (value == null) return false;
+          if (typeof value === 'string')
+            return value.toLowerCase().includes(filter);
+          if (typeof value === 'number' || typeof value === 'boolean')
+            return String(value).includes(filter);
+          if (Array.isArray(value))
+            return value.some((v) => jsonContains(v, filter));
+          if (typeof value === 'object') {
+            for (const k of Object.keys(value)) {
+              if (
+                k.toLowerCase().includes(filter) ||
+                jsonContains(value[k], filter)
+              )
+                return true;
+            }
+          }
+          return false;
+        }
+
+        function formatMethodArgs(name, args) {
+          if (!args || args.length === 0) return '';
+          const labels = METHOD_ARG_LABELS[name];
+          if (!labels || labels.length === 0) {
+            return `<div class="method-args-labeled">${esc(truncate(JSON.stringify(args), 120))}</div>`;
+          }
+          const parts = [];
+          for (let i = 0; i < args.length; i++) {
+            const label = labels[i] || `arg${i}`;
+            const val = args[i];
+            if (val === null || val === undefined) continue;
+            let rendered;
+            if (typeof val === 'string')
+              rendered = `<span class="method-arg-value">"${esc(truncate(val, 50))}"</span>`;
+            else if (typeof val === 'number' || typeof val === 'boolean')
+              rendered = `<span class="method-arg-value">${val}</span>`;
+            else
+              rendered = `<span class="method-arg-value">${esc(truncate(JSON.stringify(val), 60))}</span>`;
+            parts.push(
+              `<span class="method-arg-label">${esc(label)}:</span> ${rendered}`,
+            );
+          }
+          return parts.length > 0
+            ? `<div class="method-args-labeled">${parts.join('<span class="method-arg-label">,</span> ')}</div>`
+            : '';
+        }
+
+        function getMethodResultSummary(msg) {
+          if (msg.error)
+            return `<div class="method-result-summary method-error">Error: ${esc(truncate(msg.error, 80))}</div>`;
+          if (msg.result === undefined || msg.result === null) return '';
+          if (typeof msg.result === 'object') {
+            const keys = Object.keys(msg.result);
+            if (keys.length === 0) return '';
+            const parts = [];
+            for (const k of keys.slice(0, 3)) {
+              const v = msg.result[k];
+              if (Array.isArray(v))
+                parts.push(`${esc(k)}: [${v.length}]`);
+              else if (typeof v === 'object' && v !== null)
+                parts.push(`${esc(k)}: {...}`);
+              else
+                parts.push(
+                  `${esc(k)}: ${esc(truncate(JSON.stringify(v), 20))}`,
+                );
+            }
+            if (keys.length > 3) parts.push('...');
+            return `<div class="method-result-summary">→ {${parts.join(', ')}}</div>`;
+          }
+          return `<div class="method-result-summary">→ ${esc(truncate(JSON.stringify(msg.result), 60))}</div>`;
+        }
+
+        function formatRequestUrl(url) {
+          if (!url) return '';
+          try {
+            const parsed = new URL(url);
+            const host = parsed.host;
+            const pathAndQuery = parsed.pathname + parsed.search;
+            return `<div class="method-url"><span class="method-url-label">URL</span><a class="method-url-value" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(url)}">${esc(host)}<span class="method-url-path">${esc(truncate(pathAndQuery, 200))}</span></a></div>`;
+          } catch {
+            return `<div class="method-url"><span class="method-url-label">URL</span><a class="method-url-value" href="${esc(url)}" target="_blank" rel="noopener" title="${esc(url)}">${esc(truncate(url, 120))}</a></div>`;
+          }
+        }
+
+        function getCacheBadgeHtml(cacheStatus) {
+          if (cacheStatus === 'hit')
+            return '<span class="method-cache-badge cache-hit">cached</span>';
+          if (cacheStatus === 'miss')
+            return '<span class="method-cache-badge cache-miss">fetched</span>';
+          return '';
+        }
+
+        function renderMethod(msg) {
+          if (HIDDEN_METHODS.has(msg.name)) return;
+          methodsEmpty.style.display = 'none';
+          const el = document.createElement('div');
+          el.className = 'method-entry' + (msg.error ? ' has-error' : '');
+          let dc = '';
+          if (msg.duration > 5000) dc = 'very-slow';
+          else if (msg.duration > 1000) dc = 'slow';
+          const argsHtml = formatMethodArgs(msg.name, msg.args);
+          const summaryHtml = getMethodResultSummary(msg);
+          const cacheBadge = getCacheBadgeHtml(msg.cacheStatus);
+          const urlHtml = formatRequestUrl(msg.requestUrl);
+          el.innerHTML = trustedHtml(`<div class="method-header">
+        <span class="method-name">${esc(msg.name)}</span>
+        <span class="method-time">${formatTime(msg.timestamp)}</span>
+        <span class="method-badges">${cacheBadge}<span class="method-duration ${dc}">${msg.duration != null ? msg.duration + 'ms' : ''}</span></span>
+      </div>
+      ${urlHtml}${argsHtml}${summaryHtml}
+      <div class="method-detail">
+        ${msg.requestUrl ? `<div><strong>Request URL:</strong>\n${esc(msg.requestUrl)}</div>\n` : ''}<div><strong>Args:</strong>\n${formatJsonSafe(msg.args)}</div>
+        ${msg.error ? `<div class="method-error"><strong>Error:</strong> ${esc(msg.error)}</div>` : ''}
+        ${msg.result !== undefined ? `<div><strong>Result:</strong>\n${formatJsonSafe(msg.result)}</div>` : ''}
+      </div>`);
+          el.addEventListener('click', () => {
+            el.querySelector('.method-detail').classList.toggle('open');
+          });
+          el.querySelectorAll('.method-url-value').forEach((link) => {
+            link.addEventListener('click', (e) => e.stopPropagation());
+          });
+          if (methodsBody.firstChild === methodsEmpty)
+            methodsBody.insertBefore(el, methodsEmpty.nextSibling);
+          else methodsBody.insertBefore(el, methodsBody.firstChild);
+          while (methodsBody.children.length > 501)
+            methodsBody.removeChild(methodsBody.lastChild);
+        }
+
+        function renderWidgetRequest(d) {
+          if (!d || typeof d !== 'object') return;
+          widgetEmpty.style.display = 'none';
+          const el = document.createElement('div');
+          el.className =
+            'widget-entry' + (d.ok ? '' : ' has-error');
+          const statusHtml = d.status != null
+            ? `<span class="widget-status ${d.ok ? 'widget-status-ok' : ''}">${d.status} ${esc(d.statusText || '')}</span>`
+            : d.error
+              ? `<span class="widget-status">Error: ${esc(d.error)}</span>`
+              : '';
+          let bodyHtml = '';
+          if (d.responseBody) {
+            bodyHtml = `<div class="widget-response-body">${esc(d.responseBody)}</div>`;
+          } else if (d.error) {
+            bodyHtml = `<div class="widget-response-body method-error">${esc(d.error)}</div>`;
+          }
+          el.innerHTML = trustedHtml(`<div class="method-header">
+        <span class="method-time">${formatTime(d.timestamp)}</span>
+        <span class="method-badges"><span class="method-duration">${d.duration}ms</span> ${statusHtml}</span>
+      </div>
+      <div class="method-url"><span class="method-url-label">URL</span><a class="method-url-value" href="${esc(d.url)}" target="_blank" rel="noopener" title="${esc(d.url)}">${esc(truncate(d.url, 120))}</a></div>
+      ${bodyHtml}
+      <div class="method-detail" style="display:none">
+        <div><strong>Full URL:</strong>\n${esc(d.url)}</div>
+        ${d.status != null ? `<div><strong>Status:</strong> ${d.status} ${esc(d.statusText || '')}</div>` : ''}
+        ${d.error ? `<div class="method-error"><strong>Error:</strong> ${esc(d.error)}</div>` : ''}
+        ${d.responseBody ? `<div><strong>Response body:</strong>\n${esc(d.responseBody)}</div>` : ''}
+        <div><strong>Duration:</strong> ${d.duration}ms</div>
+      </div>`);
+          el.addEventListener('click', () => {
+            const detail = el.querySelector('.method-detail');
+            detail.style.display =
+              detail.style.display === 'none' ? 'block' : 'none';
+          });
+          el.querySelectorAll('.method-url-value').forEach((link) => {
+            link.addEventListener('click', (e) => e.stopPropagation());
+          });
+          if (widgetBody.firstChild === widgetEmpty)
+            widgetBody.insertBefore(el, widgetEmpty.nextSibling);
+          else widgetBody.insertBefore(el, widgetBody.firstChild);
+          while (widgetBody.children.length > 101)
+            widgetBody.removeChild(widgetBody.lastChild);
+        }
+
+        function formatPatchValue(val) {
+          if (val === null) return '<span class="json-null">null</span>';
+          if (val === undefined)
+            return '<span class="json-null">undefined</span>';
+          if (typeof val === 'string')
+            return `<span class="json-string">"${esc(truncate(val, 60))}"</span>`;
+          if (typeof val === 'number')
+            return `<span class="json-number">${val}</span>`;
+          if (typeof val === 'boolean')
+            return `<span class="json-boolean">${val}</span>`;
+          return null;
+        }
+
+        function renderPatches(patches, timestamp) {
+          const filtered = patches.filter((p) => {
+            const path = p.path || [];
+            return path[0] !== 'requests';
+          });
+          if (filtered.length === 0) return;
+
+          patchesEmpty.style.display = 'none';
+          const group = document.createElement('div');
+          group.style.borderBottom = '1px solid var(--border)';
+          group.style.paddingBottom = '4px';
+          group.style.marginBottom = '4px';
+
+          const header = document.createElement('div');
+          header.style.cssText =
+            'padding: 4px 12px; font-size: 10px; color: var(--text-dim); font-family: var(--font-mono);';
+          header.textContent = `${formatTime(timestamp)} \u2014 ${filtered.length} patch${filtered.length !== 1 ? 'es' : ''}`;
+          group.appendChild(header);
+
+          for (const patch of filtered) {
+            const el = document.createElement('div');
+            const pathStr = (patch.path || []).join('.');
+            const opSafe = String(patch.op ?? 'unknown')
+              .replace(/[^a-zA-Z0-9_-]/g, '')
+              .slice(0, 48);
+            const opClass = `patch-op-${opSafe || 'unknown'}`;
+
+            const primitiveHtml =
+              patch.value !== undefined ? formatPatchValue(patch.value) : null;
+            const isComplex =
+              patch.value !== undefined && primitiveHtml === null;
+
+            if (isComplex) {
+              el.className = 'patch-entry collapsible';
+              const preview = truncate(JSON.stringify(patch.value), 80);
+              el.innerHTML = trustedHtml(
+                `<span class="patch-op ${opClass}">${esc(patch.op)}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-arrow">\u2192</span><span class="patch-value-preview">${esc(preview)}</span>`,
+              );
+              const detail = document.createElement('div');
+              detail.className = 'patch-detail';
+              const pre = document.createElement('pre');
+              pre.textContent = JSON.stringify(patch.value, null, 2);
+              detail.appendChild(pre);
+              el.appendChild(detail);
+              el.addEventListener('click', () =>
+                detail.classList.toggle('open'),
+              );
+            } else {
+              el.className = 'patch-entry';
+              const valueHtml = primitiveHtml || '';
+              el.innerHTML = trustedHtml(
+                `<span class="patch-op ${opClass}">${esc(patch.op)}</span> <span class="patch-path">${esc(pathStr)}</span><span class="patch-arrow">\u2192</span>${valueHtml}`,
+              );
+            }
+            group.appendChild(el);
+          }
+
+          if (patchesBody.firstChild === patchesEmpty)
+            patchesBody.insertBefore(group, patchesEmpty.nextSibling);
+          else patchesBody.insertBefore(group, patchesBody.firstChild);
+          while (patchesBody.children.length > 201)
+            patchesBody.removeChild(patchesBody.lastChild);
+        }
+
+        function formatTime(ts) {
+          if (!ts) return '';
+          const d = new Date(ts);
+          return (
+            d.toLocaleTimeString('en-US', {
+              hour12: false,
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            }) +
+            '.' +
+            String(d.getMilliseconds()).padStart(3, '0')
+          );
+        }
+        function esc(s) {
+          const d = document.createElement('div');
+          d.textContent = s;
+          return d.innerHTML;
+        }
+        function truncate(s, max) {
+          if (!s) return '';
+          if (typeof s !== 'string') s = String(s);
+          return s.length > max ? s.slice(0, max) + '...' : s;
+        }
+        function formatJsonSafe(v) {
+          try {
+            return esc(JSON.stringify(v, null, 2));
+          } catch {
+            return esc(String(v));
+          }
+        }
+
+        btnClear.addEventListener('click', () => {
+          methodsBody.innerHTML = '';
+          methodsBody.appendChild(methodsEmpty);
+          methodsEmpty.style.display = '';
+          patchesBody.innerHTML = '';
+          patchesBody.appendChild(patchesEmpty);
+          patchesEmpty.style.display = '';
+          widgetBody.innerHTML = '';
+          widgetBody.appendChild(widgetEmpty);
+          widgetEmpty.style.display = '';
+        });
+        btnCollapseAll.addEventListener('click', () => {
+          openSections.clear();
+          expandedPaths.clear();
+          renderState();
+        });
+        btnExpandAll.addEventListener('click', () => {
+          STATE_SECTIONS.forEach((k) => openSections.add(k));
+          renderState();
+        });
+        stateSearch.addEventListener('input', () => renderState());
+        connect();
+      })();
+    </script>
+  </body>
+</html>

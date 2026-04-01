@@ -17,10 +17,12 @@ import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
 import TokenListItem from '../../components/TokenListItem';
 import { createUnsupportedTokenModalNavigationDetails } from '../Modals/UnsupportedTokenModal/UnsupportedTokenModal';
 
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -214,7 +216,7 @@ function TokenSelection() {
         setSelectedToken(assetId);
         navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
       } else {
-        navigation.dangerouslyGetParent()?.goBack();
+        navigation.getParent()?.goBack();
         goToBuy({ assetId });
       }
     },
@@ -298,7 +300,7 @@ function TokenSelection() {
   const renderEmptyList = useCallback(
     () => (
       <ListItemSelect isSelected={false} isDisabled>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
           {strings('deposit.token_modal.no_tokens_found', {
             searchString,
           })}
@@ -365,10 +367,10 @@ function TokenSelection() {
         <ScreenLayout.Body>
           <Box twClassName="flex-1 items-center justify-center px-4">
             <Box twClassName="text-center">
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {strings('deposit.token_modal.error_loading_tokens')}
               </Text>
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {parseUserFacingError(
                   error,
                   strings('deposit.token_modal.error_loading_tokens'),

@@ -1,0 +1,69 @@
+##############################################################################################
+#
+# Reusable: create SemVer release tag after production OTA (idempotent).
+#
+# Callers: runway_*_production_workflow.yml after trigger-ota succeeds.
+# Skips if the tag already points at the checked-out commit; fails if the tag exists elsewhere.
+#
+##############################################################################################
+name: Create OTA production release tag
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        description: 'Annotated tag to create; must match OTA_VERSION (app/constants/ota.ts) / decide ota_version'
+        required: true
+        type: string
+      checkout_ref:
+        description: 'Branch or ref that received the OTA (same as workflow source)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-tag:
+    name: Create release tag (production OTA)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.checkout_ref }}
+
+      - name: Create or skip release tag
+        env:
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${TAG_NAME}" ]]; then
+            echo '::error::tag_name is empty; cannot create release tag'
+            exit 1
+          fi
+          if [[ ! "${TAG_NAME}" =~ ^v[^[:space:]]+$ ]]; then
+            echo "::error::tag_name must be non-empty and start with v (no spaces), got: ${TAG_NAME}"
+            exit 1
+          fi
+
+          HEAD_SHA=$(git rev-parse HEAD)
+          git fetch origin --tags --force 2>/dev/null || true
+
+          if git rev-parse -q --verify "refs/tags/${TAG_NAME}" >/dev/null 2>&1; then
+            TAG_SHA=$(git rev-parse "${TAG_NAME}^{commit}")
+            if [[ "${HEAD_SHA}" == "${TAG_SHA}" ]]; then
+              echo "Tag \`${TAG_NAME}\` already points at this commit (${HEAD_SHA}); skipping create and push."
+              exit 0
+            fi
+            echo "::error::Tag \`${TAG_NAME}\` already exists at ${TAG_SHA} but HEAD is ${HEAD_SHA}. Refusing to move the tag."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "${TAG_NAME}" -m "Production OTA release ${TAG_NAME}"
+          git push origin "refs/tags/${TAG_NAME}"
+          echo "Created and pushed tag \`${TAG_NAME}\` at ${HEAD_SHA}"

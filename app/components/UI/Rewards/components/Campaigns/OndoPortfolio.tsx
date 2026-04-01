@@ -32,7 +32,7 @@ import { parseCAIP19AssetId } from '../../../Ramp/Aggregator/utils/parseCaip19As
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import { useGetOndoPortfolioPosition } from '../../hooks/useGetOndoPortfolioPosition';
+import type { OndoGmPortfolioDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
@@ -84,14 +84,22 @@ const formatUsd = (value: string): string => {
 };
 
 interface OndoPortfolioProps {
-  campaignId: string;
+  portfolio: OndoGmPortfolioDto | null;
+  isLoading: boolean;
+  hasError: boolean;
+  hasFetched: boolean;
+  refetch: () => Promise<void>;
 }
 
-const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
+const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
+  portfolio,
+  isLoading,
+  hasError,
+  hasFetched,
+  refetch,
+}) => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { portfolio, isLoading, hasError, hasFetched, refetch } =
-    useGetOndoPortfolioPosition(campaignId);
 
   const grouped = useMemo(
     () =>
@@ -99,13 +107,14 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
     [portfolio],
   );
 
-  const showSkeleton = isLoading && !portfolio;
+  const showSkeleton =
+    isLoading && (!portfolio || portfolio.positions.length === 0);
 
   if (hasError && !portfolio) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.ERROR}>
         <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_portfolio.positions_heading')}
+          {strings('rewards.ondo_campaign_portfolio.title')}
         </Text>
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_portfolio.error_loading')}
@@ -122,6 +131,15 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
   if (showSkeleton) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.LOADING}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="mb-4 gap-2"
+        >
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.ondo_campaign_portfolio.title')}
+          </Text>
+        </Box>
         <Skeleton style={tw.style('h-32 rounded-xl')} />
         <Skeleton style={tw.style('h-24 rounded-xl')} />
         <Skeleton style={tw.style('h-24 rounded-xl')} />
@@ -133,7 +151,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
     return (
       <Box testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY} twClassName="gap-3">
         <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_portfolio.positions_heading')}
+          {strings('rewards.ondo_campaign_portfolio.title')}
         </Text>
         <RewardsInfoBanner
           title={strings('rewards.ondo_campaign_portfolio.empty')}
@@ -173,7 +191,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
           twClassName="mb-4 gap-2"
         >
           <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_portfolio.positions_heading')}
+            {strings('rewards.ondo_campaign_portfolio.title')}
           </Text>
           {grouped.length > 0 && (
             <Icon
@@ -182,16 +200,18 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
               color={IconColor.IconDefault}
             />
           )}
-          <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {strings('rewards.ondo_campaign_portfolio.updated_at', {
-                time: formatComputedAt(portfolio.computedAt),
-              })}
-            </Text>
-          </Box>
+          {portfolio.computedAt && portfolio.positions.length > 0 && (
+            <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('rewards.ondo_campaign_portfolio.updated_at', {
+                  time: formatComputedAt(portfolio.computedAt),
+                })}
+              </Text>
+            </Box>
+          )}
         </Box>
       </TouchableOpacity>
 
