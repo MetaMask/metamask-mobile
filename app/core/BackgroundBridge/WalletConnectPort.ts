@@ -1,5 +1,6 @@
 import AppConstants from '../AppConstants';
 import { selectEvmChainId } from '../../selectors/networkController';
+import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { store } from '../../store';
 
 // eslint-disable-next-line import-x/no-nodejs-modules, import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -20,10 +21,13 @@ class WalletConnectPort extends EventEmitter {
   postMessage = (msg: any) => {
     try {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        // Chain changes are handled by WalletConnect2Session's Redux store
-        // subscription (onStoreChange → handleChainChange). Forwarding here
-        // would cause duplicate relay messages per session per chain switch.
-        return;
+        const selectedAddress = selectSelectedInternalAccountAddress(
+          store.getState(),
+        );
+        this._wcRequestActions?.updateSession?.({
+          chainId: parseInt(msg.data.params.chainId, 16),
+          accounts: [selectedAddress],
+        });
       } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
         const chainId = selectEvmChainId(store.getState());
         this._wcRequestActions?.updateSession?.({

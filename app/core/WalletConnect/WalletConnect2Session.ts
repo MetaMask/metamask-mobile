@@ -72,11 +72,7 @@ class WalletConnect2Session {
   private requestByRequestId: {
     [requestId: string]: WalletKitTypes.SessionRequest;
   } = {};
-  private lastChainId: Hex;
-  private isHandlingChainChange = false;
-  private lastEmittedChainId: number | null = null;
   private _isHandlingRequest = false;
-  private storeUnsubscribe: (() => void) | null = null;
 
   public session: SessionTypes.Struct;
 
@@ -167,9 +163,6 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
-    this.lastChainId = this.getCurrentChainId();
-    // Subscribe to store changes to detect chain switches
-    this.storeUnsubscribe = store.subscribe(this.onStoreChange.bind(this));
   }
 
   /**
@@ -192,20 +185,6 @@ class WalletConnect2Session {
    */
   private get selfReportedHostname() {
     return getHostname(this.selfReportedUrl);
-  }
-
-  private onStoreChange() {
-    const newChainId = this.getCurrentChainId();
-    if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
-      this.lastChainId = newChainId;
-      const decimalChainId = Number.parseInt(newChainId, 16);
-      this.handleChainChange(decimalChainId).catch((error) => {
-        console.warn(
-          'WC2::store.subscribe Error handling chain change:',
-          error,
-        );
-      });
-    }
   }
 
   public getCurrentChainId() {
@@ -310,86 +289,8 @@ class WalletConnect2Session {
     );
   }
 
-  /** Handle chain change by updating session namespaces and emitting event */
-  private async handleChainChange(chainIdDecimal: number) {
-    if (this.isHandlingChainChange) return;
-    if (this.lastEmittedChainId === chainIdDecimal) return;
-    this.isHandlingChainChange = true;
-
-    try {
-      // Update session namespaces
-      const currentNamespaces = this.session.namespaces;
-      const newChainId = `eip155:${chainIdDecimal}`;
-      const updatedChains = [
-        ...new Set([...(currentNamespaces?.eip155?.chains || []), newChainId]),
-      ];
-
-      const accounts = [
-        ...new Set(
-          (currentNamespaces?.eip155?.accounts || []).map(
-            (acc) => acc.split(':')[2],
-          ),
-        ),
-      ].map((account) => `${newChainId}:${account}`);
-
-      const updatedAccounts = [
-        ...new Set([
-          ...(currentNamespaces?.eip155?.accounts || []),
-          ...accounts,
-        ]),
-      ];
-
-      const updatedNamespaces = {
-        ...currentNamespaces,
-        eip155: {
-          ...(currentNamespaces?.eip155 || {}),
-          chains: updatedChains,
-          methods: currentNamespaces?.eip155?.methods || [],
-          events: currentNamespaces?.eip155?.events || [],
-          accounts: updatedAccounts,
-        },
-      };
-
-      DevLogger.log(
-        `WC2::handleChainChange updating session with namespaces`,
-        updatedNamespaces,
-      );
-
-      await this.web3Wallet.updateSession({
-        topic: this.session.topic,
-        namespaces: updatedNamespaces,
-      });
-      // await acknowledged();
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Emit chainChanged event
-      await this.emitEvent('chainChanged', chainIdDecimal);
-      this.lastEmittedChainId = chainIdDecimal;
-    } catch (error) {
-      DevLogger.log(
-        `WC2::handleChainChange error while updating session`,
-        error,
-      );
-      throw error;
-    } finally {
-      this.isHandlingChainChange = false;
-    }
-  }
-
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
-    const initialRequest = this.requestByRequestId[id];
-    const method = initialRequest?.params.request.method;
-
-    if (
-      method === RPC_WALLET_ADDETHEREUMCHAIN ||
-      method === RPC_WALLET_SWITCHETHEREUMCHAIN
-    ) {
-      const chainIdHex = initialRequest.params.request.params[0].chainId;
-      const chainIdDecimal = parseInt(chainIdHex, 16);
-      await this.handleChainChange(chainIdDecimal);
-    }
 
     try {
       await this.web3Wallet.respondSessionRequest({
@@ -749,9 +650,7 @@ class WalletConnect2Session {
       DevLogger.log(`WC::handleRequest switching to chainId=${caip2ChainId}`);
       await this.switchToChain(caip2ChainId, this.channelId);
       await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Emit chainChanged event
-      await this.emitEvent('chainChanged', parseInt(hexChainId, 16));
+      // Chain change notification is handled by BackgroundBridge → WalletConnectPort
     }
 
     if (!isAllowedChainId) {
@@ -798,8 +697,6 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
-    this.storeUnsubscribe?.();
-    this.storeUnsubscribe = null;
     this.backgroundBridge.onDisconnect();
   };
 
