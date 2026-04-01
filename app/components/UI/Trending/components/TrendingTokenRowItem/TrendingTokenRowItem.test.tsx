@@ -6,6 +6,7 @@ import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 // Mock the trendingNetworksList module to avoid getNetworkImageSource errors
 jest.mock('../../utils/trendingNetworksList', () => ({
@@ -812,6 +813,71 @@ describe('TrendingTokenRowItem', () => {
           isFromTrending: true,
           rwaData: undefined,
           source: 'trending',
+        }),
+      );
+    });
+
+    it('navigates with tokenDetailsSource TrendingSwaps for Swaps trending analytics', () => {
+      const token = createMockToken({
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      });
+
+      const networkAddedState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurations: {},
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  caipChainId: 'eip155:1',
+                  name: 'Ethereum Mainnet',
+                },
+              },
+            },
+            MultichainNetworkController: {
+              ...mockState.engine.backgroundState.MultichainNetworkController,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          tokenDetailsSource={TokenDetailsSource.TrendingSwaps}
+        />,
+        { state: networkAddedState },
+        false,
+      );
+
+      const tokenRow = getByTestId(
+        'trending-token-row-item-eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      );
+      fireEvent.press(tokenRow);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push('Asset', {
+          chainId: '0x1',
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          pricePercentChange1d: 3.44,
+          isNative: false,
+          isETH: false,
+          isFromTrending: true,
+          rwaData: undefined,
+          source: 'trending-swaps',
         }),
       );
     });

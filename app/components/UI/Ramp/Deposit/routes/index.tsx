@@ -3,7 +3,7 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
@@ -52,6 +52,9 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
+
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator<DepositParamList>();
 const ModalsStack = createStackNavigator();
@@ -69,15 +72,13 @@ const getAnimationOptions = ({
   return { animationEnabled };
 };
 
-interface MainRoutesProps {
-  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
-}
-
-const MainRoutes = ({ route }: MainRoutesProps) => {
+const MainRoutes = () => {
+  const route =
+    useRoute<RouteProp<{ params: DepositNavigationParams }, 'params'>>();
   const parentParams = route.params;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+    <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT}>
       <Stack.Screen
         name={Routes.DEPOSIT.ROOT}
         component={Root}
@@ -140,8 +141,7 @@ const MainRoutes = ({ route }: MainRoutesProps) => {
 
 const DepositModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
@@ -198,9 +198,12 @@ const DepositRoutes = () => (
   <DepositSDKProvider>
     <RootStack.Navigator
       initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
+      screenOptions={{ headerShown: false }}
     >
-      <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
+      <RootStack.Screen
+        name={Routes.DEPOSIT.ROOT}
+        component={MainRoutes as ScreenComponent}
+      />
       <RootStack.Screen
         name={Routes.DEPOSIT.MODALS.ID}
         component={DepositModalsRoutes}
