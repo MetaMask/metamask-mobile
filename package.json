@@ -194,7 +194,7 @@
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/accounts-controller": "^37.2.0",
     "@metamask/profile-sync-controller": "^28.0.2",
-    "@metamask/money-account-controller@^0.0.0": "npm:@metamask-previews/money-account-controller@0.0.0-preview-373edc9"
+    "@metamask/money-account-controller@^0.0.0": "npm:@metamask-previews/money-account-controller@0.0.0-preview-aedd6e96a"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",

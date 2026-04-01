@@ -8894,6 +8894,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/messenger@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/messenger@npm:1.1.0"
+  dependencies:
+    "@metamask/utils": "npm:^11.9.0"
+    yargs: "npm:^17.7.2"
+  peerDependencies:
+    eslint: ">=8"
+    typescript: ">=5.0.0"
+  bin:
+    messenger-generate-action-types: ./dist/generate-action-types/cli.mjs
+  checksum: 10/ea2b25c4d8cae8d60dd4365738763752283b27eca17cae749b3fedf6733207c180de917715a6ccb8b41f7c06ee769b82b01de5c43ed20c182b3fe6a0cf5c1ae1
+  languageName: node
+  linkType: hard
+
 "@metamask/metamask-eth-abis@npm:3.1.1, @metamask/metamask-eth-abis@npm:^3.1.1":
   version: 3.1.1
   resolution: "@metamask/metamask-eth-abis@npm:3.1.1"
@@ -8931,18 +8946,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-controller@npm:@metamask-previews/money-account-controller@0.0.0-preview-373edc9":
-  version: 0.0.0-preview-373edc9
-  resolution: "@metamask-previews/money-account-controller@npm:0.0.0-preview-373edc9"
+"@metamask/money-account-controller@npm:@metamask-previews/money-account-controller@0.0.0-preview-aedd6e96a":
+  version: 0.0.0-preview-aedd6e96a
+  resolution: "@metamask-previews/money-account-controller@npm:0.0.0-preview-aedd6e96a"
   dependencies:
-    "@metamask/account-api": "npm:^1.0.0"
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/eth-money-keyring": "npm:^2.0.0"
     "@metamask/keyring-api": "npm:^21.6.0"
-    "@metamask/keyring-controller": "npm:^25.1.1"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/keyring-controller": "npm:^25.2.0"
+    "@metamask/messenger": "npm:^1.1.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/e7c0d2d8110d084d3e64b085f03df8376cf8559302b704eed79a0cb8422eb3de8abc0a2c48c71b5dd2072d4893e12d4f00f5b9f6c27bd53ddbc25f398acd3d4c
+  checksum: 10/4c3b8fb9c38e0f85c67196ce66e3d5941693b86912ca7ca6d162055845c98f655203e4cbf7420781c4c1c055d92b4122ea7a7ba83a3b05cc6c519cd7421ef5bf
   languageName: node
   linkType: hard
 
