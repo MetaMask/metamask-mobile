@@ -175,7 +175,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       {
         createTask: true,
         showInRecents: true,
-        useProxyActivity: true,
       },
     );
 
