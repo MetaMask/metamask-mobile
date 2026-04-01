@@ -8,6 +8,7 @@ import {
   waitForAccountActivityDisconnection,
 } from '../../websocket/account-activity-mocks';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 
 function assertEqual<T>(actual: T, expected: T, message?: string): void {
@@ -81,8 +82,8 @@ describe(SmokeWalletPlatform('Account Activity WebSocket Connection'), () => {
         await firstSubPromise;
         assertEqual(getAccountActivitySubscriptionCount(), 1);
 
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapLock();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await waitForAccountActivityDisconnection();
 

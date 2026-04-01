@@ -4,11 +4,15 @@ import AgenticService, {
   walkFiberRoots,
   tryScroll,
   toAccountSummary,
+  registerStepHudCallback,
   type FiberNode,
   type ReactDevToolsHook,
 } from './AgenticService';
 import Engine from '../Engine';
-import type { NavigationContainerRef } from '@react-navigation/native';
+import type {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
@@ -323,8 +327,8 @@ describe('tryScroll', () => {
 // ─── AgenticService.install / __AGENTIC__ bridge tests ──────────────────────
 
 describe('AgenticService.install', () => {
-  let mockNavRef: NavigationContainerRef;
-  let mockDeferredNav: NavigationContainerRef;
+  let mockNavRef: NavigationContainerRef<ParamListBase>;
+  let mockDeferredNav: NavigationContainerRef<ParamListBase>;
   let savedHook: ReactDevToolsHook | undefined;
 
   beforeEach(() => {
@@ -336,14 +340,14 @@ describe('AgenticService.install', () => {
       goBack: jest.fn(),
       dispatch: jest.fn(),
       getCurrentRoute: jest.fn(() => ({ name: 'Wallet', key: 'w-1' })),
-      dangerouslyGetState: jest.fn(() => ({})),
+      getState: jest.fn(() => ({})),
       canGoBack: jest.fn(() => true),
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<ParamListBase>;
 
     mockDeferredNav = {
       navigate: jest.fn(),
       goBack: jest.fn(),
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<ParamListBase>;
 
     savedHook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
 
@@ -418,6 +422,57 @@ describe('AgenticService.install', () => {
       MockEngine.context.AccountsController.listAccounts as jest.Mock
     ).mockReturnValue([]);
     expect(() => bridge().switchAccount('0xfff')).toThrow('No account found');
+  });
+
+  describe('showStep / hideStep', () => {
+    afterEach(() => {
+      registerStepHudCallback(null);
+    });
+
+    it('showStep calls registered HUD callback with step data', () => {
+      const callback = jest.fn();
+      registerStepHudCallback(callback);
+
+      bridge().showStep({ id: 'step-1', description: 'Navigate to market' });
+
+      expect(callback).toHaveBeenCalledWith({
+        id: 'step-1',
+        description: 'Navigate to market',
+      });
+    });
+
+    it('hideStep calls registered HUD callback with null', () => {
+      const callback = jest.fn();
+      registerStepHudCallback(callback);
+
+      bridge().hideStep();
+
+      expect(callback).toHaveBeenCalledWith(null);
+    });
+
+    it('showStep is a no-op when no callback is registered', () => {
+      registerStepHudCallback(null);
+      expect(() =>
+        bridge().showStep({ id: 'x', description: 'y' }),
+      ).not.toThrow();
+    });
+  });
+
+  describe('findFiberByTestId (bridge)', () => {
+    it('returns true when testID exists in fiber tree', () => {
+      const fiber = makeFiber({
+        child: makeFiber({ testID: 'target-btn' }),
+      });
+      installFiberHook(fiber);
+
+      expect(bridge().findFiberByTestId('target-btn')).toBe(true);
+    });
+
+    it('returns false when testID does not exist', () => {
+      installFiberHook(makeFiber());
+
+      expect(bridge().findFiberByTestId('missing-id')).toBe(false);
+    });
   });
 
   describe('pressTestId', () => {

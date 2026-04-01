@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -50,6 +50,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Label,
   Text,
@@ -65,10 +68,8 @@ import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.tes
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Checkbox from '../../../component-library/components/Checkbox';
-import Button, {
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
@@ -95,7 +96,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -135,11 +135,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [currentInputWord, setCurrentInputWord] = useState('');
-
-  // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useSelector(
-    selectImportSrpWordSuggestionEnabledFlag,
-  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -702,6 +697,9 @@ const ImportFromSecretRecoveryPhrase = ({
                     />
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+                  }
                 />
                 <Text
                   variant={TextVariant.BodySm}
@@ -752,6 +750,9 @@ const ImportFromSecretRecoveryPhrase = ({
                     />
                   }
                   testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                  }
                   isDisabled={password === ''}
                 />
                 {isError && (
@@ -776,7 +777,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   style={tw.style('items-start')}
                   testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
-                <Button
+                <OldButton
                   variant={ButtonVariants.Link}
                   onPress={() => setLearnMore(!learnMore)}
                   style={tw.style(
@@ -809,16 +810,16 @@ const ImportFromSecretRecoveryPhrase = ({
                 )}
               >
                 <Button
-                  loading={loading}
-                  width={ButtonWidthTypes.Full}
-                  variant={ButtonVariants.Primary}
-                  label={strings('import_from_seed.import_create_password_cta')}
+                  isLoading={loading}
+                  isFullWidth
+                  variant={ButtonVariant.Primary}
                   onPress={onPressImport}
-                  disabled={isContinueButtonDisabled}
                   size={ButtonSize.Lg}
                   isDisabled={isContinueButtonDisabled}
                   testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                />
+                >
+                  {strings('import_from_seed.import_create_password_cta')}
+                </Button>
               </Box>
             </Box>
           )}
@@ -827,31 +828,30 @@ const ImportFromSecretRecoveryPhrase = ({
       {currentStep === 0 && (
         <Box twClassName="px-4 py-4 bg-default">
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('import_from_seed.continue')}
+            variant={ButtonVariant.Primary}
             onPress={handleContinueImportFlow}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={ButtonSize.Lg}
             isDisabled={isSRPContinueButtonDisabled}
             testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-          />
+          >
+            {strings('import_from_seed.continue')}
+          </Button>
         </Box>
       )}
-      {isSrpWordSuggestionsEnabled &&
-        currentStep === 0 &&
-        isKeyboardVisible && (
-          <KeyboardStickyView
-            offset={{ closed: 0, opened: 0 }}
-            style={tw.style('absolute bottom-0 left-0 right-0')}
-          >
-            <SrpWordSuggestions
-              currentInputWord={currentInputWord}
-              onSuggestionSelect={(word) => {
-                srpInputGridRef.current?.handleSuggestionSelect(word);
-              }}
-            />
-          </KeyboardStickyView>
-        )}
+      {currentStep === 0 && isKeyboardVisible && (
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
+          style={tw.style('absolute bottom-0 left-0 right-0')}
+        >
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={(word) => {
+              srpInputGridRef.current?.handleSuggestionSelect(word);
+            }}
+          />
+        </KeyboardStickyView>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

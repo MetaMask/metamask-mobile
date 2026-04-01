@@ -34,11 +34,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 jest.mock('./usePerpsPaymentToken');
-jest.mock('./usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
-  })),
-}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));

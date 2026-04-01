@@ -6,11 +6,11 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '@react-navigation/native';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { useSelector } from 'react-redux';
@@ -23,6 +23,12 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
+import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
+import { ARBITRUM_USDC } from '../../../constants/perps';
+import {
+  selectMoneyAccountDepositEnabledFlag,
+  selectMoneyAccountWithdrawEnabledFlag,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -31,12 +37,43 @@ const POLYGON_USDCE_ADDRESS =
 const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
 
 export function ConfirmationsDeveloperOptions() {
+  const isMoneyAccountDepositEnabled = useSelector(
+    selectMoneyAccountDepositEnabledFlag,
+  );
+  const isMoneyAccountWithdrawEnabled = useSelector(
+    selectMoneyAccountWithdrawEnabledFlag,
+  );
+
   return (
     <>
       <PredictDeposit />
       <PredictClaim />
       <PredictWithdraw />
+      <PerpsWithdraw />
+      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
+      {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
+  );
+}
+
+function PerpsWithdraw() {
+  const { addTransactionBatchAndNavigate } = useAddPerpsTransactionBatch();
+
+  const handleWithdraw = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.perpsWithdraw,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Perps Withdraw"
+      description="Trigger a Perps withdraw confirmation."
+      buttonLabel="Withdraw"
+      onPress={handleWithdraw}
+      testID={ConfirmationsDeveloperOptionsTestIds.PERPS_WITHDRAW_BUTTON}
+    />
   );
 }
 
@@ -97,6 +134,50 @@ function PredictDeposit() {
       description="Trigger a Predict deposit confirmation."
       buttonLabel="Deposit"
       onPress={handleDeposit}
+    />
+  );
+}
+
+function MoneyAccountDeposit() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleDeposit = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Money Account Deposit"
+      description="Trigger a Money Account deposit confirmation."
+      buttonLabel="Deposit"
+      onPress={handleDeposit}
+      testID={ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON}
+    />
+  );
+}
+
+function MoneyAccountWithdraw() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleWithdraw = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.moneyAccountWithdraw,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Money Account Withdraw"
+      description="Trigger a Money Account withdraw confirmation."
+      buttonLabel="Withdraw"
+      onPress={handleWithdraw}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_WITHDRAW_BUTTON
+      }
     />
   );
 }
@@ -164,15 +245,71 @@ function useAddTransactionBatch() {
   };
 }
 
+function useAddPerpsTransactionBatch() {
+  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
+  const { navigateToConfirmation } = useConfirmNavigation();
+
+  const { networkClientId } =
+    useSelector((state: RootState) =>
+      selectDefaultEndpointByChainId(state, CHAIN_IDS.ARBITRUM),
+    ) ?? {};
+
+  const transferData = generateTransferData('transfer', {
+    toAddress: ARBITRUM_USDC.address,
+    amount: '0x0',
+  }) as Hex;
+
+  const addTransactionBatchAndNavigate = useCallback(
+    async ({
+      loader,
+      transactionType,
+    }: {
+      loader?: ConfirmationLoader;
+      transactionType: TransactionType;
+    }) => {
+      navigateToConfirmation({
+        loader,
+        stack: Routes.PERPS.ROOT,
+      });
+
+      addTransactionBatch({
+        from: selectedAccount as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        transactions: [
+          {
+            params: {
+              to: ARBITRUM_USDC.address,
+              data: transferData,
+            },
+            type: transactionType,
+          },
+        ],
+      }).catch((e) => {
+        console.error('Perps transaction error', e);
+      });
+    },
+    [navigateToConfirmation, networkClientId, selectedAccount, transferData],
+  );
+
+  return {
+    addTransactionBatchAndNavigate,
+  };
+}
+
 function DeveloperButton({
   buttonLabel,
   description,
   onPress,
+  testID,
   title,
 }: {
   buttonLabel: string;
   description: string;
   onPress: () => void;
+  testID?: string;
   title: string;
 }) {
   const theme = useTheme();
@@ -195,13 +332,15 @@ function DeveloperButton({
         {description}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={buttonLabel}
         onPress={onPress}
-        width={ButtonWidthTypes.Full}
+        testID={testID}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {buttonLabel}
+      </Button>
     </>
   );
 }

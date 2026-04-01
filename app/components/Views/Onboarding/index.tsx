@@ -110,6 +110,12 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
+import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -137,7 +143,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
     () => `${getVersion()} (${getBuildNumber()})`,
     [],
@@ -733,6 +739,18 @@ const Onboarding = () => {
       discardBufferedTraces();
       await setupSentry();
 
+      const accountType = getSocialAccountType(provider, !createWallet);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
+          .addProperties({
+            updated_after_onboarding: false,
+            location: 'onboarding_social_login',
+            account_type: accountType,
+          })
+          .build(),
+      );
+
       // use new trace instead of buffered trace for social login
       onboardingTraceCtx.current = trace({
         name: TraceName.OnboardingJourneyOverall,
@@ -740,7 +758,6 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
-      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
           account_type: accountType,
@@ -759,6 +776,41 @@ const Onboarding = () => {
       });
 
       const action = async () => {
+        // prompt for ios google login not supported below iOS 17.4
+        if (
+          provider === AuthConnection.Google &&
+          Device.isIos() &&
+          Device.comparePlatformVersionTo('17.4') < 0
+        ) {
+          const description = () => (
+            <>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description`)}
+                <Text twClassName="font-bold">
+                  {strings(`error_sheet.ios_need_update_description_version`)}
+                </Text>
+                {strings(`error_sheet.ios_need_update_description_end`)}
+              </Text>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description2`)}
+              </Text>
+            </>
+          );
+
+          await navigateToSuccessErrorSheetPromise(navigation, {
+            type: 'error',
+            icon: IconName.Warning,
+            iconColor: IconColor.Warning,
+            title: strings(`error_sheet.ios_need_update_title`),
+            description: description(),
+            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
+            closeOnPrimaryButtonPress: true,
+            isInteractable: false,
+          });
+          track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
+            account_type: accountType,
+          });
+        }
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {
@@ -788,6 +840,7 @@ const Onboarding = () => {
       handleExistingUser(action);
     },
     [
+      tw,
       navigation,
       metrics,
       track,

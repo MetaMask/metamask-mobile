@@ -20,12 +20,14 @@ import type {
   PerpsAdjustMarginActionSheetProps,
   AdjustMarginAction,
 } from './PerpsAdjustMarginActionSheet.types';
+import { PerpsAdjustMarginActionSheetSelectorsIDs } from '../../Perps.testIds';
 
 interface ActionOption {
   action: AdjustMarginAction;
   label: string;
   description: string;
   iconName: IconName;
+  testID: string;
 }
 
 const PerpsAdjustMarginActionSheet: React.FC<
@@ -55,12 +57,14 @@ const PerpsAdjustMarginActionSheet: React.FC<
         label: strings('perps.adjust_margin.add_margin'),
         description: strings('perps.adjust_margin.add_margin_description'),
         iconName: IconName.Add,
+        testID: PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
       },
       {
         action: 'reduce_margin',
         label: strings('perps.adjust_margin.reduce_margin'),
         description: strings('perps.adjust_margin.reduce_margin_description'),
         iconName: IconName.Minus,
+        testID: PerpsAdjustMarginActionSheetSelectorsIDs.REDUCE_MARGIN_OPTION,
       },
     ],
     [],
@@ -91,6 +95,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
           <React.Fragment key={option.action}>
             <TouchableOpacity
               style={styles.actionItem}
+              testID={option.testID}
               onPress={() => handleActionPress(option.action)}
               activeOpacity={0.7}
             >

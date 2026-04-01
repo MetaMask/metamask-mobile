@@ -1,11 +1,17 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import Text, {
+import {
+  Box,
+  BoxAlignItems,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
@@ -26,21 +32,16 @@ import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
-import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
+import { isE2E } from '../../../../../util/test/utils';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -148,6 +149,10 @@ const V2OtpCode = () => {
   }, [inputRef]);
 
   useEffect(() => {
+    // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
+    // thread non-idle and causes Detox synchronization to stall indefinitely.
+    if (isE2E) return;
+
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
       timerRef.current = setTimeout(() => {
         setCooldownSeconds((prev) => prev - 1);
@@ -252,15 +257,12 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            navigation.navigate(
-              Routes.RAMP.AMOUNT_INPUT as never,
-              {
-                nativeFlowError: parseUserFacingError(
-                  routeError,
-                  strings('deposit.otp_code.error'),
-                ),
-              } as never,
-            );
+            navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
+              nativeFlowError: parseUserFacingError(
+                routeError,
+                strings('deposit.otp_code.error'),
+              ),
+            });
           }
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
@@ -331,7 +333,7 @@ const V2OtpCode = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+          <Text variant={TextVariant.HeadingLg} style={styles.title}>
             {strings('deposit.otp_code.title')}
           </Text>
           <Text style={styles.description}>
@@ -340,8 +342,8 @@ const V2OtpCode = () => {
 
           <Box alignItems={BoxAlignItems.End}>
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryDefault}
               onPress={handlePaste}
               testID={OtpCodeSelectorsIDs.PASTE_BUTTON}
             >
@@ -366,14 +368,18 @@ const V2OtpCode = () => {
                 style={[styles.cellRoot, isFocused && styles.focusCell]}
               >
                 <Text style={styles.cellText}>
-                  {symbol || (isFocused ? <Cursor /> : null)}
+                  {/* Cursor uses setInterval which keeps the JS thread non-idle,
+                      stalling Detox synchronization. Omit it in E2E builds. */}
+                  {symbol || (isFocused && !isE2E ? <Cursor /> : null)}
                 </Text>
               </View>
             )}
           />
 
           {error && (
-            <Text style={{ color: theme.colors.error.default }}>{error}</Text>
+            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+              {error}
+            </Text>
           )}
 
           <Row style={styles.resendButtonContainer}>
@@ -407,13 +413,14 @@ const V2OtpCode = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.otp_code.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
             testID={OtpCodeSelectorsIDs.SUBMIT_BUTTON}
-          />
+          >
+            {strings('deposit.otp_code.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

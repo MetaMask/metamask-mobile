@@ -76,7 +76,7 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -137,7 +137,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
-    fromTrending,
     fromPerps,
   }) => {
     const navigation = useNavigation();
@@ -236,6 +235,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const isTabActive = useSelector(
       (state: RootState) => state.browser.activeTab === tabId,
     );
+
+    /**
+     * True when the Browser screen is focused (no modal or other screen drawn on top).
+     * When false, webview JS dialogs (alert/confirm/prompt) will be suppressed.
+     */
+    const isBrowserScreenFocused = useIsFocused();
+
+    /**
+     * Only show webview JS dialogs when this tab is active and the browser screen is visible.
+     */
+    const canShowJsDialogs = isTabActive && isBrowserScreenFocused;
 
     /**
      * whitelisted url to bypass the phishing detection
@@ -1270,15 +1280,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.PERPS_HOME,
         });
-      } else if (fromTrending) {
-        // If within trending follow the normal back button behavior
-        navigation.goBack();
       } else {
+        // Navigate to TrendingView/TrendingFeed
+        // Note: We use explicit navigation instead of goBack() because the browser
+        // is a separate tab in the Tab Navigator, and goBack() doesn't properly
+        // navigate back between tabs.
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromTrending, fromPerps]);
+    }, [navigation, fromPerps]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1507,7 +1518,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
                         allowFileDownloads={isTabActive}
-                        suppressJavaScriptDialogs={!isTabActive}
+                        suppressJavaScriptDialogs={!canShowJsDialogs}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner

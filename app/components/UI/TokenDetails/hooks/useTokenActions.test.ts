@@ -276,6 +276,7 @@ describe('useTokenActions', () => {
       expect(result.current).toHaveProperty('goToSwaps');
       expect(result.current).toHaveProperty('handleBuyPress');
       expect(result.current).toHaveProperty('handleSellPress');
+      expect(result.current).toHaveProperty('handleStickySwapPress');
       expect(result.current).toHaveProperty('networkModal');
 
       expect(typeof result.current.onBuy).toBe('function');
@@ -284,6 +285,7 @@ describe('useTokenActions', () => {
       expect(typeof result.current.goToSwaps).toBe('function');
       expect(typeof result.current.handleBuyPress).toBe('function');
       expect(typeof result.current.handleSellPress).toBe('function');
+      expect(typeof result.current.handleStickySwapPress).toBe('function');
     });
   });
 
@@ -663,6 +665,7 @@ describe('useTokenActions', () => {
           symbol: defaultToken.symbol,
         }),
         'Buy',
+        true,
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -701,6 +704,7 @@ describe('useTokenActions', () => {
           address: defaultToken.address,
         }),
         'Buy',
+        true,
       );
     });
 
@@ -725,6 +729,7 @@ describe('useTokenActions', () => {
             symbol: 'ETH',
             name: 'Ethereum',
             image: '',
+            isNative: true,
             fiat: { balance: 2000 },
           },
         ],
@@ -753,6 +758,7 @@ describe('useTokenActions', () => {
           symbol: 'ETH',
         }),
         'Buy',
+        true,
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -778,7 +784,315 @@ describe('useTokenActions', () => {
         }),
         undefined,
         'Sell',
+        true,
       );
     });
+  });
+
+  /**
+   * Swap entry from Token Details sticky CTA (`handleStickySwapPress`):
+   * - Has Balance:
+   * -- from: current token
+   * -- to: undefined (swap UI picks default dest -- e.g. mUSD / last used)
+   *
+   * - No Balance:
+   * -- from: `buySourceToken` (best available)
+   * -- to: current token
+   *
+   * `buySourceToken` priority:
+   * 1. Same chain token (not current) with highest fiat balance
+   * 2. Native token (ETH, POL, etc.) on any chain with highest fiat balance
+   * 3. Last swapped token (Not supported — needs data source)
+   * 4. Most used token (Not supported — needs data source)
+   * 5. Fallback: any token on any chain with highest fiat balance
+   */
+  describe('handleStickySwapPress', () => {
+    const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+    const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    const POLYGON_USDC_ADDRESS = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
+
+    interface StickySwapUserAsset {
+      assetId: string;
+      chainId: string;
+      decimals: number;
+      symbol: string;
+      name: string;
+      image: string;
+      isNative?: boolean;
+      fiat?: { balance: number };
+    }
+
+    const arrangeToken = (balance: string): TokenI =>
+      ({ ...defaultToken, balance }) as TokenI;
+
+    /** Mirrors `selectAssetsBySelectedAccountGroup` shape (values flattened in hook). */
+    const arrangeUserAssets = (
+      assetsByChain: Record<string, StickySwapUserAsset[]> = {},
+    ) => assetsByChain;
+
+    const userAsset = (params: {
+      assetId: string;
+      chainId?: string;
+      symbol: string;
+      name?: string;
+      decimals?: number;
+      fiatBalance?: number;
+      isNative?: boolean;
+    }): StickySwapUserAsset => ({
+      assetId: params.assetId,
+      chainId: params.chainId ?? '0x1',
+      decimals: params.decimals ?? 18,
+      symbol: params.symbol,
+      name: params.name ?? params.symbol,
+      image: '',
+      isNative: params.isNative ?? false,
+      ...(params.fiatBalance !== undefined
+        ? { fiat: { balance: params.fiatBalance } }
+        : {}),
+    });
+
+    const hasBalanceCases = [
+      {
+        name: 'from current token, to default (undefined dest for swap UI)',
+        token: arrangeToken('1'),
+        userAssets: arrangeUserAssets(),
+        expectedDestinationAddress: undefined,
+      },
+      {
+        name: 'currentTokenBalance overrides token.balance when positive',
+        token: arrangeToken('0'),
+        currentTokenBalance: '0.5',
+        userAssets: arrangeUserAssets({
+          '0x1': [
+            userAsset({
+              assetId: WETH_ADDRESS,
+              symbol: 'WETH',
+              fiatBalance: 9000,
+            }),
+          ],
+        }),
+        expectedDestinationAddress: undefined,
+      },
+    ];
+
+    it.each(hasBalanceCases)(
+      'has balance — $name',
+      ({
+        token,
+        currentTokenBalance,
+        userAssets,
+        expectedDestinationAddress,
+      }) => {
+        selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+          userAssets,
+        );
+
+        const { result } = renderHook(() =>
+          useTokenActions({
+            token,
+            networkName: 'Ethereum Mainnet',
+            ...(currentTokenBalance !== undefined && { currentTokenBalance }),
+          }),
+        );
+
+        result.current.handleStickySwapPress();
+
+        expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+        expect(mockGoToSwaps).toHaveBeenCalledWith(
+          expect.objectContaining({ address: defaultToken.address }),
+          expectedDestinationAddress !== undefined
+            ? expect.objectContaining({ address: expectedDestinationAddress })
+            : undefined,
+          undefined,
+          true,
+        );
+      },
+    );
+
+    const noBalanceCases = [
+      {
+        name: 'Priority 1: same chain: best token by fiat to current token',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x1': [
+            userAsset({
+              assetId: WETH_ADDRESS,
+              symbol: 'WETH',
+              fiatBalance: 1000,
+            }),
+            userAsset({
+              assetId: USDC_ADDRESS,
+              symbol: 'USDC',
+              decimals: 6,
+              fiatBalance: 5000,
+            }),
+          ],
+        }),
+        expectedSourceAddress: USDC_ADDRESS, // USDC has higher fiat balance than WETH
+        expectedDestinationAddress: defaultToken.address,
+      },
+      {
+        name: 'Priority 1: same chain: excludes current asset on same chain; next-best same-chain wins',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x1': [
+            userAsset({
+              assetId: defaultToken.address,
+              symbol: defaultToken.symbol,
+              fiatBalance: 9999,
+            }),
+            userAsset({
+              assetId: WETH_ADDRESS,
+              symbol: 'WETH',
+              fiatBalance: 100,
+            }),
+          ],
+        }),
+        expectedSourceAddress: WETH_ADDRESS,
+        expectedDestinationAddress: defaultToken.address,
+      },
+      {
+        name: 'Priority 2: cross chain: native token with highest fiat',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x89': [
+            userAsset({
+              assetId: POLYGON_USDC_ADDRESS,
+              chainId: '0x89',
+              symbol: 'USDC',
+              decimals: 6,
+              fiatBalance: 5000,
+            }),
+            userAsset({
+              assetId: '0x0000000000000000000000000000000000001010',
+              chainId: '0x89',
+              symbol: 'POL',
+              name: 'POL',
+              decimals: 18,
+              fiatBalance: 200,
+              isNative: true,
+            }),
+          ],
+        }),
+        expectedSourceAddress: '0x0000000000000000000000000000000000001010', // cross chain swap, we prefer the native token
+        expectedDestinationAddress: defaultToken.address,
+      },
+      {
+        name: 'Priority 2: cross chain: picks native token with highest fiat among multiple native tokens',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x89': [
+            userAsset({
+              assetId: '0x0000000000000000000000000000000000001010',
+              chainId: '0x89',
+              symbol: 'POL',
+              name: 'POL',
+              decimals: 18,
+              fiatBalance: 200,
+              isNative: true,
+            }),
+          ],
+          '0xa': [
+            userAsset({
+              assetId: '0x0000000000000000000000000000000000000000',
+              chainId: '0xa',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+              fiatBalance: 3000,
+              isNative: true,
+            }),
+          ],
+        }),
+        expectedSourceAddress: '0x0000000000000000000000000000000000000000', // 0xa native token has the highest native balance
+        expectedDestinationAddress: defaultToken.address,
+      },
+      {
+        name: 'Priority 2: no native tokens available: falls back to highest fiat non-native cross-chain token',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x89': [
+            userAsset({
+              assetId: POLYGON_USDC_ADDRESS,
+              chainId: '0x89',
+              symbol: 'USDC',
+              decimals: 6,
+              fiatBalance: 800,
+            }),
+          ],
+        }),
+        expectedSourceAddress: POLYGON_USDC_ADDRESS,
+        expectedDestinationAddress: defaultToken.address,
+      },
+
+      {
+        name: 'Edge case: no eligible source: only current token with fiat — falls back to current, undefined dest',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x1': [
+            userAsset({
+              assetId: defaultToken.address,
+              symbol: defaultToken.symbol,
+              fiatBalance: 100,
+            }),
+          ],
+        }),
+        expectedSourceAddress: defaultToken.address,
+        expectedDestinationAddress: undefined,
+      },
+      {
+        name: 'Edge case: no eligible source: other tokens have zero or missing fiat — falls back to current, undefined dest',
+        token: arrangeToken('0'),
+        userAssets: arrangeUserAssets({
+          '0x1': [
+            userAsset({
+              assetId: WETH_ADDRESS,
+              symbol: 'WETH',
+              fiatBalance: 0,
+            }),
+            userAsset({
+              assetId: USDC_ADDRESS,
+              symbol: 'USDC',
+              decimals: 6,
+            }),
+          ],
+        }),
+        expectedSourceAddress: defaultToken.address,
+        expectedDestinationAddress: undefined,
+      },
+    ];
+
+    it.each(noBalanceCases)(
+      'no balance — $name',
+      ({
+        token,
+        userAssets,
+        expectedSourceAddress,
+        expectedDestinationAddress,
+      }) => {
+        selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+          userAssets,
+        );
+
+        const { result } = renderHook(() =>
+          useTokenActions({
+            token,
+            networkName: 'Ethereum Mainnet',
+          }),
+        );
+
+        result.current.handleStickySwapPress();
+
+        expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+        expect(mockGoToSwaps).toHaveBeenCalledWith(
+          expect.objectContaining({ address: expectedSourceAddress }),
+          expectedDestinationAddress !== undefined
+            ? expect.objectContaining({ address: expectedDestinationAddress })
+            : undefined,
+          undefined,
+          true,
+        );
+      },
+    );
   });
 });
