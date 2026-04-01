@@ -611,7 +611,7 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
       .map(({ name, value }) => {
         const serialized = serializeValue(value, 4);
         return [
-          `  ${name}: {`,
+          `  ${JSON.stringify(name)}: {`,
           `    name: '${name.replace(/'/gu, "\\'")}',`,
           '    type: FeatureFlagType.Remote,',
           '    inProd: true,',

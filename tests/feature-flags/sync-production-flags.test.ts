@@ -25,26 +25,26 @@ const REGISTRY_FIXTURE = `/**
 export const FEATURE_FLAG_REGISTRY = {
   flagA: {
     name: 'flagA',
-    type: 'remote',
+    type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
-    status: 'active',
+    status: FeatureFlagStatus.Active,
   },
 
   flagB: {
     name: 'flagB',
-    type: 'remote',
+    type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: false,
-    status: 'active',
+    status: FeatureFlagStatus.Active,
   },
 
   flagToRemove: {
     name: 'flagToRemove',
-    type: 'remote',
+    type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: { nested: 'old' },
-    status: 'active',
+    status: FeatureFlagStatus.Active,
   },
 };
 
@@ -222,8 +222,10 @@ describe('updateRegistryFile', () => {
     expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
     const written = writeFileSyncMock.mock.calls[0][1] as string;
     expect(written).toContain('productionDefault: false');
-    expect(written).toMatch(/flagA:\s*\{[^}]*productionDefault:\s*false/);
-    expect(written).not.toMatch(/flagA:\s*\{[\s\S]*?productionDefault:\s*true/);
+    const beforeFlagB = written.split(/\n {2}flagB:/u)[0] ?? '';
+    expect(beforeFlagB).toMatch(/flagA:\s*\{/u);
+    expect(beforeFlagB).toMatch(/productionDefault:\s*false/u);
+    expect(beforeFlagB).not.toMatch(/productionDefault:\s*true/u);
   });
 
   it('removes entries no longer in production', async () => {
@@ -255,7 +257,7 @@ describe('updateRegistryFile', () => {
     expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
     const written = writeFileSyncMock.mock.calls[0][1] as string;
     expect(written).toContain('brandNewFlag');
-    expect(written).toMatch(/brandNewFlag:\s*\{/);
+    expect(written).toMatch(/"brandNewFlag":\s*\{/u);
     expect(written).toContain('type: FeatureFlagType.Remote');
     expect(written).toContain('status: FeatureFlagStatus.Active');
     expect(written).toContain('productionDefault: true');
@@ -277,9 +279,12 @@ describe('updateRegistryFile', () => {
     expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
     const written = writeFileSyncMock.mock.calls[0][1] as string;
     expect(written).toContain('flagB');
-    expect(written).toMatch(/flagB:\s*\{[^}]*inProd:\s*true/);
-    expect(written).toMatch(/flagB:\s*\{[^}]*productionDefault:\s*true/);
-    expect(written).not.toMatch(/flagB:\s*\{[\s\S]*?inProd:\s*false/);
+    const flagBBlock = (written.split(/\n {2}flagB:/u)[1] ?? '').split(
+      /\n {2}flagToRemove:/u,
+    )[0];
+    expect(flagBBlock).toMatch(/inProd:\s*true/u);
+    expect(flagBBlock).toMatch(/productionDefault:\s*true/u);
+    expect(flagBBlock).not.toMatch(/inProd:\s*false/u);
   });
 
   it('updates the last synced date in the header comment', async () => {

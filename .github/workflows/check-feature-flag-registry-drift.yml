@@ -74,7 +74,7 @@ jobs:
     name: Create PR for feature flag registry drift
     needs: check-feature-flag-registry
     if: needs.check-feature-flag-registry.outputs.has-drift == 'true'
-    uses: MetaMask/github-tools/.github/workflows/create-pr-feature-flag-registry-drift.yml@main
+    uses: MetaMask/github-tools/.github/workflows/create-pr-feature-flag-registry-drift.yml@e37c7027dd6f73d20f36b1d9dbeab3b084874eb6
     with:
       repository: metamask-mobile
       registry-file-path: tests/feature-flags/feature-flag-registry.ts
@@ -94,7 +94,7 @@ jobs:
     environment: default-branch
     steps:
       - name: Send Slack notification
-        uses: MetaMask/github-tools/.github/actions/feature-flag-drift-slack-noti@main
+        uses: MetaMask/github-tools/.github/actions/feature-flag-drift-slack-noti@e37c7027dd6f73d20f36b1d9dbeab3b084874eb6
         with:
           title: MetaMask Mobile
           slack-webhook: ${{ secrets.SLACK_WEBHOOK_FEATURE_FLAG_DRIFT }}
