@@ -259,6 +259,8 @@ export interface LaunchArgs {
   fixtureServerPort: string;
   detoxURLBlacklistRegex: string;
   mockServerPort: string;
+  /** Port for Solana WebSocket mock server (E2E only) */
+  solanaWsPort?: string;
 }
 
 /**

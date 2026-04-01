@@ -58,3 +58,4 @@ export {
   type TapAtIndexElement,
   type ScrollViewMatcher,
 } from './GestureStrategy.ts';
+export { SystemProxyUtils } from './SystemProxyUtils.ts';

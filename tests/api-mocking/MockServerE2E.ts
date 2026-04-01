@@ -186,12 +186,27 @@ const isUrlAllowed = (url: string): boolean => {
 const isUrlSuppressedFromLogs = (url: string): boolean =>
   SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
 
+/**
+ * CORS headers required for WebView requests.
+ * The Snaps WebView runs on http://localhost and needs CORS headers
+ * to accept responses from the mock server proxy.
+ */
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+};
+
 const handleDirectFetch = async (
   url: string,
   method: string,
   headers: Headers,
   requestBody?: string,
-): Promise<{ statusCode: number; body: string }> => {
+): Promise<{
+  statusCode: number;
+  body: string;
+  headers: Record<string, string>;
+}> => {
   try {
     const fetchHeaders: HeadersInit = {};
     for (const [key, value] of Object.entries(headers)) {
@@ -207,7 +222,17 @@ const handleDirectFetch = async (
     });
 
     const responseBody = await response.text();
-    return { statusCode: response.status, body: responseBody };
+    const contentType =
+      response.headers.get('content-type') || 'application/json';
+
+    return {
+      statusCode: response.status,
+      body: responseBody,
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': contentType,
+      },
+    };
   } catch (error) {
     if (!isUrlSuppressedFromLogs(url)) {
       logger.error('Error forwarding request:', url, error);
@@ -215,6 +240,10 @@ const handleDirectFetch = async (
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': 'application/json',
+      },
     };
   }
 };
@@ -311,7 +340,11 @@ export default class MockServerE2E implements Resource {
           } catch {
             /* swallow abort errors */
           }
-          return { statusCode: 503, body: 'Server shutting down' };
+          return {
+            statusCode: 503,
+            body: 'Server shutting down',
+            headers: CORS_HEADERS,
+          };
         }
         this._activeRequests++;
         try {
@@ -320,6 +353,7 @@ export default class MockServerE2E implements Resource {
             return {
               statusCode: 400,
               body: JSON.stringify({ error: 'Missing url parameter' }),
+              headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
             };
           }
 
@@ -394,6 +428,10 @@ export default class MockServerE2E implements Resource {
                     expected: matchingEvent.requestBody,
                     received: result.requestBodyJson,
                   }),
+                  headers: {
+                    ...CORS_HEADERS,
+                    'Content-Type': 'application/json',
+                  },
                 };
               }
             }
@@ -404,6 +442,7 @@ export default class MockServerE2E implements Resource {
                 typeof matchingEvent.response === 'string'
                   ? matchingEvent.response
                   : JSON.stringify(matchingEvent.response),
+              headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
             };
           }
 
@@ -418,7 +457,8 @@ export default class MockServerE2E implements Resource {
           if (!isUrlAllowed(updatedUrl)) {
             const errorMessage = `Request going to live server: ${updatedUrl}`;
             logger.warn(errorMessage);
-            if (method === 'POST') {
+            logger.warn(`Request Method: ${method}`);
+            if (requestBodyText) {
               logger.warn(`Request Body: ${requestBodyText}`);
             }
             this._server?._liveRequests?.push({
@@ -462,7 +502,11 @@ export default class MockServerE2E implements Resource {
         } catch {
           /* swallow abort errors */
         }
-        return { statusCode: 503, body: 'Server shutting down' };
+        return {
+          statusCode: 503,
+          body: 'Server shutting down',
+          headers: CORS_HEADERS,
+        };
       }
       this._activeRequests++;
       try {
@@ -478,7 +522,7 @@ export default class MockServerE2E implements Resource {
 
           if (isLocalhost && isMockServerPort) {
             logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
-            return { statusCode: 204, body: '' };
+            return { statusCode: 204, body: '', headers: CORS_HEADERS };
           }
         } catch (e) {
           // Ignore URL parsing errors
@@ -487,6 +531,7 @@ export default class MockServerE2E implements Resource {
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         const translatedUrl = translateFallbackPortToActual(request.url);
 
+        const bodyText = await request.body.getText();
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
