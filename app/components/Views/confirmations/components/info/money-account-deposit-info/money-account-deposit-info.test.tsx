@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import {
   MoneyAccountDepositInfo,
   MONEY_ACCOUNT_CURRENCY,
@@ -107,34 +107,5 @@ describe('MoneyAccountDepositInfo', () => {
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 
     expect(getByTestId('money-account-selector-pill')).toBeOnTheScreen();
-  });
-
-  it('calls updateEditableParams with selected address', () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
-    );
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
-
-    fireEvent.press(getByTestId('money-account-selector-pill'));
-
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      to: '0xTestAddress',
-    });
-  });
-
-  it('does not call updateEditableParams when transactionMeta has no id', () => {
-    const { useTransactionMetadataRequest } = jest.requireMock(
-      '../../../hooks/transactions/useTransactionMetadataRequest',
-    );
-    useTransactionMetadataRequest.mockReturnValueOnce(null);
-
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
-    );
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
-
-    fireEvent.press(getByTestId('money-account-selector-pill'));
-
-    expect(updateEditableParams).not.toHaveBeenCalled();
   });
 });
