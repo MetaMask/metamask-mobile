@@ -1,25 +1,23 @@
-import { test } from '../../framework/fixtures/performance';
+import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-
-import { login } from '../../framework/utils/Flows.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import {
   launchMobileBrowser,
   navigateToDapp,
   switchToMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
-import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
-import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
-import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
-import { DappServer, DappVariants, TestDapps } from '../../framework';
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
+import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
+import AppwrightHelpers from '../../framework/AppwrightHelpers';
+import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
-} from './utils.js';
+} from './utils';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
@@ -33,12 +31,9 @@ const playgroundServer = new DappServer({
 
 // Start local playground server before all tests
 test.beforeAll(async () => {
-  // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
   await waitForDappServerReady(DAPP_PORT);
-
-  // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
 });
 
@@ -49,24 +44,17 @@ test.afterAll(async () => {
 });
 
 test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
-  device,
+  currentDeviceDetails,
+  driver,
   performanceTracker,
 }) => {
-  // Get platform-specific URL (use bs-local.com when running on BrowserStack Local tunnel)
-  const platform = device.getPlatform?.() || 'android';
   const useBrowserStackLocal =
     process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
   const DAPP_URL = useBrowserStackLocal
     ? `http://bs-local.com:${DAPP_PORT}`
-    : getDappUrlForBrowser(platform);
+    : getDappUrlForBrowser(currentDeviceDetails.platform);
 
-  // Initialize page objects with device
-  WalletMainScreen.device = device;
-  BrowserPlaygroundDapp.device = device;
-  AndroidScreenHelpers.device = device;
-  DappConnectionModal.device = device;
-
-  await device.webDriverClient.updateSettings({
+  await driver.updateSettings({
     waitForIdleTimeout: 100,
     waitForSelectorTimeout: 0,
     shouldWaitForQuiescence: false,
@@ -76,25 +64,24 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   // Login and navigate to dapp
   //
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
-    await launchMobileBrowser(device);
-    await navigateToDapp(device, DAPP_URL, DAPP_NAME);
+  await AppwrightHelpers.withNativeAction(driver, async () => {
+    await loginToAppPlaywright();
+    await launchMobileBrowser(driver);
+    await navigateToDapp(driver, DAPP_URL, DAPP_NAME);
   });
 
   //
-  // Connect via Multichain API (wait for dapp ready then tap Connect to minimize idle time / auto-lock)
+  // Connect via Multichain API
   //
 
   const connectTimer = new TimerHelper(
     'Time from tapping Connect to dapp confirming Multichain connected state',
     { ios: 20000, android: 30000 },
-    device,
+    currentDeviceDetails.platform,
   );
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
       connectTimer.start();
@@ -104,28 +91,25 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   );
 
   // Handle connection approval in MetaMask
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await unlockIfLockScreenVisible(device);
+    await unlockIfLockScreenVisible();
     await DappConnectionModal.tapConnectButton();
   });
 
-  // Switch back to browser; existing dapp tab is unchanged (no reload/clear)
-  await switchToMobileBrowser(device);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // Switch back to browser
+  await switchToMobileBrowser(driver);
+  await sleep(500);
 
   //
   // Verify connection
   //
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
-      // Verify connected by checking for scope cards section
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       connectTimer.stop();
-
-      // Verify at least one scope card is visible (eip155:1 is default)
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
     },
     DAPP_URL,
@@ -138,7 +122,7 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   //
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.tapDisconnect();
     },

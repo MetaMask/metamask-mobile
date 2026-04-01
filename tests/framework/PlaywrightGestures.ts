@@ -103,6 +103,17 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Type text into an element
+   * @param elem - The element to type text into
+   * @param text - The text to type
+   * @returns A promise that resolves when the type text is complete
+   */
+  @boxedStep
+  static async typeText(elem: PlaywrightElement, text: string): Promise<void> {
+    await elem.unwrap().addValue(text);
+  }
+
+  /**
    * Swipe element in a direction
    */
   @boxedStep
@@ -257,20 +268,29 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async activateApp(
-    currentDeviceDetails: CurrentDeviceDetails,
+    currentDeviceDetails?: CurrentDeviceDetails,
+    packageId?: string,
   ): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
+    if (packageId) {
+      await drv.activateApp(packageId);
+      return;
+    }
+
     if (
-      currentDeviceDetails.platform === 'android' &&
+      currentDeviceDetails?.platform === 'android' &&
       currentDeviceDetails.packageName
     ) {
       await drv.activateApp(currentDeviceDetails.packageName);
       return;
     }
 
-    if (currentDeviceDetails.platform === 'ios' && currentDeviceDetails.appId) {
+    if (
+      currentDeviceDetails?.platform === 'ios' &&
+      currentDeviceDetails.appId
+    ) {
       await drv.activateApp(currentDeviceDetails.appId);
       return;
     }

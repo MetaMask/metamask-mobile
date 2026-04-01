@@ -1,19 +1,24 @@
-import { test } from '../../framework/fixtures/performance';
+import { test } from '../../framework/fixture';
 
-import { login } from '../../framework/utils/Flows.js';
-import RNPlaygroundDapp from '../../../wdio/screen-objects/RNPlaygroundDapp.js';
-import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
-import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
-import SnapSignModal from '../../../wdio/screen-objects/Modals/SnapSignModal.js';
-import { APP_PACKAGE_IDS } from '../../framework/Constants.ts';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
+import SignModal from '../../page-objects/MMConnect/SignModal';
+import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal';
+import { APP_PACKAGE_IDS } from '../../framework/Constants';
 import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
   ensureAccountGroupsFinishedLoading,
-} from './utils.js';
-import AppwrightGestures from '../../framework/AppwrightGestures.ts';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+} from './utils';
+import {
+  PlaywrightGestures,
+  PlaywrightAssertions,
+  sleep,
+  asPlaywrightElement,
+} from '../../framework';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 
 const CHAINS = {
   ETHEREUM: 'eip155:1',
@@ -25,7 +30,7 @@ const CHAINS = {
 const EVM_CHAINS = [CHAINS.ETHEREUM, CHAINS.LINEA, CHAINS.POLYGON];
 const ALL_CHAINS = [...EVM_CHAINS, CHAINS.SOLANA];
 
-const NETWORK_DISPLAY_NAMES = {
+const NETWORK_DISPLAY_NAMES: Record<string, string> = {
   [CHAINS.ETHEREUM]: 'Ethereum',
   [CHAINS.LINEA]: 'Linea',
   [CHAINS.POLYGON]: 'Polygon',
@@ -41,7 +46,7 @@ const DEFAULT_SCROLL_PARAMS = {
  * return does not happen within a short window.
  */
 async function returnToPlayground() {
-  await AppwrightGestures.wait(2000);
+  await sleep(2000);
   await RNPlaygroundDapp.ensureInPlayground();
 }
 
@@ -50,17 +55,10 @@ test.beforeAll(() => {
 });
 
 test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Solana, invoke read/write methods, and disconnect', async ({
-  device,
+  currentDeviceDetails,
+  driver,
 }) => {
-  RNPlaygroundDapp.device = device;
-  DappConnectionModal.device = device;
-  SignModal.device = device;
-  SnapSignModal.device = device;
-  AppwrightGestures.device = device;
-  WalletMainScreen.device = device;
-  AccountListComponent.device = device;
-
-  await device.webDriverClient.updateSettings({
+  await driver.updateSettings({
     waitForIdleTimeout: 100,
     waitForSelectorTimeout: 0,
     shouldWaitForQuiescence: false,
@@ -70,10 +68,13 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   // 1. Login to MetaMask wallet
   //
 
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
 
-  await ensureAccountGroupsFinishedLoading(device);
+  await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
   //
   // 2. Switch to the RN playground and select networks
   //
@@ -91,10 +92,10 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   //
 
   await RNPlaygroundDapp.tapConnect();
-  await AppwrightGestures.wait(3000);
+  await sleep(3000);
 
-  await unlockIfLockScreenVisible(device);
-  await AppwrightGestures.wait(5000);
+  await unlockIfLockScreenVisible();
+  await sleep(5000);
   await DappConnectionModal.tapConnectButton();
 
   //
@@ -102,7 +103,7 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   //
 
   await returnToPlayground();
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
   await RNPlaygroundDapp.assertConnected();
 
   await RNPlaygroundDapp.scrollToElement(RNPlaygroundDapp.appTitle, {
@@ -132,7 +133,7 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
       DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.tapInvoke(chain);
-    await AppwrightGestures.wait(5000);
+    await sleep(5000);
 
     await RNPlaygroundDapp.scrollToElement(
       RNPlaygroundDapp.getResultCode(chain, 'eth_blockNumber'),
@@ -167,11 +168,11 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
       DEFAULT_SCROLL_PARAMS,
     );
     await RNPlaygroundDapp.tapInvoke(chain);
-    await AppwrightGestures.wait(3000);
+    await sleep(3000);
 
     // Handle MetaMask sign approval
-    await unlockIfLockScreenVisible(device);
-    await AppwrightGestures.wait(1000);
+    await unlockIfLockScreenVisible();
+    await sleep(1000);
 
     // Verify request was routed to the correct network
     const networkName = NETWORK_DISPLAY_NAMES[chain];
@@ -185,7 +186,7 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
 
     await SignModal.tapConfirmButton();
     await returnToPlayground();
-    await AppwrightGestures.wait(1000);
+    await sleep(1000);
 
     // Verify a signature was returned (hex string starting with 0x)
     await RNPlaygroundDapp.scrollToElement(
@@ -211,10 +212,10 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
     DEFAULT_SCROLL_PARAMS,
   );
   await RNPlaygroundDapp.tapInvoke(CHAINS.SOLANA);
-  await AppwrightGestures.wait(3000);
+  await sleep(3000);
 
-  await unlockIfLockScreenVisible(device);
-  await AppwrightGestures.wait(1000);
+  await unlockIfLockScreenVisible();
+  await sleep(1000);
   await SnapSignModal.tapConfirmButton();
   await returnToPlayground();
 
@@ -236,7 +237,7 @@ test.skip('@metamask/connect-multichain-rn - Connect across 3 EVM chains and Sol
   await RNPlaygroundDapp.assertDisconnected();
 
   // Switch to MetaMask and confirm the wallet no longer shows an active session
-  await device.activateApp(APP_PACKAGE_IDS.ANDROID);
-  await AppwrightGestures.wait(1000);
-  await unlockIfLockScreenVisible(device);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await sleep(1000);
+  await unlockIfLockScreenVisible();
 });

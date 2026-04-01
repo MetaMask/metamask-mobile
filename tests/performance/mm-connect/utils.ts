@@ -2,13 +2,18 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import { expect } from 'appwright';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AppwrightGestures from '../../framework/AppwrightGestures.ts';
-import { login } from '../../framework/utils/Flows.js';
-import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
+import LoginView from '../../page-objects/wallet/LoginView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import {
+  PlaywrightGestures,
+  PlaywrightAssertions,
+  sleep,
+} from '../../framework';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
+import type { CurrentDeviceDetails } from '../../framework/fixture';
 
 // Default port for the browser playground dapp server
 const DEFAULT_DAPP_PORT = 8090;
@@ -18,16 +23,15 @@ const UNLOCK_WAIT_MS = 3000;
 /**
  * If the app auto-locked and the unlock/login screen is displayed, enter password and unlock.
  * Waits no more than 3 seconds for the unlock screen; if not visible, returns without action.
- * Reuses the same login flow (password source, type, tap Unlock) as the start-of-test login.
- * Call from native context (e.g. inside withNativeAction) before interacting with connection/sign modals.
- * @param {import('appwright').Device} device - Appwright device
+ * Call from native context before interacting with connection/sign modals.
  */
-export async function unlockIfLockScreenVisible(device) {
-  LoginScreen.device = device;
+export async function unlockIfLockScreenVisible(): Promise<void> {
   try {
-    const title = await LoginScreen.title;
-    await expect(title).toBeVisible({ timeout: UNLOCK_WAIT_MS });
-    await login(device);
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.container),
+      { timeout: UNLOCK_WAIT_MS },
+    );
+    await loginToAppPlaywright();
   } catch {
     // Unlock screen not shown within timeout; continue
   }
@@ -39,11 +43,11 @@ const DAPP_READY_POLL_MS = 500;
  * Wait for the dapp server to be listening on the given port (e.g. after start()).
  * Polls from the runner so we only proceed when the server is ready; helps avoid
  * navigating to the dapp before it is reachable (e.g. on CI with BrowserStack Local).
- * @param {number} port - The port the dapp server is running on
- * @param {number} timeoutMs - Max time to wait (default 15s)
- * @throws {Error} If the server does not respond within timeoutMs
  */
-export async function waitForDappServerReady(port, timeoutMs = 15000) {
+export async function waitForDappServerReady(
+  port: number,
+  timeoutMs = 15000,
+): Promise<void> {
   const url = `http://localhost:${port}`;
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -58,7 +62,7 @@ export async function waitForDappServerReady(port, timeoutMs = 15000) {
     } catch {
       // Server not ready or connection refused; keep polling
     }
-    await new Promise((r) => setTimeout(r, DAPP_READY_POLL_MS));
+    await sleep(DAPP_READY_POLL_MS);
   }
   throw new Error(
     `Dapp server on port ${port} did not become ready within ${timeoutMs}ms`,
@@ -68,11 +72,11 @@ export async function waitForDappServerReady(port, timeoutMs = 15000) {
 /**
  * Get the dapp URL for mobile browser access.
  * Android emulator browser needs 10.0.2.2 to reach the host machine.
- * @param {string} platform - 'android' or 'ios'
- * @param {number} port - The port the dapp server is running on
- * @returns {string} The URL to access the dapp
  */
-export function getDappUrlForBrowser(platform, port = DEFAULT_DAPP_PORT) {
+export function getDappUrlForBrowser(
+  platform: string,
+  port = DEFAULT_DAPP_PORT,
+): string {
   const host = platform === 'android' ? '10.0.2.2' : 'localhost';
   return `http://${host}:${port}`;
 }
@@ -80,25 +84,23 @@ export function getDappUrlForBrowser(platform, port = DEFAULT_DAPP_PORT) {
 /**
  * Set up ADB reverse port forwarding for Android emulator.
  * This allows the emulator to access localhost:{port} via 10.0.2.2:{port}
- * @param {number} port - The port to forward
  */
-export function setupAdbReverse(port) {
+export function setupAdbReverse(port: number): void {
   try {
     execSync(`adb reverse tcp:${port} tcp:${port}`, { stdio: 'pipe' });
     console.log(`ADB reverse port ${port} configured`);
   } catch (error) {
-    // ADB might not be available (e.g., on iOS-only runs)
+    const message = error instanceof Error ? error.message : String(error);
     console.warn(
-      `Could not set up ADB reverse (may be expected on iOS): ${error.message}`,
+      `Could not set up ADB reverse (may be expected on iOS): ${message}`,
     );
   }
 }
 
 /**
  * Clean up ADB reverse port forwarding.
- * @param {number} port - The port to remove forwarding for
  */
-export function cleanupAdbReverse(port) {
+export function cleanupAdbReverse(port: number): void {
   try {
     execSync(`adb reverse --remove tcp:${port}`, { stdio: 'pipe' });
     console.log(`ADB reverse port ${port} removed`);
@@ -115,14 +117,12 @@ const PLAYGROUND_APK_CANDIDATES = [
   process.env.RN_PLAYGROUND_APK_PATH,
   './tmp/rn-playground.apk',
   '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk',
-].filter(Boolean);
+].filter(Boolean) as string[];
 
 /**
  * Resolve the playground APK path from the candidate list.
- * @returns {string} Absolute path to the APK
- * @throws {Error} If no candidate exists on disk
  */
-function resolvePlaygroundApkPath() {
+function resolvePlaygroundApkPath(): string {
   for (const candidate of PLAYGROUND_APK_CANDIDATES) {
     const resolved = path.resolve(process.cwd(), candidate);
     if (fs.existsSync(resolved)) {
@@ -150,37 +150,39 @@ function resolvePlaygroundApkPath() {
 /**
  * Wait for the wallet to be visible, then cycle the app twice to ensure all
  * account groups (including Solana) are created and syncing completes.
- * Must be called from native context after login.
- * @param {import('appwright').Device} device - Appwright device
+ * Must be called after login.
  */
-export async function ensureAccountGroupsFinishedLoading(device) {
-  await WalletMainScreen.isMainWalletViewVisible();
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
-  await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.isComponentDisplayed();
-  await AccountListComponent.waitForSyncingToComplete();
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
+export async function ensureAccountGroupsFinishedLoading(
+  currentDeviceDetails: CurrentDeviceDetails,
+): Promise<void> {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+  await PlaywrightGestures.terminateApp(currentDeviceDetails);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
+  await WalletView.tapIdenticon();
+  await AccountListBottomSheet.waitForAccountSyncToComplete();
+  await PlaywrightGestures.terminateApp(currentDeviceDetails);
+  await PlaywrightGestures.activateApp(currentDeviceDetails);
+  await loginToAppPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(WalletView.container),
+    { timeout: 15000 },
+  );
 }
 
 /**
  * Ensure the React Native playground release APK is installed on the
  * connected emulator. Uninstalls any existing version first, then installs
  * the pre-built release APK so the device always has a clean copy.
- *
- * The APK is resolved from (in priority order):
- *   1. RN_PLAYGROUND_APK_PATH env var
- *   2. ./tmp/rn-playground.apk (downloaded via fetch-rn-playground-apk.sh)
- *   3. Sibling connect-monorepo local build
- *
- * @throws {Error} If the APK file is not found or adb install fails.
  */
-export function ensurePlaygroundInstalled() {
+export function ensurePlaygroundInstalled(): void {
   const apkPath = resolvePlaygroundApkPath();
   console.log(`Resolved playground APK path: ${apkPath}`);
 
@@ -197,6 +199,7 @@ export function ensurePlaygroundInstalled() {
     execSync(`adb install "${apkPath}"`, { stdio: 'pipe' });
     console.log('Playground APK installed successfully');
   } catch (error) {
-    throw new Error(`Failed to install playground APK: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to install playground APK: ${message}`);
   }
 }

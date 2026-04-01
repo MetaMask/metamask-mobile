@@ -1,23 +1,18 @@
-import { test } from 'appwright';
+import { test } from '../../framework/fixture';
 
-import { login } from '../../framework/utils/Flows.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import {
   launchMobileBrowser,
   switchToMobileBrowser,
   navigateToDapp,
-} from '../../framework/utils/MobileBrowser.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
-import AndroidScreenHelpers from '../../../wdio/screen-objects/Native/Android.js';
-import DappConnectionModal from '../../../wdio/screen-objects/Modals/DappConnectionModal.js';
-import SignModal from '../../../wdio/screen-objects/Modals/SignModal.js';
-import SnapSignModal from '../../../wdio/screen-objects/Modals/SnapSignModal.js';
-import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
-import {
-  DappServer,
-  DappVariants,
-  TestDapps,
-} from '../../../tests/framework/index.ts';
+} from '../../framework/utils/MobileBrowser';
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
+import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
+import SignModal from '../../page-objects/MMConnect/SignModal';
+import SnapSignModal from '../../page-objects/MMConnect/SnapSignModal';
+import AppwrightHelpers from '../../framework/AppwrightHelpers';
+import { DappServer, DappVariants, TestDapps, sleep , PlaywrightGestures } from '../../framework';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -25,9 +20,7 @@ import {
   ensureAccountGroupsFinishedLoading,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
-} from './utils.js';
-import AppwrightGestures from '../../../tests/framework/AppwrightGestures.ts';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+} from './utils';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
 const DAPP_PORT = 8090;
@@ -66,26 +59,18 @@ test.afterAll(async () => {
 });
 
 test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
-  device,
+  currentDeviceDetails,
+  driver,
 }) => {
   // Get platform-specific URL
-  const platform = device.getPlatform?.() || 'android';
+  const platform = currentDeviceDetails.platform;
   const useBrowserStackLocal =
     process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
   const DAPP_URL = useBrowserStackLocal
     ? `http://bs-local.com:${DAPP_PORT}`
     : getDappUrlForBrowser(platform);
 
-  // Initialize page objects with device
-  WalletMainScreen.device = device;
-  BrowserPlaygroundDapp.device = device;
-  AndroidScreenHelpers.device = device;
-  DappConnectionModal.device = device;
-  SignModal.device = device;
-  SnapSignModal.device = device;
-  AccountListComponent.device = device;
-
-  await device.webDriverClient.updateSettings({
+  await driver.updateSettings({
     waitForIdleTimeout: 100,
     waitForSelectorTimeout: 0,
     shouldWaitForQuiescence: false,
@@ -95,14 +80,14 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
   // Login and navigate to dapp
   //
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
-    await login(device);
-    await ensureAccountGroupsFinishedLoading(device);
-    await launchMobileBrowser(device);
-    await navigateToDapp(device, DAPP_URL, DAPP_NAME);
+  await AppwrightHelpers.withNativeAction(driver, async () => {
+    await loginToAppPlaywright();
+    await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
+    await launchMobileBrowser(driver);
+    await navigateToDapp(driver, DAPP_URL, DAPP_NAME);
   });
 
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
 
   //
   // Connect via Multichain API
@@ -110,7 +95,7 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
 
   // Tap the Connect button (multichain API - default scopes)
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       // Note: the Solana wallet standard provider itself has an issue where it does not
       // listen for wallet_sessionChanged events, so we need to use the Solana's connect button
@@ -121,18 +106,18 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
   );
 
   // Handle connection approval in MetaMask
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-    await unlockIfLockScreenVisible(device);
+    await unlockIfLockScreenVisible();
     await DappConnectionModal.tapConnectButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
@@ -156,17 +141,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
@@ -180,17 +165,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SnapSignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
         ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
@@ -202,17 +187,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertResponseValue(
         '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
@@ -237,17 +222,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
 
@@ -267,17 +252,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
@@ -295,17 +280,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SnapSignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
         ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
@@ -330,17 +315,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
@@ -350,17 +335,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertScopeCardVisible(
         SOLANA_MAINNET_CAIP_CHAIN_ID,
@@ -375,17 +360,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SnapSignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
         ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
@@ -402,17 +387,17 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapConfirmButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
 
@@ -425,39 +410,39 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
 
     // Purposely terminate the app without accepting the approval
-    await AppwrightGestures.terminateApp(device);
-    await AppwrightGestures.activateApp(device);
-    await login(device);
-    await WalletMainScreen.isMainWalletViewVisible();
+    await PlaywrightGestures.terminateApp(currentDeviceDetails);
+    await PlaywrightGestures.activateApp(currentDeviceDetails);
+    await loginToAppPlaywright();
+    await sleep(1000);
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.tapConnectWagmi();
     },
     DAPP_URL,
   );
 
-  await AppwrightHelpers.withNativeAction(device, async () => {
+  await AppwrightHelpers.withNativeAction(driver, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
 
-  await AppwrightGestures.wait(1000);
-  await switchToMobileBrowser(device);
-  await AppwrightGestures.wait(1000);
+  await sleep(1000);
+  await switchToMobileBrowser(driver);
+  await sleep(1000);
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
       await BrowserPlaygroundDapp.assertConnected(true);
@@ -473,7 +458,7 @@ test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple cl
   //
 
   await AppwrightHelpers.withWebAction(
-    device,
+    driver,
     async () => {
       // Note: the Solana wallet standard provider itself has an issue where it does not
       // listen for wallet_sessionChanged events, so we need to use the Solana's disconnect button
