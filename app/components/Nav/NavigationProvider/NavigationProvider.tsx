@@ -3,7 +3,6 @@ import {
   NavigationContainer,
   NavigationContainerRef,
   ParamListBase,
-  Theme,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { onNavigationReady } from '../../../actions/navigation';
@@ -64,7 +63,19 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     <NavigationContainer
       // Using transparent background to support transparent modals
       // The actual app background is handled by individual screens
-      theme={{ colors: { background: 'transparent' } } as Theme}
+      // All theme colors must be provided to avoid "undefined is not a function"
+      // errors in @react-navigation/stack internal components that access theme
+      theme={{
+        dark: false,
+        colors: {
+          primary: 'rgb(0, 122, 255)',
+          background: 'transparent',
+          card: 'rgb(255, 255, 255)',
+          text: 'rgb(28, 28, 30)',
+          border: 'rgb(216, 216, 216)',
+          notification: 'rgb(255, 59, 48)',
+        },
+      }}
       onReady={onReady}
       ref={setNavigationRef}
     >
