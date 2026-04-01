@@ -45,7 +45,6 @@ let mockContextValue = {
   notifySectionViewed: mockNotifySectionViewed,
   getViewedSectionCount: jest.fn(() => 0),
   getSessionMaxDepth: jest.fn(() => -1),
-  homepageUserId: 'test-homepage-user-id',
   appSessionId: 'test-app-session-id',
 };
 
@@ -96,7 +95,6 @@ describe('useHomeViewedEvent', () => {
       notifySectionViewed: mockNotifySectionViewed,
       getViewedSectionCount: jest.fn(() => 0),
       getSessionMaxDepth: jest.fn(() => -1),
-      homepageUserId: 'test-homepage-user-id',
       appSessionId: 'test-app-session-id',
     };
   });
@@ -448,7 +446,6 @@ describe('useHomeViewedEvent', () => {
         ...mockContextValue,
         visitId: 2,
         getSessionMaxDepth: jest.fn(() => 3),
-        homepageUserId: 'test-homepage-user-id',
         appSessionId: 'test-app-session-id',
       };
 
@@ -473,7 +470,6 @@ describe('useHomeViewedEvent', () => {
         is_empty: true,
         item_count: 0,
         entry_point: HomeEntryPointsValues.APP_OPENED,
-        homepage_user_id: 'test-homepage-user-id',
         app_session_id: 'test-app-session-id',
         visit_number: 2,
         max_scroll_depth_session: 3,
@@ -510,21 +506,6 @@ describe('useHomeViewedEvent', () => {
   });
 
   describe('new analytics properties', () => {
-    it('includes homepage_user_id from context', () => {
-      mockContextValue = {
-        ...mockContextValue,
-        homepageUserId: 'user-abc-123',
-      };
-
-      renderHook(() =>
-        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ homepage_user_id: 'user-abc-123' }),
-      );
-    });
-
     it('includes app_session_id from context', () => {
       mockContextValue = {
         ...mockContextValue,
@@ -573,16 +554,19 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('reports current sectionIndex when it exceeds the prior session max', () => {
-      // sectionIndex=5, prior session max=2 → current section is the new deepest
+      // sectionIndex=5, prior session max=2 → current section is the new deepest.
+      // Must use a rendered section (sectionRef !== null) — only viewport-checked
+      // sections apply Math.max; null-ref sections report getSessionMaxDepth() as-is.
       mockContextValue = {
         ...mockContextValue,
         getSessionMaxDepth: jest.fn(() => 2),
       };
+      const mockRef = createMockRef(0, 200); // fully visible
 
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
-          sectionRef: null,
+          sectionRef: mockRef,
           sectionIndex: 5,
         }),
       );
@@ -593,16 +577,18 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('reports sectionIndex as session max on first section viewed (prior max is -1)', () => {
-      // Prior session max is -1 (nothing viewed yet) → current section sets the depth
+      // Prior session max is -1 (nothing viewed yet) → current section sets the depth.
+      // Must use a rendered section (sectionRef !== null) for the same reason above.
       mockContextValue = {
         ...mockContextValue,
         getSessionMaxDepth: jest.fn(() => -1),
       };
+      const mockRef = createMockRef(0, 200); // fully visible
 
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
-          sectionRef: null,
+          sectionRef: mockRef,
           sectionIndex: 0,
         }),
       );
@@ -612,65 +598,7 @@ describe('useHomeViewedEvent', () => {
       );
     });
 
-    it('defers firing when homepageUserId is empty, then fires once it loads', () => {
-      mockContextValue = { ...mockContextValue, homepageUserId: '' };
-
-      const { rerender } = renderHook(() =>
-        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
-      );
-
-      // Should not fire while homepageUserId is empty.
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-
-      // Simulate the async load completing.
-      mockContextValue = {
-        ...mockContextValue,
-        homepageUserId: 'loaded-user-id',
-      };
-      rerender();
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ homepage_user_id: 'loaded-user-id' }),
-      );
-    });
-
-    it('fires for a ref section that was visible but scrolled past before homepageUserId loaded', () => {
-      mockContextValue = { ...mockContextValue, homepageUserId: '' };
-
-      // Section starts in viewport (y=0, height=200 → fully visible).
-      const mockRef = createMockRef(0, 200);
-      const { rerender } = renderHook(() =>
-        useHomeViewedEvent({ ...defaultParams, sectionRef: mockRef }),
-      );
-
-      // Section was visible but fireEvent deferred — should not have fired yet.
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-
-      // Simulate user scrolling past the section (now below viewport).
-      const mockMeasureInWindow = (
-        mockRef as unknown as { current: { measureInWindow: jest.Mock } }
-      ).current.measureInWindow as jest.Mock;
-      mockMeasureInWindow.mockImplementation(
-        (cb: (x: number, y: number, w: number, h: number) => void) =>
-          cb(0, 900, 300, 200), // below the 800px viewport
-      );
-
-      // homepageUserId loads — section is no longer visible, but wasVisibleRef
-      // recorded that it was, so the event should still fire.
-      mockContextValue = {
-        ...mockContextValue,
-        homepageUserId: 'loaded-user-id',
-      };
-      rerender();
-
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ homepage_user_id: 'loaded-user-id' }),
-      );
-    });
-
-    it('calls notifySectionViewed with sectionName and sectionIndex', () => {
+    it('calls notifySectionViewed with recordDepth=false for null-ref sections', () => {
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
@@ -683,6 +611,45 @@ describe('useHomeViewedEvent', () => {
       expect(mockNotifySectionViewed).toHaveBeenCalledWith(
         HomeSectionNames.NFTS,
         3,
+        false, // non-rendered section — must not inflate depth metrics
+      );
+    });
+
+    it('calls notifySectionViewed with recordDepth=true for rendered sections', () => {
+      const mockRef = createMockRef(0, 200); // fully visible
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: mockRef,
+          sectionName: HomeSectionNames.TOKENS,
+          sectionIndex: 1,
+        }),
+      );
+
+      expect(mockNotifySectionViewed).toHaveBeenCalledWith(
+        HomeSectionNames.TOKENS,
+        1,
+        true, // viewport-checked section — should update depth
+      );
+    });
+
+    it('null-ref section does not include sectionIndex in max_scroll_depth_session', () => {
+      // Session max is 1, null-ref section is at index 4 — should NOT bump to 4.
+      mockContextValue = {
+        ...mockContextValue,
+        getSessionMaxDepth: jest.fn(() => 1),
+      };
+
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          sectionIndex: 4,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ max_scroll_depth_session: 1 }),
       );
     });
   });

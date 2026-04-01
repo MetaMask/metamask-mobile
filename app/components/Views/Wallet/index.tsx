@@ -37,7 +37,6 @@ import {
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { getHomepageUserId } from '../../../util/analytics/homepageUserId';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import {
@@ -636,8 +635,6 @@ const Wallet = ({
   const sessionMaxDepthRef = useRef<number>(-1);
   // Per-visit max depths accumulated across the session for avg/median.
   const visitDepthsRef = useRef<number[]>([]);
-  // Persistent non-PII install ID for homepage analytics (loaded async on mount).
-  const [homepageUserId, setHomepageUserId] = useState('');
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -815,15 +812,6 @@ const Wallet = ({
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
-
-  // Load the persistent homepage user ID once on mount.
-  useEffect(() => {
-    getHomepageUserId().then((id) => {
-      if (isMountedRef.current) {
-        setHomepageUserId(id);
-      }
-    });
   }, []);
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1297,13 +1285,22 @@ const Wallet = ({
   );
 
   const notifySectionViewed = useCallback(
-    (sectionName: HomeSectionName, sectionIndex: number) => {
+    (
+      sectionName: HomeSectionName,
+      sectionIndex: number,
+      recordDepth: boolean,
+    ) => {
       viewedSectionsRef.current.add(sectionName);
-      if (sectionIndex > maxDepthThisVisitRef.current) {
-        maxDepthThisVisitRef.current = sectionIndex;
-      }
-      if (sectionIndex > sessionMaxDepthRef.current) {
-        sessionMaxDepthRef.current = sectionIndex;
+      // Only update depth for sections that required the user to scroll to them.
+      // Non-rendered sections (sectionRef === null) pass recordDepth=false so they
+      // are counted in total_sections_viewed without inflating depth metrics.
+      if (recordDepth) {
+        if (sectionIndex > maxDepthThisVisitRef.current) {
+          maxDepthThisVisitRef.current = sectionIndex;
+        }
+        if (sectionIndex > sessionMaxDepthRef.current) {
+          sessionMaxDepthRef.current = sectionIndex;
+        }
       }
     },
     [],
@@ -1336,7 +1333,6 @@ const Wallet = ({
       getVisitMaxDepth,
       getSessionMaxDepth,
       getAndRecordVisitDepths,
-      homepageUserId,
       appSessionId: HOMEPAGE_APP_SESSION_ID,
     }),
     [
@@ -1350,7 +1346,6 @@ const Wallet = ({
       getVisitMaxDepth,
       getSessionMaxDepth,
       getAndRecordVisitDepths,
-      homepageUserId,
     ],
   );
 

@@ -29,7 +29,6 @@ const useHomeSessionSummary = ({
     getVisitMaxDepth,
     getSessionMaxDepth,
     getAndRecordVisitDepths,
-    homepageUserId,
     appSessionId,
   } = useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -48,7 +47,6 @@ const useHomeSessionSummary = ({
   const visitIdRef = useRef(visitId);
   const entryPointRef = useRef(entryPoint);
   const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
-  const homepageUserIdRef = useRef(homepageUserId);
   const appSessionIdRef = useRef(appSessionId);
 
   useEffect(() => {
@@ -61,9 +59,6 @@ const useHomeSessionSummary = ({
     totalSectionsLoadedRef.current = totalSectionsLoaded;
   }, [totalSectionsLoaded]);
   useEffect(() => {
-    homepageUserIdRef.current = homepageUserId;
-  }, [homepageUserId]);
-  useEffect(() => {
     appSessionIdRef.current = appSessionId;
   }, [appSessionId]);
 
@@ -71,9 +66,6 @@ const useHomeSessionSummary = ({
     useCallback(
       () => () => {
         if (visitIdRef.current === 0) return;
-        // homepageUserId is loaded asynchronously. Skip if it hasn't resolved
-        // yet to avoid emitting a summary with an empty user identifier.
-        if (!homepageUserIdRef.current) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
@@ -101,7 +93,6 @@ const useHomeSessionSummary = ({
               total_sections_loaded: totalSectionsLoadedRef.current,
               entry_point: entryPointRef.current,
               session_time: sessionTime,
-              homepage_user_id: homepageUserIdRef.current,
               app_session_id: appSessionIdRef.current,
               visit_number: visitIdRef.current,
               max_scroll_depth_visit: visitMaxDepth,

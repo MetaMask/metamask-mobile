@@ -44,6 +44,12 @@ interface HomepageScrollContextValue {
   notifySectionViewed: (
     sectionName: HomeSectionName,
     sectionIndex: number,
+    /**
+     * When true, updates visit and session max scroll depth. Pass false for
+     * sections that fire without a viewport check (sectionRef === null) so that
+     * non-rendered sections do not inflate depth metrics.
+     */
+    recordDepth: boolean,
   ) => void;
   /**
    * Returns the number of distinct sections viewed during the current visit.
@@ -67,12 +73,6 @@ interface HomepageScrollContextValue {
    */
   getAndRecordVisitDepths: () => number[];
   /**
-   * Persistent non-PII identifier for this app install. Stable across app
-   * restarts. Used to distinguish new users from returning users in analytics
-   * without relying on wallet address or any personal data.
-   */
-  homepageUserId: string;
-  /**
    * Ephemeral identifier for the current app launch. Generated once on app
    * start and never persisted. Groups all homepage visits within one session,
    * distinguishing "navigated away and back" from a fresh app launch.
@@ -95,7 +95,6 @@ const defaultValue: HomepageScrollContextValue = {
   getVisitMaxDepth: () => -1,
   getSessionMaxDepth: () => -1,
   getAndRecordVisitDepths: () => [],
-  homepageUserId: '',
   appSessionId: '',
 };
 

@@ -68,7 +68,6 @@ const useHomeViewedEvent = ({
     visitId,
     notifySectionViewed,
     getSessionMaxDepth,
-    homepageUserId,
     appSessionId,
   } = useHomepageScrollContext();
 
@@ -91,10 +90,6 @@ const useHomeViewedEvent = ({
     // sectionIndex is -1 when the section's feature flag is OFF and it is
     // not included in enabledSections. Don't fire the event in that case.
     if (sectionIndex < 0) return;
-    // homepageUserId is loaded asynchronously on mount. If it hasn't resolved
-    // yet, defer: once it loads, fireEvent gets a new reference (it's in the
-    // useCallback deps), causing the triggering effects to re-run and retry.
-    if (!homepageUserId) return;
     hasFiredRef.current = true;
 
     trackEvent(
@@ -108,20 +103,23 @@ const useHomeViewedEvent = ({
           is_empty: isEmpty,
           item_count: itemCount,
           entry_point: entryPoint,
-          homepage_user_id: homepageUserId,
           app_session_id: appSessionId,
           visit_number: visitId,
-          // Use Math.max to include the current section's index — getSessionMaxDepth()
-          // reflects sections notified so far, but notifySectionViewed() for this
-          // section runs after trackEvent(), so the current depth would otherwise lag.
-          max_scroll_depth_session: Math.max(
-            sectionIndex,
-            getSessionMaxDepth(),
-          ),
+          // For rendered sections (sectionRef !== null), include the current
+          // sectionIndex via Math.max since notifySectionViewed hasn't updated
+          // the depth ref yet at this point in the call order. For non-rendered
+          // sections, just report the current session max — they don't affect depth.
+          max_scroll_depth_session:
+            sectionRef !== null
+              ? Math.max(sectionIndex, getSessionMaxDepth())
+              : getSessionMaxDepth(),
         })
         .build(),
     );
-    notifySectionViewed(sectionName, sectionIndex);
+    // recordDepth=true only for rendered sections (sectionRef !== null) that
+    // fired via a real viewport check. Non-rendered sections fire immediately
+    // and should not count toward max scroll depth.
+    notifySectionViewed(sectionName, sectionIndex, sectionRef !== null);
   }, [
     visitId,
     sectionName,
@@ -130,12 +128,12 @@ const useHomeViewedEvent = ({
     isEmpty,
     itemCount,
     entryPoint,
-    homepageUserId,
     appSessionId,
     getSessionMaxDepth,
     trackEvent,
     createEventBuilder,
     notifySectionViewed,
+    sectionRef,
   ]);
 
   // Reset on each homepage visit so the event re-fires.
