@@ -48,7 +48,6 @@ function WebviewModal() {
     (navState: { url: string }) => {
       if (navState.url !== previousUrlRef.current) {
         previousUrlRef.current = navState.url;
-        previousUrlRef.current = navState.url;
         handleNavigationStateChange?.(navState);
       }
     },
