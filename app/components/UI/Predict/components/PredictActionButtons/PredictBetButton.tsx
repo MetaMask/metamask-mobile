@@ -23,12 +23,18 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
     if (hasTeamColor) {
       return teamColor;
     }
+    if (variant === 'draw') {
+      return colors.background.muted;
+    }
     return variant === 'yes' ? colors.success.muted : colors.error.muted;
   };
 
   const getTextColor = (): string => {
     if (hasTeamColor) {
       return 'text-white';
+    }
+    if (variant === 'draw') {
+      return 'text-default';
     }
     return variant === 'yes' ? 'text-success-default' : 'text-error-default';
   };
@@ -42,8 +48,14 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       isFullWidth
       size={size}
     >
-      <Text style={tw.style('font-medium', getTextColor())}>
-        {label.toUpperCase()} · {price}¢
+      <Text
+        style={tw.style('font-medium text-center', getTextColor())}
+        numberOfLines={1}
+      >
+        {label.toUpperCase()}
+      </Text>
+      <Text style={tw.style('font-medium text-center', getTextColor())}>
+        {price}¢
       </Text>
     </Button>
   );

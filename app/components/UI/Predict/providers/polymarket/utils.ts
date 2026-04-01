@@ -27,6 +27,10 @@ import {
   mapApiTeamToPredictTeam,
   type TeamLookup,
 } from '../../utils/gameParser';
+import {
+  isDrawCapableLeague,
+  SUPPORTED_SPORTS_LEAGUES,
+} from '../../constants/sports';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -547,6 +551,17 @@ const sortOutcomeTokens = (
   return outcomeTokens;
 };
 
+const getNegRiskYesTokenTitle = (
+  market: PolymarketApiMarket,
+): string | undefined => {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+    return undefined;
+  }
+  return market.groupItemTitle.toLowerCase().startsWith('draw')
+    ? 'Draw'
+    : market.groupItemTitle;
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -558,10 +573,16 @@ const parsePolymarketMarketOutcomes = (
   const outcomePrices = market.outcomePrices
     ? JSON.parse(market.outcomePrices)
     : [];
+
+  const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+
   const outcomeTokens = outcomeTokensIds.map(
     (tokenId: string, index: number) => ({
       id: tokenId,
-      title: outcomes[index],
+      title:
+        negRiskYesTitle && outcomes[index] === 'Yes'
+          ? negRiskYesTitle
+          : outcomes[index],
       price: parseFloat(outcomePrices[index]),
     }),
   );
@@ -674,6 +695,10 @@ export const parsePolymarketMarket = (
   description: market.description,
   image: market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
+  groupItemThreshold:
+    market.groupItemThreshold != null
+      ? Number(market.groupItemThreshold)
+      : undefined,
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
   tokens: parsePolymarketMarketOutcomes(market, event),
@@ -733,11 +758,9 @@ export const parsePolymarketEvents = (
       // guaranteed to be accurate. They also do this on their webbsite.
       //
       // However, we noticed that the above statement is not correct, at least for game events.
-      const moneylineMarket = event.markets?.find((m) => isMoneylineMarket(m));
-      const description =
-        moneylineMarket?.description ??
-        event.markets?.[0]?.description ??
-        event.description;
+      const description = game
+        ? event.description
+        : (event.markets?.[0]?.description ?? event.description);
 
       return {
         id: event.id,
@@ -995,10 +1018,49 @@ export const getPredictPositionStatus = ({
   return PredictPositionStatus.LOST;
 };
 
+const resolveNegRiskOutcomeLabel = (
+  position: PolymarketPosition,
+  teamLookup?: TeamLookup,
+): string | undefined => {
+  if (!position.negativeRisk || !position.eventSlug) {
+    return undefined;
+  }
+
+  const league = SUPPORTED_SPORTS_LEAGUES.find(
+    (l) => isDrawCapableLeague(l) && position.eventSlug?.startsWith(`${l}-`),
+  );
+
+  if (!league) {
+    return undefined;
+  }
+
+  const prefix = position.eventSlug + '-';
+  if (!position.slug.startsWith(prefix)) {
+    return undefined;
+  }
+
+  const outcomeToken = position.slug.slice(prefix.length);
+  if (!outcomeToken) {
+    return undefined;
+  }
+
+  if (outcomeToken === 'draw') {
+    return 'Draw';
+  }
+
+  if (!teamLookup) {
+    return outcomeToken.toUpperCase();
+  }
+
+  return teamLookup(league, outcomeToken)?.name ?? outcomeToken.toUpperCase();
+};
+
 export const parsePolymarketPositions = async ({
   positions,
+  teamLookup,
 }: {
   positions: PolymarketPosition[];
+  teamLookup?: TeamLookup;
 }) => {
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
@@ -1006,7 +1068,8 @@ export const parsePolymarketPositions = async ({
       providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
-      outcome: position.outcome,
+      outcome:
+        resolveNegRiskOutcomeLabel(position, teamLookup) ?? position.outcome,
       outcomeTokenId: position.asset,
       outcomeIndex: position.outcomeIndex,
       negRisk: position.negativeRisk,
