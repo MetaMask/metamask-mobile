@@ -12,10 +12,10 @@ import {
   AccountsControllerAccountAddedEvent,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
-import { HandleSnapRequest } from '@metamask/snaps-controllers';
+import { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 
 export type MultichainAssetsRatesControllerMessengerActions =
-  | HandleSnapRequest
+  | SnapControllerHandleRequestAction
   | AccountsControllerListMultichainAccountsAction
   | GetCurrencyRateState
   | MultichainAssetsControllerGetStateAction;
