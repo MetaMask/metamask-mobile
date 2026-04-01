@@ -4,9 +4,7 @@
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:WhatsNewAppVersionSeen": "7.24.3",
     "@MetaMask:existingUser": "true",
-    "@MetaMask:perpsGTMModalShown": "true",
     "@MetaMask:predictGTMModalShown": "true",
-    "@MetaMask:rewardsGTMModalShown": "true",
     "@MetaMask:solanaFeatureModalShownV2": "true"
   },
   "state": {
