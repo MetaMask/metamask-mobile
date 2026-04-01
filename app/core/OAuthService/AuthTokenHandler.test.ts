@@ -281,7 +281,7 @@ describe('AuthTokenHandler', () => {
       );
     });
 
-    it('falls back to the legacy iOS Google clientId when the Redux store throws during refresh', async () => {
+    it('rejects when the Redux store throws while resolving the iOS Google clientId for refresh', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce({
@@ -295,23 +295,14 @@ describe('AuthTokenHandler', () => {
         throw new Error('store unavailable');
       });
 
-      await AuthTokenHandler.refreshJWTToken({
-        connection: mockConnection,
-        refreshToken: mockRefreshToken,
-      });
-
-      expect(fetchSpy).toHaveBeenCalledWith(
-        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
-        expect.objectContaining({
-          body: JSON.stringify({
-            client_id: 'mock-ios-google-client-id',
-            login_provider: mockConnection,
-            network: 'test-network',
-            refresh_token: mockRefreshToken,
-            grant_type: 'refresh_token',
-          }),
+      await expect(
+        AuthTokenHandler.refreshJWTToken({
+          connection: mockConnection,
+          refreshToken: mockRefreshToken,
         }),
-      );
+      ).rejects.toThrow('store unavailable');
+
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
