@@ -154,7 +154,7 @@ export const sentryStateMask = {
       SnapInterface: {
         [AllProperties]: false,
       },
-      SnapsRegistry: {
+      SnapRegistryController: {
         [AllProperties]: false,
       },
       SubjectMetadataController: {
