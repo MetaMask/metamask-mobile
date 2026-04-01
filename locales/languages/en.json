@@ -2328,6 +2328,8 @@
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
       "no_funds_enough": "Not enough funds.",
+      "prediction_insufficient_funds_try_token": "Not enough funds. You can use up to {{amount}}, or try a different token.",
+      "no_funds_enough_try_token": "Not enough funds. Try a different token.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again.",
