@@ -5171,6 +5171,77 @@ describe('PerpsController', () => {
       );
     });
 
+    it('hydrates multi-provider market data from disk at construction time', () => {
+      const timestamp = Date.now();
+      const diskMarkets = {
+        entries: [
+          {
+            providerNetworkKey: 'hyperliquid:mainnet',
+            data: [
+              {
+                symbol: 'BTC',
+                name: 'Bitcoin',
+                price: '50000',
+                change24h: '+100',
+                change24hPercent: '+0.2%',
+                maxLeverage: '50x',
+                volume: '$1B',
+              },
+            ],
+            timestamp,
+          },
+          {
+            providerNetworkKey: 'myx:mainnet',
+            data: [
+              {
+                symbol: 'ETH',
+                name: 'Ethereum',
+                price: '3000',
+                change24h: '+50',
+                change24hPercent: '+1.2%',
+                maxLeverage: '25x',
+                volume: '$500M',
+              },
+            ],
+            timestamp,
+          },
+        ],
+      };
+      const infra = createMockInfrastructure();
+      (infra.diskCache.getItemSync as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_MARKETS) {
+            return JSON.stringify(diskMarkets);
+          }
+          return null;
+        },
+      );
+
+      const ctrl = new TestablePerpsController({
+        messenger: createMockMessenger(),
+        state: {
+          ...getDefaultPerpsControllerState(),
+          activeProvider: 'aggregated',
+        },
+        infrastructure: infra,
+      });
+      ctrl.testSetProviders(
+        new Map([
+          ['hyperliquid', createMockHyperLiquidProvider()],
+          ['myx', createMockHyperLiquidProvider() as unknown as PerpsProvider],
+        ]),
+      );
+
+      const aggregated = ctrl.getCachedMarketDataForActiveProvider({
+        skipTTL: true,
+      });
+      expect(aggregated).toHaveLength(2);
+      expect(aggregated?.map((market) => market.symbol)).toEqual([
+        'BTC',
+        'ETH',
+      ]);
+    });
+
     it('hydrates user data from disk at construction time', () => {
       const diskUserData = {
         providerNetworkKey: 'hyperliquid:mainnet',
@@ -5355,6 +5426,41 @@ describe('PerpsController', () => {
         controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
       expect(entry?.data).toEqual(mockData);
       expect(entry?.timestamp).toBeGreaterThan(0);
+    });
+
+    it('persists preloaded market data to disk', async () => {
+      const mockData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      expect(mockInfrastructure.diskCache.setItem).toHaveBeenCalledWith(
+        PERPS_DISK_CACHE_MARKETS,
+        expect.any(String),
+      );
+
+      const persistedPayload = JSON.parse(
+        (mockInfrastructure.diskCache.setItem as jest.Mock).mock.calls.find(
+          ([key]) => key === PERPS_DISK_CACHE_MARKETS,
+        )?.[1] as string,
+      );
+
+      expect(persistedPayload.providerNetworkKey).toBe('hyperliquid:mainnet');
+      expect(persistedPayload.data).toEqual(mockData);
+      expect(persistedPayload.timestamp).toBeGreaterThan(0);
     });
 
     it('respects 30s debounce guard', async () => {
@@ -5572,6 +5678,75 @@ describe('PerpsController', () => {
       expect(entry.orders).toEqual(mockOrders);
       expect(entry.accountState).toEqual(mockAccountState);
       expect(entry.timestamp).toBeGreaterThan(0);
+    });
+
+    it('persists preloaded user data to disk', async () => {
+      const mockPositions = [createMockPosition()];
+      const mockOrders = [
+        {
+          orderId: 'o1',
+          symbol: 'BTC',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          size: '0.1',
+          originalSize: '0.1',
+          filledSize: '0',
+          remainingSize: '0.1',
+          price: '50000',
+          status: 'open' as const,
+          timestamp: Date.now(),
+        },
+      ];
+      const mockAccountState: AccountState = {
+        totalBalance: '50000',
+        availableBalance: '45000',
+        marginUsed: '5000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '20',
+      };
+
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getPositions.mockResolvedValue(mockPositions);
+      preloadMockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      preloadMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ]);
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Disconnected,
+      );
+
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(preloadInfrastructure.diskCache.setItem).toHaveBeenCalledWith(
+        PERPS_DISK_CACHE_USER_DATA,
+        expect.any(String),
+      );
+
+      const persistedPayload = JSON.parse(
+        (preloadInfrastructure.diskCache.setItem as jest.Mock).mock.calls.find(
+          ([key]) => key === PERPS_DISK_CACHE_USER_DATA,
+        )?.[1] as string,
+      );
+
+      expect(persistedPayload.providerNetworkKey).toBe('hyperliquid:mainnet');
+      expect(persistedPayload.address).toBe(mockEvmAccount.address);
+      expect(persistedPayload.positions).toEqual(mockPositions);
+      expect(persistedPayload.orders).toEqual(mockOrders);
+      expect(persistedPayload.accountState).toEqual(mockAccountState);
+      expect(persistedPayload.timestamp).toBeGreaterThan(0);
     });
 
     it('skips when WebSocket is connected', async () => {

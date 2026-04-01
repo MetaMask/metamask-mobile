@@ -2877,6 +2877,59 @@ export class PerpsController extends BaseController<
   static readonly #preloadRefreshMs = 5 * 60 * 1000; // 5 min
   static readonly #preloadGuardMs = 30_000; // 30s debounce
 
+  #persistMarketSnapshotsToDisk(
+    entries: {
+      providerNetworkKey: string;
+      data: PerpsMarketData[];
+      timestamp: number;
+    }[],
+  ): void {
+    if (entries.length === 0) {
+      return;
+    }
+
+    const payload =
+      entries.length === 1
+        ? entries[0]
+        : {
+            entries,
+          };
+
+    this.#options.infrastructure.diskCache
+      .setItem(PERPS_DISK_CACHE_MARKETS, JSON.stringify(payload))
+      .catch(() => {
+        // Disk persistence is best-effort and must never block preload.
+      });
+  }
+
+  #persistUserSnapshotsToDisk(
+    entries: {
+      providerNetworkKey: string;
+      address: string;
+      positions: Position[];
+      orders: Order[];
+      accountState: AccountState | null;
+      timestamp: number;
+    }[],
+  ): void {
+    if (entries.length === 0) {
+      return;
+    }
+
+    const payload =
+      entries.length === 1
+        ? entries[0]
+        : {
+            entries,
+          };
+
+    this.#options.infrastructure.diskCache
+      .setItem(PERPS_DISK_CACHE_USER_DATA, JSON.stringify(payload))
+      .catch(() => {
+        // Disk persistence is best-effort and must never block preload.
+      });
+  }
+
   /**
    * Synchronously hydrate in-memory caches from disk-persisted snapshots.
    * Uses the sync MMKV API (~1ms) so data is available before any hook reads.
@@ -2899,28 +2952,58 @@ export class PerpsController extends BaseController<
 
       if (marketsRaw) {
         try {
-          const parsed = JSON.parse(marketsRaw) as {
-            providerNetworkKey: string;
-            data: PerpsMarketData[];
-            timestamp: number;
-          };
-          if (parsed.providerNetworkKey && Array.isArray(parsed.data)) {
-            const existing =
-              this.state.cachedMarketDataByProvider[parsed.providerNetworkKey];
-            if (!existing || existing.timestamp < parsed.timestamp) {
-              const strippedData = parsed.data.map((market) => ({
-                ...market,
-                price: PERPS_CONSTANTS.FallbackPriceDisplay,
-                change24h: PERPS_CONSTANTS.FallbackDataDisplay,
-                change24hPercent: PERPS_CONSTANTS.FallbackPercentageDisplay,
-              }));
-              this.update((state) => {
-                state.cachedMarketDataByProvider[parsed.providerNetworkKey] = {
-                  data: strippedData,
-                  timestamp: parsed.timestamp,
-                };
-              });
-              marketCount = strippedData.length;
+          const parsed = JSON.parse(marketsRaw) as
+            | {
+                providerNetworkKey: string;
+                data: PerpsMarketData[];
+                timestamp: number;
+              }
+            | {
+                entries: {
+                  providerNetworkKey: string;
+                  data: PerpsMarketData[];
+                  timestamp: number;
+                }[];
+              };
+          const entries = Array.isArray(
+            (parsed as { entries?: unknown }).entries,
+          )
+            ? (
+                parsed as {
+                  entries: {
+                    providerNetworkKey: string;
+                    data: PerpsMarketData[];
+                    timestamp: number;
+                  }[];
+                }
+              ).entries
+            : [
+                parsed as {
+                  providerNetworkKey: string;
+                  data: PerpsMarketData[];
+                  timestamp: number;
+                },
+              ];
+
+          for (const entry of entries) {
+            if (entry.providerNetworkKey && Array.isArray(entry.data)) {
+              const existing =
+                this.state.cachedMarketDataByProvider[entry.providerNetworkKey];
+              if (!existing || existing.timestamp < entry.timestamp) {
+                const strippedData = entry.data.map((market) => ({
+                  ...market,
+                  price: PERPS_CONSTANTS.FallbackPriceDisplay,
+                  change24h: PERPS_CONSTANTS.FallbackDataDisplay,
+                  change24hPercent: PERPS_CONSTANTS.FallbackPercentageDisplay,
+                }));
+                this.update((state) => {
+                  state.cachedMarketDataByProvider[entry.providerNetworkKey] = {
+                    data: strippedData,
+                    timestamp: entry.timestamp,
+                  };
+                });
+                marketCount += strippedData.length;
+              }
             }
           }
         } catch {
@@ -2930,32 +3013,71 @@ export class PerpsController extends BaseController<
 
       if (userRaw) {
         try {
-          const parsed = JSON.parse(userRaw) as {
-            providerNetworkKey: string;
-            address: string;
-            positions: Position[];
-            orders: Order[];
-            accountState: AccountState | null;
-            timestamp: number;
-          };
-          if (parsed.providerNetworkKey && parsed.address) {
-            // Skip address check here — accounts may not be loaded yet at
-            // constructor time. getCachedUserDataForActiveProvider validates
-            // the address at read time, so stale-account data is never served.
-            const existing =
-              this.state.cachedUserDataByProvider[parsed.providerNetworkKey];
-            if (!existing || existing.timestamp < parsed.timestamp) {
-              this.update((state) => {
-                state.cachedUserDataByProvider[parsed.providerNetworkKey] = {
-                  positions: parsed.positions,
-                  orders: parsed.orders,
-                  accountState: parsed.accountState,
-                  timestamp: parsed.timestamp,
-                  address: parsed.address,
-                };
-              });
-              userPositions = parsed.positions.length;
-              userOrders = parsed.orders.length;
+          const parsed = JSON.parse(userRaw) as
+            | {
+                providerNetworkKey: string;
+                address: string;
+                positions: Position[];
+                orders: Order[];
+                accountState: AccountState | null;
+                timestamp: number;
+              }
+            | {
+                entries: {
+                  providerNetworkKey: string;
+                  address: string;
+                  positions: Position[];
+                  orders: Order[];
+                  accountState: AccountState | null;
+                  timestamp: number;
+                }[];
+              };
+          const entries = Array.isArray(
+            (parsed as { entries?: unknown }).entries,
+          )
+            ? (
+                parsed as {
+                  entries: {
+                    providerNetworkKey: string;
+                    address: string;
+                    positions: Position[];
+                    orders: Order[];
+                    accountState: AccountState | null;
+                    timestamp: number;
+                  }[];
+                }
+              ).entries
+            : [
+                parsed as {
+                  providerNetworkKey: string;
+                  address: string;
+                  positions: Position[];
+                  orders: Order[];
+                  accountState: AccountState | null;
+                  timestamp: number;
+                },
+              ];
+
+          for (const entry of entries) {
+            if (entry.providerNetworkKey && entry.address) {
+              // Skip address check here — accounts may not be loaded yet at
+              // constructor time. getCachedUserDataForActiveProvider validates
+              // the address at read time, so stale-account data is never served.
+              const existing =
+                this.state.cachedUserDataByProvider[entry.providerNetworkKey];
+              if (!existing || existing.timestamp < entry.timestamp) {
+                this.update((state) => {
+                  state.cachedUserDataByProvider[entry.providerNetworkKey] = {
+                    positions: entry.positions,
+                    orders: entry.orders,
+                    accountState: entry.accountState,
+                    timestamp: entry.timestamp,
+                    address: entry.address,
+                  };
+                });
+                userPositions += entry.positions.length;
+                userOrders += entry.orders.length;
+              }
             }
           }
         } catch {
@@ -3191,6 +3313,11 @@ export class PerpsController extends BaseController<
 
       // Store under per-provider key(s)
       const ts = Date.now();
+      const marketDiskEntries: {
+        providerNetworkKey: string;
+        data: PerpsMarketData[];
+        timestamp: number;
+      }[] = [];
       if (
         this.state.activeProvider === 'aggregated' &&
         this.activeProviderInstance
@@ -3210,6 +3337,11 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           for (const [pid, slice] of byProvider) {
             const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            marketDiskEntries.push({
+              providerNetworkKey: key,
+              data: slice,
+              timestamp: ts,
+            });
             state.cachedMarketDataByProvider[key] = {
               data: slice,
               timestamp: ts,
@@ -3222,6 +3354,11 @@ export class PerpsController extends BaseController<
           };
         });
       } else {
+        marketDiskEntries.push({
+          providerNetworkKey: cacheKey,
+          data,
+          timestamp: ts,
+        });
         this.update((state) => {
           state.cachedMarketDataByProvider[cacheKey] = {
             data,
@@ -3229,6 +3366,8 @@ export class PerpsController extends BaseController<
           };
         });
       }
+
+      this.#persistMarketSnapshotsToDisk(marketDiskEntries);
 
       this.#debugLog('PerpsController: Market data preloaded', {
         marketCount: data.length,
@@ -3394,9 +3533,25 @@ export class PerpsController extends BaseController<
           accountState.providerId ?? fallbackProviderId,
         ).accountState = accountState;
 
+        const diskEntries: {
+          providerNetworkKey: string;
+          address: string;
+          positions: Position[];
+          orders: Order[];
+          accountState: AccountState | null;
+          timestamp: number;
+        }[] = [];
         this.update((state) => {
           for (const [pid, data] of byProvider) {
             const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            diskEntries.push({
+              providerNetworkKey: key,
+              address: userAddress,
+              positions: data.positions,
+              orders: data.orders,
+              accountState: data.accountState,
+              timestamp: ts,
+            });
             state.cachedUserDataByProvider[key] = {
               ...data,
               timestamp: ts,
@@ -3412,17 +3567,31 @@ export class PerpsController extends BaseController<
             address: userAddress,
           };
         });
+
+        this.#persistUserSnapshotsToDisk(diskEntries);
       } else {
         // Single provider — store directly under its key
+        const ts = Date.now();
         this.update((state) => {
           state.cachedUserDataByProvider[userCacheKey] = {
             positions,
             orders,
             accountState,
-            timestamp: Date.now(),
+            timestamp: ts,
             address: userAddress,
           };
         });
+
+        this.#persistUserSnapshotsToDisk([
+          {
+            providerNetworkKey: userCacheKey,
+            address: userAddress,
+            positions,
+            orders,
+            accountState,
+            timestamp: ts,
+          },
+        ]);
       }
 
       this.#debugLog('PerpsController: User data preloaded', {

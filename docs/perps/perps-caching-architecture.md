@@ -17,7 +17,7 @@ Four tiers, from freshest to stalest:
 | Disk             | MMKV via StreamManager/Controller | Across restarts | Market list, positions/orders for cold-start hydration    |
 | Preload (legacy) | REST via Controller               | 5-min refresh   | Market list for home screen, positions before WS connects |
 
-The Disk tier was added to eliminate the 1-2s loading skeleton on cold start. StreamManager persists snapshots to MMKV after WS data arrives; on next launch, the controller hydrates in-memory caches from MMKV (~45-65ms) so the UI renders last-known structural data instantly. Volatile price fields are stripped and show `$---` until WS delivers fresh values.
+The Disk tier was added to eliminate the 1-2s loading skeleton on cold start. `PerpsController` persists preload snapshots to MMKV immediately after successful REST preloads, and `PerpsStreamManager` refreshes those snapshots from live channel data once WS is warm. On next launch, the controller hydrates in-memory caches from MMKV before React hooks read them, so the UI renders last-known structural data instantly. Volatile price fields are stripped and show `$---` until WS delivers fresh values.
 
 The Preload tier exists because WS wasn't always-on historically. With `PerpsAlwaysOnProvider`, it's partially redundant — WS data arrives within 1-2 seconds of app launch, making the 5-min REST cycle a safety net rather than a primary data source.
 
@@ -25,13 +25,13 @@ The Preload tier exists because WS wasn't always-on historically. With `PerpsAlw
 
 What happens when the app launches:
 
-1. **App launches** — `startMarketDataPreload()` fires — MMKV disk cache hydrated into `cachedMarketDataByProvider` (~45-65ms), then REST fetch starts
+1. **App launches** — `PerpsController` hydrates MMKV disk cache into `cachedMarketDataByProvider` during construction, then `startMarketDataPreload()` fires from `PerpsAlwaysOnProvider`
 2. **UI hooks mount** — `getPreloadedData()` reads controller cache (now populated from disk) — instant render with structural data, prices show `$---`
 3. **PerpsAlwaysOnProvider mounts** — WS connects — stream channels prewarm via `preloadSubscriptions()`
 4. **WS data arrives** — overrides disk-hydrated data with live prices, positions, orders
-5. **StreamManager persists to disk** — throttled writes (market data every 30s, user data every 30s) update MMKV for next cold start
+5. **Controller + StreamManager persist to disk** — preload writes seed MMKV immediately, then live channel snapshots refresh MMKV on the normal throttled cadence
 
-The key coupling point: `MarketDataStreamChannel.getCachedData()` falls back to the controller's REST cache. With disk hydration, this fallback returns MMKV-hydrated data instantly on cold start — no loading skeleton.
+The key coupling point: `MarketDataChannel.getCachedData()` falls back to the controller's REST cache. With disk hydration, this fallback returns MMKV-hydrated data instantly on cold start — no loading skeleton.
 
 ## Per-Layer Details
 
@@ -87,16 +87,16 @@ This is the most important "survives everything" cache. Providers are recreated 
 
 ### Disk Layer: MMKV Cold-Start Cache
 
-Stream channel snapshots are persisted to MMKV by `PerpsStreamManager` and hydrated into controller state by `PerpsController.#hydrateCacheFromDisk()` on startup.
+MMKV snapshots are written by both `PerpsController` preload and `PerpsStreamManager` live channels, then hydrated into controller state by `PerpsController.#hydrateCacheFromDiskSync()` on startup.
 
-| MMKV key                     | What it stores                                   | Written by                                     | Read by                                   |
-| ---------------------------- | ------------------------------------------------ | ---------------------------------------------- | ----------------------------------------- |
-| `PERPS_DISK_CACHE_MARKETS`   | Market data array + provider key + timestamp     | `PerpsStreamManager.persistMarketDataToDisk()` | `PerpsController.#hydrateCacheFromDisk()` |
-| `PERPS_DISK_CACHE_USER_DATA` | Positions, orders, account state + address + key | `PerpsStreamManager.persistUserDataToDisk()`   | `PerpsController.#hydrateCacheFromDisk()` |
+| MMKV key                     | What it stores                                                       | Written by                                                                                           | Read by                                       |
+| ---------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `PERPS_DISK_CACHE_MARKETS`   | One market snapshot entry or `{ entries: [...] }` for multi-provider | `PerpsController.#persistMarketSnapshotsToDisk()` and `PerpsStreamManager.persistMarketDataToDisk()` | `PerpsController.#hydrateCacheFromDiskSync()` |
+| `PERPS_DISK_CACHE_USER_DATA` | One user snapshot entry or `{ entries: [...] }` for multi-provider   | `PerpsController.#persistUserSnapshotsToDisk()` and `PerpsStreamManager.persistUserDataToDisk()`     | `PerpsController.#hydrateCacheFromDiskSync()` |
 
-**Write throttle**: Both writes are throttled to once per 30 seconds (`PERPS_DISK_CACHE_THROTTLE_MS`). MMKV writes are synchronous under the hood — fire-and-forget is safe.
+**Write behavior**: StreamManager writes are throttled to once per 30 seconds (`PERPS_DISK_CACHE_THROTTLE_MS`). Controller writes happen after each successful preload refresh and are naturally bounded by the preload cadence / `#preloadGuardMs`. All disk writes are best-effort and must never block rendering.
 
-**Read path**: `#hydrateCacheFromDisk()` is called from `startMarketDataPreload()` before the first REST fetch. It populates `cachedMarketDataByProvider` and `cachedUserDataByProvider` from MMKV. Market data prices are stripped to `$---` / `--` / `--%` placeholders since disk data may be hours old. User data is only hydrated if the stored address matches the current account.
+**Read path**: `#hydrateCacheFromDiskSync()` runs during `PerpsController` construction so the in-memory caches are populated before React hooks read them. `startMarketDataPreload()` then performs the first REST refresh. Market data prices are stripped to `$---` / `--` / `--%` placeholders since disk data may be hours old. User data is only hydrated if the stored address matches the current account.
 
 **`skipTTL` option**: `getCachedMarketDataForActiveProvider({ skipTTL: true })` and `getCachedUserDataForActiveProvider({ skipTTL: true })` bypass the normal TTL checks. Used by `getPreloadedData()` so disk-hydrated structural data renders regardless of age — the UI shows stale-but-present data instead of a loading skeleton.
 
@@ -118,7 +118,7 @@ Stream channel snapshots are persisted to MMKV by `PerpsStreamManager` and hydra
 | Market data read TTL | 300 s (5 min) | Stale cutoff for consumer reads                          |
 | User data read TTL   | 60 s          | Stale cutoff for consumer reads                          |
 
-**Why this is legacy**: `startMarketDataPreload()` is called from `Wallet/index.tsx` and runs independently of `PerpsAlwaysOnProvider`. The user data preload already has a WS-connected guard that skips it when WS is streaming (mostly dormant). The market data preload still runs every 5 min via REST even when WS is streaming — redundant but harmless. Network switches don't clear these caches — different networks use different keys (`hyperliquid:mainnet` vs `hyperliquid:testnet`).
+**Why this is legacy**: `startMarketDataPreload()` is now started from `PerpsAlwaysOnProvider` at the wallet root, so it runs regardless of whether the wallet is rendering the classic tabs flow or the homepage-sections flow. The user data preload already has a WS-connected guard that skips it when WS is streaming (mostly dormant). The market data preload still runs every 5 min via REST even when WS is streaming — redundant but harmless. Network switches don't clear these caches — different networks use different keys (`hyperliquid:mainnet` vs `hyperliquid:testnet`).
 
 ## Cache Clearing Matrix
 
@@ -137,9 +137,9 @@ Stream channel snapshots are persisted to MMKV by `PerpsStreamManager` and hydra
 
 ### 1. Disk-backed cold-start cache — IMPLEMENTED
 
-Stream channel snapshots are persisted to MMKV by `PerpsStreamManager` and hydrated on startup by `PerpsController.#hydrateCacheFromDisk()`. Eliminates the 1-2s loading skeleton on cold start — 283 markets render on first frame with `$---` placeholder prices until WS delivers fresh values.
+`PerpsController` and `PerpsStreamManager` both persist MMKV snapshots, and `PerpsController.#hydrateCacheFromDiskSync()` hydrates them on startup. This eliminates the cold-start loading skeleton: the last-known market list renders immediately with `$---` placeholder prices until fresh values arrive.
 
-**Benchmark**: Android (Pixel 6a) baseline 1048ms → 0ms with disk cache (65ms hydration). iOS simulator baseline 441ms → 0ms (45ms hydration).
+**Latest validation**: iOS simulator `mm-3` measured `3908ms` for the first clean-cache PerpsHome load, `0ms` for same-session reopen, and after `yarn a:reload` the controller hydrated `286` markets in `9ms` with the first post-reload PerpsHome market data at `0ms`.
 
 See [Disk Layer](#disk-layer-mmkv-cold-start-cache) above for full details.
 

@@ -99,7 +99,14 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
+  const initialChannelPositions = stream.positions.getSnapshot?.();
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
+    if (
+      initialChannelPositions !== null &&
+      initialChannelPositions !== undefined
+    ) {
+      return false;
+    }
     const hasCached = hasPreloadedData('cachedPositions');
     return !hasCached;
   });
@@ -108,7 +115,9 @@ export function usePerpsLivePositions(
   // Store raw positions and price data in state
   const [rawPositions, setRawPositions] = useState<Position[]>(() => {
     const cached =
-      getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS;
+      initialChannelPositions ??
+      getPreloadedData<Position[]>('cachedPositions') ??
+      EMPTY_POSITIONS;
     return cached;
   });
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});

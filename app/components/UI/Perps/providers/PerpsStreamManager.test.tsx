@@ -1620,6 +1620,36 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('preserves cached market data for new subscribers when clearCache uses skipNotify=true', async () => {
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      const unsubscribe1 = testStreamManager.marketData.subscribe({
+        callback: callback1,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback1).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      testStreamManager.marketData.clearCache(true);
+
+      const unsubscribe2 = testStreamManager.marketData.subscribe({
+        callback: callback2,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback2).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+
     it('notifies subscribers with [] when clearCache is called without skipNotify', async () => {
       const callback = jest.fn();
 

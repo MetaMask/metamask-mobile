@@ -1576,10 +1576,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    * reset so the next fetch result is delivered immediately.
    */
   public clearCache(skipNotify = false): void {
-    this.cache.clear();
-    this.lastFetchTime = 0;
     this.fetchPromise = null;
-    this.cachedProviderId = null;
+
+    if (!skipNotify) {
+      this.cache.clear();
+      this.lastFetchTime = 0;
+      this.cachedProviderId = null;
+    }
 
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
