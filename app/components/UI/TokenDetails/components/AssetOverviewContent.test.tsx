@@ -374,7 +374,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
 
     it('does not resolve market insights display while market insights is loading', () => {
@@ -407,7 +410,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(true);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: true,
+        severity: undefined,
+      });
     });
 
     it('resolves market insights display as false when report is unavailable after loading', () => {
@@ -426,7 +432,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
   });
 

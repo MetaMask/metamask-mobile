@@ -114,10 +114,16 @@ jest.mock('../components/AssetOverviewContent', () => {
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
   }: {
-    onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+    onMarketInsightsDisplayResolved?: (params: {
+      isDisplayed: boolean;
+      severity: string | undefined;
+    }) => void;
   }) => {
     ReactLib.useEffect(() => {
-      onMarketInsightsDisplayResolved?.(true);
+      onMarketInsightsDisplayResolved?.({
+        isDisplayed: true,
+        severity: undefined,
+      });
     }, [onMarketInsightsDisplayResolved]);
 
     return null;

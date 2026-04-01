@@ -306,15 +306,7 @@ const TokenDetails: React.FC<{
         onSend={onSend}
         onReceive={onReceive}
         goToSwaps={goToSwapsFromDetails}
-        onMarketInsightsDisplayResolved={
-          onMarketInsightsDisplayResolved
-            ? (isDisplayed: boolean) =>
-                onMarketInsightsDisplayResolved({
-                  isDisplayed,
-                  severity: securityData?.resultType,
-                })
-            : undefined
-        }
+        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
