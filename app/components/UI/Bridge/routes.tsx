@@ -12,6 +12,7 @@ import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageMo
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
+import { TokenWarningModal } from './components/TokenWarningModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -85,6 +86,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
       component={PriceImpactModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
+      component={TokenWarningModal}
     />
   </ModalStack.Navigator>
 );
