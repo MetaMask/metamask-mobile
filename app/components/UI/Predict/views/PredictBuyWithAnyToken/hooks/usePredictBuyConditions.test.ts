@@ -741,5 +741,20 @@ describe('usePredictBuyConditions', () => {
 
       expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
     });
+
+    it('does not reset the selected token when totalPayForPredictBalance is zero', () => {
+      mockPredictBalance = 0.81;
+      mockIsPredictBalanceSelected = false;
+
+      renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 0,
+          isInputFocused: false,
+        }),
+      );
+
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
+    });
   });
 });

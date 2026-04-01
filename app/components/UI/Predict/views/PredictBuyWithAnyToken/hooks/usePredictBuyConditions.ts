@@ -218,6 +218,7 @@ export const usePredictBuyConditions = ({
     if (
       !isPredictBalanceSelected &&
       !isInputFocused &&
+      totalPayForPredictBalance > 0 &&
       predictBalance >= totalPayForPredictBalance
     ) {
       resetSelectedPaymentToken();
