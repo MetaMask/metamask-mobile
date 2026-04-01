@@ -264,5 +264,5 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   QRScanError: ErrorCode.DeviceNotFound,
   QRTimeoutError: ErrorCode.ConnectionTimeout,
   QRCodeInvalid: ErrorCode.DeviceNotReady,
-  CameraPermissionDenied: ErrorCode.PermissionNearbyDevicesDenied,
+  CameraPermissionDenied: ErrorCode.PermissionCameraDenied,
 };
