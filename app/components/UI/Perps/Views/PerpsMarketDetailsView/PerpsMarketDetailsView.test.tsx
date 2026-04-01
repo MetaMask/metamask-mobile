@@ -482,6 +482,12 @@ jest.mock('../../hooks', () => ({
     isClosing: false,
   })),
   usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: null,
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
