@@ -442,7 +442,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
     symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
-    throttleMs: isDataReady ? 0 : 1000,
+    throttleMs: !isDataReady ? 0 : 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
