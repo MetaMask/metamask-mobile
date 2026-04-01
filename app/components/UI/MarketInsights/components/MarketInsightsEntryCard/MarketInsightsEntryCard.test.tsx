@@ -68,20 +68,6 @@ jest.mock('./SlidingTextCarousel', () => {
   };
 });
 
-let capturedDisclaimerProps: {
-  isVisible: boolean;
-  onClose: () => void;
-} | null = null;
-jest.mock('./MarketInsightsDisclaimerBottomSheet', () => {
-  const { View } = jest.requireActual('react-native');
-  return (props: { isVisible: boolean; onClose: () => void }) => {
-    capturedDisclaimerProps = props;
-    return props.isVisible ? (
-      <View testID="mock-disclaimer-bottom-sheet" />
-    ) : null;
-  };
-});
-
 /**
  * Finds the first node whose `onLayout` is not a Jest mock (skips
  * `useViewportTracking`'s mocked `onLayout`) so card `handleLayout` can be fired.
@@ -126,7 +112,6 @@ describe('MarketInsightsEntryCard', () => {
     jest.clearAllMocks();
     capturedOnVisible = null;
     capturedOnSlideStart = null;
-    capturedDisclaimerProps = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -333,41 +318,21 @@ describe('MarketInsightsEntryCard', () => {
     expect(getAnimationKey()).toBe(1);
   });
 
-  it('opens the disclaimer sheet when the info button is pressed', () => {
+  it('calls onDisclaimerPress when the info button is pressed', () => {
+    const onDisclaimerPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <MarketInsightsEntryCard
         report={mockReport as never}
         timeAgo="3m ago"
         onPress={jest.fn()}
-        testID="market-insights-entry-card"
-      />,
-    );
-
-    expect(capturedDisclaimerProps?.isVisible).toBe(false);
-
-    fireEvent.press(getByTestId('market-insights-info-button'));
-
-    expect(capturedDisclaimerProps?.isVisible).toBe(true);
-  });
-
-  it('closes the disclaimer sheet when onClose is called', () => {
-    const { getByTestId } = renderWithProvider(
-      <MarketInsightsEntryCard
-        report={mockReport as never}
-        timeAgo="3m ago"
-        onPress={jest.fn()}
+        onDisclaimerPress={onDisclaimerPress}
         testID="market-insights-entry-card"
       />,
     );
 
     fireEvent.press(getByTestId('market-insights-info-button'));
-    expect(capturedDisclaimerProps?.isVisible).toBe(true);
 
-    act(() => {
-      capturedDisclaimerProps?.onClose();
-    });
-
-    expect(capturedDisclaimerProps?.isVisible).toBe(false);
+    expect(onDisclaimerPress).toHaveBeenCalledTimes(1);
   });
 
   it('increments the border animation key when a carousel slide starts', () => {

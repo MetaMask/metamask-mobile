@@ -18,7 +18,9 @@ import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
+  TokenFeatureType,
 } from '@metamask/bridge-controller';
+import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -1972,6 +1974,172 @@ describe('BridgeView', () => {
       selectSourceWalletAddress.mockReturnValue(
         '0x1234567890123456789012345678901234567890',
       );
+    });
+  });
+
+  describe('Token Warning Banner', () => {
+    const mockWarning = {
+      type: TokenFeatureType.WARNING,
+      feature_id: 'warn-1',
+      description: 'This token is suspicious.',
+    };
+
+    const mockMaliciousWarning = {
+      type: TokenFeatureType.MALICIOUS,
+      feature_id: 'mal-1',
+      description: 'This token is malicious.',
+    };
+
+    // createBridgeTestState sets bridge from mockBridgeReducerState (sourceAmount non-zero,
+    // destToken.symbol = 'USDC') which puts the view into 'quote' contentMode.
+    const stateWithWarnings = (
+      warnings: {
+        type: TokenFeatureType;
+        feature_id: string;
+        description: string;
+      }[],
+    ) =>
+      createBridgeTestState(
+        { bridgeControllerOverrides: { tokenWarnings: warnings } },
+        mockState,
+      );
+
+    it('does not show the banner when tokenWarnings is empty', () => {
+      const testState = stateWithWarnings([]);
+
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+      expect(
+        queryByText(
+          strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+    });
+
+    it('does not show the banner in zero state (no source amount)', () => {
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: { tokenWarnings: [mockWarning] },
+          bridgeReducerOverrides: { sourceAmount: undefined },
+        },
+        mockState,
+      );
+
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        queryByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeNull();
+    });
+
+    it('shows the suspicious banner for a WARNING type token', () => {
+      const testState = stateWithWarnings([mockWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        getByText(
+          strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the malicious banner for a MALICIOUS type token', () => {
+      const testState = stateWithWarnings([mockMaliciousWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(
+        getByText(
+          strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to TOKEN_WARNING_MODAL with Info mode when banner is pressed', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        bridgeViewMode: BridgeViewMode.Swap,
+        location: MetaMetricsSwapsEventSource.MainView,
+      };
+      const testState = stateWithWarnings([mockWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      const banner = getByText(
+        strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
+      );
+      await act(async () => {
+        fireEvent.press(banner);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: {
+          warningType: TokenFeatureType.WARNING,
+          description: mockWarning.description,
+          mode: TokenWarningModalMode.Info,
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+    });
+
+    it('passes MALICIOUS warningType when navigating from a malicious banner', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        bridgeViewMode: BridgeViewMode.Swap,
+        location: MetaMetricsSwapsEventSource.MainView,
+      };
+      const testState = stateWithWarnings([mockMaliciousWarning]);
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      const banner = getByText(
+        strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
+      );
+      await act(async () => {
+        fireEvent.press(banner);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.objectContaining({
+          warningType: TokenFeatureType.MALICIOUS,
+          description: mockMaliciousWarning.description,
+          mode: TokenWarningModalMode.Info,
+        }),
+      });
     });
   });
 });
