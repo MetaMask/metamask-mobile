@@ -416,62 +416,44 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
 
   /**
-   * Defer TOKEN_DETAILS_OPENED until perps market lookup settles when perps is on.
-   * Ref + stable callback avoids re-running AssetOverviewContent's insights effect
-   * when `hasPerpsMarket` changes (which caused max update depth with setState deferral).
+   * Defer TOKEN_DETAILS_OPENED until both market insights and perps market
+   * data have settled. Using plain state instead of ref+nonce keeps
+   * `handleMarketInsightsDisplayResolved` stable (setState identity is
+   * guaranteed by React) so the child effect in AssetOverviewContent
+   * doesn't re-trigger.
    */
-  const pendingInsightsRef = useRef<{
+  const [pendingInsights, setPendingInsights] = useState<{
     isDisplayed: boolean;
     severity: string | undefined;
   } | null>(null);
-  /**
-   * Clear stale pending insights when the token identity changes. This must run
-   * during render (not in a parent useEffect): passive effects run child-before-
-   * parent, so a reset effect would wipe the ref after AssetOverviewContent's
-   * effect sets it on mount/token change and TOKEN_DETAILS_OPENED would never fire.
-   */
-  const marketInsightsTokenKeyRef = useRef<string | null>(null);
-  const marketInsightsTokenKey = `${token.address ?? ''}:${token.chainId ?? ''}:${token.symbol ?? ''}`;
-  if (marketInsightsTokenKeyRef.current !== marketInsightsTokenKey) {
-    marketInsightsTokenKeyRef.current = marketInsightsTokenKey;
-    pendingInsightsRef.current = null;
-  }
 
-  const [tokenDetailsOpenedFlushNonce, setTokenDetailsOpenedFlushNonce] =
-    useState(0);
+  const handleMarketInsightsDisplayResolved = useCallback(
+    (payload: { isDisplayed: boolean; severity: string | undefined }) => {
+      setPendingInsights(payload);
+    },
+    [],
+  );
 
-  const flushTokenDetailsOpenedIfReady = useCallback(() => {
-    const pending = pendingInsightsRef.current;
-    if (!pending) {
+  useEffect(() => {
+    if (!pendingInsights) {
       return;
     }
     if (isPerpsEnabled && isPerpsMarketLoading) {
       return;
     }
     trackTokenDetailsOpened({
-      isMarketInsightsDisplayed: pending.isDisplayed,
-      severity: pending.severity,
+      isMarketInsightsDisplayed: pendingInsights.isDisplayed,
+      severity: pendingInsights.severity,
       hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
     });
-    pendingInsightsRef.current = null;
+    setPendingInsights(null);
   }, [
+    pendingInsights,
     hasPerpsMarket,
     isPerpsEnabled,
     isPerpsMarketLoading,
     trackTokenDetailsOpened,
   ]);
-
-  const handleMarketInsightsDisplayResolved = useCallback(
-    (payload: { isDisplayed: boolean; severity: string | undefined }) => {
-      pendingInsightsRef.current = payload;
-      setTokenDetailsOpenedFlushNonce((n) => n + 1);
-    },
-    [],
-  );
-
-  useEffect(() => {
-    flushTokenDetailsOpenedIfReady();
-  }, [flushTokenDetailsOpenedIfReady, tokenDetailsOpenedFlushNonce]);
 
   return (
     <TokenDetails
