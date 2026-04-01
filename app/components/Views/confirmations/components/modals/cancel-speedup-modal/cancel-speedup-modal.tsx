@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import {
   isEIP1559Transaction,
@@ -228,10 +228,8 @@ export function CancelSpeedupModal({
   }, []);
 
   const close = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      onClose();
-    });
-  }, [onClose]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const effectiveConfirmDisabled = confirmDisabled || !isInitialGasReady;
 
@@ -280,21 +278,19 @@ export function CancelSpeedupModal({
         >
           <HeaderCompactStandard title={title} onClose={close} />
           <Box style={tw.style('px-3')}>
-            <ScrollView>
-              <Box gap={4}>
-                <InfoSection>
-                  <NetworkFeeRow
-                    fiat={networkFeeFiat}
-                    native={networkFeeNative}
-                    symbol={nativeTokenSymbol}
-                    chainId={chainId}
-                    onEditPress={openGasModal}
-                  />
-                  <SpeedRow transactionId={tx?.id} />
-                </InfoSection>
-                <Description text={description} />
-              </Box>
-            </ScrollView>
+            <Box gap={4}>
+              <InfoSection>
+                <NetworkFeeRow
+                  fiat={networkFeeFiat}
+                  native={networkFeeNative}
+                  symbol={nativeTokenSymbol}
+                  chainId={chainId}
+                  onEditPress={openGasModal}
+                />
+                <SpeedRow transactionId={tx?.id} />
+              </InfoSection>
+              <Description text={description} />
+            </Box>
             <BottomSheetFooter
               buttonsAlignment={ButtonsAlignment.Vertical}
               buttonPropsArray={buttons}
