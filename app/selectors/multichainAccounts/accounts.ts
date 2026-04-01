@@ -178,14 +178,14 @@ export const selectSelectedInternalAccountByScope = createDeepEqualSelector(
     internalAccountsMap: Record<AccountId, InternalAccount>,
   ) =>
     (scope: CaipChainId): InternalAccount | undefined => {
-      if (!accountTreeState?.accountTree?.selectedAccountGroup) {
+      if (!accountTreeState?.selectedAccountGroup) {
         return undefined;
       }
 
       return findInternalAccountByScope(
         accountTreeState,
         internalAccountsMap,
-        accountTreeState.accountTree.selectedAccountGroup,
+        accountTreeState.selectedAccountGroup,
         scope,
       );
     },

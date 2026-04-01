@@ -19,6 +19,7 @@ const SAMPLE_ACCOUNT_GROUP = {
     name: 'Account 1',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
   accounts: ['account-1'],
   id: 'keyring:test-group/ethereum' as const,
