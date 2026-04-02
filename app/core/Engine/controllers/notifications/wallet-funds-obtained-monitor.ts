@@ -1,5 +1,9 @@
 import type { INotification } from '@metamask/notification-services-controller/notification-services';
-import type { EngineContext, RootExtendedMessenger } from '../../types';
+import type {
+  ControllerMessenger,
+  EngineContext,
+  RootExtendedMessenger,
+} from '../../types';
 import { store } from '../../../../store';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import Logger from '../../../../util/Logger';
@@ -167,7 +171,7 @@ export class WalletFundsObtainedMonitor {
     const assetSymbol = getAssetSymbolFromReceiveNotification(notification);
 
     buildAndTrackEvent(
-      this.#messenger,
+      this.#messenger as unknown as ControllerMessenger,
       MetaMetricsEvents.WALLET_FUNDS_OBTAINED,
       {
         source,
