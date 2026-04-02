@@ -8108,11 +8108,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "@metamask/design-system-react-native@npm:0.11.0"
+"@metamask/design-system-react-native@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "@metamask/design-system-react-native@npm:0.12.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.4.0"
+    "@metamask/design-system-shared": "npm:^0.5.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8125,16 +8125,16 @@ __metadata:
     react-native-gesture-handler: ">=1.10.3"
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
-  checksum: 10/d30aa86379138b689a821af25f7c56a8a4dbaaa3378ce4daf668122babfd0c254b8ea319a9b2e9202f2c58d86caca2eb6b888f13e063e83100da4136bad0b378
+  checksum: 10/92a7fc6ac3632a864298fca175905c9c05ea0dd569fe81d2f157b207d12711c6064da524ab3b98b83bd23f56a466ba9fceeaeb484aafbac7cf7eab3a69136a27
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@metamask/design-system-shared@npm:0.4.0"
+"@metamask/design-system-shared@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@metamask/design-system-shared@npm:0.5.0"
   dependencies:
     "@metamask/utils": "npm:^11.10.0"
-  checksum: 10/e7799c011360295b6ae1cb458cd069e2df2ce27e836a6c604c3f2488ef7b76d00709afadc5c9462e47cb81a379751fd9da8684dcc704244e180870aa293cdd2b
+  checksum: 10/9b37df0e330429ecee6bc8fabe7aef0b9575383d5a86808b34ae76283c8938540a27c32f0cde9b72fdf076fbba1b926f00b58b8ec5699f3c87631b502972c870
   languageName: node
   linkType: hard
 
@@ -35393,7 +35393,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^0.15.0"
-    "@metamask/design-system-react-native": "npm:^0.11.0"
+    "@metamask/design-system-react-native": "npm:^0.12.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
     "@metamask/design-tokens": "npm:^8.2.2"
     "@metamask/earn-controller": "npm:^10.0.0"
