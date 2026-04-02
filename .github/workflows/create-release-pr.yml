@@ -30,7 +30,6 @@ jobs:
       checkout_base: ${{ steps.out.outputs.checkout_base }}
       release_base: ${{ steps.out.outputs.release_base }}
       is_ota: ${{ steps.out.outputs.is_ota }}
-      ota_canonical_semver: ${{ steps.out.outputs.ota_canonical_semver }}
     steps:
       - id: out
         shell: bash
@@ -50,13 +49,9 @@ jobs:
           # OTA hotfix: patch is leading-zero–padded (e.g. 7.72.01). Normal multi-digit patches (e.g. 7.71.10) must not match—length-only checks misclassify those as OTA.
           if [[ "$patch" =~ ^0[0-9]+$ ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
-            IFS=. read -r _maj _min _pat <<< "$SEMVER"
-            ota_canon="$((10#${_maj})).$((10#${_min})).$((10#${_pat}))"
-            echo "ota_canonical_semver=${ota_canon}" >> "$GITHUB_OUTPUT"
-            echo "OTA hotfix (zero-padded patch: ${patch}): branch stays release/${SEMVER}; OTA_VERSION and changelog use canonical ${ota_canon}."
+            echo "OTA hotfix (zero-padded patch: ${patch}): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
-            echo "ota_canonical_semver=" >> "$GITHUB_OUTPUT"
             echo "Not OTA hotfix (patch segment: ${patch})."
           fi
 
@@ -153,7 +148,6 @@ jobs:
         shell: bash
         env:
           SEMVER: ${{ inputs.semver-version }}
-          OTA_CANON: ${{ needs.resolve-bases.outputs.ota_canonical_semver }}
           GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
         run: |
           set -euo pipefail
@@ -165,11 +159,11 @@ jobs:
             echo "No OTA_VERSION file change; skipping commit and push."
           else
             git add app/constants/ota.ts
-            git commit -m "chore: set OTA_VERSION to v${OTA_CANON} for OTA hotfix (release/${SEMVER})"
+            git commit -m "chore: set OTA_VERSION to v${SEMVER} for OTA hotfix (${BRANCH})"
             git push origin "$BRANCH"
           fi
 
-      # OTA: release/7.72.01 (detection) vs canonical 7.72.1 for OTA_VERSION, auto-changelog, and release-changelog/7.72.1 (see run-update-release-changelog-mobile.sh).
+      # Changelog: version flows through as-is (no normalization). auto-changelog will reject leading-zero patches.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
@@ -214,4 +208,4 @@ jobs:
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \
-            --body "OTA hotfix: branch \`${BRANCH}\` (Runway zero-padded id). Native semver and build version are not bumped. \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${{ needs.resolve-bases.outputs.ota_canonical_semver }}\` (canonical SemVer for tags and changelog). Changelog PR uses \`release-changelog/${{ needs.resolve-bases.outputs.ota_canonical_semver }}\`. Refreshed by \`run-update-release-changelog-mobile.sh\`."
+            --body "OTA hotfix: branch \`${BRANCH}\`. Native semver and build version are not bumped. \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`. Changelog uses the raw version (no normalization)."

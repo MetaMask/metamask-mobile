@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Updates OTA_VERSION in app/constants/ota.ts.
 #
-# With a semver second argument (OTA hotfix release workflow): Runway may use a zero-padded patch
-# in the branch name (e.g. 7.72.01). We normalize to strict SemVer and set OTA_VERSION to v7.72.1
-# so tags, changelog compare links, and app metadata align with canonical X.Y.Z.
+# With a semver second argument (OTA hotfix release workflow): sets OTA_VERSION to v<semver>
+# exactly as provided (e.g. 7.73.01 -> v7.73.01). No normalization is applied.
 #
 # Without semver (local / legacy): increments in place — vX.XX.X -> v0, vN -> v(N+1), vA.B.C -> vA.B.(C+1)
 set -euo pipefail
@@ -28,26 +27,13 @@ if [[ -z "$current" ]]; then
   exit 1
 fi
 
-canonical_triple() {
-  local s="$1"
-  IFS=. read -r a b c <<<"$s" || return 1
-  if [[ -z "${c:-}" ]]; then
-    return 1
-  fi
-  echo "$((10#$a)).$((10#$b)).$((10#$c))"
-}
-
 new=""
 if [[ -n "$SEMVER" ]]; then
   if ! [[ "$SEMVER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Error: semver must be numeric X.Y.Z, got: ${SEMVER}" >&2
     exit 1
   fi
-  canonical="$(canonical_triple "$SEMVER")" || {
-    echo "Error: could not normalize semver: ${SEMVER}" >&2
-    exit 1
-  }
-  new="v${canonical}"
+  new="v${SEMVER}"
   if [[ "$current" == "$new" ]]; then
     echo "OTA_VERSION already ${new}; no file change."
     exit 0
@@ -77,8 +63,4 @@ while IFS= read -r l || [[ -n "$l" ]]; do
 done < "$FILE" > "$tmp"
 mv "$tmp" "$FILE"
 
-if [[ -n "${SEMVER:-}" ]] && [[ "$SEMVER" != "$canonical" ]]; then
-  echo "Bumped OTA_VERSION: ${current} -> ${new} (Runway branch version ${SEMVER} -> canonical ${canonical})"
-else
-  echo "Bumped OTA_VERSION: ${current} -> ${new}"
-fi
+echo "Bumped OTA_VERSION: ${current} -> ${new}"

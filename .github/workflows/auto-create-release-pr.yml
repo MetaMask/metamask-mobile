@@ -4,7 +4,7 @@ name: Auto Create Release PR
 # Semver convention for mobile hotfixes:
 # - X.Y.0 — regular release (no OTA_VERSION bump)
 # - X.Y.Z with a normal patch (e.g. 7.71.1, 7.71.10) — regular hotfix (no OTA_VERSION bump)
-# - X.Y.Z with a leading-zero–padded patch (e.g. 7.72.01) — OTA hotfix (detection only); branch stays release/7.72.01 while OTA_VERSION, tags, and changelog use canonical SemVer (e.g. v7.72.1) via bump-ota-version-constants.sh and run-update-release-changelog-mobile.sh
+# - X.Y.Z with a leading-zero–padded patch (e.g. 7.73.01) — OTA hotfix; OTA_VERSION is v7.73.01 (no normalization). NOTE: auto-changelog rejects leading-zero patches (not valid SemVer).
 
 on:
   create:
