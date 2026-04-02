@@ -19,6 +19,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -730,15 +731,18 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
+   * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @returns - void
    */
   unlockWallet = async (
     {
       password,
       authPreference,
+      onBeforeNavigate,
     }: {
       password?: string;
       authPreference?: AuthData;
+      onBeforeNavigate?: () => Promise<void>;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -803,6 +807,10 @@ class AuthenticationService {
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
+
+          if (onBeforeNavigate) {
+            await onBeforeNavigate();
+          }
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
@@ -1541,6 +1549,7 @@ class AuthenticationService {
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
     ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearSeedlessOnboarding());
   };
 
   /**
