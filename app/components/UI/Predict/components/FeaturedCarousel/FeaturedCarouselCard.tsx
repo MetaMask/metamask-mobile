@@ -34,10 +34,7 @@ import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
-import {
-  calculateRemainingOptions,
-  calculateTotalVolume,
-} from './FeaturedCarouselCard.utils';
+import { calculateTotalVolume } from './FeaturedCarouselCard.utils';
 
 interface FeaturedCarouselCardProps {
   market: PredictMarket;
@@ -90,7 +87,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   );
 
   const displayOutcomes = market.outcomes.slice(0, 2);
-  const remainingOptions = calculateRemainingOptions(market.outcomes, 2);
+  const remainingOptions = Math.max(0, market.outcomes.length - 2);
   const totalVolume = calculateTotalVolume(market.outcomes);
 
   if (market.game) {

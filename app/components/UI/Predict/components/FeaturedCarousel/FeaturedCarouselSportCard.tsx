@@ -39,7 +39,7 @@ import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
 import {
-  calculateRemainingOptions,
+  calculateRemainingTokens,
   calculateTotalVolume,
   getTimeRemaining,
   formatScheduledTime,
@@ -145,7 +145,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
 
   const visibleButtons = drawToken ? 3 : 2;
   const totalVolume = calculateTotalVolume(market.outcomes);
-  const remainingOptions = calculateRemainingOptions(
+  const remainingOptions = calculateRemainingTokens(
     market.outcomes,
     visibleButtons,
   );
