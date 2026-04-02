@@ -71,6 +71,14 @@ jobs:
       ota_version: ${{ steps.decide.outputs.ota_version }}
       pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
     steps:
+      - name: Debug ref context
+        run: |
+          echo "github.ref_name = ${{ github.ref_name }}"
+          echo "github.ref      = ${{ github.ref }}"
+          echo "inputs.source_branch = ${{ inputs.source_branch }}"
+          echo "resolved ref (source_branch || github.ref_name) = ${{ inputs.source_branch || github.ref_name }}"
+          echo "resolved ref (source_branch || github.ref)      = ${{ inputs.source_branch || github.ref }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
