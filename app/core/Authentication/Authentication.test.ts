@@ -40,6 +40,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
@@ -3917,6 +3918,9 @@ describe('Authentication', () => {
         setCompletedOnboarding(false),
       );
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        clearSeedlessOnboarding(),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

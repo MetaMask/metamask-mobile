@@ -63,7 +63,7 @@ const SecurityTrustScreen: React.FC = () => {
   const networkName = useNetworkName(params?.chainId as Hex);
 
   // Get action handlers from hook (single source of truth)
-  const { onBuy, goToSwaps, hasEligibleSwapTokens, networkModal } =
+  const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
     useTokenActions({
       token: params,
       networkName,
@@ -619,7 +619,7 @@ const SecurityTrustScreen: React.FC = () => {
         token={params}
         securityData={securityData}
         onBuy={onBuy}
-        goToSwaps={goToSwaps}
+        onSwap={handleStickySwapPress}
         hasEligibleSwapTokens={hasEligibleSwapTokens}
       />
     </View>

@@ -18,7 +18,10 @@ import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/Bridge
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  RequestStatus,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
@@ -195,6 +198,39 @@ describeForPlatforms('BridgeView', () => {
 
     fireEvent.press(await findByText('Swap to'));
     expect(await findByText('dest')).toBeOnTheScreen();
+  });
+
+  describe('Gasless swap', () => {
+    it('shows error banner when gasless swap quote fetch fails', async () => {
+      const now = Date.now();
+
+      const { findByText } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RETRY,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                gasFeesSponsoredNetwork: { '0x1': true },
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      expect(
+        await findByText(strings('bridge.quote_stream_complete_retry')),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {

@@ -1,7 +1,9 @@
 import {
   CANCEL_RATE,
+  GasFeeEstimateLevel,
   isEIP1559Transaction,
   SPEED_UP_RATE,
+  UserFeeLevel,
   type FeeMarketEIP1559Values,
   type GasPriceValue,
   type TransactionMeta,
@@ -11,10 +13,15 @@ import BigNumber from 'bignumber.js';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
-import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { selectTransactionMetadataById } from '../../../../../../selectors/transactionController';
-import { getMediumGasPriceHex } from '../../../../../../util/confirmation/gas';
+import {
+  type GasFeeEstimatesInput,
+  gasEstimateGreaterThanGasUsedPlusTenPercent,
+  getMediumEstimateGwei,
+  getMediumGasPriceHex,
+  getMediumPriorityFeeGwei,
+} from '../../../../../../util/confirmation/gas';
 import { decGWEIToHexWEI } from '../../../../../../util/conversions';
 import { addHexPrefix } from '../../../../../../util/number';
 import { useFeeCalculations } from '../useFeeCalculations';
@@ -32,20 +39,76 @@ const STUB_TX = {
 } as TransactionMeta;
 
 /**
+ * Returns the medium market estimate as controller params when the market estimate
+ * exceeds the transaction's current gas + 10%. Returns undefined if the market estimate
+ * is not higher or if estimates are unavailable.
+ */
+function getMarketEstimateParams(
+  txParams: TransactionMeta['txParams'],
+  gasFeeEstimates: GasFeeEstimatesInput,
+): GasPriceValue | FeeMarketEIP1559Values | undefined {
+  if (isEIP1559Transaction(txParams)) {
+    const mediumEstimateGwei = getMediumEstimateGwei(gasFeeEstimates);
+    const mediumPriorityGwei = getMediumPriorityFeeGwei(gasFeeEstimates) ?? '0';
+
+    if (!mediumEstimateGwei) return undefined;
+
+    const maxFeePerGasHex = addHexPrefix(
+      decGWEIToHexWEI(mediumEstimateGwei)?.toString(),
+    );
+    const maxPriorityFeePerGasHex = addHexPrefix(
+      decGWEIToHexWEI(mediumPriorityGwei)?.toString(),
+    );
+
+    return {
+      maxFeePerGas: maxFeePerGasHex,
+      maxPriorityFeePerGas: maxPriorityFeePerGasHex,
+    };
+  }
+
+  const gasPriceHex = getMediumGasPriceHex(gasFeeEstimates);
+  return { gasPrice: gasPriceHex };
+}
+
+export interface BumpParamsResult {
+  gasValues: GasPriceValue | FeeMarketEIP1559Values;
+  userFeeLevel: string;
+}
+
+/**
  * Returns gas params to use for speed up (bump) or cancel, for seeding the transaction
  * when the cancel/speed up modal opens. Used with updateTransactionGasFees so the gas
  * modal shows the suggested values; user can then edit via the gas modal.
  *
- * @param gasFeeEstimates - From selectGasFeeEstimates; only used for legacy fallback when existing gasPrice is zero.
+ * If the medium network estimate exceeds the transaction's current gas + 10%, the market
+ * estimate is used. Otherwise, a flat 10% bump (CANCEL_RATE / SPEED_UP_RATE) is applied.
+ *
+ * @param tx - The transaction metadata to bump.
+ * @param isCancel - Whether the operation is a cancel (vs speed-up).
+ * @param gasFeeEstimates - Gas fee estimates; used for market comparison and legacy zero-price fallback.
  */
 export function getBumpParamsForCancelSpeedup(
   tx: TransactionMeta,
   isCancel: boolean,
-  gasFeeEstimates?: ReturnType<typeof selectGasFeeEstimates>,
-): GasPriceValue | FeeMarketEIP1559Values | undefined {
+  gasFeeEstimates?: GasFeeEstimatesInput,
+): BumpParamsResult | undefined {
   const txParams = tx?.txParams;
   if (!tx || !txParams) {
     return undefined;
+  }
+
+  const useMarketEstimate =
+    gasFeeEstimates &&
+    gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, gasFeeEstimates);
+
+  if (useMarketEstimate) {
+    const marketParams = getMarketEstimateParams(txParams, gasFeeEstimates);
+    if (marketParams) {
+      return {
+        gasValues: marketParams,
+        userFeeLevel: GasFeeEstimateLevel.Medium,
+      };
+    }
   }
 
   const rate = isCancel ? CANCEL_RATE : SPEED_UP_RATE;
@@ -74,8 +137,11 @@ export function getBumpParamsForCancelSpeedup(
     );
 
     return {
-      maxFeePerGas: maxFeePerGasHex,
-      maxPriorityFeePerGas: maxPriorityFeePerGasHex,
+      gasValues: {
+        maxFeePerGas: maxFeePerGasHex,
+        maxPriorityFeePerGas: maxPriorityFeePerGasHex,
+      },
+      userFeeLevel: UserFeeLevel.CUSTOM,
     };
   }
 
@@ -89,12 +155,13 @@ export function getBumpParamsForCancelSpeedup(
   let gasPriceHex = addHexPrefix(suggestedGasPrice.toString(16));
 
   if (suggestedGasPrice.isZero() && gasFeeEstimates) {
-    gasPriceHex = getMediumGasPriceHex(
-      gasFeeEstimates as Parameters<typeof getMediumGasPriceHex>[0],
-    );
+    gasPriceHex = getMediumGasPriceHex(gasFeeEstimates);
   }
 
-  return { gasPrice: gasPriceHex };
+  return {
+    gasValues: { gasPrice: gasPriceHex },
+    userFeeLevel: UserFeeLevel.CUSTOM,
+  };
 }
 
 /** Extract controller params (gas fields only) from tx.txParams for speedUpTransaction/stopTransaction. */
@@ -138,6 +205,8 @@ export function useCancelSpeedupGas({
 
   const feeCalculations = useFeeCalculations(tx ?? STUB_TX);
 
+  const isInitialGasReady = Boolean(tx?.previousGas);
+
   return useMemo((): UseCancelSpeedupGasResult => {
     const empty: UseCancelSpeedupGasResult = {
       paramsForController: undefined,
@@ -145,6 +214,7 @@ export function useCancelSpeedupGas({
       networkFeeNative: '0',
       networkFeeFiat: null,
       nativeTokenSymbol,
+      isInitialGasReady,
     };
 
     if (!tx?.txParams || !paramsForController) {
@@ -159,6 +229,7 @@ export function useCancelSpeedupGas({
       networkFeeNative,
       networkFeeFiat: feeCalculations.estimatedFeeFiat,
       nativeTokenSymbol,
+      isInitialGasReady,
     };
   }, [
     tx,
@@ -166,5 +237,6 @@ export function useCancelSpeedupGas({
     feeCalculations.estimatedFeeNative,
     feeCalculations.estimatedFeeFiat,
     nativeTokenSymbol,
+    isInitialGasReady,
   ]);
 }

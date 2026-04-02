@@ -87,8 +87,12 @@ describe('Root Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('redirects to BUILD_QUOTE immediately when no created orders exist', async () => {
+  it('redirects to BUILD_QUOTE when no created orders exist after hydrating stored token', async () => {
+    mockCheckExistingToken.mockResolvedValue(false);
     render(Root);
+    await waitFor(() => {
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+    });
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
@@ -100,7 +104,6 @@ describe('Root Component', () => {
         ],
       });
     });
-    expect(mockCheckExistingToken).not.toHaveBeenCalled();
   });
 
   it('calls checkExistingToken when a created order exists', async () => {

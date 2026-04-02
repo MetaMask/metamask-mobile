@@ -3,6 +3,35 @@ PODS:
   - BEMCheckBox (1.4.1)
   - boost (1.84.0)
   - Branch (1.43.2)
+  - braze-react-native-sdk (19.1.0):
+    - BrazeKit (~> 14.0.1)
+    - BrazeLocation (~> 14.0.1)
+    - BrazeUI (~> 14.0.1)
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - BrazeKit (14.0.2)
+  - BrazeLocation (14.0.2):
+    - BrazeKit (= 14.0.2)
+  - BrazeUI (14.0.2):
+    - BrazeKit (= 14.0.2)
   - BVLinearGradient (2.8.3):
     - React-Core
   - CocoaAsyncSocket (7.6.5)
@@ -2969,6 +2998,7 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - "braze-react-native-sdk (from `../node_modules/@braze/react-native-sdk`)"
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EASClient (from `../node_modules/expo-eas-client/ios`)
@@ -3136,6 +3166,9 @@ SPEC REPOS:
     - Base64
     - BEMCheckBox
     - Branch
+    - BrazeKit
+    - BrazeLocation
+    - BrazeUI
     - CocoaAsyncSocket
     - Firebase
     - FirebaseCore
@@ -3168,6 +3201,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  braze-react-native-sdk:
+    :path: "../node_modules/@braze/react-native-sdk"
   BVLinearGradient:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
@@ -3485,6 +3520,10 @@ SPEC CHECKSUMS:
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
+  braze-react-native-sdk: 65cb601695ec808e3739227864bfcb76f67cafaa
+  BrazeKit: 737bca0f11642c9d9b962d7eb587e6fe1ce7262c
+  BrazeLocation: d3d2055b25d1a0e4ae10b1166a783e959317f0ca
+  BrazeUI: ec3eacaa39838b5ded7cfecd77d12b2e8ffea9c4
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385

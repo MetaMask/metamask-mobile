@@ -1,5 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { ConnectionRegistry } from './connection-registry';
+import { ConnectionRegistry, MAX_CONNECTIONS } from './connection-registry';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 import { ConnectionStore } from '../store/connection-store';
 import { KeyManager } from './key-manager';
@@ -704,6 +704,93 @@ describe('ConnectionRegistry', () => {
       spy.mockRestore();
     });
 
+    describe('capacity enforcement', () => {
+      it('evicts the oldest connection when at MAX_CONNECTIONS', async () => {
+        const baseTime = Date.now();
+
+        const existingConnections: ReturnType<typeof createMockConnection>[] =
+          [];
+        for (let i = 0; i < MAX_CONNECTIONS; i++) {
+          existingConnections.push(
+            createMockConnection(`conn-${i}`, {
+              info: {
+                id: `conn-${i}`,
+                metadata: {
+                  dapp: { name: `DApp ${i}`, url: `https://dapp-${i}.com` },
+                  sdk: { version: '2.0.0', platform: 'JavaScript' },
+                },
+                expiresAt: baseTime + i * 1000,
+              },
+            }),
+          );
+        }
+
+        const persistedInfos: ConnectionInfo[] = existingConnections.map(
+          (c) => ({
+            id: c.id,
+            metadata: c.info.metadata,
+            expiresAt: c.info.expiresAt,
+          }),
+        );
+
+        mockStore.list.mockResolvedValue(persistedInfos);
+        (Connection.create as jest.Mock).mockClear();
+        existingConnections.forEach((c) => {
+          (Connection.create as jest.Mock).mockResolvedValueOnce(c);
+        });
+
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        jest.clearAllMocks();
+
+        const newMockConnection = createMockConnection('new-conn', {
+          info: {
+            id: 'new-conn',
+            metadata: mockConnectionRequest.metadata,
+            expiresAt: baseTime + MAX_CONNECTIONS * 1000,
+          },
+        });
+        (Connection.create as jest.Mock).mockResolvedValueOnce(
+          newMockConnection,
+        );
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(existingConnections[0].disconnect).toHaveBeenCalledTimes(1);
+        expect(mockStore.delete).toHaveBeenCalledWith('conn-0');
+        expect(mockHostApp.revokePermissions).toHaveBeenCalledWith('conn-0');
+
+        expect(Connection.create).toHaveBeenCalledTimes(1);
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not evict when below MAX_CONNECTIONS', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const disconnectSpy = jest.spyOn(registry, 'disconnect');
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(disconnectSpy).not.toHaveBeenCalled();
+        expect(Connection.create).toHaveBeenCalledTimes(1);
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+
+        disconnectSpy.mockRestore();
+      });
+    });
+
     it('blocks connection requests with an internal origin as dapp name', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
@@ -858,6 +945,120 @@ describe('ConnectionRegistry', () => {
       // Verify that the initialization completed without throwing
       expect(mockStore.list).toHaveBeenCalledTimes(1);
       expect(Connection.create).toHaveBeenCalledTimes(3);
+    });
+
+    it('evicts the oldest connection when at MAX_CONNECTIONS', async () => {
+      const count = MAX_CONNECTIONS + 5;
+      const baseTime = Date.now();
+
+      const persistedConnections: ConnectionInfo[] = [];
+      const mockConnections: ReturnType<typeof createMockConnection>[] = [];
+
+      for (let i = 0; i < count; i++) {
+        const expiresAt = baseTime + i * 1000;
+        persistedConnections.push(
+          createPersistedConnection(`conn-${i}`, {
+            metadata: {
+              dapp: { name: `DApp ${i}`, url: `https://dapp-${i}.com` },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+          }),
+        );
+        persistedConnections[i].expiresAt = expiresAt;
+
+        mockConnections.push(
+          createMockConnection(`conn-${i}`, {
+            info: {
+              id: `conn-${i}`,
+              metadata: persistedConnections[i].metadata,
+              expiresAt,
+            },
+          }),
+        );
+      }
+
+      mockStore.list.mockResolvedValue(persistedConnections);
+      (Connection.create as jest.Mock).mockClear();
+      mockConnections.forEach((c) => {
+        (Connection.create as jest.Mock).mockResolvedValueOnce(c);
+      });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(Connection.create).toHaveBeenCalledTimes(count);
+
+      for (let i = 0; i < 5; i++) {
+        expect(mockConnections[i].disconnect).toHaveBeenCalledTimes(1);
+        expect(mockStore.delete).toHaveBeenCalledWith(`conn-${i}`);
+      }
+
+      for (let i = 5; i < count; i++) {
+        expect(mockConnections[i].disconnect).not.toHaveBeenCalled();
+      }
+    });
+
+    it('continues trimming and completes initialization when a disconnect fails during trim', async () => {
+      const count = MAX_CONNECTIONS + 3;
+      const baseTime = Date.now();
+
+      const persistedConnections: ConnectionInfo[] = [];
+      const mockConnections: ReturnType<typeof createMockConnection>[] = [];
+
+      for (let i = 0; i < count; i++) {
+        const expiresAt = baseTime + i * 1000;
+        persistedConnections.push(
+          createPersistedConnection(`conn-${i}`, {
+            metadata: {
+              dapp: { name: `DApp ${i}`, url: `https://dapp-${i}.com` },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+          }),
+        );
+        persistedConnections[i].expiresAt = expiresAt;
+
+        mockConnections.push(
+          createMockConnection(`conn-${i}`, {
+            info: {
+              id: `conn-${i}`,
+              metadata: persistedConnections[i].metadata,
+              expiresAt,
+            },
+          }),
+        );
+      }
+
+      // Make the first excess connection's disconnect throw
+      mockConnections[0].disconnect.mockRejectedValue(
+        new Error('Storage failure'),
+      );
+
+      mockStore.list.mockResolvedValue(persistedConnections);
+      (Connection.create as jest.Mock).mockClear();
+      mockConnections.forEach((c) => {
+        (Connection.create as jest.Mock).mockResolvedValueOnce(c);
+      });
+
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Trim was still attempted for all 3 excess connections
+      expect(mockConnections[0].disconnect).toHaveBeenCalledTimes(1);
+      expect(mockConnections[1].disconnect).toHaveBeenCalledTimes(1);
+      expect(mockConnections[2].disconnect).toHaveBeenCalledTimes(1);
+
+      // syncConnectionList was still called — initialization completed
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalled();
     });
 
     it('should handle errors when store.list fails during initialization', async () => {
