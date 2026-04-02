@@ -707,15 +707,19 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
+const ConnectQRHardwareFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+    </Stack.Navigator>
+  );
+};
 
 const LedgerConnectFlow = () => (
   <Stack.Navigator
@@ -731,14 +735,21 @@ const LedgerConnectFlow = () => (
   </Stack.Navigator>
 );
 
-const ConnectHardwareWalletFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.HW.SELECT_DEVICE}
-      component={SelectHardwareWallet}
-    />
-  </Stack.Navigator>
-);
+const ConnectHardwareWalletFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen
+        name={Routes.HW.SELECT_DEVICE}
+        component={SelectHardwareWallet}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const MultichainAccountDetails = () => {
   const route = useRoute();
