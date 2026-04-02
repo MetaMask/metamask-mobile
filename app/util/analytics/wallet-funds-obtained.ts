@@ -7,7 +7,7 @@ import {
   TRIGGER_TYPES,
   type INotification,
 } from '@metamask/notification-services-controller/notification-services';
-import { hexToNumber } from '@metamask/utils';
+import { hexToBigInt } from '@metamask/utils';
 import { AccountType } from '../../constants/onboarding';
 
 /** USD threshold from product spec: ignore deposits ≤ $1 to reduce dust noise. */
@@ -46,7 +46,9 @@ export function hasNonZeroTokenBalance(
   for (const accountBalances of Object.values(tokenBalances)) {
     for (const chainBalances of Object.values(accountBalances || {})) {
       for (const balance of Object.values(chainBalances || {})) {
-        if (hexToNumber(balance || '0x0') > 0) {
+        // Use BigInt: raw balances are wei-sized and exceed Number.MAX_SAFE_INTEGER;
+        // hexToNumber throws for unsafe integers.
+        if (hexToBigInt(balance || '0x0') > 0n) {
           return true;
         }
       }

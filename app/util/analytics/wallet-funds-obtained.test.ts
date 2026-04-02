@@ -8,6 +8,7 @@ import { AccountType } from '../../constants/onboarding';
 import {
   computeDaysSinceWalletCreation,
   getWalletFundsObtainedSource,
+  hasNonZeroTokenBalance,
   isAboveWalletFundsObtainedThreshold,
   isCreatedWalletAccountType,
   type EthOrErc20ReceivedNotification,
@@ -15,6 +16,29 @@ import {
 } from './wallet-funds-obtained';
 
 describe('wallet-funds-obtained', () => {
+  describe('hasNonZeroTokenBalance', () => {
+    it('returns true for wei-sized balances above MAX_SAFE_INTEGER (no throw)', () => {
+      const oneEthWei = '0xde0b6b3a7640000' as const; // 10^18
+      expect(
+        hasNonZeroTokenBalance({
+          '0xabc': {
+            '0x1': { '0x0': oneEthWei },
+          },
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for zero balances', () => {
+      expect(
+        hasNonZeroTokenBalance({
+          '0xabc': {
+            '0x1': { '0x0': '0x0' },
+          },
+        }),
+      ).toBe(false);
+    });
+  });
+
   describe('isCreatedWalletAccountType', () => {
     it('returns true for created-wallet account types', () => {
       expect(isCreatedWalletAccountType(AccountType.Metamask)).toBe(true);
