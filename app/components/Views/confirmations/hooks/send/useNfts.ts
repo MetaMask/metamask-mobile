@@ -9,7 +9,6 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
-import { useSendScope } from './useSendScope';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import useIpfsGateway from '../../../../hooks/useIpfsGateway';
 import Logger from '../../../../../util/Logger';
@@ -27,7 +26,6 @@ export function useEVMNfts(): UseEVMNftsResult {
   const allNFTS = useSelector(selectAllNfts);
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { isSolanaOnly } = useSendScope();
   const ipfsGateway = useIpfsGateway();
 
   const evmAccount = selectedAccountGroup?.accounts
@@ -107,10 +105,6 @@ export function useEVMNfts(): UseEVMNftsResult {
     AssetsContractController,
     NetworkController,
   ]);
-
-  if (isSolanaOnly) {
-    return { nfts: [], isLoading: false };
-  }
 
   return { nfts: transformedNfts, isLoading };
 }

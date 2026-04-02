@@ -238,6 +238,7 @@ describe('RewardsDashboard', () => {
       name: 'Account Group 1',
       pinned: false,
       hidden: false,
+      lastSelected: 0,
     },
     accounts: ['account-1'] as [string],
     type: AccountGroupType.SingleAccount as const,

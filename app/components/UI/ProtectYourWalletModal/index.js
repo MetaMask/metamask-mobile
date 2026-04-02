@@ -25,7 +25,8 @@ import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
-import { withAnalyticsAwareness } from '../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 import protectWalletImage from '../../../images/explain-backup-seedphrase.png';
@@ -36,7 +37,6 @@ class ProtectYourWalletModal extends PureComponent {
     protectWalletModalNotVisible: PropTypes.func,
     protectWalletModalVisible: PropTypes.bool,
     passwordSet: PropTypes.bool,
-    analytics: PropTypes.object,
     isSeedlessOnboardingLoginFlow: PropTypes.bool,
   };
 
@@ -46,9 +46,10 @@ class ProtectYourWalletModal extends PureComponent {
       'SetPasswordFlow',
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
-    this.props.analytics.trackEvent(
-      this.props.analytics
-        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
+      )
         .addProperties({
           wallet_protection_required: false,
           source: 'Modal',
@@ -70,9 +71,10 @@ class ProtectYourWalletModal extends PureComponent {
 
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
-    this.props.analytics.trackEvent(
-      this.props.analytics
-        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
+      )
         .addProperties({
           wallet_protection_required: false,
           source: 'Modal',
@@ -174,4 +176,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withAnalyticsAwareness(ProtectYourWalletModal));
+)(ProtectYourWalletModal);

@@ -31,7 +31,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -73,7 +75,7 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
@@ -198,7 +200,7 @@ const OptinMetrics = () => {
         .build(),
     );
 
-    await metrics.addTraitsToUser({
+    await metrics.identify({
       ...generateDeviceAnalyticsMetaData(),
       ...generateUserSettingsAnalyticsMetaData(),
       [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
@@ -217,7 +219,10 @@ const OptinMetrics = () => {
         // as precision is only to the milisecond
         // and loop seems to runs faster than that
         setTimeout(() => {
-          metrics.trackEvent(...eventArgs);
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            eventArgs[0],
+          ).build();
+          metrics.trackEvent(event);
         }, delay);
         delay += eventTrackingDelay;
       });

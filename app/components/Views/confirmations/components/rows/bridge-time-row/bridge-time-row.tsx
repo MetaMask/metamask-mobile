@@ -16,6 +16,7 @@ import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -28,10 +29,13 @@ export function BridgeTimeRow() {
   const { payToken } = useTransactionPayToken();
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId } = transactionMetadata ?? {};
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
 
   const showEstimate =
     !hasTransactionType(transactionMetadata, HIDE_TYPES) &&
-    (isLoading || Boolean(quotes?.length));
+    (isLoading || Boolean(quotes?.length)) &&
+    !selectedFiatPaymentMethod;
 
   if (!showEstimate) {
     return null;

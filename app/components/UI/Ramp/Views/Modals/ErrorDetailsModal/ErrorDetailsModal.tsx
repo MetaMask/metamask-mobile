@@ -10,17 +10,16 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
@@ -102,7 +101,7 @@ function ErrorDetailsModal() {
           <Icon
             name={IconName.Danger}
             size={IconSize.Md}
-            color={IconColor.Error}
+            color={IconColor.ErrorDefault}
           />
           <Text variant={TextVariant.HeadingMd}>
             {strings('deposit.errors.error_details_title')}

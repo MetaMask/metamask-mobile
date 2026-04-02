@@ -59,6 +59,13 @@ jest.mock('../../UI/Perps/hooks', () => ({
     orders: [],
     isInitialLoading: false,
   })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    },
+    isInitialLoading: false,
+  })),
   usePerpsMarkets: jest.fn(() => ({
     markets: [],
     isLoading: false,
@@ -108,6 +115,24 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: jest.fn(() => ({
+      invalidateQueries: jest.fn(() => Promise.resolve()),
+    })),
+  };
+});
+
+jest.mock('../../UI/Predict/hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
 jest.mock('../../UI/Predict/hooks/usePredictPositions', () => ({
   usePredictPositions: () => ({
     data: [],
@@ -136,6 +161,14 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
+  selectWhatsHappeningEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
+  selectSocialLeaderboardEnabled: jest.fn(() => false),
+}));
+
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
 interface UseHomeViewedEventParamsSnapshot {
   sectionName?: string;
@@ -153,6 +186,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   HomeSectionNames: {
     CASH: 'cash',
     TOKENS: 'tokens',
+    TOP_TRADERS: 'top_traders',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
     DEFI: 'defi',
@@ -177,6 +211,7 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
@@ -243,6 +278,12 @@ describe('Homepage', () => {
         '../../../selectors/featureFlagController/assetsDefiPositions',
       )
       .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
+    jest
+      .requireMock('../../../selectors/featureFlagController/whatsHappening')
+      .selectWhatsHappeningEnabled.mockReturnValue(false);
+    jest
+      .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
+      .selectSocialLeaderboardEnabled.mockReturnValue(false);
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
@@ -362,6 +403,44 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(1);
       expect(callBySectionName('tokens')?.totalSectionsLoaded).toBe(2);
+    });
+  });
+
+  describe("section indices — Social Leaderboard and What's Happening enabled", () => {
+    beforeEach(() => {
+      jest
+        .requireMock('../../../selectors/featureFlagController/whatsHappening')
+        .selectWhatsHappeningEnabled.mockReturnValue(true);
+      jest
+        .requireMock(
+          '../../../selectors/featureFlagController/socialLeaderboard',
+        )
+        .selectSocialLeaderboardEnabled.mockReturnValue(true);
+    });
+
+    it('passes correct sectionIndex including top_traders and shifts following sections', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(1);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(callBySectionName('whats_happening')?.sectionIndex).toBe(4);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(5);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
+    });
+
+    it("passes totalSectionsLoaded=7 when leaderboard and What's Happening flags are on", () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(7);
+      });
     });
   });
 

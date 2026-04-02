@@ -52,6 +52,7 @@ const createMockMerklClaimData = (
   claimableReward: null,
   hasPendingClaim: false,
   isClaiming: false,
+  error: null,
   claimRewards: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });

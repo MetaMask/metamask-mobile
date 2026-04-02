@@ -629,7 +629,9 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.TRENDING: {
-      handleTrendingUrl();
+      handleTrendingUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
     case SUPPORTED_ACTIONS.EARN_MUSD: {

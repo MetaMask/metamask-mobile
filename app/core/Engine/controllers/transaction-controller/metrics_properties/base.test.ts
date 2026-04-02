@@ -101,6 +101,7 @@ describe('getTransactionTypeValue', () => {
     ['predict_claim', TransactionType.predictClaim],
     ['predict_deposit', TransactionType.predictDeposit],
     ['predict_withdraw', TransactionType.predictWithdraw],
+    ['perps_withdraw', TransactionType.perpsWithdraw],
     ['musd_conversion', TransactionType.musdConversion],
     ['musd_claim', TransactionType.musdClaim],
   ])('returns %s if nested transaction type is %s', (expected, nestedType) => {

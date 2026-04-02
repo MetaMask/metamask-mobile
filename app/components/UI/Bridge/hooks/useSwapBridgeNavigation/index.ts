@@ -59,6 +59,7 @@ export interface BridgeRouteParams {
   destToken?: BridgeToken;
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
+  scrollToTopOnNav?: boolean;
 }
 
 export enum SwapBridgeNavigationLocation {
@@ -141,6 +142,7 @@ export const useSwapBridgeNavigation = ({
       sourceTokenOverride?: BridgeToken,
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
+      scrollToTopOnNav?: boolean,
     ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
@@ -269,6 +271,7 @@ export const useSwapBridgeNavigation = ({
         sourcePage,
         bridgeViewMode,
         location: mappedLocation,
+        ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -333,12 +336,14 @@ export const useSwapBridgeNavigation = ({
       tokenOverride?: BridgeToken,
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
+      scrollToTopOnNav?: boolean,
     ) => {
       goToNativeBridge(
         BridgeViewMode.Unified,
         tokenOverride,
         destTokenOverride,
         buttonLabel,
+        scrollToTopOnNav,
       );
     },
     [goToNativeBridge],

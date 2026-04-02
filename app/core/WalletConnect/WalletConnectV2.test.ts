@@ -883,6 +883,17 @@ describe('WC2Manager', () => {
       );
     });
 
+    it('revokes permissions for each active session', async () => {
+      const revokeAllPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'revokeAllPermissions',
+      );
+
+      await manager.removeAll();
+
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-pairing');
+    });
+
     it('calls removeListeners on each WalletConnect2Session before clearing local sessions', async () => {
       const removeListenersA = jest.fn().mockResolvedValue(undefined);
       const removeListenersB = jest.fn().mockResolvedValue(undefined);
