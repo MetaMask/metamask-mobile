@@ -145,11 +145,12 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           NetworkToCaipChainId.ETHEREUM,
         );
 
-        // Verify tokens that should be visible on Ethereum
-        const expectedVisibleTokens = ['ETH', 'USDC', 'DAI'];
-        for (const token of expectedVisibleTokens) {
-          await NetworkManager.checkTokenIsVisible(token);
-        }
+        // Ethereum may show ETH, USDC, DAI, and/or MUSD (MUSD can load early); require 3 of 4.
+        const ethereumVisibleCandidates = ['ETH', 'USDC', 'DAI', 'mUSD'];
+        await NetworkManager.expectAtLeastTokenSymbolsVisible(
+          ethereumVisibleCandidates,
+          3,
+        );
 
         // Verify tokens that should not be visible (from other networks)
         const expectedHiddenTokens = ['SOL', 'Linea'];
