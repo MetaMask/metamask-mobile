@@ -29,7 +29,7 @@ export const GaslessQuickPickOptions = ({
   tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
-  const { variantName } = useABTest(
+  const { variantName, isActive } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
   );
@@ -45,10 +45,20 @@ export const GaslessQuickPickOptions = ({
           input: 'token_amount_source',
           input_value: inputValue,
           ...(preset && { input_amount_preset: preset }),
+          // This Bridge-specific event bypasses the shared analytics wrappers,
+          // so its A/B context still needs to be attached manually here.
+          ...(isActive && {
+            active_ab_tests: [
+              {
+                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
+                value: variantName,
+              },
+            ],
+          }),
         },
       );
     },
-    [],
+    [isActive, variantName],
   );
 
   const onQuickOptionPress = useCallback(
