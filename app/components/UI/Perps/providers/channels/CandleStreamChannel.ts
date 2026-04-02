@@ -117,8 +117,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Injected to avoid circular dependency:
    * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
    */
-  constructor(getIsInitialized: () => boolean) {
-    super();
+  constructor(getIsInitialized: () => boolean, onDataPersist?: () => void) {
+    super(onDataPersist);
     this.getIsInitialized = getIsInitialized;
   }
 

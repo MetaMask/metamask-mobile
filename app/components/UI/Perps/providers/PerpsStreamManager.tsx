@@ -67,7 +67,15 @@ abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscription: (() => void) | null = null;
-  public onDataPersist?: () => void;
+  readonly #onDataPersist?: () => void;
+
+  constructor(onDataPersist?: () => void) {
+    this.#onDataPersist = onDataPersist;
+  }
+
+  protected triggerPersist(): void {
+    this.#onDataPersist?.();
+  }
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
@@ -676,7 +684,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
-        this.onDataPersist?.();
+        this.triggerPersist();
       },
     });
   }
@@ -816,7 +824,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
-        this.onDataPersist?.();
+        this.triggerPersist();
       },
     });
   }
@@ -1096,7 +1104,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);
-        this.onDataPersist?.();
+        this.triggerPersist();
       },
     });
   }
@@ -1495,7 +1503,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         // Notify all subscribers
         this.notifySubscribers(data);
-        this.onDataPersist?.();
+        this.triggerPersist();
 
         DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
           marketCount: data.length,
@@ -1627,24 +1635,24 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 // Main manager class
 export class PerpsStreamManager {
   public readonly prices = new PriceStreamChannel();
-  public readonly orders = new OrderStreamChannel();
-  public readonly positions = new PositionStreamChannel();
+  public readonly orders = new OrderStreamChannel(() =>
+    this.persistUserDataToDisk(),
+  );
+  public readonly positions = new PositionStreamChannel(() =>
+    this.persistUserDataToDisk(),
+  );
   public readonly fills = new FillStreamChannel();
-  public readonly account = new AccountStreamChannel();
-  public readonly marketData = new MarketDataChannel();
+  public readonly account = new AccountStreamChannel(() =>
+    this.persistUserDataToDisk(),
+  );
+  public readonly marketData = new MarketDataChannel(() =>
+    this.persistMarketDataToDisk(),
+  );
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
   public readonly candles = new CandleStreamChannel(
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
-
-  constructor() {
-    // Wire disk-persist callbacks into channels that trigger writes
-    this.marketData.onDataPersist = () => this.persistMarketDataToDisk();
-    this.orders.onDataPersist = () => this.persistUserDataToDisk();
-    this.positions.onDataPersist = () => this.persistUserDataToDisk();
-    this.account.onDataPersist = () => this.persistUserDataToDisk();
-  }
 
   // Disk cache throttle timestamps
   private marketDiskWriteTime = 0;
