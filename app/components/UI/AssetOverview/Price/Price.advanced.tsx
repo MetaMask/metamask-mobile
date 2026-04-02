@@ -56,6 +56,7 @@ export interface PriceAdvancedProps {
   currentPrice: number;
   currentCurrency: string;
   comparePrice: number;
+  isLoading: boolean;
 }
 
 interface NoDataOverlayProps {
@@ -115,6 +116,7 @@ const PriceAdvanced = ({
   currentPrice,
   currentCurrency,
   comparePrice,
+  isLoading,
 }: PriceAdvancedProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
@@ -233,7 +235,7 @@ const PriceAdvanced = ({
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
             variant={TextVariant.DisplayLg}
           >
-            {chartLoading ? (
+            {isLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder
                   backgroundColor={theme.colors.background.section}
@@ -252,7 +254,7 @@ const PriceAdvanced = ({
           </Text>
         )}
         <Text allowFontScaling={false}>
-          {chartLoading ? (
+          {isLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}

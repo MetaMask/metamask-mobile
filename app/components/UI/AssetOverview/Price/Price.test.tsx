@@ -98,7 +98,21 @@ describe('Price Component', () => {
     });
   });
 
-  it('shows loading state when chart is loading (advanced)', () => {
+  it('shows loading state when isLoading prop is true (advanced)', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenOverviewAdvancedChartEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+    const { getByTestId } = renderWithProviders(
+      <Price {...unifiedProps} isLoading />,
+    );
+
+    expect(getByTestId('loading-price-diff')).toBeTruthy();
+  });
+
+  it('does not show header skeletons when only chart is loading (advanced)', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
@@ -112,9 +126,11 @@ describe('Price Component', () => {
       fetchMoreHistory: jest.fn(),
       hasMore: false,
     });
-    const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+    const { queryByTestId } = renderWithProviders(
+      <Price {...unifiedProps} isLoading={false} />,
+    );
 
-    expect(getByTestId('loading-price-diff')).toBeTruthy();
+    expect(queryByTestId('loading-price-diff')).toBeNull();
   });
 
   it('renders the advanced chart when token overview advanced chart flag is enabled', () => {

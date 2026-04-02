@@ -35,7 +35,7 @@ const Price = (props: PriceProps) => {
   const { asset, prices, timePeriod, isLoading, ...rest } = props;
 
   if (isAdvancedChartEnabled) {
-    return <PriceAdvanced asset={asset} {...rest} />;
+    return <PriceAdvanced asset={asset} isLoading={isLoading} {...rest} />;
   }
   return (
     <PriceLegacy
