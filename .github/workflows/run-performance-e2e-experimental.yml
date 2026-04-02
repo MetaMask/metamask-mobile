@@ -63,4 +63,5 @@ jobs:
       branch_name: main
       build_variant: exp
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      is_performance_build: true
     secrets: inherit

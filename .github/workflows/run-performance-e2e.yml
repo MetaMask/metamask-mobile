@@ -40,6 +40,11 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+      is_performance_build:
+        description: 'Whether this is a performance build'
+        required: false
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       description:
