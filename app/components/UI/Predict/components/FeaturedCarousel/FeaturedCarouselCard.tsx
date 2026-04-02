@@ -9,17 +9,12 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket,
@@ -30,22 +25,18 @@ import {
   PredictNavigationParamList,
   PredictEntryPoint,
 } from '../../types/navigation';
-import {
-  formatVolume,
-  formatPrice,
-  formatPercentage,
-} from '../../utils/format';
+import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
+import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
+import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
 import {
-  BET_AMOUNT,
   calculateRemainingOptions,
   calculateTotalVolume,
-  getPayoutDisplay,
 } from './FeaturedCarouselCard.utils';
 
 interface FeaturedCarouselCardProps {
@@ -179,26 +170,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                     {outcome.groupItemTitle || outcome.title}
                   </Text>
 
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="mt-1 gap-1"
-                  >
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                    >
-                      {formatPrice(BET_AMOUNT)} {String.fromCharCode(0x2192)}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      color={TextColor.SuccessDefault}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {getPayoutDisplay(token.price)}
-                    </Text>
-                  </Box>
+                  <FeaturedCarouselPayoutRow price={token.price} />
 
                   <Box twClassName="w-full mt-2">
                     <Button
@@ -229,65 +201,12 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
           </Box>
         </Box>
 
-        <Box
+        <FeaturedCarouselCardFooter
           testID={FEATURED_CAROUSEL_TEST_IDS.CARD_FOOTER(index)}
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mt-4"
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {remainingOptions > 0 &&
-              `+ ${remainingOptions} ${strings(
-                remainingOptions === 1
-                  ? 'predict.outcomes_singular'
-                  : 'predict.outcomes_plural',
-              )}`}
-          </Text>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-          >
-            {formattedEndDate && (
-              <>
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Xs}
-                  color={IconColor.IconAlternative}
-                />
-                <Text
-                  variant={TextVariant.BodyXs}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                  numberOfLines={1}
-                >
-                  {formattedEndDate}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyXs}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  ·
-                </Text>
-              </>
-            )}
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              ${formatVolume(totalVolume)}{' '}
-              {strings('predict.volume_abbreviated')}
-            </Text>
-          </Box>
-        </Box>
+          remainingOptions={remainingOptions}
+          timeText={formattedEndDate}
+          totalVolume={totalVolume}
+        />
       </Box>
     </TouchableOpacity>
   );

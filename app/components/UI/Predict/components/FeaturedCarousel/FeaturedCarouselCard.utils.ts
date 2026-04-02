@@ -1,6 +1,48 @@
-import { PredictOutcome } from '../../types';
+import I18n from '../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import {
+  PredictMarketGame,
+  PredictOutcome,
+  PredictSportsLeague,
+} from '../../types';
 
 export const BET_AMOUNT = 100;
+
+export const LEAGUE_DISPLAY_NAMES: Record<string, string> = {
+  nfl: 'NFL',
+  nba: 'NBA',
+  ucl: 'UCL',
+};
+
+const LEAGUE_TOTAL_MINUTES: Partial<Record<PredictSportsLeague, number>> = {
+  nba: 48,
+  nfl: 60,
+  ucl: 90,
+};
+
+export const getTimeRemaining = (
+  game: PredictMarketGame,
+  elapsed?: string | null,
+): string | null => {
+  const elapsedStr = elapsed ?? game.elapsed;
+  if (!elapsedStr || game.status !== 'ongoing') return null;
+  const elapsedMins = parseInt(elapsedStr.replace(/[^0-9]/g, ''), 10);
+  if (isNaN(elapsedMins)) return null;
+  const totalMins = LEAGUE_TOTAL_MINUTES[game.league] ?? 90;
+  const remaining = Math.max(0, totalMins - elapsedMins);
+  return `${remaining} mins`;
+};
+
+export const formatScheduledTime = (startTime: string): string => {
+  const dateObj = new Date(startTime);
+  const formatter = getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return formatter.format(dateObj);
+};
 
 export const getPayoutDisplay = (price: number): string => {
   if (price <= 0 || price >= 1) {
