@@ -11,7 +11,7 @@ import type { RootState } from '../../reducers';
 import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selectors/seedlessOnboardingController';
 
 export function* backfillSocialLoginMarketingConsent() {
-  const authConnection: RootState['onboarding']['seedless']['pendingSocialLoginMarketingConsentBackfill'] =
+  const authConnection: RootState['onboarding']['pendingSocialLoginMarketingConsentBackfill'] =
     yield select(selectPendingSocialLoginMarketingConsentBackfill);
   const marketingConsent: RootState['security']['dataCollectionForMarketing'] =
     yield select(
