@@ -5,6 +5,7 @@ import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { MINIMUM_BET } from '../../PredictBuyPreview/PredictBuyPreview';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
@@ -94,6 +95,11 @@ export const usePredictBuyInfo = ({
   );
 
   const depositAmount = useMemo(() => {
+    // Only trigger deposit amount calculation when preview fees are available and current value is greater than minimum bet
+    if (!preview?.fees || currentValue < MINIMUM_BET) {
+      return 0;
+    }
+
     const remainingAmount = new BigNumber(totalPayForPredictBalance)
       .minus(predictBalance)
       .decimalPlaces(2, BigNumber.ROUND_UP)
@@ -104,7 +110,7 @@ export const usePredictBuyInfo = ({
         .toNumber();
     }
     return remainingAmount;
-  }, [predictBalance, totalPayForPredictBalance]);
+  }, [preview?.fees, currentValue, totalPayForPredictBalance, predictBalance]);
 
   return {
     toWin,

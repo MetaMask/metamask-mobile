@@ -81,6 +81,10 @@ jest.mock('../../../constants/transactions', () => ({
   MINIMUM_BET: 1,
 }));
 
+jest.mock('../../PredictBuyPreview/PredictBuyPreview', () => ({
+  MINIMUM_BET: 1,
+}));
+
 const createMockPreview = (
   overrides?: Partial<OrderPreview>,
 ): OrderPreview => ({
@@ -328,6 +332,41 @@ describe('usePredictBuyInfo', () => {
   });
 
   describe('depositAmount', () => {
+    it('returns 0 when preview is null', () => {
+      mockPredictBalance = 0;
+      const params = { ...defaultParams, currentValue: 1, preview: null };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(0);
+    });
+
+    it('returns 0 when preview has no fees', () => {
+      mockPredictBalance = 0;
+      const params = {
+        ...defaultParams,
+        currentValue: 1,
+        preview: createMockPreview({ fees: undefined }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(0);
+    });
+
+    it('returns 0 when currentValue is below minimum bet', () => {
+      mockPredictBalance = 0;
+      const params = {
+        ...defaultParams,
+        currentValue: 0.5,
+        preview: createMockPreview(),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(0);
+    });
+
     it('returns the remaining amount needed after predict balance is applied', () => {
       mockPredictBalance = 80;
 
