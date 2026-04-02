@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -12,7 +12,10 @@ import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhyMetaMaskMoney from '../../components/MoneyWhyMetaMaskMoney';
+import MoneyActivityList from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
+import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
@@ -25,6 +28,7 @@ const TEMP_ALERT_HANDLER = () => alert('Under construction 🚧');
 
 const MoneyHomeView = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
@@ -54,59 +58,69 @@ const MoneyHomeView = () => {
   const handlePotentialEarningsHeaderPress = TEMP_ALERT_HANDLER;
   const handleWhyMetaMaskMoneyHeaderPress = TEMP_ALERT_HANDLER;
 
+  const handleViewAllActivityPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.ACTIVITY as never);
+  }, [navigation]);
+  const handleActivityHeaderPress = handleViewAllActivityPress;
+
   return (
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={['top']}
+    <Box
+      style={[styles.safeArea, { paddingTop: insets.top }]}
+      twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <Box twClassName="flex-1 bg-default">
-        <MoneyHeader
-          onBackPress={handleBackPress}
-          onMenuPress={handleMenuPress}
+      <MoneyHeader
+        onBackPress={handleBackPress}
+        onMenuPress={handleMenuPress}
+      />
+      <ScrollView
+        testID={MoneyHomeViewTestIds.SCROLL_VIEW}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <MoneyBalanceSummary apy={String(MUSD_CONVERSION_APY)} />
+        <MoneyActionButtonRow
+          onAddPress={handleAddPress}
+          onTransferPress={handleTransferPress}
+          onCardPress={handleCardPress}
         />
-        <ScrollView
-          testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <MoneyBalanceSummary apy={String(MUSD_CONVERSION_APY)} />
-          <MoneyActionButtonRow
-            onAddPress={handleAddPress}
-            onTransferPress={handleTransferPress}
-            onCardPress={handleCardPress}
-          />
-          <MoneyYourPosition />
-          <Divider />
-          <MoneyHowItWorks
-            onAddMusdPress={handleAddMusdPress}
-            onHeaderPress={handleHowItWorksHeaderPress}
-          />
-          <Divider />
-          {conversionTokens.length > 0 && (
-            <>
-              <MoneyPotentialEarnings
-                tokens={conversionTokens}
-                onTokenAddPress={handleTokenAddPress}
-                onSeeEarningsPress={handleSeeEarningsPress}
-                onHeaderPress={handlePotentialEarningsHeaderPress}
-              />
-              <Divider />
-            </>
-          )}
-          <MoneyMetaMaskCard
-            onGetNowPress={handleGetNowPress}
-            onHeaderPress={handleHeaderPress}
-          />
-          <Divider />
-          <MoneyWhyMetaMaskMoney
-            onLearnMorePress={handleLearnMorePress}
-            onHeaderPress={handleWhyMetaMaskMoneyHeaderPress}
-          />
-        </ScrollView>
-        <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
-      </Box>
-    </SafeAreaView>
+        <MoneyYourPosition />
+        <Divider />
+        <MoneyHowItWorks
+          onAddMusdPress={handleAddMusdPress}
+          onHeaderPress={handleHowItWorksHeaderPress}
+        />
+        <Divider />
+        {conversionTokens.length > 0 && (
+          <>
+            <MoneyPotentialEarnings
+              tokens={conversionTokens}
+              onTokenAddPress={handleTokenAddPress}
+              onSeeEarningsPress={handleSeeEarningsPress}
+              onHeaderPress={handlePotentialEarningsHeaderPress}
+            />
+            <Divider />
+          </>
+        )}
+        <MoneyMetaMaskCard
+          onGetNowPress={handleGetNowPress}
+          onHeaderPress={handleHeaderPress}
+        />
+        <Divider />
+        <MoneyActivityList
+          transactions={MOCK_MONEY_TRANSACTIONS}
+          onViewAllPress={handleViewAllActivityPress}
+          onHeaderPress={handleActivityHeaderPress}
+          navigation={navigation as never}
+        />
+        <Divider />
+        <MoneyWhyMetaMaskMoney
+          onLearnMorePress={handleLearnMorePress}
+          onHeaderPress={handleWhyMetaMaskMoneyHeaderPress}
+        />
+      </ScrollView>
+      <MoneyFooter onAddMoneyPress={handleAddMoneyPress} />
+    </Box>
   );
 };
 

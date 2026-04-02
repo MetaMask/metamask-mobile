@@ -30,8 +30,9 @@ const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
 }));
+const mockGetTransactionIcon = jest.fn();
 jest.mock('../../../util/transaction-icons', () => ({
-  getTransactionIcon: jest.fn(),
+  getTransactionIcon: (...args: unknown[]) => mockGetTransactionIcon(...args),
 }));
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -244,6 +245,102 @@ describe('MultichainTransactionListItem', () => {
     );
 
     expect(getByTestId('transaction-status-tx-123')).toBeTruthy();
+  });
+
+  describe('new display props', () => {
+    it('hides the date row when hideDate is true', () => {
+      const { queryByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          hideDate
+        />,
+      );
+
+      expect(queryByText('Mar 15, 2025')).toBeNull();
+    });
+
+    it('shows date row by default', () => {
+      const { getByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(getByText('Mar 15, 2025')).toBeTruthy();
+    });
+
+    it('renders description instead of StatusText when description is provided', () => {
+      const { getByText, queryByTestId } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          description="Transak"
+        />,
+      );
+
+      expect(getByText('Transak')).toBeTruthy();
+      expect(queryByTestId('transaction-status-tx-123')).toBeNull();
+    });
+
+    it('renders StatusText when description is not provided', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(getByTestId('transaction-status-tx-123')).toBeTruthy();
+    });
+
+    it('renders AvatarToken instead of transaction icon when tokenIconSource is provided', () => {
+      mockGetTransactionIcon.mockClear();
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          tokenIconSource={42}
+          iconSize={40}
+        />,
+      );
+
+      expect(getByTestId('transaction-item-0')).toBeTruthy();
+      expect(mockGetTransactionIcon).not.toHaveBeenCalled();
+    });
+
+    it('renders default transaction icon when tokenIconSource is not provided', () => {
+      mockGetTransactionIcon.mockClear();
+
+      renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(mockGetTransactionIcon).toHaveBeenCalled();
+    });
   });
 
   describe('analytics tracking', () => {

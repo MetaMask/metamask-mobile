@@ -12,8 +12,11 @@ import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEa
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 import { MoneyWhyMetaMaskMoneyTestIds } from '../../components/MoneyWhyMetaMaskMoney/MoneyWhyMetaMaskMoney.testIds';
 import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
+import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -21,22 +24,12 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
 
 jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View {...props}>{children}</View>;
-  },
   useSafeAreaInsets: () => ({ top: 0, bottom: 34, left: 0, right: 0 }),
 }));
 
@@ -159,5 +152,13 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to the Money activity screen when View all is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 });
