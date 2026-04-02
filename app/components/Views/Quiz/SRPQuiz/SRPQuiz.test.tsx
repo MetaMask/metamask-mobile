@@ -14,7 +14,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { Linking } from 'react-native';
 
-let mockRouteParams: { keyringId?: string } = {};
+let mockRouteParams: {
+  keyringId?: string;
+  dismissModalStackOnDone?: boolean;
+} = {};
 
 const mockNavigate = jest.fn();
 
@@ -37,7 +40,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const renderSRPQuiz = (
-  routeParams: { keyringId?: string } = {},
+  routeParams: {
+    keyringId?: string;
+    dismissModalStackOnDone?: boolean;
+  } = {},
   completeQuiz: boolean = true,
   hasVault: boolean = false,
 ) => {
@@ -97,6 +103,7 @@ const renderSRPQuiz = (
 describe('SRPQuiz', () => {
   beforeEach(() => {
     mockRouteParams = {};
+    mockNavigate.mockClear();
   });
 
   it('passes the keyringId to the SRPQuiz', async () => {
@@ -118,13 +125,8 @@ describe('SRPQuiz', () => {
 
   it('forwards dismissModalStackOnDone to RevealPrivateCredential when set', async () => {
     const keyringId = '123';
-    const props = {
-      route: {
-        params: { keyringId, dismissModalStackOnDone: true },
-      },
-    };
 
-    renderSRPQuiz(props, true);
+    renderSRPQuiz({ keyringId, dismissModalStackOnDone: true }, true);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
