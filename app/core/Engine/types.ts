@@ -418,7 +418,6 @@ import {
   AiDigestControllerEvents,
   AiDigestControllerState,
 } from '@metamask/ai-controllers';
-// TODO: Update import to @metamask/social-controllers once the package is released.
 import {
   SocialController,
   SocialService,
@@ -427,7 +426,7 @@ import {
   type SocialControllerState,
   type SocialServiceActions,
   type SocialServiceEvents,
-} from '@metamask-previews/social-controllers';
+} from '@metamask/social-controllers';
 import {
   ComplianceController,
   ComplianceControllerActions,

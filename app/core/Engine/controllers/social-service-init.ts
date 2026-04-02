@@ -1,8 +1,7 @@
-// TODO: Update import to @metamask/social-controllers once the package is released.
 import {
   SocialService,
   type SocialServiceMessenger,
-} from '@metamask-previews/social-controllers';
+} from '@metamask/social-controllers';
 import type { ControllerInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';

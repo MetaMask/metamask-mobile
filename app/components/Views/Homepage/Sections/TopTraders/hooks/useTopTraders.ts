@@ -1,10 +1,9 @@
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import { useQuery } from '@metamask/react-data-query';
-// TODO: Update import to @metamask/social-controllers once the package is released.
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
-} from '@metamask-previews/social-controllers';
+} from '@metamask/social-controllers';
 import Logger from '../../../../../../util/Logger';
 import type { TopTrader } from '../types';
 

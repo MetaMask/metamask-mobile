@@ -2,15 +2,14 @@ import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getSocialControllerMessenger } from '../messengers/social-controller-messenger';
 import { socialControllerInit } from './social-controller-init';
-// TODO: Update import to @metamask/social-controllers once the package is released.
 import {
   SocialController,
   type SocialControllerMessenger,
-} from '@metamask-previews/social-controllers';
+} from '@metamask/social-controllers';
 import { ControllerInitRequest } from '../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask-previews/social-controllers');
+jest.mock('@metamask/social-controllers');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<SocialControllerMessenger>

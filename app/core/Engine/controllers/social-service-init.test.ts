@@ -2,11 +2,10 @@ import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getSocialServiceMessenger } from '../messengers/social-service-messenger';
 import { socialServiceInit } from './social-service-init';
-// TODO: Update import to @metamask/social-controllers once the package is released.
 import {
   SocialService,
   type SocialServiceMessenger,
-} from '@metamask-previews/social-controllers';
+} from '@metamask/social-controllers';
 import { ControllerInitRequest } from '../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 

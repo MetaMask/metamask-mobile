@@ -5,8 +5,7 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-// TODO: Update import to @metamask/social-controllers once the package is released.
-import type { SocialServiceMessenger } from '@metamask-previews/social-controllers';
+import type { SocialServiceMessenger } from '@metamask/social-controllers';
 import { getSocialServiceMessenger } from './social-service-messenger';
 
 type RootMessenger = Messenger<

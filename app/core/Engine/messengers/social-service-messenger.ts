@@ -3,8 +3,7 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-// TODO: Update import to @metamask/social-controllers once the package is released.
-import type { SocialServiceMessenger } from '@metamask-previews/social-controllers';
+import type { SocialServiceMessenger } from '@metamask/social-controllers';
 import type { RootMessenger } from '../types';
 
 /**
