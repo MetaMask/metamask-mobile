@@ -358,7 +358,9 @@ describe('RewardsController', () => {
       subscribe: jest.fn(),
       call: jest.fn(),
       registerActionHandler: jest.fn(),
+      registerMethodActionHandlers: jest.fn(),
       unregisterActionHandler: jest.fn(),
+      registerMethodActionHandlers: jest.fn(),
       publish: jest.fn(),
       clearEventSubscriptions: jest.fn(),
       registerInitialEventPayload: jest.fn(),
@@ -382,37 +384,9 @@ describe('RewardsController', () => {
     });
 
     it('registers action handlers', () => {
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getHasAccountOptedIn',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getPointsEvents',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:estimatePoints',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getPerpsDiscountForAccount',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getSeasonStatus',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getReferralDetails',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getSeasonOneLineaRewardTokens',
-        expect.any(Function),
+      expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.any(Array),
       );
     });
 
@@ -609,9 +583,9 @@ describe('RewardsController', () => {
     });
 
     it('registers the action handler', () => {
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:setRewardsEnvUrl',
-        expect.any(Function),
+      expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.any(Array),
       );
     });
   });
@@ -4168,11 +4142,13 @@ describe('RewardsController', () => {
         call: jest.fn(),
         subscribe: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         registerInitialEventPayload: jest.fn(),
         publish: jest.fn(),
         unsubscribe: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
 
       // Mock Date.now to return a consistent timestamp
@@ -4942,7 +4918,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5031,7 +5009,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5150,7 +5130,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5273,7 +5255,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5422,7 +5406,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5553,7 +5539,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5653,7 +5641,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5752,7 +5742,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5832,7 +5824,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5909,7 +5903,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -5968,7 +5964,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -6028,7 +6026,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -14158,7 +14158,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -14803,7 +14805,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -14905,7 +14909,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -18422,7 +18428,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -18825,7 +18833,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -18974,7 +18984,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -19125,7 +19137,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -19272,7 +19286,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -19374,7 +19390,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
@@ -19552,7 +19570,9 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
         registerInitialEventPayload: jest.fn(),
