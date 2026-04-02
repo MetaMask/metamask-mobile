@@ -63,16 +63,10 @@ export const useUnifiedSwapBridgeContext = () => {
       stx_enabled: smartTransactionsEnabled,
       token_symbol_source: fromToken?.symbol ?? '',
       token_symbol_destination: toToken?.symbol ?? '',
-      security_warnings: tokenWarning ? [tokenWarning.description] : [],
+      security_warnings: [], // TODO
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
     }),
-    [
-      smartTransactionsEnabled,
-      fromToken,
-      toToken,
-      usdAmountSource,
-      tokenWarning,
-    ],
+    [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
   );
 };
