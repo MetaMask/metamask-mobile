@@ -1720,7 +1720,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('skips subscriber notification when clearCache is called with skipNotify=true', async () => {
+    it('skips subscriber notification when clearCache is called with preserveCache=true', async () => {
       const callback = jest.fn();
 
       const unsubscribe = testStreamManager.marketData.subscribe({
@@ -1741,7 +1741,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('preserves cached market data for new subscribers when clearCache uses skipNotify=true', async () => {
+    it('preserves cached market data for new subscribers when clearCache uses preserveCache=true', async () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();
 
@@ -1771,7 +1771,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe2();
     });
 
-    it('notifies subscribers with [] when clearCache is called without skipNotify', async () => {
+    it('notifies subscribers with [] when clearCache is called without preserveCache', async () => {
       const callback = jest.fn();
 
       const unsubscribe = testStreamManager.marketData.subscribe({
@@ -1790,7 +1790,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('clears pending throttle timers on skipNotify clearCache without notifying', async () => {
+    it('clears pending throttle timers on preserveCache clearCache without notifying', async () => {
       jest.useRealTimers();
       const callback = jest.fn();
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);

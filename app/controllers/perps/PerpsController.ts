@@ -127,6 +127,23 @@ import { wait } from './utils/wait';
 /** Derived type for logger options from PerpsLogger interface */
 type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
 
+/** Shape of a single market entry persisted to disk cache. */
+type DiskCacheMarketEntry = {
+  providerNetworkKey: string;
+  data: PerpsMarketData[];
+  timestamp: number;
+};
+
+/** Shape of a single user-data entry persisted to disk cache. */
+type DiskCacheUserEntry = {
+  providerNetworkKey: string;
+  address: string;
+  positions: Position[];
+  orders: Order[];
+  accountState: AccountState | null;
+  timestamp: number;
+};
+
 /**
  * Returns the first non-empty string from the given values.
  * Env vars default to '' (not null/undefined), so ?? wouldn't fall through.
@@ -2999,37 +3016,13 @@ export class PerpsController extends BaseController<
           const staleHydratedTimestamp =
             Date.now() - PerpsController.#preloadGuardMs * 10 - 1;
           const parsed = JSON.parse(marketsRaw) as
-            | {
-                providerNetworkKey: string;
-                data: PerpsMarketData[];
-                timestamp: number;
-              }
-            | {
-                entries: {
-                  providerNetworkKey: string;
-                  data: PerpsMarketData[];
-                  timestamp: number;
-                }[];
-              };
+            | DiskCacheMarketEntry
+            | { entries: DiskCacheMarketEntry[] };
           const entries = Array.isArray(
             (parsed as { entries?: unknown }).entries,
           )
-            ? (
-                parsed as {
-                  entries: {
-                    providerNetworkKey: string;
-                    data: PerpsMarketData[];
-                    timestamp: number;
-                  }[];
-                }
-              ).entries
-            : [
-                parsed as {
-                  providerNetworkKey: string;
-                  data: PerpsMarketData[];
-                  timestamp: number;
-                },
-              ];
+            ? (parsed as { entries: DiskCacheMarketEntry[] }).entries
+            : [parsed as DiskCacheMarketEntry];
 
           for (const entry of entries) {
             if (entry.providerNetworkKey && Array.isArray(entry.data)) {
@@ -3066,49 +3059,13 @@ export class PerpsController extends BaseController<
       if (userRaw) {
         try {
           const parsed = JSON.parse(userRaw) as
-            | {
-                providerNetworkKey: string;
-                address: string;
-                positions: Position[];
-                orders: Order[];
-                accountState: AccountState | null;
-                timestamp: number;
-              }
-            | {
-                entries: {
-                  providerNetworkKey: string;
-                  address: string;
-                  positions: Position[];
-                  orders: Order[];
-                  accountState: AccountState | null;
-                  timestamp: number;
-                }[];
-              };
+            | DiskCacheUserEntry
+            | { entries: DiskCacheUserEntry[] };
           const entries = Array.isArray(
             (parsed as { entries?: unknown }).entries,
           )
-            ? (
-                parsed as {
-                  entries: {
-                    providerNetworkKey: string;
-                    address: string;
-                    positions: Position[];
-                    orders: Order[];
-                    accountState: AccountState | null;
-                    timestamp: number;
-                  }[];
-                }
-              ).entries
-            : [
-                parsed as {
-                  providerNetworkKey: string;
-                  address: string;
-                  positions: Position[];
-                  orders: Order[];
-                  accountState: AccountState | null;
-                  timestamp: number;
-                },
-              ];
+            ? (parsed as { entries: DiskCacheUserEntry[] }).entries
+            : [parsed as DiskCacheUserEntry];
 
           for (const entry of entries) {
             if (entry.providerNetworkKey && entry.address) {

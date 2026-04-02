@@ -378,20 +378,17 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
-    isLoading: (() => {
-      const loading = {
-        // Hooks handle reconnection internally: clearCache() sends null →
-        // callback sets isInitialLoading=true. No need to override with
-        // isConnecting, which would defeat disk-cache instant display on
-        // cold start (isConnecting is true while WS connects, but cached
-        // data is already available).
-        positions: isPositionsLoading,
-        orders: isOrdersLoading,
-        markets: isMarketsLoading,
-        activity: isFillsLoading || isConnecting,
-      };
-      return loading;
-    })(),
+    // Hooks handle reconnection internally: clearCache() sends null →
+    // callback sets isInitialLoading=true. No need to override with
+    // isConnecting, which would defeat disk-cache instant display on
+    // cold start (isConnecting is true while WS connects, but cached
+    // data is already available).
+    isLoading: {
+      positions: isPositionsLoading,
+      orders: isOrdersLoading,
+      markets: isMarketsLoading,
+      activity: isFillsLoading || isConnecting,
+    },
     refresh,
   };
 };

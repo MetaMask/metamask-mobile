@@ -30,7 +30,7 @@ export function usePerpsLiveAccount(
 ): UsePerpsLiveAccountReturn {
   const { throttleMs = 1000 } = options;
   const streamManager = usePerpsStream();
-  const initialChannelAccount = streamManager.account.getSnapshot?.();
+  const initialChannelAccount = streamManager.account.getSnapshot();
   const [account, setAccount] = useState<AccountState | null>(() => {
     const cached =
       initialChannelAccount ??

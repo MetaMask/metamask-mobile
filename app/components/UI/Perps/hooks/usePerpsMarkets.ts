@@ -76,7 +76,7 @@ export const usePerpsMarkets = (
   } = options;
 
   const streamManager = usePerpsStream();
-  const initialChannelMarkets = streamManager.marketData.getSnapshot?.();
+  const initialChannelMarkets = streamManager.marketData.getSnapshot();
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
       const cached =

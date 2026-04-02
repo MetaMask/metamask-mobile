@@ -362,6 +362,8 @@ abstract class StreamChannel<T> {
   }
 
   protected abstract getClearedData(): T;
+
+  public abstract getSnapshot(): T | null;
 }
 
 // Specific channel for prices
@@ -446,6 +448,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
   protected getClearedData(): Record<string, PriceUpdate> {
     return {};
+  }
+
+  public getSnapshot(): Record<string, PriceUpdate> | null {
+    return this.getCachedData();
   }
 
   public clearCache(): void {
@@ -981,6 +987,10 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
     return [];
   }
 
+  public getSnapshot(): OrderFill[] | null {
+    return this.cache.get('fills') ?? null;
+  }
+
   /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches fills data continuously
@@ -1205,6 +1215,10 @@ class OICapStreamChannel extends StreamChannel<string[]> {
     return [];
   }
 
+  public getSnapshot(): string[] | null {
+    return this.cache.get('oiCaps') ?? null;
+  }
+
   /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches data continuously
@@ -1297,6 +1311,13 @@ class TopOfBookStreamChannel extends StreamChannel<
     | { bestBid?: string; bestAsk?: string; spread?: string }
     | undefined {
     return undefined;
+  }
+
+  public getSnapshot():
+    | { bestBid?: string; bestAsk?: string; spread?: string }
+    | undefined
+    | null {
+    return this.cachedTopOfBook ?? null;
   }
 
   public clearCache(): void {
@@ -1581,15 +1602,15 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   /**
    * Clear cache and reset fetch time.
    *
-   * @param skipNotify - When true, subscribers keep their current data (used on
+   * @param preserveCache - When true, subscribers keep their current data (used on
    * account switches where market data is global and stays valid). When false
    * (default), subscribers are notified with `[]` and their throttle state is
    * reset so the next fetch result is delivered immediately.
    */
-  public clearCache(skipNotify = false): void {
+  public clearCache(preserveCache = false): void {
     this.fetchPromise = null;
 
-    if (!skipNotify) {
+    if (!preserveCache) {
       this.cache.clear();
       this.lastFetchTime = 0;
       this.cachedProviderId = null;
@@ -1602,7 +1623,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       }
       subscriber.pendingUpdate = undefined;
 
-      if (!skipNotify) {
+      if (!preserveCache) {
         subscriber.hasReceivedFirstUpdate = false;
         subscriber.callback([]);
       }
