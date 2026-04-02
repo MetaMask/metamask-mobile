@@ -4,7 +4,7 @@ name: Nightly Build
 # Each build creates its own ephemeral branch via create-build-branch.yml,
 # so the persistent chore/temp-nightly branch is no longer needed.
 #
-# iOS builds are handled end-to-end by upload-to-testflight.yml (build + upload).
+# iOS builds use build-and-upload-to-testflight.yml (temp branch, build.yml, TestFlight upload).
 # Android builds use create-build-branch.yml + build.yml (build artifacts only).
 #
 # rc depends on exp within each platform stream to ensure the external version
@@ -26,7 +26,7 @@ jobs:
   # ── iOS exp: build + TestFlight upload ─────────────────────────────────
   ios-exp:
     name: Nightly iOS exp
-    uses: ./.github/workflows/upload-to-testflight.yml
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
       source_branch: main
       environment: exp
@@ -37,7 +37,7 @@ jobs:
   ios-rc:
     name: Nightly iOS rc
     needs: [ios-exp]
-    uses: ./.github/workflows/upload-to-testflight.yml
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
       source_branch: main
       environment: rc
@@ -82,7 +82,7 @@ jobs:
     secrets: inherit
 
   # ── Cleanup Android ephemeral branches ─────────────────────────────────
-  # iOS branches are cleaned up by upload-to-testflight.yml internally.
+  # iOS ephemeral branches are cleaned up by build-and-upload-to-testflight.yml.
   cleanup:
     name: Cleanup Android build branches
     needs: [android-exp-branch, android-rc-branch, android-exp, android-rc]
