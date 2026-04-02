@@ -1,5 +1,6 @@
 import { ControllerInitFunction } from '../../types';
 import { CryptographicFunctions } from '@metamask/key-tree';
+import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
   KeyringController,
   KeyringControllerMessenger,
@@ -76,14 +77,6 @@ export const keyringControllerInit: ControllerInitFunction<
   hdKeyringBuilder.type = HdKeyring.type;
   additionalKeyrings.push(hdKeyringBuilder);
 
-  // TODO: Move this to `@metamask/eth-money-keyring` or `@metamask/keyring-utils` or `@metamask/keyring-sdk` maybe?
-  const encodeMnemonic = (mnemonicIndicesBytes: Uint8Array) => {
-    const mnemonicIndices = Array.from(
-      new Uint16Array(mnemonicIndicesBytes.buffer),
-    );
-    const mnemonic = mnemonicIndices.map((i) => wordlist[i]).join(' ');
-    return Array.from(new TextEncoder().encode(mnemonic));
-  };
   const moneyKeyringBuilder = () =>
     new MoneyKeyring({
       cryptographicFunctions,
