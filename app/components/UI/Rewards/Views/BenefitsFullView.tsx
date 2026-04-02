@@ -1,4 +1,4 @@
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
@@ -70,26 +70,24 @@ const BenefitsFullView = () => {
         {!hasBenefits ? (
           <BenefitEmptyList />
         ) : (
-          <Box twClassName="h-full p-4">
-            <FlatList
-              data={benefits}
-              renderItem={renderBenefitItem}
-              keyExtractor={(item) => item.id.toString()}
-              ListFooterComponent={<TheMiracleFooter />}
-              ListEmptyComponent={<BenefitEmptyList />}
-              ListHeaderComponent={
-                <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
-                  {strings('rewards.benefits.list_header')}
-                </Text>
-              }
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={tw.style('gap-3 pb-24')}
-              style={tw.style('flex-1')}
-            />
-          </Box>
+          <FlatList
+            data={benefits}
+            renderItem={renderBenefitItem}
+            keyExtractor={(item) => item.id.toString()}
+            ListFooterComponent={<TheMiracleFooter />}
+            ListEmptyComponent={<BenefitEmptyList />}
+            ListHeaderComponent={
+              <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
+                {strings('rewards.benefits.list_header')}
+              </Text>
+            }
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4 gap-3 pb-4')}
+            style={tw.style('flex-1')}
+          />
         )}
       </SafeAreaView>
     </ErrorBoundary>

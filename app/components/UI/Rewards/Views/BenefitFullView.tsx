@@ -72,7 +72,7 @@ const BenefitFullView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">
       <SafeAreaView
-        edges={{}}
+        edges={{ bottom: 'additive'}}
         style={tw.style('flex-1')}
         testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_VIEW}
       >
@@ -130,7 +130,7 @@ const BenefitFullView = () => {
             </Text>
           </Box>
         </ScrollView>
-        <Box twClassName="p-4">
+        <Box twClassName="px-4 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
