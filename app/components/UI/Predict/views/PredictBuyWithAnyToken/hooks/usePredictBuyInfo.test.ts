@@ -328,16 +328,14 @@ describe('usePredictBuyInfo', () => {
   });
 
   describe('depositAmount', () => {
-    it('returns the remaining amount needed after predict balance is applied', () => {
-      mockPredictBalance = 80;
-
+    it('returns bet amount plus provider and metamask fees', () => {
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
-      expect(result.current.depositAmount).toBe(25);
+      // 100 (currentValue) + 3 (providerFee) + 2 (metamaskFee) = 105
+      expect(result.current.depositAmount).toBe(105);
     });
 
-    it('rounds the remaining amount up to 2 decimals when a deposit is still needed', () => {
-      mockPredictBalance = 0;
+    it('rounds up to 2 decimals when fees produce more than 2 decimal places', () => {
       const params = {
         ...defaultParams,
         currentValue: 2,
@@ -354,11 +352,11 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
+      // 2 + 0.04 + 0.035 = 2.075 → rounded up = 2.08
       expect(result.current.depositAmount).toBe(2.08);
     });
 
-    it('rounds up even when the third decimal is below 5 so the deposit fully covers the shortfall', () => {
-      mockPredictBalance = 0;
+    it('rounds up even when the third decimal is below 5', () => {
       const params = {
         ...defaultParams,
         currentValue: 2,
@@ -375,11 +373,11 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
+      // 2 + 0.04 + 0.034 = 2.074 → rounded up = 2.08
       expect(result.current.depositAmount).toBe(2.08);
     });
 
-    it('rounds a tiny positive shortfall up to the minimum cent instead of zero', () => {
-      mockPredictBalance = 2.075889;
+    it('returns exact value when sum has 2 or fewer decimal places', () => {
       const params = {
         ...defaultParams,
         currentValue: 2,
@@ -396,10 +394,11 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      expect(result.current.depositAmount).toBe(0.01);
+      // 2 + 0.04 + 0.04 = 2.08
+      expect(result.current.depositAmount).toBe(2.08);
     });
 
-    it('returns the full preview total when predict balance already covers the bet', () => {
+    it('ignores predict balance in calculation', () => {
       mockPredictBalance = 110;
       const params = {
         ...defaultParams,
@@ -418,6 +417,7 @@ describe('usePredictBuyInfo', () => {
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
+      // 1 + 0.02 + 0.02 = 1.04 (predictBalance is NOT subtracted)
       expect(result.current.depositAmount).toBe(1.04);
     });
   });

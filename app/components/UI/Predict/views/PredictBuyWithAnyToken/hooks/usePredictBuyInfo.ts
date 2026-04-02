@@ -93,18 +93,13 @@ export const usePredictBuyInfo = ({
     ],
   );
 
-  const depositAmount = useMemo(() => {
-    const remainingAmount = new BigNumber(totalPayForPredictBalance)
-      .minus(predictBalance)
-      .decimalPlaces(2, BigNumber.ROUND_UP)
-      .toNumber();
-    if (remainingAmount <= 0) {
-      return new BigNumber(totalPayForPredictBalance)
+  const depositAmount = useMemo(
+    () =>
+      new BigNumber(totalPayForPredictBalance)
         .decimalPlaces(2, BigNumber.ROUND_UP)
-        .toNumber();
-    }
-    return remainingAmount;
-  }, [predictBalance, totalPayForPredictBalance]);
+        .toNumber(),
+    [totalPayForPredictBalance],
+  );
 
   return {
     toWin,
