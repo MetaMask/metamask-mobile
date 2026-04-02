@@ -1757,14 +1757,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
-          {hasBlockingPayAlerts &&
-            typeof blockingPayAlertMessage === 'string' && (
-              <View style={styles.validationContainer}>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                  {blockingPayAlertMessage}
-                </Text>
-              </View>
-            )}
+          {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
+            <View style={styles.validationContainer}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                {blockingPayAlertMessage}
+              </Text>
+            </View>
+          )}
 
           {buttonColorVariant === 'monochrome' ? (
             <Button
