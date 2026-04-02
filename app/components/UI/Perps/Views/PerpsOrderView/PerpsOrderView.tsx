@@ -591,7 +591,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return allPayAlerts.filter((a) => a.isBlocking);
   }, [insufficientPayAlerts, noQuotesAlerts]);
 
-  const hasBlockingPayAlerts = blockingPayAlerts.length > 0;
+  const hasBlockingPayAlerts =
+    hasCustomTokenSelected && blockingPayAlerts.length > 0;
 
   const blockingPayAlertMessage = useMemo(
     () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
