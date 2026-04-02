@@ -13,14 +13,14 @@ describe('wait', () => {
     const promise = wait(100);
     jest.advanceTimersByTime(100);
     await promise;
-    expect(promise).resolves.toBeUndefined();
+    await expect(promise).resolves.toBeUndefined();
   });
 
   it('should handle zero duration', async () => {
     const promise = wait(0);
     jest.advanceTimersByTime(0);
     await promise;
-    expect(promise).resolves.toBeUndefined();
+    await expect(promise).resolves.toBeUndefined();
   });
 
   it('should return a Promise that resolves to undefined', async () => {

@@ -12,12 +12,10 @@ import {
   IconSize,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -191,15 +189,16 @@ const VerifyIdentity = () => {
 
   const renderActions = () => (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
+      variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       isDisabled={!sessionUrl || isLaunchingVeriff}
-      loading={isLaunchingVeriff}
+      isLoading={isLaunchingVeriff}
       testID="verify-identity-continue-button"
-    />
+    >
+      {strings('card.card_onboarding.continue_button')}
+    </Button>
   );
   return (
     <OnboardingStep

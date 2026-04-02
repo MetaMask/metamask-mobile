@@ -1,3 +1,14 @@
+// Polyfill File for undici (used by cheerio/enzyme-to-json)
+if (typeof File === 'undefined') {
+  global.File = class File extends Blob {
+    constructor(chunks, name, options = {}) {
+      super(chunks, options);
+      this.name = name;
+      this.lastModified = options.lastModified || Date.now();
+    }
+  };
+}
+
 process.env.TZ = 'America/Toronto';
 
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
@@ -49,6 +60,8 @@ const config = {
     '<rootDir>/app/util/testUtils/',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
     '<rootDir>/app/features/SampleFeature/e2e/',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsEntryCardOriginal.tsx',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/AnimatedGradientBorder.tsx',
   ],
   testPathIgnorePatterns: [
     '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',

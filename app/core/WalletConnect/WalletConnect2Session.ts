@@ -1,5 +1,8 @@
 import { WalletDevice } from '@metamask/transaction-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
@@ -58,7 +61,7 @@ interface BackgroundBridgeFactory {
 class WalletConnect2Session {
   private channelId: string;
   private backgroundBridge: BackgroundBridge;
-  private navigation?: NavigationContainerRef;
+  private navigation?: NavigationContainerRef<ParamListBase>;
   private web3Wallet: IWalletKit;
   private deeplink: boolean;
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
@@ -72,6 +75,7 @@ class WalletConnect2Session {
   private lastChainId: Hex;
   private isHandlingChainChange = false;
   private _isHandlingRequest = false;
+  private storeUnsubscribe: (() => void) | null = null;
 
   public session: SessionTypes.Struct;
 
@@ -90,7 +94,7 @@ class WalletConnect2Session {
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
-    navigation?: NavigationContainerRef;
+    navigation?: NavigationContainerRef<ParamListBase>;
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.channelId = channelId;
@@ -164,7 +168,7 @@ class WalletConnect2Session {
     this.checkPendingRequests();
     this.lastChainId = this.getCurrentChainId();
     // Subscribe to store changes to detect chain switches
-    store.subscribe(this.onStoreChange.bind(this));
+    this.storeUnsubscribe = store.subscribe(this.onStoreChange.bind(this));
   }
 
   /**
@@ -791,6 +795,8 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
+    this.storeUnsubscribe?.();
+    this.storeUnsubscribe = null;
     this.backgroundBridge.onDisconnect();
   };
 

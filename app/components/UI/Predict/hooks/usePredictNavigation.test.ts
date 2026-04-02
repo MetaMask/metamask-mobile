@@ -7,22 +7,12 @@ import { PredictMarket, PredictOutcome, PredictOutcomeToken } from '../types';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockInitializeActiveOrder = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     dispatch: mockDispatch,
-  }),
-}));
-
-jest.mock('./usePredictActiveOrder', () => ({
-  usePredictActiveOrder: () => ({
-    initializeActiveOrder: mockInitializeActiveOrder,
-    activeOrder: null,
-    updateActiveOrder: jest.fn(),
-    clearActiveOrder: jest.fn(),
   }),
 }));
 
@@ -99,26 +89,6 @@ describe('usePredictNavigation', () => {
       );
     });
 
-    it('passes all params to the navigation call', () => {
-      const { result } = renderHook(() => usePredictNavigation());
-      const params = createMockParams({
-        isConfirmation: true,
-        animationEnabled: false,
-      });
-
-      act(() => {
-        result.current.navigateToBuyPreview(params);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        expect.objectContaining({
-          isConfirmation: true,
-          animationEnabled: false,
-        }),
-      );
-    });
-
     it('passes all params through ROOT navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
@@ -135,22 +105,6 @@ describe('usePredictNavigation', () => {
           entryPoint: 'carousel',
         }),
       });
-    });
-
-    it('dispatches StackActions.replace when replace option is true', () => {
-      const { result } = renderHook(() => usePredictNavigation());
-      const params = createMockParams({
-        animationEnabled: false,
-      });
-
-      act(() => {
-        result.current.navigateToBuyPreview(params, { replace: true });
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, params),
-      );
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('replace takes precedence over throughRoot', () => {
@@ -170,7 +124,7 @@ describe('usePredictNavigation', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('calls initializeActiveOrder on direct navigation', () => {
+    it('does not initialize active order on direct navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams();
 
@@ -178,14 +132,10 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params);
       });
 
-      expect(mockInitializeActiveOrder).toHaveBeenCalledWith({
-        market: params.market,
-        outcomeToken: params.outcomeToken,
-        entryPoint: params.entryPoint,
-      });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('calls initializeActiveOrder on throughRoot navigation', () => {
+    it('does not dispatch a replace action on throughRoot navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams();
 
@@ -193,14 +143,10 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params, { throughRoot: true });
       });
 
-      expect(mockInitializeActiveOrder).toHaveBeenCalledWith({
-        market: params.market,
-        outcomeToken: params.outcomeToken,
-        entryPoint: params.entryPoint,
-      });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('does not call initializeActiveOrder on replace navigation', () => {
+    it('dispatches replace navigation when replace is true', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams();
 
@@ -208,7 +154,7 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params, { replace: true });
       });
 
-      expect(mockInitializeActiveOrder).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
   });
 });

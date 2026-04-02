@@ -27,6 +27,7 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
+  clearSeedlessOnboarding,
 } from '../../../actions/onboarding';
 import {
   AccountType,
@@ -110,6 +111,12 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
+import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -137,7 +144,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
     () => `${getVersion()} (${getBuildNumber()})`,
     [],
@@ -770,6 +777,41 @@ const Onboarding = () => {
       });
 
       const action = async () => {
+        // prompt for ios google login not supported below iOS 17.4
+        if (
+          provider === AuthConnection.Google &&
+          Device.isIos() &&
+          Device.comparePlatformVersionTo('17.4') < 0
+        ) {
+          const description = () => (
+            <>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description`)}
+                <Text twClassName="font-bold">
+                  {strings(`error_sheet.ios_need_update_description_version`)}
+                </Text>
+                {strings(`error_sheet.ios_need_update_description_end`)}
+              </Text>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description2`)}
+              </Text>
+            </>
+          );
+
+          await navigateToSuccessErrorSheetPromise(navigation, {
+            type: 'error',
+            icon: IconName.Warning,
+            iconColor: IconColor.Warning,
+            title: strings(`error_sheet.ios_need_update_title`),
+            description: description(),
+            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
+            closeOnPrimaryButtonPress: true,
+            isInteractable: false,
+          });
+          track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
+            account_type: accountType,
+          });
+        }
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {
@@ -799,6 +841,7 @@ const Onboarding = () => {
       handleExistingUser(action);
     },
     [
+      tw,
       navigation,
       metrics,
       track,
@@ -825,6 +868,7 @@ const Onboarding = () => {
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
+        dispatch(clearSeedlessOnboarding());
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: {
@@ -835,7 +879,6 @@ const Onboarding = () => {
             createWallet: actionType === 'create',
           },
         });
-        // else
       } else if (actionType === 'create') {
         await onPressCreate();
       } else {
@@ -848,6 +891,7 @@ const Onboarding = () => {
       onPressImport,
       onPressContinueWithGoogle,
       onPressContinueWithApple,
+      dispatch,
     ],
   );
 

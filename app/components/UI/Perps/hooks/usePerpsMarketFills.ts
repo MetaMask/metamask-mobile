@@ -142,7 +142,7 @@ export const usePerpsMarketFills = ({
     for (const fill of restFills) {
       // Only add fills for the requested symbol
       if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}`;
+        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
         fillsMap.set(key, fill);
       }
     }
@@ -151,7 +151,7 @@ export const usePerpsMarketFills = ({
     for (const fill of liveFills) {
       // Only add fills for the requested symbol
       if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}`;
+        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
         fillsMap.set(key, fill);
       }
     }

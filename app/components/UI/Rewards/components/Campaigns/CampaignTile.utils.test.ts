@@ -7,6 +7,8 @@ import {
   formatCampaignStatusLabel,
   getCampaignPillLabel,
   getCampaignStatusInfo,
+  isCampaignTypeSupported,
+  isOptinAllowed,
 } from './CampaignTile.utils';
 import {
   type CampaignDto,
@@ -41,8 +43,8 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     endDate: '2025-12-31T23:59:59.999Z',
     termsAndConditions: null,
     excludedRegions: [],
-    statusLabel: 'Active',
     details: null,
+    featured: true,
     ...overrides,
   };
 }
@@ -164,7 +166,7 @@ describe('CampaignTile.utils', () => {
       expect(result).toContain('"date"');
     });
 
-    it('returns formatted endDate for complete status without localization', () => {
+    it('returns localized ended_date for complete status with formatted endDate', () => {
       const campaign = buildCampaignDto({
         startDate: '2025-01-01T00:00:00.000Z',
         endDate: '2025-07-04T18:00:00.000Z',
@@ -172,8 +174,11 @@ describe('CampaignTile.utils', () => {
 
       const result = formatCampaignStatusLabel('complete', campaign);
 
-      expect(strings).not.toHaveBeenCalled();
-      expect(result).toBe('July 4');
+      expect(strings).toHaveBeenCalledWith('rewards.campaign.ended_date', {
+        date: 'July 4',
+      });
+      expect(result).toContain('rewards.campaign.ended_date:');
+      expect(result).toContain('"date"');
     });
 
     it('returns empty string for unknown status', () => {
@@ -189,7 +194,7 @@ describe('CampaignTile.utils', () => {
   });
 
   describe('getCampaignPillLabel', () => {
-    it('returns pill_up_next for upcoming status', () => {
+    it('returns pill_up_next (Coming soon) for upcoming status', () => {
       const result = getCampaignPillLabel('upcoming');
 
       expect(strings).toHaveBeenCalledWith('rewards.campaign.pill_up_next');
@@ -275,9 +280,113 @@ describe('CampaignTile.utils', () => {
       expect(result).toEqual({
         status: 'complete',
         statusLabel: 'rewards.campaign.pill_complete',
-        dateLabel: 'December 31',
+        dateLabel: expect.stringContaining('rewards.campaign.ended_date'),
         dateLabelIcon: 'Confirmation',
       });
+    });
+  });
+
+  describe('isOptinAllowed', () => {
+    const minimalOndoDetails = {
+      howItWorks: { title: 'How', description: 'Desc', steps: [] },
+    };
+
+    /** Time within default buildCampaignDto start/end so status is `active`. */
+    const activeCampaignNow = new Date('2025-08-15T12:00:00.000Z');
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(activeCampaignNow);
+    });
+
+    it('returns true for non-ONDO_HOLDING campaigns even after a cutoff-like field', () => {
+      jest.setSystemTime(new Date('2025-10-15T12:00:00.000Z'));
+
+      const campaign = buildCampaignDto({
+        type: CampaignType.SEASON_1,
+        details: {
+          ...minimalOndoDetails,
+          depositCutoffDate: '2025-08-01T00:00:00.000Z',
+        },
+      });
+
+      expect(isOptinAllowed(campaign)).toBe(true);
+    });
+
+    it('returns true for ONDO_HOLDING when depositCutoffDate is absent', () => {
+      const campaign = buildCampaignDto({
+        type: CampaignType.ONDO_HOLDING,
+        details: minimalOndoDetails,
+      });
+
+      expect(isOptinAllowed(campaign)).toBe(true);
+    });
+
+    it('returns true when now is on or before depositCutoffDate', () => {
+      jest.setSystemTime(new Date('2025-08-01T12:00:00.000Z'));
+
+      const campaign = buildCampaignDto({
+        type: CampaignType.ONDO_HOLDING,
+        details: {
+          ...minimalOndoDetails,
+          depositCutoffDate: '2025-08-01T23:59:59.999Z',
+        },
+      });
+
+      expect(isOptinAllowed(campaign)).toBe(true);
+    });
+
+    it('returns false when now is after depositCutoffDate', () => {
+      jest.setSystemTime(new Date('2025-08-02T12:00:00.000Z'));
+
+      const campaign = buildCampaignDto({
+        type: CampaignType.ONDO_HOLDING,
+        details: {
+          ...minimalOndoDetails,
+          depositCutoffDate: '2025-08-01T23:59:59.999Z',
+        },
+      });
+
+      expect(isOptinAllowed(campaign)).toBe(false);
+    });
+
+    it('returns false when campaign status is upcoming', () => {
+      jest.setSystemTime(new Date('2025-05-01T12:00:00.000Z'));
+
+      const campaign = buildCampaignDto({
+        type: CampaignType.ONDO_HOLDING,
+        details: {
+          ...minimalOndoDetails,
+          depositCutoffDate: '2025-12-01T00:00:00.000Z',
+        },
+      });
+
+      expect(isOptinAllowed(campaign)).toBe(false);
+    });
+
+    it('returns false when campaign status is complete', () => {
+      jest.setSystemTime(new Date('2026-01-15T12:00:00.000Z'));
+
+      const campaign = buildCampaignDto({
+        type: CampaignType.SEASON_1,
+        details: minimalOndoDetails,
+      });
+
+      expect(isOptinAllowed(campaign)).toBe(false);
+    });
+  });
+
+  describe('isCampaignTypeSupported', () => {
+    it('returns true for ONDO_HOLDING campaign type', () => {
+      expect(isCampaignTypeSupported(CampaignType.ONDO_HOLDING)).toBe(true);
+    });
+
+    it('returns true for SEASON_1 campaign type', () => {
+      expect(isCampaignTypeSupported(CampaignType.SEASON_1)).toBe(true);
+    });
+
+    it('returns false for unknown campaign types', () => {
+      expect(isCampaignTypeSupported('UNKNOWN' as CampaignType)).toBe(false);
     });
   });
 });

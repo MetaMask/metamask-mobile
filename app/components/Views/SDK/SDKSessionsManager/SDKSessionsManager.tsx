@@ -8,9 +8,7 @@ import { useTheme } from '../../../../util/theme';
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -122,13 +120,14 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
         </ScrollView>
         <View style={styles.disconnectAllContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('sdk.disconnect_all')}
+            variant={ButtonVariant.Secondary}
             style={styles.btnAction}
             onPress={() => {
               toggleClearMMSDKConnectionModal();
             }}
-          />
+          >
+            {strings('sdk.disconnect_all')}
+          </Button>
         </View>
       </>
     ),

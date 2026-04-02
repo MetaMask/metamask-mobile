@@ -23,7 +23,10 @@ jest.mock('@metamask/sdk-analytics', () => ({
 // Import the mocked checkPermissions
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { analytics } from '@metamask/sdk-analytics';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import checkPermissions from '../handlers/checkPermissions';
 
 describe('connectToChannel', () => {
@@ -102,7 +105,7 @@ describe('connectToChannel', () => {
           removeListener: jest.fn(),
           setParams: jest.fn(),
           setOptions: jest.fn(),
-        } as unknown as NavigationContainerRef,
+        } as unknown as NavigationContainerRef<ParamListBase>,
       },
       updateOriginatorInfos: mockUpdateSDKLoadingState,
       _approveHost: mockApproveHost,
@@ -130,7 +133,7 @@ describe('connectToChannel', () => {
           .fn()
           .mockReturnValue({ name: 'default-mock-conn-route' }),
         navigate: jest.fn(),
-      } as unknown as NavigationContainerRef,
+      } as unknown as NavigationContainerRef<ParamListBase>,
     } as unknown as Connection;
 
     MockedConnection = Connection as jest.MockedClass<typeof Connection>;
@@ -164,7 +167,7 @@ describe('connectToChannel', () => {
             removeListener: jest.fn(),
             setParams: jest.fn(),
             setOptions: jest.fn(),
-          } as unknown as NavigationContainerRef,
+          } as unknown as NavigationContainerRef<ParamListBase>,
         }) as unknown as Connection,
     );
   });

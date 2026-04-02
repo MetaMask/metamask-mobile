@@ -210,6 +210,7 @@ export enum TraceName {
   // Market Insights
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
+  MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
 }
 
 export enum TraceOperation {
@@ -260,6 +261,7 @@ export enum TraceOperation {
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
   // Market Insights
   MarketInsightsLoad = 'market_insights.load',
+  MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
 }
 
 const ID_DEFAULT = 'default';

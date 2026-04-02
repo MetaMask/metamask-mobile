@@ -20,10 +20,9 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button, {
-  ButtonSize,
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
+  ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -31,7 +30,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
@@ -82,6 +81,9 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Label,
   FontWeight,
   TextColor as DSTextColor,
@@ -95,6 +97,11 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
+import { setDataCollectionForMarketing } from '../../../actions/security';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { analytics } from '../../../util/analytics/analytics';
+import { getSocialAccountType } from '../../../constants/onboarding';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 const EmptyRecordConstant = {};
 
@@ -113,6 +120,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
+  const dispatch = useDispatch();
+
+  const authConnection =
+    useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -182,6 +193,37 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
     }
   }, [password, requestBiometricsAccessControlForIOS, updateAuthPreference]);
+
+  const syncMarketingOptInAfterUnlock = useCallback(async () => {
+    try {
+      const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
+      dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
+      analytics.identify({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]:
+          marketingOptInStatus.is_opt_in
+            ? UserProfileProperty.ON
+            : UserProfileProperty.OFF,
+      });
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+        )
+          .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+              marketingOptInStatus.is_opt_in,
+            updated_after_onboarding: true,
+            location: 'oauth_rehydration',
+            account_type: getSocialAccountType(authConnection, true),
+          })
+          .build(),
+      );
+    } catch (err) {
+      Logger.error(
+        ensureError(err, 'Marketing opt-in sync failed'),
+        'OAuthRehydration',
+      );
+    }
+  }, [dispatch, authConnection]);
 
   const track = useCallback(
     (
@@ -535,6 +577,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
       );
 
+      // run syncMarketingOptInAfterUnlock in the background
+      syncMarketingOptInAfterUnlock();
+
+      await upgradeKeychainAuthAfterSuccessfulUnlock();
+
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
       try {
@@ -572,6 +619,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
+    syncMarketingOptInAfterUnlock,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -599,6 +647,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           });
         },
       );
+
+      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -793,28 +843,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
                   size={ButtonSize.Lg}
                   onPress={handleLogin}
-                  label={strings('login.unlock_button')}
                   isDisabled={
                     password.length === 0 || disabledInput || finalLoading
                   }
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={finalLoading}
-                />
+                  isLoading={finalLoading}
+                >
+                  {strings('login.unlock_button')}
+                </Button>
               </View>
 
               {isSeedlessPasswordOutdated ? (
-                <Button
+                <OldButton
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
                   isDisabled={loading}
-                  size={ButtonSize.Lg}
+                  size={OldButtonSize.Lg}
                 />
               ) : (
                 <View style={styles.footer}>

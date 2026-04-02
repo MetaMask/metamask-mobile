@@ -18,6 +18,7 @@ import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -33,6 +34,8 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMax = useTransactionPayIsMaxAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
   const transactionMeta = useTransactionMetadataRequest();
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
 
   // In post-quote (withdrawal) flows, payToken is the *destination* token,
   // so payToken.chainId is the destination chain. The source chain (where gas
@@ -147,6 +150,10 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
+    if (selectedFiatPaymentMethod) {
+      return [];
+    }
+
     if (isInsufficientForInput) {
       return [
         {
@@ -194,6 +201,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
     isPostQuote,
+    selectedFiatPaymentMethod,
     ticker,
   ]);
 }

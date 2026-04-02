@@ -2,9 +2,7 @@ import React, { memo, useCallback, useMemo } from 'react';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './deposit-keyboard.styles';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -43,6 +41,7 @@ export interface DepositKeyboardProps {
   doneLabel?: string;
   hasInput?: boolean;
   hasMax?: boolean;
+  hidePercentageButtons?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -55,6 +54,7 @@ export const DepositKeyboard = memo(
     doneLabel,
     hasInput,
     hasMax,
+    hidePercentageButtons,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -100,32 +100,36 @@ export const DepositKeyboard = memo(
           {alertMessage && (
             <Button
               testID="deposit-keyboard-alert"
-              label={alertMessage}
               style={[styles.button, styles.disabledButton]}
               onPress={noop}
-              disabled
-              variant={ButtonVariants.Primary}
-            />
+              isDisabled
+              variant={ButtonVariant.Primary}
+            >
+              {alertMessage}
+            </Button>
           )}
           {!alertMessage &&
             !hasInput &&
+            !hidePercentageButtons &&
             buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
-                label={label}
                 style={styles.button}
                 onPress={() => handlePercentagePress(buttonValue)}
-                variant={ButtonVariants.Secondary}
-              />
+                variant={ButtonVariant.Secondary}
+              >
+                {label}
+              </Button>
             ))}
           {!alertMessage && hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
-              label={doneLabel ?? strings('confirm.edit_amount_done')}
               style={styles.button}
               onPress={onDonePress}
-              variant={ButtonVariants.Primary}
-            />
+              variant={ButtonVariant.Primary}
+            >
+              {doneLabel ?? strings('confirm.edit_amount_done')}
+            </Button>
           )}
         </Box>
         <KeypadComponent

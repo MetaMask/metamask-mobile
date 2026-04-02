@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
 import { PredictPositionStatus } from '../../types';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
@@ -20,9 +21,13 @@ const selectPredictWithdrawTransaction = createSelector(
   (predictControllerState) => predictControllerState?.withdrawTransaction,
 );
 
-const selectPredictActiveOrder = createSelector(
+const selectPredictActiveBuyOrder = createSelector(
   selectPredictControllerState,
-  (predictState) => predictState?.activeOrder ?? null,
+  selectSelectedInternalAccountAddress,
+  (predictState, address) => {
+    if (!predictState || !address) return null;
+    return predictState.activeBuyOrders[address] ?? null;
+  },
 );
 
 const selectPredictClaimablePositions = createSelector(
@@ -113,7 +118,7 @@ export {
   selectPredictPendingDeposits,
   selectPredictPendingClaims,
   selectPredictWithdrawTransaction,
-  selectPredictActiveOrder,
+  selectPredictActiveBuyOrder,
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,

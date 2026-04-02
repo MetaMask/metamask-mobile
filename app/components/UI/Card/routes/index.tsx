@@ -28,6 +28,7 @@ import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
+import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -149,7 +150,7 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
@@ -201,8 +202,7 @@ const MainRoutes = () => {
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}
@@ -236,11 +236,18 @@ const CardModalsRoutes = () => (
       name={Routes.CARD.MODALS.VIEW_PIN}
       component={ViewPinBottomSheet}
     />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
+      component={SpendingLimitOptionsSheet}
+    />
   </ModalsStack.Navigator>
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
+  <Stack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
     <Stack.Screen
       name={Routes.CARD.MODALS.ID}

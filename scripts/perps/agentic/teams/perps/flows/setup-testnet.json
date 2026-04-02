@@ -1,38 +1,43 @@
 {
   "title": "Setup — enable testnet and verify market data loads",
   "validate": {
-    "runtime": {
+    "workflow": {
       "pre_conditions": [
         "wallet.unlocked",
         "perps.feature_enabled"
       ],
-      "steps": [
-        {
-          "id": "enable-testnet",
+      "entry": "enable-testnet",
+      "nodes": {
+        "enable-testnet": {
           "action": "toggle_testnet",
-          "enabled": true
+          "enabled": true,
+          "next": "wait-reload"
         },
-        {
-          "id": "wait-reload",
+        "wait-reload": {
           "action": "wait_for",
           "expression": "JSON.stringify({isTestnet:Engine.context.PerpsController.state.isTestnet})",
           "assert": {
             "operator": "eq",
             "field": "isTestnet",
             "value": true
-          }
+          },
+          "next": "verify-markets"
         },
-        {
-          "id": "verify-markets",
+        "verify-markets": {
           "action": "eval_ref",
           "ref": "markets",
           "assert": {
             "operator": "not_null",
             "field": null,
             "value": null
-          }
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
         }
-      ]
+      }
     }
   }
 }

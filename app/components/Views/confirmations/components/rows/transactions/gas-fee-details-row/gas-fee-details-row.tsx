@@ -272,8 +272,7 @@ const GasFeesDetailsRow = ({
   );
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
-  // This prevents the gas fee row from showing as sponsored if stx is disabled
-  // by the user and 7702 is not supported in the chain.
+  // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
   const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
 
@@ -364,14 +363,17 @@ const GasFeesDetailsRow = ({
             </View>
           )}
         </AlertRow>
-        {isUserFeeLevelExists && !hideSpeed && (
-          <AlertRow
-            alertField={RowAlertKey.PendingTransaction}
-            label={strings('transactions.gas_modal.speed')}
-          >
-            <GasSpeed />
-          </AlertRow>
-        )}
+        {isUserFeeLevelExists &&
+          !hideSpeed &&
+          !gasFeeToken &&
+          !isSimulationLoading && (
+            <AlertRow
+              alertField={RowAlertKey.PendingTransaction}
+              label={strings('transactions.gas_modal.speed')}
+            >
+              <GasSpeed />
+            </AlertRow>
+          )}
       </Container>
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />

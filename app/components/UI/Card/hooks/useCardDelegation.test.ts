@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import { useNeedsGasFaucet } from './useNeedsGasFaucet';
+import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { CardSDK } from '../sdk/CardSDK';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Engine from '../../../../core/Engine';
@@ -33,6 +34,10 @@ jest.mock('./useNeedsGasFaucet', () => ({
   useNeedsGasFaucet: jest.fn(),
 }));
 
+jest.mock('./useEnsureCardNetworkExists', () => ({
+  useEnsureCardNetworkExists: jest.fn(),
+}));
+
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -57,9 +62,6 @@ jest.mock('../../../../core/Engine', () => ({
     },
     TransactionController: {
       addTransaction: jest.fn(),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -98,6 +100,11 @@ const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseNeedsGasFaucet = useNeedsGasFaucet as jest.MockedFunction<
   typeof useNeedsGasFaucet
 >;
+const mockEnsureNetworkExists = jest.fn();
+const mockUseEnsureCardNetworkExists =
+  useEnsureCardNetworkExists as jest.MockedFunction<
+    typeof useEnsureCardNetworkExists
+  >;
 const mockToTokenMinimalUnit = toTokenMinimalUnit as jest.MockedFunction<
   typeof toTokenMinimalUnit
 >;
@@ -205,9 +212,11 @@ describe('useCardDelegation', () => {
           id: 'transaction-meta-id-123',
         },
       });
-    Engine.context.NetworkController.findNetworkClientIdByChainId = jest
-      .fn()
-      .mockReturnValue(mockNetworkClientId);
+    // Setup useEnsureCardNetworkExists mock
+    mockEnsureNetworkExists.mockResolvedValue(mockNetworkClientId);
+    mockUseEnsureCardNetworkExists.mockReturnValue({
+      ensureNetworkExists: mockEnsureNetworkExists,
+    });
 
     // Setup controllerMessenger mock to simulate transaction confirmation
     Engine.controllerMessenger.subscribeOnceIf = jest
@@ -1087,7 +1096,7 @@ describe('useCardDelegation', () => {
       );
     });
 
-    it('finds network client by chain ID', async () => {
+    it('ensures network exists for the token chain ID', async () => {
       const mockToken = createMockToken({ caipChainId: 'eip155:137' });
       const params = createMockDelegationParams();
 
@@ -1097,9 +1106,7 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(
-        Engine.context.NetworkController.findNetworkClientIdByChainId,
-      ).toHaveBeenCalled();
+      expect(mockEnsureNetworkExists).toHaveBeenCalledWith('eip155:137');
     });
 
     it('subscribes to transaction confirmation event', async () => {

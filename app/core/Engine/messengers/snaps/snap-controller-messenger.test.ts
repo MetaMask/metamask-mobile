@@ -8,8 +8,8 @@ import {
 import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
-  SnapControllerMessenger,
 } from './snap-controller-messenger';
+import { SnapControllerMessenger } from '@metamask/snaps-controllers';
 
 type RootMessenger = Messenger<
   MockAnyNamespace,

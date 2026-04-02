@@ -20,6 +20,7 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
+import { mockTheme } from '../../../util/theme';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -54,6 +55,12 @@ jest.mock('../../../core/NotificationManager', () => ({
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
   speedUpTransaction: jest.fn(),
+  getPreviousGasFromController: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../util/confirmation/gas', () => ({
+  getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
+  getMediumGasPriceHex: jest.fn(() => '0x123'),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -1422,14 +1429,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const key = instance.keyExtractor({ id: 'tx-123' });
     expect(key).toBe('tx-123');
 
-    // Test getGasPriceEstimate method directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: { medium: { suggestedMaxFeePerGas: '20' } },
-    };
-    const estimate = instance.getGasPriceEstimate();
-    expect(estimate).toBeDefined();
-
     // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const result = instance.getCancelOrSpeedupValues();
@@ -1954,11 +1953,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderLoader method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
 
     const result = instance.renderLoader();
@@ -1967,11 +1963,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderEmpty method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.props = {
       ...defaultTestProps,
@@ -2002,13 +1995,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderList method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-        primary: { default: '#037dd6' },
-        icon: { default: '#24272a' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.flatList = React.createRef();
     instance.state = { refreshing: false };
@@ -2033,13 +2021,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-        primary: { default: '#037dd6' },
-        icon: { default: '#24272a' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.state = {
       refreshing: false,
@@ -2083,11 +2066,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test render method directly', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.state = {
       ready: true,
@@ -2167,53 +2147,10 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result2?.gasPrice).toBeDefined();
   });
 
-  it('should test getGasPriceEstimate with different scenarios', () => {
-    // Test with medium.suggestedMaxFeePerGas
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: { suggestedMaxFeePerGas: '25' },
-      },
-    };
-    let result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with medium value directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: '20',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with gasPrice fallback
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        gasPrice: '15',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with no estimates (fallback to '0')
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {},
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-  });
-
   it('should test renderEmpty with switch network scenarios', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
 
     // Test when tokenChainId is different from chainId

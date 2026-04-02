@@ -38,7 +38,6 @@ import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 
 const AVATAR_SIZE = 78;
 const UK_COUNTRY_CODE = 'GB';
-const UNKNOWN_LOCATION = 'UNKNOWN';
 
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
@@ -94,9 +93,10 @@ const EarnCard: React.FC<EarnCardProps> = ({
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * - mUSD calculator card: only shown when geoLocation is confirmed, known, AND not UK.
- * Hidden when geoLocation is undefined, 'UNKNOWN', or 'GB' to prevent flash for UK users.
- * - MetaMask Card card: shown when card geo is loaded and country is supported
+ * - mUSD calculator card: shown when geoLocation has settled AND is not UK.
+ * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined (loading)
+ * or 'GB' to prevent flash for UK users.
+ * - MetaMask Card card: shown when card geo is loaded and country is in the supported list.
  * - While geo is loading (status 'idle' or 'loading'): skeletons shown; title always visible
  */
 const EarnRewardsPreview: React.FC = () => {
@@ -109,9 +109,7 @@ const EarnRewardsPreview: React.FC = () => {
   const geoStatus = useSelector(selectGeolocationStatus);
   const isMusdGeoLoading = geoStatus === 'loading' || geoStatus === 'idle';
   const showMusdCard =
-    geoLocation !== undefined &&
-    geoLocation !== UNKNOWN_LOCATION &&
-    geoLocation !== UK_COUNTRY_CODE;
+    geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
 
   // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardGeoLoaded = useSelector(selectCardIsLoaded);
@@ -130,7 +128,7 @@ const EarnRewardsPreview: React.FC = () => {
   const isAnyGeoLoading = isMusdGeoLoading || isCardGeoLoading;
 
   const handleMusdPress = useCallback(() => {
-    navigation.navigate(Routes.MUSD_CALCULATOR_VIEW);
+    navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
   }, [navigation]);
 
   const handleCardPress = useCallback(() => {
@@ -159,32 +157,31 @@ const EarnRewardsPreview: React.FC = () => {
         </Text>
       </Box>
 
-      {isAnyGeoLoading ? (
-        <>
-          <Skeleton style={tw.style('h-28 rounded-xl')} />
-          <Skeleton style={tw.style('h-28 rounded-xl')} />
-        </>
+      {isMusdGeoLoading && !showMusdCard ? (
+        <Skeleton style={tw.style('h-28 rounded-xl')} />
       ) : (
-        <>
-          {showMusdCard && (
-            <EarnCard
-              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
-              image={musdImage}
-              title={strings('rewards.earn_rewards.musd_title')}
-              subtitle={strings('rewards.earn_rewards.musd_subtitle')}
-              onPress={handleMusdPress}
-            />
-          )}
-          {showCardCard && (
-            <EarnCard
-              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-              image={cardImage}
-              title={strings('rewards.earn_rewards.card_title')}
-              subtitle={cardSubtitle}
-              onPress={handleCardPress}
-            />
-          )}
-        </>
+        showMusdCard && (
+          <EarnCard
+            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+            image={musdImage}
+            title={strings('rewards.earn_rewards.musd_title')}
+            subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+            onPress={handleMusdPress}
+          />
+        )
+      )}
+      {isCardGeoLoading ? (
+        <Skeleton style={tw.style('h-28 rounded-xl')} />
+      ) : (
+        showCardCard && (
+          <EarnCard
+            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+            image={cardImage}
+            title={strings('rewards.earn_rewards.card_title')}
+            subtitle={cardSubtitle}
+            onPress={handleCardPress}
+          />
+        )
       )}
     </Box>
   );

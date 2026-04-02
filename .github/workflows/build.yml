@@ -25,6 +25,28 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      build_name:
+        description: 'build_name input passed to this workflow'
+        value: ${{ inputs.build_name }}
+      platform:
+        description: 'platform input (android, ios, or both)'
+        value: ${{ inputs.platform }}
+      source_branch_input:
+        description: 'source_branch input (empty means default ref was used)'
+        value: ${{ inputs.source_branch }}
+      checkout_ref:
+        description: 'Git ref used for checkout (version-bump commit SHA or source_branch / triggering ref)'
+        value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at checkout_ref after build succeeded'
+        value: ${{ jobs.emit-build-metadata.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -72,7 +94,7 @@ jobs:
       contents: write
       id-token: write
     with:
-      base-branch: ${{ inputs.source_branch != '' && inputs.source_branch || github.ref_name }}
+      base-branch: ${{ inputs.source_branch || github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
@@ -84,15 +106,16 @@ jobs:
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
-      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch != '' && inputs.source_branch || github.ref_name) }}
+      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch != '' && inputs.source_branch || github.ref_name) }}
+          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -110,6 +133,8 @@ jobs:
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const env = build.env || {};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           const signing = build.signing;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
@@ -240,6 +265,36 @@ jobs:
         env:
           XCODE_VERSION: '16.3'
         run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
+
+      # TapAndPay SDK Setup (Android only)
+      - name: Clone TapAndPay SDK
+        if: |
+          matrix.platform == 'android' &&
+          needs.prepare.outputs.tap_and_pay_sdk_repo_ssh != ''
+        run: |
+          if [ -z "$TAP_AND_PAY_SDK_SSH_KEY" ]; then
+            echo "⚠️ TAP_AND_PAY_SDK_SSH_KEY not set, skipping TapAndPay SDK clone"
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d | tr -d '\r' > ~/.ssh/tap_and_pay_key
+          echo "" >> ~/.ssh/tap_and_pay_key
+          chmod 600 ~/.ssh/tap_and_pay_key
+          trap 'rm -f ~/.ssh/tap_and_pay_key' EXIT
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/tap_and_pay_key
+          echo "📦 Cloning TapAndPay SDK into android/libs/..."
+          git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+          mkdir -p android/libs
+          cp -r /tmp/tap-and-pay-sdk/* android/libs/
+          rm -rf /tmp/tap-and-pay-sdk
+          ssh-add -D
+          eval "$(ssh-agent -k)"
+          echo "✅ TapAndPay SDK installed to android/libs/"
+        env:
+          TAP_AND_PAY_SDK_SSH_KEY: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
+          TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
         run: |
@@ -420,3 +475,31 @@ jobs:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
           if-no-files-found: warn
+
+  # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
+  emit-build-metadata:
+    name: Emit build metadata
+    needs: [prepare, build]
+    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Read metadata from tree at built ref
+        id: meta
+        run: |
+          REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
+          echo "checkout_ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "built_commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "semantic_version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          # versionCode 4138 (no '=' in this repo)
+          VC=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
+          echo "android_version_code=$VC" >> "$GITHUB_OUTPUT"

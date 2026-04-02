@@ -84,6 +84,8 @@ interface AssetSelectionModalNavigationDetails {
   // For navigation-based selection mode: where to return with the selected token
   callerRoute?: string;
   callerParams?: Record<string, unknown>;
+  // Tokens to hide from the list (e.g. already shown as quick-select buttons)
+  excludedTokens?: CardTokenAllowance[];
 }
 
 export const createAssetSelectionModalNavigationDetails =
@@ -104,6 +106,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
     onTokenSelect,
     callerRoute,
     callerParams,
+    excludedTokens,
   } = useParams<AssetSelectionModalNavigationDetails>();
 
   const theme = useTheme();
@@ -272,6 +275,22 @@ const AssetSelectionBottomSheet: React.FC = () => {
     [],
   );
 
+  // Helper: check if a token is in the excluded list (by address + chain).
+  // walletAddress is intentionally excluded from the match so that delegation-settings
+  // tokens (walletAddress: undefined) are also filtered out when their contract address
+  // is already shown as a quick-select button.
+  const isExcludedToken = useCallback(
+    (token: CardTokenAllowance): boolean => {
+      if (!excludedTokens?.length) return false;
+      return excludedTokens.some(
+        (ex) =>
+          ex.address?.toLowerCase() === token.address?.toLowerCase() &&
+          ex.caipChainId === token.caipChainId,
+      );
+    },
+    [excludedTokens],
+  );
+
   // Map user's actual wallets/tokens to display format + add supported tokens from delegation settings
   // This preserves duplicates (same token on same chain but different wallet addresses)
   const supportedTokens = useMemo<CardTokenAllowance[]>(() => {
@@ -280,7 +299,8 @@ const AssetSelectionBottomSheet: React.FC = () => {
     // Process user tokens
     const userTokens: CardTokenAllowance[] = (tokensWithAllowances || [])
       .map(mapUserToken)
-      .filter((token) => !shouldFilterOutToken(token));
+      .filter((token) => !shouldFilterOutToken(token))
+      .filter((token) => !isExcludedToken(token));
 
     // Add supported tokens from delegation settings that user doesn't have in wallet
     const supportedFromSettings: CardTokenAllowance[] = [];
@@ -357,13 +377,17 @@ const AssetSelectionBottomSheet: React.FC = () => {
     }
 
     // Combine and sort tokens
-    return [...userTokens, ...supportedFromSettings].sort(sortTokensByPriority);
+    return [
+      ...userTokens,
+      ...supportedFromSettings.filter((token) => !isExcludedToken(token)),
+    ].sort(sortTokensByPriority);
   }, [
     tokensWithAllowances,
     sdk,
     delegationSettings,
     mapUserToken,
     shouldFilterOutToken,
+    isExcludedToken,
     shouldProcessNetworkForLocation,
     tokenExistsInUserTokens,
     getTokenAddress,
@@ -377,18 +401,30 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const supportedTokensWithBalances: (CardTokenAllowance & {
     balance: string;
     balanceFiat: string;
+    rawFiatNumber: number | undefined;
   })[] = useMemo(
     () =>
-      supportedTokens.map((token) => {
-        const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
-        const balanceInfo = assetBalances.get(tokenKey);
+      supportedTokens
+        .map((token) => {
+          const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+          const balanceInfo = assetBalances.get(tokenKey);
 
-        return {
-          ...token,
-          balance: balanceInfo?.rawTokenBalance?.toFixed(6) || '0',
-          balanceFiat: balanceInfo?.balanceFiat || '$0.00',
-        };
-      }),
+          return {
+            ...token,
+            balance: balanceInfo?.rawTokenBalance?.toFixed(6) || '0',
+            balanceFiat: balanceInfo?.balanceFiat || '$0.00',
+            rawFiatNumber: balanceInfo?.rawFiatNumber,
+          };
+        })
+        .sort((a, b) => {
+          if (
+            a.allowanceState === AllowanceState.NotEnabled &&
+            b.allowanceState === AllowanceState.NotEnabled
+          ) {
+            return (b.rawFiatNumber ?? -1) - (a.rawFiatNumber ?? -1);
+          }
+          return 0;
+        }),
     [supportedTokens, assetBalances],
   );
 

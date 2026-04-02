@@ -12,6 +12,8 @@ const newOverrides = [
   {
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
+      'app/components/UI/Money/selectors/featureFlags.ts',
+      'app/components/UI/Money/selectors/featureFlags.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
@@ -25,6 +27,8 @@ const newOverrides = [
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.test.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-controller-init.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.ts',

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import WalletConnect2Session from './WalletConnect2Session';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
@@ -218,7 +221,8 @@ describe('WalletConnect2Session', () => {
   let session: WalletConnect2Session;
   let mockClient: IWalletKit;
   let mockSession: SessionTypes.Struct;
-  let mockNavigation: NavigationContainerRef;
+  let mockNavigation: NavigationContainerRef<ParamListBase>;
+  let mockStoreUnsubscribe: jest.Mock;
 
   const testChainId = '0x89';
   const testNetworkClientId = `test-network-${parseInt(testChainId, 16)}`;
@@ -256,7 +260,7 @@ describe('WalletConnect2Session', () => {
     } as unknown as SessionTypes.Struct;
     mockNavigation = {
       navigate: jest.fn(),
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<ParamListBase>;
 
     (store.getState as jest.Mock).mockReturnValue({
       inpageProvider: {
@@ -295,6 +299,9 @@ describe('WalletConnect2Session', () => {
         rpcEndpoints: [{ networkClientId: testNetworkClientId }],
       },
     });
+
+    mockStoreUnsubscribe = jest.fn();
+    (store.subscribe as jest.Mock).mockReturnValue(mockStoreUnsubscribe);
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -438,6 +445,7 @@ describe('WalletConnect2Session', () => {
 
     await session.removeListeners();
 
+    expect(mockStoreUnsubscribe).toHaveBeenCalled();
     expect(mockOnDisconnect).toHaveBeenCalled();
   });
 

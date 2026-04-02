@@ -48,12 +48,12 @@ export const permissionControllerInit: ControllerInitFunction<
         ),
       isNonEvmScopeSupported: (scope) =>
         initMessenger.call(
-          'MultichainRouter:isSupportedScope',
+          'MultichainRoutingService:isSupportedScope',
           scope as CaipChainId,
         ),
       getNonEvmAccountAddresses: (scope) =>
         initMessenger.call(
-          'MultichainRouter:getSupportedAccounts',
+          'MultichainRoutingService:getSupportedAccounts',
           scope as CaipChainId,
         ),
     }),

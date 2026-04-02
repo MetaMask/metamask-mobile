@@ -1,6 +1,6 @@
 {
-  "debugMode": true,
-  "useTestInstance": true,
+  "debugMode": false,
+  "useTestInstance": false,
   "delayInitToCheckForSearchAds": false,
   "appleSearchAdsDebugMode": false
 }
