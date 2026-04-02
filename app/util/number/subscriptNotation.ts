@@ -51,10 +51,11 @@ export const formatSubscriptNotation = (
 
       if (leadingZeros >= 4) {
         const maxTail = options?.maxDigitsAfterSubscript;
+        const tail = match[1].slice(0, maxTail ?? 4);
         const significantDigits =
           maxTail !== undefined
-            ? match[1].slice(0, maxTail)
-            : match[1].slice(0, 4).replace(/0+$/, '') || match[1].slice(0, 2);
+            ? tail
+            : tail.replace(/0{1,4}$/, '') || match[1].slice(0, 2);
         return `0.0${toSubscript(leadingZeros)}${significantDigits}`;
       }
     }
