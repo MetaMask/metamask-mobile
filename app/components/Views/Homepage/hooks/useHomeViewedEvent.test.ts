@@ -534,16 +534,21 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('includes max_scroll_depth_session as max of sectionIndex and getSessionMaxDepth()', () => {
-      // sectionIndex=2, prior session max=4 → prior max wins
+      // sectionIndex=2, prior session max=4 → prior max wins via Math.max.
+      // Must use a rendered section (sectionRef !== null) — the Math.max branch
+      // only runs for viewport-checked sections; null-ref sections return
+      // getSessionMaxDepth() directly and would not catch a regression where
+      // Math.max is accidentally replaced with just sectionIndex.
       mockContextValue = {
         ...mockContextValue,
         getSessionMaxDepth: jest.fn(() => 4),
       };
+      const mockRef = createMockRef(0, 200); // fully visible
 
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
-          sectionRef: null,
+          sectionRef: mockRef,
           sectionIndex: 2,
         }),
       );
