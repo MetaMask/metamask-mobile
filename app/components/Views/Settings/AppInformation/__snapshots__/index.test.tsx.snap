@@ -406,19 +406,6 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                               >
                                 MetaMask v7.0.0 (1000)
                               </Text>
-                              <Text
-                                style={
-                                  {
-                                    "color": "#66676a",
-                                    "fontFamily": "Geist-Regular",
-                                    "fontSize": 18,
-                                    "marginBottom": 20,
-                                    "textAlign": "left",
-                                  }
-                                }
-                              >
-                                Branch: undefined
-                              </Text>
                             </View>
                             <Text
                               style={
