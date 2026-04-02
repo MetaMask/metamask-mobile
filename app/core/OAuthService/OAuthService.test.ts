@@ -6,37 +6,45 @@ import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { TraceName, TraceOperation } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
+import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
+
+const mockDeviceIsAndroid = jest.fn();
 
 jest.mock('./OAuthLoginHandlers/constants', () => ({
   web3AuthNetwork: 'sapphire_mainnet',
   AuthServerUrl: 'https://auth.example.com',
   AUTH_SERVER_MARKETING_OPT_IN_PATH: '/api/v1/oauth/marketing_opt_in_status',
+  SupportedPlatforms: {
+    Android: 'android',
+    IOS: 'ios',
+  },
   IosGID: 'mock-ios-google-client-id',
   IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
-  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  GoogleWebGID: 'mock-android-google-client-id',
   AppleWebClientId: 'mock-android-apple-client-id',
   AuthConnectionConfig: {
     android: {
       google: {
-        authConnectionId: 'mock-auth-connection-id',
-        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+        authConnectionId: 'mock-android-auth-connection-id',
+        groupedAuthConnectionId: 'mock-android-grouped-auth-connection-id',
       },
       apple: {
-        authConnectionId: 'mock-auth-connection-id',
-        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+        authConnectionId: 'mock-android-apple-auth-connection-id',
+        groupedAuthConnectionId:
+          'mock-android-apple-grouped-auth-connection-id',
       },
     },
     ios: {
       google: {
-        authConnectionId: 'mock-auth-connection-id',
-        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+        authConnectionId: 'mock-ios-auth-connection-id',
+        groupedAuthConnectionId: 'mock-ios-grouped-auth-connection-id',
       },
       apple: {
-        authConnectionId: 'mock-auth-connection-id',
-        groupedAuthConnectionId: 'mock-grouped-auth-connection-id',
+        authConnectionId: 'mock-ios-apple-auth-connection-id',
+        groupedAuthConnectionId: 'mock-ios-apple-grouped-auth-connection-id',
       },
     },
   },
@@ -69,13 +77,24 @@ jest.mock('../../util/analytics/analytics', () => ({
   },
 }));
 
+jest.mock('../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isAndroid: (...args: unknown[]) => mockDeviceIsAndroid(...args),
+  },
+}));
+
 import OAuthLoginService from './OAuthService';
-const mockLoginHandlerResponse = jest.fn().mockImplementation(() => ({
+const defaultLoginHandlerResponse = () => ({
   idToken: MOCK_JWT_TOKEN,
   authConnection: AuthConnection.Google,
   clientId: 'clientId',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
-}));
+});
+
+const mockLoginHandlerResponse = jest
+  .fn()
+  .mockImplementation(defaultLoginHandlerResponse);
 
 const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
   id_token: MOCK_JWT_TOKEN,
@@ -143,11 +162,19 @@ const expectOAuthError = async (
 };
 
 describe('OAuth login service', () => {
+  let mockDispatch: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLoginHandlerResponse.mockImplementation(defaultLoginHandlerResponse);
+    mockDispatch = jest.fn();
+    mockDeviceIsAndroid.mockReturnValue(false);
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      dispatch: jest.fn(),
+      getState: () => ({
+        security: { allowLoginWithRememberMe: true },
+        onboarding: {},
+      }),
+      dispatch: mockDispatch,
     } as unknown as ReduxStore);
   });
 
@@ -167,6 +194,17 @@ describe('OAuth login service', () => {
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(1);
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+    expect(mockAuthenticate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authConnectionId: 'mock-ios-auth-connection-id',
+        groupedAuthConnectionId: 'mock-ios-grouped-auth-connection-id',
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: SET_SEEDLESS_ONBOARDING,
+      clientId: 'clientId',
+      authConnection: AuthConnection.Google,
+    });
   });
 
   it('return a type success, existing user', async () => {
@@ -188,6 +226,69 @@ describe('OAuth login service', () => {
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(1);
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses Android auth connection config when the device is Android', async () => {
+    mockDeviceIsAndroid.mockReturnValue(true);
+    const loginHandler = mockCreateLoginHandler();
+
+    await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+    expect(mockAuthenticate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authConnectionId: 'mock-android-auth-connection-id',
+        groupedAuthConnectionId: 'mock-android-grouped-auth-connection-id',
+      }),
+    );
+  });
+
+  it('uses Android auth connection config for iOS Google web credential login before onboarding state is persisted', async () => {
+    mockLoginHandlerResponse.mockImplementation(() => ({
+      idToken: MOCK_JWT_TOKEN,
+      authConnection: AuthConnection.Google,
+      clientId: 'mock-android-google-client-id',
+      web3AuthNetwork: Web3AuthNetwork.Mainnet,
+    }));
+    const loginHandler = mockCreateLoginHandler();
+
+    await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+    expect(mockAuthenticate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authConnectionId: 'mock-android-auth-connection-id',
+        groupedAuthConnectionId: 'mock-android-grouped-auth-connection-id',
+      }),
+    );
+  });
+
+  it('uses Android auth connection config when persisted onboarding clientId matches the web Google client', async () => {
+    mockLoginHandlerResponse.mockImplementation(() => ({
+      idToken: MOCK_JWT_TOKEN,
+      authConnection: AuthConnection.Google,
+      clientId: 'mock-android-google-client-id',
+      web3AuthNetwork: Web3AuthNetwork.Mainnet,
+    }));
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({
+        security: { allowLoginWithRememberMe: true },
+        onboarding: {
+          seedlessOnboarding: {
+            clientId: 'mock-android-google-client-id',
+          },
+        },
+      }),
+      dispatch: mockDispatch,
+    } as unknown as ReduxStore);
+    const loginHandler = mockCreateLoginHandler();
+
+    await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+    expect(mockAuthenticate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authConnectionId: 'mock-android-auth-connection-id',
+        groupedAuthConnectionId: 'mock-android-grouped-auth-connection-id',
+      }),
+    );
   });
 
   it('throw on SeedlessOnboardingController error', async () => {
@@ -228,7 +329,10 @@ describe('OAuth login service', () => {
   it('throw on dismiss', async () => {
     const loginHandler = mockCreateLoginHandler();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      getState: () => ({
+        security: { allowLoginWithRememberMe: true },
+        onboarding: {},
+      }),
       dispatch: jest.fn(),
     } as unknown as ReduxStore);
 
@@ -455,6 +559,21 @@ describe('OAuth login service', () => {
       expect(result.type).toBe('success');
       expect(acmSignOut).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('resets local OAuth state when OAuth state is reset', () => {
+    OAuthLoginService.localState = {
+      ...OAuthLoginService.localState,
+      loginInProgress: true,
+      oauthLoginSuccess: true,
+      oauthLoginError: 'previous error',
+    };
+
+    OAuthLoginService.resetOauthState();
+
+    expect(OAuthLoginService.localState.loginInProgress).toBe(false);
+    expect(OAuthLoginService.localState.oauthLoginSuccess).toBe(false);
+    expect(OAuthLoginService.localState.oauthLoginError).toBeNull();
   });
 });
 
