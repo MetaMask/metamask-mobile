@@ -403,6 +403,54 @@ describe('V2OtpCode', () => {
     });
   });
 
+  it('auto-submits corrected OTP after a failed submission', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp
+      .mockRejectedValueOnce(new Error('Invalid OTP'))
+      .mockResolvedValueOnce(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
+    mockGetBuyQuote.mockResolvedValue(mockQuote);
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    // Enter wrong OTP — triggers first (failing) submission
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    });
+
+    // Correct the OTP while the error is displayed — clear then re-enter
+    await act(async () => {
+      fireEvent.changeText(otpInput, '1234');
+    });
+    await act(async () => {
+      fireEvent.changeText(otpInput, '654321');
+    });
+
+    // The corrected OTP should auto-submit successfully
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(2);
+      expect(mockVerifyUserOtp).toHaveBeenLastCalledWith(
+        'test@example.com',
+        '654321',
+        'test-state-token',
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockSetAuthToken).toHaveBeenCalledWith(mockToken);
+    });
+  });
+
   it('shows fallback error when sendUserOtp fails without message', async () => {
     mockSendUserOtp.mockRejectedValue(new Error());
 
