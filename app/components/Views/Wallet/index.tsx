@@ -1322,11 +1322,12 @@ const Wallet = ({
             }
           />
         ) : null}
-        {/* <View>
+        <View>
           <CustomText color={TextColor.Alternative}>
+            This is an OTA update This is an OTA update This is an OTA update{' '}
             This is an OTA update{' '}
           </CustomText>
-        </View> */}
+        </View>
         <NetworkConnectionBanner />
       </View>
       <>
