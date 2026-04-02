@@ -22,5 +22,5 @@ export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
 
       return response.providers;
     },
-    staleTime: 0, // always run queryFn so controller state stays in sync
+    staleTime: 15 * 60 * 1000, // 15 minutes
   });

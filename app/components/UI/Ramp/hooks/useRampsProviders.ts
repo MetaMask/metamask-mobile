@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   selectProviders,
   selectUserRegion,
@@ -49,30 +49,43 @@ export interface UseRampsProvidersResult {
 }
 
 /**
- * Hook to get providers state from RampsController.
- * This hook assumes Engine is already initialized.
+ * Hook to get providers via React Query.
  *
- * Uses react-query with a 15min staleTime and refetchOnMount so that
- * providers (including supportedCryptoCurrencies) are refreshed when
- * stale data is detected on mount.
+ * The query fires when the region changes. Provider data is read from the
+ * React Query cache (not controller state) so that region-switching with
+ * cached data works correctly.
  *
  * @returns Providers state.
  */
 export function useRampsProviders(): UseRampsProvidersResult {
-  const {
-    data: providers,
-    selected: selectedProvider,
-    isLoading,
-    error,
-  } = useSelector(selectProviders);
+  const { selected: selectedProvider } = useSelector(selectProviders);
 
   const userRegion = useSelector(selectUserRegion);
   const regionCode = userRegion?.regionCode ?? '';
+  const queryClient = useQueryClient();
 
-  useQuery({
+  // Invalidate all ramp queries when region changes so that stale cached
+  // data from a previous region is not served. The queryFn will re-run,
+  // hit the controller's internal executeRequest cache (fast), and
+  // repopulate controller state.
+  const prevRegionRef = useRef(regionCode);
+  useEffect(() => {
+    if (regionCode && prevRegionRef.current !== regionCode) {
+      prevRegionRef.current = regionCode;
+      queryClient.invalidateQueries({ queryKey: ['ramps'] });
+    }
+  }, [regionCode, queryClient]);
+
+  const providersQuery = useQuery({
     ...rampsQueries.providers.options({ regionCode }),
     enabled: Boolean(regionCode),
   });
+
+  // Keep a stable array reference for hook dependencies.
+  const providers = useMemo(
+    () => providersQuery.data ?? [],
+    [providersQuery.data],
+  );
 
   const legacyOrders = useSelector(getOrders);
   const controllerOrders = useSelector(
@@ -100,7 +113,14 @@ export function useRampsProviders(): UseRampsProvidersResult {
     if (providers && providers.length > 0 && !selectedProvider) {
       const result = determinePreferredProvider(completedOrders, providers);
       if (result) {
-        Engine.context.RampsController.setSelectedProvider(result.provider.id, {
+        (
+          Engine.context.RampsController as {
+            setSelectedProvider: (
+              providerOrId: Provider | string | null,
+              options?: { autoSelected?: boolean },
+            ) => void;
+          }
+        ).setSelectedProvider(result.provider, {
           autoSelected: result.autoSelected,
         });
       }
@@ -111,8 +131,11 @@ export function useRampsProviders(): UseRampsProvidersResult {
     providers,
     selectedProvider,
     setSelectedProvider,
-    isLoading,
-    error,
+    isLoading: providersQuery.isLoading,
+    error:
+      providersQuery.error instanceof Error
+        ? providersQuery.error.message
+        : null,
   };
 }
 
