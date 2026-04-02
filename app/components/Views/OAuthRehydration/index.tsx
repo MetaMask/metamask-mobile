@@ -818,6 +818,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       <SafeAreaView
         style={[
           tw.style('flex-1'),
+          { backgroundColor: colors.background.default },
           Platform.OS === 'android' && {
             paddingTop: StatusBar.currentHeight ?? 0,
           },
