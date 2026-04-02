@@ -99,9 +99,10 @@ jobs:
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
           # Try same-repo head first, then owner:branch (required by API when listing pulls)
-          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
           if [[ -z "$PR_NUMBER" ]]; then
-            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
           fi
 
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
