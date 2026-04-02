@@ -9,7 +9,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
@@ -29,12 +29,8 @@ const BenefitsPreview = () => {
   const tw = useTailwind();
   const benefits = useSelector(selectBenefits);
   const isLoading = useSelector(selectBenefitsLoading);
-  const { getAllBenefits } = useBenefits();
   const navigation = useNavigation();
-
-  useEffect(() => {
-    getAllBenefits().then();
-  }, [getAllBenefits]);
+  useBenefits();
 
   const handleNavigateToCampaigns = useCallback(() => {
     navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);

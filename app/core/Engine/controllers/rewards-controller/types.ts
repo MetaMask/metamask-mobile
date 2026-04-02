@@ -1585,9 +1585,6 @@ export type RewardsControllerState = {
   subscriptionBenefits: {
     [compositeId: string]: SubscriptionBenefitsState;
   };
-  benefitImpressions: {
-    [compositeId: string]: boolean;
-  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };

@@ -26,18 +26,6 @@ const BenefitsFullView = () => {
 
   const { getAllBenefits } = useBenefits();
 
-  useEffect(() => {
-    const loadBenefits = async () => {
-      setRefreshing(true);
-      try {
-        await getAllBenefits();
-      } finally {
-        setRefreshing(false);
-      }
-    };
-    loadBenefits();
-  }, [getAllBenefits]);
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
