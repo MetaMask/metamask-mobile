@@ -24,10 +24,7 @@ interface TestState {
     };
   };
   onboarding?: {
-    seedless?: {
-      pendingSocialLoginMarketingConsentBackfill?: string | null;
-      [key: string]: unknown;
-    };
+    pendingSocialLoginMarketingConsentBackfill?: string | null;
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -62,7 +59,7 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
 
     expect(result).toBe(state);
     expect(
-      state.onboarding?.seedless?.pendingSocialLoginMarketingConsentBackfill,
+      state.onboarding?.pendingSocialLoginMarketingConsentBackfill,
     ).toBeUndefined();
   });
 
@@ -82,7 +79,7 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
 
     expect(result).toBe(state);
     expect(
-      state.onboarding?.seedless?.pendingSocialLoginMarketingConsentBackfill,
+      state.onboarding?.pendingSocialLoginMarketingConsentBackfill,
     ).toBeUndefined();
   });
 
@@ -100,7 +97,7 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
     expect(result).toBe(state);
   });
 
-  it('stores the authConnection in onboarding.seedless for eligible social login users', () => {
+  it('stores the authConnection on onboarding for eligible social login users', () => {
     const state: TestState = {
       engine: {
         backgroundState: {
@@ -108,18 +105,16 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
         },
       },
       onboarding: {
-        seedless: {
-          pendingSocialLoginMarketingConsentBackfill: null,
-        },
+        pendingSocialLoginMarketingConsentBackfill: null,
       },
     };
 
     const result = migrate(state);
 
     expect(result).toBe(state);
-    expect(
-      state.onboarding?.seedless?.pendingSocialLoginMarketingConsentBackfill,
-    ).toBe('google');
+    expect(state.onboarding?.pendingSocialLoginMarketingConsentBackfill).toBe(
+      'google',
+    );
   });
 
   it('overwrites any stale pending marker with the current authConnection', () => {
@@ -130,20 +125,18 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
         },
       },
       onboarding: {
-        seedless: {
-          pendingSocialLoginMarketingConsentBackfill: 'google',
-        },
+        pendingSocialLoginMarketingConsentBackfill: 'google',
       },
     };
 
     migrate(state);
 
-    expect(
-      state.onboarding?.seedless?.pendingSocialLoginMarketingConsentBackfill,
-    ).toBe('apple');
+    expect(state.onboarding?.pendingSocialLoginMarketingConsentBackfill).toBe(
+      'apple',
+    );
   });
 
-  it('creates onboarding.seedless when it is missing (migration does not gate on marketing consent)', () => {
+  it('sets pendingSocialLoginMarketingConsentBackfill on onboarding when it was missing (migration does not gate on marketing consent)', () => {
     const state: TestState = {
       engine: {
         backgroundState: {
@@ -155,20 +148,27 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
 
     migrate(state);
 
-    expect(state.onboarding?.seedless).toEqual({
-      pendingSocialLoginMarketingConsentBackfill: 'google',
-    });
+    expect(state.onboarding?.pendingSocialLoginMarketingConsentBackfill).toBe(
+      'google',
+    );
   });
 
   it('captures exceptions and returns state unchanged on unexpected errors', () => {
     const onboarding: Record<string, unknown> = {};
-    Object.defineProperty(onboarding, 'seedless', {
-      configurable: true,
-      enumerable: true,
-      get() {
-        throw new Error('Unexpected migration failure');
+    Object.defineProperty(
+      onboarding,
+      'pendingSocialLoginMarketingConsentBackfill',
+      {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return undefined;
+        },
+        set() {
+          throw new Error('Unexpected migration failure');
+        },
       },
-    });
+    );
 
     const state: TestState = {
       engine: {
@@ -185,7 +185,7 @@ describe(`Migration ${migrationVersion}: Mark pending social login marketing con
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          'Migration 130: Failed to mark pending social login marketing consent backfill',
+          'Migration 131: Failed to mark pending social login marketing consent backfill',
         ),
       }),
     );

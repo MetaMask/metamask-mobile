@@ -3,10 +3,10 @@ import { hasProperty, isObject } from '@metamask/utils';
 
 import { ensureValidState } from './util';
 
-export const migrationVersion = 130;
+export const migrationVersion = 131;
 
 /**
- * Migration 130: Mark social login users with marketing consent for a one-time
+ * Migration 131: Mark social login users with marketing consent for a one-time
  * post-rehydrate analytics backfill.
  *
  * This migration stays pure and only writes a persisted marker. The actual
@@ -47,17 +47,8 @@ const migration = (state: unknown): unknown => {
       return state;
     }
 
-    if (
-      !hasProperty(state.onboarding, 'seedless') ||
-      !isObject(state.onboarding.seedless)
-    ) {
-      state.onboarding.seedless = {
-        pendingSocialLoginMarketingConsentBackfill: authConnection,
-      };
-    } else {
-      state.onboarding.seedless.pendingSocialLoginMarketingConsentBackfill =
-        authConnection;
-    }
+    state.onboarding.pendingSocialLoginMarketingConsentBackfill =
+      authConnection;
   } catch (error) {
     captureException(
       new Error(

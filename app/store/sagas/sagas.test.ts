@@ -168,7 +168,7 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
 const defaultMockState = {
   onboarding: {
     completedOnboarding: false,
-    seedless: { pendingSocialLoginMarketingConsentBackfill: null },
+    pendingSocialLoginMarketingConsentBackfill: null,
   },
   user: { existingUser: true },
   engine: { backgroundState: {} },

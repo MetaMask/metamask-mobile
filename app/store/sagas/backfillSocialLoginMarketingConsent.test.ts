@@ -46,7 +46,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
 
-  it('tracks the backfill and clears the onboarding seedless marker', async () => {
+  it('tracks the backfill and clears the onboarding marker', async () => {
     const state = {
       ...initialRootState,
       security: {
@@ -55,9 +55,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
       },
       onboarding: {
         ...initialRootState.onboarding,
-        seedless: {
-          pendingSocialLoginMarketingConsentBackfill: 'google',
-        },
+        pendingSocialLoginMarketingConsentBackfill: 'google',
       },
     };
 
@@ -90,9 +88,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
       },
       onboarding: {
         ...initialRootState.onboarding,
-        seedless: {
-          pendingSocialLoginMarketingConsentBackfill: 'google',
-        },
+        pendingSocialLoginMarketingConsentBackfill: 'google',
       },
     };
 
@@ -114,9 +110,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
       },
       onboarding: {
         ...initialRootState.onboarding,
-        seedless: {
-          pendingSocialLoginMarketingConsentBackfill: 'google',
-        },
+        pendingSocialLoginMarketingConsentBackfill: 'google',
       },
     };
 
