@@ -49,6 +49,7 @@ import {
   translatePerpsError,
   isPerpsErrorCode,
   handlePerpsError,
+  cleanHyperLiquidError,
 } from './translatePerpsError';
 
 // Mock the i18n strings function
@@ -432,14 +433,12 @@ describe('handlePerpsError', () => {
   });
 
   describe('with non-error-code strings', () => {
-    it('returns unknown error for unrecognized strings (for better UX)', () => {
+    it('returns cleaned error for unrecognized strings', () => {
       const result = handlePerpsError({
         error: 'Custom error message',
       });
 
-      // Unrecognized error strings now return the generic unknown error for better UX
-      // instead of showing raw technical error messages to users
-      expect(result).toBe('perps.errors.unknownError');
+      expect(result).toBe('Custom error message');
     });
 
     it('uses fallback message for empty string', () => {
@@ -451,13 +450,13 @@ describe('handlePerpsError', () => {
       expect(result).toBe('Fallback message');
     });
 
-    it('uses fallback message when provided for non-error-code strings', () => {
+    it('returns cleaned error over fallback for non-error-code strings', () => {
       const result = handlePerpsError({
         error: 'Some error',
         fallbackMessage: 'Fallback message',
       });
 
-      expect(result).toBe('Fallback message');
+      expect(result).toBe('Some error');
     });
   });
 
@@ -518,15 +517,14 @@ describe('handlePerpsError', () => {
       });
     });
 
-    it('uses fallbackMessage for Error object without valid error code', () => {
-      // Use an unrecognizable error string that won't match any pattern
+    it('returns cleaned error for Error object without valid error code', () => {
       const error = new Error('Something unexpected happened xyz123');
       const result = handlePerpsError({
         error,
         fallbackMessage: 'Connection error, please try again',
       });
 
-      expect(result).toBe('Connection error, please try again');
+      expect(result).toBe('Something unexpected happened xyz123');
     });
   });
 
@@ -756,8 +754,8 @@ describe('handlePerpsError', () => {
         fallbackMessage: 'Order operation failed',
       });
 
-      // Should NOT match batch cancel pattern - should use fallback
-      expect(result).toBe('Order operation failed');
+      // Should NOT match batch cancel pattern - shows cleaned error
+      expect(result).toBe('Order cancellation failed');
     });
 
     it('translates batch close failed error pattern', () => {
@@ -782,8 +780,8 @@ describe('handlePerpsError', () => {
         fallbackMessage: 'Position operation failed',
       });
 
-      // Should NOT match batch close pattern - should use fallback
-      expect(result).toBe('Position operation failed');
+      // Should NOT match batch close pattern - shows cleaned error
+      expect(result).toBe('Position close failed');
     });
 
     it('translates service unavailable error pattern', () => {
@@ -826,13 +824,95 @@ describe('handlePerpsError', () => {
       expect(result).toBe('perps.errors.orderLeverageReductionFailed');
     });
 
-    it('uses fallback for unrecognized patterns', () => {
+    it('shows cleaned error for unrecognized patterns', () => {
       const result = handlePerpsError({
         error: 'Completely random error xyz123',
         fallbackMessage: 'Something went wrong',
       });
 
-      expect(result).toBe('Something went wrong');
+      expect(result).toBe('Completely random error xyz123');
     });
+
+    it('cleans HL JSON-wrapped error and strips Order N prefix', () => {
+      const result = handlePerpsError({
+        error:
+          'Order failed: {"status":"err","response":"Order 0: Price too far from oracle, asset = 12345"}',
+        fallbackMessage: 'Your funds have been returned to you',
+      });
+
+      expect(result).toBe('Price too far from oracle');
+    });
+
+    it('cleans TP/SL update failed JSON-wrapped error', () => {
+      const result = handlePerpsError({
+        error:
+          'TP/SL update failed: {"status":"err","response":"Order 0: Price too far from oracle, asset = 999"}',
+        fallbackMessage: 'Failed to update TP/SL',
+      });
+
+      expect(result).toBe('Price too far from oracle');
+    });
+  });
+});
+
+describe('cleanHyperLiquidError', () => {
+  it('strips "Order failed:" JSON wrapper and extracts response', () => {
+    const result = cleanHyperLiquidError(
+      'Order failed: {"status":"err","response":"Price too far from oracle"}',
+    );
+    expect(result).toBe('Price too far from oracle');
+  });
+
+  it('strips "TP/SL update failed:" JSON wrapper', () => {
+    const result = cleanHyperLiquidError(
+      'TP/SL update failed: {"status":"err","response":"Invalid trigger price"}',
+    );
+    expect(result).toBe('Invalid trigger price');
+  });
+
+  it('strips "Order N:" prefix', () => {
+    const result = cleanHyperLiquidError('Order 0: Price too far from oracle');
+    expect(result).toBe('Price too far from oracle');
+  });
+
+  it('strips "Order N:" with higher numbers', () => {
+    const result = cleanHyperLiquidError('Order 3: Insufficient margin');
+    expect(result).toBe('Insufficient margin');
+  });
+
+  it('strips trailing ", asset = <id>"', () => {
+    const result = cleanHyperLiquidError(
+      'Price too far from oracle, asset = 12345',
+    );
+    expect(result).toBe('Price too far from oracle');
+  });
+
+  it('strips both "Order N:" prefix and ", asset = <id>" suffix', () => {
+    const result = cleanHyperLiquidError(
+      'Order 0: Price too far from oracle, asset = 12345',
+    );
+    expect(result).toBe('Price too far from oracle');
+  });
+
+  it('handles full JSON-wrapped error with Order N and asset', () => {
+    const result = cleanHyperLiquidError(
+      'Order failed: {"status":"err","response":"Order 0: Price too far from oracle, asset = 12345"}',
+    );
+    expect(result).toBe('Price too far from oracle');
+  });
+
+  it('returns plain error strings unchanged', () => {
+    const result = cleanHyperLiquidError('Something went wrong');
+    expect(result).toBe('Something went wrong');
+  });
+
+  it('handles malformed JSON gracefully', () => {
+    const result = cleanHyperLiquidError('Order failed: {not valid json}');
+    expect(result).toBe('{not valid json}');
+  });
+
+  it('handles empty string', () => {
+    const result = cleanHyperLiquidError('');
+    expect(result).toBe('');
   });
 });

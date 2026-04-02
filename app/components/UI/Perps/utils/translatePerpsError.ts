@@ -298,6 +298,39 @@ export function isPerpsErrorCode(
 }
 
 /**
+ * Strips HL-specific noise from raw error strings so the user sees
+ * the meaningful part only (e.g. "Price too far from oracle" instead of
+ * "Order failed: {"status":"err","response":"Order 0: Price too far from oracle, asset = 12345"}").
+ */
+export function cleanHyperLiquidError(raw: string): string {
+  let cleaned = raw;
+
+  // Unwrap JSON wrappers: "Order failed: {…}" / "TP/SL update failed: {…}"
+  const jsonPrefixRegex = /^(?:Order failed|TP\/SL update failed):\s*(.+)$/is;
+  const jsonPrefixMatch = jsonPrefixRegex.exec(cleaned);
+  if (jsonPrefixMatch) {
+    try {
+      const parsed = JSON.parse(jsonPrefixMatch[1]);
+      const inner =
+        typeof parsed === 'string'
+          ? parsed
+          : (parsed?.response ?? JSON.stringify(parsed));
+      cleaned = typeof inner === 'string' ? inner : JSON.stringify(inner);
+    } catch {
+      cleaned = jsonPrefixMatch[1];
+    }
+  }
+
+  // Strip "Order N: " prefix (e.g. "Order 0: Price too far from oracle")
+  cleaned = cleaned.replace(/^Order \d+:\s*/i, '');
+
+  // Strip trailing ", asset = <id>" / ", asset=<id>"
+  cleaned = cleaned.replace(/,\s*asset\s*=\s*\S+$/i, '');
+
+  return cleaned.trim();
+}
+
+/**
  * Parameters for handling Perps errors
  */
 export interface HandlePerpsErrorParams {
@@ -395,8 +428,21 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     }
   }
 
-  // For any other error/error string that was not matched, use fallback
-  // Important: Always prefer fallback over raw error strings for better UX
+  // For unmatched errors, clean the raw HL message so the user sees
+  // actionable text (e.g. "Price too far from oracle") instead of a
+  // generic "Your funds have been returned to you".
+  if (errorString) {
+    const cleaned = cleanHyperLiquidError(errorString);
+    if (cleaned) {
+      debugLogger?.log('PerpsErrorHandler: Using cleaned HL error message', {
+        originalError: errorString,
+        cleaned,
+      });
+      return cleaned;
+    }
+  }
+
+  // Fallback when no meaningful message could be extracted
   if (fallbackMessage) {
     debugLogger?.log('PerpsErrorHandler: Using fallback message', {
       originalError: errorString,
@@ -406,7 +452,6 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   }
 
   // Last resort: return the generic unknown error message
-  // Avoid showing raw technical error strings to users
   debugLogger?.log('PerpsErrorHandler: No match found, using generic error', {
     originalError: errorString,
   });

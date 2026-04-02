@@ -122,7 +122,7 @@ export interface PerpsToastOptionsConfig {
             position: Position,
             marketPrice?: string,
           ) => PerpsToastOptions;
-          closeFullPositionFailed: PerpsToastOptions;
+          closeFullPositionFailed: (error?: string) => PerpsToastOptions;
         };
         partial: {
           closePartialPositionInProgress: (
@@ -134,7 +134,7 @@ export interface PerpsToastOptionsConfig {
             position: Position,
             marketPrice?: string,
           ) => PerpsToastOptions;
-          closePartialPositionFailed: PerpsToastOptions;
+          closePartialPositionFailed: (error?: string) => PerpsToastOptions;
         };
       };
       limitClose: {
@@ -753,13 +753,18 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closeFullPositionFailed: {
+              closeFullPositionFailed: (error?: string) => ({
                 ...perpsBaseToastOptions.error,
                 labelOptions: getPerpsToastLabels(
                   strings('perps.close_position.failed_to_close_position'),
-                  strings('perps.close_position.your_position_is_still_active'),
+                  handlePerpsError({
+                    error,
+                    fallbackMessage: strings(
+                      'perps.close_position.your_position_is_still_active',
+                    ),
+                  }),
                 ),
-              },
+              }),
             },
             partial: {
               closePartialPositionInProgress: (
@@ -824,15 +829,20 @@ const usePerpsToasts = (): {
                   ),
                 };
               },
-              closePartialPositionFailed: {
+              closePartialPositionFailed: (error?: string) => ({
                 ...perpsBaseToastOptions.error,
                 labelOptions: getPerpsToastLabels(
                   strings(
                     'perps.close_position.failed_to_partially_close_position',
                   ),
-                  strings('perps.close_position.your_position_is_still_active'),
+                  handlePerpsError({
+                    error,
+                    fallbackMessage: strings(
+                      'perps.close_position.your_position_is_still_active',
+                    ),
+                  }),
                 ),
-              },
+              }),
             },
           },
           limitClose: {
@@ -894,7 +904,10 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.position.tpsl.update_failed'),
-              error || strings('perps.errors.tpslUpdateFailed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings('perps.errors.tpslUpdateFailed'),
+              }),
             ),
           }),
         },

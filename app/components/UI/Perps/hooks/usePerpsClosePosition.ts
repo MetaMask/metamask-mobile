@@ -170,15 +170,17 @@ export const usePerpsClosePosition = (
             // Market full close failed
             if (isFullClose) {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .full.closeFullPositionFailed,
+                PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionFailed(
+                  result.error,
+                ),
               );
             }
             // Market partial close failed
             else {
               showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .partial.closePartialPositionFailed,
+                PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionFailed(
+                  result.error,
+                ),
               );
             }
           }

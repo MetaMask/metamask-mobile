@@ -38,12 +38,12 @@ const mockPerpsToastOptions = {
         full: {
           closeFullPositionInProgress: jest.fn(),
           closeFullPositionSuccess: jest.fn(),
-          closeFullPositionFailed: {},
+          closeFullPositionFailed: jest.fn().mockReturnValue({}),
         },
         partial: {
           closePartialPositionInProgress: jest.fn(),
           closePartialPositionSuccess: jest.fn(),
-          closePartialPositionFailed: {},
+          closePartialPositionFailed: jest.fn().mockReturnValue({}),
         },
       },
       limitClose: {
@@ -649,11 +649,10 @@ describe('usePerpsClosePosition', () => {
 
           // Should show progress toast first, then failure toast
           expect(mockShowToast).toHaveBeenCalledTimes(2);
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionFailed,
-          );
+          ).toHaveBeenCalled();
         });
 
         it('should show failure toast for partial position market close', async () => {
@@ -677,11 +676,10 @@ describe('usePerpsClosePosition', () => {
 
           // Should show progress toast first, then failure toast
           expect(mockShowToast).toHaveBeenCalledTimes(2);
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .partial.closePartialPositionFailed,
-          );
+          ).toHaveBeenCalled();
         });
 
         it('should show failure toast when size is empty string (treated as full close)', async () => {
@@ -703,11 +701,10 @@ describe('usePerpsClosePosition', () => {
             ).rejects.toThrow();
           });
 
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .full.closeFullPositionFailed,
-          );
+          ).toHaveBeenCalled();
         });
 
         it('should show failure toast with undefined error', async () => {
@@ -730,11 +727,10 @@ describe('usePerpsClosePosition', () => {
           });
 
           // Should still show failure toast even with undefined error
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .partial.closePartialPositionFailed,
-          );
+          ).toHaveBeenCalled();
         });
       });
 
@@ -893,11 +889,10 @@ describe('usePerpsClosePosition', () => {
           expect(mockShowToast).toHaveBeenNthCalledWith(1, progressToastResult);
 
           // Second call should be failure toast
-          expect(mockShowToast).toHaveBeenNthCalledWith(
-            2,
+          expect(
             mockPerpsToastOptions.positionManagement.closePosition.marketClose
               .partial.closePartialPositionFailed,
-          );
+          ).toHaveBeenCalled();
         });
       });
     });

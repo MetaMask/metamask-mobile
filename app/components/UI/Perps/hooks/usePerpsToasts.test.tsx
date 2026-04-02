@@ -719,11 +719,10 @@ describe('usePerpsToasts', () => {
         expect(typeof config.closeButtonOptions?.onPress).toBe('function');
       });
 
-      it('returns close full position failed configuration', () => {
+      it('returns close full position failed configuration with default message', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
-          result.current.PerpsToastOptions.positionManagement.closePosition
-            .marketClose.full.closeFullPositionFailed;
+          result.current.PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionFailed();
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
@@ -734,6 +733,20 @@ describe('usePerpsToasts', () => {
           { label: 'Failed to close position', isBold: true },
           { label: '\n', isBold: false },
           { label: 'Your position is still active', isBold: false },
+        ]);
+      });
+
+      it('returns close full position failed configuration with HL error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionFailed(
+            'Price too far from oracle',
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to close position', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Price too far from oracle', isBold: false },
         ]);
       });
 
@@ -793,11 +806,10 @@ describe('usePerpsToasts', () => {
         expect(typeof config.closeButtonOptions?.onPress).toBe('function');
       });
 
-      it('returns partial position close failed configuration', () => {
+      it('returns partial position close failed configuration with default message', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
-          result.current.PerpsToastOptions.positionManagement.closePosition
-            .marketClose.partial.closePartialPositionFailed;
+          result.current.PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionFailed();
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
