@@ -19,7 +19,7 @@
 window.chartWidget = null;
 window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
-window.activeStudies = Object.create(null);
+window.activeStudies = new Map();
 window.positionShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
@@ -447,7 +447,7 @@ function handleSetOHLCVData(payload) {
       window.chartWidget.remove();
       window.chartWidget = null;
       window.isChartReady = false;
-      window.activeStudies = Object.create(null);
+      window.activeStudies = new Map();
       window.volumeStudyId = null;
       window.volumeIsOverlay = null;
       window.lastPriceShapeId = null;
@@ -542,9 +542,7 @@ function handleAddIndicator(payload) {
   var indicatorName = payload.name;
   if (!isOwnStringKey(indicatorName)) return;
 
-  if (
-    Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)
-  ) {
+  if (window.activeStudies.has(indicatorName)) {
     return;
   }
 
@@ -574,7 +572,7 @@ function handleAddIndicator(payload) {
     chart
       .createStudy(studyName, false, false, inputs)
       .then(function (studyId) {
-        window.activeStudies[indicatorName] = studyId;
+        window.activeStudies.set(indicatorName, studyId);
         sendToReactNative('INDICATOR_ADDED', {
           name: indicatorName,
           id: String(studyId),
@@ -596,18 +594,15 @@ function handleRemoveIndicator(payload) {
 
   var indicatorName = payload.name;
   if (!isOwnStringKey(indicatorName)) return;
-  if (
-    !Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)
-  )
-    return;
+  if (!window.activeStudies.has(indicatorName)) return;
 
-  var studyId = window.activeStudies[indicatorName];
+  var studyId = window.activeStudies.get(indicatorName);
   if (!studyId) return;
 
   try {
     var chart = window.chartWidget.activeChart();
     chart.removeEntity(studyId);
-    delete window.activeStudies[indicatorName];
+    window.activeStudies.delete(indicatorName);
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
