@@ -43,6 +43,19 @@ export class BrowserStackProvider extends BaseServiceProvider {
   }
 
   /**
+   * Returns the BrowserStack session recording URL
+   */
+  async getRecordingUrl(sessionId: string): Promise<string | null> {
+    try {
+      const details = await this.api.getSessionDetails(sessionId);
+      if (!details?.buildId) return null;
+      return this.api.buildSessionURL(details.buildId, sessionId);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Update test details in BrowserStack
    */
   async syncTestDetails(details: {

@@ -5,6 +5,9 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   initialRouteName="Home"
   screenOptions={
     {
+      "cardStyle": {
+        "backgroundColor": "#ffffff",
+      },
       "headerShown": false,
     }
   }
@@ -197,9 +200,23 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   />
   <Screen
     name="RampBuy"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     name="RampSell"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -398,6 +415,9 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   initialRouteName="Home"
   screenOptions={
     {
+      "cardStyle": {
+        "backgroundColor": "#ffffff",
+      },
       "headerShown": false,
     }
   }
@@ -590,9 +610,23 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   />
   <Screen
     name="RampBuy"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     name="RampSell"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -791,6 +825,9 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   initialRouteName="Home"
   screenOptions={
     {
+      "cardStyle": {
+        "backgroundColor": "#ffffff",
+      },
       "headerShown": false,
     }
   }
@@ -983,9 +1020,23 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     name="RampBuy"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     name="RampSell"
+    options={
+      {
+        "cardStyle": {
+          "backgroundColor": "#ffffff",
+        },
+      }
+    }
   />
   <Screen
     component={[Function]}
