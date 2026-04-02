@@ -34,7 +34,10 @@ import {
   buildMarketDataPayload,
   buildUserDataPayload,
 } from '@metamask/perps-controller/utils/perpsDiskPersistence';
-import { getProviderNetworkKey } from '@metamask/perps-controller/constants/perpsConfig';
+import {
+  buildProviderCacheKey,
+  getProviderNetworkKey,
+} from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
@@ -1386,9 +1389,10 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-    // Note: uses state.isTestnet directly. If PROVIDER_CONFIG.MYX_TESTNET_ONLY is
-    // ever re-enabled, this key would diverge from buildProviderCacheKey().
-    const currentNetworkKey = `${currentProviderId}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+    const currentNetworkKey = buildProviderCacheKey(
+      currentProviderId,
+      controller.state?.isTestnet ?? false,
+    );
 
     // Invalidate cache if provider OR network changed
     if (this.cachedProviderId && this.cachedProviderId !== currentNetworkKey) {
