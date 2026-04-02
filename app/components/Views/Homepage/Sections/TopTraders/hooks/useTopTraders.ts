@@ -5,6 +5,7 @@ import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
 } from '@metamask-previews/social-controllers';
+import Logger from '../../../../../../util/Logger';
 import type { TopTrader } from '../types';
 
 /**
@@ -20,6 +21,7 @@ export interface UseTopTradersResult {
 
 interface UseTopTradersOptions {
   limit?: number;
+  enabled?: boolean;
 }
 
 /**
@@ -47,7 +49,7 @@ export const useTopTraders = (
 
   const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
     queryKey,
-    enabled: true,
+    enabled: options?.enabled ?? true,
   });
 
   const [localFollowOverrides, setLocalFollowOverrides] = useState<
@@ -64,14 +66,19 @@ export const useTopTraders = (
       rank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
-      percentageChange: (entry.roi30d ?? 0) * 100,
+      percentageChange: (entry.roiPercent30d ?? 0) * 100,
       pnlValue: entry.pnl30d,
       isFollowing: localFollowOverrides[entry.profileId] ?? false,
     }));
   }, [data, localFollowOverrides]);
 
   const refresh = useCallback(async () => {
-    await refetch();
+    try {
+      await refetch();
+    } catch (err) {
+      Logger.error(err as Error, 'useTopTraders: refresh failed');
+      throw err;
+    }
   }, [refetch]);
 
   const toggleFollow = useCallback((traderId: string) => {
@@ -81,10 +88,15 @@ export const useTopTraders = (
     }));
   }, []);
 
+  if (error) {
+    Logger.error(error as Error, 'useTopTraders: leaderboard fetch failed');
+  }
+
   return {
     traders,
     isLoading,
-    error: error ? String(error) : null,
+    error:
+      error instanceof Error ? error.message : error ? String(error) : null,
     refresh,
     toggleFollow,
   };

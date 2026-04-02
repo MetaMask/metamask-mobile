@@ -51,6 +51,7 @@ const TopTradersSection = forwardRef<
 
   const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
     limit: HOME_TRADER_LIMIT,
+    enabled: isEnabled,
   });
 
   useImperativeHandle(
@@ -75,7 +76,7 @@ const TopTradersSection = forwardRef<
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW as never);
   }, [navigation]);
 
-  if (!isEnabled) {
+  if (!isEnabled || (!isLoading && traders.length === 0)) {
     return null;
   }
 

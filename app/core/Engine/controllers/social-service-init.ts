@@ -5,6 +5,7 @@ import {
 } from '@metamask-previews/social-controllers';
 import type { ControllerInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
+import Logger from '../../../util/Logger';
 
 /**
  * Initialize the SocialService.
@@ -17,10 +18,15 @@ export const socialServiceInit: ControllerInitFunction<
   SocialService,
   SocialServiceMessenger
 > = ({ controllerMessenger }) => {
-  const controller = new SocialService({
-    messenger: controllerMessenger,
-    baseUrl: AppConstants.SOCIAL_API_URL,
-  });
+  try {
+    const controller = new SocialService({
+      messenger: controllerMessenger,
+      baseUrl: AppConstants.SOCIAL_API_URL,
+    });
 
-  return { controller };
+    return { controller };
+  } catch (error) {
+    Logger.error(error as Error, 'Failed to initialize SocialService');
+    throw error;
+  }
 };

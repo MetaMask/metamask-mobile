@@ -4,6 +4,7 @@ import {
   type SocialControllerMessenger,
 } from '@metamask-previews/social-controllers';
 import type { ControllerInitFunction } from '../types';
+import Logger from '../../../util/Logger';
 
 /**
  * Initialize the SocialController.
@@ -17,10 +18,15 @@ export const socialControllerInit: ControllerInitFunction<
   SocialController,
   SocialControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const controller = new SocialController({
-    messenger: controllerMessenger,
-    state: persistedState.SocialController,
-  });
+  try {
+    const controller = new SocialController({
+      messenger: controllerMessenger,
+      state: persistedState.SocialController,
+    });
 
-  return { controller };
+    return { controller };
+  } catch (error) {
+    Logger.error(error as Error, 'Failed to initialize SocialController');
+    throw error;
+  }
 };

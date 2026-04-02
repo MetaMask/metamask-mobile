@@ -1,6 +1,11 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useQuery } from '@metamask/react-data-query';
+import Logger from '../../../../../../util/Logger';
 import { useTopTraders } from './useTopTraders';
+
+jest.mock('../../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 const mockTraders = [
   {
@@ -9,7 +14,7 @@ const mockTraders = [
     name: 'sniperliquid.hl',
     imageUrl: 'https://example.com/avatar1.png',
     pnl30d: 963146.8,
-    roi30d: 0.43,
+    roiPercent30d: 0.43,
   },
   {
     rank: 2,
@@ -17,7 +22,7 @@ const mockTraders = [
     name: 'nervousdegen',
     imageUrl: 'https://example.com/avatar2.png',
     pnl30d: 474751.45,
-    roi30d: 3.59,
+    roiPercent30d: 3.59,
   },
   {
     rank: 3,
@@ -25,7 +30,7 @@ const mockTraders = [
     name: 'baznocap',
     imageUrl: 'https://example.com/avatar3.png',
     pnl30d: 374735.16,
-    roi30d: 6.17,
+    roiPercent30d: 6.17,
   },
 ];
 
@@ -85,14 +90,14 @@ describe('useTopTraders', () => {
         rank: first.rank,
         username: first.name,
         avatarUri: first.imageUrl,
-        percentageChange: first.roi30d * 100,
+        percentageChange: first.roiPercent30d * 100,
         pnlValue: first.pnl30d,
         isFollowing: false,
       });
     });
 
-    it('defaults percentageChange to 0 when roi30d is null', () => {
-      const entry = { ...mockTraders[0], roi30d: null };
+    it('defaults percentageChange to 0 when roiPercent30d is null', () => {
+      const entry = { ...mockTraders[0], roiPercent30d: null };
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: { traders: [entry] } as never }),
       );
@@ -117,12 +122,30 @@ describe('useTopTraders', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('converts an Error object to a string', () => {
+    it('returns the error message for an Error object', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ error: new Error('Network error') }),
       );
       const { result } = renderHook(() => useTopTraders());
-      expect(result.current.error).toBe('Error: Network error');
+      expect(result.current.error).toBe('Network error');
+    });
+
+    it('logs the full error object via Logger.error', () => {
+      const err = new Error('Network error');
+      mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
+      renderHook(() => useTopTraders());
+      expect(Logger.error).toHaveBeenCalledWith(
+        err,
+        'useTopTraders: leaderboard fetch failed',
+      );
+    });
+
+    it('converts a non-Error value to a string', () => {
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ error: 'raw string error' as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.error).toBe('raw string error');
     });
 
     it('returns null when there is no error', () => {
@@ -183,6 +206,23 @@ describe('useTopTraders', () => {
 
       expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
+
+    it('logs and re-throws when refetch rejects', async () => {
+      const err = new Error('Network failure');
+      mockRefetch.mockRejectedValue(err);
+      const { result } = renderHook(() => useTopTraders());
+
+      await expect(
+        act(async () => {
+          await result.current.refresh();
+        }),
+      ).rejects.toThrow('Network failure');
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        err,
+        'useTopTraders: refresh failed',
+      );
+    });
   });
 
   describe('options', () => {
@@ -203,6 +243,30 @@ describe('useTopTraders', () => {
         expect.objectContaining({
           queryKey: ['SocialService:fetchLeaderboard', null],
         }),
+      );
+    });
+
+    it('defaults enabled to true when the option is not provided', () => {
+      renderHook(() => useTopTraders());
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('forwards enabled: false to useQuery to prevent the API call', () => {
+      renderHook(() => useTopTraders({ enabled: false }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('forwards enabled: true to useQuery when explicitly set', () => {
+      renderHook(() => useTopTraders({ enabled: true }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
       );
     });
   });

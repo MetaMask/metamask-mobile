@@ -8,14 +8,27 @@ import { SectionRefreshHandle } from '../../types';
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
 
+const mockTraders = [
+  {
+    id: 'trader-1',
+    rank: 1,
+    username: 'alice',
+    percentageChange: 96.2,
+    pnlValue: 963000,
+    isFollowing: false,
+  },
+];
+
+const mockUseTopTraders = jest.fn((_options?: unknown) => ({
+  traders: mockTraders,
+  isLoading: false,
+  error: null,
+  refresh: mockRefetch,
+  toggleFollow: jest.fn(),
+}));
+
 jest.mock('./hooks', () => ({
-  useTopTraders: jest.fn(() => ({
-    traders: [],
-    isLoading: false,
-    error: null,
-    refresh: mockRefetch,
-    toggleFollow: jest.fn(),
-  })),
+  useTopTraders: (args: unknown) => mockUseTopTraders(args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -58,6 +71,39 @@ describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+  });
+
+  it('returns null when the API returns no traders', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(screen.queryByTestId('homepage-top-traders-carousel')).toBeNull();
+  });
+
+  it('renders skeletons while loading even when traders is empty', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
   });
 
   it('returns null when the feature flag is disabled', () => {

@@ -8,13 +8,13 @@
  * @returns Formatted string like "+$963K" or "-$1,200".
  */
 export function formatPnl(value: number): string {
-  const abs = Math.abs(value);
+  const rounded = Math.round(Math.abs(value));
   const sign = value >= 0 ? '+' : '-';
 
-  if (abs >= 1_000) {
-    return `${sign}$${addCommas(Math.round(abs / 1_000))}K`;
+  if (rounded >= 1_000) {
+    return `${sign}$${addCommas(Math.round(rounded / 1_000))}K`;
   }
-  return `${sign}$${addCommas(Math.round(abs))}`;
+  return `${sign}$${addCommas(rounded)}`;
 }
 
 function addCommas(n: number): string {

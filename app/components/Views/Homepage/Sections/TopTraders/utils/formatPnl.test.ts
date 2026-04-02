@@ -50,6 +50,14 @@ describe('formatPnl', () => {
       expect(formatPnl(999)).toBe('+$999');
     });
 
+    it('formats 999.5 as +$1K (rounds up to 1000 before branching)', () => {
+      expect(formatPnl(999.5)).toBe('+$1K');
+    });
+
+    it('formats -999.7 as -$1K (rounds up to 1000 before branching)', () => {
+      expect(formatPnl(-999.7)).toBe('-$1K');
+    });
+
     it('formats exactly 1,000,000', () => {
       expect(formatPnl(1_000_000)).toBe('+$1,000K');
     });
