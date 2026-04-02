@@ -85,12 +85,9 @@ export const useHardwareWalletStateManager =
 
     const selectedAccount = useSelector(selectSelectedInternalAccount);
 
-    const walletType = useMemo((): HardwareWalletType | null => {
-      if (!selectedAccount?.address) {
-        return null;
-      }
-      return getHardwareWalletTypeForAddress(selectedAccount.address) ?? null;
-    }, [selectedAccount?.address]);
+    const walletType: HardwareWalletType | null = selectedAccount?.address
+      ? (getHardwareWalletTypeForAddress(selectedAccount.address) ?? null)
+      : null;
 
     const state = useMemo<HardwareWalletManagedState>(
       () => ({

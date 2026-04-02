@@ -96,8 +96,8 @@ function createStateWithSelectedAccountGroup(
             },
           },
         },
-        selectedAccountGroup: GROUP_ID,
       },
+      selectedAccountGroup: GROUP_ID,
     },
     RemoteFeatureFlagController: {
       remoteFeatureFlags: {

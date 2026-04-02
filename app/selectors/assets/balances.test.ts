@@ -131,8 +131,8 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
               },
             },
           },
-          selectedAccountGroup: 'wallet-1/group-1',
         },
+        selectedAccountGroup: 'wallet-1/group-1',
       },
       AccountsController: {
         internalAccounts: {
@@ -309,7 +309,8 @@ describe('assets balance and balance change selectors (mobile)', () => {
         engine: {
           backgroundState: {
             AccountTreeController: {
-              accountTree: { wallets: {}, selectedAccountGroup: '' },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: '',
             },
             AccountsController: {
               internalAccounts: { accounts: {}, selectedAccount: '' },
@@ -518,7 +519,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns zeroed fallback when selected group does not exist', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
       const result = selectBalanceBySelectedAccountGroup()(state);
@@ -532,7 +533,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns null when no selected account group', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const result = selectBalanceBySelectedAccountGroup()(state);
@@ -558,7 +559,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns change for selected wallet-2 group (1d)', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-2/group-1';
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
@@ -576,7 +577,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns null when no selected account group', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
@@ -658,7 +659,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const result = selectAccountGroupBalanceForEmptyState(state);
@@ -683,7 +684,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
       const result = selectAccountGroupBalanceForEmptyState(state);

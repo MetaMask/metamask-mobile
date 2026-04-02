@@ -63,7 +63,6 @@ describe('defiPositionsController selectors', () => {
           },
           AccountTreeController: {
             accountTree: {
-              selectedAccountGroup,
               wallets: {
                 'entropy:wallet0': {
                   id: 'entropy:wallet0',
@@ -85,6 +84,7 @@ describe('defiPositionsController selectors', () => {
                 },
               },
             },
+            selectedAccountGroup,
           },
           AccountsController: {
             internalAccounts: {

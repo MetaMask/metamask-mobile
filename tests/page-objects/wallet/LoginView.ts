@@ -13,8 +13,14 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 
 class LoginView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(LoginViewSelectors.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(LoginViewSelectors.CONTAINER, {
+          exact: true,
+        }),
+    });
   }
 
   get passwordInput(): EncapsulatedElementType {
@@ -26,7 +32,7 @@ class LoginView {
         Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByCatchAll(
+          PlaywrightMatchers.getElementByAccessibilityId(
             LoginViewSelectors.PASSWORD_INPUT,
           ),
         ios: () =>

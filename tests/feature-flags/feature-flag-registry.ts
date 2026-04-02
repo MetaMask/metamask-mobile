@@ -82,6 +82,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialLeaderboardEnabled: {
+    name: 'aiSocialLeaderboardEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.72.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialMarketAnalysisEnabled: {
     name: 'aiSocialMarketAnalysisEnabled',
     type: FeatureFlagType.Remote,
@@ -2670,6 +2681,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMusdTokenRegistrationChainIds: {
+    name: 'earnMusdTokenRegistrationChainIds',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      chainIds: ['0x1', '0xe708'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnPooledStakingEnabled: {
     name: 'earnPooledStakingEnabled',
     type: FeatureFlagType.Remote,
@@ -2818,17 +2839,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  importSrpWordSuggestion: {
-    name: 'importSrpWordSuggestion',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.61.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   legacyIosGoogleConfigEnabled: {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
@@ -2877,18 +2887,32 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  mobileUxAccountMenu: {
-    name: 'mobileUxAccountMenu',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   mobileUxNetworkManagement: {
     name: 'mobileUxNetworkManagement',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccount: {
+    name: 'moneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      moneyAccountDepositEnabled: false,
+      moneyAccountWithdrawEnabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableMoneyAccount: {
+    name: 'moneyEnableMoneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',

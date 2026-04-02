@@ -55,6 +55,12 @@ jest.mock('../../../core/NotificationManager', () => ({
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
   speedUpTransaction: jest.fn(),
+  getPreviousGasFromController: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../util/confirmation/gas', () => ({
+  getGasValuesForReplacement: jest.fn((gasValues) => gasValues),
+  getMediumGasPriceHex: jest.fn(() => '0x123'),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -1423,14 +1429,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     const key = instance.keyExtractor({ id: 'tx-123' });
     expect(key).toBe('tx-123');
 
-    // Test getGasPriceEstimate method directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: { medium: { suggestedMaxFeePerGas: '20' } },
-    };
-    const estimate = instance.getGasPriceEstimate();
-    expect(estimate).toBeDefined();
-
     // Test getCancelOrSpeedupValues (no arg; derives from existingTx)
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const result = instance.getCancelOrSpeedupValues();
@@ -2147,46 +2145,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.existingTx = { txParams: { gasPrice: '0x0' } };
     const result2 = instance.getCancelOrSpeedupValues();
     expect(result2?.gasPrice).toBeDefined();
-  });
-
-  it('should test getGasPriceEstimate with different scenarios', () => {
-    // Test with medium.suggestedMaxFeePerGas
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: { suggestedMaxFeePerGas: '25' },
-      },
-    };
-    let result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with medium value directly
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        medium: '20',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with gasPrice fallback
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {
-        gasPrice: '15',
-      },
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
-
-    // Test with no estimates (fallback to '0')
-    instance.props = {
-      ...defaultTestProps,
-      gasFeeEstimates: {},
-    };
-    result = instance.getGasPriceEstimate();
-    expect(result).toBeDefined();
   });
 
   it('should test renderEmpty with switch network scenarios', () => {

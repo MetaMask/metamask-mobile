@@ -28,7 +28,9 @@ export const useGetCampaignParticipantStatus = (
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const status = useSelector(selectCampaignParticipantStatusById(campaignId));
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(
+    () => !status && Boolean(subscriptionId) && Boolean(campaignId),
+  );
   const [hasError, setHasError] = useState(false);
 
   const fetchStatus = useCallback(async (): Promise<void> => {
