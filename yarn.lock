@@ -34861,6 +34861,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash@npm:4.18.1":
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
+  languageName: node
+  linkType: hard
+
 "log-symbols@npm:4.1.0, log-symbols@npm:^4.0.0, log-symbols@npm:^4.1.0":
   version: 4.1.0
   resolution: "log-symbols@npm:4.1.0"
@@ -35669,7 +35676,7 @@ __metadata:
     koa: "npm:^2.14.2"
     lint-staged: "npm:10.5.4"
     listr2: "npm:^8.0.2"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:4.18.1"
     lottie-react-native: "npm:6.7.2"
     luxon: "npm:^3.5.0"
     metro-react-native-babel-preset: "npm:~0.76.9"
