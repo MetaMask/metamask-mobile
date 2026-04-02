@@ -5,7 +5,9 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import BalanceEmptyState from './BalanceEmptyState';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 // Mock useRampNavigation hook
 const mockGoToBuy = jest.fn();
@@ -39,12 +41,7 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
-  },
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../util/networks', () => ({
   getDecimalChainId: jest.fn(() => 1),
@@ -54,10 +51,12 @@ describe('BalanceEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
   });
 
@@ -103,7 +102,9 @@ describe('BalanceEmptyState', () => {
 
     fireEvent.press(actionButton);
 
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         button_text: 'Add funds',
@@ -126,7 +127,9 @@ describe('BalanceEmptyState', () => {
 
     fireEvent.press(actionButton);
 
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith('ramps_button_clicked');
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+    );
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         button_text: 'Add funds',

@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -38,7 +44,6 @@ import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPositio
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import Logger from '../../../../util/Logger';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -47,13 +52,21 @@ type OndoCampaignDetailsRouteParams = {
   CampaignDetails: { campaignId: string };
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type RewardsCampaignStackParamList = ParamListBase & {
+  RewardsCampaignsView: undefined;
+  RewardsCampaignMechanics: { campaignId: string };
+  RewardsOndoCampaignLeaderboard: { campaignId: string };
+};
+
 export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
 } as const;
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<RewardsCampaignStackParamList>>();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
@@ -77,7 +90,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   useEffect(() => {
     if (campaign && getCampaignStatus(campaign) === 'upcoming') {
-      navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW as never);
+      navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
     }
   }, [campaign, navigation]);
 
@@ -291,7 +304,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Pressable
                         onPress={() =>
                           navigation.navigate(
-                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD as never,
+                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
                             { campaignId },
                           )
                         }
@@ -369,7 +382,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Pressable
                         onPress={() =>
                           navigation.navigate(
-                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD as never,
+                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
                             { campaignId },
                           )
                         }

@@ -20,8 +20,7 @@
  * import { usePushProvisioning } from '@app/components/UI/Card/pushProvisioning';
  *
  * const { initiateProvisioning, isProvisioning, canAddToWallet } = usePushProvisioning({
- *   cardId: 'card-123',
- *   cardholderName: 'John Doe',
+ *   cardDetails: { id: 'card-123', holderName: 'John Doe', panLast4: '1234', status: 'active' },
  * });
  * ```
  */
@@ -42,8 +41,7 @@ export {
   GalileoCardAdapter,
   // Wallet provider adapters
   type IWalletProviderAdapter,
-  // NOTE: Platform-specific adapters (GoogleWalletAdapter, AppleWalletAdapter)
-  // are exported from platform-specific branches
+  GoogleWalletAdapter,
 } from './adapters';
 
 // Service

@@ -514,7 +514,6 @@ const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 const MainFlow = () => (
   <Stack.Navigator
     initialRouteName={'Main'}
-    mode={'modal'}
     screenOptions={{
       headerShown: false,
     }}
@@ -523,7 +522,7 @@ const MainFlow = () => (
     <Stack.Screen
       name={'ReviewModal'}
       component={ReviewModal}
-      options={{ animationEnabled: false }}
+      options={{ animationEnabled: false, presentation: 'modal' }}
     />
   </Stack.Navigator>
 );

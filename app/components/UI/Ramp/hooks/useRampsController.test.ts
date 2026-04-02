@@ -99,9 +99,10 @@ const createMockStore = () =>
       }),
       multichainAccounts: () => ({
         accountTree: {
-          selectedAccountGroup: {
-            accounts: [{ address: '0x123' }],
-          },
+          wallets: {},
+        },
+        selectedAccountGroup: {
+          accounts: [{ address: '0x123' }],
         },
       }),
       network: () => ({
