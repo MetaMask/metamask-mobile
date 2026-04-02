@@ -8,7 +8,6 @@ import {
   PlaceOrderParams,
 } from '../../../types';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import Engine from '../../../../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -182,12 +181,7 @@ export const usePredictBuyActions = ({
         navigation.dispatch(StackActions.pop());
       }
     }
-  }, [
-    currentState,
-    navigation,
-    preview?.marketId,
-    analyticsProperties?.marketId,
-  ]);
+  }, [currentState, navigation]);
 
   return {
     handleConfirm,

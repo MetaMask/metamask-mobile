@@ -81,10 +81,6 @@ jest.mock('../../../constants/transactions', () => ({
   MINIMUM_BET: 1,
 }));
 
-jest.mock('../../PredictBuyPreview/PredictBuyPreview', () => ({
-  MINIMUM_BET: 1,
-}));
-
 const createMockPreview = (
   overrides?: Partial<OrderPreview>,
 ): OrderPreview => ({
