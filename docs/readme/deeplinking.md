@@ -901,6 +901,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 | `perps-asset`          | Perps specific asset        | ⚠️ NOT IMPLEMENTED       | Action defined but missing handler case         |
 | `predict`              | Prediction markets          | `handlePredictUrl`       | Params: `market` or `marketId`, `utm_source`    |
 | `rewards`              | Rewards program             | `handleRewardsUrl`       | Params: `referral` (referral code)              |
+| `trending`             | Explore / Trending          | `handleTrendingUrl`      | Params: `screen=stocks` (geo-block falls back)  |
 | `wc`                   | WalletConnect               | Recursive `parse()` call |                                                 |
 | `onboarding`           | Fast onboarding             | `handleFastOnboarding`   |                                                 |
 | `enable-card-button`   | Enable card feature         | `handleEnableCardButton` |                                                 |
