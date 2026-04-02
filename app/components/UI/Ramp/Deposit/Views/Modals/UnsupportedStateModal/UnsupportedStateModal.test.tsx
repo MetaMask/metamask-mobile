@@ -1,6 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
+
 import UnsupportedStateModal from './UnsupportedStateModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
