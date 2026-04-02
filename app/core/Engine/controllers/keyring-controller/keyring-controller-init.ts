@@ -21,7 +21,6 @@ import {
   LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../../../Encryptor';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
