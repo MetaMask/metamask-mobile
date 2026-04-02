@@ -322,7 +322,11 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
         style={containerStyle}
         twClassName="px-5"
       >
-        <Text variant={TextVariant.BodyMd} style={errorTextStyle}>
+        <Text
+          testID="liveline-chart-error-message"
+          variant={TextVariant.BodyMd}
+          style={errorTextStyle}
+        >
           Failed to load chart: {webViewError}
         </Text>
       </Box>

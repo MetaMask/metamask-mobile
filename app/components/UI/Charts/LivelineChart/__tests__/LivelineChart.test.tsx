@@ -1,4 +1,5 @@
 import React from 'react';
+import { View as mockRNView } from 'react-native';
 import { render, act } from '@testing-library/react-native';
 import LivelineChart from '../LivelineChart';
 import {
@@ -12,12 +13,15 @@ import {
 const mockPostMessage = jest.fn();
 
 jest.mock('@metamask/react-native-webview', () => {
-  const { View } = jest.requireActual('react-native');
-  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { createElement, forwardRef, useImperativeHandle } =
+    jest.requireActual('react');
   const MockWebView = forwardRef(
     (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
       useImperativeHandle(ref, () => ({ postMessage: mockPostMessage }));
-      return <View testID="liveline-chart-webview" {...props} />;
+      return createElement(mockRNView, {
+        testID: 'liveline-chart-webview',
+        ...props,
+      });
     },
   );
   MockWebView.displayName = 'MockWebView';
@@ -181,7 +185,7 @@ describe('LivelineChart', () => {
     });
 
     it('includes the error message in the error container text', () => {
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <LivelineChart data={MOCK_DATA} value={43.1} />,
       );
 
@@ -190,7 +194,9 @@ describe('LivelineChart', () => {
         payload: { message: 'load failed' },
       });
 
-      expect(getByText(/load failed/)).toBeOnTheScreen();
+      expect(getByTestId('liveline-chart-error-message')).toHaveTextContent(
+        'Failed to load chart: load failed',
+      );
     });
 
     it('renders the error container on native WebView error', () => {
