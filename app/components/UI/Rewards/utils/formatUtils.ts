@@ -151,8 +151,8 @@ export const formatDateRemaining = (endDate: Date | string): string | null => {
   const hourTxt = hour > 0 ? `${hour}h` : '';
 
   return year > 0
-    ? `${yearTxt} ${monthTxt} ${dayTxt}`
-    : `${monthTxt} ${dayTxt} ${hourTxt}`;
+    ? `${yearTxt} ${monthTxt} ${dayTxt}`.trim()
+    : `${monthTxt} ${dayTxt} ${hourTxt}`.trim();
 };
 
 // Get icon name with fallback to Star if invalid
