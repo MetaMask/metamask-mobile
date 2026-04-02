@@ -25,6 +25,28 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      build_name:
+        description: 'build_name input passed to this workflow'
+        value: ${{ inputs.build_name }}
+      platform:
+        description: 'platform input (android, ios, or both)'
+        value: ${{ inputs.platform }}
+      source_branch_input:
+        description: 'source_branch input (empty means default ref was used)'
+        value: ${{ inputs.source_branch }}
+      checkout_ref:
+        description: 'Git ref used for checkout (version-bump commit SHA or source_branch / triggering ref)'
+        value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at checkout_ref after build succeeded'
+        value: ${{ jobs.emit-build-metadata.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -453,3 +475,31 @@ jobs:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
           if-no-files-found: warn
+
+  # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
+  emit-build-metadata:
+    name: Emit build metadata
+    needs: [prepare, build]
+    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Read metadata from tree at built ref
+        id: meta
+        run: |
+          REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
+          echo "checkout_ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "built_commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "semantic_version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          # versionCode 4138 (no '=' in this repo)
+          VC=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
+          echo "android_version_code=$VC" >> "$GITHUB_OUTPUT"
