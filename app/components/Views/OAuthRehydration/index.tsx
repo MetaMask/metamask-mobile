@@ -792,7 +792,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         testID={LoginViewSelectors.RESET_WALLET}
         onPress={toggleWarningModal}
         isDisabled={loading}
-        twClassName="self-center mt-4"
+        twClassName="self-center my-3.5"
       >
         {strings('login.forgot_password')}
       </Button>
@@ -836,13 +836,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             testID={LoginViewSelectors.CONTAINER}
             alignItems={BoxAlignItems.Center}
             paddingHorizontal={6}
-            twClassName="flex-1 w-full pt-6"
+            twClassName="flex-1 w-full"
           >
-            <Box alignItems={BoxAlignItems.Center} twClassName="w-full flex-1">
+            <Box
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full flex-1 mt-2.5"
+            >
               <Image
                 source={METAMASK_NAME}
                 style={[
-                  tw.style('w-20 h-10 self-center mt-2'),
+                  tw.style('w-20 h-10 self-center mt-2.5'),
                   { tintColor: colors.icon.default },
                 ]}
                 resizeMode="contain"
@@ -875,6 +878,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 <Label
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
+                  twClassName="-mb-1"
                 >
                   {strings('login.password')}
                 </Label>
@@ -883,14 +887,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <Box
                 flexDirection={BoxFlexDirection.Row}
-                twClassName="self-start"
+                twClassName="self-start gap-y-0.5"
               >
                 {renderHelperText()}
               </Box>
 
               <Box
                 alignItems={BoxAlignItems.Center}
-                twClassName="w-full mt-4"
+                twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
                 pointerEvents="box-none"
               >
                 <Button
@@ -903,7 +907,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   }
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
                   isLoading={finalLoading}
-                  twClassName="mt-1"
                 >
                   {strings('login.unlock_button')}
                 </Button>
