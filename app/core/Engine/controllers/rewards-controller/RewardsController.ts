@@ -39,7 +39,7 @@ import {
   type SeasonStatusState,
   type SeasonTierDto,
   type SeasonTierState,
-  SubscriptionBenefitsState,
+  type SubscriptionBenefitsState,
   type SubscriptionDto,
   type SubscriptionSeasonReferralDetailState,
 } from './types';

@@ -10,7 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import {ActivityIndicator, Pressable} from 'react-native';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';

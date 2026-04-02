@@ -26,8 +26,9 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
-import {useSelector} from "react-redux";
-import {selectRewardsSubscriptionId} from "../../../../selectors/rewards";
+import { useSelector } from 'react-redux';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import Engine from '../../../../core/Engine';
 
 const BenefitFullView = () => {
   const tw = useTailwind();
@@ -37,12 +38,15 @@ const BenefitFullView = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   useEffect(() => {
-    Engine.controllerMessenger.call(
-      'RewardsController:postBenefitImpression',
-      subscriptionId,
-      benefit.id,
-      benefit.type.id,
-    ).then()
+    if (!subscriptionId) return
+    Engine.controllerMessenger
+      .call(
+        'RewardsController:postBenefitImpression',
+        subscriptionId,
+        benefit.id,
+        benefit.type.id,
+      )
+      .then();
   }, [benefit, subscriptionId]);
 
   const handleClaim = () => {
