@@ -423,19 +423,35 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
    * doesn't re-trigger.
    */
   const [pendingInsights, setPendingInsights] = useState<{
+    tokenKey: string;
     isDisplayed: boolean;
     severity: string | undefined;
   } | null>(null);
 
+  const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
+
+  useEffect(() => {
+    // Reset pending payload when navigating to a new token.
+    setPendingInsights(null);
+  }, [tokenKey]);
+
   const handleMarketInsightsDisplayResolved = useCallback(
     (payload: { isDisplayed: boolean; severity: string | undefined }) => {
-      setPendingInsights(payload);
+      setPendingInsights({
+        tokenKey,
+        ...payload,
+      });
     },
-    [],
+    [tokenKey],
   );
 
   useEffect(() => {
     if (!pendingInsights) {
+      return;
+    }
+    if (pendingInsights.tokenKey !== tokenKey) {
+      // Ignore stale payloads from a previously viewed token.
+      setPendingInsights(null);
       return;
     }
     if (isPerpsEnabled && isPerpsMarketLoading) {
@@ -452,6 +468,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     hasPerpsMarket,
     isPerpsEnabled,
     isPerpsMarketLoading,
+    tokenKey,
     trackTokenDetailsOpened,
   ]);
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -109,6 +109,20 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: () => null,
 }));
 
+let mockAutoResolveMarketInsights = true;
+let mockLatestMarketInsightsResolver:
+  | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
+  | undefined;
+
+const triggerMarketInsightsResolved = (params: {
+  isDisplayed: boolean;
+  severity: string | undefined;
+}) => {
+  act(() => {
+    mockLatestMarketInsightsResolver?.(params);
+  });
+};
+
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
@@ -123,10 +137,11 @@ jest.mock('../components/AssetOverviewContent', () => {
   }) => {
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
-      onMarketInsightsDisplayResolved?.({
-        isDisplayed: true,
-        severity: undefined,
-      });
+      mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
+      if (!mockAutoResolveMarketInsights) {
+        return;
+      }
+      onMarketInsightsDisplayResolved?.({ isDisplayed: true, severity: undefined });
     }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
 
     return null;
@@ -219,6 +234,8 @@ jest.mock('../../MarketInsights', () => ({
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAutoResolveMarketInsights = true;
+    mockLatestMarketInsightsResolver = undefined;
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
@@ -263,6 +280,11 @@ describe('TokenDetails', () => {
       if (selector === selectDepositMinimumVersionFlag) return null;
       return undefined;
     });
+  });
+
+  afterEach(() => {
+    autoResolveMarketInsights = true;
+    latestMarketInsightsResolver = undefined;
   });
 
   it('renders loader when txLoading is true', () => {
@@ -402,6 +424,69 @@ describe('TokenDetails', () => {
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not flush stale pending insights after token navigation', async () => {
+    mockAutoResolveMarketInsights = false;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectNetworkConfigurationByChainId)
+        return { name: 'Ethereum' };
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+      if (selector === getRampNetworks) return [];
+      if (selector === selectDepositActiveFlag) return false;
+      if (selector === selectDepositMinimumVersionFlag) return null;
+      return undefined;
+    });
+    mockUsePerpsMarketForAsset.mockImplementation((symbol: string | null) => ({
+      hasPerpsMarket: symbol === 'USDC',
+      marketData: null,
+      isLoading: symbol === 'DAI',
+      error: null,
+    }));
+
+    const { rerender } = render(<TokenDetails />);
+
+    triggerMarketInsightsResolved({
+      isDisplayed: false,
+      severity: 'warning',
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
+
+    rerender(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    triggerMarketInsightsResolved({
+      isDisplayed: true,
+      severity: undefined,
+    });
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
+          has_perps_market: true,
+        }),
+      );
     });
   });
 });
