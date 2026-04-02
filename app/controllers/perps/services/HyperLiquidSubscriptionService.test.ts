@@ -4669,4 +4669,175 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(orderBookData.asks.length).toBe(3);
     });
   });
+
+  describe('Subscription Race Guards (#28141)', () => {
+    it('unsubscribes stale assetCtxs when a newer pending promise exists', async () => {
+      jest.mocked(parseAssetName).mockImplementation((symbol: string) => ({
+        symbol,
+        dex: symbol === 'BTC:UNISWAP' ? 'UNISWAP' : null,
+      }));
+      service.setDexMetaCache('UNISWAP', {
+        universe: [{ name: 'BTC:UNISWAP' }],
+      } as any);
+
+      let resolveFirst: (sub: MockSubscription) => void = () => undefined;
+      const firstMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      mockSubscriptionClient.allMids.mockResolvedValue({
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      });
+
+      let callCount = 0;
+      mockSubscriptionClient.assetCtxs.mockImplementation(() => {
+        callCount += 1;
+        if (callCount === 1) {
+          return new Promise<MockSubscription>((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+        return Promise.resolve(secondMockSub);
+      });
+
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      unsubscribe();
+
+      await service.subscribeToPrices({
+        symbols: ['BTC:UNISWAP'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      resolveFirst(firstMockSub);
+      await jest.runAllTimersAsync();
+
+      expect(firstMockSub.unsubscribe).toHaveBeenCalled();
+      expect(secondMockSub.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes stale BBO when a newer pending promise exists', async () => {
+      let resolveFirst: (sub: MockSubscription) => void = () => undefined;
+      const firstMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      let callCount = 0;
+      mockSubscriptionClient.bbo.mockImplementation(() => {
+        callCount += 1;
+        if (callCount === 1) {
+          return new Promise<MockSubscription>((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+
+        return Promise.resolve(secondMockSub);
+      });
+
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeOrderBook: true,
+      });
+      await jest.runAllTimersAsync();
+
+      unsubscribe1();
+
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeOrderBook: true,
+      });
+      await jest.runAllTimersAsync();
+
+      resolveFirst(firstMockSub);
+      await jest.runAllTimersAsync();
+
+      expect(firstMockSub.unsubscribe).toHaveBeenCalled();
+      expect(secondMockSub.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes stale activeAssetCtx when a newer pending promise exists', async () => {
+      // Arrange: make first activeAssetCtx return a deferred promise
+      let resolveFirst: (sub: MockSubscription) => void = () => undefined;
+      const firstMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+      const secondMockSub: MockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      let callCount = 0;
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(() => {
+        callCount += 1;
+        if (callCount === 1) {
+          // First call: deferred promise (simulates slow network)
+          return new Promise<MockSubscription>((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+        // Second call: resolves immediately
+        return Promise.resolve(secondMockSub);
+      });
+
+      // Act: first subscription
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Cleanup first subscription (decrements count, clears pending)
+      unsubscribe1();
+
+      // Second subscription for same symbol (creates new pending promise)
+      await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Now resolve the first (stale) promise
+      resolveFirst(firstMockSub);
+      await jest.runAllTimersAsync();
+
+      // Assert: stale subscription was unsubscribed
+      expect(firstMockSub.unsubscribe).toHaveBeenCalled();
+      // Fresh subscription was NOT unsubscribed
+      expect(secondMockSub.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('handles activeAssetCtx subscription error gracefully', async () => {
+      // Arrange: make activeAssetCtx reject
+      mockSubscriptionClient.activeAssetCtx.mockRejectedValue(
+        new Error('WebSocket connection failed'),
+      );
+
+      // Act: subscribe with market data — should not throw
+      const unsubscribe = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+        includeMarketData: true,
+      });
+      await jest.runAllTimersAsync();
+
+      // Assert: error was logged, service still functional
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+      expect(typeof unsubscribe).toBe('function');
+    });
+  });
 });
