@@ -24,7 +24,6 @@ import {
   TextVariant,
   FontWeight,
   TextField,
-  TextFieldSize,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -461,7 +460,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
-                size={TextFieldSize.Lg}
               />
             </Box>
 
