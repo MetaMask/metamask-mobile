@@ -208,7 +208,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                         : strings('perps.order.short_label')}
                     </Text>
                     <Icon
-                      name={IconName.Arrow2Right}
+                      name={IconName.ArrowRight}
                       size={IconSize.Md}
                       color={IconColor.Default}
                     />

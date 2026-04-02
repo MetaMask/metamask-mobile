@@ -12,6 +12,7 @@ import {
   selectIsSolanaToNonSolana,
   selectSelectedQuoteRequestId,
   setSelectedQuoteRequestId,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
@@ -53,6 +54,7 @@ export const useBridgeQuoteData = ({
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
@@ -245,9 +247,7 @@ export const useBridgeQuoteData = ({
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
-  const isNoQuotesAvailable = Boolean(
-    !bestQuote && quotesLastFetched && !isLoading,
-  );
+  const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
   // The quote expired and no fetch is in progress — offer to get a new one.
   // Also treat the edge-case where a fetch IS running but there is no active
