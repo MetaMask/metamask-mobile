@@ -10,6 +10,7 @@ import { AccountGroupId } from '@metamask/account-api';
 import {
   BottomSheet,
   type BottomSheetRef,
+  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -20,7 +21,6 @@ import { isCaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { MultichainAddressRow } from '../../../component-library/components-temp/MultichainAccounts';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import Routes from '../../../constants/navigation/Routes';
