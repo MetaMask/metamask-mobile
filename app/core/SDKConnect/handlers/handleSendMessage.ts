@@ -1,3 +1,4 @@
+import { MetaMetricsEvents } from '../../Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
@@ -30,16 +31,16 @@ export const handleSendMessage = async ({
       msgId !== 'undefined' &&
       anonId
     ) {
-      const eventName = msg?.data?.error
-        ? 'wallet_action_user_rejected'
-        : 'wallet_action_user_approved';
+      const event = msg?.data?.error
+        ? MetaMetricsEvents.WALLET_ACTION_USER_REJECTED
+        : MetaMetricsEvents.WALLET_ACTION_USER_APPROVED;
 
       DevLogger.log(
-        `[MM SDK Analytics] event=${eventName} anonId=${anonId}`,
+        `[MM SDK Analytics] event=${event.category} anonId=${anonId}`,
       );
 
       analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(eventName)
+        AnalyticsEventBuilder.createEventBuilder(event)
           .addProperties({
             transport_type: 'socket_relay',
             sdk_version: connection.originatorInfo?.apiVersion,

@@ -65,6 +65,14 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
+  // SDK wallet connection events (SDKv1 socket relay)
+  WALLET_CONNECTION_REQUEST_RECEIVED = 'wallet_connection_request_received',
+  WALLET_CONNECTION_USER_APPROVED = 'wallet_connection_user_approved',
+  WALLET_CONNECTION_USER_REJECTED = 'wallet_connection_user_rejected',
+  WALLET_ACTION_RECEIVED = 'wallet_action_received',
+  WALLET_ACTION_USER_APPROVED = 'wallet_action_user_approved',
+  WALLET_ACTION_USER_REJECTED = 'wallet_action_user_rejected',
+
   // Phishing
   PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
   PROCEED_ANYWAY_CLICKED = 'Proceed Anyway Clicked',
@@ -773,6 +781,24 @@ const events = {
     EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
+
+  // SDK wallet connection events (SDKv1 socket relay)
+  WALLET_CONNECTION_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.WALLET_CONNECTION_REQUEST_RECEIVED,
+  ),
+  WALLET_CONNECTION_USER_APPROVED: generateOpt(
+    EVENT_NAME.WALLET_CONNECTION_USER_APPROVED,
+  ),
+  WALLET_CONNECTION_USER_REJECTED: generateOpt(
+    EVENT_NAME.WALLET_CONNECTION_USER_REJECTED,
+  ),
+  WALLET_ACTION_RECEIVED: generateOpt(EVENT_NAME.WALLET_ACTION_RECEIVED),
+  WALLET_ACTION_USER_APPROVED: generateOpt(
+    EVENT_NAME.WALLET_ACTION_USER_APPROVED,
+  ),
+  WALLET_ACTION_USER_REJECTED: generateOpt(
+    EVENT_NAME.WALLET_ACTION_USER_REJECTED,
+  ),
 
   // Phishing events
   PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),

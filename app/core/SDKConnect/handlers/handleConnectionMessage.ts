@@ -20,6 +20,7 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { MetaMetricsEvents } from '../../Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { ANALYTICS_TRACKED_RPC_METHODS } from '../SDKConnectConstants';
@@ -72,7 +73,7 @@ export const handleConnectionMessage = async ({
       `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
     );
     analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder('wallet_action_received')
+      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.WALLET_ACTION_RECEIVED)
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: connection.originatorInfo?.apiVersion,
