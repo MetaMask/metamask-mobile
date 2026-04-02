@@ -10,14 +10,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { Pressable } from 'react-native';
+import {ActivityIndicator, Pressable} from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';
 import {
   selectBenefits,
   selectBenefitsLoading,
-} from '../../../../../reducers/benefits/selectors.ts';
+} from '../../../../../reducers/rewards/selectors.ts';
 import { useBenefits } from '../../hooks/useBenefits.ts';
 import BenefitCard from './BenefitCard.tsx';
 import Routes from '../../../../../constants/navigation/Routes.ts';
@@ -37,7 +37,7 @@ const BenefitsPreview = () => {
   }, [getAllBenefits]);
 
   const handleNavigateToCampaigns = useCallback(() => {
-    navigation.navigate(Routes.REWARD_BENEFIT_LIST_VIEW);
+    navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
   }, [navigation]);
 
   const hasBenefits = useMemo(() => benefits.length > 0, [benefits]);
@@ -52,9 +52,6 @@ const BenefitsPreview = () => {
             alignItems={BoxAlignItems.Center}
             twClassName="gap-2"
           >
-            {/*{isLoading && (*/}
-            {/*  <ActivityIndicator size="small" color={colors.primary.default} />*/}
-            {/*)}*/}
             <Text variant={TextVariant.HeadingMd}>
               {strings('rewards.benefits.title')}
             </Text>

@@ -139,6 +139,8 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import BenefitFullView from "../../UI/Rewards/Views/BenefitFullView";
+import BenefitsFullView from "../../UI/Rewards/Views/BenefitsFullView";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1051,6 +1053,16 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
         component={NftFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.REWARD_BENEFIT_FULL_VIEW}
+        component={BenefitFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.REWARD_BENEFITS_FULL_VIEW}
+        component={BenefitsFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen

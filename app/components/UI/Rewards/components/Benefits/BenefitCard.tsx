@@ -38,7 +38,7 @@ const BenefitCard = ({ benefit }: Props) => {
       style={tw.style('bg-section rounded-lg p-4 h-[154px]')}
       onPress={() =>
         NavigationService.navigation.navigate(
-          Routes.REWARD_BENEFIT_DETAILS_VIEW,
+          Routes.REWARD_BENEFIT_FULL_VIEW,
           {
             benefit,
           },

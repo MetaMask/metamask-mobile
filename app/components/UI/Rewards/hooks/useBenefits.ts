@@ -5,10 +5,9 @@ import {
   setBenefits,
   setBenefitsError,
   setBenefitsLoading,
-} from '../../../../reducers/benefits';
+} from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
 import type {
-  SubscriptionBenefitDto,
   SubscriptionBenefitsState,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,7 +15,6 @@ import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export const useBenefits = (): {
   getAllBenefits: () => Promise<void>;
-  postImpression: (benefit: SubscriptionBenefitDto) => Promise<void>;
 } => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -60,21 +58,6 @@ export const useBenefits = (): {
     await fetchBenefits(200);
   }, [fetchBenefits]);
 
-  const postImpression = useCallback(
-    async (benefit: SubscriptionBenefitDto): Promise<void> => {
-      if (!subscriptionId) {
-        return;
-      }
-      await Engine.controllerMessenger.call(
-        'RewardsController:postBenefitImpression',
-        subscriptionId,
-        benefit.id,
-        benefit.type.id,
-      );
-    },
-    [subscriptionId],
-  );
-
   useFocusEffect(
     useCallback(() => {
       getAllBenefits().then();
@@ -87,5 +70,5 @@ export const useBenefits = (): {
     getAllBenefits,
   );
 
-  return { getAllBenefits, postImpression };
+  return { getAllBenefits };
 };

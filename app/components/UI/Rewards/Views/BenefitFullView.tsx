@@ -19,26 +19,31 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BenefitDetailsViewRouteProp } from './BenefitDetailsView.types.ts';
+import { BenefitFullViewRouteProp } from './BenefitFullView.types.ts';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { formatDateRemaining } from '../utils/formatUtils.ts';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
-import { useBenefits } from '../hooks/useBenefits.ts';
+import {useSelector} from "react-redux";
+import {selectRewardsSubscriptionId} from "../../../../selectors/rewards";
 
-const BenefitDetailsView = () => {
+const BenefitFullView = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const route = useRoute<BenefitDetailsViewRouteProp>();
+  const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
-
-  const { postImpression } = useBenefits();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   useEffect(() => {
-    postImpression(benefit).then();
-  }, [benefit, postImpression]);
+    Engine.controllerMessenger.call(
+      'RewardsController:postBenefitImpression',
+      subscriptionId,
+      benefit.id,
+      benefit.type.id,
+    ).then()
+  }, [benefit, subscriptionId]);
 
   const handleClaim = () => {
     if (benefit.url) {
@@ -61,7 +66,7 @@ const BenefitDetailsView = () => {
   }, [benefit]);
 
   return (
-    <ErrorBoundary navigation={navigation} view="BenefitDetailsView">
+    <ErrorBoundary navigation={navigation} view="BenefitFullView">
       <SafeAreaView
         edges={{}}
         style={tw.style('flex-1')}
@@ -138,4 +143,4 @@ const BenefitDetailsView = () => {
   );
 };
 
-export default BenefitDetailsView;
+export default BenefitFullView;

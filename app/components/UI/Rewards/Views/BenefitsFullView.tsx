@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { FlatList, ListRenderItem, RefreshControl } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { selectBenefits } from '../../../../reducers/benefits/selectors.ts';
+import { selectBenefits } from '../../../../reducers/rewards/selectors.ts';
 import { useBenefits } from '../hooks/useBenefits.ts';
 import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 import BenefitCard from '../components/Benefits/BenefitCard.tsx';
@@ -17,7 +17,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import TheMiracleFooter from '../components/Benefits/TheMiracleFooter.tsx';
 import BenefitEmptyList from '../components/Benefits/BenefitEmptyList.tsx';
 
-const BenefitListView = () => {
+const BenefitsFullView = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
 
@@ -55,7 +55,7 @@ const BenefitListView = () => {
   );
 
   return (
-    <ErrorBoundary navigation={navigation} view="BenefitsListView">
+    <ErrorBoundary navigation={navigation} view="BenefitsFullView">
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
@@ -76,6 +76,7 @@ const BenefitListView = () => {
               renderItem={renderBenefitItem}
               keyExtractor={(item) => item.id.toString()}
               ListFooterComponent={<TheMiracleFooter />}
+              ListEmptyComponent={<BenefitEmptyList />}
               ListHeaderComponent={
                 <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
                   {strings('rewards.benefits.list_header')}
@@ -94,4 +95,4 @@ const BenefitListView = () => {
     </ErrorBoundary>
   );
 };
-export default BenefitListView;
+export default BenefitsFullView;

@@ -193,7 +193,7 @@ import type {
 } from '../../components/Views/Modals/Modals.types';
 
 // Rewards params
-import { BenefitDetailsViewRouteParams } from '../../components/UI/Rewards/Views/BenefitDetailsView.types.ts';
+import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
 
 // Webview params
 import type {
@@ -312,8 +312,8 @@ export interface RootStackParamList extends ParamListBase {
   RewardsOnboarding2: undefined;
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
-  BenefitDetailsView: BenefitDetailsViewRouteParams
-  BenefitListView: undefined
+  BenefitFullView: BenefitFullViewRouteParams
+  BenefitsFullView: undefined
 
   // Modal routes
   DeleteWalletModal: undefined;

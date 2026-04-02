@@ -1464,10 +1464,6 @@ export class RewardsDataService {
       throw new Error(`Get benefits failed: ${response.status}`);
     }
     const data = await response.json();
-    Logger.log(
-      'RewardsService: Fetching fresh benefits',
-      { data },
-    );
     return data.results as SubscriptionBenefitDto[];
   }
 
