@@ -41,6 +41,15 @@ export class WalletFundsObtainedMonitor {
 
   #lastOnboardingSignature = '';
 
+  /**
+   * Set after the one-time "no on-chain balance" read when a monitoring session starts.
+   * `#hasExistingFunds()` must not run on every `setupMonitoring` call: later updates (e.g.
+   * dust that never produces a ≥$1 notification) could flip token/multichain state and
+   * incorrectly call `#markFlowComplete()` without emitting the Segment event. Reset in
+   * `#detachListSubscription()` so a new session (e.g. notifications re-enabled) re-runs the gate.
+   */
+  #initialExistingFundsCheckSatisfied = false;
+
   #storeUnsubscribe: (() => void) | undefined;
 
   readonly #onNotificationServicesStateChange = (): void => {
@@ -122,6 +131,7 @@ export class WalletFundsObtainedMonitor {
       this.#handleNotifications = null;
     }
     this.#listenerSetup = false;
+    this.#initialExistingFundsCheckSatisfied = false;
   }
 
   #markFlowComplete(): void {
@@ -213,9 +223,12 @@ export class WalletFundsObtainedMonitor {
       return;
     }
 
-    if (this.#hasExistingFunds()) {
-      this.#markFlowComplete();
-      return;
+    if (!this.#initialExistingFundsCheckSatisfied) {
+      if (this.#hasExistingFunds()) {
+        this.#markFlowComplete();
+        return;
+      }
+      this.#initialExistingFundsCheckSatisfied = true;
     }
 
     if (!this.#listenerSetup) {
