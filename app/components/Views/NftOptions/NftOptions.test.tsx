@@ -122,7 +122,7 @@ describe('NftOptions', () => {
 
   it('renders the OpenSea link when on mainnet', () => {
     const { getByText } = render(<NftOptions />);
-    expect(getByText('View on OpenSea')).toBeTruthy();
+    expect(getByText('View on OpenSea')).toBeOnTheScreen();
   });
 
   it('does not render the OpenSea link for unsupported chains', () => {
