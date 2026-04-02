@@ -54,6 +54,8 @@ const SRPQuiz = (props: SRPQuizProps) => {
   } = props;
   
   const showDismissModalStackOnDone = dismissModalStackOnDone ?? false;
+  
+  
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
