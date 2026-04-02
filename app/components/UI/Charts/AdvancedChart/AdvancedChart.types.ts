@@ -488,12 +488,3 @@ export interface AdvancedChartRef {
   setChartType: (chartType: ChartType) => void;
   reset: () => void;
 }
-
-/**
- * Props for the IndicatorToggle component
- */
-export interface IndicatorToggleProps {
-  activeIndicators: IndicatorType[];
-  onToggle: (indicator: IndicatorType) => void;
-  disabled?: boolean;
-}
