@@ -133,6 +133,13 @@ describe('useWalletCompliance', () => {
 describe('useComplianceGate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock for checkCompliance calls triggered by the prefetch effect.
+    mockCheckWalletCompliance.mockResolvedValue({
+      address: SAFE_ADDRESS,
+      blocked: false,
+      checkedAt: '2025-01-01T00:00:00Z',
+    });
+    mockCheckWalletsCompliance.mockResolvedValue([]);
   });
 
   it('returns isBlocked=false when compliance is disabled even if address is blocked', () => {
@@ -177,6 +184,43 @@ describe('useComplianceGate', () => {
     expect(result.current.isBlocked).toBe(true);
   });
 
+  describe('prefetch effect', () => {
+    it('calls checkCompliance on mount when compliance is enabled', async () => {
+      mockUseSelector.mockReturnValue(true); // selectComplianceEnabled (+ selectIsWalletBlocked + selectAreAnyWalletsBlocked)
+
+      const { waitForNextUpdate } = renderHook(() =>
+        useComplianceGate(SAFE_ADDRESS),
+      );
+
+      await waitForNextUpdate();
+
+      expect(mockCheckWalletCompliance).toHaveBeenCalledWith(SAFE_ADDRESS);
+    });
+
+    it('does not call checkCompliance on mount when compliance is disabled', () => {
+      mockUseSelector
+        .mockReturnValueOnce(false) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectIsWalletBlocked
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      renderHook(() => useComplianceGate(SAFE_ADDRESS));
+
+      expect(mockCheckWalletCompliance).not.toHaveBeenCalled();
+    });
+
+    it('handles checkCompliance errors silently without throwing', async () => {
+      mockUseSelector.mockReturnValue(true);
+      mockCheckWalletCompliance.mockRejectedValue(new Error('API error'));
+
+      const { waitForNextUpdate } = renderHook(() =>
+        useComplianceGate(SAFE_ADDRESS),
+      );
+
+      // Should not throw — errors are swallowed in the prefetch effect
+      await expect(waitForNextUpdate()).resolves.not.toThrow();
+    });
+  });
+
   describe('gate()', () => {
     it('executes action directly when compliance is disabled', async () => {
       mockUseSelector
@@ -194,17 +238,11 @@ describe('useComplianceGate', () => {
       expect(value).toBe('result');
     });
 
-    it('executes action when compliance is enabled and address is not blocked', async () => {
+    it('executes action synchronously when compliance is enabled and cache says not blocked', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
         .mockReturnValueOnce(false) // selectIsWalletBlocked
         .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
-
-      mockCheckWalletCompliance.mockResolvedValue({
-        address: SAFE_ADDRESS,
-        blocked: false,
-        checkedAt: '2025-01-01T00:00:00Z',
-      });
 
       const action = jest.fn().mockResolvedValue('result');
       const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
@@ -216,17 +254,11 @@ describe('useComplianceGate', () => {
       expect(value).toBe('result');
     });
 
-    it('blocks action and shows modal when address is blocked (single address)', async () => {
+    it('blocks action and shows modal when cache says address is blocked (single address)', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
         .mockReturnValueOnce(true) // selectIsWalletBlocked
         .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
-
-      mockCheckWalletCompliance.mockResolvedValue({
-        address: BLOCKED_ADDRESS,
-        blocked: true,
-        checkedAt: '2025-01-01T00:00:00Z',
-      });
 
       const action = jest.fn();
       const { result } = renderHook(() => useComplianceGate(BLOCKED_ADDRESS));
@@ -238,24 +270,11 @@ describe('useComplianceGate', () => {
       expect(value).toBeUndefined();
     });
 
-    it('blocks action and shows modal when any address is blocked (multi-address)', async () => {
+    it('blocks action and shows modal when cache says any address is blocked (multi-address)', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
         .mockReturnValueOnce(false) // selectIsWalletBlocked (single for [0])
         .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked
-
-      mockCheckWalletsCompliance.mockResolvedValue([
-        {
-          address: SAFE_ADDRESS,
-          blocked: false,
-          checkedAt: '2025-01-01T00:00:00Z',
-        },
-        {
-          address: BLOCKED_ADDRESS,
-          blocked: true,
-          checkedAt: '2025-01-01T00:00:00Z',
-        },
-      ]);
 
       const action = jest.fn();
       const { result } = renderHook(() =>
@@ -269,17 +288,11 @@ describe('useComplianceGate', () => {
       expect(value).toBeUndefined();
     });
 
-    it('executes action and returns its result when compliance check passes', async () => {
+    it('executes action and returns its result when cache says not blocked', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
         .mockReturnValueOnce(false) // selectIsWalletBlocked
         .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
-
-      mockCheckWalletCompliance.mockResolvedValue({
-        address: SAFE_ADDRESS,
-        blocked: false,
-        checkedAt: '2025-01-01T00:00:00Z',
-      });
 
       const action = jest.fn().mockResolvedValue('action-result');
       const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
@@ -290,13 +303,68 @@ describe('useComplianceGate', () => {
       expect(value).toBe('action-result');
     });
 
-    it('executes action when checkCompliance throws (fail-open)', async () => {
+    it('waits for in-flight prefetch before reading isBlocked (race condition guard)', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
         .mockReturnValueOnce(false) // selectIsWalletBlocked
         .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
 
-      mockCheckWalletCompliance.mockRejectedValue(new Error('API error'));
+      let resolvePrefetch!: () => void;
+      const prefetchPromise = new Promise<void>(
+        (resolve) => (resolvePrefetch = resolve),
+      );
+      mockCheckWalletCompliance.mockReturnValue(prefetchPromise);
+
+      const action = jest.fn().mockResolvedValue('result');
+      const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
+
+      // Start gate — it should wait for the in-flight prefetch
+      const gatePromise = result.current.gate(action);
+
+      // Action must not have run yet while prefetch is pending
+      expect(action).not.toHaveBeenCalled();
+
+      // Resolve the prefetch and flush promises
+      resolvePrefetch();
+      await gatePromise;
+
+      expect(action).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves instantly when prefetch is already complete before gate is called', async () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectIsWalletBlocked
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      // prefetch resolves immediately
+      mockCheckWalletCompliance.mockResolvedValue({
+        address: SAFE_ADDRESS,
+        blocked: false,
+        checkedAt: '2025-01-01T00:00:00Z',
+      });
+
+      const action = jest.fn().mockResolvedValue('fast');
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useComplianceGate(SAFE_ADDRESS),
+      );
+
+      // Wait for the prefetch effect to complete
+      await waitForNextUpdate();
+
+      const value = await result.current.gate(action);
+
+      expect(value).toBe('fast');
+      expect(action).toHaveBeenCalledTimes(1);
+    });
+
+    it('proceeds with action when prefetch fails (fail-open on error)', async () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectIsWalletBlocked
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      mockCheckWalletCompliance.mockRejectedValue(new Error('Network error'));
 
       const action = jest.fn().mockResolvedValue('result');
       const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
@@ -306,23 +374,6 @@ describe('useComplianceGate', () => {
       expect(action).toHaveBeenCalledTimes(1);
       expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
       expect(value).toBe('result');
-    });
-
-    it('does not show modal when checkCompliance throws', async () => {
-      mockUseSelector
-        .mockReturnValueOnce(true) // selectComplianceEnabled
-        .mockReturnValueOnce(true) // selectIsWalletBlocked
-        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
-
-      mockCheckWalletCompliance.mockRejectedValue(new Error('Network timeout'));
-
-      const action = jest.fn().mockResolvedValue(undefined);
-      const { result } = renderHook(() => useComplianceGate(BLOCKED_ADDRESS));
-
-      await result.current.gate(action);
-
-      expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
-      expect(action).toHaveBeenCalledTimes(1);
     });
   });
 });

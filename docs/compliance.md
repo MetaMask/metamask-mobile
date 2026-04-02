@@ -188,7 +188,7 @@ await Engine.context.ComplianceController.updateBlockedWallets();
 2. The list is persisted to Redux state at `engine.backgroundState.ComplianceController.blockedWallets`.
 3. `selectIsWalletBlocked(address)` performs a **synchronous** lookup against this cached list -- no API call at check time.
 4. If the address is not in the cached blocklist, the selector falls back to the `walletComplianceStatusMap` which stores results from on-demand `checkWalletCompliance()` calls.
-5. `gate()` always calls `checkCompliance()` for a fresh API result before executing the action, using the returned `blocked` value directly rather than the cached Redux state.
+5. `gate()` reads `isBlocked` from the cached Redux state after awaiting any in-flight prefetch. A background `useEffect` in `useComplianceGate` fires `checkCompliance()` on mount and on address change, storing the promise in a ref. If the user taps a button before the prefetch resolves, `gate()` joins that single in-flight request (no duplicate calls). Once the prefetch has settled, `gate()` resolves instantly. Prefetch errors are swallowed silently; if the cache is empty, `isBlocked` defaults to `false` (fail-open).
 
 ## State Shape
 

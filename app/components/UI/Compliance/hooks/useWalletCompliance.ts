@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -8,12 +8,6 @@ import {
 } from '../../../../selectors/complianceController';
 import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
 import { useAccessRestrictedModal } from '../contexts/AccessRestrictedContext';
-
-type ComplianceResult =
-  | { blocked: boolean }
-  | { blocked: boolean }[]
-  | undefined
-  | null;
 
 type AddressInput = string | string[];
 
@@ -102,6 +96,20 @@ export function useComplianceGate(address?: AddressInput) {
 
   const isBlocked = isComplianceEnabled && rawIsBlocked;
 
+  // Holds the in-flight prefetch promise so gate() can await it if the user
+  // taps a button before the prefetch has resolved.
+  const prefetchRef = useRef<Promise<unknown> | null>(null);
+
+  // Prefetch compliance status on mount and whenever the address changes.
+  // The promise is stored in prefetchRef so gate() can join it if needed.
+  // Errors are swallowed — gate falls back to the blocklist fetched by init().
+  useEffect(() => {
+    if (!isComplianceEnabled) return;
+    prefetchRef.current = checkCompliance().catch(() => {
+      DevLogger.log('[useComplianceGate] Prefetch compliance check failed');
+    });
+  }, [isComplianceEnabled, checkCompliance]);
+
   const gate = useCallback(
     async <T>(action: () => Promise<T>): Promise<T | void> => {
       if (!isComplianceEnabled) {
@@ -111,26 +119,12 @@ export function useComplianceGate(address?: AddressInput) {
         return action();
       }
 
-      let blocked = false;
+      // If the prefetch is still in-flight (user tapped very quickly), wait for
+      // it to settle so we read a fresh isBlocked value from Redux.
+      // If it has already resolved this is effectively instant (~0ms).
+      await prefetchRef.current;
 
-      try {
-        DevLogger.log('[useComplianceGate] Running compliance check');
-
-        const result = (await checkCompliance()) as ComplianceResult;
-        blocked = Array.isArray(result)
-          ? result.some((r) => r.blocked)
-          : (result?.blocked ?? false);
-
-        DevLogger.log('[useComplianceGate] Check complete', {
-          blocked,
-          result,
-        });
-      } catch (error) {
-        DevLogger.log('[useComplianceGate] Error checking compliance', error);
-        return action();
-      }
-
-      if (blocked) {
+      if (isBlocked) {
         DevLogger.log('[useComplianceGate] Wallet blocked, showing modal');
         showAccessRestrictedModal();
         return;
@@ -139,7 +133,7 @@ export function useComplianceGate(address?: AddressInput) {
       DevLogger.log('[useComplianceGate] Wallet not blocked, proceeding');
       return action();
     },
-    [isComplianceEnabled, checkCompliance, showAccessRestrictedModal],
+    [isComplianceEnabled, isBlocked, showAccessRestrictedModal],
   );
 
   return useMemo(
