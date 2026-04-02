@@ -147,6 +147,8 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -577,6 +579,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const balanceUsd = Number(payToken.balanceUsd);
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
+
+  // Standard confirmation blocking alerts for pay-with-any-token flow.
+  // These validate the relay quote totals (input + fees) against the actual
+  // token balance, catching cases the margin-only check above misses.
+  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
+  const noQuotesAlerts = useNoPayTokenQuotesAlert();
+
+  const blockingPayAlerts = useMemo(() => {
+    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
+    return allPayAlerts.filter((a) => a.isBlocking);
+  }, [insufficientPayAlerts, noQuotesAlerts]);
+
+  const hasBlockingPayAlerts = blockingPayAlerts.length > 0;
+
+  const blockingPayAlertMessage = useMemo(
+    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
+    [blockingPayAlerts],
+  );
 
   // Order execution hook. Perps balance: standard "Order submitted" toast. Custom token: persistent "Submitting your trade" toast during deposit.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -1737,6 +1757,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
+          {hasBlockingPayAlerts &&
+            typeof blockingPayAlertMessage === 'string' && (
+              <View style={styles.validationContainer}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {blockingPayAlertMessage}
+                </Text>
+              </View>
+            )}
+
           {buttonColorVariant === 'monochrome' ? (
             <Button
               variant={ButtonVariants.Primary}
@@ -1750,7 +1779,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||
                 isAtOICap ||
-                shouldBlockBecauseOfFeesLoading
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
               }
               loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1771,7 +1801,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||
                 isAtOICap ||
-                shouldBlockBecauseOfFeesLoading
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}

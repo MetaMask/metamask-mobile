@@ -427,6 +427,20 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
 }));
 
 jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  () => ({
+    useNoPayTokenQuotesAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
   '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
   () => ({
     useAutomaticTransactionPayToken: jest.fn(),
