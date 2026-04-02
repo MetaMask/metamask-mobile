@@ -7,7 +7,7 @@ MetaMask Mobile integrates the `@metamask/compliance-controller` package to enfo
 The compliance system is composed of two Engine-level modules:
 
 - **`ComplianceService`** -- Stateless HTTP client that communicates with the Compliance API (`compliance.api.cx.metamask.io` in production, `compliance.dev-api.cx.metamask.io` in development).
-- **`ComplianceController`** -- Stateful controller that caches the blocked wallets list and per-address compliance results. It persists its state across app restarts.
+- **`ComplianceController`** -- Stateful controller that caches per-address compliance results in `walletComplianceStatusMap`. It persists its state across app restarts.
 
 ```
 ┌──────────────────────────┐
@@ -182,19 +182,21 @@ const statuses =
 await Engine.context.ComplianceController.updateBlockedWallets();
 ```
 
-## How the Blocklist Works
+## How the Compliance Cache Works
 
-1. On app launch (when compliance is enabled), `ComplianceController.init()` fetches the full blocked wallets list from the API if the cached list is stale (older than 1 hour by default).
-2. The list is persisted to Redux state at `engine.backgroundState.ComplianceController.blockedWallets`.
-3. `selectIsWalletBlocked(address)` performs a **synchronous** lookup against this cached list -- no API call at check time.
-4. If the address is not in the cached blocklist, the selector falls back to the `walletComplianceStatusMap` which stores results from on-demand `checkWalletCompliance()` calls.
-5. `gate()` reads `isBlocked` from the cached Redux state after awaiting any in-flight prefetch. A background `useEffect` in `useComplianceGate` fires `checkCompliance()` on mount and on address change, storing the promise in a ref. If the user taps a button before the prefetch resolves, `gate()` joins that single in-flight request (no duplicate calls). Once the prefetch has settled, `gate()` resolves instantly. Prefetch errors are swallowed silently; if the cache is empty, `isBlocked` defaults to `false` (fail-open).
+Compliance status is populated exclusively via **per-address API checks** — there is no bulk blocklist fetch.
+
+1. When a screen containing a compliance-gated action mounts, `useComplianceGate` fires a background `checkCompliance()` call (prefetch) and stores the in-flight promise in a ref.
+2. `checkCompliance()` calls `ComplianceController.checkWalletCompliance` / `checkWalletsCompliance`, which hit the Compliance API and persist the result in `walletComplianceStatusMap`.
+3. `selectIsWalletBlocked(address)` reads **synchronously** from `walletComplianceStatusMap` — no API call at render time.
+4. When the user presses a guarded button, `gate()` awaits `prefetchRef.current`. If the prefetch has already settled this is instant (~0ms); if the user tapped before it finished, `gate()` joins the single in-flight request. After settling, `isBlocked` is read from the up-to-date Redux state.
+5. Prefetch errors are swallowed silently. If no cached result exists for an address, `isBlocked` defaults to `false` (fail-open).
 
 ## State Shape
 
 ```typescript
 type ComplianceControllerState = {
-  // Cached results from on-demand per-address checks
+  // Per-address results populated by checkWalletCompliance calls
   walletComplianceStatusMap: Record<
     string,
     {
@@ -203,17 +205,6 @@ type ComplianceControllerState = {
       checkedAt: string; // ISO-8601
     }
   >;
-
-  // Full blocked wallets list from the API (null if not fetched)
-  blockedWallets: {
-    addresses: string[];
-    sources: { ofac: number; remote: number };
-    lastUpdated: string;
-    fetchedAt: string;
-  } | null;
-
-  // Timestamp of last blocklist fetch (ms since epoch)
-  blockedWalletsLastFetched: number;
 
   // ISO-8601 timestamp of last compliance check
   lastCheckedAt: string | null;

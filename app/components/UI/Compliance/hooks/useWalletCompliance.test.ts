@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useWalletCompliance, useComplianceGate } from './useWalletCompliance';
 
@@ -186,13 +186,14 @@ describe('useComplianceGate', () => {
 
   describe('prefetch effect', () => {
     it('calls checkCompliance on mount when compliance is enabled', async () => {
-      mockUseSelector.mockReturnValue(true); // selectComplianceEnabled (+ selectIsWalletBlocked + selectAreAnyWalletsBlocked)
+      mockUseSelector.mockReturnValue(true);
 
-      const { waitForNextUpdate } = renderHook(() =>
-        useComplianceGate(SAFE_ADDRESS),
-      );
+      renderHook(() => useComplianceGate(SAFE_ADDRESS));
 
-      await waitForNextUpdate();
+      // Flush promises so the useEffect's checkCompliance() call resolves
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(mockCheckWalletCompliance).toHaveBeenCalledWith(SAFE_ADDRESS);
     });
@@ -212,12 +213,15 @@ describe('useComplianceGate', () => {
       mockUseSelector.mockReturnValue(true);
       mockCheckWalletCompliance.mockRejectedValue(new Error('API error'));
 
-      const { waitForNextUpdate } = renderHook(() =>
-        useComplianceGate(SAFE_ADDRESS),
-      );
+      renderHook(() => useComplianceGate(SAFE_ADDRESS));
 
-      // Should not throw — errors are swallowed in the prefetch effect
-      await expect(waitForNextUpdate()).resolves.not.toThrow();
+      // Flush promises — should not throw, errors are swallowed in the prefetch catch
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // No assertions needed beyond "did not throw"
+      expect(true).toBe(true);
     });
   });
 
@@ -345,12 +349,12 @@ describe('useComplianceGate', () => {
       });
 
       const action = jest.fn().mockResolvedValue('fast');
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useComplianceGate(SAFE_ADDRESS),
-      );
+      const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
 
-      // Wait for the prefetch effect to complete
-      await waitForNextUpdate();
+      // Flush promises so the prefetch effect settles before gate is called
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       const value = await result.current.gate(action);
 
