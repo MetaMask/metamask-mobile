@@ -8108,11 +8108,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "@metamask/design-system-react-native@npm:0.11.0"
+"@metamask/design-system-react-native@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "@metamask/design-system-react-native@npm:0.12.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.4.0"
+    "@metamask/design-system-shared": "npm:^0.5.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8125,16 +8125,16 @@ __metadata:
     react-native-gesture-handler: ">=1.10.3"
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
-  checksum: 10/d30aa86379138b689a821af25f7c56a8a4dbaaa3378ce4daf668122babfd0c254b8ea319a9b2e9202f2c58d86caca2eb6b888f13e063e83100da4136bad0b378
+  checksum: 10/92a7fc6ac3632a864298fca175905c9c05ea0dd569fe81d2f157b207d12711c6064da524ab3b98b83bd23f56a466ba9fceeaeb484aafbac7cf7eab3a69136a27
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@metamask/design-system-shared@npm:0.4.0"
+"@metamask/design-system-shared@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@metamask/design-system-shared@npm:0.5.0"
   dependencies:
     "@metamask/utils": "npm:^11.10.0"
-  checksum: 10/e7799c011360295b6ae1cb458cd069e2df2ce27e836a6c604c3f2488ef7b76d00709afadc5c9462e47cb81a379751fd9da8684dcc704244e180870aa293cdd2b
+  checksum: 10/9b37df0e330429ecee6bc8fabe7aef0b9575383d5a86808b34ae76283c8938540a27c32f0cde9b72fdf076fbba1b926f00b58b8ec5699f3c87631b502972c870
   languageName: node
   linkType: hard
 
@@ -8871,10 +8871,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/messenger@npm:1.0.0"
-  checksum: 10/ab1219a922d5acc86f2b1b557d79c75ca0c5f42572f50da8a2337bc5c8feb1ae95c0aaa2d2ee55b677acd4401fb2cc9c2dbacca7513edcddf20d88fb73fa7bea
+"@metamask/messenger@npm:^1.0.0, @metamask/messenger@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/messenger@npm:1.1.0"
+  dependencies:
+    "@metamask/utils": "npm:^11.9.0"
+    yargs: "npm:^17.7.2"
+  peerDependencies:
+    eslint: ">=8"
+    typescript: ">=5.0.0"
+  bin:
+    messenger-generate-action-types: ./dist/generate-action-types/cli.mjs
+  checksum: 10/ea2b25c4d8cae8d60dd4365738763752283b27eca17cae749b3fedf6733207c180de917715a6ccb8b41f7c06ee769b82b01de5c43ed20c182b3fe6a0cf5c1ae1
   languageName: node
   linkType: hard
 
@@ -34854,10 +34862,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4, lodash@npm:^4.0.0, lodash@npm:^4.16.4, lodash@npm:^4.16.6, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.2.1":
-  version: 4.17.21
-  resolution: "lodash@npm:4.17.21"
-  checksum: 10/c08619c038846ea6ac754abd6dd29d2568aa705feb69339e836dfa8d8b09abbb2f859371e86863eda41848221f9af43714491467b5b0299122431e202bb0c532
+"lodash@npm:4.18.1":
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
   languageName: node
   linkType: hard
 
@@ -35385,7 +35393,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^0.15.0"
-    "@metamask/design-system-react-native": "npm:^0.11.0"
+    "@metamask/design-system-react-native": "npm:^0.12.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
     "@metamask/design-tokens": "npm:^8.2.2"
     "@metamask/earn-controller": "npm:^10.0.0"
@@ -35421,7 +35429,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^3.2.0"
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/messenger": "npm:^1.1.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
@@ -35669,7 +35677,7 @@ __metadata:
     koa: "npm:^2.14.2"
     lint-staged: "npm:10.5.4"
     listr2: "npm:^8.0.2"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:4.18.1"
     lottie-react-native: "npm:6.7.2"
     luxon: "npm:^3.5.0"
     metro-react-native-babel-preset: "npm:~0.76.9"

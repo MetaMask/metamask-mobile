@@ -19,12 +19,12 @@ import {
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
   TokenFeatureType,
+  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
@@ -268,12 +268,6 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
-}));
-
-jest.mock('../../hooks/useRWAToken', () => ({
-  useRWAToken: jest.fn().mockImplementation(() => ({
-    isStockToken: jest.fn().mockReturnValue(false),
-  })),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -971,42 +965,6 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('shows error mode with banner and without quote or zero state', async () => {
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: null,
-          isLoading: false,
-          quoteFetchError: 'Error fetching quote',
-          isNoQuotesAvailable: true,
-        }));
-
-      const { queryByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeTruthy();
-      });
-      expect(queryByTestId('edit-slippage-button')).toBeNull();
-      expect(
-        queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
-      ).toBeNull();
-    });
-
     it('shows quote mode with quote content and confirm button', async () => {
       const now = Date.now();
       const testState = createBridgeTestState({
@@ -1260,118 +1218,80 @@ describe('BridgeView', () => {
     });
   });
 
-  // TODO: This test suite is temporary and will be replaced by another behavior once geolocation detection will be implemented.
-  describe('Error Banner for RWA tokens', () => {
-    beforeEach(() => {
-      // Mock quote data to show an error
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          quoteFetchError: 'Error fetching quote',
-          isNoQuotesAvailable: true,
-          isLoading: false,
-        }));
-    });
-    it('should show regular error banner when no quotes and no RWA token selected', async () => {
+  describe('quoteStreamComplete error banner', () => {
+    it('shows the banner when quoteStreamComplete has a reason', async () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
           quotes: [],
           quotesLastFetched: 12,
-        },
-      });
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const expected = strings('bridge.error_banner_description');
-
-      await waitFor(() => {
-        expect(getByText(expected)).toBeTruthy();
-      });
-    });
-
-    it('should show error banner about geolocation restriction when no quotes and RWA token selected', async () => {
-      jest.mocked(useRWAToken as jest.Mock).mockImplementation(() => ({
-        isStockToken: jest.fn().mockReturnValue(true),
-      }));
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
-        },
-      });
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const expected = strings('bridge.stock_token_error_banner_description');
-
-      await waitFor(() => {
-        expect(getByText(expected)).toBeTruthy();
-      });
-    });
-  });
-
-  describe('Error Banner Visibility', () => {
-    it('should focus input and show keypad when error banner is closed', async () => {
-      // Setup state with error condition
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [],
-          quotesLastFetched: 12,
+          quoteStreamComplete: {
+            hasQuotes: false,
+            quoteCount: 0,
+            reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+          },
         },
         bridgeReducerOverrides: {
-          sourceAmount: '1.0',
+          sourceAmount: '0.0001',
         },
       });
 
-      // Mock quote data to show an error
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          quoteFetchError: 'Error fetching quote',
-          isNoQuotesAvailable: true,
-          isLoading: false,
-        }));
-
-      const { getByTestId, queryByTestId } = renderScreen(
+      const { getByText } = renderScreen(
         BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
+        { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
-      // Error banner should be visible initially
       await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeTruthy();
+        expect(
+          getByText(strings('bridge.quote_stream_complete_amount_too_low')),
+        ).toBeTruthy();
+      });
+    });
+
+    it('does not show the banner when quoteStreamComplete is null', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+          quoteStreamComplete: null,
+        },
       });
 
-      // Close the banner by clicking close button
-      const closeButton = getByTestId('banner-close-button-icon');
-      fireEvent.press(closeButton);
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
 
-      // Error banner should be hidden and keypad should be visible
       await waitFor(() => {
-        expect(queryByTestId('banneralert')).toBeNull();
-        // Keypad should be visible - check for the delete button which is part of the keypad
-        expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+        expect(
+          queryByText(strings('bridge.quote_stream_complete_amount_too_low')),
+        ).toBeNull();
+      });
+    });
+
+    it('does not show the banner when quoteStreamComplete has no reason', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+          quoteStreamComplete: { hasQuotes: false, quoteCount: 0 },
+        },
+      });
+
+      const { queryByText } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('bridge.quote_stream_complete_amount_too_low')),
+        ).toBeNull();
       });
     });
   });
