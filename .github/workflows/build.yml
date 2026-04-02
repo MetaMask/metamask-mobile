@@ -497,9 +497,11 @@ jobs:
         id: meta
         run: |
           REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
-          echo "checkout_ref=$REF" >> "$GITHUB_OUTPUT"
-          echo "built_commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "semantic_version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-          # versionCode 4138 (no '=' in this repo)
-          VC=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
-          echo "android_version_code=$VC" >> "$GITHUB_OUTPUT"
+          {
+            echo "checkout_ref=$REF"
+            echo "built_commit_sha=$(git rev-parse HEAD)"
+            echo "semantic_version=$(node -p "require('./package.json').version")"
+            # versionCode 4138 (no '=' in this repo)
+            VC=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
+            echo "android_version_code=$VC"
+          } >> "$GITHUB_OUTPUT"

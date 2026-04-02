@@ -30,6 +30,22 @@ on:
           - 'MM Card Team'
           - 'Ramp Provider Testing'
 
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        type: string
+        required: true
+      environment:
+        description: 'Build environment / track (exp, beta, rc)'
+        type: string
+        required: true
+      testflight_group:
+        description: 'TestFlight external testing group'
+        type: string
+        required: false
+        default: 'MetaMask BETA & Release Candidates'
+
 permissions:
   contents: write
   id-token: write
