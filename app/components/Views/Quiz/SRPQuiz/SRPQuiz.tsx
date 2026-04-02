@@ -52,6 +52,8 @@ const SRPQuiz = (props: SRPQuizProps) => {
       params: { keyringId, dismissModalStackOnDone },
     },
   } = props;
+  
+  const showDismissModalStackOnDone = dismissModalStackOnDone ?? false;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
