@@ -114,38 +114,37 @@ export function PayWithRow() {
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        justifyContent={JustifyContent.center}
-        gap={12}
+        justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <TokenIcon
-          address={displayToken.address}
-          chainId={displayToken.chainId}
-        />
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-        >
-          {`${label} ${displayToken.symbol}`}
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {label}
         </Text>
-        {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
-        {!isWithdraw && (
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <TokenIcon
+            address={displayToken.address}
+            chainId={displayToken.chainId}
+          />
           <Text
             variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+            color={TextColor.Default}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
-            {balanceUsdFormatted}
+            {displayToken.symbol}
+            {!isWithdraw && ` (${balanceUsdFormatted})`}
           </Text>
-        )}
-        {canEdit && from && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        )}
+          {canEdit && from && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
       </Box>
     </TouchableOpacity>
   );
@@ -175,28 +174,36 @@ function PayWithFiatPaymentMethodRow({
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        justifyContent={JustifyContent.center}
-        gap={12}
+        justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <PaymentMethodIcon
-          paymentMethodType={paymentMethod.paymentType as PaymentType}
-          size={20}
-        />
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-        >
-          {`${label} ${paymentMethod.name}`}
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {label}
         </Text>
-        {canEdit && hasFrom && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <PaymentMethodIcon
+            paymentMethodType={paymentMethod.paymentType as PaymentType}
+            size={20}
           />
-        )}
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {paymentMethod.name}
+          </Text>
+          {canEdit && hasFrom && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
       </Box>
     </TouchableOpacity>
   );
@@ -210,13 +217,18 @@ export function PayWithRowSkeleton() {
       testID="pay-with-row-skeleton"
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
-      justifyContent={JustifyContent.center}
-      gap={8}
-      style={styles.container}
+      justifyContent={JustifyContent.spaceBetween}
+      style={styles.skeletonContainer}
     >
-      <Skeleton height={32} width={32} style={styles.skeletonCircle} />
-      <Skeleton height={18} width={100} style={styles.skeletonTop} />
-      <Skeleton height={18} width={100} style={styles.skeletonTop} />
+      <Skeleton height={18} width={60} style={styles.skeletonTop} />
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={8}
+      >
+        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
+        <Skeleton height={18} width={120} style={styles.skeletonTop} />
+      </Box>
     </Box>
   );
 }

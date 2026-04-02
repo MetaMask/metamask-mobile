@@ -27,12 +27,14 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     children: React.ReactNode;
     style?: unknown;
     variant?: string;
+    color?: string;
     testID?: string;
   }) => <RNText {...props}>{children}</RNText>;
   return {
     __esModule: true,
     default: MockText,
     TextVariant: { BodyMD: 'BodyMD', HeadingMD: 'HeadingMD' },
+    TextColor: { Alternative: 'Alternative' },
   };
 });
 
@@ -53,6 +55,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   return {
     __esModule: true,
     default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
+    IconColor: { Alternative: 'Alternative' },
     IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
     IconSize: { Sm: 'Sm', Md: 'Md' },
   };
@@ -202,12 +205,13 @@ describe('AccountSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders pill with placeholder when no account selected', () => {
+  it('renders "To" label and placeholder when no account selected', () => {
     const { getByTestId, getByText } = render(
       <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
     expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL)).toBeOnTheScreen();
+    expect(getByText('confirm.label.to')).toBeOnTheScreen();
     expect(getByText('transaction.recipient_address')).toBeOnTheScreen();
   });
 

@@ -14,18 +14,15 @@ jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: ({
     currency,
     children,
-    afterPayWith,
   }: {
     currency: string;
     children?: React.ReactNode;
-    afterPayWith?: React.ReactNode;
   }) => {
     const { View, Text } = jest.requireActual('react-native');
     return (
       <View>
         <Text testID="custom-amount-info">{currency}</Text>
         {children}
-        {afterPayWith}
       </View>
     );
   },

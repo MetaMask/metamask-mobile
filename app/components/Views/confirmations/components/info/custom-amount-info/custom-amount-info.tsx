@@ -1,4 +1,6 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
+import { Hex , toCaipAssetType } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -42,12 +44,10 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
   Button,
   ButtonSize,
@@ -60,6 +60,8 @@ import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import AccountSelector from '../../AccountSelector';
+import { updateEditableParams } from '../../../../../../util/transaction-controller';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -78,10 +80,6 @@ export interface CustomAmountInfoProps {
    */
   onAmountSubmit?: () => void;
   /**
-   * Optional content rendered after the PayWithRow inside inputContainer.
-   */
-  afterPayWith?: ReactNode;
-  /**
    * When true, the confirm/continue button is disabled regardless of alert state.
    */
   disableConfirm?: boolean;
@@ -89,7 +87,6 @@ export interface CustomAmountInfoProps {
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
-    afterPayWith,
     children,
     currency,
     disableConfirm,
@@ -119,6 +116,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
+
+    const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountWithdraw,
+    ]);
+    const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
+      string | undefined
+    >(undefined);
+
+    const handleRecipientAccountSelected = useCallback(
+      (address: string) => {
+        if (transactionId) {
+          updateEditableParams(transactionId, { to: address as Hex });
+        }
+        setSelectedRecipientAddress(address);
+      },
+      [transactionId],
+    );
+
+    const isRecipientMissing =
+      isMoneyAccountWithdraw && !selectedRecipientAddress;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
 
@@ -176,23 +193,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {overrideContent ? (
-            overrideContent(amountHuman)
-          ) : (
-            <>
-              {disablePay !== true && (
+          {overrideContent
+            ? overrideContent(amountHuman)
+            : disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}
                 />
               )}
-              {children}
+          {!overrideContent && children}
+        </Box>
+        <Box gap={16}>
+          {!overrideContent && (
+            <>
+              {isMoneyAccountWithdraw && (
+                <AccountSelector
+                  selectedAddress={selectedRecipientAddress}
+                  onAccountSelected={handleRecipientAccountSelected}
+                />
+              )}
               {disablePay !== true && hasTokens && <PayWithRow />}
-              {afterPayWith}
             </>
           )}
-        </Box>
-        <Box gap={25}>
           <AlertMessage alertMessage={alertMessage} />
           {isResultReady && (
             <Box>
@@ -231,7 +253,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm}
+              disableConfirm={disableConfirm || isRecipientMissing}
             />
           )}
         </Box>
@@ -248,9 +270,11 @@ export function CustomAmountInfoSkeleton() {
       <Box style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
-        <PayWithRowSkeleton />
       </Box>
-      <DepositKeyboardSkeleton />
+      <Box>
+        <PayWithRowSkeleton />
+        <DepositKeyboardSkeleton />
+      </Box>
     </Box>
   );
 }
