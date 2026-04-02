@@ -1,5 +1,4 @@
 import React from 'react';
-import { Image } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import TopTraderCard from './TopTraderCard';
 import type { TopTrader } from '../types';
@@ -65,11 +64,11 @@ describe('TopTraderCard', () => {
       ...baseTrader,
       avatarUri: 'https://example.com/avatar.png',
     };
-    const { UNSAFE_getByType, queryByText } = render(
+    const { getByTestId, queryByText } = render(
       <TopTraderCard trader={traderWithAvatar} onFollowPress={jest.fn()} />,
     );
 
-    expect(UNSAFE_getByType(Image)).toBeOnTheScreen();
+    expect(getByTestId('top-trader-avatar-trader-1')).toBeOnTheScreen();
     // The fallback letter should not be shown when avatarUri is supplied
     expect(queryByText('A')).not.toBeOnTheScreen();
   });

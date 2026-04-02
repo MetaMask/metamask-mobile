@@ -61,6 +61,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
               `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
             )}
             resizeMode="cover"
+            testID={`top-trader-avatar-${trader.id}`}
           />
         ) : (
           <AvatarBase
