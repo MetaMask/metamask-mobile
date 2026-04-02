@@ -27,6 +27,7 @@ export * from './marketDataTransform';
 export * from './myxAdapter';
 export * from './marketUtils';
 export * from './orderCalculations';
+export * from './perpsDiskPersistence';
 export * from './rewardsUtils';
 export * from './significantFigures';
 export * from './sortMarkets';

@@ -122,28 +122,15 @@ import {
 } from './types/transactionTypes';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ensureError } from './utils/errorUtils';
+import type {
+  DiskCacheMarketEntry,
+  DiskCacheUserEntry,
+} from './utils/perpsDiskPersistence';
 import type { SortDirection } from './utils/sortMarkets';
 import { wait } from './utils/wait';
 
 /** Derived type for logger options from PerpsLogger interface */
 type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
-
-/** Shape of a single market entry persisted to disk cache. */
-type DiskCacheMarketEntry = {
-  providerNetworkKey: string;
-  data: PerpsMarketData[];
-  timestamp: number;
-};
-
-/** Shape of a single user-data entry persisted to disk cache. */
-type DiskCacheUserEntry = {
-  providerNetworkKey: string;
-  address: string;
-  positions: Position[];
-  orders: Order[];
-  accountState: AccountState | null;
-  timestamp: number;
-};
 
 /**
  * Returns the first non-empty string from the given values.
