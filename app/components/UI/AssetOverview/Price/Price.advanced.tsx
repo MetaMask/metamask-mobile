@@ -200,6 +200,7 @@ const PriceAdvanced = ({
     ohlcvData,
     isLoading: chartLoading,
     error: chartError,
+    latestMeasurement,
     fetchMoreHistory,
     hasMore,
   } = useOHLCVChart({
@@ -313,6 +314,7 @@ const PriceAdvanced = ({
           ) : (
             <AdvancedChart
               ohlcvData={ohlcvData}
+              ohlcvMeasurement={latestMeasurement}
               ohlcvSeriesKey={ohlcvSeriesKey}
               height={CHART_HEIGHT}
               showVolume={chartType === ChartType.Candles}

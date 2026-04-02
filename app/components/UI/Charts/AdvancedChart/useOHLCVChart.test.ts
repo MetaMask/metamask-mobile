@@ -67,12 +67,21 @@ function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
 }
 
 describe('useOHLCVChart - initial load', () => {
+  let performanceNowSpy: jest.SpyInstance<number, []>;
+  let originalDev: boolean | undefined;
+
   beforeEach(() => {
     nock.disableNetConnect();
+    originalDev = global.__DEV__;
+    global.__DEV__ = true;
+    performanceNowSpy = jest
+      .spyOn(global.performance, 'now')
+      .mockReturnValue(1234);
   });
 
   afterEach(() => {
     nock.cleanAll();
+    global.__DEV__ = originalDev;
     jest.restoreAllMocks();
   });
 
@@ -107,6 +116,10 @@ describe('useOHLCVChart - initial load', () => {
       },
     ]);
     expect(result.current.error).toBeNull();
+    expect(result.current.latestMeasurement).toEqual({
+      apiResponseAt: 1234,
+      requestKind: 'initial_load',
+    });
   });
 
   it('sets error from response status when request fails', async () => {
@@ -121,6 +134,7 @@ describe('useOHLCVChart - initial load', () => {
 
     expect(result.current.error).toBe('OHLCV API error: 404');
     expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.latestMeasurement).toBeNull();
   });
 
   it('sets hasMore from API hasNext flag', async () => {
@@ -153,6 +167,7 @@ describe('useOHLCVChart - initial load', () => {
 
     expect(scope.isDone()).toBe(false);
     expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.latestMeasurement).toBeNull();
   });
 });
 
@@ -251,7 +266,7 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
     );
 
     const scope2Call = arrangeNockOhlcvAPIStrictQueryResponse(
-      { timePeriod: '1d' },
+      { nextCursor: 'should-not-run' },
       createSuccessBody({
         hasNext: false,
         nextCursor: '',
