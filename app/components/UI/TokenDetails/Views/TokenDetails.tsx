@@ -430,11 +430,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
-  useEffect(() => {
-    // Reset pending payload when navigating to a new token.
-    setPendingInsights(null);
-  }, [tokenKey]);
-
   const handleMarketInsightsDisplayResolved = useCallback(
     (payload: { isDisplayed: boolean; severity: string | undefined }) => {
       setPendingInsights({

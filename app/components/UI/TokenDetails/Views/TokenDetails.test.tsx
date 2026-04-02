@@ -44,6 +44,17 @@ const mockRouteParams = jest.fn().mockReturnValue({
   isNative: false,
   balance: '10.5',
 });
+const defaultRouteParams = {
+  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  chainId: '0x1',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+  image: 'https://example.com/dai.png',
+  isETH: false,
+  isNative: false,
+  balance: '10.5',
+};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -141,7 +152,10 @@ jest.mock('../components/AssetOverviewContent', () => {
       if (!mockAutoResolveMarketInsights) {
         return;
       }
-      onMarketInsightsDisplayResolved?.({ isDisplayed: true, severity: undefined });
+      onMarketInsightsDisplayResolved?.({
+        isDisplayed: true,
+        severity: undefined,
+      });
     }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
 
     return null;
@@ -234,6 +248,7 @@ jest.mock('../../MarketInsights', () => ({
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
     mockLatestMarketInsightsResolver = undefined;
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
@@ -283,8 +298,8 @@ describe('TokenDetails', () => {
   });
 
   afterEach(() => {
-    autoResolveMarketInsights = true;
-    latestMarketInsightsResolver = undefined;
+    mockAutoResolveMarketInsights = true;
+    mockLatestMarketInsightsResolver = undefined;
   });
 
   it('renders loader when txLoading is true', () => {
@@ -480,6 +495,7 @@ describe('TokenDetails', () => {
     });
 
     await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           token_symbol: 'USDC',
