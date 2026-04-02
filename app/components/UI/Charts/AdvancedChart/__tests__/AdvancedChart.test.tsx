@@ -1,5 +1,4 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
 import {
@@ -9,6 +8,12 @@ import {
   type AdvancedChartRef,
   type PositionLines,
 } from '../AdvancedChart.types';
+
+const mockOpenInAppBrowser = jest.fn();
+jest.mock('../openInAppBrowser', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockOpenInAppBrowser(...args),
+}));
 
 const mockPostMessage = jest.fn();
 
@@ -303,85 +308,8 @@ describe('AdvancedChart', () => {
     });
   });
 
-  it('calls onChartTradingViewClicked and opens browser when WebView navigates to tradingview.com', () => {
+  it('opens browser and fires analytics when WebView onOpenWindow fires', () => {
     const onChartTradingViewClicked = jest.fn();
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined as void);
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        onChartTradingViewClicked={onChartTradingViewClicked}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    const url = 'https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT';
-    let shouldStart = true;
-    act(() => {
-      shouldStart = webView.props.onShouldStartLoadWithRequest({ url });
-    });
-
-    expect(shouldStart).toBe(false);
-    expect(openSpy).toHaveBeenCalledWith(url);
-    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
-    openSpy.mockRestore();
-  });
-
-  it('debounces duplicate TradingView navigation requests', () => {
-    const onChartTradingViewClicked = jest.fn();
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined as void);
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        onChartTradingViewClicked={onChartTradingViewClicked}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    const url = 'https://s.tradingview.com/some-path';
-    act(() => {
-      expect(webView.props.onShouldStartLoadWithRequest({ url })).toBe(false);
-      expect(webView.props.onShouldStartLoadWithRequest({ url })).toBe(false);
-    });
-
-    expect(openSpy).toHaveBeenCalledTimes(1);
-    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
-    openSpy.mockRestore();
-  });
-
-  it('allows non-TradingView WebView navigations', () => {
-    const onChartTradingViewClicked = jest.fn();
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined as void);
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        onChartTradingViewClicked={onChartTradingViewClicked}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    const url = 'https://charting-assets.static.metamask.io/library/abc.js';
-    let shouldStart = false;
-    act(() => {
-      shouldStart = webView.props.onShouldStartLoadWithRequest({ url });
-    });
-
-    expect(shouldStart).toBe(true);
-    expect(openSpy).not.toHaveBeenCalled();
-    expect(onChartTradingViewClicked).not.toHaveBeenCalled();
-    openSpy.mockRestore();
-  });
-
-  it('calls onChartTradingViewClicked when WebView onOpenWindow targets tradingview.com', () => {
-    const onChartTradingViewClicked = jest.fn();
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined as void);
     const { getByTestId } = render(
       <AdvancedChart
         ohlcvData={MOCK_BARS}
@@ -392,21 +320,15 @@ describe('AdvancedChart', () => {
     const webView = getByTestId('mock-webview');
     const url = 'https://www.tradingview.com/widget';
     act(() => {
-      webView.props.onOpenWindow({
-        nativeEvent: { targetUrl: url },
-      });
+      webView.props.onOpenWindow({ nativeEvent: { targetUrl: url } });
     });
 
-    expect(openSpy).toHaveBeenCalledWith(url);
+    expect(mockOpenInAppBrowser).toHaveBeenCalledWith(url);
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
-    openSpy.mockRestore();
   });
 
-  it('opens browser for non-TradingView onOpenWindow URLs', () => {
+  it('debounces duplicate onOpenWindow events', () => {
     const onChartTradingViewClicked = jest.fn();
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined as void);
     const { getByTestId } = render(
       <AdvancedChart
         ohlcvData={MOCK_BARS}
@@ -415,23 +337,18 @@ describe('AdvancedChart', () => {
     );
 
     const webView = getByTestId('mock-webview');
-    const url = 'https://example.com/popup';
+    const url = 'https://www.tradingview.com/chart';
     act(() => {
-      webView.props.onOpenWindow({
-        nativeEvent: { targetUrl: url },
-      });
+      webView.props.onOpenWindow({ nativeEvent: { targetUrl: url } });
+      webView.props.onOpenWindow({ nativeEvent: { targetUrl: url } });
     });
 
-    expect(openSpy).toHaveBeenCalledWith(url);
-    expect(onChartTradingViewClicked).not.toHaveBeenCalled();
-    openSpy.mockRestore();
+    expect(mockOpenInAppBrowser).toHaveBeenCalledTimes(1);
+    expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
   });
 
-  it('opens browser when WebView posts CHART_TRADINGVIEW_CLICKED with url payload', () => {
+  it('fires analytics when WebView posts CHART_TRADINGVIEW_CLICKED with url payload', () => {
     const onChartTradingViewClicked = jest.fn();
-    const openSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined as void);
     const { getByTestId } = render(
       <AdvancedChart
         ohlcvData={MOCK_BARS}
@@ -440,21 +357,21 @@ describe('AdvancedChart', () => {
     );
 
     const webView = getByTestId('mock-webview');
-    const url = 'https://www.tradingview.com/from-bridge';
     act(() => {
       webView.props.onMessage({
         nativeEvent: {
           data: JSON.stringify({
             type: 'CHART_TRADINGVIEW_CLICKED',
-            payload: { url },
+            payload: { url: 'https://www.tradingview.com/from-bridge' },
           }),
         },
       });
     });
 
-    expect(openSpy).toHaveBeenCalledWith(url);
+    expect(mockOpenInAppBrowser).toHaveBeenCalledWith(
+      'https://www.tradingview.com/from-bridge',
+    );
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
-    openSpy.mockRestore();
   });
 
   it('calls onRequestMoreHistory when WebView requests more data', () => {

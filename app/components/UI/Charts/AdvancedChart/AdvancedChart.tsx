@@ -8,10 +8,10 @@ import React, {
   forwardRef,
 } from 'react';
 import { Linking, View } from 'react-native';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
@@ -31,6 +31,25 @@ import {
   type RNToWebViewMessage,
 } from './AdvancedChart.types';
 
+const openInAppBrowser = (url: string) => {
+  const fallback = () => {
+    try {
+      Linking.openURL(url);
+    } catch {
+      /* noop */
+    }
+  };
+  try {
+    InAppBrowser.isAvailable()
+      .then((available) =>
+        available ? InAppBrowser.open(url) : Linking.openURL(url),
+      )
+      .catch(fallback);
+  } catch {
+    fallback();
+  }
+};
+
 /**
  * Generic TradingView Advanced Chart component.
  *
@@ -48,18 +67,6 @@ const LAYOUT_SETTLE_FALLBACK_MS = 2500;
 
 /** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
 const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
-
-/**
- * Opens a URL via InAppBrowser (Safari VC / Chrome Custom Tabs) with a
- * fallback to Linking.openURL. Fire-and-forget so callers stay synchronous.
- */
-const openInAppBrowser = (url: string) => {
-  InAppBrowser.isAvailable()
-    .then((available) =>
-      available ? InAppBrowser.open(url) : Linking.openURL(url),
-    )
-    .catch(() => Linking.openURL(url).catch(() => undefined));
-};
 
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
