@@ -29,6 +29,15 @@ abstract class StreamChannel<T> {
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscriptions = new Map<string, () => void>();
   protected isPaused = false;
+  readonly #onDataPersist?: () => void;
+
+  constructor(onDataPersist?: () => void) {
+    this.#onDataPersist = onDataPersist;
+  }
+
+  protected triggerPersist(): void {
+    this.#onDataPersist?.();
+  }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
     if (this.isPaused) {
