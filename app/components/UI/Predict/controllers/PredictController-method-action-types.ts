@@ -203,11 +203,6 @@ export type PredictControllerGetConnectionStatusAction = {
   handler: PredictController['getConnectionStatus'];
 };
 
-export type PredictControllerUpdateStateForTestingAction = {
-  type: `PredictController:updateStateForTesting`;
-  handler: PredictController['updateStateForTesting'];
-};
-
 export type PredictControllerClearOrderErrorAction = {
   type: `PredictController:clearOrderError`;
   handler: PredictController['clearOrderError'];
@@ -314,7 +309,6 @@ export type PredictControllerMethodActions =
   | PredictControllerSubscribeToGameUpdatesAction
   | PredictControllerSubscribeToMarketPricesAction
   | PredictControllerGetConnectionStatusAction
-  | PredictControllerUpdateStateForTestingAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction
   | PredictControllerClearActiveOrderTransactionIdAction

@@ -384,8 +384,21 @@ describe('RewardsController', () => {
 
     it('registers action handlers', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.any(Array),
+        controller,
+        expect.arrayContaining([
+          'getHasAccountOptedIn',
+          'getPointsEvents',
+          'estimatePoints',
+          'getPerpsDiscountForAccount',
+          'isRewardsFeatureEnabled',
+          'getSeasonStatus',
+          'getReferralDetails',
+          'getSeasonOneLineaRewardTokens',
+          'optIn',
+          'optOut',
+          'resetAll',
+          'setRewardsEnvUrl',
+        ]),
       );
     });
 
@@ -583,8 +596,8 @@ describe('RewardsController', () => {
 
     it('registers the action handler', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.any(Array),
+        controller,
+        expect.arrayContaining(['setRewardsEnvUrl']),
       );
     });
   });

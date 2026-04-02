@@ -392,7 +392,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackPositionViewed',
   'trackPredictOrderEvent',
   'trackShareAction',
-  'updateStateForTesting',
 ] as const;
 
 /**
@@ -3169,5 +3168,4 @@ export type {
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
   PredictControllerTrackShareActionAction,
-  PredictControllerUpdateStateForTestingAction,
 } from './PredictController-method-action-types';
