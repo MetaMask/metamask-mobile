@@ -4945,11 +4945,15 @@ export class HyperLiquidProvider implements PerpsProvider {
 
             // Find TP/SL orders for this position
             // First check direct trigger orders (raw SDK uses 'coin', adapted position uses 'symbol')
+            // Only match position-bound TP/SL orders when UsePositionBoundTpsl is enabled,
+            // to avoid picking up normalTpsl children from pending limit orders
             const positionOrders = allOrders.filter(
               (order) =>
                 order.coin === position.symbol &&
                 order.isTrigger &&
-                order.reduceOnly,
+                order.reduceOnly &&
+                order.isPositionTpsl ===
+                  Boolean(TP_SL_CONFIG.UsePositionBoundTpsl),
             );
 
             // Also check for parent orders that might have TP/SL children
