@@ -323,11 +323,12 @@ exports[`ResetPassword render matches snapshot 1`] = `
                   [
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "#949596",
+                      "backgroundColor": "#b4b4b528",
+                      "borderColor": "#b4b4b566",
                       "borderRadius": 8,
                       "borderWidth": 1,
                       "flexDirection": "row",
+                      "gap": 12,
                       "height": 48,
                       "paddingLeft": 16,
                       "paddingRight": 16,
@@ -343,6 +344,8 @@ exports[`ResetPassword render matches snapshot 1`] = `
                       "flexBasis": "0%",
                       "flexGrow": 1,
                       "flexShrink": 1,
+                      "justifyContent": "center",
+                      "minHeight": 0,
                     }
                   }
                 >
@@ -351,6 +354,8 @@ exports[`ResetPassword render matches snapshot 1`] = `
                     autoFocus={false}
                     editable={true}
                     keyboardAppearance="light"
+                    multiline={false}
+                    numberOfLines={1}
                     onBlur={[Function]}
                     onChangeText={[Function]}
                     onFocus={[Function]}
@@ -366,16 +371,14 @@ exports[`ResetPassword render matches snapshot 1`] = `
                           "borderWidth": 0,
                           "color": "#131416",
                           "fontFamily": "Geist-Regular",
+                          "height": 46,
+                        },
+                        {
                           "fontSize": 16,
-                          "fontWeight": 400,
                           "letterSpacing": 0,
-                          "lineHeight": 24,
                         },
                         {
                           "lineHeight": 0,
-                        },
-                        {
-                          "textAlignVertical": "center",
                         },
                       ]
                     }

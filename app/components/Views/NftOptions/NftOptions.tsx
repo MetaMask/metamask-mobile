@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,16 +26,14 @@ import { Collectible } from '../../../components/UI/CollectibleMedia/Collectible
 import Routes from '../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
 
-interface Props {
-  route: {
-    params: {
-      collectible: Collectible;
-    };
-  };
+interface NftOptionsRouteParams {
+  collectible: Collectible;
 }
 
-const NftOptions = (props: Props) => {
-  const { collectible } = props.route.params;
+const NftOptions = () => {
+  const route =
+    useRoute<RouteProp<{ params: NftOptionsRouteParams }, 'params'>>();
+  const { collectible } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
