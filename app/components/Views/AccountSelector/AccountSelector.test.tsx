@@ -141,9 +141,9 @@ const createTestState = (
   if (selectedGroupId) {
     (
       baseState.engine.backgroundState.AccountTreeController as {
-        accountTree: { selectedAccountGroup: string };
+        selectedAccountGroup: string;
       }
-    ).accountTree.selectedAccountGroup = selectedGroupId;
+    ).selectedAccountGroup = selectedGroupId;
   }
 
   return baseState;
@@ -693,9 +693,9 @@ describe('AccountSelector', () => {
       const emptyState = createTestState([mockAccountGroup1]);
       (
         emptyState.engine.backgroundState.AccountTreeController as {
-          accountTree: { selectedAccountGroup: string };
+          selectedAccountGroup: string;
         }
-      ).accountTree.selectedAccountGroup = '';
+      ).selectedAccountGroup = '';
 
       renderScreen(
         AccountSelectorWrapper,

@@ -125,7 +125,6 @@ jest.mock('../../../../core/Engine', () => ({
     AccountTreeController: {
       state: {
         accountTree: {
-          selectedAccountGroup: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
           wallets: {
             'entropy:01JKAF3DSGM3AB87EM9N0K41AJ': {
               id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ',
@@ -167,6 +166,7 @@ jest.mock('../../../../core/Engine', () => ({
             },
           },
         },
+        selectedAccountGroup: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
       },
     },
   },
@@ -267,9 +267,9 @@ const mockInitialState = () => {
         AccountTreeController: {
           ...backgroundState.AccountTreeController,
           accountTree: {
-            selectedAccountGroup: mockGroupId1,
             wallets: {},
           },
+          selectedAccountGroup: mockGroupId1,
         },
         MultichainNetworkController: {
           ...backgroundState.MultichainNetworkController,
