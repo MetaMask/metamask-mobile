@@ -18,6 +18,7 @@ import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types'
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectExploreSectionsOrder } from '../../../selectors/featureFlagController/exploreSectionsOrder';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import {
   PerpsConnectionContext,
@@ -370,42 +371,44 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   },
 };
 
-// Sorted by order on the Explore page
-const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.stocks,
-  SECTIONS_CONFIG.sites,
+const DEFAULT_HOME_ORDER: SectionId[] = [
+  SECTIONS_CONFIG.predictions.id,
+  SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.perps.id,
+  SECTIONS_CONFIG.stocks.id,
+  SECTIONS_CONFIG.sites.id,
+];
+const DEFAULT_QUICK_ACTIONS_ORDER: SectionId[] = [
+  SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.perps.id,
+  SECTIONS_CONFIG.stocks.id,
+  SECTIONS_CONFIG.predictions.id,
+  SECTIONS_CONFIG.sites.id,
+];
+const DEFAULT_SEARCH_ORDER: SectionId[] = [
+  SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.perps.id,
+  SECTIONS_CONFIG.stocks.id,
+  SECTIONS_CONFIG.predictions.id,
+  SECTIONS_CONFIG.sites.id,
 ];
 
-// Sorted by order on the QuickAction buttons and SearchResults
-const QUICK_ACTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.stocks,
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
-];
-
-// Sorted by order on the SearchResults
-const SEARCH_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.stocks,
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
-];
+const buildSections = (
+  order: SectionId[],
+  isPerpsEnabled: boolean,
+): (SectionConfig & { id: SectionId })[] =>
+  order
+    .filter((id) => isPerpsEnabled || id !== 'perps')
+    .map((id) => SECTIONS_CONFIG[id]);
 
 export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const orderConfig = useSelector(selectExploreSectionsOrder);
 
   return useMemo(
     () =>
-      isPerpsEnabled
-        ? HOME_SECTIONS_ARRAY
-        : HOME_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
+      buildSections(orderConfig?.home ?? DEFAULT_HOME_ORDER, isPerpsEnabled),
+    [isPerpsEnabled, orderConfig],
   );
 };
 
@@ -413,13 +416,15 @@ export const useQuickActionsSectionsArray = (): (SectionConfig & {
   id: SectionId;
 })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const orderConfig = useSelector(selectExploreSectionsOrder);
 
   return useMemo(
     () =>
-      isPerpsEnabled
-        ? QUICK_ACTIONS_ARRAY
-        : QUICK_ACTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
+      buildSections(
+        orderConfig?.quickActions ?? DEFAULT_QUICK_ACTIONS_ORDER,
+        isPerpsEnabled,
+      ),
+    [isPerpsEnabled, orderConfig],
   );
 };
 
@@ -427,13 +432,15 @@ export const useSearchSectionsArray = (): (SectionConfig & {
   id: SectionId;
 })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const orderConfig = useSelector(selectExploreSectionsOrder);
 
   return useMemo(
     () =>
-      isPerpsEnabled
-        ? SEARCH_SECTIONS_ARRAY
-        : SEARCH_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
+      buildSections(
+        orderConfig?.search ?? DEFAULT_SEARCH_ORDER,
+        isPerpsEnabled,
+      ),
+    [isPerpsEnabled, orderConfig],
   );
 };
 
