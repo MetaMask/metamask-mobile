@@ -63,7 +63,7 @@ describe('handleShowNotification', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('calls watchSubmittedTransaction for perpsWithdraw', () => {
+  it('does not call watchSubmittedTransaction for perpsWithdraw (has its own toasts)', () => {
     const transactionMeta = {
       type: TransactionType.perpsWithdraw,
       id: '123',
@@ -74,12 +74,26 @@ describe('handleShowNotification', () => {
 
     handleShowNotification(transactionMeta);
 
-    expect(NotificationManager.watchSubmittedTransaction).toHaveBeenCalledWith(
-      transactionMeta,
-    );
-    expect(NotificationManager.watchSubmittedTransaction).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(
+      NotificationManager.watchSubmittedTransaction,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not call watchSubmittedTransaction when perpsWithdraw is in nestedTransactions', () => {
+    const transactionMeta = {
+      type: TransactionType.simpleSend,
+      nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
+      id: '123',
+      status: 'submitted',
+      time: Date.now(),
+      transaction: {},
+    } as unknown as TransactionMeta;
+
+    handleShowNotification(transactionMeta);
+
+    expect(
+      NotificationManager.watchSubmittedTransaction,
+    ).not.toHaveBeenCalled();
   });
 
   it('handle undefined transaction type', () => {
