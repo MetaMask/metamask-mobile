@@ -1,4 +1,4 @@
-import { call, put, select } from 'redux-saga/effects';
+import { call, put, select, take } from 'redux-saga/effects';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
@@ -9,22 +9,30 @@ import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onb
 import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
 import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selectors/seedlessOnboardingController';
+import { UserActionType } from '../../actions/user';
+import OAuthService from '../../core/OAuthService/OAuthService';
+import { setDataCollectionForMarketing } from '../../actions/security';
 
-export function* backfillSocialLoginMarketingConsent() {
+export function* backfillSocialLoginMarketingConsentSaga() {
+  yield take(UserActionType.LOGIN);
+
   const authConnection: RootState['onboarding']['pendingSocialLoginMarketingConsentBackfill'] =
     yield select(selectPendingSocialLoginMarketingConsentBackfill);
-  const marketingConsent: RootState['security']['dataCollectionForMarketing'] =
-    yield select(
-      (state: RootState) => state.security?.dataCollectionForMarketing,
-    );
 
   if (!authConnection) {
     return;
   }
 
+  let marketingConsent: RootState['security']['dataCollectionForMarketing'] =
+    yield select(
+      (state: RootState) => state.security?.dataCollectionForMarketing,
+    );
+
   if (marketingConsent !== true) {
-    yield put(setPendingSocialLoginMarketingConsentBackfill(null));
-    return;
+    const marketingOptIn: Awaited<
+      ReturnType<typeof OAuthService.getMarketingOptInStatus>
+    > = yield call([OAuthService, OAuthService.getMarketingOptInStatus]);
+    marketingConsent = marketingOptIn.is_opt_in;
   }
 
   try {
@@ -33,7 +41,7 @@ export function* backfillSocialLoginMarketingConsent() {
     )
       .setSaveDataRecording(true)
       .addProperties({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(marketingConsent),
         is_metrics_opted_in: true,
         location: 'saga_backfill_marketing_consent',
         updated_after_onboarding: true,
@@ -45,6 +53,7 @@ export function* backfillSocialLoginMarketingConsent() {
 
     yield call(updateDataRecordingFlag, true);
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
+    yield put(setDataCollectionForMarketing(marketingConsent));
   } catch (error) {
     Logger.error(
       error as Error,

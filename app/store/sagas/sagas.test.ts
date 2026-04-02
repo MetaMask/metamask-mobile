@@ -18,7 +18,6 @@ import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import Engine from '../../core/Engine';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
-import { backfillSocialLoginMarketingConsent } from './backfillSocialLoginMarketingConsent';
 
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
@@ -129,10 +128,6 @@ jest.mock('../../core/SDKConnect/SDKConnect', () => ({
       },
     }),
   },
-}));
-
-jest.mock('./backfillSocialLoginMarketingConsent', () => ({
-  backfillSocialLoginMarketingConsent: jest.fn(),
 }));
 
 jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
@@ -420,7 +415,6 @@ describe('startAppServices', () => {
     // Verify services are started
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
-    expect(backfillSocialLoginMarketingConsent).toHaveBeenCalled();
   });
 
   it('does not start app services if persisted data is not loaded', async () => {

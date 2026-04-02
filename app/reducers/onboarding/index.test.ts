@@ -81,7 +81,7 @@ describe('onboardingReducer', () => {
     expect(newState.onboardingVersion).toBeUndefined();
   });
 
-  it('sets onboarding.seedless pending social login marketing consent backfill', () => {
+  it('sets pending social login marketing consent backfill on onboarding', () => {
     const newState = onboardingReducer(
       initialOnboardingState,
       setPendingSocialLoginMarketingConsentBackfill('google'),

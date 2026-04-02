@@ -35,7 +35,7 @@ import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
-import { backfillSocialLoginMarketingConsent } from './backfillSocialLoginMarketingConsent';
+import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -327,10 +327,6 @@ export function* startAppServices() {
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 
-  // Send one-time analytics backfill for migrated social login users after
-  // persisted state has been rehydrated and app services are available.
-  yield call(backfillSocialLoginMarketingConsent);
-
   // Wait for the next frame to ensure that navigation stack is rendered.
   // This is needed to prevent a race condition where the navigation container is ready BUT the navigation stacks are not yet rendered.
   // TODO: Follow up on pre-rendering the navigation stacks.
@@ -347,6 +343,11 @@ export function* rootSaga() {
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
+
+  // Send one-time analytics backfill for migrated social login users after
+  // persisted state has been rehydrated and app services are available.
+  yield fork(backfillSocialLoginMarketingConsentSaga);
+
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF
