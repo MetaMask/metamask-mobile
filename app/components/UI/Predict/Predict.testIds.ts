@@ -122,9 +122,20 @@ export const PredictMarketDetailsSelectorsIDs = {
   // Skeleton loaders
   DETAILS_HEADER_SKELETON_BACK_BUTTON:
     'predict-details-header-skeleton-back-button',
+  TITLE_SECTION_SKELETON: 'predict-market-details-title-section-skeleton',
   DETAILS_CONTENT_SKELETON_LINE_1: 'predict-details-content-skeleton-line-1',
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
+
+  // Resolved outcomes section (expand/collapse)
+  RESOLVED_OUTCOMES_ICON_COLLAPSED:
+    'predict-market-details-resolved-outcomes-icon-collapsed',
+  RESOLVED_OUTCOMES_ICON_EXPANDED:
+    'predict-market-details-resolved-outcomes-icon-expanded',
+
+  // Action buttons (Yes/No for single outcome markets)
+  ACTION_BUTTON_YES: 'predict-market-details-action-button-yes',
+  ACTION_BUTTON_NO: 'predict-market-details-action-button-no',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {

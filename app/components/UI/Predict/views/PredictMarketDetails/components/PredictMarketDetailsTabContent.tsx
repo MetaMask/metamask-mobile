@@ -94,7 +94,7 @@ const PredictMarketDetailsTabContent = memo(
     if (currentKey === 'outcomes') {
       return (
         <Box
-          twClassName="px-3 pt-4 pb-8"
+          twClassName="px-4 pt-4 pb-8"
           testID={PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB}
         >
           <PredictMarketDetailsOutcomes

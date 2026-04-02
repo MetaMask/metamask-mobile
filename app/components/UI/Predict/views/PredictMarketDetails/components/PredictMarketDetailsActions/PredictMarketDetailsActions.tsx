@@ -147,6 +147,7 @@ const PredictMarketDetailsActions = memo(
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
                   style={getActionButtonStyle('bg-success-muted')}
+                  testID={PredictMarketDetailsSelectorsIDs.ACTION_BUTTON_YES}
                   label={renderActionButtonLabel({
                     title: yesTitle,
                     price: yesPercentage,
@@ -164,6 +165,7 @@ const PredictMarketDetailsActions = memo(
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
                   style={getActionButtonStyle('bg-error-muted')}
+                  testID={PredictMarketDetailsSelectorsIDs.ACTION_BUTTON_NO}
                   label={renderActionButtonLabel({
                     title: noTitle,
                     price: 100 - yesPercentage,
