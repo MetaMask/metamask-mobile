@@ -142,12 +142,19 @@ export const useOHLCVChart = ({
       if (!cursorRef.current || !hasMore || isFetchingMoreRef.current) return;
 
       isFetchingMoreRef.current = true;
+      const controller = abortRef.current;
 
       try {
-        const result = await fetchOHLCV(assetId, {
-          nextCursor: cursorRef.current,
-          vsCurrency,
-        });
+        const result = await fetchOHLCV(
+          assetId,
+          {
+            nextCursor: cursorRef.current,
+            vsCurrency,
+          },
+          controller?.signal,
+        );
+
+        if (controller?.signal.aborted) return;
 
         const olderBars = result.data.map(mapCandle);
         if (olderBars.length > 0) {
@@ -156,6 +163,7 @@ export const useOHLCVChart = ({
         cursorRef.current = result.nextCursor || null;
         setHasMore(result.hasNext);
       } catch (e) {
+        if (controller?.signal.aborted) return;
         setError(e instanceof Error ? e.message : 'Unknown error');
       } finally {
         isFetchingMoreRef.current = false;
