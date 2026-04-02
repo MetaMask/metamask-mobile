@@ -30,7 +30,10 @@ import {
   PERPS_DISK_CACHE_USER_DATA,
   PERPS_DISK_CACHE_THROTTLE_MS,
 } from '../constants/perpsConfig';
-import { getProviderNetworkKey } from '@metamask/perps-controller/constants/perpsConfig';
+import {
+  getProviderNetworkKey,
+  buildProviderCacheKey,
+} from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
@@ -46,17 +49,6 @@ function getEvmAccountFromSelectedAccountGroup() {
   const { AccountTreeController } = Engine.context;
   const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
   return findEvmAccount(accounts as InternalAccount[]);
-}
-
-function getProviderNetworkKeyForProvider(
-  providerId: string,
-  isTestnet: boolean,
-): string {
-  const providerIsTestnet =
-    providerId === 'myx'
-      ? PROVIDER_CONFIG.MYX_TESTNET_ONLY || isTestnet
-      : isTestnet;
-  return `${providerId}:${providerIsTestnet ? 'testnet' : 'mainnet'}`;
 }
 
 // Generic subscription parameters
@@ -1386,7 +1378,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
     // Note: uses state.isTestnet directly. If PROVIDER_CONFIG.MYX_TESTNET_ONLY is
-    // ever re-enabled, this key would diverge from PerpsController.#providerIsTestnet().
+    // ever re-enabled, this key would diverge from buildProviderCacheKey().
     const currentNetworkKey = `${currentProviderId}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
 
     // Invalidate cache if provider OR network changed
@@ -1689,7 +1681,7 @@ export class PerpsStreamManager {
             for (const market of snapshot) {
               const providerId =
                 market.providerId ?? PROVIDER_CONFIG.DefaultProvider;
-              const providerNetworkKey = getProviderNetworkKeyForProvider(
+              const providerNetworkKey = buildProviderCacheKey(
                 providerId,
                 controller.state.isTestnet,
               );
@@ -1709,7 +1701,7 @@ export class PerpsStreamManager {
             return entries.length === 1 ? entries[0] : { entries };
           })()
         : {
-            providerNetworkKey: getProviderNetworkKeyForProvider(
+            providerNetworkKey: buildProviderCacheKey(
               controller.state.activeProvider ??
                 PROVIDER_CONFIG.DefaultProvider,
               controller.state.isTestnet,
@@ -1763,7 +1755,7 @@ export class PerpsStreamManager {
             >();
 
             const ensureEntry = (providerId: string) => {
-              const providerNetworkKey = getProviderNetworkKeyForProvider(
+              const providerNetworkKey = buildProviderCacheKey(
                 providerId,
                 controller.state.isTestnet,
               );
@@ -1810,7 +1802,7 @@ export class PerpsStreamManager {
             return entries.length === 1 ? entries[0] : { entries };
           })()
         : {
-            providerNetworkKey: getProviderNetworkKeyForProvider(
+            providerNetworkKey: buildProviderCacheKey(
               controller.state.activeProvider ??
                 PROVIDER_CONFIG.DefaultProvider,
               controller.state.isTestnet,

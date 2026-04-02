@@ -23,6 +23,7 @@ import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
+  buildProviderCacheKey,
 } from './constants/perpsConfig';
 import type { SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerMethodActions } from './PerpsController-method-action-types';
@@ -995,24 +996,6 @@ export class PerpsController extends BaseController<
    * @param isTestnet - Whether the provider is on testnet.
    * @returns The cache key string.
    */
-  #marketCacheKey(providerId: string, isTestnet: boolean): string {
-    return `${providerId}:${isTestnet ? 'testnet' : 'mainnet'}`;
-  }
-
-  /**
-   * Determine the effective testnet flag for a given provider.
-   * MYX may be forced to testnet via PROVIDER_CONFIG.MYX_TESTNET_ONLY.
-   *
-   * @param providerId - The provider identifier.
-   * @returns Whether this provider should use testnet.
-   */
-  #providerIsTestnet(providerId: string): boolean {
-    if (providerId === 'myx') {
-      return PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
-    }
-    return this.state.isTestnet;
-  }
-
   /**
    * Resolve the provider ids that should participate in aggregated cache reads.
    *
@@ -1076,10 +1059,7 @@ export class PerpsController extends BaseController<
       for (const providerId of this.#getAggregatedCacheProviderIds(
         Object.keys(cache),
       )) {
-        const key = this.#marketCacheKey(
-          providerId,
-          this.#providerIsTestnet(providerId),
-        );
+        const key = buildProviderCacheKey(providerId, this.state.isTestnet);
         const entry = cache[key];
         if (!entry || entry.data.length === 0) {
           continue;
@@ -1101,10 +1081,7 @@ export class PerpsController extends BaseController<
     }
 
     // Single provider mode
-    const key = this.#marketCacheKey(
-      activeProvider,
-      this.#providerIsTestnet(activeProvider),
-    );
+    const key = buildProviderCacheKey(activeProvider, this.state.isTestnet);
     const entry = cache[key];
     if (!entry || entry.data.length === 0) {
       return null;
@@ -1181,10 +1158,7 @@ export class PerpsController extends BaseController<
       for (const providerId of this.#getAggregatedCacheProviderIds(
         Object.keys(cache),
       )) {
-        const key = this.#marketCacheKey(
-          providerId,
-          this.#providerIsTestnet(providerId),
-        );
+        const key = buildProviderCacheKey(providerId, this.state.isTestnet);
         const entry = cache[key];
         if (!isValidEntry(entry)) {
           continue;
@@ -1210,10 +1184,7 @@ export class PerpsController extends BaseController<
     }
 
     // Single provider mode
-    const key = this.#marketCacheKey(
-      activeProvider,
-      this.#providerIsTestnet(activeProvider),
-    );
+    const key = buildProviderCacheKey(activeProvider, this.state.isTestnet);
     const entry = cache[key];
     if (!entry || !isValidEntry(entry)) {
       return null;
@@ -3010,11 +2981,14 @@ export class PerpsController extends BaseController<
     try {
       const marketsRaw = diskCache.getItemSync(PERPS_DISK_CACHE_MARKETS);
       const userRaw = diskCache.getItemSync(PERPS_DISK_CACHE_USER_DATA);
+      // Compute once and apply to both market and user data so that all
+      // disk-hydrated entries are TTL-stale after a JS reload, forcing the
+      // stream to overwrite them before they are served to callers.
+      const staleHydratedTimestamp =
+        Date.now() - PerpsController.#preloadGuardMs * 10 - 1;
 
       if (marketsRaw) {
         try {
-          const staleHydratedTimestamp =
-            Date.now() - PerpsController.#preloadGuardMs * 10 - 1;
           const parsed = JSON.parse(marketsRaw) as
             | DiskCacheMarketEntry
             | { entries: DiskCacheMarketEntry[] };
@@ -3080,7 +3054,10 @@ export class PerpsController extends BaseController<
                     positions: entry.positions,
                     orders: entry.orders,
                     accountState: entry.accountState,
-                    timestamp: entry.timestamp,
+                    timestamp: Math.min(
+                      entry.timestamp,
+                      staleHydratedTimestamp,
+                    ),
                     address: entry.address,
                   };
                 });
@@ -3280,9 +3257,9 @@ export class PerpsController extends BaseController<
     const actualProviderId = this.activeProviderInstance
       ? this.state.activeProvider // includes 'aggregated'
       : 'hyperliquid';
-    const cacheKey = this.#marketCacheKey(
+    const cacheKey = buildProviderCacheKey(
       actualProviderId,
-      this.#providerIsTestnet(actualProviderId),
+      this.state.isTestnet,
     );
 
     const now = Date.now();
@@ -3345,7 +3322,7 @@ export class PerpsController extends BaseController<
         }
         this.update((state) => {
           for (const [pid, slice] of byProvider) {
-            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            const key = buildProviderCacheKey(pid, this.state.isTestnet);
             marketDiskEntries.push({
               providerNetworkKey: key,
               data: slice,
@@ -3441,9 +3418,9 @@ export class PerpsController extends BaseController<
     const actualProviderId = this.activeProviderInstance
       ? this.state.activeProvider // includes 'aggregated'
       : 'hyperliquid';
-    const userCacheKey = this.#marketCacheKey(
+    const userCacheKey = buildProviderCacheKey(
       actualProviderId,
-      this.#providerIsTestnet(actualProviderId),
+      this.state.isTestnet,
     );
 
     // Skip if cache is fresh and for same account
@@ -3552,7 +3529,7 @@ export class PerpsController extends BaseController<
         }[] = [];
         this.update((state) => {
           for (const [pid, data] of byProvider) {
-            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            const key = buildProviderCacheKey(pid, this.state.isTestnet);
             diskEntries.push({
               providerNetworkKey: key,
               address: userAddress,

@@ -378,3 +378,23 @@ export function getProviderNetworkKey(state: {
 }): string {
   return `${state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider}:${state.isTestnet ? 'testnet' : 'mainnet'}`;
 }
+
+/**
+ * Build a provider:network cache key for a specific provider id.
+ * Accounts for MYX_TESTNET_ONLY: MYX is always on testnet regardless of the
+ * global network flag.
+ *
+ * @param providerId - The provider identifier (e.g. "hyperliquid", "myx").
+ * @param isTestnet - Global testnet flag from controller state.
+ * @returns Cache key in the format "provider:mainnet" or "provider:testnet".
+ */
+export function buildProviderCacheKey(
+  providerId: string,
+  isTestnet: boolean,
+): string {
+  const effectiveTestnet =
+    providerId === 'myx'
+      ? PROVIDER_CONFIG.MYX_TESTNET_ONLY || isTestnet
+      : isTestnet;
+  return `${providerId}:${effectiveTestnet ? 'testnet' : 'mainnet'}`;
+}
