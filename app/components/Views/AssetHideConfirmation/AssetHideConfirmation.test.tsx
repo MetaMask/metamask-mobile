@@ -47,7 +47,7 @@ describe('AssetHideConfirmation', () => {
 
   it('renders the title', () => {
     const { getByText } = renderWithTheme();
-    expect(getByText('Hide token?')).toBeTruthy();
+    expect(getByText('Hide token?')).toBeOnTheScreen();
   });
 
   it('renders the description', () => {
