@@ -172,7 +172,7 @@ export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   (remoteFeatureFlags) =>
     validatedVersionGatedFeatureFlag(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        remoteFeatureFlags?.predictFeaturedCarousel,
+        remoteFeatureFlags?.predictTabFeaturedCarousel,
       ),
     ) ?? false,
 );
