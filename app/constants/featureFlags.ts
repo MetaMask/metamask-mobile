@@ -10,7 +10,6 @@ export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
   fullPageAccountList = 'fullPageAccountList',
-  importSrpWordSuggestion = 'importSrpWordSuggestion',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',

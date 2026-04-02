@@ -125,6 +125,8 @@ import {
 } from '../../selectors/featureFlags';
 import {
   MarketInsightsEntryCard,
+  MarketInsightsEntryCardSkeleton,
+  MarketInsightsDisclaimerBottomSheet,
   useMarketInsights,
 } from '../../../MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
@@ -204,6 +206,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
   const [isMarketHoursModalVisible, setIsMarketHoursModalVisible] =
+    useState(false);
+  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -447,8 +451,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setIsEligibilityModalVisible(true);
       return;
     }
-    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
     try {
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
       await depositWithConfirmation();
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
@@ -775,19 +779,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       initialTakeProfitPrice: existingPosition.takeProfitPrice,
       initialStopLossPrice: existingPosition.stopLossPrice,
       onConfirm: async (
+        positionFromRoute?: Position,
         takeProfitPrice?: string,
         stopLossPrice?: string,
         trackingData?: TPSLTrackingData,
       ) => {
-        // Use ref to get CURRENT position at execution time, not the closure-captured position
-        // This prevents "No position found" errors when the position updates during navigation
-        const currentPosition = currentPositionRef.current;
-        if (!currentPosition) {
+        // Prefer position passed from TPSL view (from route params); fallback to ref to avoid "No position found" when ref is stale
+        const positionToUse = positionFromRoute ?? currentPositionRef.current;
+        if (!positionToUse) {
           return { success: false };
         }
-        // Return value checked for consistency - error toast is shown internally by hook
         const result = await handleUpdateTPSL(
-          currentPosition,
+          positionToUse,
           takeProfitPrice,
           stopLossPrice,
           trackingData,
@@ -1144,6 +1147,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const shouldShowLongShortButtonsOnly =
     shouldShowNewPositionActions && !showAddFundsCTA;
 
+  const shouldShowPerpsMarketInsights =
+    isPerpsInsightsEnabled &&
+    Boolean(market?.symbol) &&
+    (Boolean(perpsInsightsReport) || isPerpsInsightsLoading);
+
   const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
 
   return (
@@ -1353,13 +1361,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {/* Market Insights Section - shown when perps insights flag is enabled and a report is available */}
-          {isPerpsInsightsEnabled && perpsInsightsReport && market?.symbol ? (
-            <MarketInsightsEntryCard
-              report={perpsInsightsReport}
-              timeAgo={perpsInsightsTimeAgo}
-              onPress={handleMarketInsightsPress}
-            />
+          {/* Market Insights Section - shown when flag is enabled and report is available or loading */}
+          {shouldShowPerpsMarketInsights ? (
+            perpsInsightsReport ? (
+              <MarketInsightsEntryCard
+                report={perpsInsightsReport}
+                timeAgo={perpsInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+              />
+            ) : (
+              <MarketInsightsEntryCardSkeleton />
+            )
           ) : null}
 
           {/* Statistics Section - Always shown */}
@@ -1579,6 +1592,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         onClose={handleFullscreenChartClose}
         onIntervalChange={handleCandlePeriodChange}
       />
+
+      {/* Market Insights Disclaimer Bottom Sheet */}
+      {isInsightsDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
 
       {/* Modify Action Bottom Sheet - Rendered conditionally using PerpsHomeView pattern */}
       {showModifyActionSheet && (

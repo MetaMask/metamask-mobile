@@ -150,7 +150,7 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
+    <Stack.Navigator initialRouteName={initialRouteName}>
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
@@ -202,8 +202,7 @@ const MainRoutes = () => {
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}
@@ -245,7 +244,10 @@ const CardModalsRoutes = () => (
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
+  <Stack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
     <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
     <Stack.Screen
       name={Routes.CARD.MODALS.ID}

@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { usePerpsHomeActions } from './usePerpsHomeActions';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -33,12 +32,6 @@ jest.mock('./usePerpsTrading', () => ({
   })),
 }));
 
-jest.mock('./usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockReturnValue(Promise.resolve()),
-  })),
-}));
-
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(() => ({
     navigateToConfirmation: jest.fn(),
@@ -64,9 +57,6 @@ describe('usePerpsHomeActions', () => {
   const mockDepositWithConfirmation = jest
     .fn()
     .mockReturnValue(Promise.resolve());
-  const mockEnsureArbitrumNetworkExists = jest
-    .fn()
-    .mockReturnValue(Promise.resolve());
   const mockNavigateToConfirmation = jest.fn();
 
   beforeEach(() => {
@@ -76,9 +66,6 @@ describe('usePerpsHomeActions', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
-    });
-    (usePerpsNetworkManagement as jest.Mock).mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
     });
     (useConfirmNavigation as jest.Mock).mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
@@ -124,14 +111,13 @@ describe('usePerpsHomeActions', () => {
   });
 
   describe('handleAddFunds - eligible user', () => {
-    it('calls network check, navigates to confirmation, and initiates deposit', async () => {
+    it('navigates to confirmation and initiates deposit', async () => {
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
         await result.current.handleAddFunds();
       });
 
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         stack: Routes.PERPS.ROOT,
       });
@@ -165,9 +151,9 @@ describe('usePerpsHomeActions', () => {
       });
     });
 
-    it('handles network error during add funds', async () => {
-      const networkError = new Error('Network not available');
-      mockEnsureArbitrumNetworkExists.mockRejectedValueOnce(networkError);
+    it('handles deposit error during add funds', async () => {
+      const depositError = new Error('Deposit failed');
+      mockDepositWithConfirmation.mockRejectedValueOnce(depositError);
 
       const onError = jest.fn();
       const { result } = renderHook(() => usePerpsHomeActions({ onError }));
@@ -177,8 +163,8 @@ describe('usePerpsHomeActions', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.error).toEqual(networkError);
-        expect(onError).toHaveBeenCalledWith(networkError, 'deposit');
+        expect(result.current.error).toEqual(depositError);
+        expect(onError).toHaveBeenCalledWith(depositError, 'deposit');
       });
     });
   });
@@ -194,7 +180,6 @@ describe('usePerpsHomeActions', () => {
       });
 
       expect(result.current.isEligibilityModalVisible).toBe(true);
-      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
@@ -220,14 +205,13 @@ describe('usePerpsHomeActions', () => {
   });
 
   describe('handleWithdraw - eligible user', () => {
-    it('calls network check and navigates to withdraw screen', async () => {
+    it('navigates to withdraw screen', async () => {
       const { result } = renderHook(() => usePerpsHomeActions());
 
       await act(async () => {
         await result.current.handleWithdraw();
       });
 
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });
@@ -247,23 +231,6 @@ describe('usePerpsHomeActions', () => {
         expect(onWithdrawSuccess).toHaveBeenCalledTimes(1);
       });
     });
-
-    it('handles navigation error during withdraw', async () => {
-      const navError = new Error('Navigation failed');
-      mockEnsureArbitrumNetworkExists.mockRejectedValueOnce(navError);
-
-      const onError = jest.fn();
-      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
-
-      await act(async () => {
-        await result.current.handleWithdraw();
-      });
-
-      await waitFor(() => {
-        expect(result.current.error).toEqual(navError);
-        expect(onError).toHaveBeenCalledWith(navError, 'withdraw');
-      });
-    });
   });
 
   describe('handleWithdraw - ineligible user (TAT-2337: withdrawals not geo-blocked)', () => {
@@ -278,7 +245,6 @@ describe('usePerpsHomeActions', () => {
 
       // Withdrawal should proceed regardless of eligibility
       expect(result.current.isEligibilityModalVisible).toBe(false);
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.WITHDRAW,
       });
@@ -368,7 +334,7 @@ describe('usePerpsHomeActions', () => {
 
   describe('error handling with non-Error objects', () => {
     it('converts string error to Error object', async () => {
-      mockEnsureArbitrumNetworkExists.mockRejectedValueOnce('String error');
+      mockDepositWithConfirmation.mockRejectedValueOnce('String error');
 
       const onError = jest.fn();
       const { result } = renderHook(() => usePerpsHomeActions({ onError }));
