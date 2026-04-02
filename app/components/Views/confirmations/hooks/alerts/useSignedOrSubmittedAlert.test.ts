@@ -15,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const FROM_MOCK = '0x123';
 const CHAIN_ID_MOCK = '0x456' as Hex;
@@ -31,6 +32,7 @@ const TRANSACTION_META_MOCK = {
 };
 
 jest.mock('../pay/useTransactionPayToken');
+jest.mock('../../../../../util/address');
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
@@ -41,9 +43,12 @@ describe('useSignedOrSubmittedAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    isHardwareAccountMock.mockReturnValue(false);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -310,4 +315,78 @@ describe('useSignedOrSubmittedAlert', () => {
       ]);
     },
   );
+
+  it('returns no alert for hardware wallet mUSD conversion with pending transaction', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...TRANSACTION_META_MOCK,
+      id: '2',
+      status: TransactionStatus.confirmed,
+      type: TransactionType.musdConversion,
+    } as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    ...TRANSACTION_META_MOCK,
+                    status: TransactionStatus.signed,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for non-hardware wallet mUSD conversion with pending transaction', () => {
+    isHardwareAccountMock.mockReturnValue(false);
+
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...TRANSACTION_META_MOCK,
+      id: '2',
+      status: TransactionStatus.confirmed,
+      type: TransactionType.musdConversion,
+    } as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    ...TRANSACTION_META_MOCK,
+                    status: TransactionStatus.signed,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([
+      {
+        isBlocking: true,
+        key: AlertKeys.SignedOrSubmitted,
+        message: strings('alert_system.signed_or_submitted.message'),
+        title: strings('alert_system.signed_or_submitted.title'),
+        severity: Severity.Danger,
+      },
+    ]);
+  });
 });

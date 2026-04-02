@@ -9,6 +9,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isHardwareAccount } from '../../../../../util/address';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import { hasTransactionType } from '../../utils/transaction';
@@ -46,8 +47,13 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
+  const isHardwareWallet = isHardwareAccount(
+    transactionMetadata?.txParams?.from ?? '',
+  );
+
   const waitForResult =
-    !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+    isHardwareWallet ||
+    (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
