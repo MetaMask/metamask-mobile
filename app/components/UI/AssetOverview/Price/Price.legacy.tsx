@@ -150,7 +150,7 @@ const PriceLegacy = ({
                 : addCurrencySymbol(0, currentCurrency, true)}{' '}
               {'('}
               {displayDiff > 0 ? '+' : ''}
-              {displayDiff === 0
+              {displayDiff === 0 || comparePrice === 0
                 ? '0'
                 : ((displayDiff / comparePrice) * 100).toFixed(2)}
               %){' '}

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Dimensions, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Svg, { Path } from 'react-native-svg';
@@ -218,10 +224,17 @@ const PriceAdvanced = ({
   const hasInsufficientData = ohlcvData.length === 1;
   const showEmptyState = !chartLoading && (!hasChartData || !!chartError);
 
+  const hasTrackedEmptyRef = useRef(false);
+
   useEffect(() => {
     if (!showEmptyState) {
+      hasTrackedEmptyRef.current = false;
       return;
     }
+    if (hasTrackedEmptyRef.current) {
+      return;
+    }
+    hasTrackedEmptyRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
     );
@@ -283,7 +296,7 @@ const PriceAdvanced = ({
               {priceDiff > 0 ? '+' : ''}
               {addCurrencySymbol(priceDiff, currentCurrency, true)} (
               {priceDiff > 0 ? '+' : ''}
-              {priceDiff === 0
+              {priceDiff === 0 || comparePrice === 0
                 ? '0'
                 : ((priceDiff / comparePrice) * 100).toFixed(2)}
               %){' '}
