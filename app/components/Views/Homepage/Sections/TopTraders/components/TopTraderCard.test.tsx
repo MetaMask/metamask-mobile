@@ -46,7 +46,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByText('Follow')).toBeTruthy();
+    expect(getByText('Follow')).toBeOnTheScreen();
   });
 
   it('shows the Following button when the trader is already followed', () => {
@@ -57,7 +57,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByText('Following')).toBeTruthy();
+    expect(getByText('Following')).toBeOnTheScreen();
   });
 
   it('renders the avatar image when avatarUri is provided', () => {
@@ -69,9 +69,9 @@ describe('TopTraderCard', () => {
       <TopTraderCard trader={traderWithAvatar} onFollowPress={jest.fn()} />,
     );
 
-    expect(UNSAFE_getByType(Image)).toBeTruthy();
+    expect(UNSAFE_getByType(Image)).toBeOnTheScreen();
     // The fallback letter should not be shown when avatarUri is supplied
-    expect(queryByText('A')).toBeNull();
+    expect(queryByText('A')).not.toBeOnTheScreen();
   });
 
   it('renders the fallback AvatarBase when avatarUri is not provided', () => {
@@ -81,7 +81,7 @@ describe('TopTraderCard', () => {
     );
 
     // AvatarBase shows the first letter of the username as fallback text
-    expect(getByText('A')).toBeTruthy();
+    expect(getByText('A')).toBeOnTheScreen();
   });
 
   it('displays ROI with a leading + sign for a positive percentage change', () => {
@@ -92,7 +92,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByText('+96.2%')).toBeTruthy();
+    expect(getByText('+96.2%')).toBeOnTheScreen();
   });
 
   it('displays ROI without a + sign for a negative percentage change', () => {
@@ -103,7 +103,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByText('-12.5%')).toBeTruthy();
+    expect(getByText('-12.5%')).toBeOnTheScreen();
   });
 
   it('displays a positive PnL value', () => {
@@ -114,7 +114,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByText('+$963K')).toBeTruthy();
+    expect(getByText('+$963K')).toBeOnTheScreen();
   });
 
   it('displays a negative PnL value', () => {
@@ -125,7 +125,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByText('-$1K')).toBeTruthy();
+    expect(getByText('-$1K')).toBeOnTheScreen();
   });
 
   it('applies the custom testID when provided', () => {
@@ -137,7 +137,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    expect(getByTestId('custom-card-id')).toBeTruthy();
+    expect(getByTestId('custom-card-id')).toBeOnTheScreen();
   });
 
   it('uses the default testID based on trader id when no testID prop is provided', () => {
@@ -145,6 +145,6 @@ describe('TopTraderCard', () => {
       <TopTraderCard trader={baseTrader} onFollowPress={jest.fn()} />,
     );
 
-    expect(getByTestId('top-trader-card-trader-1')).toBeTruthy();
+    expect(getByTestId('top-trader-card-trader-1')).toBeOnTheScreen();
   });
 });

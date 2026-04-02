@@ -12,7 +12,7 @@ export function formatPnl(value: number): string {
   const sign = value >= 0 ? '+' : '-';
 
   if (abs >= 1_000_000) {
-    return `${sign}$${addCommas(Math.round(abs / 1_000))}K`;
+    return `${sign}$${addCommas(Math.round(abs / 1_000_000))}M`;
   }
   if (abs >= 1_000) {
     return `${sign}$${addCommas(Math.round(abs / 1_000))}K`;

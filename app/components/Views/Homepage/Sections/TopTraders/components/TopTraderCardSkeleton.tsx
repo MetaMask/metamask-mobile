@@ -12,7 +12,7 @@ const TopTraderCardSkeleton: React.FC = () => {
   const { colors } = useTheme();
 
   return (
-    <View style={tw.style('w-[184px] rounded-2xl bg-muted p-4')}>
+    <View style={tw.style('w-[200px] rounded-2xl bg-muted p-4')}>
       <SkeletonPlaceholder
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}

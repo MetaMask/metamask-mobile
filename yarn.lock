@@ -7532,17 +7532,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/social-controllers@npm:0.0.0-preview-ac7a6cc51":
-  version: 0.0.0-preview-ac7a6cc51
-  resolution: "@metamask-previews/social-controllers@npm:0.0.0-preview-ac7a6cc51"
+"@metamask-previews/social-controllers@npm:0.0.0-preview-bfb4d9f5a":
+  version: 0.0.0-preview-bfb4d9f5a
+  resolution: "@metamask-previews/social-controllers@npm:0.0.0-preview-bfb4d9f5a"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/base-data-service": "npm:^0.1.1"
     "@metamask/controller-utils": "npm:^11.20.0"
     "@metamask/messenger": "npm:^1.0.0"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/c8c89cec2125d1e1ad278bf7c9915e55aedd78d57591375cfb6dd24eac2666df363c3f3110b960cd5f34530b15e6b58245a550aa29d3853206ab7b60152bae31
+  checksum: 10/aa0a2e3b74ceefacb35a832be417f1f1c1a3f026bc5cea5c306d37ae8146369cf3975c3691430eaaabc037527247712c9cafd0b03e7df092aa87a57d362c7216
   languageName: node
   linkType: hard
 
@@ -35373,7 +35372,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/social-controllers": "npm:0.0.0-preview-ac7a6cc51"
+    "@metamask-previews/social-controllers": "npm:0.0.0-preview-bfb4d9f5a"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.0.0"
