@@ -13,11 +13,10 @@ const mockDispatch = jest.fn();
 const mockOnConfirmActionsReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockUnsubscribe = jest.fn();
-const mockShowOrderPlacedToast = jest.fn();
-const mockInvalidateOrderQueries = jest.fn();
+const mockSetSelectedPaymentToken = jest.fn();
+const mockOnPlaceOrderSuccess = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
-const mockOnPlaceOrderEnd = jest.fn();
 const mockOnOrderCancelled = jest.fn();
 const mockInitPayWithAnyToken = jest.fn();
 const mockSetIsConfirming = jest.fn();
@@ -88,9 +87,13 @@ jest.mock('../../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   }),
 }));
 
+const mockClearActiveOrderTransactionId = jest.fn();
+
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: mockActiveOrder,
+    clearActiveOrderTransactionId: (...args: unknown[]) =>
+      mockClearActiveOrderTransactionId(...args),
   }),
 }));
 
@@ -104,12 +107,17 @@ jest.mock('../../../hooks/usePredictTrading', () => ({
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      onPlaceOrderEnd: (...args: unknown[]) => mockOnPlaceOrderEnd(...args),
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
       initPayWithAnyToken: (...args: unknown[]) =>
         mockInitPayWithAnyToken(...args),
+      setSelectedPaymentToken: (...args: unknown[]) =>
+        mockSetSelectedPaymentToken(...args),
+      onPlaceOrderSuccess: (...args: unknown[]) =>
+        mockOnPlaceOrderSuccess(...args),
+      clearActiveOrderTransactionId: (...args: unknown[]) =>
+        mockClearActiveOrderTransactionId(...args),
     },
   },
 }));
@@ -132,8 +140,6 @@ const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   } as OrderPreview,
   analyticsProperties: { marketId: 'market-1' },
   setIsConfirming: mockSetIsConfirming,
-  showOrderPlacedToast: mockShowOrderPlacedToast,
-  invalidateOrderQueries: mockInvalidateOrderQueries,
 });
 
 describe('usePredictBuyActions', () => {
@@ -247,7 +253,6 @@ describe('usePredictBuyActions', () => {
       unmount();
 
       expect(mockOnConfirmActionsReject).not.toHaveBeenCalled();
-      expect(mockOnPlaceOrderEnd).not.toHaveBeenCalled();
     });
   });
 
@@ -460,14 +465,35 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('success effect', () => {
-    it('shows toast, cleans up and closes the screen in SUCCESS state', async () => {
+    it('calls onPlaceOrderSuccess when state is SUCCESS', () => {
       mockActiveOrder = { state: ActiveOrderState.SUCCESS };
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      expect(mockInvalidateOrderQueries).toHaveBeenCalledTimes(1);
-      expect(mockShowOrderPlacedToast).toHaveBeenCalledTimes(1);
-      expect(mockOnPlaceOrderEnd).toHaveBeenCalledTimes(1);
+      expect(mockOnPlaceOrderSuccess).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate pop when handleConfirm was not called before SUCCESS', () => {
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('navigates pop when handleConfirm was called before SUCCESS', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+      rerender(createDefaultParams());
+
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
   });

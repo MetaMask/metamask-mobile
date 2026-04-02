@@ -411,6 +411,7 @@ const createMockState = (): DeepPartial<RootState> => ({
         MOCK_ADDRESS_1,
       ),
       AccountTreeController: {
+        selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         accountTree: {
           wallets: {
             [MOCK_WALLET_ID]: {
@@ -430,7 +431,6 @@ const createMockState = (): DeepPartial<RootState> => ({
               },
             },
           },
-          selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         },
       },
       NetworkController: {
