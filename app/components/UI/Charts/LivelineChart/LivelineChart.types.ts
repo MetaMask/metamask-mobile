@@ -136,7 +136,6 @@ export interface LivelineChartProps {
   candles?: CandlePoint[];
   candleWidth?: number;
   liveCandle?: CandlePoint;
-  lineMode?: boolean;
   lineData?: LivelinePoint[];
   lineValue?: number;
 
