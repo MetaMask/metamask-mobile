@@ -92,7 +92,11 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const leagueName =
     LEAGUE_DISPLAY_NAMES[game.league] ?? game.league.toUpperCase();
   const liveText = isLive ? (liveData.elapsed ?? '') : '';
-  const timeRemaining = getTimeRemaining(game, liveData.elapsed);
+  const timeRemaining = getTimeRemaining(
+    game,
+    liveData.elapsed,
+    liveData.status,
+  );
   const scheduledTime = isScheduled
     ? formatScheduledTime(game.startTime)
     : null;

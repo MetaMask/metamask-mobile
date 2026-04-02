@@ -1,6 +1,7 @@
 import I18n from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import {
+  PredictGameStatus,
   PredictMarketGame,
   PredictOutcome,
   PredictSportsLeague,
@@ -23,9 +24,11 @@ const LEAGUE_TOTAL_MINUTES: Partial<Record<PredictSportsLeague, number>> = {
 export const getTimeRemaining = (
   game: PredictMarketGame,
   elapsed?: string | null,
+  status?: PredictGameStatus,
 ): string | null => {
+  const currentStatus = status ?? game.status;
   const elapsedStr = elapsed ?? game.elapsed;
-  if (!elapsedStr || game.status !== 'ongoing') return null;
+  if (!elapsedStr || currentStatus !== 'ongoing') return null;
   const elapsedMins = parseInt(elapsedStr.replace(/[^0-9]/g, ''), 10);
   if (isNaN(elapsedMins)) return null;
   const totalMins = LEAGUE_TOTAL_MINUTES[game.league] ?? 90;
