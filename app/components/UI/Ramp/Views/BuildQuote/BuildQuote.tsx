@@ -493,10 +493,19 @@ function BuildQuote() {
   ]);
 
   const selectedQuote = useMemo(() => {
-    if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
+    if (
+      !quotesResponse?.success ||
+      !selectedProvider ||
+      !selectedPaymentMethod
+    ) {
       return null;
-    const [quote] = quotesResponse.success;
-    return quote?.provider === selectedProvider.id ? quote : null;
+    }
+    const targetProvider = normalizeProviderCode(selectedProvider.id);
+    return (
+      quotesResponse.success.find(
+        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
+      ) ?? null
+    );
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
