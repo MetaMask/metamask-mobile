@@ -571,7 +571,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     }
     <Stack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
-      component={SRPQuiz as ScreenComponent}
+      component={SRPQuiz}
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
@@ -607,11 +607,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-      component={OriginSpamModal as ScreenComponent}
+      component={OriginSpamModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
-      component={ChangeInSimulationModal as ScreenComponent}
+      component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
@@ -625,7 +625,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
-      component={LearnMoreBottomSheet as ScreenComponent}
+      component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -634,7 +634,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
-      component={ReturnToAppNotification as ScreenComponent}
+      component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
