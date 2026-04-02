@@ -130,7 +130,7 @@ import migration126 from './126';
 import migration127 from './127';
 import migration128 from './128';
 import migration129 from './129';
-import migration130 from './130';
+import migration130 from './131';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';

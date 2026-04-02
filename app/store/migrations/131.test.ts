@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import migrate, { migrationVersion } from './130';
+import migrate, { migrationVersion } from './131';
 import { ensureValidState } from './util';
 
 jest.mock('@sentry/react-native', () => ({
