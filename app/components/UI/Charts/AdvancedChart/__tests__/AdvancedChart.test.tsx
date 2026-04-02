@@ -9,11 +9,21 @@ import {
   type PositionLines,
 } from '../AdvancedChart.types';
 
-const mockOpenInAppBrowser = jest.fn();
-jest.mock('../openInAppBrowser', () => ({
-  __esModule: true,
-  default: (...args: unknown[]) => mockOpenInAppBrowser(...args),
-}));
+const mockInAppBrowserOpen = jest.fn();
+const mockIsAvailable = jest.fn().mockResolvedValue(true);
+
+jest.mock('react-native-inappbrowser-reborn', () => {
+  const mock = {
+    isAvailable: (...args: unknown[]) => mockIsAvailable(...args),
+    open: (...args: unknown[]) => mockInAppBrowserOpen(...args),
+  };
+  return { __esModule: true, default: mock };
+});
+
+const flushMicrotasks = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
 
 const mockPostMessage = jest.fn();
 
@@ -308,7 +318,8 @@ describe('AdvancedChart', () => {
     });
   });
 
-  it('opens browser and fires analytics when WebView onOpenWindow fires', () => {
+  it('opens browser and fires analytics when WebView onOpenWindow fires', async () => {
+    jest.mocked(Date.now).mockReturnValue(10000);
     const onChartTradingViewClicked = jest.fn();
     const { getByTestId } = render(
       <AdvancedChart
@@ -323,11 +334,14 @@ describe('AdvancedChart', () => {
       webView.props.onOpenWindow({ nativeEvent: { targetUrl: url } });
     });
 
-    expect(mockOpenInAppBrowser).toHaveBeenCalledWith(url);
+    await act(flushMicrotasks);
+
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
+    expect(mockInAppBrowserOpen).toHaveBeenCalledWith(url);
   });
 
-  it('debounces duplicate onOpenWindow events', () => {
+  it('debounces duplicate onOpenWindow events', async () => {
+    jest.mocked(Date.now).mockReturnValue(10000);
     const onChartTradingViewClicked = jest.fn();
     const { getByTestId } = render(
       <AdvancedChart
@@ -343,11 +357,14 @@ describe('AdvancedChart', () => {
       webView.props.onOpenWindow({ nativeEvent: { targetUrl: url } });
     });
 
-    expect(mockOpenInAppBrowser).toHaveBeenCalledTimes(1);
+    await act(flushMicrotasks);
+
+    expect(mockInAppBrowserOpen).toHaveBeenCalledTimes(1);
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
   });
 
-  it('fires analytics when WebView posts CHART_TRADINGVIEW_CLICKED with url payload', () => {
+  it('fires analytics when WebView posts CHART_TRADINGVIEW_CLICKED with url payload', async () => {
+    jest.mocked(Date.now).mockReturnValue(10000);
     const onChartTradingViewClicked = jest.fn();
     const { getByTestId } = render(
       <AdvancedChart
@@ -368,7 +385,9 @@ describe('AdvancedChart', () => {
       });
     });
 
-    expect(mockOpenInAppBrowser).toHaveBeenCalledWith(
+    await act(flushMicrotasks);
+
+    expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
       'https://www.tradingview.com/from-bridge',
     );
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
