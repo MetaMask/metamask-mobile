@@ -451,13 +451,14 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('returns false when no transport after connect', async () => {
+    it('throws DisconnectedDevice when no transport after connect', async () => {
       mockedTransportBLE.open.mockResolvedValueOnce(
         null as unknown as TransportBLE,
       );
 
-      const result = await adapter.ensureDeviceReady('device-123');
-      expect(result).toBe(false);
+      await expect(adapter.ensureDeviceReady('device-123')).rejects.toMatchObject(
+        { name: 'DisconnectedDevice' },
+      );
     });
 
     it('retries on disconnect during check and eventually succeeds', async () => {

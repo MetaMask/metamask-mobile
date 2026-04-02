@@ -63,6 +63,15 @@ export const useDeviceConnectionFlow = ({
   const connectionSuccessCallbackRef = useRef<(() => void) | null>(null);
 
   /**
+   * Stores the deviceId passed to the most recent `ensureDeviceReady` call.
+   * Used by `retryEnsureDeviceReady` to connect to the correct device even
+   * when `state.deviceId` has not been populated yet (e.g. the initial BLE
+   * open failed before `DeviceEvent.Connected` was emitted, or on a fresh
+   * app launch where state was never hydrated).
+   */
+  const pendingTargetDeviceIdRef = useRef<string | null>(null);
+
+  /**
    * Resolve an existing adapter or create a new one if the wallet type
    * doesn't match. Named replacement for the inline IIFE that was previously
    * in `ensureDeviceReady`.
@@ -208,6 +217,10 @@ export const useDeviceConnectionFlow = ({
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);
+      } else {
+        // Remember the device ID so retryEnsureDeviceReady can use it even
+        // when state.deviceId has not been populated yet.
+        pendingTargetDeviceIdRef.current = targetDeviceId;
       }
 
       const adapter = resolveOrCreateAdapter(targetType);
@@ -276,10 +289,15 @@ export const useDeviceConnectionFlow = ({
       return;
     }
 
-    if (deviceId && adapter) {
+    // Prefer the runtime state deviceId; fall back to the id stored when
+    // ensureDeviceReady was last called (covers the case where the initial
+    // BLE open failed before DeviceEvent.Connected could set state.deviceId).
+    const retryDeviceId = deviceId ?? pendingTargetDeviceIdRef.current;
+
+    if (retryDeviceId && adapter) {
       updateConnectionState({ status: ConnectionStatus.Connecting });
       try {
-        await tryEnsureReady(adapter, deviceId);
+        await tryEnsureReady(adapter, retryDeviceId);
       } catch (error) {
         handleError(error);
       }
@@ -300,6 +318,7 @@ export const useDeviceConnectionFlow = ({
       pendingReadyResolveRef.current(false);
       pendingReadyResolveRef.current = null;
     }
+    pendingTargetDeviceIdRef.current = null;
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState]);

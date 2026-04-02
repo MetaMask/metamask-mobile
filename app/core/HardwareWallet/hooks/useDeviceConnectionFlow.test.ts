@@ -116,4 +116,80 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
   });
+
+  describe('retryEnsureDeviceReady with stored device ID', () => {
+    it('uses pendingTargetDeviceId when state.deviceId is null', async () => {
+      const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
+      const mockAdapter = {
+        walletType: HardwareWalletType.Ledger,
+        resetFlowState: jest.fn(),
+        ensurePermissions: jest.fn().mockResolvedValue(true),
+        ensureDeviceReady: mockEnsureDeviceReady,
+        markFlowComplete: jest.fn(),
+        isFlowComplete: jest.fn().mockReturnValue(false),
+        requiresDeviceDiscovery: false,
+      };
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter as unknown as Parameters<
+        typeof useDeviceConnectionFlow
+      >[0]['refs']['adapterRef']['current'];
+
+      const options = createDefaultOptions({
+        refs,
+        // state.deviceId is null – retry must fall back to stored target ID
+        deviceId: null,
+        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      // Simulate ensureDeviceReady being called with a device ID (stores it)
+      await act(async () => {
+        result.current.ensureDeviceReady('device-from-nav-params');
+        // Don't await the blocking promise; just let the inner IIFE start
+        await Promise.resolve();
+      });
+
+      // Now retry – state.deviceId is still null but stored ID should be used
+      await act(async () => {
+        await result.current.retryEnsureDeviceReady();
+      });
+
+      expect(mockEnsureDeviceReady).toHaveBeenCalledWith(
+        'device-from-nav-params',
+      );
+      expect(options.updateConnectionState).toHaveBeenCalledWith(
+        expect.objectContaining({ status: ConnectionStatus.Connecting }),
+      );
+    });
+
+    it('falls through to scanning when both state.deviceId and stored ID are null', async () => {
+      const mockAdapter = {
+        walletType: HardwareWalletType.Ledger,
+        resetFlowState: jest.fn(),
+        ensurePermissions: jest.fn().mockResolvedValue(true),
+        requiresDeviceDiscovery: true,
+      };
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter as unknown as Parameters<
+        typeof useDeviceConnectionFlow
+      >[0]['refs']['adapterRef']['current'];
+
+      const options = createDefaultOptions({
+        refs,
+        deviceId: null,
+        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      await act(async () => {
+        await result.current.retryEnsureDeviceReady();
+      });
+
+      expect(options.updateConnectionState).toHaveBeenCalledWith(
+        expect.objectContaining({ status: ConnectionStatus.Scanning }),
+      );
+    });
+  });
 });

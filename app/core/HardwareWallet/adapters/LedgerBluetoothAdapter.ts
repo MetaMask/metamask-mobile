@@ -406,7 +406,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     if (!this.#transport) {
       DevLogger.log('[LedgerBluetoothAdapter] No transport after connect');
-      return false;
+      // Transport was cleared by a disconnect event immediately after
+      // connect(). Throw a named disconnect error so the retry loop can
+      // treat it as transient and retry rather than silently returning false.
+      const err = new Error('Transport disconnected after connect');
+      err.name = 'DisconnectedDevice';
+      throw err;
     }
 
     try {
@@ -452,7 +457,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     try {
       if (!this.#transport) {
-        throw new Error('Transport not available');
+        // Transport was cleared by a disconnect event between connect() and
+        // this verification step. Throw a named disconnect error so the
+        // ensureDeviceReady retry loop can treat it as transient and retry.
+        const err = new Error('Transport disconnected during verification');
+        err.name = 'DisconnectedDeviceDuringOperation';
+        throw err;
       }
       const eth = new Eth(this.#transport);
       await this.#withTimeout(
