@@ -14,6 +14,7 @@
     "clean:android": "rm -rf android/app/build",
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
     "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache",
+    "lint:snapshots:new": "node scripts/check-new-snapshot-assertions.js",
     "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache",
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project ./tsconfig.json",
