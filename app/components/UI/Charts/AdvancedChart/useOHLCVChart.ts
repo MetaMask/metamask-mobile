@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { OHLCVBar } from './AdvancedChart.types';
+import type { ChartLoadMeasurement, OHLCVBar } from './AdvancedChart.types';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
@@ -34,8 +34,14 @@ export interface UseOHLCVChartResult {
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
+  latestMeasurement: ChartLoadMeasurement | null;
   fetchMoreHistory: (params: { oldestTimestamp: number }) => void;
 }
+
+const nowMs = () =>
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
 
 const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
   time: candle.timestamp,
@@ -98,6 +104,8 @@ export const useOHLCVChart = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [latestMeasurement, setLatestMeasurement] =
+    useState<ChartLoadMeasurement | null>(null);
 
   const cursorRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -115,6 +123,7 @@ export const useOHLCVChart = ({
     setError(null);
     cursorRef.current = null;
     setHasMore(false);
+    setLatestMeasurement(null);
 
     try {
       const result = await fetchOHLCV(
@@ -122,11 +131,18 @@ export const useOHLCVChart = ({
         { timePeriod, interval, vsCurrency },
         controller.signal,
       );
+      const responseReceivedAt = nowMs();
 
       if (!controller.signal.aborted) {
         setOhlcvData(result.data.map(mapCandle));
         cursorRef.current = result.nextCursor || null;
         setHasMore(result.hasNext);
+        if (__DEV__) {
+          setLatestMeasurement({
+            apiResponseAt: responseReceivedAt,
+            requestKind: 'initial_load',
+          });
+        }
       }
     } catch (e) {
       if (!controller.signal.aborted) {
@@ -225,5 +241,12 @@ export const useOHLCVChart = ({
     };
   }, [assetId, timePeriod, interval, vsCurrency, enabled, isLoading]);
 
-  return { ohlcvData, isLoading, error, hasMore, fetchMoreHistory };
+  return {
+    ohlcvData,
+    isLoading,
+    error,
+    hasMore,
+    latestMeasurement,
+    fetchMoreHistory,
+  };
 };

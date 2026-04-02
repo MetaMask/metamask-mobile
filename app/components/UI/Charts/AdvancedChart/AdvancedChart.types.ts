@@ -180,6 +180,7 @@ export type RNToWebViewMessageType =
 export type WebViewToRNMessageType =
   | 'CHART_READY'
   | 'CHART_LAYOUT_SETTLED'
+  | 'CHART_PERF_MEASUREMENT'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'CROSSHAIR_MOVE'
@@ -187,8 +188,20 @@ export type WebViewToRNMessageType =
   | 'ERROR'
   | 'DEBUG';
 
+export interface ChartLoadMeasurement {
+  apiResponseAt: number;
+  requestKind?: string;
+}
+
+export interface ChartLoadMeasurementEnvelope extends ChartLoadMeasurement {
+  rnPostedAt: number;
+  seriesKey?: string;
+  barCount: number;
+}
+
 export interface SetOHLCVDataPayload {
   data: OHLCVBar[];
+  measurement?: ChartLoadMeasurementEnvelope;
 }
 
 export interface AddIndicatorPayload {
@@ -253,9 +266,15 @@ export interface ErrorPayload {
   code?: string;
 }
 
+export interface ChartPerfMeasurementPayload extends ChartLoadMeasurementEnvelope {
+  webviewReceivedAt: number;
+  webviewSettledAt: number;
+}
+
 export type WebViewToRNMessage =
   | { type: 'CHART_READY' }
   | { type: 'CHART_LAYOUT_SETTLED' }
+  | { type: 'CHART_PERF_MEASUREMENT'; payload: ChartPerfMeasurementPayload }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
@@ -291,6 +310,33 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 
     case 'CHART_LAYOUT_SETTLED':
       return { type };
+
+    case 'CHART_PERF_MEASUREMENT':
+      if (
+        typeof obj.apiResponseAt === 'number' &&
+        typeof obj.rnPostedAt === 'number' &&
+        typeof obj.webviewReceivedAt === 'number' &&
+        typeof obj.webviewSettledAt === 'number' &&
+        typeof obj.barCount === 'number'
+      ) {
+        return {
+          type,
+          payload: {
+            apiResponseAt: obj.apiResponseAt,
+            rnPostedAt: obj.rnPostedAt,
+            webviewReceivedAt: obj.webviewReceivedAt,
+            webviewSettledAt: obj.webviewSettledAt,
+            barCount: obj.barCount,
+            ...(typeof obj.requestKind === 'string'
+              ? { requestKind: obj.requestKind }
+              : {}),
+            ...(typeof obj.seriesKey === 'string'
+              ? { seriesKey: obj.seriesKey }
+              : {}),
+          },
+        };
+      }
+      return null;
 
     case 'DEBUG':
       return {
@@ -363,6 +409,8 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 export interface AdvancedChartProps {
   /** OHLCV data to display (required) */
   ohlcvData: OHLCVBar[];
+  /** Optional timing measurement captured when the latest full OHLCV payload returned from the API. */
+  ohlcvMeasurement?: ChartLoadMeasurement;
   /**
    * When set, any change forces a full `SET_OHLCV_DATA` sync instead of the length/last-bar
    * heuristic (which can mis-classify a new range as `REALTIME_UPDATE` when bar counts match).

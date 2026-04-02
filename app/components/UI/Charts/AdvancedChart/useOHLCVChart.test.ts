@@ -60,7 +60,7 @@ function arrangePollingNockOhlcvAPISuccessResponse(
     query?: Record<string, string>;
     body?: Partial<OHLCVApiResponse>;
   } = {
-    query: { timePeriod: '1h' },
+    query: { timePeriod: '1d' },
     body: { data: [] },
   },
 ) {
@@ -84,13 +84,21 @@ function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
 }
 
 describe('useOHLCVChart - initial load', () => {
+  let performanceNowSpy: jest.SpyInstance<number, []>;
+  let originalDev: boolean | undefined;
+
   beforeEach(() => {
     nock.disableNetConnect();
-    arrangePollingNockOhlcvAPISuccessResponse();
+    originalDev = global.__DEV__;
+    global.__DEV__ = true;
+    performanceNowSpy = jest
+      .spyOn(global.performance, 'now')
+      .mockReturnValue(1234);
   });
 
   afterEach(() => {
     nock.cleanAll();
+    global.__DEV__ = originalDev;
     jest.restoreAllMocks();
   });
 
@@ -105,6 +113,7 @@ describe('useOHLCVChart - initial load', () => {
     });
     const successBody = createSuccessBody({ data: [candle] });
     arrangeNockOhlcvAPISuccessResponse(successBody);
+    arrangePollingNockOhlcvAPISuccessResponse();
 
     const options = arrangeDefaultOptions();
 
@@ -125,11 +134,16 @@ describe('useOHLCVChart - initial load', () => {
       },
     ]);
     expect(result.current.error).toBeNull();
+    expect(result.current.latestMeasurement).toEqual({
+      apiResponseAt: 1234,
+      requestKind: 'initial_load',
+    });
   });
 
   it('sets error from response status when request fails', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     arrangeNockOhlcvAPI404Response();
+    arrangePollingNockOhlcvAPISuccessResponse();
 
     const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
 
@@ -139,6 +153,7 @@ describe('useOHLCVChart - initial load', () => {
 
     expect(result.current.error).toBe('OHLCV API error: 404');
     expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.latestMeasurement).toBeNull();
   });
 
   it('sets hasMore from API hasNext flag', async () => {
@@ -147,6 +162,7 @@ describe('useOHLCVChart - initial load', () => {
       nextCursor: 'next-page',
     });
     arrangeNockOhlcvAPISuccessResponse(successBody);
+    arrangePollingNockOhlcvAPISuccessResponse();
 
     const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
 
@@ -172,6 +188,7 @@ describe('useOHLCVChart - initial load', () => {
     expect(scope.isDone()).toBe(false);
     expect(result.current.ohlcvData).toEqual([]);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.latestMeasurement).toBeNull();
   });
 
   it('does not fetch when assetId is empty', async () => {
@@ -188,15 +205,13 @@ describe('useOHLCVChart - initial load', () => {
 
     expect(scope.isDone()).toBe(false);
     expect(result.current.ohlcvData).toEqual([]);
+    expect(result.current.latestMeasurement).toBeNull();
   });
 });
 
 describe('useOHLCVChart - query parameters', () => {
   beforeEach(() => {
     nock.disableNetConnect();
-    arrangePollingNockOhlcvAPISuccessResponse({
-      query: { timePeriod: '1h', interval: '1m', vsCurrency: 'eur' },
-    });
   });
 
   afterEach(() => {
@@ -209,6 +224,9 @@ describe('useOHLCVChart - query parameters', () => {
       timePeriod: '1w',
       interval: '1m',
       vsCurrency: 'eur',
+    });
+    arrangePollingNockOhlcvAPISuccessResponse({
+      query: { timePeriod: '1w', interval: '1m', vsCurrency: 'eur' },
     });
 
     const { result } = renderUseOHLCVChart({
@@ -229,7 +247,6 @@ describe('useOHLCVChart - query parameters', () => {
 describe('useOHLCVChart - fetchMoreHistory', () => {
   beforeEach(() => {
     nock.disableNetConnect();
-    arrangePollingNockOhlcvAPISuccessResponse();
   });
 
   afterEach(() => {
@@ -248,6 +265,7 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
         nextCursor: 'cursor-a',
       }),
     );
+    arrangePollingNockOhlcvAPISuccessResponse();
 
     const scope2 = arrangeNockOhlcvAPIStrictQueryResponse(
       { nextCursor: 'cursor-a' },
@@ -288,9 +306,10 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
         nextCursor: '',
       }),
     );
+    arrangePollingNockOhlcvAPISuccessResponse();
 
     const scope2Call = arrangeNockOhlcvAPIStrictQueryResponse(
-      { timePeriod: '1d' },
+      { nextCursor: 'should-not-run' },
       createSuccessBody({
         hasNext: false,
         nextCursor: '',

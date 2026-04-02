@@ -4,6 +4,7 @@ import AdvancedChart from '../AdvancedChart';
 import {
   ChartType,
   resolveLineChromeOptions,
+  type ChartLoadMeasurement,
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
@@ -32,9 +33,26 @@ const MOCK_BARS: OHLCVBar[] = [
   { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
 ];
 
+const MOCK_MEASUREMENT: ChartLoadMeasurement = {
+  apiResponseAt: 111,
+  requestKind: 'initial_load',
+};
+
 describe('AdvancedChart', () => {
+  let performanceNowSpy: jest.SpyInstance<number, []>;
+  let originalDev: boolean | undefined;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    originalDev = global.__DEV__;
+    global.__DEV__ = true;
+    performanceNowSpy = jest.spyOn(global.performance, 'now').mockReturnValue(222);
+  });
+
+  afterEach(() => {
+    global.__DEV__ = originalDev;
+    performanceNowSpy.mockRestore();
+    jest.restoreAllMocks();
   });
 
   it('renders without crashing', () => {
@@ -111,7 +129,13 @@ describe('AdvancedChart', () => {
   });
 
   it('sends OHLCV data on WebView load end', () => {
-    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        ohlcvMeasurement={MOCK_MEASUREMENT}
+        ohlcvSeriesKey="range-a"
+      />,
+    );
 
     const webView = getByTestId('mock-webview');
     act(() => {
@@ -121,7 +145,15 @@ describe('AdvancedChart', () => {
     expect(mockPostMessage).toHaveBeenCalledWith(
       JSON.stringify({
         type: 'SET_OHLCV_DATA',
-        payload: { data: MOCK_BARS },
+        payload: {
+          data: MOCK_BARS,
+          measurement: {
+            ...MOCK_MEASUREMENT,
+            rnPostedAt: 222,
+            barCount: MOCK_BARS.length,
+            seriesKey: 'range-a',
+          },
+        },
       }),
     );
   });
@@ -191,6 +223,47 @@ describe('AdvancedChart', () => {
     });
 
     expect(onChartReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs structured chart perf data when WebView reports visible chart timing', () => {
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} ohlcvMeasurement={MOCK_MEASUREMENT} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'CHART_PERF_MEASUREMENT',
+            payload: {
+              apiResponseAt: 100,
+              rnPostedAt: 120,
+              webviewReceivedAt: 130,
+              webviewSettledAt: 170,
+              requestKind: 'initial_load',
+              seriesKey: 'range-a',
+              barCount: 2,
+            },
+          }),
+        },
+      });
+    });
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('[AdvancedChart][Perf]', {
+      requestKind: 'initial_load',
+      seriesKey: 'range-a',
+      barCount: 2,
+      api_to_rn_post_ms: 20,
+      rn_post_to_webview_visible_ms: 50,
+      api_to_webview_receive_ms: 30,
+      api_to_visible_ms: 70,
+    });
   });
 
   it('calls onError when chart reports an error', () => {
@@ -396,6 +469,38 @@ describe('AdvancedChart', () => {
         type: 'REALTIME_UPDATE',
         payload: { bar: newBar },
       }),
+    );
+  });
+
+  it('does not log chart perf data for realtime-only updates', () => {
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    const newBar: OHLCVBar = {
+      time: 1000600,
+      open: 12,
+      high: 14,
+      low: 11,
+      close: 13,
+      volume: 300,
+    };
+
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} realtimeBar={newBar} />);
+
+    expect(consoleLogSpy).not.toHaveBeenCalledWith(
+      '[AdvancedChart][Perf]',
+      expect.anything(),
     );
   });
 
