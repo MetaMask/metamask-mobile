@@ -29,7 +29,15 @@ export const getTimeRemaining = (
   const currentStatus = status ?? game.status;
   const elapsedStr = elapsed ?? game.elapsed;
   if (!elapsedStr || currentStatus !== 'ongoing') return null;
-  const elapsedMins = parseInt(elapsedStr.replace(/[^0-9]/g, ''), 10);
+
+  let elapsedMins: number;
+  if (elapsedStr.includes(':')) {
+    const [mm, ss] = elapsedStr.split(':').map(Number);
+    elapsedMins = (mm || 0) + ((ss || 0) >= 30 ? 1 : 0);
+  } else {
+    elapsedMins = parseInt(elapsedStr.replace(/[^0-9]/g, ''), 10);
+  }
+
   if (isNaN(elapsedMins)) return null;
   const totalMins = LEAGUE_TOTAL_MINUTES[game.league] ?? 90;
   const remaining = Math.max(0, totalMins - elapsedMins);
