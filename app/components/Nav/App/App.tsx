@@ -721,19 +721,23 @@ const ConnectQRHardwareFlow = () => {
   );
 };
 
-const LedgerConnectFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    initialRouteName={Routes.HW.LEDGER_CONNECT}
-  >
-    <Stack.Screen
-      name={Routes.HW.LEDGER_CONNECT}
-      component={LedgerSelectAccount}
-    />
-  </Stack.Navigator>
-);
+const LedgerConnectFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+      initialRouteName={Routes.HW.LEDGER_CONNECT}
+    >
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const ConnectHardwareWalletFlow = () => {
   const { colors } = useTheme();

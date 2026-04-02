@@ -573,21 +573,81 @@ describe('App', () => {
     });
   });
 
+  describe('App version handling branches', () => {
+    const renderAppForVersionTest = (state: DeepPartial<RootState>) => {
+      const mockStoreCreator = configureMockStore();
+      const store = mockStoreCreator(state);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('handles errors in startApp gracefully', async () => {
+      const getItemSpy = jest
+        .spyOn(StorageWrapper, 'getItem')
+        .mockRejectedValue(new Error('Storage error'));
+
+      renderAppForVersionTest(initialState);
+
+      await waitFor(() => {
+        expect(getItemSpy).toHaveBeenCalled();
+      });
+
+      getItemSpy.mockRestore();
+    });
+  });
+
   describe('AppFlow navigation structure', () => {
-    it('has import private key view route defined', () => {
-      expect(Routes.QR_TAB_SWITCHER).toBeDefined();
+    const renderAppWithDefaultState = (
+      routeState: PartialState<NavigationState>,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders the fox loader as initial route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.FOX_LOADER }],
+      };
+
+      const { getByTestId } = renderAppWithDefaultState(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
+      });
     });
 
-    it('has max browser tabs modal route defined', () => {
-      expect(Routes.MODAL.MAX_BROWSER_TABS_MODAL).toBeDefined();
-    });
+    it('renders the lock screen route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.LOCK_SCREEN }],
+      };
 
-    it('has settings reveal private credential route defined', () => {
-      expect(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL).toBeDefined();
-    });
+      const { toJSON } = renderAppWithDefaultState(routeState);
 
-    it('has multichain account cell actions route defined', () => {
-      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS).toBeDefined();
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
     });
   });
 
