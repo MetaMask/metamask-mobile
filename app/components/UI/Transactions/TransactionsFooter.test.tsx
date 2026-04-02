@@ -158,6 +158,39 @@ describe('TransactionsFooter', () => {
       expect(getByText('View full history on Gnosisscan')).toBeTruthy();
     });
 
+    it('uses explorer hostname for label when omitGlobalProviderExplorerFallback is set', () => {
+      mockIsMainnetByChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Lineascan');
+
+      const { queryByText, getByText } = render(
+        <TransactionsFooter
+          chainId="0xe708"
+          providerType="mainnet"
+          rpcBlockExplorer="https://lineascan.build"
+          omitGlobalProviderExplorerFallback
+          onViewBlockExplorer={mockOnViewBlockExplorer}
+        />,
+      );
+
+      expect(queryByText('View full history on Etherscan')).toBeNull();
+      expect(getByText('View full history on Lineascan')).toBeTruthy();
+    });
+
+    it('does not show generic Etherscan fallback without explorer URL when omitGlobalProviderExplorerFallback', () => {
+      mockIsMainnetByChainId.mockReturnValue(false);
+
+      const { queryByText } = render(
+        <TransactionsFooter
+          chainId="0xe708"
+          providerType="mainnet"
+          omitGlobalProviderExplorerFallback
+          onViewBlockExplorer={mockOnViewBlockExplorer}
+        />,
+      );
+
+      expect(queryByText(/View full history/)).toBeNull();
+    });
+
     it('hides button for RPC networks without block explorer', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
 
