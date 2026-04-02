@@ -36,16 +36,15 @@ import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  LINEA_MUSD_ASSET_FOR_MERKL,
-  MUSD_MAINNET_ASSET_FOR_DETAILS,
-} from './CashGetMusdEmptyState.constants';
+import { LINEA_MUSD_ASSET_FOR_MERKL } from './CashGetMusdEmptyState.constants';
 import NavigationService from '../../../../../core/NavigationService';
-import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
   const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
     useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
@@ -75,11 +74,14 @@ const MusdAggregatedRow = () => {
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
-    NavigationService.navigation.navigate('Asset', {
-      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-      source: TokenDetailsSource.HomeSection,
-    });
-  }, []);
+    if (isMoneyHomeEnabled) {
+      NavigationService.navigation.navigate(Routes.MONEY.ROOT);
+    } else {
+      NavigationService.navigation.navigate(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+    }
+  }, [isMoneyHomeEnabled]);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,
