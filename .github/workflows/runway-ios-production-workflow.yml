@@ -38,5 +38,5 @@ jobs:
       build_name: main-prod
       upload_testflight: true
       create_production_ota_tag: true
-      ios_testflight_summary_title: 'Runway iOS Production'
+      environment: prod
     secrets: inherit
