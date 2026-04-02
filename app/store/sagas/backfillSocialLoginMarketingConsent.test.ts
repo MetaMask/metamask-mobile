@@ -7,6 +7,7 @@ import { setDataCollectionForMarketing } from '../../actions/security';
 import { analytics } from '../../util/analytics/analytics';
 import { UserActionType } from '../../actions/user';
 import OAuthService from '../../core/OAuthService/OAuthService';
+import Logger from '../../util/Logger';
 
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
@@ -47,6 +48,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
   const mockedGetMarketingOptInStatus = jest.mocked(
     OAuthService.getMarketingOptInStatus,
   );
+  const mockedLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -166,6 +168,37 @@ describe('backfillSocialLoginMarketingConsent', () => {
         }),
       }),
     );
+  });
+
+  it('does not clear the marker when getMarketingOptInStatus rejects', async () => {
+    mockedGetMarketingOptInStatus.mockRejectedValueOnce(
+      new Error('no access token'),
+    );
+
+    const state = {
+      ...initialRootState,
+      security: {
+        ...initialRootState.security,
+        dataCollectionForMarketing: false,
+      },
+      onboarding: {
+        ...initialRootState.onboarding,
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    };
+
+    await expectSaga(backfillSocialLoginMarketingConsentSaga)
+      .withState(state)
+      .dispatch(loginAction)
+      .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
+      .run();
+
+    expect(mockedLoggerError).toHaveBeenCalledWith(
+      expect.any(Error),
+      'Failed to backfill social login marketing consent analytics',
+    );
+    expect(mockedTrackEvent).not.toHaveBeenCalled();
+    expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
 
   it('does not clear the marker when trackEvent throws', async () => {

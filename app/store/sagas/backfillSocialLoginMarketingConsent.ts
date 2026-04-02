@@ -28,14 +28,14 @@ export function* backfillSocialLoginMarketingConsentSaga() {
       (state: RootState) => state.security?.dataCollectionForMarketing,
     );
 
-  if (marketingConsent !== true) {
-    const marketingOptIn: Awaited<
-      ReturnType<typeof OAuthService.getMarketingOptInStatus>
-    > = yield call([OAuthService, OAuthService.getMarketingOptInStatus]);
-    marketingConsent = marketingOptIn.is_opt_in;
-  }
-
   try {
+    if (marketingConsent !== true) {
+      const marketingOptIn: Awaited<
+        ReturnType<typeof OAuthService.getMarketingOptInStatus>
+      > = yield call([OAuthService, OAuthService.getMarketingOptInStatus]);
+      marketingConsent = marketingOptIn.is_opt_in;
+    }
+
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )
