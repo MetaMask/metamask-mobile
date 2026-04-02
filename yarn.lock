@@ -8884,14 +8884,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/messenger@npm:1.0.0"
-  checksum: 10/ab1219a922d5acc86f2b1b557d79c75ca0c5f42572f50da8a2337bc5c8feb1ae95c0aaa2d2ee55b677acd4401fb2cc9c2dbacca7513edcddf20d88fb73fa7bea
-  languageName: node
-  linkType: hard
-
-"@metamask/messenger@npm:^1.1.0":
+"@metamask/messenger@npm:^1.0.0, @metamask/messenger@npm:^1.1.0":
   version: 1.1.0
   resolution: "@metamask/messenger@npm:1.1.0"
   dependencies:
