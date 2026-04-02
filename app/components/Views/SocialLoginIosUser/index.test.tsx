@@ -137,7 +137,7 @@ describe('SocialLoginIosUser', () => {
       expect(mockNavigation.replace).toHaveBeenCalledWith(
         Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
         {
-          previous_screen: 'onboarding',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
           onboardingTraceCtx: { traceId: 'test-trace' },
         },

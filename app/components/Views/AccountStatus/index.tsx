@@ -45,6 +45,14 @@ import {
 import AccountStatusImg from '../../../images/account_status.png';
 import type { AccountStatusParams } from './types';
 
+const ACCOUNT_STATUS_PRIMARY_FLOW = {
+  EXISTING_ACCOUNT_IMPORT: 'import',
+  NEW_ACCOUNT_CREATE: 'create',
+} as const;
+
+type AccountStatusPrimaryFlowMetric =
+  (typeof ACCOUNT_STATUS_PRIMARY_FLOW)[keyof typeof ACCOUNT_STATUS_PRIMARY_FLOW];
+
 interface AccountStatusRouteParams {
   AccountStatus: AccountStatusParams;
   AccountAlreadyExists: AccountStatusParams;
@@ -111,7 +119,7 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
   const navigateNextScreen = (
     targetRoute: string,
     previousScreen: string,
-    metricEvent: string,
+    metricFlow: AccountStatusPrimaryFlowMetric,
   ) => {
     const nextScenarioTraceName =
       type === 'found'
@@ -136,7 +144,7 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
       }),
     );
     track(
-      metricEvent === 'import'
+      metricFlow === ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT
         ? MetaMetricsEvents.WALLET_IMPORT_STARTED
         : MetaMetricsEvents.WALLET_SETUP_STARTED,
     );
@@ -211,11 +219,15 @@ const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
               if (type === 'found') {
                 navigateNextScreen(
                   Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
-                  'Onboarding',
-                  'import',
+                  Routes.ONBOARDING.ONBOARDING,
+                  ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT,
                 );
               } else {
-                navigateNextScreen('ChoosePassword', 'Onboarding', 'create');
+                navigateNextScreen(
+                  Routes.ONBOARDING.CHOOSE_PASSWORD,
+                  Routes.ONBOARDING.ONBOARDING,
+                  ACCOUNT_STATUS_PRIMARY_FLOW.NEW_ACCOUNT_CREATE,
+                );
               }
             }}
             label={

@@ -272,6 +272,7 @@ const OnboardingNav = () => (
       initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
+    {/* OAuth rehydration inside onboarding stack (distinct route name from AppFlow). */}
     <Stack.Screen
       name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
       component={OAuthRehydration}
@@ -930,6 +931,7 @@ const AppFlow = () => {
           cardStyle: { backgroundColor: colors.background.default },
         }}
       />
+      {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
       <Stack.Screen
         name={Routes.ONBOARDING.REHYDRATE}
         component={OAuthRehydration}
