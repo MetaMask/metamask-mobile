@@ -67,7 +67,7 @@ export const calculateTotalVolume = (outcomes: PredictOutcome[]): number =>
   outcomes.reduce((sum, outcome) => {
     const volume =
       typeof outcome.volume === 'string'
-        ? parseFloat(outcome.volume)
+        ? parseFloat(outcome.volume) || 0
         : outcome.volume || 0;
     return sum + volume;
   }, 0);
