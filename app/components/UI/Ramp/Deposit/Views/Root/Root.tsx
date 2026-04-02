@@ -35,6 +35,7 @@ const Root = () => {
   const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
   const { checkExistingToken, setIntent } = useDepositSDK();
   const hasCheckedToken = useRef(false);
+  const initializationInFlight = useRef(false);
   const orders = useSelector(getAllDepositOrders);
   const theme = useTheme();
 
@@ -64,59 +65,79 @@ const Root = () => {
     };
 
     const initializeFlow = async () => {
-      if (hasCheckedToken.current) return;
-      hasCheckedToken.current = true;
-
-      const createdOrder = orders.find(
-        (order) => order.state === FIAT_ORDER_STATES.CREATED,
-      );
-
-      if (!createdOrder) {
-        navigateToDefaultRoute();
+      // 1. If token has already been checked, do not run again.
+      if (hasCheckedToken.current) {
         return;
       }
 
-      let isAuthenticatedFromToken = false;
+      // 2. Single runner: effect can re-run while checkExistingToken is in flight; avoid duplicate work.
+      if (initializationInFlight.current) {
+        return;
+      }
+      initializationInFlight.current = true;
+
       try {
-        isAuthenticatedFromToken = await withTimeout(
-          checkExistingToken(),
-          TOKEN_CHECK_TIMEOUT_MS,
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'Deposit Root: checkExistingToken failed or timed out',
-        );
-      }
+        // 3. Default until vault / SDK hydration succeeds.
+        let isAuthenticatedFromToken = false;
 
-      if (!isAuthenticatedFromToken) {
-        const [routeName, navParams] = createEnterEmailNavDetails({
-          redirectToRootAfterAuth: true,
-        });
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: routeName,
-              params: { ...navParams, animationEnabled: false },
-            },
-          ],
-        });
-        return;
-      }
+        // 4. Attempt to restore auth from stored token; mark checked after the attempt finishes.
+        try {
+          isAuthenticatedFromToken = await withTimeout(
+            checkExistingToken(),
+            TOKEN_CHECK_TIMEOUT_MS,
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'Deposit Root: checkExistingToken failed or timed out',
+          );
+        } finally {
+          hasCheckedToken.current = true;
+        }
 
-      const [routeName, navParams] = createBankDetailsNavDetails({
-        orderId: createdOrder.id,
-      });
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: routeName,
-            params: { ...navParams, animationEnabled: false },
-          },
-        ],
-      });
+        // 5. Resume in-progress deposit order if any.
+        const createdOrder = orders.find(
+          (order) => order.state === FIAT_ORDER_STATES.CREATED,
+        );
+
+        // 6. Created order: require auth or continue to bank details.
+        if (createdOrder) {
+          if (!isAuthenticatedFromToken) {
+            const [routeName, navParams] = createEnterEmailNavDetails({
+              redirectToRootAfterAuth: true,
+            });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: routeName,
+                  params: { ...navParams, animationEnabled: false },
+                },
+              ],
+            });
+            return;
+          }
+
+          const [routeName, navParams] = createBankDetailsNavDetails({
+            orderId: createdOrder.id,
+          });
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: routeName,
+                params: { ...navParams, animationEnabled: false },
+              },
+            ],
+          });
+          return;
+        }
+
+        // 7. No created order: default entry (Build Quote); honor deeplink / intent flags when present.
+        navigateToDefaultRoute();
+      } finally {
+        initializationInFlight.current = false;
+      }
     };
 
     initializeFlow().catch((error) => {

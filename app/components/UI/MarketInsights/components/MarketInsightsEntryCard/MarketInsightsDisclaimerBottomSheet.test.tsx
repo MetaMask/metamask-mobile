@@ -3,57 +3,73 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsDisclaimerBottomSheet from './MarketInsightsDisclaimerBottomSheet';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactLib = jest.requireActual('react');
-  const { View: MockView, Text: MockText } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactLib = jest.requireActual('react');
+    const { View: MockView } = jest.requireActual('react-native');
 
-  return {
-    ...actual,
-    BottomSheet: ReactLib.forwardRef(
-      (
-        {
-          children,
-          onClose: onCloseProp,
-        }: { children: React.ReactNode; onClose?: () => void },
-        ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
-        }>,
-      ) => {
-        ReactLib.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          // Simulate animation completion by immediately invoking the onClose prop
-          onCloseBottomSheet: jest.fn().mockImplementation(() => {
-            onCloseProp?.();
-          }),
-        }));
-        return <MockView testID="mock-bottom-sheet">{children}</MockView>;
-      },
-    ),
-    BottomSheetHeader: ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose?: () => void;
-    }) => (
-      <MockView testID="mock-bottom-sheet-header">
-        <MockText>{children}</MockText>
-        {onClose && (
-          <MockView testID="mock-bottom-sheet-header-close" onPress={onClose} />
-        )}
-      </MockView>
-    ),
-  };
-});
+    return {
+      __esModule: true,
+      default: ReactLib.forwardRef(
+        (
+          {
+            children,
+            onClose: onCloseProp,
+          }: { children: React.ReactNode; onClose?: () => void },
+          ref: React.Ref<{
+            onOpenBottomSheet: () => void;
+            onCloseBottomSheet: () => void;
+          }>,
+        ) => {
+          ReactLib.useImperativeHandle(ref, () => ({
+            onOpenBottomSheet: jest.fn(),
+            onCloseBottomSheet: jest.fn().mockImplementation(() => {
+              onCloseProp?.();
+            }),
+          }));
+          return <MockView testID="mock-bottom-sheet">{children}</MockView>;
+        },
+      ),
+    };
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { View: MockView, Text: MockText } =
+      jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: ({
+        children,
+        onClose,
+      }: {
+        children: React.ReactNode;
+        onClose?: () => void;
+      }) => (
+        <MockView testID="mock-bottom-sheet-header">
+          <MockText>{children}</MockText>
+          {onClose && (
+            <MockView
+              testID="mock-bottom-sheet-header-close"
+              onPress={onClose}
+            />
+          )}
+        </MockView>
+      ),
+    };
+  },
+);
 
 describe('MarketInsightsDisclaimerBottomSheet', () => {
   it('calls onClose when the Got it button is pressed', () => {
     const onClose = jest.fn();
 
     const { getByText } = renderWithProvider(
-      <MarketInsightsDisclaimerBottomSheet isVisible onClose={onClose} />,
+      <MarketInsightsDisclaimerBottomSheet onClose={onClose} />,
     );
 
     fireEvent.press(getByText('Got it'));
@@ -63,7 +79,7 @@ describe('MarketInsightsDisclaimerBottomSheet', () => {
 
   it('renders the disclaimer title and body text', () => {
     const { getByText } = renderWithProvider(
-      <MarketInsightsDisclaimerBottomSheet isVisible onClose={jest.fn()} />,
+      <MarketInsightsDisclaimerBottomSheet onClose={jest.fn()} />,
     );
 
     expect(getByText('AI generated content')).toBeOnTheScreen();
@@ -76,7 +92,7 @@ describe('MarketInsightsDisclaimerBottomSheet', () => {
     const onClose = jest.fn();
 
     renderWithProvider(
-      <MarketInsightsDisclaimerBottomSheet isVisible onClose={onClose} />,
+      <MarketInsightsDisclaimerBottomSheet onClose={onClose} />,
     );
 
     expect(onClose).not.toHaveBeenCalled();

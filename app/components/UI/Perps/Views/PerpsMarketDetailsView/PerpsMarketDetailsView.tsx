@@ -127,6 +127,7 @@ import {
 import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
+  MarketInsightsDisclaimerBottomSheet,
   useMarketInsights,
 } from '../../../MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
@@ -206,6 +207,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
   const [isMarketHoursModalVisible, setIsMarketHoursModalVisible] =
+    useState(false);
+  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -1373,6 +1376,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 report={perpsInsightsReport}
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
+                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
               />
             ) : (
               <MarketInsightsEntryCardSkeleton />
@@ -1596,6 +1600,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         onClose={handleFullscreenChartClose}
         onIntervalChange={handleCandlePeriodChange}
       />
+
+      {/* Market Insights Disclaimer Bottom Sheet */}
+      {isInsightsDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
 
       {/* Modify Action Bottom Sheet - Rendered conditionally using PerpsHomeView pattern */}
       {showModifyActionSheet && (

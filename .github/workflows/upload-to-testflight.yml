@@ -1,13 +1,13 @@
 name: Upload to TestFlight
 
-# Dedicated workflow to build iOS (via build.yml) and upload to TestFlight.
-# All TestFlight logic lives here; build.yml only builds and uploads artifacts.
+# Upload a pre-built iOS IPA (artifact from build.yml) to TestFlight.
+# Summary table uses workflow inputs only (no checkout / repo parsing in the summary job).
 #
 on:
   workflow_call:
     inputs:
       source_branch:
-        description: 'Branch, tag, or SHA to build'
+        description: 'Git ref used for the upload script changelog (usually the ref that was built)'
         required: true
         type: string
       environment:
@@ -19,89 +19,60 @@ on:
         required: false
         type: string
         default: 'MetaMask BETA & Release Candidates'
-  workflow_dispatch:
-    inputs:
-      source_branch:
-        description: 'Branch, tag, or SHA to build'
+      build_name:
+        description: 'Must match build.yml build_name (artifact ios-ipa-{build_name})'
         required: true
         type: string
-        default: 'main'
-      environment:
-        description: 'Build environment / track'
+      summary_logical_source_branch:
+        description: 'Original branch the user asked to build (e.g. main); from caller'
         required: true
-        type: choice
-        options:
-          - exp
-          - beta
-          - rc
-        default: rc
-      testflight_group:
-        description: 'TestFlight external testing group'
+        type: string
+      summary_build_ref:
+        description: 'Ref that was built (e.g. temp version-bump branch); from caller'
         required: true
-        type: choice
-        default: 'MetaMask BETA & Release Candidates'
-        options:
-          - 'MetaMask BETA & Release Candidates'
-          - 'MM Card Team'
-          - 'Ramp Provider Testing'
+        type: string
+      summary_build_version:
+        description: 'Semantic version at built commit; from build.yml semantic_version output'
+        required: true
+        type: string
+      summary_android_version_code:
+        description: 'Android versionCode at built commit; from build.yml android_version_code output'
+        required: true
+        type: string
+      summary_built_commit_sha:
+        description: 'Built commit SHA; from build.yml built_commit_sha output'
+        required: true
+        type: string
 
-# contents: write required by build.yml update-build-version job (version bump)
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 jobs:
-  # Create a temporary branch so the version-bump commit can be pushed without
-  # hitting branch-protection rules on the source branch (e.g. main).
-  prepare-build-branch:
-    uses: ./.github/workflows/create-build-branch.yml
-    with:
-      source_branch: ${{ inputs.source_branch }}
-    secrets: inherit
-
-  build:
-    name: Build iOS (${{ inputs.environment || 'rc' }})
-    needs: [prepare-build-branch]
-    uses: ./.github/workflows/build.yml
-    with:
-      build_name: main-${{ inputs.environment || 'rc' }}
-      platform: ios
-      skip_version_bump: false
-      source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
-    secrets: inherit
-
   testflight-upload-summary:
     name: TestFlight upload summary
-    needs: [build, prepare-build-branch]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.prepare-build-branch.outputs.build_branch }}
       - name: Display TestFlight upload summary
         run: |
-          BUILD_VERSION=$(node -p "require('./package.json').version")
-          BUILD_NUMBER=$(awk '/versionCode/{print $2}' android/app/build.gradle)
           {
             echo "### 📲 TestFlight Upload"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
-            echo "| **Build branch** | \`${{ needs.prepare-build-branch.outputs.build_branch }}\` |"
-            echo "| **Build name** | \`main-${{ inputs.environment || 'rc' }}\` |"
-            echo "| **Build version** | \`${BUILD_VERSION}\` |"
-            echo "| **Build number** | \`${BUILD_NUMBER}\` |"
+            echo "| **Source branch** | \`${{ inputs.summary_logical_source_branch }}\` |"
+            echo "| **Build ref** | \`${{ inputs.summary_build_ref }}\` |"
+            echo "| **Build name** | \`${{ inputs.build_name }}\` |"
+            echo "| **Build version** | \`${{ inputs.summary_build_version }}\` |"
+            echo "| **Build number** | \`${{ inputs.summary_android_version_code }}\` |"
+            echo "| **Built commit** | \`${{ inputs.summary_built_commit_sha }}\` |"
             echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
-            echo "| **Workflow ref** | \`${{ github.ref_name }}\` (required for AWS) |"
+            echo "| **Workflow ref** | \`${{ github.ref_name }}\` (Will fail if workflow is not run from \`main\`! Enforced by AWS secrets policy.) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Pulls App Store Connect API keys from AWS Secrets Manager (OIDC).
-  # Workflow must run from main; build uses the temporary build branch.
   upload-ios-testflight:
     name: Upload iOS to TestFlight
-    needs: [build, testflight-upload-summary]
+    needs: [testflight-upload-summary]
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
     steps:
       - name: Checkout repository
@@ -119,7 +90,7 @@ jobs:
       - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-main-${{ inputs.environment || 'rc' }}
+          name: ios-ipa-${{ inputs.build_name }}
 
       - name: Find IPA path
         id: ipa
@@ -197,21 +168,3 @@ jobs:
         run: |
           rm -f ios/AuthKey.p8
           echo "🧹 Cleaned up API key file"
-
-  cleanup-build-branch:
-    name: Cleanup build branch
-    needs: [prepare-build-branch, upload-ios-testflight]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PR_TOKEN || github.token }}
-      - name: Delete temporary build branch
-        env:
-          BRANCH: ${{ needs.prepare-build-branch.outputs.build_branch }}
-        run: |
-          if [ -n "$BRANCH" ]; then
-            git push origin --delete "$BRANCH" || true
-            echo "🧹 Deleted build branch: $BRANCH"
-          fi
