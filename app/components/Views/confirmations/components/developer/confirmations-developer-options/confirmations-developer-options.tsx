@@ -142,6 +142,7 @@ function MoneyAccountDeposit() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountDeposit,
+      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -198,10 +199,12 @@ function useAddTransactionBatch() {
       headerShown,
       loader,
       transactionType,
+      recipient = POLYGON_USDCE_ADDRESS,
     }: {
       headerShown?: boolean;
       loader?: ConfirmationLoader;
       transactionType: TransactionType;
+      recipient?: Hex;
     }) => {
       navigateToConfirmation({
         headerShown,
@@ -224,7 +227,7 @@ function useAddTransactionBatch() {
           },
           {
             params: {
-              to: POLYGON_USDCE_ADDRESS,
+              to: recipient,
               data: transferData,
             },
             type: transactionType,
