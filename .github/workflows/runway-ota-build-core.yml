@@ -99,9 +99,10 @@ jobs:
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
           # Try same-repo head first, then owner:branch (required by API when listing pulls)
-          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
           if [[ -z "$PR_NUMBER" ]]; then
-            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
           fi
 
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
@@ -161,25 +162,13 @@ jobs:
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
       - name: Trigger Push OTA Update workflow
-        uses: actions/github-script@v7
+        uses: ./.github/workflows/push-eas-update.yml
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const ref = '${{ inputs.source_branch || github.ref_name }}'.replace(/^refs\/heads\//, '');
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'push-eas-update.yml',
-              ref: ref,
-              inputs: {
-                pr_number: '${{ needs.decide.outputs.pr_number }}',
-                base_branch: '${{ needs.decide.outputs.base_ref }}',
-                message: '${{ needs.decide.outputs.ota_version }}',
-                channel: '${{ inputs.ota_channel }}',
-                platform: '${{ inputs.platform }}'
-              }
-            });
-            core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
+          pr_number: ${{ needs.decide.outputs.pr_number }}
+          base_branch: ${{ needs.decide.outputs.base_ref }}
+          message: ${{ needs.decide.outputs.ota_version }}
+          channel: ${{ inputs.ota_channel }}
+          platform: ${{ inputs.platform }}
 
       - name: Export release tag for OTA follow-up jobs
         id: release_tag
