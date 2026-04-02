@@ -99,7 +99,8 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
     const internalAccountId = Object.keys(internalAccountsById).find(
       (accountId) =>
-        internalAccountsById[accountId].address === selectedAddress,
+        internalAccountsById[accountId].address.toLowerCase() ===
+        selectedAddress.toLowerCase(),
     );
 
     return internalAccountId ? accountToGroupMap[internalAccountId] : undefined;
