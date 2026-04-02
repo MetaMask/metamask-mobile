@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 // TODO: Update import to @metamask/social-controllers once the package is released.
 import type {
@@ -88,9 +88,11 @@ export const useTopTraders = (
     }));
   }, []);
 
-  if (error) {
-    Logger.error(error as Error, 'useTopTraders: leaderboard fetch failed');
-  }
+  useEffect(() => {
+    if (error) {
+      Logger.error(error as Error, 'useTopTraders: leaderboard fetch failed');
+    }
+  }, [error]);
 
   return {
     traders,
