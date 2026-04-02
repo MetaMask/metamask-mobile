@@ -1,25 +1,12 @@
-import React, { useCallback, useState } from 'react';
-import { Hex } from '@metamask/utils';
+import React from 'react';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { updateEditableParams } from '../../../../../../util/transaction-controller';
 
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
   useNavbar(strings('confirm.title.money_account_deposit'));
 
-  const [selectedToAddress, setSelectedToAddress] = useState<
-    string | undefined
-  >(undefined);
-  const transactionMeta = useTransactionMetadataRequest();
-
-  return (
-    <CustomAmountInfo
-      currency={MONEY_ACCOUNT_CURRENCY}
-      disableConfirm={!selectedToAddress}
-    />
-  );
+  return <CustomAmountInfo currency={MONEY_ACCOUNT_CURRENCY} />;
 }
