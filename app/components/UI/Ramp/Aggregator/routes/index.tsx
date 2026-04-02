@@ -15,15 +15,10 @@ import IncompatibleAccountTokenModal from '../components/IncompatibleAccountToke
 import RegionSelectorModal from '../components/RegionSelectorModal';
 import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
 import SettingsModal from '../Views/Modals/Settings';
+import { clearStackNavigatorOptions } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: { backgroundColor: colors.transparent },
-  animationEnabled: false,
-};
 
 const MainRoutes = () => (
   <Stack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>

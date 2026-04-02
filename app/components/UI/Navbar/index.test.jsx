@@ -567,30 +567,6 @@ describe('getSwapsQuotesNavbar', () => {
   });
 });
 
-describe('getTransactionsNavbarOptions', () => {
-  const { getTransactionsNavbarOptions } = require('.');
-
-  const mockHandleRightButtonPress = jest.fn();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns navbar options with title and right button', () => {
-    const options = getTransactionsNavbarOptions(
-      'Transactions',
-      mockTheme.colors,
-      undefined,
-      '0x123',
-      mockHandleRightButtonPress,
-    );
-
-    expect(options.headerTitle).toBeDefined();
-    expect(options.headerRight).toBeDefined();
-    expect(options.headerLeft).toBeNull();
-  });
-});
-
 describe('getApproveNavbar', () => {
   const { getApproveNavbar } = require('.');
 
