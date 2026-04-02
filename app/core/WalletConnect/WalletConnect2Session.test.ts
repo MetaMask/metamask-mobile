@@ -77,6 +77,16 @@ jest.mock('../Engine/Engine', () => {
         getSelectedAccount: jest.fn().mockReturnValue({
           address: '0x1234567890abcdef1234567890abcdef12345678',
         }),
+        state: {
+          internalAccounts: {
+            selectedAccount: 'mock-selected-account-id',
+            accounts: {
+              'mock-selected-account-id': {
+                address: '0x1234567890abcdef1234567890abcdef12345678',
+              },
+            },
+          },
+        },
       },
       MultichainNetworkController: {
         setActiveNetwork: jest.fn().mockImplementation(() => Promise.resolve()),
