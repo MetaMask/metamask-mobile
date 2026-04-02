@@ -7,7 +7,6 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import LottieView, { AnimationObject } from 'lottie-react-native';
-import { useTheme } from '../../../util/theme';
 import Text, {
   TextVariant,
   TextColor,
@@ -32,7 +31,6 @@ interface SocialLoginIosUserProps {
 const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { colors } = useTheme();
 
   const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
     (route.params as {
@@ -67,13 +65,8 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const isUserTypeNew = type === 'new';
 
   return (
-    <SafeAreaView
-      edges={['bottom', 'left', 'right']}
-      style={[styles.wrapper, { backgroundColor: colors.background.default }]}
-    >
-      <View
-        style={[styles.root, { backgroundColor: colors.background.default }]}
-      >
+    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.wrapper}>
+      <View style={styles.root}>
         <View style={styles.animationContainer}>
           <View style={styles.largeFoxWrapper}>
             <LottieView
@@ -88,7 +81,6 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           <Text
             variant={TextVariant.DisplayMD}
             color={TextColor.Default}
-            style={styles.title}
             testID={
               isUserTypeNew
                 ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE
