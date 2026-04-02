@@ -25,6 +25,19 @@ import { View } from 'react-native';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { selectCardUserLocation } from '../../../../selectors/cardController';
+import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        setUserLocation: jest.fn(),
+        logout: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
+}));
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -43,7 +56,6 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
 
 jest.mock('../../../../core/redux/slices/card', () => ({
   setIsAuthenticatedCard: jest.fn(),
-  setUserCardLocation: jest.fn(),
   setContactVerificationId: jest.fn(),
   selectOnboardingId: jest.fn(),
   resetOnboardingState: jest.fn(() => ({
@@ -358,9 +370,11 @@ describe('CardSDK Context', () => {
   describe('Logout Functionality', () => {
     it('logs out user successfully', async () => {
       // Given: SDK available
-      const mockLogout = jest.fn().mockResolvedValue(undefined);
-      setupMockSDK({ logout: mockLogout });
+      setupMockSDK();
       setupMockUseSelector(mockCardFeatureFlag);
+      const mockControllerLogout = Engine.context.CardController
+        .logout as jest.Mock;
+      mockControllerLogout.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useCardSDK(), {
         wrapper: createWrapper,
@@ -375,8 +389,8 @@ describe('CardSDK Context', () => {
         await result.current.logoutFromProvider();
       });
 
-      // Then: SDK logout should be called and Redux actions dispatched
-      expect(mockLogout).toHaveBeenCalled();
+      // Then: CardController.logout should be called and Redux actions dispatched
+      expect(mockControllerLogout).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalled();
     });
 
@@ -428,9 +442,12 @@ describe('CardSDK Context', () => {
       );
     });
 
-    it('throws error when SDK is unavailable for logout', async () => {
-      // Given: no SDK available
+    it('completes logout successfully even when SDK is unavailable', async () => {
+      // Given: no SDK (feature flag null → sdk = null)
       setupMockUseSelector(null);
+      const mockControllerLogout = Engine.context.CardController
+        .logout as jest.Mock;
+      mockControllerLogout.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useCardSDK(), {
         wrapper: createWrapper,
@@ -441,18 +458,23 @@ describe('CardSDK Context', () => {
       });
 
       // When: attempting logout
-      // Then: should throw error
-      await expect(result.current.logoutFromProvider()).rejects.toThrow(
-        'SDK not available for logout',
+      // Then: should complete without throwing and dispatch cleanup actions
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      expect(mockControllerLogout).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
       );
     });
 
-    it('clears Redux state even when sdk.logout() fails', async () => {
-      // Given: SDK logout fails
-      const mockLogout = jest
-        .fn()
-        .mockRejectedValue(new Error('Server logout failed'));
-      setupMockSDK({ logout: mockLogout });
+    it('clears Redux state even when CardController.logout() fails', async () => {
+      // Given: CardController.logout fails
+      const mockControllerLogout = Engine.context.CardController
+        .logout as jest.Mock;
+      mockControllerLogout.mockRejectedValue(new Error('Server logout failed'));
+      setupMockSDK();
       setupMockUseSelector(mockCardFeatureFlag);
 
       const { result } = renderHook(() => useCardSDK(), {
@@ -463,13 +485,13 @@ describe('CardSDK Context', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // When: user logs out (even though server fails)
+      // When: user logs out (even though controller fails)
       await act(async () => {
         await result.current.logoutFromProvider();
       });
 
       // Then: Redux state should still be cleared
-      expect(mockLogout).toHaveBeenCalled();
+      expect(mockControllerLogout).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
       );

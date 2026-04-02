@@ -115,7 +115,7 @@ const OnboardingNavigator: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   // Track user data fetch separately from SDK's isLoading to guard against
   // the SDK init effect resetting isLoading mid-fetch (e.g. when fetchUserData
-  // dispatches setUserCardLocation and triggers SDK re-initialization).
+  // calls setUserLocation and triggers SDK re-initialization).
   const [isFetchingUserData, setIsFetchingUserData] = useState(
     () => !!onboardingId && !user,
   );

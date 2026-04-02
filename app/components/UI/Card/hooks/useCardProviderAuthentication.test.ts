@@ -8,16 +8,23 @@ import { CardError, CardErrorType, CardLoginInitiateResponse } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
 import { strings } from '../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
-import {
-  setIsAuthenticatedCard,
-  setUserCardLocation,
-} from '../../../../core/redux/slices/card';
+import { setIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 jest.mock('@sentry/core');
 jest.mock('../sdk');
 jest.mock('../util/cardTokenVault');
 jest.mock('../util/pkceHelpers');
 jest.mock('../../../../../locales/i18n');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      validateAndRefreshSession: jest
+        .fn()
+        .mockResolvedValue({ isAuthenticated: true }),
+      setUserLocation: jest.fn(),
+    },
+  },
+}));
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -26,8 +33,6 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('../../../../core/redux/slices/card', () => ({
   setIsAuthenticatedCard: jest.fn(),
-  setUserCardLocation: jest.fn(),
-  selectUserCardLocation: jest.fn(),
 }));
 
 const mockUuid4 = uuid4 as jest.MockedFunction<typeof uuid4>;
@@ -45,9 +50,6 @@ const mockStrings = strings as jest.MockedFunction<typeof strings>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSetIsAuthenticatedCard =
   setIsAuthenticatedCard as jest.MockedFunction<typeof setIsAuthenticatedCard>;
-const mockSetUserCardLocation = setUserCardLocation as jest.MockedFunction<
-  typeof setUserCardLocation
->;
 
 describe('useCardProviderAuthentication', () => {
   const mockSdk = {
@@ -89,10 +91,6 @@ describe('useCardProviderAuthentication', () => {
       type: 'card/setIsAuthenticatedCard',
       payload: true,
     } as ReturnType<typeof setIsAuthenticatedCard>);
-    mockSetUserCardLocation.mockReturnValue({
-      type: 'card/setUserCardLocation',
-      payload: 'us',
-    } as ReturnType<typeof setUserCardLocation>);
   });
 
   describe('initial state', () => {
@@ -183,8 +181,7 @@ describe('useCardProviderAuthentication', () => {
         location: 'international',
       });
       expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
-      expect(mockSetUserCardLocation).toHaveBeenCalledWith('international');
-      expect(mockDispatch).toHaveBeenCalledTimes(2);
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
     });

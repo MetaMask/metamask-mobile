@@ -5,6 +5,7 @@ import {
   type CardControllerMessenger,
   type CardControllerState,
 } from './types';
+import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
   CardProviderError,
   CardProviderErrorCode,
@@ -175,6 +176,27 @@ export class CardController extends BaseController<
           }),
       );
     }, 50);
+  }
+
+  /**
+   * Records the user's pre-authentication location selection.
+   * Written to providerData[activeProviderId].location — the same field
+   * selectCardUserLocation reads, validateAndRefreshSession() overwrites
+   * from tokens on unlock, and logout() clears.
+   */
+  setUserLocation(location: CardLocation): void {
+    const pid = this.state.activeProviderId;
+    if (!pid) return;
+    this.update((s) => {
+      (s.providerData as unknown as Record<string, Record<string, string>>)[
+        pid
+      ] = {
+        ...((
+          s.providerData as unknown as Record<string, Record<string, string>>
+        )[pid] ?? {}),
+        location,
+      };
+    });
   }
 
   /**

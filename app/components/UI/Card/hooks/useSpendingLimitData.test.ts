@@ -72,7 +72,7 @@ describe('useSpendingLimitData', () => {
     mockIsAuthenticated = true;
     mockUserCardLocation = 'international';
 
-    // useSelector is called in order: selectIsAuthenticatedCard, selectUserCardLocation
+    // useSelector is called in order: selectIsAuthenticatedCard
     let selectorCallCount = 0;
     mockUseSelector.mockImplementation(() => {
       selectorCallCount++;

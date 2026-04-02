@@ -24,11 +24,9 @@ import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  setOnboardingId,
-  setUserCardLocation,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
+import Engine from '../../../../../core/Engine';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -49,7 +47,7 @@ const CardAuthentication = () => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const location = useSelector(selectUserCardLocation);
+  const location = useSelector(selectCardUserLocation);
   const [otpData, setOtpData] = useState<{
     userId: string;
     maskedPhoneNumber?: string;
@@ -357,7 +355,9 @@ const CardAuthentication = () => {
         <>
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() => dispatch(setUserCardLocation('international'))}
+              onPress={() =>
+                Engine.context.CardController.setUserLocation('international')
+              }
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
               )}
@@ -376,7 +376,9 @@ const CardAuthentication = () => {
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => dispatch(setUserCardLocation('us'))}
+              onPress={() =>
+                Engine.context.CardController.setUserLocation('us')
+              }
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
               )}
@@ -460,7 +462,6 @@ const CardAuthentication = () => {
       resendCooldown,
       step,
       tw,
-      dispatch,
       location,
     ],
   );

@@ -66,8 +66,7 @@
         "onboardingId": null,
         "selectedCountry": null
       },
-      "priorityTokensByAddress": {},
-      "userCardLocation": "international"
+      "priorityTokensByAddress": {}
     },
     "collectibles": {
       "favorites": {},

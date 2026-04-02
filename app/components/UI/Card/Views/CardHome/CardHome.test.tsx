@@ -89,11 +89,11 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
 import {
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+  selectCardUserLocation,
+} from '../../../../../selectors/cardController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -422,6 +422,9 @@ jest.mock('../../../../../core/Engine', () => ({
         getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
         setSelectedAccount: jest.fn(),
       },
+      CardController: {
+        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
+      },
     },
   },
 }));
@@ -602,7 +605,7 @@ function setupMockSelectors(
       return config.depositMinVersion;
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
     if (selector === selectIsAuthenticatedCard) return config.isAuthenticated;
-    if (selector === selectUserCardLocation) return config.userLocation;
+    if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
 

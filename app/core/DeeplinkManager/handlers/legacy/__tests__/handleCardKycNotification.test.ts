@@ -6,8 +6,8 @@ import Logger from '../../../../../util/Logger';
 import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
-  selectUserCardLocation,
 } from '../../../../redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { selectCardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../../../../../components/UI/Card/sdk/CardSDK';
 
@@ -62,7 +62,7 @@ describe('handleCardKycNotification', () => {
 
     (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
     (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
-    (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
+    (selectCardUserLocation as unknown as jest.Mock).mockReturnValue(
       'international',
     );
     (selectCardFeatureFlag as unknown as jest.Mock).mockReturnValue(
@@ -220,7 +220,7 @@ describe('handleCardKycNotification', () => {
 
     describe('location handling', () => {
       it('uses US location when userCardLocation is us', async () => {
-        (selectUserCardLocation as unknown as jest.Mock).mockReturnValue('us');
+        (selectCardUserLocation as unknown as jest.Mock).mockReturnValue('us');
         mockGetRegistrationStatus.mockResolvedValue({
           verificationState: 'VERIFIED',
         });
@@ -234,7 +234,7 @@ describe('handleCardKycNotification', () => {
       });
 
       it('uses international location when userCardLocation is international', async () => {
-        (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
+        (selectCardUserLocation as unknown as jest.Mock).mockReturnValue(
           'international',
         );
         mockGetRegistrationStatus.mockResolvedValue({
@@ -369,7 +369,7 @@ describe('handleCardKycNotification', () => {
 
     describe('location handling', () => {
       it('uses userCardLocation from state for SDK', async () => {
-        (selectUserCardLocation as unknown as jest.Mock).mockReturnValue('us');
+        (selectCardUserLocation as unknown as jest.Mock).mockReturnValue('us');
         mockGetUserDetails.mockResolvedValue({
           verificationState: 'VERIFIED',
         });
@@ -383,7 +383,7 @@ describe('handleCardKycNotification', () => {
       });
 
       it('uses international when userCardLocation is international', async () => {
-        (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
+        (selectCardUserLocation as unknown as jest.Mock).mockReturnValue(
           'international',
         );
         mockGetUserDetails.mockResolvedValue({

@@ -21,7 +21,6 @@ import {
   resetOnboardingState,
   resetAuthenticatedData,
   setContactVerificationId,
-  setUserCardLocation,
 } from '../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
@@ -100,10 +99,8 @@ export const CardSDKProvider = ({
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
       }
-      dispatch(
-        setUserCardLocation(
-          mapCountryToLocation(userData.countryOfResidence ?? null),
-        ),
+      Engine.context.CardController.setUserLocation(
+        mapCountryToLocation(userData.countryOfResidence ?? null),
       );
 
       setUser(userData);

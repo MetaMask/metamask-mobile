@@ -5,10 +5,8 @@ import Engine from '../../../../Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import {
-  selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-} from '../../../../redux/slices/card';
+import { selectIsAuthenticatedCard } from '../../../../redux/slices/card';
+import { selectCardholderAccounts } from '../../../../../selectors/cardController';
 
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../redux', () => ({
@@ -25,6 +23,7 @@ jest.mock('../../../../Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 jest.mock('../../../../redux/slices/card');
+jest.mock('../../../../../selectors/cardController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
 

@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
-import { CardLocation } from '../../../../components/UI/Card/types';
 import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 
 export interface OnboardingState {
@@ -11,19 +10,15 @@ export interface OnboardingState {
 }
 
 export interface CardSliceState {
-  cardholderAccounts: string[];
   hasViewedCardButton: boolean;
   isAuthenticated: boolean;
-  userCardLocation: CardLocation;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
 }
 
 export const initialState: CardSliceState = {
-  cardholderAccounts: [],
   hasViewedCardButton: false,
   isAuthenticated: false,
-  userCardLocation: 'international',
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -47,12 +42,6 @@ const slice = createSlice({
     },
     setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
       state.isDaimoDemo = action.payload;
-    },
-    setUserCardLocation: (
-      state,
-      action: PayloadAction<CardLocation | null>,
-    ) => {
-      state.userCardLocation = action.payload ?? 'international';
     },
     setOnboardingId: (state, action: PayloadAction<string | null>) => {
       state.onboarding.onboardingId = action.payload;
@@ -99,11 +88,6 @@ export const selectIsDaimoDemo = createSelector(
   (card) => card.isDaimoDemo,
 );
 
-export const selectUserCardLocation = createSelector(
-  selectCardState,
-  (card) => card.userCardLocation,
-);
-
 export const selectOnboardingId = createSelector(
   selectCardState,
   (card) => card.onboarding.onboardingId,
@@ -124,7 +108,6 @@ export const {
   resetCardState,
   setHasViewedCardButton,
   setIsAuthenticatedCard,
-  setUserCardLocation,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,

@@ -4,10 +4,8 @@ import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
-import {
-  selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-} from '../../../redux/slices/card';
+import { selectIsAuthenticatedCard } from '../../../redux/slices/card';
+import { selectCardholderAccounts } from '../../../../selectors/cardController';
 
 /**
  * Card onboarding deeplink handler

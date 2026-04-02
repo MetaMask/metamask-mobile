@@ -5,10 +5,8 @@ import Engine from '../../../../Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import {
-  selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-} from '../../../../redux/slices/card';
+import { selectIsAuthenticatedCard } from '../../../../redux/slices/card';
+import { selectCardholderAccounts } from '../../../../../selectors/cardController';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 
 jest.mock('../../../../redux', () => ({
@@ -25,6 +23,7 @@ jest.mock('../../../../Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 jest.mock('../../../../redux/slices/card');
+jest.mock('../../../../../selectors/cardController');
 jest.mock('../../../../../selectors/accountsController');
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -38,6 +37,7 @@ describe('handleCardHome', () => {
   const mockLoggerError = Logger.error as jest.Mock;
 
   const mockCardholderAddress = '0x1234567890abcdef1234567890abcdef12345678';
+  const mockCardholderCaipId = `eip155:1:${mockCardholderAddress}`;
   const mockInternalAccountAddress =
     '0xabcdef1234567890abcdef1234567890abcdef12';
 
@@ -107,7 +107,7 @@ describe('handleCardHome', () => {
           true,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
+          mockCardholderCaipId,
         ]);
       });
 
@@ -136,7 +136,7 @@ describe('handleCardHome', () => {
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
+          mockCardholderCaipId,
         ]);
       });
 
@@ -212,14 +212,15 @@ describe('handleCardHome', () => {
     describe('with multiple cardholder accounts', () => {
       const secondCardholderAddress =
         '0xabcdef1234567890abcdef1234567890abcdef12';
+      const secondCardholderCaipId = `eip155:1:${secondCardholderAddress}`;
 
       beforeEach(() => {
         (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
-          secondCardholderAddress,
+          mockCardholderCaipId,
+          secondCardholderCaipId,
         ]);
       });
 
@@ -346,7 +347,7 @@ describe('handleCardHome', () => {
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
-          mockCardholderAddress,
+          mockCardholderCaipId,
         ]);
         (Engine.setSelectedAddress as jest.Mock).mockImplementation(() => {
           throw switchError;

@@ -6,7 +6,6 @@ import cardReducer, {
   setHasViewedCardButton,
   selectHasViewedCardButton,
   setIsAuthenticatedCard,
-  setUserCardLocation,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -17,12 +16,11 @@ import cardReducer, {
   resetAuthenticatedData,
 } from '.';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CARD_STATE_MOCK: CardSliceState = {
-  cardholderAccounts: ['0x1234', '0xabcd'],
   isDaimoDemo: false,
   hasViewedCardButton: true,
   isAuthenticated: false,
-  userCardLocation: 'international',
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -30,12 +28,11 @@ const CARD_STATE_MOCK: CardSliceState = {
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
-  cardholderAccounts: [],
   isDaimoDemo: false,
   hasViewedCardButton: false,
   isAuthenticated: false,
-  userCardLocation: 'international',
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -135,11 +132,9 @@ describe('Card Reducer', () => {
   describe('reducers', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
-        cardholderAccounts: ['0x123'],
         isDaimoDemo: false,
         hasViewedCardButton: true,
         isAuthenticated: false,
-        userCardLocation: 'us',
         onboarding: {
           onboardingId: null,
           contactVerificationId: null,
@@ -156,9 +151,6 @@ describe('Card Reducer', () => {
       it('should set hasViewedCardButton to true', () => {
         const state = cardReducer(initialState, setHasViewedCardButton(true));
         expect(state.hasViewedCardButton).toBe(true);
-        expect(state.cardholderAccounts).toEqual(
-          initialState.cardholderAccounts,
-        );
       });
 
       it('should set hasViewedCardButton to false when previously true', () => {
@@ -307,7 +299,6 @@ describe('Card Reducer', () => {
             contactVerificationId: null,
             consentSetId: null,
           });
-          expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
         });
 
         it('should reset onboarding state when already at initial values', () => {
@@ -333,25 +324,10 @@ describe('Card Reducer', () => {
         expect(state.isAuthenticated).toBe(false);
       });
 
-      it('preserves userCardLocation when resetting authenticated data', () => {
-        const currentState: CardSliceState = {
-          ...initialState,
-          userCardLocation: 'us',
-          isAuthenticated: true,
-        };
-
-        const state = cardReducer(currentState, resetAuthenticatedData());
-
-        expect(state.userCardLocation).toBe('us');
-        expect(state.isAuthenticated).toBe(false);
-      });
-
       it('does not affect other state properties', () => {
         const currentState: CardSliceState = {
           ...initialState,
-          cardholderAccounts: ['0x123'],
           hasViewedCardButton: true,
-          userCardLocation: 'us',
           isAuthenticated: true,
           onboarding: {
             onboardingId: 'test-id',
@@ -363,8 +339,6 @@ describe('Card Reducer', () => {
         const state = cardReducer(currentState, resetAuthenticatedData());
 
         expect(state.isAuthenticated).toBe(false);
-        expect(state.userCardLocation).toBe('us');
-        expect(state.cardholderAccounts).toEqual(['0x123']);
         expect(state.hasViewedCardButton).toBe(true);
         expect(state.onboarding).toEqual({
           onboardingId: 'test-id',
@@ -376,7 +350,6 @@ describe('Card Reducer', () => {
       it('works when authenticated data is already at initial values', () => {
         const state = cardReducer(initialState, resetAuthenticatedData());
 
-        expect(state.userCardLocation).toBe('international');
         expect(state.isAuthenticated).toBe(false);
       });
     });
@@ -401,50 +374,9 @@ describe('Authentication Actions', () => {
 
     it('does not affect other state properties', () => {
       const state = cardReducer(initialState, setIsAuthenticatedCard(true));
-      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
-      expect(state.userCardLocation).toEqual(initialState.userCardLocation);
-    });
-  });
-
-  describe('setUserCardLocation', () => {
-    it('sets userCardLocation to us', () => {
-      const state = cardReducer(initialState, setUserCardLocation('us'));
-      expect(state.userCardLocation).toBe('us');
-    });
-
-    it('sets userCardLocation to international', () => {
-      const state = cardReducer(
-        initialState,
-        setUserCardLocation('international'),
+      expect(state.hasViewedCardButton).toEqual(
+        initialState.hasViewedCardButton,
       );
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('defaults to international when null is provided', () => {
-      const state = cardReducer(initialState, setUserCardLocation(null));
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('updates existing userCardLocation', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'us',
-      };
-      const state = cardReducer(
-        currentState,
-        setUserCardLocation('international'),
-      );
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('does not affect other state properties', () => {
-      const state = cardReducer(initialState, setUserCardLocation('us'));
-      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
-      expect(state.isAuthenticated).toEqual(initialState.isAuthenticated);
     });
   });
 });
-
-// Suppress unused variable warnings for state mocks used for type checking only
-void CARD_STATE_MOCK;
-void EMPTY_CARD_STATE_MOCK;

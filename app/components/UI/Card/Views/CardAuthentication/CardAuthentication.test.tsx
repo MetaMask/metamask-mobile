@@ -11,6 +11,17 @@ jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
   default: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        setUserLocation: jest.fn(),
+      },
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
