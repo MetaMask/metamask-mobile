@@ -225,7 +225,7 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.paymentMethods).toEqual([]);
   });
 
-  it('calls Engine.context.RampsController.setSelectedPaymentMethod with payment method id', () => {
+  it('calls Engine.context.RampsController.setSelectedPaymentMethod with full payment method object', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
     });
@@ -241,10 +241,10 @@ describe('useRampsPaymentMethods', () => {
 
     expect(
       Engine.context.RampsController.setSelectedPaymentMethod,
-    ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
+    ).toHaveBeenCalledWith(mockPaymentMethods[0]);
   });
 
-  it('calls Engine.context.RampsController.setSelectedPaymentMethod with undefined when payment method is null', () => {
+  it('calls Engine.context.RampsController.setSelectedPaymentMethod with null when payment method is null', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
     });
@@ -260,6 +260,6 @@ describe('useRampsPaymentMethods', () => {
 
     expect(
       Engine.context.RampsController.setSelectedPaymentMethod,
-    ).toHaveBeenCalledWith(undefined);
+    ).toHaveBeenCalledWith(null);
   });
 });

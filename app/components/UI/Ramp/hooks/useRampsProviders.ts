@@ -57,24 +57,45 @@ export interface UseRampsProvidersResult {
  *
  * @returns Providers state.
  */
-export function useRampsProviders(): UseRampsProvidersResult {
-  const { selected: selectedProvider } = useSelector(selectProviders);
+/**
+ * @param options.enableSideEffects - When true, runs region-change invalidation and provider auto-selection.
+ * Should only be true in RampsBootstrap to avoid duplicate side effects from multiple consumers.
+ */
+export function useRampsProviders(options?: {
+  enableSideEffects?: boolean;
+}): UseRampsProvidersResult {
+  const enableSideEffects = options?.enableSideEffects ?? false;
+  const {
+    data: providersStateData,
+    selected: selectedProvider,
+    isLoading: providersStateIsLoading,
+    error: providersStateError,
+  } = useSelector(selectProviders);
 
   const userRegion = useSelector(selectUserRegion);
   const regionCode = userRegion?.regionCode ?? '';
   const queryClient = useQueryClient();
 
-  // Invalidate all ramp queries when region changes so that stale cached
-  // data from a previous region is not served. The queryFn will re-run,
-  // hit the controller's internal executeRequest cache (fast), and
-  // repopulate controller state.
+  // Mark all ramp queries as stale when region changes so that switching
+  // back to a previously visited region triggers a fresh fetch instead of
+  // serving cached data. refetchType: 'none' avoids a duplicate fetch —
+  // the query-key change already causes React Query to fetch for the new
+  // region; without 'none', invalidateQueries would trigger a second fetch
+  // on the same active query.
   const prevRegionRef = useRef(regionCode);
   useEffect(() => {
-    if (regionCode && prevRegionRef.current !== regionCode) {
+    if (
+      enableSideEffects &&
+      regionCode &&
+      prevRegionRef.current !== regionCode
+    ) {
       prevRegionRef.current = regionCode;
-      queryClient.invalidateQueries({ queryKey: ['ramps'] });
+      queryClient.invalidateQueries({
+        queryKey: ['ramps'],
+        refetchType: 'none',
+      });
     }
-  }, [regionCode, queryClient]);
+  }, [enableSideEffects, regionCode, queryClient]);
 
   const providersQuery = useQuery({
     ...rampsQueries.providers.options({ regionCode }),
@@ -82,9 +103,11 @@ export function useRampsProviders(): UseRampsProvidersResult {
   });
 
   // Keep a stable array reference for hook dependencies.
+  // React Query is authoritative when present; fallback to controller state
+  // keeps initial renders and test mocks resilient.
   const providers = useMemo(
-    () => providersQuery.data ?? [],
-    [providersQuery.data],
+    () => providersQuery?.data ?? providersStateData ?? [],
+    [providersQuery?.data, providersStateData],
   );
 
   const legacyOrders = useSelector(getOrders);
@@ -101,16 +124,21 @@ export function useRampsProviders(): UseRampsProvidersResult {
   );
 
   const setSelectedProvider = useCallback(
-    (provider: Provider | null, options?: { autoSelected?: boolean }) =>
+    (provider: Provider | null, setOptions?: { autoSelected?: boolean }) =>
       Engine.context.RampsController.setSelectedProvider(
         provider?.id ?? null,
-        options,
+        setOptions,
       ),
     [],
   );
 
   useEffect(() => {
-    if (providers && providers.length > 0 && !selectedProvider) {
+    if (
+      enableSideEffects &&
+      providers &&
+      providers.length > 0 &&
+      !selectedProvider
+    ) {
       const result = determinePreferredProvider(completedOrders, providers);
       if (result) {
         (
@@ -125,17 +153,17 @@ export function useRampsProviders(): UseRampsProvidersResult {
         });
       }
     }
-  }, [providers, selectedProvider, completedOrders]);
+  }, [enableSideEffects, providers, selectedProvider, completedOrders]);
 
   return {
     providers,
     selectedProvider,
     setSelectedProvider,
-    isLoading: providersQuery.isLoading,
+    isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
     error:
-      providersQuery.error instanceof Error
+      providersQuery?.error instanceof Error
         ? providersQuery.error.message
-        : null,
+        : providersStateError,
   };
 }
 

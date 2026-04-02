@@ -22,7 +22,7 @@ import Engine from '../../../core/Engine';
  */
 function RampsBootstrap(): null {
   useRampsSmartRouting();
-  useRampsProviders();
+  useRampsProviders({ enableSideEffects: true });
   useRampsPaymentMethods();
 
   // Fetch tokens when region is available. Tokens don't use React Query
