@@ -79,10 +79,13 @@ const FeaturedCarousel: React.FC = () => {
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      const newIndex = Math.round(offsetX / SNAP_INTERVAL);
+      const newIndex = Math.min(
+        Math.max(0, Math.round(offsetX / SNAP_INTERVAL)),
+        markets.length - 1,
+      );
       setActiveIndex(newIndex);
     },
-    [],
+    [markets.length],
   );
 
   const renderItem = useCallback(

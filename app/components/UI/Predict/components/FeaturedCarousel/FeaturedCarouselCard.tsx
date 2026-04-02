@@ -86,10 +86,6 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     [market, entryPoint, executeGuardedAction, navigateToBuyPreview],
   );
 
-  const displayOutcomes = market.outcomes.slice(0, 2);
-  const remainingOptions = Math.max(0, market.outcomes.length - 2);
-  const totalVolume = calculateTotalVolume(market.outcomes);
-
   if (market.game) {
     return (
       <FeaturedCarouselSportCard
@@ -99,6 +95,10 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
       />
     );
   }
+
+  const displayOutcomes = market.outcomes.slice(0, 2);
+  const remainingOptions = Math.max(0, market.outcomes.length - 2);
+  const totalVolume = calculateTotalVolume(market.outcomes);
 
   const formattedEndDate = market.endDate
     ? new Intl.DateTimeFormat(undefined, {
