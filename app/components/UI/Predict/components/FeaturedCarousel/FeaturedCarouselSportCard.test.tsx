@@ -369,4 +369,54 @@ describe('FeaturedCarouselSportCard', () => {
       { throughRoot: true },
     );
   });
+
+  it('renders scheduled time for games not yet started', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        status: 'scheduled',
+        elapsed: null,
+        score: null,
+      }),
+    });
+
+    const { queryByText, getByText, getAllByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(queryByText(/Live/)).not.toBeOnTheScreen();
+    expect(getByText('UCL')).toBeOnTheScreen();
+    expect(getAllByText(/Mar/).length).toBeGreaterThan(0);
+  });
+
+  it('renders 0-0 scores when game has no score data', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({ score: null }),
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getAllByText('0')).toHaveLength(2);
+  });
+
+  it('renders away buy button with percentage', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('40%'));
+
+    expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcomeToken: expect.objectContaining({ title: 'Celtics' }),
+      }),
+      { throughRoot: true },
+    );
+  });
 });

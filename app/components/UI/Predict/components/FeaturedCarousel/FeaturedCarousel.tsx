@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -83,6 +89,10 @@ const FeaturedCarousel: React.FC = () => {
   const { cardWidth, snapInterval } = useCarouselLayout();
 
   const { markets, isLoading, error } = useFeaturedCarouselData();
+
+  useEffect(() => {
+    setActiveIndex((prev) => (prev >= markets.length ? 0 : prev));
+  }, [markets.length]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {

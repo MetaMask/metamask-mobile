@@ -67,6 +67,20 @@ jest.mock('../../contexts', () => ({
   usePredictEntryPoint: () => undefined,
 }));
 
+const mockNavigateToBuyPreview = jest.fn();
+jest.mock('../../hooks/usePredictNavigation', () => ({
+  usePredictNavigation: () => ({
+    navigateToBuyPreview: mockNavigateToBuyPreview,
+  }),
+}));
+
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+    isEligible: true,
+  }),
+}));
+
 jest.mock('./FeaturedCarouselSportCard', () => {
   const { View: MockView } = jest.requireActual('react-native');
   return ({ market }: { market: { id: string } }) => (
@@ -302,5 +316,41 @@ describe('FeaturedCarouselCard', () => {
     expect(
       queryByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 2)),
     ).not.toBeOnTheScreen();
+  });
+
+  it('calls buy handler on buy button press', () => {
+    const market = createMockMarket();
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 0)),
+    );
+
+    expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
+      expect.objectContaining({
+        market,
+        outcome: market.outcomes[0],
+        outcomeToken: market.outcomes[0].tokens[0],
+      }),
+      { throughRoot: true },
+    );
+  });
+
+  it('renders without image when market has no image', () => {
+    const market = createMockMarket({ image: undefined });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <FeaturedCarouselCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_TITLE(0)),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('market-image')).not.toBeOnTheScreen();
   });
 });

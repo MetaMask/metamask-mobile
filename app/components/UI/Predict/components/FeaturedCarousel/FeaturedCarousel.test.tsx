@@ -229,4 +229,36 @@ describe('FeaturedCarousel', () => {
       queryByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD(2)),
     ).not.toBeOnTheScreen();
   });
+
+  it('resets activeIndex when refetch returns fewer markets', () => {
+    mockUseFeaturedCarouselData.mockReturnValue({
+      markets: [
+        mockMarket,
+        { ...mockMarket, id: 'market-2', slug: 'btc-210k' },
+        { ...mockMarket, id: 'market-3', slug: 'btc-220k' },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    const { rerender, getByTestId } = renderWithProvider(<FeaturedCarousel />, {
+      state: initialState,
+    });
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS),
+    ).toBeOnTheScreen();
+
+    mockUseFeaturedCarouselData.mockReturnValue({
+      markets: [mockMarket],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    rerender(<FeaturedCarousel />);
+
+    expect(getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD(0))).toBeOnTheScreen();
+  });
 });
