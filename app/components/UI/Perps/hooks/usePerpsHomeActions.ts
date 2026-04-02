@@ -15,6 +15,9 @@ import {
 import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { selectPayQuoteConfig } from '../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../reducers';
+import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -67,6 +70,10 @@ export const usePerpsHomeActions = (
   const isEligible = useSelector(selectPerpsEligibility);
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
+  const perpsWithdrawConfig = useSelector((state: RootState) =>
+    selectPayQuoteConfig(state, 'perpsWithdraw'),
+  );
+  const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -167,11 +174,19 @@ export const usePerpsHomeActions = (
     });
 
     try {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.WITHDRAW,
-      });
-
-      DevLogger.log('[usePerpsHomeActions] Navigated to withdraw screen');
+      if (perpsWithdrawConfig.enabled) {
+        await withdrawWithConfirmation();
+        DevLogger.log(
+          '[usePerpsHomeActions] Started withdraw-to-any-token flow',
+        );
+      } else {
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.WITHDRAW,
+        });
+        DevLogger.log(
+          '[usePerpsHomeActions] Navigated to legacy withdraw screen',
+        );
+      }
 
       if (onWithdrawSuccess) {
         onWithdrawSuccess();
@@ -195,6 +210,8 @@ export const usePerpsHomeActions = (
   }, [
     isEligible,
     navigation,
+    perpsWithdrawConfig.enabled,
+    withdrawWithConfirmation,
     onWithdrawSuccess,
     onError,
     track,

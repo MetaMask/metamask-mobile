@@ -211,7 +211,13 @@ describe('OAuthRehydration', () => {
     mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
       undefined,
     );
-    mockUnlockWallet.mockResolvedValue(undefined);
+    mockUnlockWallet.mockImplementation(
+      async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+        if (options.onBeforeNavigate) {
+          await options.onBeforeNavigate();
+        }
+      },
+    );
     mockGetAuthType.mockResolvedValue({
       currentAuthType: 'password',
       availableBiometryType: null,
@@ -236,9 +242,14 @@ describe('OAuthRehydration', () => {
 
   describe('Successful login flow', () => {
     it('navigates to home after successful password login', async () => {
-      mockUnlockWallet.mockImplementationOnce(async () => {
-        mockReplace(Routes.ONBOARDING.HOME_NAV);
-      });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
