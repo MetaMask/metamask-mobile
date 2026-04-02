@@ -15,7 +15,6 @@ import LocalIcon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useSearchSectionsArray,
   SectionId,
   type SectionIcon,
   useQuickActionsSectionsArray,

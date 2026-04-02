@@ -1,11 +1,14 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
-import {
-  SECTIONS_CONFIG,
-  type SectionId,
-} from '../../../components/Views/TrendingView/sections.config';
+import type { SectionId } from '../../../components/Views/TrendingView/sections.config';
 
-const VALID_SECTION_IDS = new Set(Object.keys(SECTIONS_CONFIG));
+const VALID_SECTION_IDS: ReadonlySet<string> = new Set<SectionId>([
+  'predictions',
+  'tokens',
+  'perps',
+  'stocks',
+  'sites',
+]);
 
 export interface ExploreSectionsOrderConfig {
   home: SectionId[];
