@@ -511,20 +511,24 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => (
-  <Stack.Navigator
-    initialRouteName={'Main'}
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name={'Main'} component={ConnectedMain} />
-    <Stack.Screen
-      name={'ReviewModal'}
-      component={ReviewModal}
-      options={{ animationEnabled: false, presentation: 'modal' }}
-    />
-  </Stack.Navigator>
-);
+const MainFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      initialRouteName={'Main'}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name={'Main'} component={ConnectedMain} />
+      <Stack.Screen
+        name={'ReviewModal'}
+        component={ReviewModal}
+        options={{ animationEnabled: false, presentation: 'modal' }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default MainFlow;
