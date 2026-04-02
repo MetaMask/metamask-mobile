@@ -33,6 +33,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!isPerpsEnabled) return;
 
+    let isActive = true;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let lastAppState = AppState.currentState;
 
@@ -63,6 +64,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
       suppressError: true,
     }).catch((err) => {
+      if (!isActive) return;
       DevLogger.log('PerpsAlwaysOnProvider: initial always-on connect failed', {
         error: ensureError(err, 'PerpsAlwaysOnProvider.connect').message,
       });
@@ -95,6 +97,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     return () => {
+      isActive = false;
       subscription.remove();
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
