@@ -129,7 +129,7 @@ describe('NftOptions', () => {
     setupSelectorMock('0x999');
 
     const { queryByText } = render(<NftOptions />);
-    expect(queryByText('View on OpenSea')).toBeNull();
+    expect(queryByText('View on OpenSea')).not.toBeOnTheScreen();
   });
 
   it('renders the OpenSea link on Polygon', () => {
