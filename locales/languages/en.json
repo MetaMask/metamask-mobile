@@ -2343,7 +2343,8 @@
       "try_again": "Try again",
       "view": "View",
       "yes_buy": "Yes, buy",
-      "yes_sell": "Yes, sell"
+      "yes_sell": "Yes, sell",
+      "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
       "withdrawing": "Withdrawal in progress",

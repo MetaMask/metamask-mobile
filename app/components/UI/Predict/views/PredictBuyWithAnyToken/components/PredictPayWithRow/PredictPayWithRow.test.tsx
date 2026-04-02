@@ -62,6 +62,8 @@ jest.mock('../../../../../../../util/address', () => ({
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     if (key === 'confirm.label.pay_with') return 'Pay with';
+    if (key === 'predict.order.predict_balance_first')
+      return 'Predict balance used first';
     return key;
   },
 }));
@@ -195,5 +197,23 @@ describe('PredictPayWithRow', () => {
     renderWithProvider(<PredictPayWithRow />);
 
     expect(screen.getByText('Pay with USDC')).toBeOnTheScreen();
+  });
+
+  it('renders predict balance first hint when external token selected', () => {
+    mockIsPredictBalanceSelected = false;
+
+    renderWithProvider(<PredictPayWithRow />);
+
+    expect(screen.getByText('Predict balance used first')).toBeOnTheScreen();
+  });
+
+  it('hides predict balance first hint when predict balance selected', () => {
+    mockIsPredictBalanceSelected = true;
+
+    renderWithProvider(<PredictPayWithRow />);
+
+    expect(
+      screen.queryByText('Predict balance used first'),
+    ).not.toBeOnTheScreen();
   });
 });

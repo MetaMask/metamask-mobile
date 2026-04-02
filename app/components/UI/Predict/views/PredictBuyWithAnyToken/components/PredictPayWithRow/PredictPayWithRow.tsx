@@ -62,28 +62,43 @@ export function PredictPayWithRow({
     : (payToken?.chainId as Hex | undefined);
 
   return (
-    <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName={`rounded-full  py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'}`}
-        gap={3}
-      >
-        {tokenIconAddress && tokenIconChainId && (
-          <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
-        )}
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {`${label} ${displaySymbol}`}
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Center}
+      gap={3}
+    >
+      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'} mx-auto`}
+          gap={3}
+        >
+          {tokenIconAddress && tokenIconChainId && (
+            <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
+          )}
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {`${label} ${displaySymbol}`}
+          </Text>
+          {canEdit && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
+      </TouchableOpacity>
+      {!isPredictBalanceSelected && (
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="font-medium"
+          color={TextColor.TextDefault}
+        >
+          {strings('predict.order.predict_balance_first')}
         </Text>
-        {canEdit && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        )}
-      </Box>
-    </TouchableOpacity>
+      )}
+    </Box>
   );
 }
