@@ -90,11 +90,15 @@ export const enrichWithABTests = <
     mergedAssignments.push(assignment);
   }
 
-  return {
-    ...event,
-    properties: {
-      ...event.properties,
-      active_ab_tests: mergedAssignments,
-    },
+  const enrichedEvent = Object.create(
+    Object.getPrototypeOf(event),
+    Object.getOwnPropertyDescriptors(event),
+  ) as T;
+
+  enrichedEvent.properties = {
+    ...event.properties,
+    active_ab_tests: mergedAssignments,
   };
+
+  return enrichedEvent;
 };
