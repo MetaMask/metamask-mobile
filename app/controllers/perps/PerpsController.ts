@@ -122,9 +122,10 @@ import {
 } from './types/transactionTypes';
 import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ensureError } from './utils/errorUtils';
-import type {
-  DiskCacheMarketEntry,
-  DiskCacheUserEntry,
+import {
+  hydrateFromDiskSync,
+  persistMarketEntriesToDisk,
+  persistUserEntriesToDisk,
 } from './utils/perpsDiskPersistence';
 import type { SortDirection } from './utils/sortMarkets';
 import { wait } from './utils/wait';
@@ -2896,176 +2897,39 @@ export class PerpsController extends BaseController<
   static readonly #preloadRefreshMs = 5 * 60 * 1000; // 5 min
   static readonly #preloadGuardMs = 30_000; // 30s debounce
 
-  #persistMarketSnapshotsToDisk(
-    entries: {
-      providerNetworkKey: string;
-      data: PerpsMarketData[];
-      timestamp: number;
-    }[],
-  ): void {
-    if (entries.length === 0) {
-      return;
-    }
-
-    const payload =
-      entries.length === 1
-        ? entries[0]
-        : {
-            entries,
-          };
-
-    this.#options.infrastructure.diskCache
-      .setItem(PERPS_DISK_CACHE_MARKETS, JSON.stringify(payload))
-      .catch(() => {
-        // Disk persistence is best-effort and must never block preload.
-      });
-  }
-
-  #persistUserSnapshotsToDisk(
-    entries: {
-      providerNetworkKey: string;
-      address: string;
-      positions: Position[];
-      orders: Order[];
-      accountState: AccountState | null;
-      timestamp: number;
-    }[],
-  ): void {
-    if (entries.length === 0) {
-      return;
-    }
-
-    const payload =
-      entries.length === 1
-        ? entries[0]
-        : {
-            entries,
-          };
-
-    this.#options.infrastructure.diskCache
-      .setItem(PERPS_DISK_CACHE_USER_DATA, JSON.stringify(payload))
-      .catch(() => {
-        // Disk persistence is best-effort and must never block preload.
-      });
-  }
-
   /**
    * Synchronously hydrate in-memory caches from disk-persisted snapshots.
    * Uses the sync MMKV API (~1ms) so data is available before any hook reads.
    * Falls back to no-op when getItemSync is not available (e.g. E2E).
+   * All computed updates are applied in a single this.update() call to avoid
+   * triggering state subscribers once per provider entry.
    */
   #hydrateCacheFromDiskSync(): void {
-    const { diskCache } = this.#options.infrastructure;
-    if (!diskCache.getItemSync) {
-      return;
-    }
+    const { marketUpdates, userUpdates, stats } = hydrateFromDiskSync(
+      this.#options.infrastructure.diskCache,
+      this.state.cachedMarketDataByProvider,
+      this.state.cachedUserDataByProvider,
+      PerpsController.#preloadGuardMs,
+    );
 
-    const hydrateT0 = Date.now();
-    let marketCount = 0;
-    let userPositions = 0;
-    let userOrders = 0;
-
-    try {
-      const marketsRaw = diskCache.getItemSync(PERPS_DISK_CACHE_MARKETS);
-      const userRaw = diskCache.getItemSync(PERPS_DISK_CACHE_USER_DATA);
-      // Compute once and apply to both market and user data so that all
-      // disk-hydrated entries are TTL-stale after a JS reload, forcing the
-      // stream to overwrite them before they are served to callers.
-      const staleHydratedTimestamp =
-        Date.now() - PerpsController.#preloadGuardMs * 10 - 1;
-
-      if (marketsRaw) {
-        try {
-          const parsed = JSON.parse(marketsRaw) as
-            | DiskCacheMarketEntry
-            | { entries: DiskCacheMarketEntry[] };
-          const entries = Array.isArray(
-            (parsed as { entries?: unknown }).entries,
-          )
-            ? (parsed as { entries: DiskCacheMarketEntry[] }).entries
-            : [parsed as DiskCacheMarketEntry];
-
-          for (const entry of entries) {
-            if (entry.providerNetworkKey && Array.isArray(entry.data)) {
-              const existing =
-                this.state.cachedMarketDataByProvider[entry.providerNetworkKey];
-              if (!existing || existing.timestamp < entry.timestamp) {
-                const strippedData = entry.data.map((market) => ({
-                  ...market,
-                  price: PERPS_CONSTANTS.FallbackPriceDisplay,
-                  change24h: PERPS_CONSTANTS.FallbackDataDisplay,
-                  change24hPercent: PERPS_CONSTANTS.FallbackPercentageDisplay,
-                }));
-                this.update((state) => {
-                  state.cachedMarketDataByProvider[entry.providerNetworkKey] = {
-                    data: strippedData,
-                    // Disk-hydrated market snapshots are only for structural
-                    // first paint. Keep them TTL-stale so the stream manager
-                    // still fetches fresh prices on connect.
-                    timestamp: Math.min(
-                      entry.timestamp,
-                      staleHydratedTimestamp,
-                    ),
-                  };
-                });
-                marketCount += strippedData.length;
-              }
-            }
-          }
-        } catch {
-          // Corrupt JSON — silently ignore
+    const hasMarketUpdates = Object.keys(marketUpdates).length > 0;
+    const hasUserUpdates = Object.keys(userUpdates).length > 0;
+    if (hasMarketUpdates || hasUserUpdates) {
+      this.update((state) => {
+        if (hasMarketUpdates) {
+          Object.assign(state.cachedMarketDataByProvider, marketUpdates);
         }
-      }
-
-      if (userRaw) {
-        try {
-          const parsed = JSON.parse(userRaw) as
-            | DiskCacheUserEntry
-            | { entries: DiskCacheUserEntry[] };
-          const entries = Array.isArray(
-            (parsed as { entries?: unknown }).entries,
-          )
-            ? (parsed as { entries: DiskCacheUserEntry[] }).entries
-            : [parsed as DiskCacheUserEntry];
-
-          for (const entry of entries) {
-            if (entry.providerNetworkKey && entry.address) {
-              // Skip address check here — accounts may not be loaded yet at
-              // constructor time. getCachedUserDataForActiveProvider validates
-              // the address at read time, so stale-account data is never served.
-              const existing =
-                this.state.cachedUserDataByProvider[entry.providerNetworkKey];
-              if (!existing || existing.timestamp < entry.timestamp) {
-                this.update((state) => {
-                  state.cachedUserDataByProvider[entry.providerNetworkKey] = {
-                    positions: entry.positions,
-                    orders: entry.orders,
-                    accountState: entry.accountState,
-                    timestamp: Math.min(
-                      entry.timestamp,
-                      staleHydratedTimestamp,
-                    ),
-                    address: entry.address,
-                  };
-                });
-                userPositions += entry.positions.length;
-                userOrders += entry.orders.length;
-              }
-            }
-          }
-        } catch {
-          // Corrupt JSON — silently ignore
+        if (hasUserUpdates) {
+          Object.assign(state.cachedUserDataByProvider, userUpdates);
         }
-      }
-    } catch {
-      // Disk read failure — non-critical
+      });
     }
 
     this.#debugLog('PerpsController: Disk cache hydrated (sync)', {
-      markets: marketCount,
-      positions: userPositions,
-      orders: userOrders,
-      duration_ms: Date.now() - hydrateT0,
+      markets: stats.marketCount,
+      positions: stats.userPositions,
+      orders: stats.userOrders,
+      duration_ms: stats.durationMs,
     });
   }
 
@@ -3340,7 +3204,10 @@ export class PerpsController extends BaseController<
         });
       }
 
-      this.#persistMarketSnapshotsToDisk(marketDiskEntries);
+      persistMarketEntriesToDisk(
+        this.#options.infrastructure.diskCache,
+        marketDiskEntries,
+      );
 
       this.#debugLog('PerpsController: Market data preloaded', {
         marketCount: data.length,
@@ -3541,7 +3408,10 @@ export class PerpsController extends BaseController<
           };
         });
 
-        this.#persistUserSnapshotsToDisk(diskEntries);
+        persistUserEntriesToDisk(
+          this.#options.infrastructure.diskCache,
+          diskEntries,
+        );
       } else {
         // Single provider — store directly under its key
         const ts = Date.now();
@@ -3555,7 +3425,7 @@ export class PerpsController extends BaseController<
           };
         });
 
-        this.#persistUserSnapshotsToDisk([
+        persistUserEntriesToDisk(this.#options.infrastructure.diskCache, [
           {
             providerNetworkKey: userCacheKey,
             address: userAddress,
