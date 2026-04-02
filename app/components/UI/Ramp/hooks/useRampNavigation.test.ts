@@ -23,9 +23,6 @@ jest.mock('./useRampsTokens', () => ({
   }),
 }));
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
 jest.mock('../Views/TokenSelection/TokenSelection', () => {

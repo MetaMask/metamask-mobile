@@ -31,6 +31,7 @@ const mockUsePerpsPositionForAsset = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
+  MarketInsightsEntryCardSkeleton: () => null,
   MarketInsightsEntryCard: ({
     onPress,
     testID,

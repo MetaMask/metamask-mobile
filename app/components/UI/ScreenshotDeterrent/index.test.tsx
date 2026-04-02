@@ -3,6 +3,8 @@ import { render } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import ScreenshotDeterrent from './ScreenshotDeterrent';
 import PreventScreenshot from '../../../core/PreventScreenshot';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -39,26 +41,14 @@ const mockNavigation = {
   setOptions: jest.fn(),
 };
 
-const mockUseMetrics = {
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn().mockReturnValue({
-    build: () => jest.fn(),
-  }),
-};
+const mockTrackEvent = jest.fn();
 
 // mock useNavigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../hooks/useMetrics');
-  return {
-    ...actual,
-    // useMetrics: () => ({ ...actual.useMetrics(), ...mockUseMetrics }),
-    useMetrics: () => mockUseMetrics,
-  };
-});
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // mock InteractionManager.runAfterInteractions
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
@@ -79,6 +69,11 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCalled = false;
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
+      );
   });
 
   describe('Component props handling', () => {
@@ -89,7 +84,7 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
       // expect to be snapshot
       expect(toJSON()).toMatchSnapshot();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
-      expect(mockUseMetrics.trackEvent).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
 
     it('render matches snapshot when enabled = true, isSRP = true, hasNavigation = true', () => {
@@ -98,7 +93,7 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
       );
       expect(toJSON()).toMatchSnapshot();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
-      expect(mockUseMetrics.trackEvent).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

@@ -28,12 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/compat', () => ({
-  NavigationActions: {
-    navigate: jest.fn((params) => ({ type: 'NAVIGATE', ...params })),
-  },
-}));
-
 const mockLogin = jest.fn();
 const mockClearError = jest.fn();
 const mockSendOtpLogin = jest.fn();

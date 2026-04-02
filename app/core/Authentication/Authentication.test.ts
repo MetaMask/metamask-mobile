@@ -40,6 +40,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
@@ -243,6 +244,11 @@ jest.mock('../SecureKeychain', () => ({
 
 jest.mock('../OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
+}));
+
+const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+jest.mock('../../util/environment', () => ({
+  isE2EMockOAuth: () => mockIsE2EMockOAuth(),
 }));
 
 jest.mock('../BackupVault/backupVault', () => ({
@@ -1209,6 +1215,67 @@ describe('Authentication', () => {
           jest.runAllTimers();
           expect(newWalletKeychainDispatch).toHaveBeenCalledWith(logOut());
         }
+      });
+
+      it('skips createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is true', async () => {
+        mockIsE2EMockOAuth.mockReturnValue(true);
+
+        const mockDispatchLocal = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatchLocal,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const createWalletSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+          .mockResolvedValue(undefined);
+        const backupSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createAndBackupSeedPhrase')
+          .mockResolvedValue(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        });
+
+        expect(createWalletSpy).toHaveBeenCalledWith('password');
+        expect(backupSpy).not.toHaveBeenCalled();
+
+        createWalletSpy.mockRestore();
+        backupSpy.mockRestore();
+        mockIsE2EMockOAuth.mockReturnValue(false);
+      });
+
+      it('calls createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is not set', async () => {
+        mockIsE2EMockOAuth.mockReturnValue(false);
+
+        const mockDispatchLocal = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatchLocal,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const createWalletSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+          .mockResolvedValue(undefined);
+        const backupSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createAndBackupSeedPhrase')
+          .mockResolvedValue(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        });
+
+        expect(backupSpy).toHaveBeenCalledWith('password');
+        expect(createWalletSpy).not.toHaveBeenCalled();
+
+        createWalletSpy.mockRestore();
+        backupSpy.mockRestore();
       });
 
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndKeychain', async () => {
@@ -3851,6 +3918,9 @@ describe('Authentication', () => {
         setCompletedOnboarding(false),
       );
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        clearSeedlessOnboarding(),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -4733,6 +4803,26 @@ describe('Authentication', () => {
       await Authentication.unlockWallet({ password: passwordToUse });
 
       // Verify that it navigates to the home flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    });
+
+    it('runs onBeforeNavigate before navigating home', async () => {
+      mockReset.mockClear();
+      const onBeforeNavigate = jest.fn(async () => {
+        await Promise.resolve();
+      });
+
+      await Authentication.unlockWallet({
+        password: passwordToUse,
+        onBeforeNavigate,
+      });
+
+      expect(onBeforeNavigate).toHaveBeenCalledTimes(1);
+      expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+        mockReset.mock.invocationCallOrder[0],
+      );
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });

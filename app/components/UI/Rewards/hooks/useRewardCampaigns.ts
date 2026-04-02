@@ -72,12 +72,10 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
         dispatch(setCampaignsLoading(true));
       }
       dispatch(setCampaignsError(false));
-
       const campaignsData = await Engine.controllerMessenger.call(
         'RewardsController:getCampaigns',
         subscriptionId,
       );
-
       dispatch(setCampaigns(campaignsData));
     } catch {
       dispatch(setCampaignsError(true));

@@ -5,14 +5,17 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
   onLayout={[Function]}
   style={
     [
-      {
-        "bottom": 0,
-        "justifyContent": "flex-end",
-        "left": 0,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      },
+      [
+        {
+          "bottom": 0,
+          "justifyContent": "flex-end",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        undefined,
+      ],
       {
         "paddingBottom": 0,
       },
@@ -20,27 +23,26 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
   }
 >
   <View
+    collapsable={false}
     style={
-      [
-        {
-          "backgroundColor": "#0a0d135c",
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        },
-        {
-          "opacity": 0,
-        },
-      ]
+      {
+        "backgroundColor": "#0a0d135c",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
     }
   >
     <TouchableOpacity
       onPress={[Function]}
       style={
         {
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     />
@@ -77,8 +79,10 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
-            "maxHeight": 0,
             "overflow": "hidden",
+          },
+          {
+            "maxHeight": 0,
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
             "shadowOffset": {
@@ -88,6 +92,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "shadowOpacity": 1,
             "shadowRadius": 40,
           },
+          undefined,
           {
             "transform": [
               {
@@ -103,7 +108,10 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "padding": 4,
+            "paddingBottom": 4,
+            "paddingLeft": 4,
+            "paddingRight": 4,
+            "paddingTop": 4,
           }
         }
       >
@@ -615,14 +623,17 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
   onLayout={[Function]}
   style={
     [
-      {
-        "bottom": 0,
-        "justifyContent": "flex-end",
-        "left": 0,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      },
+      [
+        {
+          "bottom": 0,
+          "justifyContent": "flex-end",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        undefined,
+      ],
       {
         "paddingBottom": 0,
       },
@@ -630,27 +641,26 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
   }
 >
   <View
+    collapsable={false}
     style={
-      [
-        {
-          "backgroundColor": "#0a0d135c",
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        },
-        {
-          "opacity": 0,
-        },
-      ]
+      {
+        "backgroundColor": "#0a0d135c",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
     }
   >
     <TouchableOpacity
       onPress={[Function]}
       style={
         {
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
     />
@@ -687,8 +697,10 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
-            "maxHeight": 0,
             "overflow": "hidden",
+          },
+          {
+            "maxHeight": 0,
             "paddingBottom": 0,
             "shadowColor": "#0000001a",
             "shadowOffset": {
@@ -698,6 +710,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "shadowOpacity": 1,
             "shadowRadius": 40,
           },
+          undefined,
           {
             "transform": [
               {
@@ -713,7 +726,10 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "padding": 4,
+            "paddingBottom": 4,
+            "paddingLeft": 4,
+            "paddingRight": 4,
+            "paddingTop": 4,
           }
         }
       >

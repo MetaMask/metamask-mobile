@@ -7,7 +7,6 @@ import {
 } from '@react-navigation/native';
 import PerpsOrderRedirect from './PerpsOrderRedirect';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
-import { usePerpsNetworkManagement } from '../hooks/usePerpsNetworkManagement';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import usePerpsToasts from '../hooks/usePerpsToasts';
 import Routes from '../../../../constants/navigation/Routes';
@@ -24,10 +23,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../hooks/usePerpsConnection', () => ({
   usePerpsConnection: jest.fn(),
-}));
-
-jest.mock('../hooks/usePerpsNetworkManagement', () => ({
-  usePerpsNetworkManagement: jest.fn(),
 }));
 
 jest.mock('../hooks/usePerpsTrading', () => ({
@@ -70,17 +65,12 @@ const mockToastOptions = {
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUseRoute = jest.mocked(useRoute);
 const mockUsePerpsConnection = jest.mocked(usePerpsConnection);
-const mockUsePerpsNetworkManagement = jest.mocked(usePerpsNetworkManagement);
 const mockUsePerpsTrading = jest.mocked(usePerpsTrading);
 const mockUsePerpsToasts = jest.mocked(usePerpsToasts);
-
-const mockEnsureArbitrumNetworkExists = jest.fn();
 
 describe('PerpsOrderRedirect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockEnsureArbitrumNetworkExists.mockResolvedValue(undefined);
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -92,10 +82,6 @@ describe('PerpsOrderRedirect', () => {
       key: 'test',
       name: 'PerpsOrderRedirect',
       params: { direction: 'long', asset: 'ETH' },
-    } as never);
-
-    mockUsePerpsNetworkManagement.mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
     } as never);
 
     mockUsePerpsTrading.mockReturnValue({
@@ -138,11 +124,10 @@ describe('PerpsOrderRedirect', () => {
     render(<PerpsOrderRedirect />);
 
     // Assert
-    expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
     expect(mockDepositWithOrder).not.toHaveBeenCalled();
   });
 
-  it('calls ensureArbitrumNetworkExists then depositWithOrder when WebSocket is ready', async () => {
+  it('calls depositWithOrder when WebSocket is ready', async () => {
     // Arrange
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
@@ -155,23 +140,20 @@ describe('PerpsOrderRedirect', () => {
     // Act
     render(<PerpsOrderRedirect />);
 
-    // Assert - both called (ensure Arbitrum first, then depositWithOrder via promise chain)
+    // Assert
     await waitFor(() => {
-      expect(mockEnsureArbitrumNetworkExists).toHaveBeenCalledTimes(1);
       expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('shows toast and goes back when ensureArbitrumNetworkExists fails', async () => {
+  it('shows toast and goes back when depositWithOrder fails', async () => {
     // Arrange
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
       isInitialized: true,
     } as never);
 
-    mockEnsureArbitrumNetworkExists.mockRejectedValue(
-      new Error('Failed to add network'),
-    );
+    mockDepositWithOrder.mockRejectedValue(new Error('Failed to create order'));
 
     // Act
     render(<PerpsOrderRedirect />);
@@ -183,7 +165,7 @@ describe('PerpsOrderRedirect', () => {
       );
       expect(mockGoBack).toHaveBeenCalled();
     });
-    expect(mockDepositWithOrder).not.toHaveBeenCalled();
+    expect(mockDepositWithOrder).toHaveBeenCalled();
   });
 
   it('calls depositWithOrder and navigates to confirmation on success', async () => {

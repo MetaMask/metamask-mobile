@@ -148,7 +148,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount } =
+      const { type, status, senderAddress, transactionId, amount, marketId } =
         payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
@@ -163,7 +163,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         });
 
         // Deposit/Withdraw should not invalidate positions/activity
-        if (type === 'claim') {
+        if (type === 'claim' || type === 'order') {
           queryClient.invalidateQueries({
             queryKey: predictQueries.positions.keys.all(),
           });
@@ -329,6 +329,35 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
+            backgroundColor: theme.colors.accent04.normal,
+            iconColor: theme.colors.error.default,
+          });
+          return;
+        }
+      }
+
+      if (type === 'order') {
+        if (status === 'confirmed') {
+          showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Check,
+            iconColor: theme.colors.success.default,
+            labelOptions: [
+              {
+                label: strings('predict.order.prediction_placed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return;
+        }
+
+        if (status === 'failed') {
+          showErrorToast({
+            showToast,
+            title: strings('predict.order.prediction_failed'),
+            description: strings('predict.order.order_failed_generic'),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });

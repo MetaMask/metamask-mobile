@@ -27,6 +27,7 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
+  clearSeedlessOnboarding,
 } from '../../../actions/onboarding';
 import {
   AccountType,
@@ -115,6 +116,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -142,7 +144,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
     () => `${getVersion()} (${getBuildNumber()})`,
     [],
@@ -866,6 +868,7 @@ const Onboarding = () => {
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
+        dispatch(clearSeedlessOnboarding());
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: {
@@ -876,7 +879,6 @@ const Onboarding = () => {
             createWallet: actionType === 'create',
           },
         });
-        // else
       } else if (actionType === 'create') {
         await onPressCreate();
       } else {
@@ -889,6 +891,7 @@ const Onboarding = () => {
       onPressImport,
       onPressContinueWithGoogle,
       onPressContinueWithApple,
+      dispatch,
     ],
   );
 
@@ -1118,7 +1121,7 @@ const Onboarding = () => {
 
           {existingUser && !loading && (
             <Box twClassName="mb-10 -mt-10">
-              <TextButton onPress={onLogin} isInverse>
+              <TextButton onPress={onLogin}>
                 {strings('onboarding.unlock')}
               </TextButton>
             </Box>
