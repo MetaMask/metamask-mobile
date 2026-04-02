@@ -338,7 +338,7 @@ describe('AppInformation', () => {
       // Then it should display the build type and branch information
       // Note: env vars are inlined at build time, so we check the format pattern
       await waitFor(() => {
-        expect(getByText(/\| Branch:/)).toBeTruthy();
+        expect(getByText(/\| Branch:/)).toBeOnTheScreen();
       });
     });
 
@@ -357,7 +357,7 @@ describe('AppInformation', () => {
       // When the component renders
       // Then it should NOT display the branch information
       await waitFor(() => {
-        expect(queryByText(/Branch:/)).toBeNull();
+        expect(queryByText(/Branch:/)).not.toBeOnTheScreen();
       });
     });
   });
