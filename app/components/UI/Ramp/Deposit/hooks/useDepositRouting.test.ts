@@ -961,7 +961,7 @@ describe('useDepositRouting', () => {
       );
     });
 
-    it('does not navigate or track analytics when order processing fails', async () => {
+    it('navigates to OrderProcessing before processing and does not track analytics when handleNewOrder fails', async () => {
       const mockHandleNewOrder = jest
         .fn()
         .mockRejectedValue(new Error('Processing failed'));
@@ -981,8 +981,11 @@ describe('useDepositRouting', () => {
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
+      });
+      expect(mockHandleNewOrder).toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
@@ -1021,7 +1024,7 @@ describe('useDepositRouting', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('does not navigate to OrderProcessing when getOrder fails', async () => {
+    it('navigates to OrderProcessing before getOrder and does not complete flow when getOrder fails', async () => {
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1040,12 +1043,15 @@ describe('useDepositRouting', () => {
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
+      });
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockHandleNewOrder).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('does not navigate to OrderProcessing when getOrder returns null', async () => {
+    it('navigates to OrderProcessing before getOrder and does not complete flow when getOrder returns null', async () => {
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1064,8 +1070,11 @@ describe('useDepositRouting', () => {
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
+      });
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockHandleNewOrder).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
