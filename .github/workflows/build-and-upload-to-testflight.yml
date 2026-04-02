@@ -4,21 +4,6 @@ name: Build and upload to TestFlight
 # Summary metadata is passed from build.yml outputs (no second checkout for version parsing).
 #
 on:
-  # workflow_call:
-  #   inputs:
-  #     source_branch:
-  #       description: 'Branch, tag, or SHA to build'
-  #       required: true
-  #       type: string
-  #     environment:
-  #       description: 'Build environment / track (exp, beta, rc)'
-  #       required: true
-  #       type: string
-  #     testflight_group:
-  #       description: 'TestFlight external testing group'
-  #       required: false
-  #       type: string
-  #       default: 'MetaMask BETA & Release Candidates'
   workflow_dispatch:
     inputs:
       source_branch:
