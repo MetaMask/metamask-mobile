@@ -25,6 +25,7 @@ import {
   parseWebViewMessage,
   resolveLineChromeOptions,
   type AdvancedChartProps,
+  type ChartLoadMeasurementEnvelope,
   type AdvancedChartRef,
   type IndicatorType,
   type OHLCVBar,
@@ -61,10 +62,16 @@ const openInAppBrowser = (url: string) => {
     .catch(() => Linking.openURL(url).catch(() => undefined));
 };
 
+const nowMs = () =>
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
     {
       ohlcvData,
+      ohlcvMeasurement,
       ohlcvSeriesKey,
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
@@ -112,6 +119,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
     const tradingViewOpenInterceptRef = useRef(0);
+    const pendingPerfMeasurementRef =
+      useRef<ChartLoadMeasurementEnvelope | null>(null);
 
     const htmlContent = useMemo(
       () =>
@@ -171,12 +180,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
+        const measurement =
+          __DEV__ && ohlcvMeasurement
+            ? {
+                ...ohlcvMeasurement,
+                rnPostedAt: nowMs(),
+                barCount: data.length,
+                ...(ohlcvSeriesKey ? { seriesKey: ohlcvSeriesKey } : {}),
+              }
+            : undefined;
+        pendingPerfMeasurementRef.current = measurement ?? null;
         postMessage({
           type: 'SET_OHLCV_DATA',
-          payload: { data },
+          payload: measurement ? { data, measurement } : { data },
         });
       },
-      [postMessage],
+      [ohlcvMeasurement, ohlcvSeriesKey, postMessage],
     );
 
     const addIndicator = useCallback(
@@ -270,6 +289,32 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setLayoutSettling(false);
             break;
 
+          case 'CHART_PERF_MEASUREMENT': {
+            pendingPerfMeasurementRef.current = null;
+            if (__DEV__) {
+              const {
+                apiResponseAt,
+                rnPostedAt,
+                webviewReceivedAt,
+                webviewSettledAt,
+                requestKind,
+                seriesKey,
+                barCount,
+              } = message.payload;
+              // eslint-disable-next-line no-console -- intentional dev-only perf instrumentation
+              console.log('[AdvancedChart][Perf]', {
+                requestKind: requestKind ?? 'initial_load',
+                seriesKey: seriesKey ?? null,
+                barCount,
+                api_to_rn_post_ms: rnPostedAt - apiResponseAt,
+                rn_post_to_webview_visible_ms: webviewSettledAt - rnPostedAt,
+                api_to_webview_receive_ms: webviewReceivedAt - apiResponseAt,
+                api_to_visible_ms: webviewSettledAt - apiResponseAt,
+              });
+            }
+            break;
+          }
+
           case 'INDICATOR_ADDED':
             activeIndicatorsRef.current.add(message.payload.name);
             break;
@@ -357,6 +402,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartType: setChartTypeInternal,
         reset: () => {
+          pendingPerfMeasurementRef.current = null;
           clearLayoutSettleTimeout();
           setLayoutSettling(false);
           setChartReadyCount(0);
@@ -434,6 +480,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvDataRef.current = ohlcvData;
     }, [
       ohlcvData,
+      ohlcvMeasurement,
       ohlcvSeriesKey,
       webViewLoaded,
       sendOHLCVData,

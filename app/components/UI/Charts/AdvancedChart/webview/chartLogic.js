@@ -49,9 +49,17 @@ function suppressChartUserInteraction(ms) {
 window.__mmLayoutSettlePending = false;
 /** Return value of `setTimeout` for settle fallback; cleared when settle completes or aborts. */
 window.__mmLayoutSettleFallbackTimer = null;
+window.__mmPendingPerfMeasurement = null;
 
 function bumpLineChartOhlcvEpoch() {
   window.lineChartOhlcvEpoch = (window.lineChartOhlcvEpoch || 0) + 1;
+}
+
+function nowMs() {
+  return typeof performance !== 'undefined' &&
+    typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
 }
 
 // ============================================
@@ -77,12 +85,15 @@ function sendToReactNative(type, payload) {
  * `applyChartScaleLayout` / `refreshLineChartOverlays` before invoking this (see
  * `tryCompleteLayoutSettleAfterDataCore`).
  */
-function scheduleChartLayoutSettledNotify() {
+function scheduleChartLayoutSettledNotify(perfMeasurement) {
   try {
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         if (window.chartWidget && window.isChartReady) {
           sendToReactNative('CHART_LAYOUT_SETTLED', {});
+          if (perfMeasurement) {
+            sendToReactNative('CHART_PERF_MEASUREMENT', perfMeasurement);
+          }
         }
       });
     });
@@ -91,10 +102,30 @@ function scheduleChartLayoutSettledNotify() {
       setTimeout(function () {
         if (window.chartWidget && window.isChartReady) {
           sendToReactNative('CHART_LAYOUT_SETTLED', {});
+          if (perfMeasurement) {
+            sendToReactNative('CHART_PERF_MEASUREMENT', perfMeasurement);
+          }
         }
       }, 48);
     } catch (e2) {}
   }
+}
+
+function buildPerfMeasurementForVisibleChart() {
+  var pending = window.__mmPendingPerfMeasurement;
+  if (!pending) {
+    return null;
+  }
+  window.__mmPendingPerfMeasurement = null;
+  return {
+    apiResponseAt: pending.apiResponseAt,
+    rnPostedAt: pending.rnPostedAt,
+    webviewReceivedAt: pending.webviewReceivedAt,
+    webviewSettledAt: nowMs(),
+    requestKind: pending.requestKind,
+    seriesKey: pending.seriesKey,
+    barCount: pending.barCount,
+  };
 }
 
 /** Milliseconds to wait if TradingView never calls `getBars` again after `resetData` (e.g. same-resolution cache). */
@@ -132,7 +163,7 @@ function tryCompleteLayoutSettleAfterDataCore() {
       }
     }
   } catch (e) {}
-  scheduleChartLayoutSettledNotify();
+  scheduleChartLayoutSettledNotify(buildPerfMeasurementForVisibleChart());
 }
 
 /**
@@ -189,7 +220,7 @@ function beginDeferredLayoutSettleAfterOhlcvReload() {
 function abortDeferredLayoutSettleAndNotify() {
   window.__mmLayoutSettlePending = false;
   clearMmLayoutSettleFallbackTimer();
-  scheduleChartLayoutSettledNotify();
+  scheduleChartLayoutSettledNotify(buildPerfMeasurementForVisibleChart());
 }
 
 // ============================================
@@ -399,6 +430,19 @@ function handleSetOHLCVData(payload) {
 
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
+  window.__mmPendingPerfMeasurement =
+    payload.measurement &&
+    typeof payload.measurement.apiResponseAt === 'number' &&
+    typeof payload.measurement.rnPostedAt === 'number'
+      ? {
+          apiResponseAt: payload.measurement.apiResponseAt,
+          rnPostedAt: payload.measurement.rnPostedAt,
+          webviewReceivedAt: nowMs(),
+          requestKind: payload.measurement.requestKind,
+          seriesKey: payload.measurement.seriesKey,
+          barCount: payload.measurement.barCount,
+        }
+      : null;
 
   var newResolution = detectResolution(window.ohlcvData);
   var hasPending = !!window.pendingGetBarsCallback;
@@ -3351,6 +3395,12 @@ function initChart() {
       subscribeLastCloseLabelUpdates();
 
       sendToReactNative('CHART_READY', {});
+      if (
+        window.__mmPendingPerfMeasurement &&
+        !window.__mmLayoutSettlePending
+      ) {
+        scheduleChartLayoutSettledNotify(buildPerfMeasurementForVisibleChart());
+      }
 
       installTradingViewExternalOpenBridge();
 
