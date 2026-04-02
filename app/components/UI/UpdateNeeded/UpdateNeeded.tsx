@@ -25,7 +25,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { ScrollView } from 'react-native-gesture-handler';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
@@ -38,7 +38,7 @@ export const createUpdateNeededNavDetails = createNavigationDetails(
 
 const UpdateNeeded = () => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
 

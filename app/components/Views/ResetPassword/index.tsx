@@ -29,7 +29,6 @@ import {
   BoxBackgroundColor,
   IconColor,
   Checkbox,
-  TextFieldSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -575,7 +574,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
               testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               keyboardAppearance={themeAppearance}
               autoComplete="password"
-              size={TextFieldSize.Lg}
             />
             {renderWarningText(warningIncorrectPassword)}
           </Box>
@@ -656,7 +654,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort()}
-                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -701,7 +698,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     autoComplete="password-new"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
-                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon

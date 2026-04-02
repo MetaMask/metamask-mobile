@@ -98,6 +98,7 @@ describe('AccountList', () => {
             groupIndex: idx,
           },
           hidden: false,
+          lastSelected: 0,
           name: `Account ${idx}`,
           pinned: false,
         },

@@ -52,6 +52,7 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+    eventsToCheck.length = 0;
   });
 
   it('should open Card Home and open internal browser with correct card dashboard URL', async () => {
@@ -65,6 +66,14 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
   });
 
   it('should validate segment/metametric event when opening Card Home', async () => {
+    await setupCardTest(async () => {
+      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+      await WalletView.tapNavbarCardButton();
+      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
+      await CardHomeView.tapAdvancedCardManagementItem();
+      await CardHomeView.cardDashboardVisible();
+    });
+
     const expectedEvents = {
       CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',

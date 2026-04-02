@@ -192,11 +192,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
     executeGuardedAction(
       () => {
-        // Use open outcomes with updated prices if available
-        const firstOpenOutcome = openOutcomes[0];
+        const matchingOutcome =
+          market.outcomes.find((outcome) =>
+            outcome.tokens.some((marketToken) => marketToken.id === token.id),
+          ) ??
+          openOutcomes[0] ??
+          market.outcomes?.[0];
         navigateToBuyPreview({
           market,
-          outcome: firstOpenOutcome ?? market.outcomes?.[0],
+          outcome: matchingOutcome,
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
