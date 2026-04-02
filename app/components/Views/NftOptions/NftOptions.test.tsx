@@ -117,7 +117,7 @@ describe('NftOptions', () => {
 
   it('renders the remove NFT option', () => {
     const { getByText } = render(<NftOptions />);
-    expect(getByText('Remove NFT')).toBeTruthy();
+    expect(getByText('Remove NFT')).toBeOnTheScreen();
   });
 
   it('renders the OpenSea link when on mainnet', () => {
