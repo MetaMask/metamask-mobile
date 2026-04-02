@@ -277,29 +277,22 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShowUnlinkedAccountsModal.mockClear();
-    mockShowNotOptedInModal.mockClear();
-    mockShowNotSupportedModal.mockClear();
-    mockHasShownModal.mockClear();
-    mockResumeBulkLink.mockClear();
-    mockTrackEvent.mockClear();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
-    mockCreateEventBuilder.mockClear();
-    mockBuild.mockClear();
-    mockAddProperties.mockClear();
 
-    // Setup metrics mocks
+    // Configure mocks before passing them to the mock hook factory
+    // so the hook receives already-configured references
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
       build: mockBuild,
     });
+
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup selector mocks
     mockSelectActiveTab.mockReturnValue(defaultSelectorValues.activeTab);
