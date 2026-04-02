@@ -57,8 +57,8 @@ describe('AssetHideConfirmation', () => {
 
   it('renders cancel and confirm buttons', () => {
     const { getByText } = renderWithTheme();
-    expect(getByText('Cancel')).toBeTruthy();
-    expect(getByText('Confirm')).toBeTruthy();
+    expect(getByText('Cancel')).toBeOnTheScreen();
+    expect(getByText('Confirm')).toBeOnTheScreen();
   });
 
   it('dismisses modal without calling onConfirm when cancel is pressed', () => {
