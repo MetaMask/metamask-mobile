@@ -19,7 +19,7 @@
 window.chartWidget = null;
 window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
-window.activeStudies = {};
+window.activeStudies = Object.create(null);
 window.positionShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
@@ -447,7 +447,7 @@ function handleSetOHLCVData(payload) {
       window.chartWidget.remove();
       window.chartWidget = null;
       window.isChartReady = false;
-      window.activeStudies = {};
+      window.activeStudies = Object.create(null);
       window.volumeStudyId = null;
       window.volumeIsOverlay = null;
       window.lastPriceShapeId = null;

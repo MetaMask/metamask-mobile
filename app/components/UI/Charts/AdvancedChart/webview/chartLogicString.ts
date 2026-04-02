@@ -28,7 +28,7 @@ export default `/**
 window.chartWidget = null;
 window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
-window.activeStudies = {};
+window.activeStudies = Object.create(null);
 window.positionShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
@@ -456,7 +456,7 @@ function handleSetOHLCVData(payload) {
       window.chartWidget.remove();
       window.chartWidget = null;
       window.isChartReady = false;
-      window.activeStudies = {};
+      window.activeStudies = Object.create(null);
       window.volumeStudyId = null;
       window.volumeIsOverlay = null;
       window.lastPriceShapeId = null;
@@ -536,7 +536,12 @@ function handleRealtimeUpdate(payload) {
 // prop, which exposes TradingView's native indicator UI.
 // ============================================
 function isOwnStringKey(key) {
-  return typeof key === 'string' && key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
+  return (
+    typeof key === 'string' &&
+    key !== '__proto__' &&
+    key !== 'constructor' &&
+    key !== 'prototype'
+  );
 }
 
 function handleAddIndicator(payload) {
@@ -546,7 +551,9 @@ function handleAddIndicator(payload) {
   var indicatorName = payload.name;
   if (!isOwnStringKey(indicatorName)) return;
 
-  if (Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)) {
+  if (
+    Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)
+  ) {
     return;
   }
 
@@ -598,7 +605,10 @@ function handleRemoveIndicator(payload) {
 
   var indicatorName = payload.name;
   if (!isOwnStringKey(indicatorName)) return;
-  if (!Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)) return;
+  if (
+    !Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)
+  )
+    return;
 
   var studyId = window.activeStudies[indicatorName];
   if (!studyId) return;
