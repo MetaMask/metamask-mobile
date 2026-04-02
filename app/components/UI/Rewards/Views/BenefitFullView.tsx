@@ -85,7 +85,7 @@ const BenefitFullView = () => {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('flex-1 px-4 gap-6')}
+          contentContainerStyle={tw.style('px-4 gap-6')}
         >
           <Box twClassName="w-full rounded-lg overflow-hidden">
             <Image
