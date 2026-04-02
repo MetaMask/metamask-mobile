@@ -144,13 +144,12 @@ jobs:
             echo "No OTA version bump (base: $BASE_OTA, current: $CURRENT_OTA) → will trigger build"
           fi
 
-  trigger-ota:
-    name: Trigger OTA update
+  # Reusable workflows must be job-level `uses:` (not a step). Steps only support actions (action.yml).
+  validate-ota-pr:
+    name: Validate PR for OTA
     needs: decide
     if: needs.decide.outputs.ota_bump == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      release_tag: ${{ steps.release_tag.outputs.release_tag }}
     steps:
       - name: Validate PR number
         run: |
@@ -161,20 +160,18 @@ jobs:
           fi
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
-      - name: Trigger Push OTA Update workflow
-        uses: ./.github/workflows/push-eas-update.yml
-        with:
-          pr_number: ${{ needs.decide.outputs.pr_number }}
-          base_branch: ${{ needs.decide.outputs.base_ref }}
-          message: ${{ needs.decide.outputs.ota_version }}
-          channel: ${{ inputs.ota_channel }}
-          platform: ${{ inputs.platform }}
-
-      - name: Export release tag for OTA follow-up jobs
-        id: release_tag
-        run: |
-          # Tag name must match OTA_VERSION (app/constants/ota.ts), not package.json semver
-          echo "release_tag=${{ needs.decide.outputs.ota_version }}" >> "$GITHUB_OUTPUT"
+  trigger-ota:
+    name: Trigger OTA update
+    needs: [decide, validate-ota-pr]
+    if: needs.decide.outputs.ota_bump == 'true'
+    uses: ./.github/workflows/push-eas-update.yml
+    with:
+      pr_number: ${{ needs.decide.outputs.pr_number }}
+      base_branch: ${{ needs.decide.outputs.base_ref }}
+      message: ${{ needs.decide.outputs.ota_version }}
+      channel: ${{ inputs.ota_channel }}
+      platform: ${{ inputs.platform }}
+    secrets: inherit
 
   trigger-build:
     name: Trigger build mobile app
@@ -191,11 +188,11 @@ jobs:
 
   create-ota-production-tag:
     name: Create OTA production release tag
-    needs: [trigger-ota]
+    needs: [decide, trigger-ota]
     if: ${{ inputs.create_production_ota_tag == true }}
     uses: ./.github/workflows/runway-create-ota-production-tag.yml
     with:
-      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
+      tag_name: ${{ needs.decide.outputs.ota_version }}
       checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
