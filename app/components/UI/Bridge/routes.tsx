@@ -13,6 +13,7 @@ import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal'
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
 import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { TokenWarningModal } from './components/TokenWarningModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -78,6 +79,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
       component={PriceImpactModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
+      component={TokenWarningModal}
     />
   </ModalStack.Navigator>
 );
