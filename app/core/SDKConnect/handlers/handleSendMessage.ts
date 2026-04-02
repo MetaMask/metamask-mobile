@@ -3,7 +3,10 @@ import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
-import { ANALYTICS_TRACKED_RPC_METHODS, RPC_METHODS } from '../SDKConnectConstants';
+import {
+  ANALYTICS_TRACKED_RPC_METHODS,
+  RPC_METHODS,
+} from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import Routes from '../../../constants/navigation/Routes';

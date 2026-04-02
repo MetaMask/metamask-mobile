@@ -73,7 +73,9 @@ export const handleConnectionMessage = async ({
       `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
     );
     analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.WALLET_ACTION_RECEIVED)
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_ACTION_RECEIVED,
+      )
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: connection.originatorInfo?.apiVersion,

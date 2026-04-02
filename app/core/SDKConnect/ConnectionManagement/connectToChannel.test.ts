@@ -278,7 +278,12 @@ describe('connectToChannel', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'wallet_connection_request_received',
-          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+          properties: expect.objectContaining({
+            transport_type: 'socket_relay',
+          }),
+          sensitiveProperties: expect.objectContaining({
+            anon_id: 'test-anon-id',
+          }),
         }),
       );
     });
@@ -301,7 +306,9 @@ describe('connectToChannel', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'wallet_connection_user_approved',
-          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+          sensitiveProperties: expect.objectContaining({
+            anon_id: 'test-anon-id',
+          }),
         }),
       );
     });
@@ -332,7 +339,9 @@ describe('connectToChannel', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'wallet_connection_user_rejected',
-          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+          sensitiveProperties: expect.objectContaining({
+            anon_id: 'test-anon-id',
+          }),
         }),
       );
     });

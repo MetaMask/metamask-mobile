@@ -79,7 +79,9 @@ async function connectToChannel({
       `[MM SDK Analytics] event=wallet_connection_request_received anonId=${anonId}`,
     );
     analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.WALLET_CONNECTION_REQUEST_RECEIVED)
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CONNECTION_REQUEST_RECEIVED,
+      )
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: originatorInfo?.apiVersion,
@@ -187,7 +189,9 @@ async function connectToChannel({
             `[MM SDK Analytics] event=wallet_connection_user_approved anonId=${anonId}`,
           );
           analytics.trackEvent(
-            AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.WALLET_CONNECTION_USER_APPROVED)
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.WALLET_CONNECTION_USER_APPROVED,
+            )
               .addProperties({
                 transport_type: 'socket_relay',
                 sdk_version: originatorInfo?.apiVersion,
@@ -206,7 +210,9 @@ async function connectToChannel({
             `[MM SDK Analytics] event=wallet_connection_user_rejected anonId=${anonId}`,
           );
           analytics.trackEvent(
-            AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.WALLET_CONNECTION_USER_REJECTED)
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.WALLET_CONNECTION_USER_REJECTED,
+            )
               .addProperties({
                 transport_type: 'socket_relay',
                 sdk_version: originatorInfo?.apiVersion,

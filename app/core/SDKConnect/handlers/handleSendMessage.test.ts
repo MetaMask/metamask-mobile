@@ -83,7 +83,13 @@ describe('handleSendMessage', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'wallet_action_user_approved',
-          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+          properties: expect.objectContaining({
+            transport_type: 'socket_relay',
+            rpc_method: 'eth_sendTransaction',
+          }),
+          sensitiveProperties: expect.objectContaining({
+            anon_id: 'test-anon-id',
+          }),
         }),
       );
     });
@@ -95,7 +101,9 @@ describe('handleSendMessage', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'wallet_action_user_rejected',
-          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+          sensitiveProperties: expect.objectContaining({
+            anon_id: 'test-anon-id',
+          }),
         }),
       );
     });

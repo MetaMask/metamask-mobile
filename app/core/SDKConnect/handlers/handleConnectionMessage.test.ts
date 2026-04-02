@@ -177,7 +177,13 @@ describe('handleConnectionMessage', () => {
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'wallet_action_received',
-          sensitiveProperties: expect.objectContaining({ anon_id: 'test-anon-id' }),
+          properties: expect.objectContaining({
+            transport_type: 'socket_relay',
+            rpc_method: 'eth_sendTransaction',
+          }),
+          sensitiveProperties: expect.objectContaining({
+            anon_id: 'test-anon-id',
+          }),
         }),
       );
       expect(analytics.trackEvent).toHaveBeenCalledTimes(1);

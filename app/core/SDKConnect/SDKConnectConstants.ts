@@ -53,16 +53,19 @@ export const METHODS_TO_DELAY: { [method: string]: boolean } = {
   [RPC_METHODS.ETH_REQUESTACCOUNTS]: false,
 };
 
+// RPC methods tracked for SDK wallet-side analytics (SDKv1 socket relay).
+// Comparison is intentionally case-sensitive: RPC method names are standardised
+// and the SDK is expected to send them in canonical casing.
 export const ANALYTICS_TRACKED_RPC_METHODS: string[] = [
-  'eth_sendTransaction',
-  'eth_signTypedData',
-  'eth_signTransaction',
-  'personal_sign',
-  'wallet_requestPermissions',
-  'wallet_switchEthereumChain',
-  'eth_signTypedData_v3',
-  'eth_signTypedData_v4',
-  'metamask_connectSign',
-  'metamask_connectWith',
-  'metamask_batch',
+  RPC_METHODS.ETH_SENDTRANSACTION,
+  RPC_METHODS.ETH_SIGNTYPEDEATA,
+  RPC_METHODS.ETH_SIGNTRANSACTION,
+  RPC_METHODS.PERSONAL_SIGN,
+  RPC_METHODS.WALLET_REQUESTPERMISSIONS,
+  RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
+  RPC_METHODS.ETH_SIGNTYPEDEATAV3,
+  RPC_METHODS.ETH_SIGNTYPEDEATAV4,
+  RPC_METHODS.METAMASK_CONNECTSIGN,
+  RPC_METHODS.METAMASK_CONNECTWITH,
+  RPC_METHODS.METAMASK_BATCH,
 ];
