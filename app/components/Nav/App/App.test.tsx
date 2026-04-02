@@ -8,6 +8,8 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
+  CURRENT_APP_VERSION,
+  LAST_APP_VERSION,
 } from '../../../constants/storage';
 import {
   NavigationContainer,
@@ -31,6 +33,9 @@ import Logger from '../../../util/Logger';
 const initialState: DeepPartial<RootState> = {
   user: {
     userLoggedIn: true,
+  },
+  settings: {
+    basicFunctionalityEnabled: true,
   },
   engine: {
     backgroundState,
@@ -62,6 +67,168 @@ jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
 }));
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
+
+jest.mock('../../Views/Onboarding', () => () => (
+  <MockView testID="mock-onboarding" />
+));
+jest.mock('../../Views/ChoosePassword', () => () => (
+  <MockView testID="mock-choose-password" />
+));
+jest.mock('../../Views/ImportFromSecretRecoveryPhrase', () => () => (
+  <MockView testID="mock-import-srp" />
+));
+jest.mock('../../Views/Login', () => () => <MockView testID="mock-login" />);
+jest.mock('../../Views/SimpleWebview', () => () => (
+  <MockView testID="mock-webview" />
+));
+jest.mock('../../Views/OnboardingSuccess', () => () => (
+  <MockView testID="mock-onboarding-success" />
+));
+jest.mock('../../Views/OnboardingSuccess/DefaultSettings', () => () => (
+  <MockView testID="mock-default-settings" />
+));
+jest.mock(
+  '../../Views/OnboardingSuccess/OnboardingGeneralSettings',
+  () => () => <MockView testID="mock-general-settings" />,
+);
+jest.mock(
+  '../../Views/OnboardingSuccess/OnboardingAssetsSettings',
+  () => () => <MockView testID="mock-assets-settings" />,
+);
+jest.mock(
+  '../../Views/OnboardingSuccess/OnboardingSecuritySettings',
+  () => () => <MockView testID="mock-security-settings" />,
+);
+jest.mock('../../Views/AccountBackupStep1', () => () => (
+  <MockView testID="mock-backup-step1" />
+));
+jest.mock('../../Views/AccountBackupStep1B', () => () => (
+  <MockView testID="mock-backup-step1b" />
+));
+jest.mock('../../Views/ManualBackupStep1', () => () => (
+  <MockView testID="mock-manual-backup-1" />
+));
+jest.mock('../../Views/ManualBackupStep2', () => () => (
+  <MockView testID="mock-manual-backup-2" />
+));
+jest.mock('../../Views/ManualBackupStep3', () => () => (
+  <MockView testID="mock-manual-backup-3" />
+));
+jest.mock('../../Views/OAuthRehydration', () => () => (
+  <MockView testID="mock-oauth" />
+));
+jest.mock('../../Views/QRTabSwitcher', () => () => (
+  <MockView testID="mock-qr-tab" />
+));
+jest.mock('../../UI/OptinMetrics', () => () => (
+  <MockView testID="mock-optin" />
+));
+jest.mock('../../Views/AccountStatus', () => () => (
+  <MockView testID="mock-account-status" />
+));
+jest.mock('../../Views/SocialLoginIosUser', () => () => (
+  <MockView testID="mock-social-login" />
+));
+jest.mock('../../Views/WalletCreationError', () => () => (
+  <MockView testID="mock-wallet-error" />
+));
+jest.mock('../../Views/ImportPrivateKey', () => () => (
+  <MockView testID="mock-import-pk" />
+));
+jest.mock('../../Views/ImportPrivateKeySuccess', () => () => (
+  <MockView testID="mock-import-pk-success" />
+));
+jest.mock('../../Views/ImportNewSecretRecoveryPhrase', () => () => (
+  <MockView testID="mock-import-new-srp" />
+));
+jest.mock('../../UI/SeedphraseModal', () => () => (
+  <MockView testID="mock-seedphrase-modal" />
+));
+jest.mock('../../Views/ConnectQRHardware', () => () => (
+  <MockView testID="mock-qr-hw" />
+));
+jest.mock('../../Views/LedgerSelectAccount', () => () => (
+  <MockView testID="mock-ledger-select" />
+));
+jest.mock('../../Views/ConnectHardware/SelectHardware', () => () => (
+  <MockView testID="mock-select-hw" />
+));
+jest.mock('../../Views/DetectedTokens', () => () => (
+  <MockView testID="mock-detected-tokens" />
+));
+jest.mock('../../Views/DetectedTokensConfirmation', () => () => (
+  <MockView testID="mock-detected-confirm" />
+));
+jest.mock('../../Views/WalletActions', () => () => (
+  <MockView testID="mock-wallet-actions" />
+));
+jest.mock('../../Views/TradeWalletActions', () => () => (
+  <MockView testID="mock-trade-actions" />
+));
+jest.mock('../../UI/FundActionMenu', () => () => (
+  <MockView testID="mock-fund-menu" />
+));
+jest.mock('../../UI/TokenDetails/components/MoreTokenActionsMenu', () => () => (
+  <MockView testID="mock-more-actions" />
+));
+jest.mock(
+  '../../UI/TokenDetails/components/SecurityBadgeBottomSheet',
+  () => () => <MockView testID="mock-security-badge" />,
+);
+jest.mock('../../../components/UI/DeleteWalletModal', () => () => (
+  <MockView testID="mock-delete-wallet" />
+));
+jest.mock('../../../components/Views/AccountActions', () => () => (
+  <MockView testID="mock-account-actions" />
+));
+jest.mock('../../Views/EditAccountName/EditAccountName', () => () => (
+  <MockView testID="mock-edit-name" />
+));
+jest.mock('../../UI/LedgerModals/LedgerMessageSignModal', () => () => (
+  <MockView testID="mock-ledger-msg" />
+));
+jest.mock('../../UI/LedgerModals/LedgerTransactionModal', () => () => (
+  <MockView testID="mock-ledger-tx" />
+));
+jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => () => (
+  <MockView testID="mock-qr-sign" />
+));
+jest.mock('../../Views/confirmations/components/confirm', () => ({
+  Confirm: () => <MockView testID="mock-confirm" />,
+}));
+jest.mock(
+  '../../Views/confirmations/components/modals/switch-account-type-modal',
+  () => () => <MockView testID="mock-switch-account" />,
+);
+jest.mock(
+  '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal',
+  () => ({ PayWithModal: () => <MockView testID="mock-pay-with" /> }),
+);
+jest.mock('../../UI/SelectOptionSheet/OptionsSheet', () => () => (
+  <MockView testID="mock-options" />
+));
+jest.mock('../../Views/NetworksManagement/NetworkDetailsView', () => () => (
+  <MockView testID="mock-network-details" />
+));
+jest.mock('../../Views/LockScreen', () => () => (
+  <MockView testID="mock-lock-screen" />
+));
+jest.mock('../../Views/MultichainAccounts/AddressList', () => ({
+  AddressList: () => <MockView testID="mock-address-list" />,
+}));
+jest.mock('../../Views/MultichainAccounts/PrivateKeyList', () => ({
+  PrivateKeyList: () => <MockView testID="mock-pk-list" />,
+}));
+jest.mock(
+  '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions',
+  () => () => <MockView testID="mock-mc-actions" />,
+);
+jest.mock('../../Views/CardNotification', () => () => (
+  <MockView testID="mock-card-notification" />
+));
+jest.mock('../../Views/ReturnToAppNotification', () => () => (
+  <MockView testID="mock-return-notif" />
+));
 
 jest.mock('expo-sensors', () => ({
   Accelerometer: {
@@ -171,6 +338,7 @@ jest.mock('react-native-branch', () => ({
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
+  getBuildNumber: jest.fn().mockReturnValue('100'),
   getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
@@ -1325,16 +1493,16 @@ describe('App', () => {
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === 'CURRENT_APP_VERSION') return '0.9.0';
-        if (key === 'LAST_APP_VERSION') return '0.8.0';
+        if (key === CURRENT_APP_VERSION) return '0.9.0';
+        if (key === LAST_APP_VERSION) return '0.8.0';
         return null;
       });
 
       renderAppWithExistingUser(false);
 
       await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '0.9.0');
-        expect(setItemSpy).toHaveBeenCalledWith('CURRENT_APP_VERSION', '1.0.0');
+        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '0.9.0');
+        expect(setItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
       });
 
       setItemSpy.mockRestore();
@@ -1345,16 +1513,16 @@ describe('App', () => {
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === 'CURRENT_APP_VERSION') return null;
-        if (key === 'LAST_APP_VERSION') return null;
+        if (key === CURRENT_APP_VERSION) return null;
+        if (key === LAST_APP_VERSION) return null;
         return null;
       });
 
       renderAppWithExistingUser(false);
 
       await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith('CURRENT_APP_VERSION', '1.0.0');
-        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '1.0.0');
+        expect(setItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION, '1.0.0');
+        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
       });
 
       setItemSpy.mockRestore();
@@ -1365,15 +1533,15 @@ describe('App', () => {
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === 'CURRENT_APP_VERSION') return '1.0.0';
-        if (key === 'LAST_APP_VERSION') return null;
+        if (key === CURRENT_APP_VERSION) return '1.0.0';
+        if (key === LAST_APP_VERSION) return null;
         return null;
       });
 
       renderAppWithExistingUser(true);
 
       await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '0.0.1');
+        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '0.0.1');
       });
 
       setItemSpy.mockRestore();
@@ -1384,15 +1552,15 @@ describe('App', () => {
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === 'CURRENT_APP_VERSION') return '1.0.0';
-        if (key === 'LAST_APP_VERSION') return null;
+        if (key === CURRENT_APP_VERSION) return '1.0.0';
+        if (key === LAST_APP_VERSION) return null;
         return null;
       });
 
       renderAppWithExistingUser(false);
 
       await waitFor(() => {
-        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '1.0.0');
+        expect(setItemSpy).toHaveBeenCalledWith(LAST_APP_VERSION, '1.0.0');
       });
 
       setItemSpy.mockRestore();
@@ -1403,8 +1571,8 @@ describe('App', () => {
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === 'CURRENT_APP_VERSION') return '1.0.0';
-        if (key === 'LAST_APP_VERSION') return '0.9.0';
+        if (key === CURRENT_APP_VERSION) return '1.0.0';
+        if (key === LAST_APP_VERSION) return '0.9.0';
         return null;
       });
 
@@ -1415,11 +1583,11 @@ describe('App', () => {
       });
 
       expect(setItemSpy).not.toHaveBeenCalledWith(
-        'CURRENT_APP_VERSION',
+        CURRENT_APP_VERSION,
         expect.anything(),
       );
       expect(setItemSpy).not.toHaveBeenCalledWith(
-        'LAST_APP_VERSION',
+        LAST_APP_VERSION,
         expect.anything(),
       );
 
@@ -1581,10 +1749,10 @@ describe('App', () => {
         ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-onboarding')).toBeTruthy();
       });
     });
 
@@ -1608,266 +1776,202 @@ describe('App', () => {
     it('renders ImportPrivateKeyView flow', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: 'ImportPrivateKeyView',
-          },
-        ],
+        routes: [{ name: 'ImportPrivateKeyView' }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-import-pk')).toBeTruthy();
       });
     });
 
     it('renders ImportSRPView flow', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: 'ImportSRPView',
-          },
-        ],
+        routes: [{ name: 'ImportSRPView' }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-import-new-srp')).toBeTruthy();
       });
     });
 
     it('renders ConnectQRHardwareFlow', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: 'ConnectQRHardwareFlow',
-          },
-        ],
+        routes: [{ name: 'ConnectQRHardwareFlow' }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-qr-hw')).toBeTruthy();
       });
     });
 
     it('renders LedgerConnectFlow', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.HW.CONNECT_LEDGER,
-          },
-        ],
+        routes: [{ name: Routes.HW.CONNECT_LEDGER }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-ledger-select')).toBeTruthy();
       });
     });
 
     it('renders ConnectHardwareWalletFlow', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.HW.CONNECT,
-          },
-        ],
+        routes: [{ name: Routes.HW.CONNECT }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-select-hw')).toBeTruthy();
       });
     });
 
     it('renders the Login screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.LOGIN,
-          },
-        ],
+        routes: [{ name: Routes.ONBOARDING.LOGIN }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-login')).toBeTruthy();
       });
     });
 
     it('renders the OnboardingSuccessFlow', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.SUCCESS_FLOW,
-          },
-        ],
+        routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-onboarding-success')).toBeTruthy();
       });
     });
 
     it('renders the ConfirmationRequestModal', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.CONFIRMATION_REQUEST_MODAL,
-          },
-        ],
+        routes: [{ name: Routes.CONFIRMATION_REQUEST_MODAL }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-confirm')).toBeTruthy();
       });
     });
 
     it('renders the LedgerTransactionModal', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.LEDGER_TRANSACTION_MODAL,
-          },
-        ],
+        routes: [{ name: Routes.LEDGER_TRANSACTION_MODAL }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-ledger-tx')).toBeTruthy();
       });
     });
 
     it('renders the QRSigningTransactionModal', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.QR_SIGNING_TRANSACTION_MODAL,
-          },
-        ],
+        routes: [{ name: Routes.QR_SIGNING_TRANSACTION_MODAL }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-qr-sign')).toBeTruthy();
       });
     });
 
     it('renders the LedgerMessageSignModal', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.LEDGER_MESSAGE_SIGN_MODAL,
-          },
-        ],
+        routes: [{ name: Routes.LEDGER_MESSAGE_SIGN_MODAL }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-ledger-msg')).toBeTruthy();
       });
     });
 
     it('renders the EditAccountName screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.EDIT_ACCOUNT_NAME,
-          },
-        ],
+        routes: [{ name: Routes.EDIT_ACCOUNT_NAME }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-edit-name')).toBeTruthy();
       });
     });
 
     it('renders the AddNetworkFlow screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.ADD_NETWORK,
-          },
-        ],
+        routes: [{ name: Routes.ADD_NETWORK }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-network-details')).toBeTruthy();
       });
     });
 
     it('renders the OptionsSheet screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.OPTIONS_SHEET,
-          },
-        ],
+        routes: [{ name: Routes.OPTIONS_SHEET }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-options')).toBeTruthy();
       });
     });
 
     it('renders the MultichainAccountCellActions screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS,
-          },
-        ],
+        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-mc-actions')).toBeTruthy();
       });
     });
 
     it('renders the MaxBrowserTabsModal screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.MODAL.MAX_BROWSER_TABS_MODAL,
-          },
-        ],
+        routes: [{ name: Routes.MODAL.MAX_BROWSER_TABS_MODAL }],
       };
 
       const { toJSON } = renderAppAtRoute(routeState);
@@ -1880,45 +1984,33 @@ describe('App', () => {
     it('renders the ConfirmationSwitchAccountType screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
-          },
-        ],
+        routes: [{ name: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-switch-account')).toBeTruthy();
       });
     });
 
     it('renders the ConfirmationPayWithModal screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.CONFIRMATION_PAY_WITH_MODAL,
-          },
-        ],
+        routes: [{ name: Routes.CONFIRMATION_PAY_WITH_MODAL }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-pay-with')).toBeTruthy();
       });
     });
 
     it('renders the RevealPrivateCredential screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-          },
-        ],
+        routes: [{ name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL }],
       };
 
       const { toJSON } = renderAppAtRoute(routeState);
@@ -1931,34 +2023,39 @@ describe('App', () => {
     it('renders the MultichainAddressList screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
-          },
-        ],
+        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-address-list')).toBeTruthy();
       });
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
-          },
-        ],
+        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-pk-list')).toBeTruthy();
+      });
+    });
+
+    it('renders the LockScreen route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [{ name: Routes.LOCK_SCREEN }],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-lock-screen')).toBeTruthy();
       });
     });
   });
@@ -2000,19 +2097,17 @@ describe('App', () => {
       });
     });
 
-    it('does not register EditNetwork screen when isNetworkUiRedesignEnabled returns false', () => {
+    it('calls isNetworkUiRedesignEnabled during rendering', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockReturnValue(false);
 
       const routeState = {
         index: 0,
-        routes: [
-          {
-            name: Routes.EDIT_NETWORK,
-          },
-        ],
+        routes: [{ name: Routes.FOX_LOADER }],
       };
 
-      expect(() => renderAppAtRoute(routeState)).toThrow();
+      renderAppAtRoute(routeState);
+
+      expect(isNetworkUiRedesignEnabled).toHaveBeenCalled();
     });
   });
 
@@ -2049,22 +2144,6 @@ describe('App', () => {
 
       return render(<App />, { wrapper: Providers });
     };
-
-    it('renders WalletActions modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
-
-    it('renders DeleteWallet modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.DELETE_WALLET);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
 
     it('renders UpdateNeeded modal', async () => {
       const { toJSON } = renderAppWithModal(Routes.MODAL.UPDATE_NEEDED);
@@ -2106,14 +2185,6 @@ describe('App', () => {
       });
     });
 
-    it('renders AccountActions sheet', async () => {
-      const { toJSON } = renderAppWithModal(Routes.SHEET.ACCOUNT_ACTIONS);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
-
     it('renders ShowIpfs sheet', async () => {
       const { toJSON } = renderAppWithModal(Routes.SHEET.SHOW_IPFS);
 
@@ -2148,19 +2219,53 @@ describe('App', () => {
       });
     });
 
-    it('renders FundActionMenu modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.FUND_ACTION_MENU);
+    it('renders WalletActions modal', async () => {
+      const { getByTestId } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-wallet-actions')).toBeTruthy();
+      });
+    });
+
+    it('renders DeleteWallet modal', async () => {
+      const { getByTestId } = renderAppWithModal(Routes.MODAL.DELETE_WALLET);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-delete-wallet')).toBeTruthy();
+      });
+    });
+
+    it('renders AccountActions sheet', async () => {
+      const { getByTestId } = renderAppWithModal(Routes.SHEET.ACCOUNT_ACTIONS);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-account-actions')).toBeTruthy();
+      });
+    });
+
+    it('renders FundActionMenu modal', async () => {
+      const { getByTestId } = renderAppWithModal(Routes.MODAL.FUND_ACTION_MENU);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-fund-menu')).toBeTruthy();
       });
     });
 
     it('renders TradeWalletActions modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      const { getByTestId } = renderAppWithModal(
+        Routes.MODAL.TRADE_WALLET_ACTIONS,
+      );
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(getByTestId('mock-trade-actions')).toBeTruthy();
+      });
+    });
+
+    it('renders DetectedTokens flow', async () => {
+      const { getByTestId } = renderAppWithModal('DetectedTokens');
+
+      await waitFor(() => {
+        expect(getByTestId('mock-detected-tokens')).toBeTruthy();
       });
     });
   });
