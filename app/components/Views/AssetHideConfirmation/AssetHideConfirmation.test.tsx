@@ -52,7 +52,7 @@ describe('AssetHideConfirmation', () => {
 
   it('renders the description', () => {
     const { getByText } = renderWithTheme();
-    expect(getByText(/You can add this token back in the future/)).toBeTruthy();
+    expect(getByText(/You can add this token back in the future/)).toBeOnTheScreen();
   });
 
   it('renders cancel and confirm buttons', () => {
