@@ -91,12 +91,12 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.BENEFIT_DETAILS_VIEW}
+            name={Routes.REWARD_BENEFIT_DETAILS_VIEW}
             component={BenefitDetailsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.BENEFIT_LIST_VIEW}
+            name={Routes.REWARD_BENEFIT_LIST_VIEW}
             component={BenefitListView}
             options={{ headerShown: false }}
           />

@@ -14,10 +14,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image, TouchableOpacity } from 'react-native';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
-import React from 'react';
+import React, {useMemo} from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
-import { formatDayHourRemaining } from '../../utils/formatUtils.ts';
+import { formatDateRemaining } from '../../utils/formatUtils.ts';
 
 interface Props {
   benefit: SubscriptionBenefitDto;
@@ -26,13 +26,23 @@ interface Props {
 const BenefitCard = ({ benefit }: Props) => {
   const tw = useTailwind();
 
+  const remainingTime = useMemo(() => {
+    if (benefit.actionDate == null) {
+      return null;
+    }
+    return formatDateRemaining(benefit.actionDate);
+  }, [benefit]);
+
   return (
     <TouchableOpacity
       style={tw.style('bg-section rounded-lg p-4 h-[154px]')}
       onPress={() =>
-        NavigationService.navigation.navigate(Routes.BENEFIT_DETAILS_VIEW, {
-          benefit,
-        })
+        NavigationService.navigation.navigate(
+          Routes.REWARD_BENEFIT_DETAILS_VIEW,
+          {
+            benefit,
+          },
+        )
       }
       activeOpacity={0.7}
     >
@@ -61,7 +71,7 @@ const BenefitCard = ({ benefit }: Props) => {
           >
             {benefit.shortDescription}
           </Text>
-          {benefit.actionDate && (
+          {remainingTime && (
             <Box
               twClassName="gap-1"
               flexDirection={BoxFlexDirection.Row}
@@ -76,7 +86,7 @@ const BenefitCard = ({ benefit }: Props) => {
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {formatDayHourRemaining(benefit.actionDate)}
+                {remainingTime}
               </Text>
             </Box>
           )}

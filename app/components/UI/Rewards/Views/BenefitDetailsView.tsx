@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -21,7 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BenefitDetailsViewRouteProp } from './BenefitDetailsView.types.ts';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
-import { formatDayHourRemaining } from '../utils/formatUtils.ts';
+import { formatDateRemaining } from '../utils/formatUtils.ts';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -47,16 +47,24 @@ const BenefitDetailsView = () => {
         params: {
           newTabUrl: benefit.url,
           timestamp: Date.now(),
+          fromTrending: true,
         },
       });
     }
   };
 
+  const remainingTime = useMemo(() => {
+    if (benefit.actionDate == null) {
+      return null;
+    }
+    return formatDateRemaining(benefit.actionDate);
+  }, [benefit]);
+
   return (
     <ErrorBoundary navigation={navigation} view="BenefitDetailsView">
       <SafeAreaView
-        edges={{ bottom: 'additive' }}
-        style={tw.style('flex-1 bg-default')}
+        edges={{}}
+        style={tw.style('flex-1')}
         testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_VIEW}
       >
         <HeaderCompactStandard
@@ -68,7 +76,7 @@ const BenefitDetailsView = () => {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 pb-6')}
+          contentContainerStyle={tw.style('flex-1 px-4 gap-6')}
         >
           <Box twClassName="w-full rounded-lg overflow-hidden">
             <Image
@@ -78,7 +86,7 @@ const BenefitDetailsView = () => {
               testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
             />
           </Box>
-          <Box twClassName="py-6">
+          <Box>
             <Text
               color={TextColor.TextDefault}
               variant={TextVariant.HeadingLg}
@@ -86,23 +94,25 @@ const BenefitDetailsView = () => {
             >
               {benefit.longTitle}
             </Text>
-            <Box
-              twClassName="gap-1 mt-1 mb-2"
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <Icon
-                name={IconName.Clock}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+            {remainingTime && (
+              <Box
+                twClassName="gap-1 mt-1 mb-2"
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
               >
-                {formatDayHourRemaining(benefit.actionDate)}
-              </Text>
-            </Box>
+                <Icon
+                  name={IconName.Clock}
+                  size={IconSize.Md}
+                  color={IconColor.IconAlternative}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {remainingTime}
+                </Text>
+              </Box>
+            )}
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -111,7 +121,7 @@ const BenefitDetailsView = () => {
             </Text>
           </Box>
         </ScrollView>
-        <Box twClassName="absolute bottom-0 left-0 right-0 p-4">
+        <Box twClassName="p-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

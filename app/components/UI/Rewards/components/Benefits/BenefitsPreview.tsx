@@ -37,7 +37,7 @@ const BenefitsPreview = () => {
   }, [getAllBenefits]);
 
   const handleNavigateToCampaigns = useCallback(() => {
-    navigation.navigate(Routes.BENEFIT_LIST_VIEW);
+    navigation.navigate(Routes.REWARD_BENEFIT_LIST_VIEW);
   }, [navigation]);
 
   const hasBenefits = useMemo(() => benefits.length > 0, [benefits]);

@@ -1,7 +1,7 @@
-import { IconName } from '@metamask/design-system-react-native';
+import {IconName} from '@metamask/design-system-react-native';
 import I18n from '../../../../../locales/i18n';
-import { getTimeDifferenceFromNow } from '../../../../util/date';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import {getTimeDifferenceFromNow} from '../../../../util/date';
+import {getIntlNumberFormatter} from '../../../../util/intl';
 
 /**
  * Formats a number to a string with locale-specific formatting.
@@ -108,18 +108,51 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
-export const formatDayHourRemaining = (endDate: Date | string): string | null => {
-  const { days, hours } = getTimeDifferenceFromNow(new Date(endDate).getTime());
+export const formatDateRemaining = (endDate: Date | string): string | null => {
+  const start = new Date();
+  const end = new Date(endDate);
 
-  // No time remaining
-  if (hours <= 0 && days <= 0) {
-    return null;
+  if (end <= start) return null;
+
+  let startY = start.getUTCFullYear();
+  let startM = start.getUTCMonth();
+  let startD = start.getUTCDate();
+  let startH = start.getUTCHours();
+
+  let endY = end.getUTCFullYear();
+  let endM = end.getUTCMonth();
+  let endD = end.getUTCDate();
+  let endH = end.getUTCHours();
+
+  let year = endY - startY;
+  let month = endM - startM;
+  let day = endD - startD;
+  let hour = endH - startH;
+
+  if (hour < 0) {
+    hour += 24;
+    day -= 1;
   }
 
-  const dayString = days > 0 ? `${days}d ` : '';
-  const hourString = hours > 0 ? `${hours}h ` : '';
+  if (day < 0) {
+    const prevMonth = new Date(endY, endM, 0);
+    day += prevMonth.getDate();
+    month -= 1;
+  }
 
-  return `${dayString}${hourString}`?.trim();
+  if (month < 0) {
+    month += 12;
+    year -= 1;
+  }
+
+  const yearTxt = year > 0 ? `${year}y` : '';
+  const monthTxt = month > 0 ? `${month}m` : '';
+  const dayTxt = day > 0 ? `${day}d` : '';
+  const hourTxt = hour > 0 ? `${hour}h` : '';
+
+  return year > 0
+    ? `${yearTxt}${monthTxt}${dayTxt}`
+    : `${monthTxt}${dayTxt}${hourTxt}`;
 };
 
 // Get icon name with fallback to Star if invalid
