@@ -23,6 +23,10 @@ import { internalAccount1 as mockAccount } from '../../../util/test/accountsCont
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../Views/MultichainAccounts/AccountDetails.testIds';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { TraceName, TraceOperation } from '../../../util/trace';
+import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import Logger from '../../../util/Logger';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -108,6 +112,32 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
+}));
+
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
+const mockCheckIsSeedlessPasswordOutdated = jest
+  .fn()
+  .mockResolvedValue(undefined);
+jest.mock('../../../core/', () => ({
+  Authentication: {
+    checkIsSeedlessPasswordOutdated: (...args: unknown[]) =>
+      mockCheckIsSeedlessPasswordOutdated(...args),
+  },
+}));
+
+jest.mock('../../../selectors/seedlessOnboardingController', () => ({
+  selectSeedlessOnboardingLoginFlow: jest.fn(),
+}));
+
+jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
+  isNetworkUiRedesignEnabled: jest.fn().mockReturnValue(true),
 }));
 
 // Mock AppStateEventProcessor
@@ -1222,6 +1252,916 @@ describe('App', () => {
 
     it('has multi RPC migration modal route defined', () => {
       expect(Routes.MODAL.MULTI_RPC_MIGRATION_MODAL).toBeDefined();
+    });
+  });
+
+  describe('Performance tracing', () => {
+    const renderApp = () => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('calls trace with NavInit on first render', () => {
+      renderApp();
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.NavInit,
+          op: TraceOperation.NavInit,
+        }),
+      );
+    });
+
+    it('calls endTrace with UIStartup after mount', async () => {
+      renderApp();
+
+      await waitFor(() => {
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.UIStartup,
+        });
+      });
+    });
+  });
+
+  describe('Version handling - detailed branches', () => {
+    const renderAppWithExistingUser = (existingUser: boolean) => {
+      const mockStore = configureMockStore();
+      const state: DeepPartial<RootState> = {
+        ...initialState,
+        user: {
+          ...initialState.user,
+          existingUser,
+        },
+      };
+      const store = mockStore(state);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('saves last and current version when currentVersion differs from savedVersion', async () => {
+      const setItemSpy = jest
+        .spyOn(StorageWrapper, 'setItem')
+        .mockResolvedValue();
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === 'CURRENT_APP_VERSION') return '0.9.0';
+        if (key === 'LAST_APP_VERSION') return '0.8.0';
+        return null;
+      });
+
+      renderAppWithExistingUser(false);
+
+      await waitFor(() => {
+        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '0.9.0');
+        expect(setItemSpy).toHaveBeenCalledWith('CURRENT_APP_VERSION', '1.0.0');
+      });
+
+      setItemSpy.mockRestore();
+    });
+
+    it('saves only current version when savedVersion is null', async () => {
+      const setItemSpy = jest
+        .spyOn(StorageWrapper, 'setItem')
+        .mockResolvedValue();
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === 'CURRENT_APP_VERSION') return null;
+        if (key === 'LAST_APP_VERSION') return null;
+        return null;
+      });
+
+      renderAppWithExistingUser(false);
+
+      await waitFor(() => {
+        expect(setItemSpy).toHaveBeenCalledWith('CURRENT_APP_VERSION', '1.0.0');
+        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '1.0.0');
+      });
+
+      setItemSpy.mockRestore();
+    });
+
+    it('sets lastVersion to 0.0.1 when existingUser is true and lastVersion is missing', async () => {
+      const setItemSpy = jest
+        .spyOn(StorageWrapper, 'setItem')
+        .mockResolvedValue();
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === 'CURRENT_APP_VERSION') return '1.0.0';
+        if (key === 'LAST_APP_VERSION') return null;
+        return null;
+      });
+
+      renderAppWithExistingUser(true);
+
+      await waitFor(() => {
+        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '0.0.1');
+      });
+
+      setItemSpy.mockRestore();
+    });
+
+    it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
+      const setItemSpy = jest
+        .spyOn(StorageWrapper, 'setItem')
+        .mockResolvedValue();
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === 'CURRENT_APP_VERSION') return '1.0.0';
+        if (key === 'LAST_APP_VERSION') return null;
+        return null;
+      });
+
+      renderAppWithExistingUser(false);
+
+      await waitFor(() => {
+        expect(setItemSpy).toHaveBeenCalledWith('LAST_APP_VERSION', '1.0.0');
+      });
+
+      setItemSpy.mockRestore();
+    });
+
+    it('does not overwrite versions when currentVersion matches savedVersion', async () => {
+      const setItemSpy = jest
+        .spyOn(StorageWrapper, 'setItem')
+        .mockResolvedValue();
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === 'CURRENT_APP_VERSION') return '1.0.0';
+        if (key === 'LAST_APP_VERSION') return '0.9.0';
+        return null;
+      });
+
+      renderAppWithExistingUser(false);
+
+      await waitFor(() => {
+        expect(StorageWrapper.getItem).toHaveBeenCalled();
+      });
+
+      expect(setItemSpy).not.toHaveBeenCalledWith(
+        'CURRENT_APP_VERSION',
+        expect.anything(),
+      );
+      expect(setItemSpy).not.toHaveBeenCalledWith(
+        'LAST_APP_VERSION',
+        expect.anything(),
+      );
+
+      setItemSpy.mockRestore();
+    });
+  });
+
+  describe('Seedless password check interval', () => {
+    beforeEach(() => {
+      mockCheckIsSeedlessPasswordOutdated
+        .mockReset()
+        .mockResolvedValue(undefined);
+    });
+
+    const renderAppWithSeedlessState = (isSeedless: boolean) => {
+      (
+        selectSeedlessOnboardingLoginFlow as unknown as jest.Mock
+      ).mockReturnValue(isSeedless);
+
+      const mockStore = configureMockStore();
+      const state: DeepPartial<RootState> = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine?.backgroundState,
+          },
+        },
+      };
+      const store = mockStore(state);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', async () => {
+      renderAppWithSeedlessState(true);
+
+      jest.advanceTimersByTime(0);
+
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+          expect.objectContaining({
+            skipCache: true,
+            captureSentryError: false,
+          }),
+        );
+      });
+    });
+
+    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', async () => {
+      renderAppWithSeedlessState(false);
+
+      jest.advanceTimersByTime(0);
+
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
+      });
+    });
+
+    it('logs error when checkIsSeedlessPasswordOutdated rejects', async () => {
+      const testError = new Error('seedless check failed');
+      mockCheckIsSeedlessPasswordOutdated.mockRejectedValueOnce(testError);
+
+      renderAppWithSeedlessState(true);
+
+      jest.advanceTimersByTime(0);
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          testError,
+          'App: Error in checkIsSeedlessPasswordOutdated',
+        );
+      });
+    });
+  });
+
+  describe('Rendered component structure', () => {
+    const renderApp = () => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders without crashing', () => {
+      const { toJSON } = renderApp();
+      expect(toJSON()).toBeTruthy();
+    });
+
+    it('renders the FoxLoader as default initial route', async () => {
+      const { getByTestId } = renderApp();
+
+      await waitFor(() => {
+        expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Sub-navigator rendering', () => {
+    const renderAppAtRoute = (
+      routeState: PartialState<NavigationState>,
+      state: DeepPartial<RootState> = initialState,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(state);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders OnboardingRootNav with nested OnboardingNav', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [{ name: 'Onboarding' }],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders VaultRecoveryFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.VAULT_RECOVERY.RESTORE_WALLET,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders ImportPrivateKeyView flow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'ImportPrivateKeyView',
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders ImportSRPView flow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'ImportSRPView',
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders ConnectQRHardwareFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'ConnectQRHardwareFlow',
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders LedgerConnectFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.HW.CONNECT_LEDGER,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders ConnectHardwareWalletFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.HW.CONNECT,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the Login screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.LOGIN,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the OnboardingSuccessFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.ONBOARDING.SUCCESS_FLOW,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the ConfirmationRequestModal', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.CONFIRMATION_REQUEST_MODAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the LedgerTransactionModal', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.LEDGER_TRANSACTION_MODAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the QRSigningTransactionModal', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.QR_SIGNING_TRANSACTION_MODAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the LedgerMessageSignModal', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.LEDGER_MESSAGE_SIGN_MODAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the EditAccountName screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.EDIT_ACCOUNT_NAME,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the AddNetworkFlow screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.ADD_NETWORK,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the OptionsSheet screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.OPTIONS_SHEET,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the MultichainAccountCellActions screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the MaxBrowserTabsModal screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.MAX_BROWSER_TABS_MODAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the ConfirmationSwitchAccountType screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the ConfirmationPayWithModal screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.CONFIRMATION_PAY_WITH_MODAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the RevealPrivateCredential screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the MultichainAddressList screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders the MultichainPrivateKeyList screen', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+  });
+
+  describe('isNetworkUiRedesignEnabled conditional rendering', () => {
+    const renderAppAtRoute = (routeState: PartialState<NavigationState>) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders EditNetwork screen when isNetworkUiRedesignEnabled returns true', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockReturnValue(true);
+
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.EDIT_NETWORK,
+          },
+        ],
+      };
+
+      const { toJSON } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('does not register EditNetwork screen when isNetworkUiRedesignEnabled returns false', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockReturnValue(false);
+
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.EDIT_NETWORK,
+          },
+        ],
+      };
+
+      expect(() => renderAppAtRoute(routeState)).toThrow();
+    });
+  });
+
+  describe('RootModalFlow screens rendering', () => {
+    const renderAppWithModal = (
+      modalScreen: string,
+      params?: Record<string, unknown>,
+    ) => {
+      const mockStore = configureMockStore();
+      const store = mockStore(initialState);
+
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.MODAL.ROOT_MODAL_FLOW,
+            params: {
+              screen: modalScreen,
+              ...(params ? { params } : {}),
+            },
+          },
+        ],
+      };
+
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      return render(<App />, { wrapper: Providers });
+    };
+
+    it('renders WalletActions modal', async () => {
+      const { toJSON } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders DeleteWallet modal', async () => {
+      const { toJSON } = renderAppWithModal(Routes.MODAL.DELETE_WALLET);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders UpdateNeeded modal', async () => {
+      const { toJSON } = renderAppWithModal(Routes.MODAL.UPDATE_NEEDED);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders TokenSort sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.TOKEN_SORT);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders BasicFunctionality sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.BASIC_FUNCTIONALITY);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders NetworkSelector sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.NETWORK_SELECTOR);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders SDKLoading sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.SDK_LOADING);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders AccountActions sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.ACCOUNT_ACTIONS);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders ShowIpfs sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.SHOW_IPFS);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders ShowNftDisplayMedia sheet', async () => {
+      const { toJSON } = renderAppWithModal(
+        Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders WhatsNew modal', async () => {
+      const { toJSON } = renderAppWithModal(Routes.MODAL.WHATS_NEW);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders TooltipModal sheet', async () => {
+      const { toJSON } = renderAppWithModal(Routes.SHEET.TOOLTIP_MODAL);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders FundActionMenu modal', async () => {
+      const { toJSON } = renderAppWithModal(Routes.MODAL.FUND_ACTION_MENU);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
+    });
+
+    it('renders TradeWalletActions modal', async () => {
+      const { toJSON } = renderAppWithModal(Routes.MODAL.TRADE_WALLET_ACTIONS);
+
+      await waitFor(() => {
+        expect(toJSON()).toBeTruthy();
+      });
     });
   });
 });
