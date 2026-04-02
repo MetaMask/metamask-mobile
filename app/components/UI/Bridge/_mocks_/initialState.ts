@@ -484,11 +484,11 @@ export const initialState = {
       },
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
           wallets: {
             [`${AccountWalletType.Entropy}:wallet1`]: {
               id: `${AccountWalletType.Entropy}:wallet1`,
               type: AccountWalletType.Entropy,
+              status: 'ready' as const,
               metadata: {
                 name: 'Test Wallet 1',
                 entropy: {
@@ -503,6 +503,7 @@ export const initialState = {
                     name: 'Test Group 1',
                     pinned: false,
                     hidden: false,
+                    lastSelected: 0,
                     entropy: {
                       groupIndex: 0,
                     },
@@ -517,7 +518,8 @@ export const initialState = {
               },
             },
           },
-        } as AccountTreeControllerState['accountTree']['wallets'],
+        } as AccountTreeControllerState['accountTree'],
+        selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0` as const,
       },
       SmartTransactionsController: {
         smartTransactionsState: {
@@ -606,35 +608,6 @@ export const initialState = {
                 iconUrl: 'https://token2.com/logo.png',
               },
             },
-          },
-        },
-      },
-      SwapsController: {
-        chainCache: {
-          [ethChainId]: {
-            aggregatorMetadata: null,
-            tokens: null,
-            topAssets: [
-              {
-                address: ethToken1Address,
-                symbol: 'TOKEN1',
-              },
-              {
-                address: ethToken2Address,
-                symbol: 'HELLO',
-              },
-            ],
-            aggregatorMetadataLastFetched: 0,
-            topAssetsLastFetched: 0,
-            tokensLastFetched: 0,
-          },
-          [optimismChainId]: {
-            aggregatorMetadata: null,
-            tokens: null,
-            topAssets: null,
-            aggregatorMetadataLastFetched: 0,
-            topAssetsLastFetched: 0,
-            tokensLastFetched: 0,
           },
         },
       },

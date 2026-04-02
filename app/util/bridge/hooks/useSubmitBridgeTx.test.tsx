@@ -12,8 +12,14 @@ import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
+import { useABTest } from '../../../hooks';
 
 type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+interface MockABTestResult {
+  variant: unknown;
+  variantName: string;
+  isActive: boolean;
+}
 
 let mockSubmitTx: jest.Mock<
   Promise<TransactionMeta>,
@@ -97,11 +103,37 @@ jest.mock('../../../selectors/bridge', () => ({
   ),
 }));
 
+jest.mock('../../../hooks', () => ({
+  useABTest: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
+const inactiveABTestResult: MockABTestResult = {
+  variant: undefined,
+  variantName: 'control',
+  isActive: false,
+};
 
 describe('useSubmitBridgeTx', () => {
+  const mockABTests = ({
+    first = inactiveABTestResult,
+    second = inactiveABTestResult,
+  }: {
+    first?: MockABTestResult;
+    second?: MockABTestResult;
+  } = {}) => {
+    jest
+      .mocked(useABTest)
+      .mockReset()
+      .mockReturnValue(inactiveABTestResult)
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(second);
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default every test to the non-experiment path unless it opts in.
+    mockABTests();
   });
 
   const createWrapper = (mockState = {}) => {
@@ -179,6 +211,7 @@ describe('useSubmitBridgeTx', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -190,6 +223,46 @@ describe('useSubmitBridgeTx', () => {
         from: '0x1234567890123456789012345678901234567890',
       },
     });
+
+    // Re-render with an active assignment to verify submitTx forwards activeAbTests.
+    mockABTests({
+      second: {
+        variant: {},
+        variantName: 'treatment',
+        isActive: true,
+      },
+    });
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '2',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
+
+    const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await activeResult.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+    });
+
+    expect(mockSubmitTx).toHaveBeenLastCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
+      undefined,
+      undefined,
+      undefined,
+      [{ key: expect.any(String), value: 'treatment' }],
+    );
   });
 
   it('should handle bridge transaction with approval', async () => {
@@ -224,6 +297,7 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -427,6 +501,33 @@ describe('useSubmitBridgeTx', () => {
       accountAddress: '0x1234567890123456789012345678901234567890',
       location: undefined,
       abTests: undefined,
+      activeAbTests: undefined,
+    });
+
+    // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
+    mockABTests({
+      second: {
+        variant: {},
+        variantName: 'treatment',
+        isActive: true,
+      },
+    });
+    mockSubmitIntent.mockResolvedValueOnce(mockIntentResult);
+
+    const { result: activeResult } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await activeResult.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse,
+    });
+
+    expect(mockSubmitIntent).toHaveBeenLastCalledWith({
+      quoteResponse: mockQuoteResponse,
+      accountAddress: '0x1234567890123456789012345678901234567890',
+      location: undefined,
+      abTests: undefined,
+      activeAbTests: [{ key: expect.any(String), value: 'treatment' }],
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);

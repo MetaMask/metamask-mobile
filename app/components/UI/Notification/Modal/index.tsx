@@ -9,10 +9,11 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import createStyles from './styles';
 import { useTheme } from '../../../../util/theme';
 interface ModalContentProps {
@@ -75,27 +76,29 @@ const ModalContent = ({
         )}
         <View style={styles.buttonsContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={btnLabelCancel}
             onPress={handleCancel}
-          />
+          >
+            {btnLabelCancel}
+          </Button>
           <View style={styles.spacer} />
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             isDisabled={hascheckBox ? !isChecked : false}
             isDanger={hascheckBox ?? false}
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={btnLabelCta}
             onPress={handleCta}
-            loading={loading}
-          />
+            isLoading={loading}
+          >
+            {btnLabelCta}
+          </Button>
         </View>
       </View>
     </View>

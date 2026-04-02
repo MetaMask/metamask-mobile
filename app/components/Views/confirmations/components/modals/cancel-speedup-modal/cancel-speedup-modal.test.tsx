@@ -65,11 +65,43 @@ const defaultGasValues = {
   networkFeeNative: '0.001',
   networkFeeFiat: '$1.80',
   nativeTokenSymbol: 'ETH',
+  isInitialGasReady: true,
 };
 
 jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
   useCancelSpeedupGas: jest.fn(),
+  getBumpParamsForCancelSpeedup: jest.fn(() => ({
+    gasValues: { maxFeePerGas: '0x1', maxPriorityFeePerGas: '0x1' },
+    userFeeLevel: 'medium',
+  })),
 }));
+
+jest.mock('../../../../../../util/transaction-controller', () => ({
+  ...jest.requireActual('../../../../../../util/transaction-controller'),
+  updateTransactionGasFees: jest.fn(),
+  updatePreviousGasParams: jest.fn(),
+}));
+
+jest.mock('../../../hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(() => ({ gasFeeEstimates: {} })),
+}));
+
+jest.mock('../../../context/gas-fee-modal-transaction', () => ({
+  GasFeeModalTransactionProvider: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => children,
+}));
+
+jest.mock('../gas-fee-modal', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    GasFeeModal: () => React.createElement(View, { testID: 'gas-fee-modal' }),
+  };
+});
 
 jest.mock('../../gas/gas-speed', () => {
   const RN = jest.requireActual<typeof import('react')>('react');
@@ -196,8 +228,7 @@ describe('CancelSpeedupModal', () => {
     });
 
     expect(mockedUseCancelSpeedupGas).toHaveBeenCalledWith({
-      tx: defaultProps.tx,
-      isCancel: false,
+      txId: defaultProps.tx?.id,
     });
   });
 
@@ -219,5 +250,59 @@ describe('CancelSpeedupModal', () => {
 
     expect(queryByText('Speed up Transaction')).toBeNull();
     expect(queryByText('Network fee')).toBeNull();
+  });
+
+  it('dismisses gas modal when parent modal closes', async () => {
+    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    fireEvent.press(getByTestId('cancel-speedup-edit-gas'));
+
+    expect(getByTestId('gas-fee-modal')).toBeOnTheScreen();
+
+    rerender(<CancelSpeedupModal {...defaultProps} isVisible={false} />);
+
+    await waitFor(() => {
+      expect(queryByTestId('gas-fee-modal')).toBeNull();
+    });
+  });
+
+  it('does not call onConfirm when isInitialGasReady is false', () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isInitialGasReady: false,
+    });
+
+    const { getByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    fireEvent.press(getByText('Confirm'));
+
+    expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
+
+  it('calls onConfirm when isInitialGasReady is true', async () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isInitialGasReady: true,
+    });
+
+    const { getByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    fireEvent.press(getByText('Confirm'));
+
+    await waitFor(() => {
+      expect(mockOnConfirm).toHaveBeenCalledWith({
+        maxFeePerGas: '0x1',
+        maxPriorityFeePerGas: '0x1',
+      });
+    });
   });
 });

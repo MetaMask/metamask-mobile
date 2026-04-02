@@ -74,7 +74,7 @@ describe('depositOrderToFiatOrder', () => {
     };
 
     expect(depositOrderToFiatOrder(mockOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -98,7 +98,7 @@ describe('depositOrderToFiatOrder', () => {
     });
 
     expect(depositOrderToFiatOrder(failedOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -121,7 +121,7 @@ describe('depositOrderToFiatOrder', () => {
       data: failedOrder,
     });
     expect(depositOrderToFiatOrder(cancelledOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -144,7 +144,7 @@ describe('depositOrderToFiatOrder', () => {
       data: cancelledOrder,
     });
     expect(depositOrderToFiatOrder(pendingOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -168,7 +168,7 @@ describe('depositOrderToFiatOrder', () => {
     });
 
     expect(depositOrderToFiatOrder(createdOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -192,7 +192,7 @@ describe('depositOrderToFiatOrder', () => {
     });
 
     expect(depositOrderToFiatOrder(unknownStateOrder as DepositOrder)).toEqual({
-      id: 'test-order-id',
+      id: 'test-id',
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
@@ -416,7 +416,7 @@ describe('processDepositOrder', () => {
     });
   });
 
-  it('should preserve original order ID when providerOrderId differs', async () => {
+  it('should use deposit order id from SDK response when processing', async () => {
     const orderWithCustomId = {
       ...mockOrder,
       id: 'custom-redux-id',
@@ -435,7 +435,11 @@ describe('processDepositOrder', () => {
 
     const updatedOrder = await processDepositOrder(orderWithCustomId);
 
-    expect(updatedOrder.id).toBe('custom-redux-id');
+    expect(DepositSDKNoAuth.getOrder).toHaveBeenCalledWith(
+      'custom-redux-id',
+      '0x1234',
+    );
+    expect(updatedOrder.id).toBe('deposit-internal-id');
     expect((updatedOrder.data as DepositOrder).providerOrderId).toBe(
       'provider-external-id',
     );

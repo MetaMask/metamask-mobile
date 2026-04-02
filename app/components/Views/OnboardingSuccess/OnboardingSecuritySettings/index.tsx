@@ -7,13 +7,13 @@ import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSetti
 import MetaMetricsAndDataCollectionSection from '../../Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import DeleteMetaMetricsData from '../../Settings/SecuritySettings/Sections/DeleteMetaMetricsData';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const SecuritySettings = () => {
   const tw = useTailwind();
-  const { isEnabled } = useMetrics();
+  const { isEnabled } = useAnalytics();
   const analyticsEnabled = isEnabled();
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);

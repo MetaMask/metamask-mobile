@@ -1,165 +1,77 @@
-import {
-  RampsUnifiedBuyV2Config,
-  selectRampsUnifiedBuyV2Config,
-  selectRampsUnifiedBuyV2ActiveFlag,
-  selectRampsUnifiedBuyV2MinimumVersionFlag,
-} from './rampsUnifiedBuyV2';
-import { selectRemoteFeatureFlags } from '..';
-import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
+import { selectRampsUnifiedBuyV2Enabled } from './rampsUnifiedBuyV2';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
-describe('RampsUnifiedBuyV2 selectors', () => {
-  const mockRemoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags> & {
-    rampsUnifiedBuyV2: RampsUnifiedBuyV2Config;
-  } = {
-    rampsUnifiedBuyV2: {
-      active: true,
-      minimumVersion: '7.63.0',
-    },
-  };
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
-  const mockEmptyRemoteFeatureFlags = {};
+describe('selectRampsUnifiedBuyV2Enabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
-  describe('selectRampsUnifiedBuyV2Config', () => {
-    it('returns the rampsUnifiedBuyV2Config when it exists', () => {
-      const result = selectRampsUnifiedBuyV2Config.resultFunc(
-        mockRemoteFeatureFlags,
-      );
-
-      expect(result).toEqual(mockRemoteFeatureFlags.rampsUnifiedBuyV2);
-    });
-
-    it('returns an empty object when rampsUnifiedBuyV2Config does not exist', () => {
-      const result = selectRampsUnifiedBuyV2Config.resultFunc(
-        mockEmptyRemoteFeatureFlags,
-      );
-
-      expect(result).toEqual({});
-    });
-
-    it('returns an empty object when remoteFeatureFlags is null', () => {
-      const result = selectRampsUnifiedBuyV2Config.resultFunc(
-        null as unknown as FeatureFlags,
-      );
-
-      expect(result).toEqual({});
-    });
-
-    it('returns an empty object when remoteFeatureFlags is undefined', () => {
-      const result = selectRampsUnifiedBuyV2Config.resultFunc(
-        undefined as unknown as FeatureFlags,
-      );
-
-      expect(result).toEqual({});
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
   });
 
-  describe('selectRampsUnifiedBuyV2ActiveFlag', () => {
-    it('returns true when active is set to true', () => {
-      const result = selectRampsUnifiedBuyV2ActiveFlag.resultFunc(
-        mockRemoteFeatureFlags.rampsUnifiedBuyV2,
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when active is set to false', () => {
-      const mockConfigWithActiveFalse: RampsUnifiedBuyV2Config = {
-        active: false,
-        minimumVersion: '7.63.0',
-      };
-
-      const result = selectRampsUnifiedBuyV2ActiveFlag.resultFunc(
-        mockConfigWithActiveFalse,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when active is not set', () => {
-      const result = selectRampsUnifiedBuyV2ActiveFlag.resultFunc({});
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when active is null', () => {
-      const mockConfigWithActiveNull: RampsUnifiedBuyV2Config = {
-        active: null as unknown as boolean,
-        minimumVersion: '7.63.0',
-      };
-
-      const result = selectRampsUnifiedBuyV2ActiveFlag.resultFunc(
-        mockConfigWithActiveNull,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when active is undefined', () => {
-      const mockConfigWithActiveUndefined: RampsUnifiedBuyV2Config = {
-        active: undefined as unknown as boolean,
-        minimumVersion: '7.63.0',
-      };
-
-      const result = selectRampsUnifiedBuyV2ActiveFlag.resultFunc(
-        mockConfigWithActiveUndefined,
-      );
-
-      expect(result).toBe(false);
-    });
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
   });
 
-  describe('selectRampsUnifiedBuyV2MinimumVersionFlag', () => {
-    it('returns the minimumVersion when it exists', () => {
-      const result = selectRampsUnifiedBuyV2MinimumVersionFlag.resultFunc(
-        mockRemoteFeatureFlags.rampsUnifiedBuyV2,
-      );
-
-      expect(result).toBe('7.63.0');
+  it('returns true when remote flag is valid and enabled', () => {
+    const result = selectRampsUnifiedBuyV2Enabled.resultFunc({
+      rampsUnifiedBuyV2: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
     });
+    expect(result).toBe(true);
+  });
 
-    it('returns null when minimumVersion is not set', () => {
-      const result = selectRampsUnifiedBuyV2MinimumVersionFlag.resultFunc({});
-
-      expect(result).toBeNull();
+  it('returns false when remote flag is valid but disabled', () => {
+    const result = selectRampsUnifiedBuyV2Enabled.resultFunc({
+      rampsUnifiedBuyV2: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
     });
+    expect(result).toBe(false);
+  });
 
-    it('returns null when minimumVersion is null', () => {
-      const mockConfigWithVersionNull: RampsUnifiedBuyV2Config = {
-        active: true,
-        minimumVersion: null as unknown as string,
-      };
-
-      const result = selectRampsUnifiedBuyV2MinimumVersionFlag.resultFunc(
-        mockConfigWithVersionNull,
-      );
-
-      expect(result).toBeNull();
+  it('returns false when version check fails', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectRampsUnifiedBuyV2Enabled.resultFunc({
+      rampsUnifiedBuyV2: {
+        enabled: true,
+        minimumVersion: '99.0.0',
+      },
     });
+    expect(result).toBe(false);
+  });
 
-    it('returns null when minimumVersion is undefined', () => {
-      const mockConfigWithVersionUndefined: RampsUnifiedBuyV2Config = {
-        active: true,
-        minimumVersion: undefined,
-      };
-
-      const result = selectRampsUnifiedBuyV2MinimumVersionFlag.resultFunc(
-        mockConfigWithVersionUndefined,
-      );
-
-      expect(result).toBeNull();
+  it('returns false when remote flag is invalid', () => {
+    const result = selectRampsUnifiedBuyV2Enabled.resultFunc({
+      rampsUnifiedBuyV2: {
+        enabled: 'invalid',
+        minimumVersion: 123,
+      },
     });
+    expect(result).toBe(false);
+  });
 
-    it('returns the minimumVersion when it is an empty string', () => {
-      const mockConfigWithEmptyVersion: RampsUnifiedBuyV2Config = {
-        active: true,
-        minimumVersion: '',
-      };
+  it('returns false when remote feature flags are empty', () => {
+    const result = selectRampsUnifiedBuyV2Enabled.resultFunc({});
+    expect(result).toBe(false);
+  });
 
-      const result = selectRampsUnifiedBuyV2MinimumVersionFlag.resultFunc(
-        mockConfigWithEmptyVersion,
-      );
-
-      expect(result).toBe('');
+  it('returns false when rampsUnifiedBuyV2 is null', () => {
+    const result = selectRampsUnifiedBuyV2Enabled.resultFunc({
+      rampsUnifiedBuyV2: null,
     });
+    expect(result).toBe(false);
   });
 });

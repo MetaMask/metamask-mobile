@@ -23,15 +23,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     mainText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text.default,
       marginBottom: 4,
-    },
-    subText: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: theme.colors.text.alternative,
     },
     buttonsRow: {
       flexDirection: 'row',
@@ -39,27 +31,6 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       marginLeft: 36, // Align with text content (icon width + margin)
       gap: 8, // Space between buttons
-    },
-    dismissButton: {
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
-    },
-    setLimitButton: {
-      backgroundColor: theme.colors.background.default,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
-    },
-    buttonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text.default,
     },
   });
 

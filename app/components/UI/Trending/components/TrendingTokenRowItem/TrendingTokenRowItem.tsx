@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -131,12 +131,20 @@ interface TrendingTokenRowItemProps {
   position?: number;
   /** Filter context for analytics tracking */
   filterContext?: TrendingFilterContext;
+  /**
+   * Token Details `source` for MetaMetrics (e.g. Explore trending vs Swaps trending).
+   * @default TokenDetailsSource.Trending
+   */
+  tokenDetailsSource?: TokenDetailsSource;
 }
 
 /**
  * Converts a TrendingAsset to Asset navigation params
  */
-const getAssetNavigationParams = (token: TrendingAsset) => {
+const getAssetNavigationParams = (
+  token: TrendingAsset,
+  source: TokenDetailsSource,
+) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
 
@@ -161,7 +169,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
-    source: TokenDetailsSource.Trending,
+    source,
     rwaData: token.rwaData,
     securityData: token.securityData,
   };
@@ -172,6 +180,7 @@ const TrendingTokenRowItem = ({
   selectedTimeOption = TimeOption.TwentyFourHours,
   position,
   filterContext,
+  tokenDetailsSource = TokenDetailsSource.Trending,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -187,7 +196,10 @@ const TrendingTokenRowItem = ({
     [token.assetId],
   );
 
-  const assetParams = useMemo(() => getAssetNavigationParams(token), [token]);
+  const assetParams = useMemo(
+    () => getAssetNavigationParams(token, tokenDetailsSource),
+    [token, tokenDetailsSource],
+  );
 
   const networkBadgeImageSource = useMemo(
     () => getNetworkBadgeSource(caipChainId),
@@ -249,7 +261,10 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    // Use push so we always open a new Asset screen for the tapped token.
+    // This prevents issues such as dismissing screens like Bridge instead
+    // of navigating forward to the new token.
+    navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
     assetParams,
     caipChainId,

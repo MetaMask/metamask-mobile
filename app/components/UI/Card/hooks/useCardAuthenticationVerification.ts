@@ -3,13 +3,13 @@ import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import {
   resetAuthenticatedData,
-  selectCardGeoLocation,
   selectIsAuthenticatedCard,
   verifyCardAuthentication,
 } from '../../../../core/redux/slices/card';
 import { selectUserLoggedIn } from '../../../../reducers/user';
 import Logger from '../../../../util/Logger';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 /**
  * Hook that automatically verifies card authentication status when the app loads.
@@ -21,7 +21,7 @@ export const useCardAuthenticationVerification = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const cardGeoLocation = useSelector(selectCardGeoLocation);
+  const geolocationLocation = useSelector(selectGeolocationLocation);
 
   const checkAuthentication = useCallback(() => {
     dispatch(
@@ -42,7 +42,7 @@ export const useCardAuthenticationVerification = () => {
         );
       }
     } else if (userLoggedIn && !isBaanxLoginEnabled && isAuthenticated) {
-      if (cardGeoLocation !== 'UNKNOWN') {
+      if (!!geolocationLocation && geolocationLocation !== 'UNKNOWN') {
         dispatch(resetAuthenticatedData());
       }
     }
@@ -50,7 +50,7 @@ export const useCardAuthenticationVerification = () => {
     userLoggedIn,
     isBaanxLoginEnabled,
     isAuthenticated,
-    cardGeoLocation,
+    geolocationLocation,
     checkAuthentication,
     dispatch,
   ]);

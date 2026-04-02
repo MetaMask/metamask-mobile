@@ -11,20 +11,20 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 interface MockSelectorsParams {
   displayCardButtonFeatureFlag: boolean | null | undefined;
   alwaysShowCardButton: boolean | null | undefined;
-  cardGeoLocation: string;
+  geolocationLocation: string;
   cardSupportedCountries: Record<string, boolean> | null | undefined;
 }
 
 const mockSelectors = ({
   displayCardButtonFeatureFlag,
   alwaysShowCardButton,
-  cardGeoLocation,
+  geolocationLocation,
   cardSupportedCountries,
 }: MockSelectorsParams) => {
   mockUseSelector
     .mockReturnValueOnce(displayCardButtonFeatureFlag)
     .mockReturnValueOnce(alwaysShowCardButton)
-    .mockReturnValueOnce(cardGeoLocation)
+    .mockReturnValueOnce(geolocationLocation)
     .mockReturnValueOnce(cardSupportedCountries);
 };
 
@@ -38,7 +38,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: false,
         alwaysShowCardButton: true,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: { US: false },
       });
 
@@ -51,7 +51,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: true,
-        cardGeoLocation: 'XX',
+        geolocationLocation: 'XX',
         cardSupportedCountries: {},
       });
 
@@ -66,7 +66,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: { US: true },
       });
 
@@ -79,7 +79,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: false,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: { US: true },
       });
 
@@ -92,7 +92,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'XX',
+        geolocationLocation: 'XX',
         cardSupportedCountries: { US: true, GB: true },
       });
 
@@ -105,7 +105,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: { US: false },
       });
 
@@ -120,7 +120,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: null,
         alwaysShowCardButton: null,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: null,
       });
 
@@ -133,7 +133,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: undefined,
         alwaysShowCardButton: undefined,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: undefined,
       });
 
@@ -146,7 +146,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
         cardSupportedCountries: {},
       });
 
@@ -155,11 +155,11 @@ describe('useIsBaanxLoginEnabled', () => {
       expect(result.current).toBe(false);
     });
 
-    it('returns false when cardGeoLocation is empty string', () => {
+    it('returns false when geolocationLocation is empty string', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: '',
+        geolocationLocation: '',
         cardSupportedCountries: { US: true },
       });
 
@@ -174,7 +174,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'GB',
+        geolocationLocation: 'GB',
         cardSupportedCountries: { US: true, GB: true, CA: true },
       });
 
@@ -187,7 +187,7 @@ describe('useIsBaanxLoginEnabled', () => {
       mockSelectors({
         displayCardButtonFeatureFlag: true,
         alwaysShowCardButton: false,
-        cardGeoLocation: 'DE',
+        geolocationLocation: 'DE',
         cardSupportedCountries: { US: true, GB: true, CA: true },
       });
 
@@ -201,7 +201,7 @@ describe('useIsBaanxLoginEnabled', () => {
     mockSelectors({
       displayCardButtonFeatureFlag: false,
       alwaysShowCardButton: false,
-      cardGeoLocation: 'US',
+      geolocationLocation: 'US',
       cardSupportedCountries: { US: true },
     });
     const { result, rerender } = renderHook(() => useIsBaanxLoginEnabled());
@@ -211,7 +211,7 @@ describe('useIsBaanxLoginEnabled', () => {
     mockSelectors({
       displayCardButtonFeatureFlag: false,
       alwaysShowCardButton: true,
-      cardGeoLocation: 'US',
+      geolocationLocation: 'US',
       cardSupportedCountries: { US: true },
     });
     rerender();

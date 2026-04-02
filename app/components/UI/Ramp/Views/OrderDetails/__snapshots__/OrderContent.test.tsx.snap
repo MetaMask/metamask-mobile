@@ -472,8 +472,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $
-      2.5 USD
+      $2.50
     </Text>
   </View>
   <View
@@ -524,8 +523,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $
-      100 USD
+      $100.00
     </Text>
   </View>
   <View
@@ -771,7 +769,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       }
       testID="ramps-order-details-token-amount"
     >
-      0.05
+      ...
        
       ETH
     </Text>
@@ -1095,7 +1093,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
 </View>
 `;
 
-exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or missing 1`] = `
+exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 or missing 1`] = `
 <View
   style={
     [
@@ -1266,7 +1264,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
       }
       testID="ramps-order-details-token-amount"
     >
-      0
+      ...
        
       ETH
     </Text>
@@ -1567,8 +1565,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
         ]
       }
     >
-      $
-      2.5 USD
+      $2.50
     </Text>
   </View>
   <View
@@ -1619,8 +1616,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
         ]
       }
     >
-      $
-      100 USD
+      $100.00
     </Text>
   </View>
   <View

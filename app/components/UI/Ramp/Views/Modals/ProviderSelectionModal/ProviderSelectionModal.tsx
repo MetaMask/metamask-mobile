@@ -17,7 +17,7 @@ import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
-import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
@@ -59,7 +59,9 @@ function ProviderSelectionModal() {
   } = useRampsController();
 
   const legacyOrdersProviders = useSelector(getOrdersProviders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const ordersProviders = useMemo(() => {
     const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
@@ -94,15 +96,17 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && amount > 0 && walletAddress && assetId
+      !skipQuotes &&
+      amount > 0 &&
+      walletAddress &&
+      assetId &&
+      selectedPaymentMethod
         ? {
             amount,
             walletAddress,
             assetId,
             providers: providerIds,
-            paymentMethods: selectedPaymentMethod
-              ? [selectedPaymentMethod.id]
-              : undefined,
+            paymentMethods: [selectedPaymentMethod.id],
             forceRefresh: true,
           }
         : null,
@@ -169,7 +173,7 @@ function ProviderSelectionModal() {
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes && amount > 0}
+          showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(
             (id): id is string => id != null,

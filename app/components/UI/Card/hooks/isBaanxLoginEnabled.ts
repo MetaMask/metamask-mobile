@@ -3,19 +3,17 @@ import {
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import {
-  selectAlwaysShowCardButton,
-  selectCardGeoLocation,
-} from '../../../../core/redux/slices/card';
+import { selectAlwaysShowCardButton } from '../../../../core/redux/slices/card';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 export const isBaanxLoginEnabled = (params: {
   alwaysShowCardButton: boolean;
-  cardGeoLocation: string;
+  geolocationLocation: string;
   cardSupportedCountries: Record<string, boolean>;
   displayCardButtonFeatureFlag: boolean;
 }) =>
   params.alwaysShowCardButton ||
-  (params.cardSupportedCountries?.[params.cardGeoLocation] === true &&
+  (params.cardSupportedCountries?.[params.geolocationLocation] === true &&
     params.displayCardButtonFeatureFlag) ||
   false;
 
@@ -24,7 +22,7 @@ const useIsBaanxLoginEnabled = () => {
     selectDisplayCardButtonFeatureFlag,
   );
   const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
-  const cardGeoLocation = useSelector(selectCardGeoLocation);
+  const geolocationLocation = useSelector(selectGeolocationLocation);
   const cardSupportedCountries = useSelector(selectCardSupportedCountries);
 
   // If user has explicitly enabled the experimental switch,
@@ -32,7 +30,7 @@ const useIsBaanxLoginEnabled = () => {
   // regardless of the progressive rollout flag state
   return isBaanxLoginEnabled({
     alwaysShowCardButton,
-    cardGeoLocation,
+    geolocationLocation,
     displayCardButtonFeatureFlag,
     cardSupportedCountries: cardSupportedCountries as Record<string, boolean>,
   });

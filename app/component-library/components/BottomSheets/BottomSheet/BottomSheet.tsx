@@ -31,6 +31,12 @@ import BottomSheetDialog, {
   BottomSheetDialogRef,
 } from './foundation/BottomSheetDialog';
 
+/**
+ * @deprecated Please update your code to use `BottomSheet` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheet/README.md}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
   (
     {
@@ -42,6 +48,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       shouldNavigateBack = true,
       isFullscreen = false,
       keyboardAvoidingViewEnabled = true,
+      panGestureHandlerProps,
       ...props
     },
     ref,
@@ -157,6 +164,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           isFullscreen={isFullscreen}
           style={style}
           keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
+          panGestureHandlerProps={panGestureHandlerProps}
         >
           {children}
         </BottomSheetDialog>

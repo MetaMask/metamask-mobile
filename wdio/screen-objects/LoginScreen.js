@@ -19,9 +19,11 @@ class LoginScreen {
   get loginScreen() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
-    } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.CONTAINER);
     }
+    return AppwrightSelectors.getElementByID(
+      this._device,
+      LoginViewSelectors.CONTAINER,
+    );
   }
 
   get welcomeBackText() {
@@ -52,16 +54,17 @@ class LoginScreen {
       return Selectors.getXpathElementByResourceId(
         LoginViewSelectors.PASSWORD_INPUT,
       );
-    } else {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByID(
-          this._device,
-          LoginViewSelectors.PASSWORD_INPUT,
-        );
-      } else {
-        return AppwrightSelectors.getElementByID(this._device, "textfield", true);
-      }
     }
+     if (AppwrightSelectors.isAndroid(this._device)) {
+      return AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+    }
+    return AppwrightSelectors.getElementByID(
+      this._device,
+      LoginViewSelectors.PASSWORD_INPUT,
+    );
   }
 
   // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)

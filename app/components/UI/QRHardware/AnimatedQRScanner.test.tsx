@@ -18,20 +18,14 @@ import {
   resetCapturedCallbacks,
 } from '../../../__mocks__/react-native-vision-camera';
 
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual(
-    '../../../components/hooks/useMetrics',
-  );
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-      }),
-    })),
-  };
-});
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    }),
+  })),
+}));
 
 jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
   withQrKeyring: jest.fn(async (callback) =>

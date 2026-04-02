@@ -3,7 +3,6 @@ import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { isValidHexAddress } from '../../../../util/address';
 import { isCaipAccountId, parseCaipAccountId } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
 
 export const getCardholder = async ({
   caipAccountIds,
@@ -13,13 +12,11 @@ export const getCardholder = async ({
   cardFeatureFlag: CardFeatureFlag | null;
 }): Promise<{
   cardholderAddresses: string[];
-  geoLocation: string;
 }> => {
   try {
     if (!cardFeatureFlag || !caipAccountIds?.length) {
       return {
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       };
     }
 
@@ -27,12 +24,7 @@ export const getCardholder = async ({
       cardFeatureFlag,
     });
 
-    const [cardCaipAccountIds, geoLocation] = await Promise.all([
-      cardSDK.isCardHolder(caipAccountIds),
-      Engine.controllerMessenger
-        .call('GeolocationController:getGeolocation')
-        .catch(() => 'UNKNOWN'),
-    ]);
+    const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
 
     const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
       if (!isCaipAccountId(cardCaipAccountId)) return null;
@@ -46,7 +38,6 @@ export const getCardholder = async ({
 
     return {
       cardholderAddresses: cardholderAddresses.filter(Boolean) as string[],
-      geoLocation,
     };
   } catch (error) {
     Logger.error(
@@ -55,7 +46,6 @@ export const getCardholder = async ({
     );
     return {
       cardholderAddresses: [],
-      geoLocation: 'UNKNOWN',
     };
   }
 };

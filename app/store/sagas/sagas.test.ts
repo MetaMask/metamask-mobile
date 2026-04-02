@@ -368,7 +368,7 @@ describe('appLockStateMachine', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 
-  it('clears pending approvals via ApprovalController.clear when app is locked', async () => {
+  it('clears pending approvals via ApprovalController.clearRequests when app is locked', async () => {
     await expectSaga(appLockStateMachine)
       .dispatch({ type: UserActionType.LOCKED_APP })
       .run();
@@ -379,7 +379,7 @@ describe('appLockStateMachine', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
   });
 
-  it('navigates to LockScreen even when ApprovalController.clear throws', async () => {
+  it('navigates to LockScreen even when ApprovalController.clearRequests throws', async () => {
     mockApprovalControllerClear.mockImplementationOnce(() => {
       throw new Error('clear failed');
     });

@@ -341,6 +341,31 @@ if (enableApiCallLogs || isTest) {
         // eslint-disable-next-line no-console
         console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
       }
+
+      // Patch expo/fetch so its native networking routes through the mock proxy.
+      // The re-export in expo/src/winter/fetch/index.ts uses `export * from`
+      // which Babel compiles to a non-configurable getter. Patching the
+      // re-exporter's property silently fails. Instead we patch the SOURCE
+      // module (expo/src/winter/fetch/fetch) where `fetch` is a plain
+      // writable export. The re-export getter reads from the source, so
+      // all consumers (including bridge-controller) pick up the patched fn.
+      try {
+        const fetchSourceModule = require('expo/src/winter/fetch/fetch');
+        const originalExpoFetch = fetchSourceModule.fetch;
+        fetchSourceModule.fetch = (url, options) => {
+          const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+          // eslint-disable-next-line no-console
+          console.log(`[E2E SHIM] expo/fetch: ${url} → ${proxyUrl}`);
+          return originalExpoFetch(proxyUrl, options);
+        };
+        // eslint-disable-next-line no-console
+        console.log(
+          '[E2E SHIM] Patched expo/fetch source module to route through mock proxy',
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[E2E SHIM] Failed to patch expo/fetch:', e.message);
+      }
     }
   })();
 }

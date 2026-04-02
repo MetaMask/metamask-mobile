@@ -89,7 +89,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     };
   }, [tokenItems]);
 
-  const nfts = useEVMNfts();
+  const { nfts } = useEVMNfts();
   const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
     useState<AssetType[]>(tokens);
   const [selectedNetworkFilter, setSelectedNetworkFilter] =

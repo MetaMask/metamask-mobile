@@ -6,10 +6,11 @@ import { StyleSheet, View } from 'react-native';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -35,9 +36,6 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 21,
       paddingTop: 0,
       borderWidth: 0,
-    },
-    editNetworkButton: {
-      width: '100%',
     },
     notch: {
       width: 40,
@@ -114,12 +112,13 @@ export const ScamWarningModal = ({
         </Box>
         <Box style={styles.boxContent}>
           <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('networks.edit_network_details')}
+            variant={ButtonVariant.Secondary}
             onPress={goToNetworkEdit}
-            style={styles.editNetworkButton}
+            isFullWidth
             size={ButtonSize.Lg}
-          />
+          >
+            {strings('networks.edit_network_details')}
+          </Button>
         </Box>
       </Box>
     </Modal>

@@ -202,7 +202,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Snap-related (loaded from bundles at runtime, not fixture state) ──
     'engine.backgroundState.SnapController',
     'engine.backgroundState.SnapInterfaceController',
-    'engine.backgroundState.SnapsRegistry',
+    'engine.backgroundState.SnapRegistryController',
     'engine.backgroundState.SubjectMetadataController',
 
     // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
@@ -216,7 +216,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.KeyringController.encryptionKey',
     'engine.backgroundState.KeyringController.encryptionSalt',
     'engine.backgroundState.AccountTreeController.accountTree.wallets',
-    'engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup',
+    'engine.backgroundState.AccountTreeController.selectedAccountGroup',
     'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
@@ -267,6 +267,13 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.ProfileMetricsController',
     'engine.backgroundState.UserStorageController',
     'engine.backgroundState.AuthenticationController',
+
+    // ── Token state (account-address-keyed, changes on every fresh wallet) ──
+    // useEnsureMusdTokenRegistered registers mUSD at app startup, adding entries
+    // under allTokens[chainId][accountAddress]. Since the fixture validation test
+    // creates a fresh wallet each run, the account address differs between runs,
+    // making this subtree non-deterministic.
+    'engine.backgroundState.TokensController.allTokens',
 
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
@@ -342,8 +349,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'swaps.hasOnboarded',
     'navigation.currentRoute',
     'inpageProvider.networkId',
-    'engine.backgroundState.SwapsController.pollingCyclesLeft',
-
     // ── Redux-persist internals ──
     '_persist',
   ];

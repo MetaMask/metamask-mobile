@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import createStyles from './SpendingLimitProgressBar.styles';
 import { useTheme } from '../../../../../util/theme';
 import ProgressBar from 'react-native-progress/Bar';
@@ -86,8 +88,14 @@ const SpendingLimitProgressBar = ({
     <View style={styles.container}>
       <View style={styles.divider} />
       <View style={styles.textContainer}>
-        <Text variant={TextVariant.BodySMMedium}>Spending Limit</Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+          Spending Limit
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {consumedAmountDisplay}/{totalAllowanceDisplay} {symbol}
         </Text>
       </View>

@@ -27,37 +27,21 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import {
   MUSD_CONVERSION_APY,
   MUSD_TOKEN,
-  MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import type { Hex } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-import { TokenI } from '../../../../UI/Tokens/types';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import {
+  LINEA_MUSD_ASSET_FOR_MERKL,
+  MUSD_MAINNET_ASSET_FOR_DETAILS,
+} from './CashGetMusdEmptyState.constants';
 import NavigationService from '../../../../../core/NavigationService';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-
-/**
- * Minimal mUSD asset for useMerklBonusClaim (claim runs on Linea).
- * Only chainId and address are required for the claim flow.
- */
-const LINEA_MUSD_ASSET: TokenI = {
-  chainId: CHAIN_IDS.LINEA_MAINNET as string,
-  address: MUSD_TOKEN_ADDRESS,
-  symbol: MUSD_TOKEN.symbol,
-  name: MUSD_TOKEN.name,
-  decimals: MUSD_TOKEN.decimals,
-  image: '',
-  balance: '0',
-  isETH: false,
-  logo: undefined,
-};
 
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
@@ -66,11 +50,11 @@ const MusdAggregatedRow = () => {
     useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
     useMerklBonusClaim(
-      LINEA_MUSD_ASSET,
+      LINEA_MUSD_ASSET_FOR_MERKL,
       MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
     );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
+  const networkName = useNetworkName(LINEA_MUSD_ASSET_FOR_MERKL.chainId as Hex);
 
   const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
@@ -81,9 +65,9 @@ const MusdAggregatedRow = () => {
           action_type: 'claim_bonus',
           button_text: strings('earn.claim_bonus'),
           location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
-          network_chain_id: LINEA_MUSD_ASSET.chainId,
+          network_chain_id: LINEA_MUSD_ASSET_FOR_MERKL.chainId,
           network_name: networkName ?? undefined,
-          asset_symbol: LINEA_MUSD_ASSET.symbol,
+          asset_symbol: LINEA_MUSD_ASSET_FOR_MERKL.symbol,
         })
         .build(),
     );
@@ -91,13 +75,10 @@ const MusdAggregatedRow = () => {
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
-    NavigationService.navigation.navigate(
-      'Asset' as never,
-      {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
-      } as never,
-    );
+    NavigationService.navigation.navigate('Asset', {
+      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+      source: TokenDetailsSource.HomeSection,
+    });
   }, []);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
@@ -116,18 +97,18 @@ const MusdAggregatedRow = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 gap-5"
+        twClassName="flex-1"
       >
         <AvatarToken
           name={MUSD_TOKEN.symbol}
           src={MUSD_TOKEN.imageSource as number}
           size={AvatarTokenSize.Lg}
         />
-        <Box twClassName="flex-1 gap-0.5">
+        <Box twClassName="flex-1 ml-5">
           <Box
             flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -137,7 +118,7 @@ const MusdAggregatedRow = () => {
               {MUSD_TOKEN.name}
             </Text>
             <SensitiveText
-              variant={CLTextVariant.BodyMDBold}
+              variant={CLTextVariant.BodyMDMedium}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
@@ -146,35 +127,40 @@ const MusdAggregatedRow = () => {
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
           >
-            {isClaiming ? (
-              <AnimatedSpinner size={SpinnerSize.SM} />
-            ) : hasClaimableBonus ? (
-              <Pressable
-                onPress={handleClaimBonus}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              {isClaiming ? (
+                <AnimatedSpinner size={SpinnerSize.SM} />
+              ) : hasClaimableBonus ? (
+                <Pressable
+                  onPress={handleClaimBonus}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.PrimaryDefault}
+                  >
+                    {strings('earn.claim_bonus')}
+                  </Text>
+                </Pressable>
+              ) : (
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
+                  color={TextColor.SuccessDefault}
                 >
-                  {strings('earn.claim_bonus')}
+                  {strings('earn.musd_conversion.percentage_bonus', {
+                    percentage: MUSD_CONVERSION_APY,
+                  })}
                 </Text>
-              </Pressable>
-            ) : (
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                {strings('earn.musd_conversion.percentage_bonus', {
-                  percentage: MUSD_CONVERSION_APY,
-                })}
-              </Text>
-            )}
+              )}
+            </Box>
             <SensitiveText
               variant={CLTextVariant.BodySMMedium}
               color={CLTextColor.Alternative}

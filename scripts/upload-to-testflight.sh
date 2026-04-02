@@ -4,13 +4,14 @@
 # This script can be used in both Bitrise and GitHub Actions workflows
 #
 # Usage:
-#   ./scripts/upload-to-testflight.sh <pipeline_name> <branch> [ipa_path] [testflight_group]
+#   ./scripts/upload-to-testflight.sh <pipeline_name> <branch> [ipa_path] [testflight_group] [distribute_external]
 #
 # Arguments:
-#   pipeline_name    - Pipeline or workflow name (required)
-#   branch           - Git branch name (required)
-#   ipa_path         - Optional: Direct path to IPA file (if not provided, uses find-ipa-file.sh)
-#   testflight_group - Optional: TestFlight external testing group name (default: MetaMask BETA & Release Candidates)
+#   pipeline_name       - Pipeline or workflow name (required)
+#   branch              - Git branch name (required)
+#   ipa_path            - Optional: Direct path to IPA file (if not provided, uses find-ipa-file.sh)
+#   testflight_group    - Optional: TestFlight external testing group name (default: MetaMask BETA & Release Candidates)
+#   distribute_external - Optional: Whether to distribute to external testers (default: true)
 #
 # Environment variables:
 #   IPA_PATH - IPA path (set by find-ipa-file.sh if not provided as argument)
@@ -27,6 +28,7 @@ PIPELINE_NAME="$1"
 BRANCH="$2"
 LOCAL_IPA_PATH="$3"
 TESTFLIGHT_GROUP="${4:-MetaMask BETA & Release Candidates}"
+DISTRIBUTE_EXTERNAL="${5:-true}"
 
 # Get IPA path: use argument if provided, otherwise use find-ipa-file.sh
 if [ -n "$LOCAL_IPA_PATH" ]; then
@@ -74,5 +76,6 @@ cd ios
 bundle exec fastlane upload_to_testflight_only \
   ipa_path:"$IPA_PATH" \
   groups:"$TESTFLIGHT_GROUP" \
-  changelog:"$CHANGELOG"
+  changelog:"$CHANGELOG" \
+  distribute_external:"$DISTRIBUTE_EXTERNAL"
 

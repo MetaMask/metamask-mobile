@@ -1,11 +1,13 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import NavigationService from '../../../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
+import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 
 jest.mock('../../../../../core/NavigationService', () => {
   const mockNavigate = jest.fn();
@@ -65,12 +67,30 @@ jest.mock('../../../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
   useMusdConversionFlowData: () => mockUseMusdConversionFlowData,
 }));
 
+const mockClaimRewards = jest.fn();
+
+jest.mock(
+  '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: jest.fn(),
+  }),
+);
+
+const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
+
 describe('CashGetMusdEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMusdConversionFlowData.isEmptyWallet = false;
     mockUseMusdConversionFlowData.hasConvertibleTokens = true;
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+    });
   });
 
   it('renders container and Get mUSD button', () => {
@@ -138,6 +158,7 @@ describe('CashGetMusdEmptyState', () => {
       expect.objectContaining({
         location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
         cta_type: MUSD_EVENTS_CONSTANTS.MUSD_CTA_TYPES.PRIMARY,
+        cta_click_target: 'cta_button',
         cta_text: 'Get mUSD',
       }),
     );
@@ -156,6 +177,7 @@ describe('CashGetMusdEmptyState', () => {
       expect.objectContaining({
         location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MOBILE_TOKEN_LIST_PAGE,
         cta_type: MUSD_EVENTS_CONSTANTS.MUSD_CTA_TYPES.PRIMARY,
+        cta_click_target: 'cta_button',
         cta_text: 'Get mUSD',
       }),
     );
@@ -175,5 +197,92 @@ describe('CashGetMusdEmptyState', () => {
     expect(
       screen.getByTestId(CashGetMusdEmptyStateSelectors.ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('registers Merkl claim hook with home_cash_section on homepage', () => {
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+      }),
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
+  });
+
+  it('registers Merkl claim hook with mobile-token-list-page in full view', () => {
+    renderWithProvider(<CashGetMusdEmptyState isFullView />);
+
+    expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+      }),
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MOBILE_TOKEN_LIST_PAGE,
+    );
+  });
+
+  it('shows Claim bonus secondary button when claimable reward exists', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '12.34',
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+    });
+
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    const claimBtn = screen.getByTestId(
+      CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON,
+    );
+    expect(claimBtn).toBeOnTheScreen();
+    expect(claimBtn).toHaveTextContent(/Claim/);
+    // claimableReward 12.34 USD → user fiat via formatWithThreshold (locale-dependent separators)
+    expect(claimBtn).toHaveTextContent(/12[,.]34/);
+  });
+
+  it('hides Claim bonus button when no claimable reward', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+    });
+
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    expect(
+      screen.queryByTestId(CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON),
+    ).toBeNull();
+  });
+
+  it('calls claimRewards and tracks analytics when Claim bonus is pressed', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: '1.00',
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+    });
+
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    fireEvent.press(
+      screen.getByTestId(CashGetMusdEmptyStateSelectors.CLAIM_BONUS_BUTTON),
+    );
+
+    expect(mockClaimRewards).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+        action_type: 'claim_bonus',
+        button_text: expect.stringMatching(/Claim.*1\.00/),
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 });

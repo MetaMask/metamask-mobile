@@ -31,6 +31,27 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Avoid loading keyring-utils, keyring-api, and the network/Engine chain in this test
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
+jest.mock('../../../util/address', () => ({
+  isHardwareAccount: jest.fn(() => false),
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  EntropySourceId: {},
+  BtcMethod: {},
+  EthMethod: {},
+  SolAccountType: {},
+  SolMethod: {},
+  TrxMethod: {},
+  isEvmAccountType: jest.fn(),
+  KeyringAccountType: {},
+  EthScope: {},
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));

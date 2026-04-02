@@ -13,11 +13,11 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 
 import Spinner from '../../AnimatedSpinner';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import type { ThemeColors } from '@metamask/design-tokens';
 
@@ -44,6 +44,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     button: {
       alignSelf: 'center',
+      width: '90%',
     },
   });
 
@@ -79,13 +80,13 @@ const Loader = ({
       </Text>
       {!!errorText && (
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('app_settings.notifications_dismiss_modal')}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Md}
-          width={'90%' as ButtonWidthTypes}
           onPress={onDismiss}
           style={styles.button}
-        />
+        >
+          {strings('app_settings.notifications_dismiss_modal')}
+        </Button>
       )}
     </View>
   );

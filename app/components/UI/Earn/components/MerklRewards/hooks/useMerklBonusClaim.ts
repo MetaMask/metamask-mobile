@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../../../Tokens/types';
@@ -21,6 +21,8 @@ export interface MerklClaimData {
   claimableReward: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
+  /** Set when the last claim attempt failed (e.g. no reward data, network). */
+  error: string | null;
   claimRewards: () => Promise<
     | {
         txHash: string;
@@ -34,6 +36,7 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimableReward: null,
   hasPendingClaim: false,
   isClaiming: false,
+  error: null,
   claimRewards: async () => undefined,
 };
 
@@ -96,16 +99,41 @@ export const useMerklBonusClaim = (
 
   const eligibleAsset = isEligible ? asset : undefined;
 
-  const { claimableReward, hasClaimedBefore } = useMerklRewards({
-    asset: eligibleAsset,
-  });
+  const { claimableReward, hasClaimedBefore, rewardsFetchVersion } =
+    useMerklRewards({
+      asset: eligibleAsset,
+    });
   const { hasPendingClaim } = usePendingMerklClaim();
-  const { claimRewards, isClaiming } = useMerklClaimTransaction(eligibleAsset);
+  const {
+    claimRewards,
+    isClaiming,
+    error: claimError,
+  } = useMerklClaimTransaction(eligibleAsset);
+  const [claimLockFetchVersion, setClaimLockFetchVersion] = useState<
+    number | null
+  >(null);
+  const latestRewardsFetchVersionRef = useRef(rewardsFetchVersion);
+  useEffect(() => {
+    latestRewardsFetchVersionRef.current = rewardsFetchVersion;
+  }, [rewardsFetchVersion]);
+  const isClaimLocked =
+    claimLockFetchVersion !== null &&
+    claimLockFetchVersion === rewardsFetchVersion;
+
+  const claimRewardsWithSessionLock = useCallback(async () => {
+    const claimResult = await claimRewards();
+    // Keep CTA hidden until the next rewards refetch resolves.
+    if (claimResult) {
+      setClaimLockFetchVersion(latestRewardsFetchVersionRef.current);
+    }
+    return claimResult;
+  }, [claimRewards]);
 
   const hasClaimableBonus =
     isEligible &&
     isClaimableBonusAboveThreshold(claimableReward) &&
-    !hasPendingClaim;
+    !hasPendingClaim &&
+    !isClaimLocked;
 
   const hasFiredCtaAvailableEvent = useRef(false);
 
@@ -152,12 +180,22 @@ export const useMerklBonusClaim = (
     }
 
     return {
-      claimableReward: isClaimableBonusAboveThreshold(claimableReward)
-        ? claimableReward
-        : null,
+      claimableReward:
+        !isClaimLocked && isClaimableBonusAboveThreshold(claimableReward)
+          ? claimableReward
+          : null,
       hasPendingClaim,
-      claimRewards,
+      claimRewards: claimRewardsWithSessionLock,
       isClaiming,
+      error: claimError,
     };
-  }, [isEligible, claimableReward, hasPendingClaim, claimRewards, isClaiming]);
+  }, [
+    isEligible,
+    claimableReward,
+    hasPendingClaim,
+    claimRewardsWithSessionLock,
+    isClaiming,
+    claimError,
+    isClaimLocked,
+  ]);
 };

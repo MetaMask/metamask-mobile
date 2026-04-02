@@ -60,6 +60,7 @@ interface KeypadButtonProps {
   onPress?: () => void;
   isDisabled?: boolean;
   boxWrapperProps?: BoxProps;
+  testID?: string;
 }
 
 const KeypadButton: React.FC<KeypadButtonProps> = ({

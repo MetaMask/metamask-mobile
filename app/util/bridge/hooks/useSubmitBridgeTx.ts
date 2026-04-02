@@ -8,11 +8,30 @@ import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { selectAbTestContext } from '../../../core/redux/slices/bridge';
+import { useABTest } from '../../../hooks';
+import {
+  NUMPAD_QUICK_ACTIONS_AB_KEY,
+  NUMPAD_QUICK_ACTIONS_VARIANTS,
+} from '../../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+} from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
+import { useMemo } from 'react';
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const abTestContext = useSelector(selectAbTestContext);
+  const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
+    useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
+  const {
+    variantName: tokenSelectorVariantName,
+    isActive: isTokenSelectorAbActive,
+  } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -20,6 +39,30 @@ export default function useSubmitBridgeTx() {
           abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
       }
     : undefined;
+  const activeAbTests = useMemo(() => {
+    const tests: { key: string; value: string }[] = [];
+
+    if (isNumpadAbActive) {
+      tests.push({
+        key: NUMPAD_QUICK_ACTIONS_AB_KEY,
+        value: numpadVariantName,
+      });
+    }
+
+    if (isTokenSelectorAbActive) {
+      tests.push({
+        key: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+        value: tokenSelectorVariantName,
+      });
+    }
+
+    return tests.length > 0 ? tests : undefined;
+  }, [
+    isNumpadAbActive,
+    numpadVariantName,
+    isTokenSelectorAbActive,
+    tokenSelectorVariantName,
+  ]);
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -40,6 +83,7 @@ export default function useSubmitBridgeTx() {
         accountAddress: walletAddress,
         location,
         abTests,
+        activeAbTests,
       });
     }
     return Engine.context.BridgeStatusController.submitTx(
@@ -52,6 +96,7 @@ export default function useSubmitBridgeTx() {
       undefined, // quotesReceivedContext
       location,
       abTests,
+      activeAbTests,
     );
   };
 

@@ -5,7 +5,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   Caip25EndowmentPermissionName,
@@ -22,7 +22,7 @@ export interface PermissionApprovalProps {
 }
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);

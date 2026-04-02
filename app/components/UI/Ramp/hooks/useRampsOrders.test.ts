@@ -2,8 +2,22 @@ import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
+import { AccountGroupType } from '@metamask/account-api';
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { useRampsOrders } from './useRampsOrders';
+
+const RAMP_HOOKS_TEST_WALLET_ID = 'keyring:use-ramps-orders-test' as const;
+const RAMP_HOOKS_TEST_GROUP_ID =
+  `${RAMP_HOOKS_TEST_WALLET_ID}/ethereum` as const;
+const RAMP_HOOKS_TEST_ACCOUNT_ID = 'account-rh-1';
+/** Must be a valid EVM address (20 bytes) so `areAddressesEqual` treats it as EVM. */
+const RAMP_HOOKS_TEST_ADDRESS = '0x2990079bcdee240329a520d2444386fc119da21a';
+
+const rampHooksTestInternalAccount = {
+  ...createMockInternalAccount(RAMP_HOOKS_TEST_ADDRESS, 'Test'),
+  id: RAMP_HOOKS_TEST_ACCOUNT_ID,
+};
 
 const mockAddOrder = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
@@ -35,7 +49,7 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
   createdAt: Date.now(),
   totalFeesFiat: 5,
   txHash: '0xabc',
-  walletAddress: '0x123',
+  walletAddress: RAMP_HOOKS_TEST_ADDRESS,
   status: RampsOrderStatus.Completed,
   network: { name: 'Ethereum', chainId: 'eip155:1' },
   canBeUpdated: false,
@@ -53,6 +67,45 @@ const createMockStore = (orders: RampsOrder[] = []) =>
         backgroundState: {
           RampsController: {
             orders,
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                [RAMP_HOOKS_TEST_WALLET_ID]: {
+                  id: RAMP_HOOKS_TEST_WALLET_ID,
+                  metadata: { name: 'Test wallet' },
+                  groups: {
+                    [RAMP_HOOKS_TEST_GROUP_ID]: {
+                      id: RAMP_HOOKS_TEST_GROUP_ID,
+                      type: AccountGroupType.SingleAccount,
+                      accounts: [RAMP_HOOKS_TEST_ACCOUNT_ID],
+                      metadata: { name: 'Test Group' },
+                    },
+                  },
+                },
+              },
+            },
+            selectedAccountGroup: RAMP_HOOKS_TEST_GROUP_ID,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [RAMP_HOOKS_TEST_ACCOUNT_ID]: rampHooksTestInternalAccount,
+              },
+              selectedAccount: RAMP_HOOKS_TEST_ACCOUNT_ID,
+            },
+          },
+          KeyringController: {
+            keyrings: [],
           },
         },
       }),
@@ -78,7 +131,7 @@ describe('useRampsOrders', () => {
     expect(result.current.orders).toEqual([]);
   });
 
-  it('returns orders from the store', () => {
+  it('returns orders from the store when walletAddress matches the selected account group', () => {
     const order = createMockOrder();
     const store = createMockStore([order]);
     const { result } = renderHook(() => useRampsOrders(), {
@@ -86,6 +139,19 @@ describe('useRampsOrders', () => {
     });
 
     expect(result.current.orders).toEqual([order]);
+  });
+
+  it('excludes orders whose walletAddress is not in the selected account group', () => {
+    const foreignOrder = createMockOrder({
+      providerOrderId: 'foreign-order',
+      walletAddress: '0x0000000000000000000000000000000000000001',
+    });
+    const store = createMockStore([foreignOrder]);
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(result.current.orders).toEqual([]);
   });
 
   it('finds an order by providerOrderId', () => {

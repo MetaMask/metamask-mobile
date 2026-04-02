@@ -17,7 +17,11 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockPopularTokens = [
-  createMockPopularToken({ symbol: 'TEST', name: 'Test Token' }),
+  createMockPopularToken({
+    symbol: 'TEST',
+    name: 'Test Token',
+    isVerified: true,
+  }),
   createMockPopularToken({
     symbol: 'ANOT',
     name: 'Another Token',
@@ -53,6 +57,7 @@ describe('usePopularTokens', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.popularTokens).toEqual(mockPopularTokens);
+      expect(result.current.popularTokens[0].isVerified).toBe(true);
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/getTokens/popular'),

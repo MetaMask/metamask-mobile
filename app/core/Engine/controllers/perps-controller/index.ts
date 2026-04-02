@@ -3,10 +3,12 @@ import {
   PerpsController,
   PerpsControllerMessenger,
   getDefaultPerpsControllerState,
-  parseCommaSeparatedString,
 } from '@metamask/perps-controller';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
-import { createMobileInfrastructure } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
+import {
+  createMobileInfrastructure,
+  createMobileClientConfig,
+} from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
 
 /**
  * Initialize the PerpsController.
@@ -23,34 +25,11 @@ export const perpsControllerInit: ControllerInitFunction<
   const perpsControllerState =
     persistedState.PerpsController ?? getDefaultPerpsControllerState();
 
-  // Pass fallback HIP-3 values from local env vars
-  // PerpsController will try to read remote feature flags on construction
-  // and subscribe to updates via RemoteFeatureFlagController:stateChange
   const controller = new PerpsController({
     messenger: controllerMessenger,
     state: perpsControllerState,
     infrastructure: createMobileInfrastructure(),
-    clientConfig: {
-      fallbackBlockedRegions: parseCommaSeparatedString(
-        process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
-      ),
-      fallbackHip3Enabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
-      fallbackHip3AllowlistMarkets: parseCommaSeparatedString(
-        process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? '',
-      ),
-      fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
-        process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
-      ),
-      myxProviderEnabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
-      myxAppIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
-      myxApiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
-      myxBrokerAddressTestnet:
-        process.env.MM_PERPS_MYX_BROKER_ADDRESS_TESTNET ?? '',
-      myxAppIdMainnet: process.env.MM_PERPS_MYX_APP_ID_MAINNET ?? '',
-      myxApiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
-      myxBrokerAddressMainnet:
-        process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
-    },
+    clientConfig: createMobileClientConfig(),
   });
 
   // Apply E2E mocks if configured via bridge

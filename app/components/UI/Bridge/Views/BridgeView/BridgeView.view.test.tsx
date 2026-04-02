@@ -18,7 +18,10 @@ import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/Bridge
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  RequestStatus,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
@@ -197,8 +200,42 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText('dest')).toBeOnTheScreen();
   });
 
+  describe('Gasless swap', () => {
+    it('shows error banner when gasless swap quote fetch fails', async () => {
+      const now = Date.now();
+
+      const { findByText } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RETRY,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                gasFeesSponsoredNetwork: { '0x1': true },
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      expect(
+        await findByText(strings('bridge.quote_stream_complete_retry')),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24744" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
       const now = Date.now();
       const quoteWithGasIncluded = {
@@ -238,6 +275,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#25256" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
       jest
         .spyOn(Engine.context.AuthenticationController, 'getBearerToken')
@@ -407,6 +445,7 @@ describeForPlatforms('BridgeView', () => {
       fetchSpy.mockRestore();
     }, 25000);
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24865" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows native token in source area when source is native token from token details (#24865)', () => {
       const bnbChainId = '0x38';
       const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
@@ -434,6 +473,7 @@ describeForPlatforms('BridgeView', () => {
       expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24802" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
       const bnbChainIdHex = '0x38';
 

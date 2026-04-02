@@ -1,7 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -41,6 +46,7 @@ import MultichainTransactionsView from '../../../Views/MultichainTransactionsVie
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -72,6 +78,8 @@ const TokenDetails: React.FC<{
 }> = ({ token, onMarketInsightsDisplayResolved }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
+    useState(false);
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -154,11 +162,24 @@ const TokenDetails: React.FC<{
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const { onBuy, onSend, onReceive, goToSwaps, hasEligibleSwapTokens } =
-    useTokenActions({
-      token,
-      networkName,
-    });
+  const {
+    onBuy,
+    onSend,
+    onReceive,
+    goToSwaps,
+    handleStickySwapPress,
+    hasEligibleSwapTokens,
+  } = useTokenActions({
+    token,
+    networkName,
+    currentTokenBalance: balance,
+  });
+
+  // Swaps view should always scroll to top when navigating from the token details view
+  const goToSwapsFromDetails = useCallback(
+    () => goToSwaps(undefined, undefined, undefined, true),
+    [goToSwaps],
+  );
 
   const {
     transactions,
@@ -216,7 +237,7 @@ const TokenDetails: React.FC<{
         onBuy={onBuy}
         onSend={onSend}
         onReceive={onReceive}
-        goToSwaps={goToSwaps}
+        goToSwaps={goToSwapsFromDetails}
         onMarketInsightsDisplayResolved={
           onMarketInsightsDisplayResolved
             ? (isDisplayed: boolean) =>
@@ -225,6 +246,9 @@ const TokenDetails: React.FC<{
                   severity: securityData?.resultType,
                 })
             : undefined
+        }
+        onMarketInsightsDisclaimerPress={() =>
+          setIsInsightsDisclaimerVisible(true)
         }
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
@@ -301,8 +325,13 @@ const TokenDetails: React.FC<{
           token={token}
           securityData={securityData}
           onBuy={onBuy}
-          goToSwaps={goToSwaps}
+          onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
+        />
+      )}
+      {isInsightsDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
     </View>
@@ -317,7 +346,6 @@ const TokenDetails: React.FC<{
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { variantName, isTestActive } = useTokenDetailsABTest();
-  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
   return useCallback(
@@ -343,7 +371,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
 
       const isFromTokenList =
         source === TokenDetailsSource.MobileTokenList ||
-        source === TokenDetailsSource.MobileTokenListPage;
+        source === TokenDetailsSource.MobileTokenListPage ||
+        source === TokenDetailsSource.HomeSection;
 
       const eventProperties = {
         source,
@@ -355,16 +384,9 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
         // A/B test attribution — each experiment is independent
-        ...((isTestActive || isFromTokenList) && {
+        ...(isTestActive && {
           ab_tests: {
-            ...(isTestActive && {
-              assetsASSETS2493AbtestTokenDetailsLayout: variantName,
-            }),
-            ...(isFromTokenList && {
-              assetsASSETS2621AbtestTokenListLayout: isTokenListV2
-                ? 'v2'
-                : 'v1',
-            }),
+            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
           },
         }),
       };
@@ -377,7 +399,6 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
     [
       createEventBuilder,
       isTestActive,
-      isTokenListV2,
       params.address,
       params.balance,
       params.chainId,

@@ -134,7 +134,6 @@ function withRequest<ReturnValue>(
       'TransactionController:getTransactions',
       'TransactionController:updateTransaction',
       'RemoteFeatureFlagController:getState',
-      'ErrorReportingService:captureException',
     ],
     events: [
       'NetworkController:stateChange',
