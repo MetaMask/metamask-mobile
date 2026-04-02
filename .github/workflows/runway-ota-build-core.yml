@@ -161,25 +161,13 @@ jobs:
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
       - name: Trigger Push OTA Update workflow
-        uses: actions/github-script@v7
+        uses: ./.github/workflows/push-eas-update.yml
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const ref = '${{ inputs.source_branch || github.ref_name }}'.replace(/^refs\/heads\//, '');
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'push-eas-update.yml',
-              ref: ref,
-              inputs: {
-                pr_number: '${{ needs.decide.outputs.pr_number }}',
-                base_branch: '${{ needs.decide.outputs.base_ref }}',
-                message: '${{ needs.decide.outputs.ota_version }}',
-                channel: '${{ inputs.ota_channel }}',
-                platform: '${{ inputs.platform }}'
-              }
-            });
-            core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
+          pr_number: ${{ needs.decide.outputs.pr_number }}
+          base_branch: ${{ needs.decide.outputs.base_ref }}
+          message: ${{ needs.decide.outputs.ota_version }}
+          channel: ${{ inputs.ota_channel }}
+          platform: ${{ inputs.platform }}
 
       - name: Export release tag for OTA follow-up jobs
         id: release_tag
