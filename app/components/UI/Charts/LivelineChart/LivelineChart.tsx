@@ -5,17 +5,25 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet, { DEFAULT_CHART_HEIGHT } from './LivelineChart.styles';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../util/theme';
 import { createLivelineChartTemplate } from './LivelineChartTemplate';
 import {
   parseWebViewMessage,
   type LivelineChartProps,
   type RNToWebViewMessage,
 } from './LivelineChart.types';
+
+const DEFAULT_CHART_HEIGHT = 250;
 
 const LivelineChart: React.FC<LivelineChartProps> = ({
   // Data
@@ -83,10 +91,53 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
   onError,
   onHover,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, { height });
+  const tw = useTailwind();
+  const theme = useTheme();
   const webViewRef = useRef<WebView>(null);
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
+
+  const containerStyle = useMemo(
+    () =>
+      tw.style('w-full', {
+        height,
+        backgroundColor: theme.colors.background.default,
+      }),
+    [height, theme.colors.background.default, tw],
+  );
+
+  const webViewStyle = useMemo(
+    () =>
+      tw.style('flex-1', {
+        backgroundColor: theme.colors.background.default,
+      }),
+    [theme.colors.background.default, tw],
+  );
+
+  const overlayStyle = useMemo(
+    () =>
+      tw.style('absolute top-0 right-0 bottom-0 left-0', {
+        backgroundColor: theme.colors.background.default,
+      }),
+    [theme.colors.background.default, tw],
+  );
+
+  const errorTextStyle = useMemo(
+    () =>
+      tw.style({
+        color: theme.colors.error.default,
+        textAlign: 'center',
+      }),
+    [theme.colors.error.default, tw],
+  );
+
+  const loadingTextStyle = useMemo(
+    () =>
+      tw.style('mt-3', {
+        color: theme.colors.text.muted,
+      }),
+    [theme.colors.text.muted, tw],
+  );
 
   // Structural props that require a full WebView reload (baked into the HTML).
   // Data, value, series, loading, paused, emptyText, hiddenSeriesIds are sent
@@ -264,21 +315,27 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
 
   if (webViewError) {
     return (
-      <View testID="liveline-chart-error" style={styles.errorContainer}>
-        <Text variant={TextVariant.BodyMd} style={styles.errorText}>
+      <Box
+        testID="liveline-chart-error"
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        style={containerStyle}
+        twClassName="px-5"
+      >
+        <Text variant={TextVariant.BodyMd} style={errorTextStyle}>
           Failed to load chart: {webViewError}
         </Text>
-      </View>
+      </Box>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <Box style={containerStyle}>
       <WebView
         testID="liveline-chart-webview"
         ref={webViewRef}
         source={{ html: htmlContent }}
-        style={styles.webview}
+        style={webViewStyle}
         onMessage={handleMessage}
         onError={handleWebViewError}
         originWhitelist={['*']}
@@ -294,17 +351,22 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
       />
 
       {!isChartReady && (
-        <View testID="liveline-chart-loading" style={styles.loadingContainer}>
+        <Box
+          testID="liveline-chart-loading"
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          style={overlayStyle}
+        >
           <ActivityIndicator
             size="large"
             color={theme.colors.primary.default}
           />
-          <Text variant={TextVariant.BodySm} style={styles.loadingText}>
+          <Text variant={TextVariant.BodySm} style={loadingTextStyle}>
             Loading chart...
           </Text>
-        </View>
+        </Box>
       )}
-    </View>
+    </Box>
   );
 };
 
