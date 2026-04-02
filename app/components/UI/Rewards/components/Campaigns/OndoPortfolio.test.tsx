@@ -21,6 +21,69 @@ jest.mock('@react-navigation/native', () => ({
   StackActions: { push: jest.fn((name: string) => ({ type: 'push', name })) },
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => null),
+}));
+
+jest.mock('../../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: jest.fn(),
+    RewardsToastOptions: {
+      error: jest.fn((title: string, desc: string) => ({
+        type: 'error',
+        title,
+        desc,
+      })),
+    },
+  }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      AccountTreeController: { setSelectedAccountGroup: jest.fn() },
+    },
+  },
+}));
+
+jest.mock('../../../../../util/caip', () => ({
+  caipChainIdToHex: jest.fn(() => '0x1'),
+}));
+
+jest.mock('../../../Ramp/Aggregator/utils/parseCaip19AssetId', () => ({
+  parseCAIP19AssetId: jest.fn(() => ({
+    namespace: 'eip155',
+    chainId: '1',
+    assetReference: '0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+  })),
+}));
+
+jest.mock('../../../../../selectors/rewards', () => ({
+  selectCurrentSubscriptionAccounts: jest.fn(() => []),
+}));
+
+jest.mock('../../../../../selectors/tokenBalancesController', () => ({
+  selectAllTokenBalances: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectInternalAccountByAddresses: jest.fn(() => () => []),
+}));
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: jest.fn(() => ({})),
+    selectResolvedSelectedAccountGroup: jest.fn(() => null),
+  }),
+);
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectIconSeedAddressByAccountGroupId: jest.fn(() => jest.fn(() => null)),
+}));
+
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -172,6 +235,9 @@ const baseProps = {
   hasError: false,
   hasFetched: false,
   refetch: mockRefetch,
+  campaignId: 'campaign-1',
+  marketOpen: true,
+  onOpenAccountPicker: jest.fn(),
 };
 
 describe('OndoPortfolio', () => {

@@ -15,18 +15,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-jest.mock('./CampaignOptInSheet', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
-        testID: 'campaign-opt-in-sheet',
-      }),
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
@@ -72,6 +60,7 @@ describe('CampaignJoinCTA', () => {
       <CampaignJoinCTA
         campaign={buildCampaign()}
         participantStatus={defaultParticipant}
+        onOptInPress={jest.fn()}
       />,
     );
 
@@ -86,6 +75,7 @@ describe('CampaignJoinCTA', () => {
       <CampaignJoinCTA
         campaign={buildCampaign()}
         participantStatus={{ status: null, isLoading: true }}
+        onOptInPress={jest.fn()}
       />,
     );
 
@@ -100,6 +90,7 @@ describe('CampaignJoinCTA', () => {
           status: { optedIn: true, participantCount: 1 },
           isLoading: false,
         }}
+        onOptInPress={jest.fn()}
       />,
     );
 
@@ -114,6 +105,7 @@ describe('CampaignJoinCTA', () => {
           endDate: '2026-12-31T23:59:59.999Z',
         })}
         participantStatus={defaultParticipant}
+        onOptInPress={jest.fn()}
       />,
     );
 
@@ -130,22 +122,24 @@ describe('CampaignJoinCTA', () => {
           },
         })}
         participantStatus={defaultParticipant}
+        onOptInPress={jest.fn()}
       />,
     );
 
     expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
-  it('opens the opt-in sheet when the join button is pressed', () => {
-    const { getByTestId, queryByTestId } = render(
+  it('calls onOptInPress when the join button is pressed', () => {
+    const mockOnOptInPress = jest.fn();
+    const { getByTestId } = render(
       <CampaignJoinCTA
         campaign={buildCampaign()}
         participantStatus={defaultParticipant}
+        onOptInPress={mockOnOptInPress}
       />,
     );
 
-    expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
     fireEvent.press(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON));
-    expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+    expect(mockOnOptInPress).toHaveBeenCalledTimes(1);
   });
 });

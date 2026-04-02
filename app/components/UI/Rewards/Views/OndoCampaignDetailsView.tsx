@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import {
   useNavigation,
@@ -8,10 +14,13 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import {
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -20,6 +29,21 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
+import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
+import BottomSheet, {
+  type BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
+import TrendingTokenLogo from '../../Trending/components/TrendingTokenLogo';
+import Engine from '../../../../core/Engine';
+import { selectResolvedSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -28,8 +52,13 @@ import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
-import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
+import OndoPortfolio, {
+  AccountGroupSelectRow,
+  type AccountPickerConfig,
+  getChainHex,
+} from '../components/Campaigns/OndoPortfolio';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
+import CampaignOptInSheet from '../components/Campaigns/CampaignOptInSheet';
 import {
   getCampaignStatus,
   isOptinAllowed,
@@ -45,6 +74,7 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useSelector } from 'react-redux';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -65,11 +95,47 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<RewardsCampaignStackParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
+
+  const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
+  const [pendingPicker, setPendingPicker] =
+    useState<AccountPickerConfig | null>(null);
+  const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
+  const sheetRef = useRef<BottomSheetRef>(null);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      setPendingPicker(null);
+      setIsOptInSheetOpen(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleGroupSelect = useCallback(
+    (group: AccountGroupObject, balance: string) => {
+      if (!pendingPicker) return;
+      Engine.context.AccountTreeController.setSelectedAccountGroup(group.id);
+      sheetRef.current?.onCloseBottomSheet(() => {
+        const { row } = pendingPicker;
+        setPendingPicker(null);
+        navigation.navigate(
+          Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR as never,
+          {
+            mode: 'swap',
+            srcTokenAsset: row.tokenAsset,
+            srcTokenSymbol: row.tokenSymbol,
+            srcTokenName: row.tokenName,
+            srcTokenUnits: balance,
+            campaignId,
+          },
+        );
+      });
+    },
+    [pendingPicker, navigation, campaignId],
+  );
 
   const {
     campaigns,
@@ -369,6 +435,8 @@ const OndoCampaignDetailsView: React.FC = () => {
                       hasError={hasPortfolioError}
                       hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
+                      campaignId={campaignId}
+                      onOpenAccountPicker={setPendingPicker}
                     />
                   </Box>
                 </>
@@ -428,7 +496,96 @@ const OndoCampaignDetailsView: React.FC = () => {
               status: participantStatusData,
               isLoading: isParticipantStatusLoading,
             }}
+            onOptInPress={() => setIsOptInSheetOpen(true)}
           />
+        )}
+
+        {campaign && isOptInSheetOpen && (
+          <CampaignOptInSheet
+            campaign={campaign}
+            onClose={() => setIsOptInSheetOpen(false)}
+          />
+        )}
+
+        {pendingPicker && (
+          <BottomSheet
+            shouldNavigateBack={false}
+            onClose={() => setPendingPicker(null)}
+            ref={sheetRef}
+          >
+            <BottomSheetHeader
+              onClose={() =>
+                sheetRef.current?.onCloseBottomSheet(() =>
+                  setPendingPicker(null),
+                )
+              }
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {`${strings('rewards.ondo_campaign_portfolio.switch_account_sheet_prefix')} `}
+                </Text>
+                <BadgeWrapper
+                  position={BadgeWrapperPosition.BottomRight}
+                  badge={
+                    getChainHex(pendingPicker.row.tokenAsset) ? (
+                      <Badge
+                        variant={BadgeVariant.Network}
+                        size={AvatarSize.Xs}
+                        isScaled={false}
+                        imageSource={NetworkBadgeSource(
+                          getChainHex(pendingPicker.row.tokenAsset) as Hex,
+                        )}
+                      />
+                    ) : null
+                  }
+                >
+                  <TrendingTokenLogo
+                    assetId={pendingPicker.row.tokenAsset}
+                    symbol={pendingPicker.row.tokenSymbol}
+                    size={28}
+                  />
+                </BadgeWrapper>
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {` ${pendingPicker.row.tokenSymbol} ${pendingPicker.entries
+                    .reduce(
+                      (sum, e) => sum.plus(new BigNumber(e.balance)),
+                      new BigNumber(0),
+                    )
+                    .toFixed(2)}`}
+                </Text>
+              </Box>
+            </BottomSheetHeader>
+            <Box twClassName="px-4 pb-3">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings(
+                  'rewards.ondo_campaign_portfolio.switch_account_sheet_description',
+                )}
+              </Text>
+            </Box>
+            {pendingPicker.entries.map(({ group, balance }) => (
+              <AccountGroupSelectRow
+                key={group.id}
+                group={group}
+                balance={balance}
+                tokenSymbol={pendingPicker.row.tokenSymbol}
+                isSelected={group.id === selectedGroup?.id}
+                onPress={() => handleGroupSelect(group, balance)}
+              />
+            ))}
+          </BottomSheet>
         )}
       </SafeAreaView>
     </ErrorBoundary>

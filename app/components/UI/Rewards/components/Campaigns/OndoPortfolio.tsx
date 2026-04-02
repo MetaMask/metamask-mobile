@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import {
   BadgeWrapper,
   BadgeWrapperPosition,
@@ -17,9 +17,11 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Hex } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { parseCaipAccountId, Hex, type CaipChainId } from '@metamask/utils';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
+import { caipChainIdToHex } from '../../../../../util/caip';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import formatFiat from '../../../../../util/formatFiat';
@@ -27,12 +29,14 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { parseCAIP19AssetId } from '../../../Ramp/Aggregator/utils/parseCaip19AssetId';
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
-import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import type { OndoGmPortfolioDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  OndoGmPortfolioDto,
+  OndoGmPortfolioPositionDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
@@ -42,30 +46,31 @@ import {
   isPnlNonNegative,
 } from './OndoPortfolio.utils';
 import { formatComputedAt } from './OndoLeaderboard.utils';
+import { selectCurrentSubscriptionAccounts } from '../../../../../selectors/rewards';
+import { selectAllTokenBalances } from '../../../../../selectors/tokenBalancesController';
+import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
+import {
+  selectAccountToGroupMap,
+  selectResolvedSelectedAccountGroup,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
+import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
+import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
+import Engine from '../../../../../core/Engine';
+import useRewardsToast from '../../hooks/useRewardsToast';
 
-const getChainHex = (caip19: string): Hex | undefined => {
+const styles = StyleSheet.create({
+  skeletonLg: { height: 128, borderRadius: 12 },
+  skeletonMd: { height: 96, borderRadius: 12 },
+});
+
+export const getChainHex = (caip19: string) => {
   const parsed = parseCAIP19AssetId(caip19);
   if (!parsed || parsed.namespace !== 'eip155') return undefined;
-  return `0x${parseInt(parsed.chainId, 10).toString(16)}` as Hex;
-};
-
-const getAssetNavParams = (
-  tokenAsset: string,
-  tokenSymbol: string,
-  tokenName: string,
-) => {
-  const parsed = parseCAIP19AssetId(tokenAsset);
-  if (!parsed || parsed.namespace !== 'eip155') return null;
-  const chainId = `0x${parseInt(parsed.chainId, 10).toString(16)}` as Hex;
-  return {
-    chainId,
-    address: parsed.assetReference,
-    symbol: tokenSymbol,
-    name: tokenName,
-    image: getTrendingTokenImageUrl(tokenAsset),
-    isFromTrending: true,
-    source: TokenDetailsSource.Trending,
-  };
+  return caipChainIdToHex(
+    `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+  );
 };
 
 export const ONDO_PORTFOLIO_TEST_IDS = {
@@ -83,12 +88,68 @@ const formatUsd = (value: string): string => {
   }
 };
 
+export interface AccountPickerConfig {
+  row: OndoGmPortfolioPositionDto;
+  entries: { group: AccountGroupObject; balance: string }[];
+}
+
+interface AccountGroupSelectRowProps {
+  group: AccountGroupObject;
+  balance: string;
+  tokenSymbol: string;
+  isSelected: boolean;
+  onPress: () => void;
+}
+
+export const AccountGroupSelectRow: React.FC<AccountGroupSelectRowProps> = ({
+  group,
+  balance,
+  tokenSymbol,
+  isSelected,
+  onPress,
+}) => {
+  const selectEvmAddress = useMemo(
+    () => selectIconSeedAddressByAccountGroupId(group.id),
+    [group.id],
+  );
+  const evmAddress = useSelector(selectEvmAddress);
+
+  return (
+    <ListItemSelect
+      isSelected={isSelected}
+      isDisabled={false}
+      onPress={onPress}
+      verticalAlignment={VerticalAlignment.Center}
+    >
+      <AvatarAccount
+        accountAddress={evmAddress}
+        type={AvatarAccountType.Blockies}
+        size={AvatarSize.Md}
+      />
+      <Box twClassName="flex-1 min-w-0">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
+          {group.metadata.name}
+        </Text>
+      </Box>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {`${balance} ${tokenSymbol}`}
+      </Text>
+    </ListItemSelect>
+  );
+};
+
 interface OndoPortfolioProps {
   portfolio: OndoGmPortfolioDto | null;
   isLoading: boolean;
   hasError: boolean;
   hasFetched: boolean;
   refetch: () => Promise<void>;
+  campaignId: string;
+  onOpenAccountPicker: (config: AccountPickerConfig) => void;
 }
 
 const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
@@ -97,14 +158,176 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   hasError,
   hasFetched,
   refetch,
+  campaignId,
+  onOpenAccountPicker,
 }) => {
-  const tw = useTailwind();
   const navigation = useNavigation();
+  const { showToast, RewardsToastOptions } = useRewardsToast();
+
+  const showMarketClosedToast = useCallback(() => {
+    showToast(
+      RewardsToastOptions.error(
+        strings('rewards.ondo_campaign_market.market_closed'),
+        strings(
+          'rewards.ondo_campaign_portfolio.market_closed_toast_description',
+        ),
+      ),
+    );
+  }, [showToast, RewardsToastOptions]);
+
+  const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
+  const allTokenBalances = useSelector(selectAllTokenBalances);
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+  const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
+  const resolveAccountsByAddresses = useSelector(
+    selectInternalAccountByAddresses,
+  );
 
   const grouped = useMemo(
     () =>
       portfolio ? groupPortfolioPositionsByAsset(portfolio.positions) : [],
     [portfolio],
+  );
+
+  /** Returns InternalAccounts from the subscription that hold a non-zero balance of the given token. */
+  const getAccountsWithBalance = useCallback(
+    (row: OndoGmPortfolioPositionDto) => {
+      if (!subscriptionAccounts) return [];
+      const parsed = parseCAIP19AssetId(row.tokenAsset);
+      if (!parsed || parsed.namespace !== 'eip155') return [];
+      const chainHex = caipChainIdToHex(
+        `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+      );
+      const tokenHex = parsed.assetReference.toLowerCase() as Hex;
+      const addresses = subscriptionAccounts
+        .filter((a) => {
+          const address = parseCaipAccountId(a.account).address;
+          const bal =
+            allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
+              tokenHex
+            ];
+          return (
+            bal !== undefined && bal !== '0x0' && bal !== '0x00' && bal !== '0x'
+          );
+        })
+        .map((a) => parseCaipAccountId(a.account).address);
+      return resolveAccountsByAddresses(addresses);
+    },
+    [subscriptionAccounts, allTokenBalances, resolveAccountsByAddresses],
+  );
+
+  /** Returns unique AccountGroups that hold a non-zero balance of the given token. */
+  const getGroupsWithBalance = useCallback(
+    (row: OndoGmPortfolioPositionDto): AccountGroupObject[] => {
+      const accounts = getAccountsWithBalance(row);
+      const seenGroups = new Map<string, AccountGroupObject>();
+      for (const account of accounts) {
+        const group = accountToGroupMap[account.id];
+        if (group && !seenGroups.has(group.id)) {
+          seenGroups.set(group.id, group);
+        }
+      }
+      return Array.from(seenGroups.values());
+    },
+    [getAccountsWithBalance, accountToGroupMap],
+  );
+
+  /** Converts an account's on-chain hex balance to a human-readable decimal string (18 decimals). */
+  const getAccountBalance = useCallback(
+    (address: string, row: OndoGmPortfolioPositionDto): string => {
+      const parsed = parseCAIP19AssetId(row.tokenAsset);
+      if (!parsed || parsed.namespace !== 'eip155') return '0';
+      const chainHex = caipChainIdToHex(
+        `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+      );
+      const tokenHex = parsed.assetReference.toLowerCase() as Hex;
+      const hexBal =
+        allTokenBalances?.[address.toLowerCase() as Hex]?.[chainHex]?.[
+          tokenHex
+        ];
+      if (!hexBal) return '0';
+      try {
+        return new BigNumber(hexBal).shiftedBy(-18).toFixed(6);
+      } catch {
+        return '0';
+      }
+    },
+    [allTokenBalances],
+  );
+
+  /** Returns the total token balance held across all accounts in the group. */
+  const getGroupBalance = useCallback(
+    (group: AccountGroupObject, row: OndoGmPortfolioPositionDto): string => {
+      const accounts = getAccountsWithBalance(row);
+      const groupAccounts = accounts.filter(
+        (a) => accountToGroupMap[a.id]?.id === group.id,
+      );
+      let total = new BigNumber(0);
+      for (const account of groupAccounts) {
+        total = total.plus(
+          new BigNumber(getAccountBalance(account.address, row)),
+        );
+      }
+      return total.toFixed(6);
+    },
+    [getAccountsWithBalance, getAccountBalance, accountToGroupMap],
+  );
+
+  const navigateToSwap = useCallback(
+    (row: OndoGmPortfolioPositionDto, srcTokenUnits: string) => {
+      navigation.navigate(
+        Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR as never,
+        {
+          mode: 'swap',
+          srcTokenAsset: row.tokenAsset,
+          srcTokenSymbol: row.tokenSymbol,
+          srcTokenName: row.tokenName,
+          srcTokenUnits,
+          campaignId,
+        },
+      );
+    },
+    [navigation, campaignId],
+  );
+
+  const handleRowPress = useCallback(
+    (row: OndoGmPortfolioPositionDto) => {
+      const groupsForRow = getGroupsWithBalance(row);
+
+      if (groupsForRow.length === 0) {
+        // No group has balance — proceed directly; bridge will show correct state
+        navigateToSwap(row, row.units);
+        return;
+      }
+      if (groupsForRow.length === 1) {
+        const [group] = groupsForRow;
+        if (group.id !== selectedGroup?.id) {
+          Engine.context.AccountTreeController.setSelectedAccountGroup(
+            group.id,
+          );
+        }
+        const groupBalance = getGroupBalance(group, row);
+        navigateToSwap(row, groupBalance);
+        return;
+      }
+
+      // Multiple groups hold this token — delegate picker to parent
+      const groups = getGroupsWithBalance(row);
+      onOpenAccountPicker({
+        row,
+        entries: groups.map((group) => ({
+          group,
+          balance: getGroupBalance(group, row),
+        })),
+      });
+    },
+    [
+      getGroupsWithBalance,
+      getGroupBalance,
+      selectedGroup,
+      navigateToSwap,
+      onOpenAccountPicker,
+    ],
   );
 
   const showSkeleton =
@@ -140,9 +363,9 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
             {strings('rewards.ondo_campaign_portfolio.title')}
           </Text>
         </Box>
-        <Skeleton style={tw.style('h-32 rounded-xl')} />
-        <Skeleton style={tw.style('h-24 rounded-xl')} />
-        <Skeleton style={tw.style('h-24 rounded-xl')} />
+        <Skeleton style={styles.skeletonLg} />
+        <Skeleton style={styles.skeletonMd} />
+        <Skeleton style={styles.skeletonMd} />
       </Box>
     );
   }
@@ -158,9 +381,12 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           description={strings(
             'rewards.ondo_campaign_portfolio.empty_description',
           )}
-          onConfirm={() =>
-            navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never)
-          }
+          onConfirm={() => {
+            navigation.navigate(
+              Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR as never,
+              { mode: 'open_position', campaignId },
+            );
+          }}
           confirmButtonLabel={strings(
             'rewards.ondo_campaign_portfolio.empty_cta',
           )}
@@ -179,8 +405,12 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       <TouchableOpacity
         onPress={
           grouped.length > 0
-            ? () =>
-                navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never)
+            ? () => {
+                navigation.navigate(
+                  Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR as never,
+                  { mode: 'open_position', campaignId },
+                );
+              }
             : undefined
         }
         activeOpacity={grouped.length > 0 ? 0.7 : 1}
@@ -222,22 +452,13 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
             ? TextColor.SuccessDefault
             : TextColor.ErrorDefault;
           const rowPnlPercent = formatPnlPercent(row.unrealizedPnlPercent);
-          const assetNavParams = getAssetNavParams(
-            row.tokenAsset,
-            row.tokenSymbol,
-            row.tokenName,
-          );
           return (
             <TouchableOpacity
               key={row.tokenAsset}
               onPress={() => {
-                if (assetNavParams) {
-                  navigation.dispatch(
-                    StackActions.push('Asset', assetNavParams),
-                  );
-                }
+                handleRowPress(row);
               }}
-              activeOpacity={assetNavParams ? 0.7 : 1}
+              activeOpacity={0.7}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}

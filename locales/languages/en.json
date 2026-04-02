@@ -8052,7 +8052,25 @@
       "empty": "No positions found yet.",
       "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
       "empty_cta": "Open a position",
-      "position_units": "{{units}} shares"
+      "empty_cta_market_closed": "Open Position (market closed)",
+      "position_units": "{{units}} shares",
+      "switch_account_title": "Switch account",
+      "switch_account_sheet_prefix": "Accounts with",
+      "switch_account_sheet_description": "Choose which balance to swap",
+      "market_closed_toast_description": "Trading is unavailable outside of market hours."
+    },
+    "ondo_rwa_asset_selector": {
+      "title_swap": "Swap {{symbol}}",
+      "title_swap_prefix": "Swap",
+      "title_open_position": "Open Position",
+      "search_placeholder": "Search assets",
+      "no_results": "No assets found"
+    },
+    "ondo_campaign_market": {
+      "market_open": "Market open",
+      "market_closed": "Market closed",
+      "market_opens_in": "Opens in {{countdown}}",
+      "market_closes_in": "Closes in {{countdown}}"
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
