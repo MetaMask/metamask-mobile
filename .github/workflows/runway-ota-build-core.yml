@@ -42,11 +42,11 @@ on:
         required: false
         type: boolean
         default: false
-      ios_testflight_summary_title:
-        description: 'Step summary heading when upload_testflight is true'
+      environment:
+        description: 'Build environment / track passed to upload-to-testflight (e.g. rc, prod)'
         required: false
         type: string
-        default: 'Runway iOS RC'
+        default: 'rc'
       skip_version_bump:
         description: >-
           If true, build.yml skips update-latest-build-version. Android Runway entry workflows set
@@ -202,88 +202,18 @@ jobs:
       checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
-  testflight-upload-summary:
-    name: TestFlight upload summary
-    needs: [trigger-build]
-    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.source_branch || github.ref }}
-      - name: Display TestFlight upload summary
-        run: |
-          BUILD_VERSION=$(node -p "require('./package.json').version")
-          {
-            echo "### 📲 TestFlight Upload (${{ inputs.ios_testflight_summary_title }})"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Ref** | ${{ inputs.source_branch || github.ref_name }} |"
-            echo "| **Build name** | ${{ inputs.build_name }} |"
-            echo "| **Build version** | ${BUILD_VERSION} |"
-            echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   upload-ios-testflight:
     name: Upload iOS to TestFlight
-    needs: [trigger-build, testflight-upload-summary]
+    needs: [decide, trigger-build]
     if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: apple
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.source_branch || github.ref }}
-
-      - name: Setup Ruby (iOS)
-        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
-        with:
-          ruby-version: '3.2.9'
-          working-directory: ios
-          bundler-cache: true
-
-      - name: Download iOS build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-ipa-${{ inputs.build_name }}
-
-      - name: Find IPA path
-        id: ipa
-        run: |
-          IPA=$(find . -name '*.ipa' -type f | head -1)
-          if [ -z "$IPA" ]; then
-            echo "::error::No .ipa file found in artifact"
-            exit 1
-          fi
-          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
-          echo "path=$ABS" >> "$GITHUB_OUTPUT"
-
-      - name: Setup App Store Connect API Key
-        run: |
-          bash scripts/setup-app-store-connect-api-key.sh \
-            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
-            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
-            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
-
-      - name: Upload to TestFlight
-        run: |
-          bash scripts/upload-to-testflight.sh \
-            "github_actions_${{ inputs.build_name }}" \
-            "${{ inputs.source_branch || github.ref_name }}" \
-            "${{ steps.ipa.outputs.path }}" \
-            "" \
-            "false"
-
-      - name: Cleanup API Key
-        if: always()
-        run: |
-          rm -f ios/AuthKey.p8
-          echo "🧹 Cleaned up API key file"
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      environment: ${{ inputs.environment }}
+      build_name: ${{ inputs.build_name }}
+      summary_logical_source_branch: ${{ inputs.source_branch || github.ref_name }}
+      summary_build_ref: ${{ needs.trigger-build.outputs.checkout_ref }}
+      summary_build_version: ${{ needs.trigger-build.outputs.semantic_version }}
+      summary_android_version_code: ${{ needs.trigger-build.outputs.android_version_code }}
+      summary_built_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+    secrets: inherit
