@@ -2909,8 +2909,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyHomeScreenEnabled: {
-    name: 'moneyHomeScreenEnabled',
+  moneyEnableMoneyAccount: {
+    name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
@@ -2920,8 +2920,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyEnableMoneyAccount: {
-    name: 'moneyEnableMoneyAccount',
+  moneyHomeScreenEnabled: {
+    name: 'moneyHomeScreenEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
