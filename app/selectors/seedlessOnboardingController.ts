@@ -35,9 +35,3 @@ export const selectIsSeedlessPasswordOutdated = createSelector(
     seedlessOnboardingControllerState?.passwordOutdatedCache?.isExpiredPwd ===
     true,
 );
-
-export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
-  (state: RootState) => state.onboarding,
-  (onboarding) =>
-    onboarding?.pendingSocialLoginMarketingConsentBackfill ?? null,
-);

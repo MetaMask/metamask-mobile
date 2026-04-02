@@ -8,7 +8,7 @@ import { updateDataRecordingFlag } from '../../util/analytics/analyticsDataDelet
 import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onboarding';
 import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
-import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selectors/seedlessOnboardingController';
+import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selectors/onboarding';
 import { UserActionType } from '../../actions/user';
 import OAuthService from '../../core/OAuthService/OAuthService';
 import { setDataCollectionForMarketing } from '../../actions/security';
