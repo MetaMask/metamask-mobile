@@ -1121,7 +1121,7 @@ const Onboarding = () => {
 
           {existingUser && !loading && (
             <Box twClassName="mb-10 -mt-10">
-              <TextButton onPress={onLogin} isInverse>
+              <TextButton onPress={onLogin}>
                 {strings('onboarding.unlock')}
               </TextButton>
             </Box>

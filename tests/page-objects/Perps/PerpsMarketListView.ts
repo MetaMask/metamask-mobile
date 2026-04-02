@@ -1,5 +1,6 @@
 import {
   PerpsMarketListViewSelectorsIDs,
+  PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
@@ -10,6 +11,7 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { encapsulatedAction, PlaywrightGestures } from '../../framework';
 
 class PerpsMarketListView {
   // Main container
@@ -43,6 +45,17 @@ class PerpsMarketListView {
       detox: () =>
         Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER),
       appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketListViewSelectorsIDs.LIST_HEADER,
+          { exact: true },
+        ),
+    });
+  }
+
+  get header(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () =>
+        // TODO: Create a testIds.ts const with this selector
         PlaywrightMatchers.getElementById('perps-home', { exact: true }),
     });
   }
@@ -122,8 +135,21 @@ class PerpsMarketListView {
 
   // Helper method to select a specific market by text
   async selectMarket(marketName: string) {
-    const marketElement = Matchers.getElementByText(marketName);
-    await Gestures.waitAndTap(marketElement);
+    await encapsulatedAction({
+      detox: async () => {
+        const marketElement = Matchers.getElementByText(marketName);
+        await Gestures.waitAndTap(marketElement);
+      },
+      appium: async () => {
+        // TODO: Create a testIds.ts const with this selector
+        const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
+        const marketElement = await PlaywrightMatchers.getElementById(
+          marketSelector,
+          { exact: true },
+        );
+        await PlaywrightGestures.waitAndTap(marketElement);
+      },
+    });
   }
 }
 
