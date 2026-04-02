@@ -43,7 +43,6 @@ export const keyringControllerInit: ControllerInitFunction<
   initialKeyringState,
   qrKeyringScanner,
   getController,
-  getState,
 }) => {
   const { remoteFeatureFlags } = getController(
     'RemoteFeatureFlagController',
