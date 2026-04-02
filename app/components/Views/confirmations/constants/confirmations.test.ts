@@ -16,8 +16,8 @@ describe('confirmation constants', () => {
     );
   });
 
-  it('includes perps withdraw in redesigned transaction types', () => {
-    expect(REDESIGNED_TRANSACTION_TYPES).toContain(
+  it('does not include perps withdraw in redesigned transaction types (uses FULL_SCREEN_CONFIRMATIONS instead)', () => {
+    expect(REDESIGNED_TRANSACTION_TYPES).not.toContain(
       TransactionType.perpsWithdraw,
     );
   });

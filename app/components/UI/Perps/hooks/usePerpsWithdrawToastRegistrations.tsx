@@ -170,7 +170,11 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
         });
       }
     },
-    [theme.colors.accent04.normal, theme.colors.error.default, theme.colors.success.default],
+    [
+      theme.colors.accent04.normal,
+      theme.colors.error.default,
+      theme.colors.success.default,
+    ],
   );
 
   return useMemo(

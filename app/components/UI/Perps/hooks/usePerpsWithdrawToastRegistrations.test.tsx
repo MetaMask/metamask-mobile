@@ -9,31 +9,29 @@ import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 
-const MOCK_THEME = {
-  colors: {
-    success: { default: '#28a745' },
-    error: { default: '#dc3545' },
-    accent04: { normal: '#ffeeba' },
-  },
-};
-
 jest.mock('../../../../util/theme', () => ({
   ...jest.requireActual('../../../../util/theme'),
-  useAppThemeFromContext: () => MOCK_THEME,
+  useAppThemeFromContext: () => ({
+    colors: {
+      success: { default: 'successDefault' },
+      error: { default: 'errorDefault' },
+      accent04: { normal: 'accent04Normal' },
+    },
+  }),
+}));
+
+const mockGetState = jest.fn(() => ({
+  engine: {
+    backgroundState: {
+      TransactionController: { transactions: [] },
+      TokensController: { allTokens: {} },
+      NetworkController: { networkConfigurationsByChainId: {} },
+    },
+  },
 }));
 
 jest.mock('../../../../store', () => ({
-  store: {
-    getState: jest.fn(() => ({
-      engine: {
-        backgroundState: {
-          TransactionController: { transactions: [] },
-          TokensController: { allTokens: {} },
-          NetworkController: { networkConfigurationsByChainId: {} },
-        },
-      },
-    })),
-  },
+  store: { getState: () => mockGetState() },
 }));
 
 describe('usePerpsWithdrawToastRegistrations', () => {
@@ -45,9 +43,7 @@ describe('usePerpsWithdrawToastRegistrations', () => {
   });
 
   function getHandler() {
-    const { result } = renderHook(() =>
-      usePerpsWithdrawToastRegistrations(),
-    );
+    const { result } = renderHook(() => usePerpsWithdrawToastRegistrations());
     expect(result.current).toHaveLength(1);
     expect(result.current[0].eventName).toBe(
       'TransactionController:transactionStatusUpdated',
@@ -171,6 +167,172 @@ describe('usePerpsWithdrawToastRegistrations', () => {
           id: 'tx-5',
           type: TransactionType.simpleSend,
           status: TransactionStatus.approved,
+        } as TransactionMeta,
+      },
+      mockShowToast,
+    );
+
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('shows success toast with post-quote token and amount', () => {
+    mockGetState.mockReturnValueOnce({
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                id: 'tx-pq',
+                metamaskPay: {
+                  isPostQuote: true,
+                  targetFiat: '0.25',
+                  chainId: '0xa4b1',
+                  tokenAddress: '0xtoken',
+                },
+              },
+            ],
+          },
+          TokensController: {
+            allTokens: {
+              '0xa4b1': {
+                '0x0': [{ address: '0xtoken', symbol: 'BNB' }],
+              },
+            },
+          },
+          NetworkController: { networkConfigurationsByChainId: {} },
+        },
+      },
+    } as unknown as ReturnType<typeof mockGetState>);
+
+    const handler = getHandler();
+
+    handler(
+      {
+        transactionMeta: {
+          id: 'tx-pq',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+        } as TransactionMeta,
+      },
+      mockShowToast,
+    );
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        iconName: IconName.Confirmation,
+        labelOptions: expect.arrayContaining([
+          expect.objectContaining({
+            label: expect.stringContaining('BNB'),
+            isBold: false,
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it('shows success toast with ticker fallback when token not found', () => {
+    mockGetState.mockReturnValueOnce({
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                id: 'tx-ticker',
+                metamaskPay: {
+                  isPostQuote: true,
+                  targetFiat: '1.50',
+                  chainId: '0xa4b1',
+                  tokenAddress: '0xunknown',
+                },
+              },
+            ],
+          },
+          TokensController: { allTokens: {} },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0xa4b1': { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ReturnType<typeof mockGetState>);
+
+    const handler = getHandler();
+
+    handler(
+      {
+        transactionMeta: {
+          id: 'tx-ticker',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+        } as TransactionMeta,
+      },
+      mockShowToast,
+    );
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        iconName: IconName.Confirmation,
+      }),
+    );
+  });
+
+  it('shows success toast with USDC fallback when no token or ticker found', () => {
+    mockGetState.mockReturnValueOnce({
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                id: 'tx-usdc',
+                metamaskPay: {
+                  isPostQuote: true,
+                  targetFiat: '0',
+                },
+              },
+            ],
+          },
+          TokensController: { allTokens: {} },
+          NetworkController: { networkConfigurationsByChainId: {} },
+        },
+      },
+    } as unknown as ReturnType<typeof mockGetState>);
+
+    const handler = getHandler();
+
+    handler(
+      {
+        transactionMeta: {
+          id: 'tx-usdc',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+        } as TransactionMeta,
+      },
+      mockShowToast,
+    );
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        iconName: IconName.Confirmation,
+        labelOptions: expect.arrayContaining([
+          expect.objectContaining({
+            label: expect.stringContaining('USDC'),
+            isBold: false,
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it('ignores other status changes like submitted', () => {
+    const handler = getHandler();
+
+    handler(
+      {
+        transactionMeta: {
+          id: 'tx-sub',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.submitted,
         } as TransactionMeta,
       },
       mockShowToast,

@@ -18,7 +18,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
-  TransactionType.perpsWithdraw,
   TransactionType.predictDepositAndOrder,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,

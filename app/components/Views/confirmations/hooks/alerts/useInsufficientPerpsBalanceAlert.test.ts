@@ -10,25 +10,30 @@ import {
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../core/Engine';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PerpsController: {
-      state: {
-        accountState: {
-          availableBalance: '45.31',
-        },
+
+const mockPerpsState = (availableBalance: string | null = '45.31') => ({
+  engine: {
+    backgroundState: {
+      PerpsController: {
+        accountState: availableBalance !== null ? { availableBalance } : null,
       },
     },
   },
-}));
+});
 
-function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
-  return renderHookWithProvider(() =>
-    useInsufficientPerpsBalanceAlert({ pendingAmount }),
+function runHook({
+  pendingAmount,
+  availableBalance = '45.31',
+}: {
+  pendingAmount?: string;
+  availableBalance?: string | null;
+} = {}) {
+  return renderHookWithProvider(
+    () => useInsufficientPerpsBalanceAlert({ pendingAmount }),
+    { state: mockPerpsState(availableBalance) },
   );
 }
 
@@ -50,12 +55,6 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     } as unknown as TransactionMeta);
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
-
-    (Engine.context.PerpsController as Record<string, unknown>).state = {
-      accountState: {
-        availableBalance: '45.31',
-      },
-    };
   });
 
   it('returns alert if perps balance less than pending amount', () => {
@@ -130,9 +129,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
   });
 
   it('returns no alert if perps controller state is unavailable', () => {
-    (Engine.context.PerpsController as Record<string, unknown>).state = undefined;
-
-    const { result } = runHook({ pendingAmount: '50' });
+    const { result } = runHook({
+      pendingAmount: '50',
+      availableBalance: null,
+    });
 
     expect(result.current).toStrictEqual([]);
   });

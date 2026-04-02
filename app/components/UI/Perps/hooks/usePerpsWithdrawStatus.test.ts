@@ -66,27 +66,21 @@ describe('usePerpsWithdrawStatus', () => {
             variant: ToastVariants.Icon,
             iconName: IconName.Loading,
             hasNoTimeout: false,
-            labelOptions: [
-              { label: 'Withdrawal in progress', isBold: true },
-            ],
+            labelOptions: [{ label: 'Withdrawal in progress', isBold: true }],
             hapticsType: NotificationFeedbackType.Warning,
           } as PerpsToastOptions,
           withdrawalSuccess: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.CheckBold,
             hasNoTimeout: false,
-            labelOptions: [
-              { label: 'Withdrawal successful', isBold: true },
-            ],
+            labelOptions: [{ label: 'Withdrawal successful', isBold: true }],
             hapticsType: NotificationFeedbackType.Success,
           })),
           withdrawalFailed: jest.fn(() => ({
             variant: ToastVariants.Icon,
             iconName: IconName.Warning,
             hasNoTimeout: false,
-            labelOptions: [
-              { label: 'Withdrawal failed', isBold: true },
-            ],
+            labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
             hapticsType: NotificationFeedbackType.Error,
           })),
         },

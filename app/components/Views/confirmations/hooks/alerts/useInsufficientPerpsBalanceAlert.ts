@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -11,7 +12,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import { hasTransactionType } from '../../utils/transaction';
-import Engine from '../../../../../core/Engine';
+import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
   pendingAmount,
@@ -22,9 +23,11 @@ export function useInsufficientPerpsBalanceAlert({
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
 
-  const perpsState = Engine.context.PerpsController?.state;
-  const availableBalance =
-    perpsState?.accountState?.availableBalance;
+  const availableBalance = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.accountState
+        ?.availableBalance,
+  );
 
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
@@ -48,9 +51,7 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings(
-          'alert_system.insufficient_pay_token_balance.message',
-        ),
+        message: strings('alert_system.insufficient_pay_token_balance.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },
