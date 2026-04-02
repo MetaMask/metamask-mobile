@@ -12,7 +12,7 @@ const createStyles = (colors: Colors) =>
     skeletonItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 12,
+      height: 64,
     },
     skeletonTextContainer: {
       flex: 1,
