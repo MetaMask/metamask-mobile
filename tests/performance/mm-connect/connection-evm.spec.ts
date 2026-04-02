@@ -14,9 +14,15 @@ import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelp
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
 import SignModal from '../../page-objects/MMConnect/SignModal';
 import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal';
-import AppwrightHelpers from '../../framework/AppwrightHelpers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { PlaywrightGestures , DappServer, DappVariants, TestDapps, sleep } from '../../framework';
+import {
+  PlaywrightGestures,
+  DappServer,
+  DappVariants,
+  TestDapps,
+  sleep,
+} from '../../framework';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -57,7 +63,7 @@ test.afterAll(async () => {
   await playgroundServer.stop();
 });
 
-test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
+test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
   currentDeviceDetails,
   driver,
   performanceTracker,
@@ -101,7 +107,7 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
     currentDeviceDetails.platform,
   );
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await loginToAppPlaywright();
     await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
     await launchMobileBrowser(driver);
@@ -109,16 +115,12 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   });
   await sleep(5000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      connectTimer.start();
-      await BrowserPlaygroundDapp.tapConnectLegacy();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    connectTimer.start();
+    await BrowserPlaygroundDapp.tapConnectLegacy();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await unlockIfLockScreenVisible();
     await DappConnectionModal.tapEditAccountsButton();
@@ -131,20 +133,16 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      connectTimer.stop();
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
-      signTimer.start();
-      await BrowserPlaygroundDapp.tapPersonalSign();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertConnected(true);
+    connectTimer.stop();
+    await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+    await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
+    signTimer.start();
+    await BrowserPlaygroundDapp.tapPersonalSign();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapConfirmButton();
   });
@@ -153,20 +151,16 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertResponseValue(
-        // Account 1 signed the message
-        '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
-      );
-      signTimer.stop();
-      await BrowserPlaygroundDapp.tapSendTransaction();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertResponseValue(
+      // Account 1 signed the message
+      '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
+    );
+    signTimer.stop();
+    await BrowserPlaygroundDapp.tapSendTransaction();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapCancelButton();
@@ -176,18 +170,14 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      // Note: Error message may differ slightly in browser playground
-      await BrowserPlaygroundDapp.assertResponseValue('denied');
-      switchChainTimer.start();
-      await BrowserPlaygroundDapp.tapSwitchToPolygon();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    // Note: Error message may differ slightly in browser playground
+    await BrowserPlaygroundDapp.assertResponseValue('denied');
+    switchChainTimer.start();
+    await BrowserPlaygroundDapp.tapSwitchToPolygon();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SwitchChainModal.assertNetworkText('Polygon');
     await SwitchChainModal.tapConnectButton();
@@ -197,17 +187,13 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertChainIdValue('0x89');
-      switchChainTimer.stop();
-      await BrowserPlaygroundDapp.tapSendTransaction();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertChainIdValue('0x89');
+    switchChainTimer.stop();
+    await BrowserPlaygroundDapp.tapSendTransaction();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Polygon');
     await SignModal.tapCancelButton();
@@ -217,17 +203,13 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapSwitchToMainnet();
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.tapSendTransaction();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapSwitchToMainnet();
+    await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+    await BrowserPlaygroundDapp.tapSendTransaction();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapCancelButton();
@@ -244,34 +226,26 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      // Verify account changed to Account 3
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    // Verify account changed to Account 3
+    await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     refreshReconnectTimer.start();
     await refreshMobileBrowser(driver);
   });
   await sleep(2000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      refreshReconnectTimer.stop();
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-      await BrowserPlaygroundDapp.tapPersonalSign();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertConnected(true);
+    refreshReconnectTimer.stop();
+    await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+    await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+    await BrowserPlaygroundDapp.tapPersonalSign();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapCancelButton();
   });
@@ -280,26 +254,18 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertResponseValue('rejected');
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertResponseValue('rejected');
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-      await BrowserPlaygroundDapp.assertConnected(false);
-      reconnectTimer.start();
-      await BrowserPlaygroundDapp.tapConnectLegacy();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+    await BrowserPlaygroundDapp.assertConnected(false);
+    reconnectTimer.start();
+    await BrowserPlaygroundDapp.tapConnectLegacy();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
@@ -308,19 +274,15 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      reconnectTimer.stop();
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-      await BrowserPlaygroundDapp.tapPersonalSign();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertConnected(true);
+    reconnectTimer.stop();
+    await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+    await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+    await BrowserPlaygroundDapp.tapPersonalSign();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapCancelButton();
   });
@@ -329,24 +291,16 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertResponseValue('rejected');
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertResponseValue('rejected');
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-      await BrowserPlaygroundDapp.tapConnectLegacy();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+    await BrowserPlaygroundDapp.tapConnectLegacy();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Purposely not interacting with the approval
   });
@@ -355,31 +309,23 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await refreshMobileBrowser(driver);
   });
   await sleep(2000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertConnected(false);
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertConnected(false);
+  }, DAPP_URL);
 
   await sleep(10000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertConnected(false);
-      await BrowserPlaygroundDapp.tapConnectLegacy();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertConnected(false);
+    await BrowserPlaygroundDapp.tapConnectLegacy();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
@@ -388,14 +334,10 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertConnected(true);
+    await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+  }, DAPP_URL);
 
   performanceTracker.addTimers(
     connectTimer,
@@ -410,26 +352,18 @@ test.skip('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Br
   //
 
   await PlaywrightGestures.terminateApp(currentDeviceDetails);
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapGetBalance();
-      await sleep(10000);
-      // Balance response should contain "Balance:" prefix
-      await BrowserPlaygroundDapp.assertResponseValue('Balance:');
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapGetBalance();
+    await sleep(10000);
+    // Balance response should contain "Balance:" prefix
+    await BrowserPlaygroundDapp.assertResponseValue('Balance:');
+  }, DAPP_URL);
 
   //
   // Reset dapp state
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+  }, DAPP_URL);
 });

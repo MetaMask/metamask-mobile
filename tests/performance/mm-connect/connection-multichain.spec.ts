@@ -9,7 +9,7 @@ import {
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import AppwrightHelpers from '../../framework/AppwrightHelpers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
 import {
   getDappUrlForBrowser,
@@ -64,7 +64,7 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   // Login and navigate to dapp
   //
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await loginToAppPlaywright();
     await launchMobileBrowser(driver);
     await navigateToDapp(driver, DAPP_URL, DAPP_NAME);
@@ -80,18 +80,14 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
     currentDeviceDetails.platform,
   );
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
-      connectTimer.start();
-      await BrowserPlaygroundDapp.tapConnect();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
+    connectTimer.start();
+    await BrowserPlaygroundDapp.tapConnect();
+  }, DAPP_URL);
 
   // Handle connection approval in MetaMask
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await unlockIfLockScreenVisible();
     await DappConnectionModal.tapConnectButton();
@@ -105,15 +101,11 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   // Verify connection
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertMultichainConnected(true);
-      connectTimer.stop();
-      await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertMultichainConnected(true);
+    connectTimer.stop();
+    await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
+  }, DAPP_URL);
 
   performanceTracker.addTimers(connectTimer);
 
@@ -121,11 +113,7 @@ test.skip('@metamask/connect-multichain - Connect via Multichain API to Local Br
   // Cleanup - disconnect
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+  }, DAPP_URL);
 });

@@ -15,7 +15,7 @@ import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModa
 import SignModal from '../../page-objects/MMConnect/SignModal';
 import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal';
 import AddChainModal from '../../page-objects/MMConnect/AddChainModal';
-import AppwrightHelpers from '../../framework/AppwrightHelpers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
 import {
@@ -106,7 +106,7 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Login and navigate to dapp
   //
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await loginToAppPlaywright();
     await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
     await launchMobileBrowser(driver);
@@ -119,17 +119,13 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Connect via WAGMI
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      connectTimer.start();
-      await BrowserPlaygroundDapp.tapConnectWagmi();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    connectTimer.start();
+    await BrowserPlaygroundDapp.tapConnectWagmi();
+  }, DAPP_URL);
 
   // Handle connection approval in MetaMask
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await unlockIfLockScreenVisible();
     await DappConnectionModal.tapEditAccountsButton();
@@ -152,23 +148,19 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // VERIFY CONNECTION AND SIGN MESSAGE
   // ============================================================
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiConnected(true);
-      connectTimer.stop();
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
-      // Type a message and sign
-      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-      signTimer.start();
-      await BrowserPlaygroundDapp.tapWagmiSignMessage();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiConnected(true);
+    connectTimer.stop();
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+    await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
+    // Type a message and sign
+    await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
+    signTimer.start();
+    await BrowserPlaygroundDapp.tapWagmiSignMessage();
+  }, DAPP_URL);
 
   // Approve sign request in MetaMask
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Ethereum');
     await SignModal.tapConfirmButton();
@@ -179,24 +171,20 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   await sleep(1000);
 
   // Verify signature result and switch to Sepolia
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      // Verify we got a signature
-      await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
-      signTimer.stop();
-      // Switch to Sepolia
-      await BrowserPlaygroundDapp.tapWagmiSwitchChain(11155111);
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('11155111');
-      // Sign another message on Sepolia
-      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Sepolia');
-      await BrowserPlaygroundDapp.tapWagmiSignMessage();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    // Verify we got a signature
+    await BrowserPlaygroundDapp.assertWagmiSignatureResult('0x');
+    signTimer.stop();
+    // Switch to Sepolia
+    await BrowserPlaygroundDapp.tapWagmiSwitchChain(11155111);
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('11155111');
+    // Sign another message on Sepolia
+    await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Sepolia');
+    await BrowserPlaygroundDapp.tapWagmiSignMessage();
+  }, DAPP_URL);
 
   // Cancel sign request
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Sepolia');
     await SignModal.tapCancelButton();
@@ -210,16 +198,12 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Switch to OP Mainnet (requires approval since unselected earlier)
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      switchChainTimer.start();
-      await BrowserPlaygroundDapp.tapWagmiSwitchChain(10); // OP Mainnet
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    switchChainTimer.start();
+    await BrowserPlaygroundDapp.tapWagmiSwitchChain(10); // OP Mainnet
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SwitchChainModal.assertNetworkText('OP');
     await SwitchChainModal.tapConnectButton();
@@ -229,18 +213,14 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('10');
-      switchChainTimer.stop();
-      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello OP');
-      await BrowserPlaygroundDapp.tapWagmiSignMessage();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('10');
+    switchChainTimer.stop();
+    await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello OP');
+    await BrowserPlaygroundDapp.tapWagmiSignMessage();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('OP');
     await SignModal.tapCancelButton();
@@ -261,17 +241,13 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Verify account change and add CELO chain
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
-      // Try to switch to Celo (will trigger add chain)
-      await BrowserPlaygroundDapp.tapWagmiSwitchChain(42220);
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
+    // Try to switch to Celo (will trigger add chain)
+    await BrowserPlaygroundDapp.tapWagmiSwitchChain(42220);
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await AddChainModal.assertText('42220');
     await AddChainModal.assertText('Celo');
@@ -282,17 +258,13 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('42220');
-      await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Celo');
-      await BrowserPlaygroundDapp.tapWagmiSignMessage();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('42220');
+    await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Celo');
+    await BrowserPlaygroundDapp.tapWagmiSignMessage();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.assertNetworkText('Celo');
     await SignModal.tapCancelButton();
@@ -306,27 +278,23 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Resume from refresh
   //
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     refreshReconnectTimer.start();
     await refreshMobileBrowser(driver);
   });
   await sleep(2000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiConnected(true);
-      refreshReconnectTimer.stop();
-      // Note: Chain may reset to 1 after refresh
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
-      await BrowserPlaygroundDapp.typeWagmiSignMessage('After refresh');
-      await BrowserPlaygroundDapp.tapWagmiSignMessage();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiConnected(true);
+    refreshReconnectTimer.stop();
+    // Note: Chain may reset to 1 after refresh
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+    await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
+    await BrowserPlaygroundDapp.typeWagmiSignMessage('After refresh');
+    await BrowserPlaygroundDapp.tapWagmiSignMessage();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await SignModal.tapCancelButton();
   });
@@ -339,18 +307,14 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Terminate and connect
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-      await BrowserPlaygroundDapp.assertWagmiConnected(false);
-      reconnectTimer.start();
-      await BrowserPlaygroundDapp.tapConnectWagmi();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+    await BrowserPlaygroundDapp.assertWagmiConnected(false);
+    reconnectTimer.start();
+    await BrowserPlaygroundDapp.tapConnectWagmi();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
@@ -359,31 +323,23 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiConnected(true);
-      reconnectTimer.stop();
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiConnected(true);
+    reconnectTimer.stop();
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+    await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
+  }, DAPP_URL);
 
   //
   // Wait for incomplete session timeout on refresh and reconnect after
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-      await BrowserPlaygroundDapp.tapConnectWagmi();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+    await BrowserPlaygroundDapp.tapConnectWagmi();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     // Purposely not interacting with the approval
   });
@@ -392,7 +348,7 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await refreshMobileBrowser(driver);
   });
   await sleep(2000);
@@ -400,16 +356,12 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // After timeout, should be disconnected
   await sleep(10000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiConnected(false);
-      await BrowserPlaygroundDapp.tapConnectWagmi();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiConnected(false);
+    await BrowserPlaygroundDapp.tapConnectWagmi();
+  }, DAPP_URL);
 
-  await AppwrightHelpers.withNativeAction(driver, async () => {
+  await PlaywrightContextHelpers.withNativeAction(async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
     await DappConnectionModal.tapConnectButton();
   });
@@ -418,15 +370,11 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   await switchToMobileBrowser(driver);
   await sleep(1000);
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.assertWagmiConnected(true);
-      await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
-      await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.assertWagmiConnected(true);
+    await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
+    await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
+  }, DAPP_URL);
 
   performanceTracker.addTimers(
     connectTimer,
@@ -440,11 +388,7 @@ test.skip('@metamask/connect-evm (wagmi) - Connect via Wagmi to Local Browser Pl
   // Reset dapp state
   //
 
-  await AppwrightHelpers.withWebAction(
-    driver,
-    async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-    },
-    DAPP_URL,
-  );
+  await PlaywrightContextHelpers.withWebAction(async () => {
+    await BrowserPlaygroundDapp.tapDisconnect();
+  }, DAPP_URL);
 });
