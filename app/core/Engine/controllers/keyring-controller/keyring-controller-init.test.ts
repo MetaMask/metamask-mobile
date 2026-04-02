@@ -120,7 +120,7 @@ describe('keyringControllerInit', () => {
       keyringControllerInit(getInitRequestMock());
 
       const { keyringBuilders } = jest.mocked(KeyringController).mock
-        .calls[0][0] as { keyringBuilders: (() => unknown)[] };
+        .calls[0][0] as { keyringBuilders: KeyringBuilder[] };
 
       const builder = keyringBuilders.find((b) => b.type === MoneyKeyring.type);
       expect(builder).toBeUndefined();

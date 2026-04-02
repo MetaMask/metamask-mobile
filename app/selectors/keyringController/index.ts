@@ -1,5 +1,8 @@
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-import { KeyringControllerState } from '@metamask/keyring-controller';
+import {
+  KeyringControllerState,
+  KeyringObject,
+} from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -37,7 +40,7 @@ export const selectHDKeyrings = createDeepEqualSelector(
  */
 export const selectPrimaryHDKeyring = createDeepEqualSelector(
   selectHDKeyrings,
-  (keyrings) => keyrings[0],
+  (keyrings): KeyringObject | undefined => keyrings[0],
 );
 
 /**
