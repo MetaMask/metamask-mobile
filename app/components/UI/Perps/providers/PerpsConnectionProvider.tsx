@@ -106,6 +106,8 @@ export const PerpsConnectionProvider: React.FC<
     if (
       connectionState.isConnected ||
       connectionState.isConnecting ||
+      connectionState.isDisconnecting ||
+      connectionState.isInGracePeriod ||
       connectionState.error
     ) {
       return;
@@ -135,6 +137,8 @@ export const PerpsConnectionProvider: React.FC<
     connectionState.error,
     connectionState.isConnected,
     connectionState.isConnecting,
+    connectionState.isDisconnecting,
+    connectionState.isInGracePeriod,
     suppressErrorView,
   ]);
 
