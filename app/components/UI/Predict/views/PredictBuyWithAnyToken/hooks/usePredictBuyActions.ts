@@ -179,10 +179,7 @@ export const usePredictBuyActions = ({
     if (currentState === ActiveOrderState.DEPOSITING) {
       if (didInitiateOrderRef.current) {
         didInitiateOrderRef.current = false;
-        const marketId = preview?.marketId ?? analyticsProperties?.marketId;
-        navigation.dispatch(
-          StackActions.replace(Routes.PREDICT.MARKET_DETAILS, { marketId }),
-        );
+        navigation.dispatch(StackActions.pop());
       }
     }
   }, [

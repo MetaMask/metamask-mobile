@@ -467,7 +467,7 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('depositing effect', () => {
-    it('replaces screen with market details when handleConfirm was called before DEPOSITING', async () => {
+    it('pops the screen when handleConfirm was called before DEPOSITING', async () => {
       mockActiveOrder = { state: ActiveOrderState.PREVIEW };
       const { result, rerender } = renderHook(() =>
         usePredictBuyActions(createDefaultParams()),
@@ -480,11 +480,7 @@ describe('usePredictBuyActions', () => {
       mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
       rerender(createDefaultParams());
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace('PredictMarketDetails', {
-          marketId: 'market-1',
-        }),
-      );
+      expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
     it('does not navigate when handleConfirm was not called before DEPOSITING', () => {
@@ -493,7 +489,7 @@ describe('usePredictBuyActions', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
       expect(mockDispatch).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'REPLACE' }),
+        expect.objectContaining({ type: 'POP' }),
       );
     });
   });
