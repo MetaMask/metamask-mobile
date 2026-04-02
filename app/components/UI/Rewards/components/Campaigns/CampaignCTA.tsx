@@ -26,6 +26,7 @@ interface CampaignCTAProps {
     'status' | 'isLoading'
   >;
   hasPositions: boolean;
+  campaignId: string;
 }
 
 /**
@@ -42,14 +43,18 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
   campaign,
   participantStatus,
   hasPositions,
+  campaignId,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   const navigation = useNavigation();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const onOpenPosition = useCallback(() => {
-    navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never);
-  }, [navigation]);
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
+      mode: 'open_position',
+      campaignId,
+    });
+  }, [navigation, campaignId]);
   const onSwapAssets = useCallback(() => {
     navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never);
   }, [navigation]);

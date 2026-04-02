@@ -14,8 +14,8 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  BottomSheet,
 } from '@metamask/design-system-react-native';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
   type CampaignDto,
   CampaignType,

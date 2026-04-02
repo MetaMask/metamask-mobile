@@ -29,6 +29,7 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
+import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import CampaignCTA from '../components/Campaigns/CampaignCTA';
 import {
   getCampaignStatus,
@@ -42,6 +43,7 @@ import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { OndoCampaignHowItWorks } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -65,11 +67,13 @@ export const CAMPAIGN_DETAILS_TEST_IDS = {
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<RewardsCampaignStackParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
+
+  const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
+    useOndoAccountPicker(campaignId);
 
   const {
     campaigns,
@@ -151,6 +155,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
     const showHowItWorksSection =
       Boolean(campaign.details?.howItWorks) &&
+      !isOptedIn &&
       !hasPositions &&
       !isPortfolioLoading &&
       getCampaignStatus(campaign) === 'active' &&
@@ -383,6 +388,8 @@ const OndoCampaignDetailsView: React.FC = () => {
                       hasError={hasPortfolioError}
                       hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
+                      campaignId={campaignId}
+                      onOpenAccountPicker={setPendingPicker}
                     />
                   </Box>
                 </>
@@ -443,6 +450,16 @@ const OndoCampaignDetailsView: React.FC = () => {
               isLoading: isParticipantStatusLoading,
             }}
             hasPositions={hasPositions}
+            campaignId={campaignId}
+          />
+        )}
+
+        {pendingPicker && (
+          <OndoAccountPickerSheet
+            pendingPicker={pendingPicker}
+            sheetRef={sheetRef}
+            onClose={() => setPendingPicker(null)}
+            onGroupSelect={handleGroupSelect}
           />
         )}
       </SafeAreaView>

@@ -82,6 +82,7 @@ function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
 
 const defaultProps = {
   hasPositions: false,
+  campaignId: 'campaign-1',
 };
 
 describe('CampaignCTA', () => {
@@ -234,7 +235,7 @@ describe('CampaignCTA', () => {
       expect(getByText('Open Position')).toBeOnTheScreen();
     });
 
-    it('navigates to RWA tokens view when pressed', () => {
+    it('navigates to RWA asset selector view when pressed', () => {
       const { getByTestId } = render(
         <CampaignCTA
           campaign={buildCampaign()}
@@ -246,7 +247,8 @@ describe('CampaignCTA', () => {
 
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+        Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+        { mode: 'open_position', campaignId: 'campaign-1' },
       );
     });
   });
