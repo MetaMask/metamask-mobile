@@ -81,7 +81,7 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
             </Text>
           </Box>
         ))}
-        {formatted.volume && (
+        {formatted.volume !== null && (
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
@@ -109,7 +109,7 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
             </Text>
           </Box>
         ))}
-        {formatted.volume && (
+        {formatted.volume !== null && (
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodyXs}
