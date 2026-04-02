@@ -4,6 +4,7 @@ import { Text } from 'react-native';
 import { PerpsConnectionProvider } from './PerpsConnectionProvider';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 jest.mock('../services/PerpsConnectionManager');
 
@@ -730,7 +731,7 @@ describe('PerpsConnectionProvider', () => {
       expect(getByText('Child Component')).toBeOnTheScreen();
     });
     expect(mockEnsureConnected).toHaveBeenCalledWith({
-      source: 'perps_fullscreen_entry',
+      source: PERPS_CONNECTION_SOURCE.PERPS_FULLSCREEN_ENTRY,
     });
   });
 

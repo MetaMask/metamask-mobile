@@ -4,6 +4,7 @@ import { Text, AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -104,7 +105,7 @@ describe('PerpsAlwaysOnProvider', () => {
     );
     expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
     expect(mockResumeFromForeground).toHaveBeenCalledWith({
-      source: 'wallet_root_mount',
+      source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
       suppressError: true,
     });
   });

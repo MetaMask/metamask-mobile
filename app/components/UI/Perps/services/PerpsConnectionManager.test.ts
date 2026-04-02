@@ -106,6 +106,7 @@ import { TradingReadinessCache } from '@metamask/perps-controller';
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
 import { PerpsConnectionManager } from './PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 // Get reference to the mocked TradingReadinessCache
 const mockTradingReadinessCache = TradingReadinessCache as jest.Mocked<
@@ -1441,7 +1442,7 @@ describe('PerpsConnectionManager', () => {
 
       // resumeFromForeground should skip reconnect — ping succeeds
       await PerpsConnectionManager.resumeFromForeground({
-        source: 'wallet_root_mount',
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
         suppressError: true,
       });
 
@@ -1467,7 +1468,7 @@ describe('PerpsConnectionManager', () => {
       (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
 
       await PerpsConnectionManager.resumeFromForeground({
-        source: 'wallet_root_foreground',
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
       });
 
       // Should have fallen through to ensureConnected → reconnected
@@ -1485,7 +1486,7 @@ describe('PerpsConnectionManager', () => {
       m.gracePeriodTimer = 999;
 
       await PerpsConnectionManager.resumeFromForeground({
-        source: 'wallet_root_foreground',
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
       });
 
       expect(m.isInGracePeriod).toBe(false);
@@ -1496,7 +1497,7 @@ describe('PerpsConnectionManager', () => {
       (Engine.context.PerpsController.init as jest.Mock).mockClear();
 
       await PerpsConnectionManager.resumeFromForeground({
-        source: 'wallet_root_mount',
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
       });
 
       expect(Engine.context.PerpsController.init).toHaveBeenCalled();
@@ -1512,7 +1513,7 @@ describe('PerpsConnectionManager', () => {
       expect(m.connectionRefCount).toBe(0);
 
       await PerpsConnectionManager.resumeFromForeground({
-        source: 'wallet_root_mount',
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
       });
 
       expect(m.connectionRefCount).toBeGreaterThanOrEqual(1);

@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import {
@@ -114,7 +115,7 @@ export const PerpsConnectionProvider: React.FC<
     }
 
     PerpsConnectionManager.ensureConnected({
-      source: 'perps_fullscreen_entry',
+      source: PERPS_CONNECTION_SOURCE.PERPS_FULLSCREEN_ENTRY,
     }).catch((err) => {
       const providerName = PerpsConnectionManager.getActiveProviderName();
       Logger.error(
@@ -146,7 +147,7 @@ export const PerpsConnectionProvider: React.FC<
   const connect = useCallback(async () => {
     try {
       await PerpsConnectionManager.connect({
-        source: 'perps_connection_provider',
+        source: PERPS_CONNECTION_SOURCE.PERPS_CONNECTION_PROVIDER,
       });
     } catch (err) {
       const providerName = PerpsConnectionManager.getActiveProviderName();

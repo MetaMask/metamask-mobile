@@ -42,6 +42,7 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
@@ -198,7 +199,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   // Initialize connection in background while user views tutorial
   useEffect(() => {
     PerpsConnectionManager.connect({
-      source: 'tutorial_preload',
+      source: PERPS_CONNECTION_SOURCE.TUTORIAL_PRELOAD,
       suppressError: true,
     }).catch((error) => {
       DevLogger.log(

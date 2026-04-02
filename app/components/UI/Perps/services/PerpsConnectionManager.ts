@@ -35,6 +35,7 @@ import {
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
 import { withPerpsConnectionAttemptContext } from '../../../../util/perpsConnectionAttemptContext';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 interface ConnectOptions {
   source?: string;
@@ -427,18 +428,19 @@ class PerpsConnectionManagerClass {
       return options.suppressError;
     }
 
-    const source = options?.source ?? 'unspecified';
+    const source = options?.source ?? PERPS_CONNECTION_SOURCE.UNSPECIFIED;
 
     return (
-      source === 'wallet_root_mount' ||
-      source === 'wallet_root_retry' ||
-      source === 'wallet_root_foreground' ||
-      source === 'tutorial_preload'
+      source === PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT ||
+      source === PERPS_CONNECTION_SOURCE.WALLET_ROOT_RETRY ||
+      source === PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND ||
+      source === PERPS_CONNECTION_SOURCE.TUTORIAL_PRELOAD
     );
   }
 
   async resumeFromForeground(options?: ConnectOptions): Promise<void> {
-    const source = options?.source ?? 'wallet_root_foreground';
+    const source =
+      options?.source ?? PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND;
     const suppressError = this.shouldSuppressConnectionError(options);
 
     this.cancelGracePeriod();

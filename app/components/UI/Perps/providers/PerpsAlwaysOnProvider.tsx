@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 import { selectPerpsEnabledFlag } from '../index';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -59,14 +60,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     PerpsConnectionManager.resumeFromForeground({
-      source: 'wallet_root_mount',
+      source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
       suppressError: true,
     }).catch((err) => {
       DevLogger.log('PerpsAlwaysOnProvider: initial always-on connect failed', {
         error: ensureError(err, 'PerpsAlwaysOnProvider.connect').message,
       });
       scheduleSilentEnsureConnected(
-        'wallet_root_retry',
+        PERPS_CONNECTION_SOURCE.WALLET_ROOT_RETRY,
         PERPS_CONSTANTS.ConnectRetryDelayMs,
       );
     });
@@ -87,7 +88,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       } else if (nextState === 'active') {
         // Small delay to allow system to stabilize after background
         scheduleSilentEnsureConnected(
-          'wallet_root_foreground',
+          PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
           PERPS_CONSTANTS.ReconnectionDelayAndroidMs,
         );
       }
