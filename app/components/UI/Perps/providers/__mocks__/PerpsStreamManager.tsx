@@ -5,15 +5,19 @@ const mockStreamManager = {
   prices: {
     subscribeToSymbols: jest.fn(() => jest.fn()),
     subscribe: jest.fn(() => jest.fn()),
+    getSnapshot: jest.fn(() => null),
   },
   orders: {
     subscribe: jest.fn(() => jest.fn()),
+    getSnapshot: jest.fn(() => null),
   },
   positions: {
     subscribe: jest.fn(() => jest.fn()),
+    getSnapshot: jest.fn(() => null),
   },
   fills: {
     subscribe: jest.fn(() => jest.fn()),
+    getSnapshot: jest.fn(() => null),
   },
 };
 
