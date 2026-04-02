@@ -6,6 +6,9 @@ import type {
   RenewRefreshToken,
   RevokeRefreshToken,
 } from '@metamask/seedless-onboarding-controller/dist/types.d.cts';
+import ReduxService from '../redux';
+import Device from '../../util/device';
+import { IosGID } from './OAuthLoginHandlers/constants';
 
 export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
 export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
@@ -32,6 +35,27 @@ interface AuthTokenHandlerInterface {
   revokeRefreshToken: RevokeRefreshToken;
 }
 
+/**
+ * Returns the iOS Google client ID to use for refresh-token requests.
+ *
+ * Refresh flows must keep using the client ID tied to the original login when
+ * it has been persisted in onboarding state. If no persisted value exists, this
+ * falls back to the legacy `IosGID` so existing iOS Google users can continue
+ * refreshing tokens after the supported login config changes.
+ */
+const getActiveIosGoogleClientId = () => {
+  const clientId =
+    ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
+  if (clientId) {
+    return clientId;
+  }
+  // if client id is not set, use the default legacy IosGID
+  if (!IosGID) {
+    throw new Error('IosGID is not set');
+  }
+  return IosGID;
+};
+
 class AuthTokenHandler implements AuthTokenHandlerInterface {
   /**
    * Refresh the JWT Token using the refresh token.
@@ -51,6 +75,12 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
   }> {
     const { connection, refreshToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection);
+
+    if (Device.isIos() && connection === AuthConnection.Google) {
+      // need to overwrite the client id for the refresh token request for backward compatible with existing ios google users
+      const clientId = getActiveIosGoogleClientId();
+      loginHandler.options.clientId = clientId;
+    }
 
     const requestData = {
       client_id: loginHandler.options.clientId,

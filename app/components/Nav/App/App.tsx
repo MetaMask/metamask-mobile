@@ -177,113 +177,132 @@ const SocialLoginSuccessExistingUser = () => (
   <SocialLoginIosUser type="existing" />
 );
 
-const OnboardingSuccessFlow = () => (
-  <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccess}
-      options={{
-        headerShown: false,
-      }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.DEFAULT_SETTINGS}
-      component={DefaultSettings}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.GENERAL_SETTINGS}
-      component={OnboardingGeneralSettings}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.ASSETS_SETTINGS}
-      component={OnboardingAssetsSettings}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SECURITY_SETTINGS}
-      component={OnboardingSecuritySettings}
-    />
-  </Stack.Navigator>
-);
+const OnboardingSuccessFlow = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS}
+        component={OnboardingSuccess}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.DEFAULT_SETTINGS}
+        component={DefaultSettings}
+        options={{
+          headerStyle: { backgroundColor: colors.background.default },
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.GENERAL_SETTINGS}
+        component={OnboardingGeneralSettings}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.ASSETS_SETTINGS}
+        component={OnboardingAssetsSettings}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SECURITY_SETTINGS}
+        component={OnboardingSecuritySettings}
+      />
+    </Stack.Navigator>
+  );
+};
 
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
-const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName={'Onboarding'}>
-    <Stack.Screen name="Onboarding" component={Onboarding} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
-      component={SocialLoginSuccessNewUser}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-    <Stack.Screen
-      name="AccountBackupStep1"
-      component={AccountBackupStep1}
-      options={{ headerShown: false, gestureEnabled: false }}
-    />
-    <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS_FLOW}
-      component={OnboardingSuccessFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccess}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.DEFAULT_SETTINGS}
-      component={DefaultSettings}
-    />
-    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-    <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-    <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-      component={ImportFromSecretRecoveryPhrase}
-    />
-    <Stack.Screen
-      name="OptinMetrics"
-      component={OptinMetrics}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountStatus"
-      component={AccountStatus}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
-      component={SocialLoginSuccessExistingUser}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountAlreadyExists"
-      component={AccountStatus}
-      initialParams={{ type: 'found' }}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountNotFound"
-      component={AccountStatus}
-      initialParams={{ type: 'not_exist' }}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Rehydrate"
-      component={OAuthRehydration}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
-      component={WalletCreationError}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
+const OnboardingNav = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator initialRouteName={'Onboarding'}>
+      <Stack.Screen name="Onboarding" component={Onboarding} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
+        component={SocialLoginSuccessNewUser}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+      <Stack.Screen
+        name="AccountBackupStep1"
+        component={AccountBackupStep1}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="AccountBackupStep1B"
+        component={AccountBackupStep1B}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS_FLOW}
+        component={OnboardingSuccessFlow}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS}
+        component={OnboardingSuccess}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.DEFAULT_SETTINGS}
+        component={DefaultSettings}
+        options={{
+          headerStyle: { backgroundColor: colors.background.default },
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
+      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+        component={ImportFromSecretRecoveryPhrase}
+      />
+      <Stack.Screen
+        name="OptinMetrics"
+        component={OptinMetrics}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountStatus"
+        component={AccountStatus as ScreenComponent}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
+        component={SocialLoginSuccessExistingUser}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountAlreadyExists"
+        component={AccountStatus}
+        initialParams={{ type: 'found' }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountNotFound"
+        component={AccountStatus}
+        initialParams={{ type: 'not_exist' }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Rehydrate"
+        component={OAuthRehydration}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
+        component={WalletCreationError}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 /**
  * Parent Stack navigator that allows the
@@ -364,7 +383,7 @@ const DetectedTokensFlow = () => (
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
     <Stack.Screen
       name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation as ScreenComponent}
+      component={DetectedTokensConfirmation}
       options={{ presentation: 'modal' }}
     />
   </Stack.Navigator>
@@ -688,38 +707,53 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
+const ConnectQRHardwareFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+    </Stack.Navigator>
+  );
+};
 
-const LedgerConnectFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    initialRouteName={Routes.HW.LEDGER_CONNECT}
-  >
-    <Stack.Screen
-      name={Routes.HW.LEDGER_CONNECT}
-      component={LedgerSelectAccount}
-    />
-  </Stack.Navigator>
-);
+const LedgerConnectFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+      initialRouteName={Routes.HW.LEDGER_CONNECT}
+    >
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
+    </Stack.Navigator>
+  );
+};
 
-const ConnectHardwareWalletFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.HW.SELECT_DEVICE}
-      component={SelectHardwareWallet}
-    />
-  </Stack.Navigator>
-);
+const ConnectHardwareWalletFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen
+        name={Routes.HW.SELECT_DEVICE}
+        component={SelectHardwareWallet}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const MultichainAccountDetails = () => {
   const route = useRoute();
@@ -733,7 +767,7 @@ const MultichainAccountDetails = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
-        component={AccountDetails as ScreenComponent}
+        component={AccountDetails}
         initialParams={route?.params}
       />
       <Stack.Screen
@@ -760,7 +794,7 @@ const MultichainAccountGroupDetails = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-        component={AccountGroupDetails as ScreenComponent}
+        component={AccountGroupDetails}
         initialParams={route?.params}
       />
       <Stack.Screen
@@ -773,7 +807,7 @@ const MultichainAccountGroupDetails = () => {
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={WalletDetails as ScreenComponent}
+        component={WalletDetails}
         initialParams={route?.params}
         options={{
           headerShown: false,
@@ -1035,7 +1069,22 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
-        options={{ animationEnabled: true }}
+        options={{
+          animationEnabled: true,
+          cardStyle: { backgroundColor: colors.background.default },
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
