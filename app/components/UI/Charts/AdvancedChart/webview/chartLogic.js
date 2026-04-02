@@ -526,13 +526,25 @@ function handleRealtimeUpdate(payload) {
 // TradingView study picker can re-enable header_widget via disabledFeatures
 // prop, which exposes TradingView's native indicator UI.
 // ============================================
+function isOwnStringKey(key) {
+  return (
+    typeof key === 'string' &&
+    key !== '__proto__' &&
+    key !== 'constructor' &&
+    key !== 'prototype'
+  );
+}
+
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
 
   var indicatorName = payload.name;
+  if (!isOwnStringKey(indicatorName)) return;
 
-  if (window.activeStudies[indicatorName]) {
+  if (
+    Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)
+  ) {
     return;
   }
 
@@ -583,8 +595,13 @@ function handleRemoveIndicator(payload) {
   if (!payload || !payload.name) return;
 
   var indicatorName = payload.name;
-  var studyId = window.activeStudies[indicatorName];
+  if (!isOwnStringKey(indicatorName)) return;
+  if (
+    !Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)
+  )
+    return;
 
+  var studyId = window.activeStudies[indicatorName];
   if (!studyId) return;
 
   try {

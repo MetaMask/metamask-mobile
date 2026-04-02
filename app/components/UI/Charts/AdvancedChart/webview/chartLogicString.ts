@@ -535,13 +535,18 @@ function handleRealtimeUpdate(payload) {
 // TradingView study picker can re-enable header_widget via disabledFeatures
 // prop, which exposes TradingView's native indicator UI.
 // ============================================
+function isOwnStringKey(key) {
+  return typeof key === 'string' && key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
+}
+
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
 
   var indicatorName = payload.name;
+  if (!isOwnStringKey(indicatorName)) return;
 
-  if (window.activeStudies[indicatorName]) {
+  if (Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)) {
     return;
   }
 
@@ -592,8 +597,10 @@ function handleRemoveIndicator(payload) {
   if (!payload || !payload.name) return;
 
   var indicatorName = payload.name;
-  var studyId = window.activeStudies[indicatorName];
+  if (!isOwnStringKey(indicatorName)) return;
+  if (!Object.prototype.hasOwnProperty.call(window.activeStudies, indicatorName)) return;
 
+  var studyId = window.activeStudies[indicatorName];
   if (!studyId) return;
 
   try {
@@ -3136,9 +3143,7 @@ var customDatafeed = {
       sendToReactNative('NEED_MORE_HISTORY', { oldestTimestamp: oldestTs });
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
-      onError(
-        error && error.message ? error.message : String(error),
-      );
+      onError(error && error.message ? error.message : String(error));
     }
   },
 
@@ -3400,10 +3405,7 @@ function initChart() {
         if (Date.now() < window.__mmSuppressChartInteractUntil) {
           return;
         }
-        if (
-          Date.now() - window.__mmChartInteractZoomLastFired <
-          500
-        ) {
+        if (Date.now() - window.__mmChartInteractZoomLastFired < 500) {
           return;
         }
         if (window.__mmChartInteractPanDebounce) {
@@ -3414,10 +3416,7 @@ function initChart() {
           if (Date.now() < window.__mmSuppressChartInteractUntil) {
             return;
           }
-          if (
-            Date.now() - window.__mmChartInteractZoomLastFired <
-            500
-          ) {
+          if (Date.now() - window.__mmChartInteractZoomLastFired < 500) {
             return;
           }
           if (!window.chartWidget || !window.isChartReady) {
@@ -3541,8 +3540,7 @@ function initChart() {
       }
     });
   } catch (error) {
-    var errMsg =
-      error && error.message ? String(error.message) : String(error);
+    var errMsg = error && error.message ? String(error.message) : String(error);
     sendToReactNative('ERROR', {
       message: 'Failed to initialize chart: ' + errMsg,
     });
