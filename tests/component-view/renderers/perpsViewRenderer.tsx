@@ -84,7 +84,7 @@ function channelWithInitialValue<T>(initialValue: T) {
       }
       return noopUnsubscribe;
     },
-    getSnapshot: () => initialValue,
+    getSnapshot: () => null,
   };
 }
 
