@@ -117,10 +117,12 @@
       "message": "目前该支付路径不可用。请调整金额、网络或代币类型，系统将为您匹配最优选项。",
       "title": "无报价"
     },
+
     "account_no_funds": {
       "message": "无可用资金。请使用其他账户。"
     },
     "perps_hardware_account": {
+
       "title": "钱包不获支持",
       "message": "暂不支持硬件钱包。请切换钱包继续操作。"
     },

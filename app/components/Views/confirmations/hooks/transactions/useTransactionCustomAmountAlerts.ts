@@ -14,7 +14,7 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
-  AlertKeys.PerpsHardwareAccount,
+  AlertKeys.MMPayHardwareAccount,
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
 ];

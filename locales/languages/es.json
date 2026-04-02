@@ -117,10 +117,12 @@
       "message": "Esta ruta de pago no está disponible en este momento. Intenta cambiar el monto, la red o el token y encontraremos la mejor opción.",
       "title": "Sin cotizaciones"
     },
+
     "account_no_funds": {
       "message": "No hay fondos disponibles. Usa otra cuenta."
     },
     "perps_hardware_account": {
+
       "title": "Billetera no admitida",
       "message": "Las billeteras físicas no son compatibles.\nCambia de billetera para continuar."
     },

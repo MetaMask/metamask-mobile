@@ -117,10 +117,12 @@
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
     },
+
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
     "perps_hardware_account": {
+
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },

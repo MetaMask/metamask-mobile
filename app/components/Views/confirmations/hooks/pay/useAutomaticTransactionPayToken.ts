@@ -4,12 +4,16 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isHardwareAccount } from '../../../../../util/address';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
+  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
@@ -102,6 +106,7 @@ export function useAutomaticTransactionPayToken({
         preferredToken,
         preferredTokensFromFlags,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+        transactionMeta,
       }),
     [
       isHardwareWallet,
@@ -112,6 +117,7 @@ export function useAutomaticTransactionPayToken({
       preferredTokensFromFlags,
       targetToken,
       tokens,
+      transactionMeta,
     ],
   );
 
@@ -148,6 +154,7 @@ export function useAutomaticTransactionPayToken({
     setPayToken,
     tokens,
     transactionId,
+    transactionMeta,
   ]);
 
   const prevFromRef = useRef(from);
@@ -177,6 +184,7 @@ function getBestToken({
   minimumRequiredTokenBalance,
   targetToken,
   tokens,
+  transactionMeta,
 }: {
   isHardwareWallet: boolean;
   isWithdraw: boolean;
@@ -186,7 +194,12 @@ function getBestToken({
   minimumRequiredTokenBalance: number;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
+  transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } | undefined {
+  const isMusdConversion = hasTransactionType(transactionMeta, [
+    TransactionType.musdConversion,
+  ]);
+
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,
@@ -194,7 +207,7 @@ function getBestToken({
       }
     : undefined;
 
-  if (isHardwareWallet) {
+  if (isHardwareWallet && !isMusdConversion) {
     return targetTokenFallback;
   }
 

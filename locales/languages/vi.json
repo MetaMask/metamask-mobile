@@ -117,10 +117,12 @@
       "message": "Lộ trình thanh toán này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
       "title": "Không có báo giá"
     },
+
     "account_no_funds": {
       "message": "Không có tiền khả dụng. Hãy sử dụng tài khoản khác."
     },
     "perps_hardware_account": {
+
       "title": "Ví không được hỗ trợ",
       "message": "Ví cứng hiện chưa được hỗ trợ.\nĐổi ví để tiếp tục."
     },

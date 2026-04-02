@@ -20,7 +20,7 @@ export enum AlertKeys {
   OriginTrustSignalWarning = 'origin_trust_signal_warning',
   PendingTransaction = 'pending_transaction',
   PerpsDepositMinimum = 'perps_deposit_minimum',
-  PerpsHardwareAccount = 'perps_hardware_account',
+  MMPayHardwareAccount = 'mmpay_hardware_account',
   SignedOrSubmitted = 'signed_or_submitted',
   TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',

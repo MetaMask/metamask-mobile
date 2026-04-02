@@ -229,6 +229,52 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  it('selects first available token for hardware wallet on mUSD conversion', () => {
+    const musdConversionStateMock = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type: TransactionType.musdConversion,
+                },
+              ],
+            },
+          },
+        },
+      },
+    );
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    isHardwareAccountMock.mockReturnValue(true);
+
+    renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
+      state: musdConversionStateMock,
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
   it('selected nothing if disabled', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [

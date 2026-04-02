@@ -117,10 +117,12 @@
       "message": "Esta rota de pagamento não está disponível no momento. Experimente mudar o valor, a rede ou o token, e encontraremos a melhor opção.",
       "title": "Nenhuma cotação"
     },
+
     "account_no_funds": {
       "message": "Não há fundos disponíveis. Use outra conta."
     },
     "perps_hardware_account": {
+
       "title": "Não há suporte para esta carteira",
       "message": "Não oferecemos suporte para carteiras de hardware.\nTroque de carteira para continuar."
     },

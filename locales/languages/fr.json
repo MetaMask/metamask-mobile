@@ -117,10 +117,12 @@
       "message": "Cette voie de paiement n’est pas disponible pour le moment. Essayez de modifier le montant, le réseau ou le jeton, et nous trouverons la meilleure option.",
       "title": "Aucune cotation"
     },
+
     "account_no_funds": {
       "message": "Aucun fonds disponible. Veuillez utiliser un autre compte."
     },
     "perps_hardware_account": {
+
       "title": "Portefeuille non pris en charge",
       "message": "Les portefeuilles matériels ne sont pas pris en charge.\nChangez de portefeuille pour continuer."
     },

@@ -117,10 +117,12 @@
       "message": "Rute pembayaran ini tidak tersedia untuk saat ini. Coba ubah jumlah, jaringan, atau token, dan kami akan mencari opsi terbaik.",
       "title": "Tidak ada kuotasi"
     },
+
     "account_no_funds": {
       "message": "Dana tidak tersedia. Gunakan akun lain."
     },
     "perps_hardware_account": {
+
       "title": "Dompet tidak didukung",
       "message": "Dompet perangkat keras tidak didukung.\nGanti dompet untuk melanjutkan."
     },

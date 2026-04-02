@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Keine Geldmittel verfügbar. Verwenden Sie ein anderes Konto."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Wallet wird nicht unterstützt",
       "message": "Hardware-Wallets werden nicht unterstützt.\nWechseln Sie die Wallets, um fortzufahren."
     },

@@ -9,7 +9,7 @@ import {
 import { AssetType } from '../../../types/token';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
@@ -52,8 +52,8 @@ jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
 }));
 
-jest.mock('../../../hooks/transactions/useTransactionConfirm', () => ({
-  useTransactionConfirm: jest.fn(),
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
 }));
 
 jest.mock('../../../context/alert-system-context', () => ({
@@ -92,7 +92,7 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
-const mockUseTransactionConfirm = jest.mocked(useTransactionConfirm);
+const mockUseConfirmActions = jest.mocked(useConfirmActions);
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseFiatFormatter = jest.mocked(useFiatFormatter);
 
@@ -102,7 +102,10 @@ function setupMocksForSuccessPath() {
     chainId: '0x1',
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockUseIsTransactionPayLoading.mockReturnValue(false);
-  mockUseTransactionConfirm.mockReturnValue({ onConfirm: jest.fn() });
+  mockUseConfirmActions.mockReturnValue({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  });
   mockUseAlerts.mockReturnValue({
     alerts: [],
   } as unknown as ReturnType<typeof useAlerts>);
@@ -194,7 +197,10 @@ describe('MusdMaxConversionInfo', () => {
   describe('confirm button', () => {
     it('calls onConfirm when confirm button is pressed', () => {
       const mockOnConfirm = jest.fn();
-      mockUseTransactionConfirm.mockReturnValue({ onConfirm: mockOnConfirm });
+      mockUseConfirmActions.mockReturnValue({
+        onConfirm: mockOnConfirm,
+        onReject: jest.fn(),
+      });
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 

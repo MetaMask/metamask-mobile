@@ -9,8 +9,8 @@ jest.mock('./useInsufficientPayTokenBalanceAlert', () => ({
   ],
 }));
 
-jest.mock('./usePerpsHardwareAccountAlert', () => ({
-  usePerpsHardwareAccountAlert: () => [
+jest.mock('./useMMPayHardwareAccountAlert', () => ({
+  useMMPayHardwareAccountAlert: () => [
     {
       id: 'alert-1',
     },

@@ -10,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import { TotalRow } from '../../rows/total-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -49,7 +49,7 @@ export const MusdMaxConversionInfo = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
 
-  const { onConfirm } = useTransactionConfirm();
+  const { onConfirm } = useConfirmActions();
   const { alerts } = useAlerts();
 
   const blockingAlert = alerts.find(
