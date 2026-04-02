@@ -7,7 +7,7 @@ import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
 /**
- *
+ * Selects the KeyringController state from the root Redux state.
  * @param state - Root Redux state
  * @returns - KeyringController state
  */
