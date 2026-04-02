@@ -96,6 +96,7 @@ import {
   usePerpsNavigation,
   usePositionManagement,
   usePerpsTrading,
+  usePerpsMarketData,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -638,6 +639,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   };
 
+  const { marketData } = usePerpsMarketData({
+    asset: market?.symbol || '',
+  });
+
   const handleWatchlistPress = useCallback(() => {
     if (!market?.symbol) return;
 
@@ -715,9 +720,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         direction,
         asset: market.symbol,
         source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        defaultSzDecimals: marketData?.szDecimals,
+        defaultMaxLeverage: marketData?.maxLeverage,
       });
     },
     [
+      marketData,
       isEligible,
       existingPosition,
       navigation,

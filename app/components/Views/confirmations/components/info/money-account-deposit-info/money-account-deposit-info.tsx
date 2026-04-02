@@ -33,7 +33,6 @@ export function MoneyAccountDepositInfo() {
       disableConfirm={!selectedToAddress}
       afterPayWith={
         <MoneyAccountSelector
-          chainId={transactionMeta?.chainId}
           selectedAddress={selectedToAddress}
           onAccountSelected={handleToAccountSelected}
         />
