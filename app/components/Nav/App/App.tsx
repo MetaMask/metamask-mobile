@@ -165,12 +165,6 @@ import { AccessRestrictedProvider } from '../../UI/Compliance';
 
 const Stack = createStackNavigator();
 
-// Type helper for screen components that use v5 pattern of requiring route props
-// In React Navigation v6, screen components should ideally use useRoute() hook,
-// but for migration compatibility, we cast these components to satisfy the type checker.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
-
 const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
 
 const SocialLoginSuccessExistingUser = () => (
@@ -181,7 +175,7 @@ const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccess as ScreenComponent}
+      component={OnboardingSuccess}
       options={{
         headerShown: false,
       }}
@@ -231,7 +225,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccess as ScreenComponent}
+      component={OnboardingSuccess}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -252,7 +246,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountStatus"
-      component={AccountStatus as ScreenComponent}
+      component={AccountStatus}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -262,13 +256,13 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountAlreadyExists"
-      component={AccountStatus as ScreenComponent}
+      component={AccountStatus}
       initialParams={{ type: 'found' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountNotFound"
-      component={AccountStatus as ScreenComponent}
+      component={AccountStatus}
       initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
@@ -405,27 +399,27 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MODAL_CONFIRMATION}
-      component={ModalConfirmation as ScreenComponent}
+      component={ModalConfirmation}
     />
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
-      component={ModalMandatory as ScreenComponent}
+      component={ModalMandatory}
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet as ScreenComponent}
+      component={OnboardingSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
-      component={SeedphraseModal as ScreenComponent}
+      component={SeedphraseModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
-      component={SkipAccountSecurityModal as ScreenComponent}
+      component={SkipAccountSecurityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SUCCESS_ERROR_SHEET}
-      component={SuccessErrorSheet as ScreenComponent}
+      component={SuccessErrorSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.ELIGIBILITY_FAILED_MODAL}
@@ -454,7 +448,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet as ScreenComponent}
+      component={AddNewAccountBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -463,7 +457,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal as ScreenComponent}
+      component={SDKSessionModal}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -475,24 +469,24 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal as ScreenComponent}
+      component={SDKDisconnectModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={MultichainAccountConnect as ScreenComponent}
+      component={MultichainAccountConnect}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={MultichainAccountPermissions as ScreenComponent}
+      component={MultichainAccountPermissions}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
       name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-      component={AccountPermissionsConfirmRevokeAll as ScreenComponent}
+      component={AccountPermissionsConfirmRevokeAll}
     />
     <Stack.Screen
       name={Routes.SHEET.CONNECTION_DETAILS}
-      component={ConnectionDetails as ScreenComponent}
+      component={ConnectionDetails}
     />
     <Stack.Screen
       name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
@@ -500,7 +494,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
-      component={NetworkSelector as ScreenComponent}
+      component={NetworkSelector}
     />
     <Stack.Screen
       name={Routes.SHEET.TOKEN_SORT}
@@ -512,7 +506,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
-      component={BasicFunctionalityModal as ScreenComponent}
+      component={BasicFunctionalityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
@@ -528,17 +522,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation as ScreenComponent}
+      component={AssetHideConfirmation}
     />
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions as ScreenComponent}
-    />
-    <Stack.Screen
-      name={'NftOptions'}
-      component={NftOptions as ScreenComponent}
-    />
+    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+    <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
     <Stack.Screen
       name={Routes.MODAL.OTA_UPDATES_MODAL}
@@ -552,7 +540,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     }
     <Stack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
-      component={SRPQuiz as ScreenComponent}
+      component={SRPQuiz}
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
@@ -588,11 +576,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-      component={OriginSpamModal as ScreenComponent}
+      component={OriginSpamModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
-      component={ChangeInSimulationModal as ScreenComponent}
+      component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
@@ -606,7 +594,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
-      component={LearnMoreBottomSheet as ScreenComponent}
+      component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -615,7 +603,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
-      component={ReturnToAppNotification as ScreenComponent}
+      component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
@@ -845,7 +833,7 @@ const MultichainAccountDetailsActions = () => {
       />
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
-        component={SRPQuiz as ScreenComponent}
+        component={SRPQuiz}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -905,7 +893,7 @@ const ModalSwitchAccountType = () => (
   >
     <Stack.Screen
       name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-      component={SwitchAccountTypeModal as ScreenComponent}
+      component={SwitchAccountTypeModal}
     />
   </Stack.Navigator>
 );
@@ -947,7 +935,7 @@ const AppFlow = () => {
       />
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
-        component={RootModalFlow as ScreenComponent}
+        component={RootModalFlow}
         options={{
           presentation: 'modal',
           detachPreviousScreen: false,
@@ -1006,7 +994,7 @@ const AppFlow = () => {
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential as ScreenComponent}
+        component={RevealPrivateCredential}
         options={{
           headerShown: false,
           animationEnabled: true,
