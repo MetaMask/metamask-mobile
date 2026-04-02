@@ -1,7 +1,12 @@
 import { getLocalHost } from './FixtureUtils.ts';
 import Koa, { Context } from 'koa';
 import { createLogger } from '../logger.ts';
-import { E2ECommandTypes, Resource, ServerStatus } from '../types.ts';
+import {
+  E2ECommandTypes,
+  Resource,
+  ServerStatus,
+  SrpProfile,
+} from '../types.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
 
 const logger = createLogger({
@@ -24,6 +29,7 @@ class CommandQueueServer implements Resource {
   private _server: ReturnType<Koa['listen']> | undefined;
   private _queue: CommandQueueItem[];
   private _exportedState: Record<string, unknown> | null;
+  private _srpProfile: SrpProfile;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -31,6 +37,7 @@ class CommandQueueServer implements Resource {
     this._app = new Koa();
     this._queue = [];
     this._exportedState = null;
+    this._srpProfile = SrpProfile.PERFORMANCE;
     this._serverPort = 0; // will be set with setServerPort()
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -72,6 +79,13 @@ class CommandQueueServer implements Resource {
           return;
         }
         ctx.body = this._exportedState;
+        return;
+      }
+
+      if (this._isSrpProfileTypeRequest(ctx)) {
+        ctx.body = {
+          srpProfile: this._srpProfile,
+        };
         return;
       }
     });
@@ -184,6 +198,17 @@ class CommandQueueServer implements Resource {
     this._queue.push(item);
   }
 
+  /**
+   * Set the number of SRPs the app should pre-load during initialization.
+   * The app fetches this value from the root endpoint (GET /) at startup.
+   *
+   * @param type - The type of SRP profile to import
+   */
+  setSrpProfile(type: SrpProfile): void {
+    logger.debug('Setting SRP profile type to', type.toString());
+    this._srpProfile = type;
+  }
+
   requestStateExport() {
     this._exportedState = null;
     this._queue.push({
@@ -219,6 +244,10 @@ class CommandQueueServer implements Resource {
 
   private _isDebugRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/debug.json';
+  }
+
+  private _isSrpProfileTypeRequest(ctx: Context) {
+    return ctx.method === 'GET' && ctx.path === '/srp-profile-type.json';
   }
 
   private _isExportedStatePost(ctx: Context) {

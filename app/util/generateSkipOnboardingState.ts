@@ -17,12 +17,22 @@ import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import { store } from '../store';
 import { setLockTime } from '../actions/settings';
 import AppConstants from '../core/AppConstants';
+import { getCommandQueueServerPortInApp } from './test/utils';
+import { Platform } from 'react-native';
+import { SrpProfile } from '../../tests/framework/types';
+
+const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
+
+const fetchWithTimeout = (url: string) =>
+  fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT) });
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
+const isPerformanceBuild = process.env.IS_PERFORMANCE_BUILD === 'true';
+
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
-export const additionalSrps = [
+export const performanceSrps = [
   process.env.ADDITIONAL_SRP_1,
   process.env.ADDITIONAL_SRP_2,
   process.env.ADDITIONAL_SRP_3,
@@ -45,11 +55,85 @@ export const additionalSrps = [
   process.env.ADDITIONAL_SRP_20,
 ];
 
+export const mmConnectSrps = [process.env.MM_CONNECT_SRP_1];
+
 /**
  * Apply the vault initialization to Redux store and return vault data if needed
  * This should be called during EngineService startup
  */
 async function applyVaultInitialization() {
+  if (!isPerformanceBuild) {
+    return null;
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(
+    '[E2E - generateSkipOnboardingState] Performance E2E Context detected',
+  );
+  let srpProfile: SrpProfile | undefined;
+
+  /**
+   * When running tests on BrowserStack, local services need to be accessed through
+   * BrowserStack's local tunnel hostname. For local development,
+   * standard localhost is used.
+   */
+  const hosts = ['localhost'];
+  if (Platform.OS === 'android') {
+    hosts.push('10.0.2.2');
+    hosts.push('bs-local.com');
+  }
+
+  const port = getCommandQueueServerPortInApp();
+  // eslint-disable-next-line no-console
+  console.log(
+    `[E2E - generateSkipOnboardingState] Command queue server port: ${port}`,
+  );
+
+  for (const host of hosts) {
+    const testUrl = `http://${host}:${port}/srp-profile-type.json`;
+    // eslint-disable-next-line no-console
+    console.log(
+      `[E2E - generateSkipOnboardingState] Trying command queue server at: ${testUrl}`,
+    );
+
+    try {
+      const response = await fetchWithTimeout(testUrl);
+      if (response.ok) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[E2E - generateSkipOnboardingState] Command queue server at ${testUrl} is available`,
+        );
+
+        // The amount of SRPs is provided by the Command Queue Server
+        const data = await response.json();
+
+        // Return if the SRP profile is set to ONBOARDING
+        if (data.srpProfile === SrpProfile.ONBOARDING) {
+          return null;
+        }
+
+        // Set the SRP profile to the one provided by the Command Queue Server
+        srpProfile = data.srpProfile;
+        if (!srpProfile) {
+          console.warn(
+            `[E2E - generateSkipOnboardingState] SRP profile type is not provided by the Command Queue Server`,
+          );
+          srpProfile = SrpProfile.PERFORMANCE;
+        }
+        break;
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.debug(
+        `[E2E - generateSkipOnboardingState] Failed to reach command queue server at ${testUrl}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      // Continue to next host
+    }
+  }
+
+  const srpsToImport =
+    srpProfile === SrpProfile.PERFORMANCE ? performanceSrps : mmConnectSrps;
+
   if (
     predefinedPassword &&
     !(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY))
@@ -58,7 +142,7 @@ async function applyVaultInitialization() {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
 
-    for (const srp of additionalSrps) {
+    for (const srp of srpsToImport) {
       if (!srp) {
         break;
       }

@@ -19,9 +19,11 @@ import {
 } from '../../flows/perps.flow';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import { SrpProfile } from '../../framework';
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(PerformancePreps, () => {
+  test.use({ srpProfile: SrpProfile.PERFORMANCE });
   test(
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },

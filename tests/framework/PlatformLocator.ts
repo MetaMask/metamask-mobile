@@ -4,6 +4,8 @@ import { FrameworkDetector } from './FrameworkDetector.ts';
  * Platform detector for Appium/WebdriverIO and Detox context
  */
 export class PlatformDetector {
+  private static _platform: 'android' | 'ios' | undefined;
+
   /**
    * Get current platform (android/ios)
    */
@@ -21,6 +23,25 @@ export class PlatformDetector {
     }
 
     throw new Error('Unable to detect platform');
+  }
+
+  /**
+   * Set the platform for the PlatformDetector.
+   * @param platform - The platform to set
+   */
+  static setPlatform(platform: 'android' | 'ios'): void {
+    this._platform = platform;
+  }
+
+  /**
+   * Get the platform for the PlatformDetector.
+   * @returns The platform
+   */
+  private static async _getPlatform(): Promise<'android' | 'ios'> {
+    if (this._platform) {
+      return this._platform;
+    }
+    return await this.getPlatform();
   }
 
   /**

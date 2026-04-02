@@ -1,6 +1,9 @@
 import { test as base, type FullProject } from '@playwright/test';
-import { WebDriverConfig } from '../types.ts';
-import { DEFAULT_IMPLICIT_WAIT_MS } from '../Constants.ts';
+import { SrpProfile, WebDriverConfig } from '../types.ts';
+import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+} from '../Constants.ts';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import {
   MetricsOutput,
@@ -14,6 +17,8 @@ import {
 } from '../quality-gates';
 import { getTeamInfoFromTags } from '../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
+import CommandQueueServer from '../fixtures/CommandQueueServer.ts';
+import { PlatformDetector } from '../PlatformLocator.ts';
 
 // Extend globalThis to include driver property
 declare global {
@@ -35,6 +40,20 @@ interface TestLevelFixtures {
    * This detects the platform of the device being tested.
    */
   currentDeviceDetails: CurrentDeviceDetails;
+
+  /**
+   * The type of SRP profile to import during initialization.
+   * This is set by the CommandQueueServer.
+   */
+  srpProfile: SrpProfile;
+
+  /**
+   * Command queue server to be used for the test.
+   * This is used to pre-load SRPs into the app during initialization.
+   * The app fetches this value from the command queue server at startup.
+   * Override per-test via test.use({ commandQueueServer: CommandQueueServer }) or default to a new instance.
+   */
+  commandQueueServer: CommandQueueServer;
 
   /**
    * Device provider to be used for the test.
@@ -95,8 +114,39 @@ export const test = base.extend<TestLevelFixtures>({
     await use(deviceDetails);
   },
 
+  /**
+   * Number of SRPs to pre-load in the app during initialization.
+   * The app fetches this from the command queue server at startup.
+   * Override per-test via test.use({ srpProfile: SrpProfile.PERFORMANCE }) or default to SrpProfile.PERFORMANCE.
+   */
+  srpProfile: [SrpProfile.PERFORMANCE, { option: true }],
+
+  commandQueueServer: async (
+    { srpProfile, currentDeviceDetails },
+    use,
+    testInfo,
+  ) => {
+    // Set platform from appwright project config so PlatformDetector works
+    // without Detox/Appium globals or env vars
+    const platform = currentDeviceDetails.platform;
+    if (platform === 'android' || platform === 'ios') {
+      PlatformDetector.setPlatform(platform);
+    }
+    const server = new CommandQueueServer();
+    server.setServerPort(FALLBACK_COMMAND_QUEUE_SERVER_PORT);
+    await server.start();
+    server.setSrpProfile(srpProfile);
+
+    console.log(
+      `[Performance] Command queue server started on port ${server.getServerPort()} with srpProfile=${srpProfile.toString()}`,
+    );
+    await use(server);
+    await server.stop();
+    console.log('[Performance] Command queue server stopped');
+  },
+
   // eslint-disable-next-line no-empty-pattern
-  deviceProvider: async ({}, use, testInfo) => {
+  deviceProvider: async ({ commandQueueServer }, use, testInfo) => {
     const deviceProvider = createServiceProvider(testInfo.project);
     await use(deviceProvider);
   },

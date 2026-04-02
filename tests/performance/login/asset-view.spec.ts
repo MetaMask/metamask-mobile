@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { asPlaywrightElement, PlaywrightAssertions , SrpProfile } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
@@ -11,6 +11,7 @@ import {
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
 perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+  perfTest.use({ srpProfile: SrpProfile.PERFORMANCE });
   perfTest(
     'Asset View, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },

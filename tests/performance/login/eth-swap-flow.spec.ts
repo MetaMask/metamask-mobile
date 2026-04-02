@@ -4,9 +4,11 @@ import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
+import { SrpProfile } from '../../framework';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
+  test.use({ srpProfile: SrpProfile.PERFORMANCE });
   test(
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },

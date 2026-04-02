@@ -16,6 +16,7 @@ import AppwrightHelpers from '../../framework/AppwrightHelpers.ts';
 import { unlockIfLockScreenVisible } from '../mm-connect/utils.js';
 import { PerformanceLogin } from '../../tags.performance.js';
 import AppwrightSelectors from '../../framework/AppwrightSelectors.ts';
+import { SrpProfile } from '../../framework';
 
 const UNISWAP_URL = 'https://app.uniswap.org';
 const UNISWAP_DAPP_NAME = 'Uniswap';
@@ -23,6 +24,7 @@ const UNISWAP_DAPP_NAME = 'Uniswap';
 // TODO(MMQA-1616): Re-enable after migrating this spec to tests/framework/fixture.
 
 test.describe(`${PerformanceLogin}`, () => {
+  test.use({ srpProfile: SrpProfile.PERFORMANCE });
   test.setTimeout(240000);
 
   test.skip(

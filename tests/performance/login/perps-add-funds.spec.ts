@@ -8,9 +8,11 @@ import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import { SrpProfile } from '../../framework';
 
 /* Scenario 5: Perps add funds */
 test.describe(PerformancePreps, () => {
+  test.use({ srpProfile: SrpProfile.PERFORMANCE });
   test(
     'Perps add funds',
     { tag: '@mm-perps-engineering-team' },

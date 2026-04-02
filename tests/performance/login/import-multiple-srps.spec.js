@@ -7,12 +7,7 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import {
-  dismissMultichainAccountsIntroModal,
-  dissmissPredictionsModal,
-  importSRPFlow,
-  login,
-} from '../../framework/utils/Flows.js';
+import { importSRPFlow, login } from '../../framework/utils/Flows.js';
 import {
   PerformanceLogin,
   PerformanceAccountList,

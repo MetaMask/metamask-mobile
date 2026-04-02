@@ -4,6 +4,7 @@ import {
   asPlaywrightElement,
   PlaywrightAssertions,
   PlaywrightGestures,
+  SrpProfile,
 } from '../../../framework';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { getPasswordForScenario } from '../../../framework/utils/TestConstants.js';
@@ -27,6 +28,7 @@ import {
  * 1. Time to tap Unlock and display the wallet screen again
  */
 perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
+  perfTest.use({ srpProfile: SrpProfile.PERFORMANCE });
   perfTest(
     'Measure Warm Start: Login To Wallet Screen',
     { tag: '@metamask-mobile-platform' },

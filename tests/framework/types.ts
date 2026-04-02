@@ -1,5 +1,4 @@
 // Device Matrix
-
 export interface DeviceMatrixEntry {
   name: string;
   os_version: string;
@@ -7,6 +6,7 @@ export interface DeviceMatrixEntry {
   description: string;
 }
 
+// Device Matrix for the test devices
 export interface DeviceMatrix {
   android_devices: DeviceMatrixEntry[];
   ios_devices: DeviceMatrixEntry[];
@@ -18,8 +18,15 @@ export interface DeviceMatrix {
   notes: Record<string, string>;
 }
 
-// Gestures
+// SRP Profile Types
+// Used to determine which set of SRPs to import for the test
+export enum SrpProfile {
+  PERFORMANCE = 'performance',
+  MM_CONNECT = 'mm-connect',
+  ONBOARDING = 'onboarding',
+}
 
+// Gestures
 import { LanguageAndLocale } from 'detox/detox';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
