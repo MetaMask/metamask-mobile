@@ -1,23 +1,23 @@
 import { ControllerInitFunction } from '../types';
 import {
-  MultichainRouter,
-  type MultichainRouterMessenger,
+  MultichainRoutingService,
+  type MultichainRoutingServiceMessenger,
 } from '@metamask/snaps-controllers';
-import { MultichainRouterInitMessenger } from '../messengers/multichain-router-messenger';
+import { MultichainRoutingServiceInitMessenger } from '../messengers/multichain-routing-service-messenger';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 /**
- * Initialize the multichain router.
+ * Initialize the multichain routing service.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const multichainRouterInit: ControllerInitFunction<
-  MultichainRouter,
-  MultichainRouterMessenger,
-  MultichainRouterInitMessenger
+export const multichainRoutingServiceInit: ControllerInitFunction<
+  MultichainRoutingService,
+  MultichainRoutingServiceMessenger,
+  MultichainRoutingServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   const getSnapKeyring = async (): Promise<SnapKeyring> => {
     // TODO: Replace `getKeyringsByType` with `withKeyring`
@@ -53,7 +53,7 @@ export const multichainRouterInit: ControllerInitFunction<
     return operation({ keyring });
   };
 
-  const controller = new MultichainRouter({
+  const controller = new MultichainRoutingService({
     messenger: controllerMessenger,
 
     // @ts-expect-error: Type for `withSnapKeyring` is different.

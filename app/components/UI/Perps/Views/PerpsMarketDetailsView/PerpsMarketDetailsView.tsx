@@ -96,6 +96,7 @@ import {
   usePerpsNavigation,
   usePositionManagement,
   usePerpsTrading,
+  usePerpsMarketData,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -126,6 +127,7 @@ import {
 import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
+  MarketInsightsDisclaimerBottomSheet,
   useMarketInsights,
 } from '../../../MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
@@ -205,6 +207,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
   const [isMarketHoursModalVisible, setIsMarketHoursModalVisible] =
+    useState(false);
+  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -635,6 +639,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   };
 
+  const { marketData } = usePerpsMarketData({
+    asset: market?.symbol || '',
+  });
+
   const handleWatchlistPress = useCallback(() => {
     if (!market?.symbol) return;
 
@@ -712,9 +720,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         direction,
         asset: market.symbol,
         source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        defaultSzDecimals: marketData?.szDecimals,
+        defaultMaxLeverage: marketData?.maxLeverage,
       });
     },
     [
+      marketData,
       isEligible,
       existingPosition,
       navigation,
@@ -1365,6 +1376,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 report={perpsInsightsReport}
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
+                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
               />
             ) : (
               <MarketInsightsEntryCardSkeleton />
@@ -1588,6 +1600,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         onClose={handleFullscreenChartClose}
         onIntervalChange={handleCandlePeriodChange}
       />
+
+      {/* Market Insights Disclaimer Bottom Sheet */}
+      {isInsightsDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
 
       {/* Modify Action Bottom Sheet - Rendered conditionally using PerpsHomeView pattern */}
       {showModifyActionSheet && (
