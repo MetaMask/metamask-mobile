@@ -369,7 +369,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   },
 };
 
-// Sorted by order on the main screen
+// Sorted by order on the Explore page
 const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.predictions,
   SECTIONS_CONFIG.tokens,
@@ -379,7 +379,16 @@ const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
 ];
 
 // Sorted by order on the QuickAction buttons and SearchResults
-const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+const QUICK_ACTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
+  SECTIONS_CONFIG.tokens,
+  SECTIONS_CONFIG.perps,
+  SECTIONS_CONFIG.stocks,
+  SECTIONS_CONFIG.predictions,
+  SECTIONS_CONFIG.sites,
+];
+
+// Sorted by order on the SearchResults
+const SEARCH_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
   SECTIONS_CONFIG.tokens,
   SECTIONS_CONFIG.perps,
   SECTIONS_CONFIG.stocks,
@@ -399,14 +408,30 @@ export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
   );
 };
 
-export const useSectionsArray = (): (SectionConfig & { id: SectionId })[] => {
+export const useQuickActionsSectionsArray = (): (SectionConfig & {
+  id: SectionId;
+})[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   return useMemo(
     () =>
       isPerpsEnabled
-        ? SECTIONS_ARRAY
-        : SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+        ? QUICK_ACTIONS_ARRAY
+        : QUICK_ACTIONS_ARRAY.filter((section) => section.id !== 'perps'),
+    [isPerpsEnabled],
+  );
+};
+
+export const useSearchSectionsArray = (): (SectionConfig & {
+  id: SectionId;
+})[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return useMemo(
+    () =>
+      isPerpsEnabled
+        ? SEARCH_SECTIONS_ARRAY
+        : SEARCH_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
     [isPerpsEnabled],
   );
 };
