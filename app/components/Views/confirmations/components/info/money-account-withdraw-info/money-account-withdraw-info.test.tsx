@@ -41,6 +41,13 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
 }));
 
+jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
+  useTransactionPayWithdraw: jest.fn(() => ({
+    isWithdraw: true,
+    canSelectWithdrawToken: true,
+  })),
+}));
+
 jest.mock('../../AccountSelector', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
@@ -113,7 +120,7 @@ describe('MoneyAccountWithdrawInfo', () => {
     fireEvent.press(getByTestId('money-account-selector-pill'));
 
     expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      from: '0xTestAddress',
+      to: '0xTestAddress',
     });
   });
 
