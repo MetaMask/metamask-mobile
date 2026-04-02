@@ -71,17 +71,3 @@ export const calculateTotalVolume = (outcomes: PredictOutcome[]): number =>
         : outcome.volume || 0;
     return sum + volume;
   }, 0);
-
-export const calculateRemainingTokens = (
-  outcomes: PredictOutcome[],
-  visibleCount: number,
-): number => {
-  const totalTokens = outcomes.reduce((sum, outcome) => {
-    const tokenCount = Array.isArray(outcome.tokens)
-      ? outcome.tokens.length
-      : 0;
-    return sum + tokenCount;
-  }, 0);
-
-  return Math.max(0, totalTokens - visibleCount);
-};

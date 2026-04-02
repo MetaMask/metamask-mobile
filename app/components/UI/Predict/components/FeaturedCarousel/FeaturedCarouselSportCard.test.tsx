@@ -282,7 +282,7 @@ describe('FeaturedCarouselSportCard', () => {
     },
   );
 
-  it('renders footer with remaining options and volume', () => {
+  it('renders footer with volume display', () => {
     const market = createMockSportMarket();
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -293,10 +293,31 @@ describe('FeaturedCarouselSportCard', () => {
     expect(
       getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_FOOTER(0)),
     ).toBeOnTheScreen();
-    expect(getByText(/\+ 1/)).toBeOnTheScreen();
     expect(
       getByText(new RegExp(strings('predict.volume_abbreviated'), 'i')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders remaining outcomes count when market has multiple outcomes', () => {
+    const market = createMockSportMarket({
+      outcomes: [
+        createMockOutcome([
+          { id: 'home-token', title: 'Lakers', price: 0.6 },
+          { id: 'away-token', title: 'Celtics', price: 0.4 },
+        ]),
+        createMockOutcome([
+          { id: 'over-token', title: 'Over', price: 0.55 },
+          { id: 'under-token', title: 'Under', price: 0.45 },
+        ]),
+      ],
+    });
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText(/\+ 1/)).toBeOnTheScreen();
   });
 
   it('renders time remaining in footer for live games', () => {

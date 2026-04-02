@@ -39,7 +39,6 @@ import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
 import {
-  calculateRemainingTokens,
   calculateTotalVolume,
   getTimeRemaining,
   formatScheduledTime,
@@ -147,12 +146,8 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     [market, outcome, entryPoint, executeGuardedAction, navigateToBuyPreview],
   );
 
-  const visibleButtons = drawToken ? 3 : 2;
   const totalVolume = calculateTotalVolume(market.outcomes);
-  const remainingOptions = calculateRemainingTokens(
-    market.outcomes,
-    visibleButtons,
-  );
+  const remainingOptions = Math.max(0, market.outcomes.length - 1);
 
   const renderTeamLogo = (team: typeof game.homeTeam, testID?: string) =>
     config.TeamIcon ? (

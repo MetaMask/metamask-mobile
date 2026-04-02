@@ -1,8 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -15,19 +15,26 @@ import { useFeaturedCarouselData } from '../../hooks/useFeaturedCarouselData';
 import FeaturedCarouselCard from './FeaturedCarouselCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export const HORIZONTAL_PADDING = 16;
 export const CARD_GAP = 12;
-export const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2;
 export const CARD_HEIGHT = 280;
-export const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
+
+const useCarouselLayout = () => {
+  const { width: screenWidth } = useWindowDimensions();
+  return useMemo(() => {
+    const cardWidth = screenWidth - HORIZONTAL_PADDING * 2;
+    const snapInterval = cardWidth + CARD_GAP;
+    return { cardWidth, snapInterval };
+  }, [screenWidth]);
+};
 
 const FeaturedCarouselSkeleton: React.FC = () => {
   const tw = useTailwind();
+  const { cardWidth } = useCarouselLayout();
   return (
     <Box testID={FEATURED_CAROUSEL_TEST_IDS.SKELETON} twClassName="mx-4">
       <Skeleton
-        width={CARD_WIDTH}
+        width={cardWidth}
         height={CARD_HEIGHT}
         style={tw.style('rounded-2xl')}
       />
@@ -73,6 +80,7 @@ const FeaturedCarousel: React.FC = () => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<PredictMarket>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { cardWidth, snapInterval } = useCarouselLayout();
 
   const { markets, isLoading, error } = useFeaturedCarouselData();
 
@@ -80,19 +88,19 @@ const FeaturedCarousel: React.FC = () => {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const newIndex = Math.min(
-        Math.max(0, Math.round(offsetX / SNAP_INTERVAL)),
+        Math.max(0, Math.round(offsetX / snapInterval)),
         markets.length - 1,
       );
       setActiveIndex(newIndex);
     },
-    [markets.length],
+    [markets.length, snapInterval],
   );
 
   const renderItem = useCallback(
     ({ item: market, index: idx }: { item: PredictMarket; index: number }) => (
       <Box
         style={tw.style(
-          { width: CARD_WIDTH, height: CARD_HEIGHT },
+          { width: cardWidth, height: CARD_HEIGHT },
           idx < markets.length - 1 && { marginRight: CARD_GAP },
         )}
       >
@@ -103,7 +111,7 @@ const FeaturedCarousel: React.FC = () => {
         />
       </Box>
     ),
-    [markets.length, tw],
+    [markets.length, tw, cardWidth],
   );
 
   const keyExtractor = useCallback(
@@ -130,7 +138,7 @@ const FeaturedCarousel: React.FC = () => {
         horizontal
         pagingEnabled={false}
         showsHorizontalScrollIndicator={false}
-        snapToInterval={SNAP_INTERVAL}
+        snapToInterval={snapInterval}
         decelerationRate="fast"
         onScroll={handleScroll}
         scrollEventThrottle={16}
