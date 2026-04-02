@@ -31,6 +31,16 @@ export const selectHDKeyrings = createDeepEqualSelector(
 );
 
 /**
+ * Selects the primary (first) HD keyring from the state
+ * @param state - The Redux state
+ * @returns The primary HD keyring, or undefined if none exist
+ */
+export const selectPrimaryHDKeyring = createDeepEqualSelector(
+  selectHDKeyrings,
+  (keyrings) => keyrings[0],
+);
+
+/**
  * Checks if there are multiple HD keyrings in the state
  * @param state - The Redux state
  * @returns True if there is more than one HD keyring
