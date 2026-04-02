@@ -531,7 +531,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
-      component={BasicFunctionalityModal as ScreenComponent}
+      component={BasicFunctionalityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
@@ -547,17 +547,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation as ScreenComponent}
+      component={AssetHideConfirmation}
     />
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions as ScreenComponent}
-    />
-    <Stack.Screen
-      name={'NftOptions'}
-      component={NftOptions as ScreenComponent}
-    />
+    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+    <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
     <Stack.Screen
       name={Routes.MODAL.OTA_UPDATES_MODAL}
