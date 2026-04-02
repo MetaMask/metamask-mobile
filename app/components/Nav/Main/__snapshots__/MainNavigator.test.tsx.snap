@@ -140,9 +140,11 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="Send"
     options={
       {
+        "animationEnabled": true,
         "cardStyle": {
           "backgroundColor": "#ffffff",
         },
+        "cardStyleInterpolator": [Function],
         "gestureEnabled": false,
       }
     }
@@ -225,6 +227,12 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="Bridge"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -550,9 +558,11 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="Send"
     options={
       {
+        "animationEnabled": true,
         "cardStyle": {
           "backgroundColor": "#ffffff",
         },
+        "cardStyleInterpolator": [Function],
         "gestureEnabled": false,
       }
     }
@@ -635,6 +645,12 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="Bridge"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
@@ -960,9 +976,11 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="Send"
     options={
       {
+        "animationEnabled": true,
         "cardStyle": {
           "backgroundColor": "#ffffff",
         },
+        "cardStyleInterpolator": [Function],
         "gestureEnabled": false,
       }
     }
@@ -1045,6 +1063,12 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="Bridge"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
   />
   <Screen
     component={[Function]}
