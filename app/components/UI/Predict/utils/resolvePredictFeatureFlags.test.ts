@@ -41,7 +41,7 @@ describe('resolvePredictFeatureFlags', () => {
       },
     });
 
-    expect(result.liveSportsLeagues).toEqual(['nba', 'nfl', 'ucl']);
+    expect(result.liveSportsLeagues).toEqual(['nba', 'nfl', 'epl', 'ucl']);
   });
 
   it('returns no live sports leagues when live sports flag is disabled', () => {

@@ -2162,11 +2162,7 @@ export class PredictController extends BaseController<
   public async getBalance(params: GetBalanceParams): Promise<number> {
     const selectedAddress = this.getSigner().address;
     const address = params.address ?? selectedAddress;
-
-    const cachedBalance = this.state.balances[address];
-    if (cachedBalance && cachedBalance.validUntil > Date.now()) {
-      return cachedBalance.balance;
-    }
+    let wasCached = false;
 
     return withTrace(
       this.traceable,
@@ -2182,8 +2178,12 @@ export class PredictController extends BaseController<
         },
         errorContext: { providerId: POLYMARKET_PROVIDER_ID },
         updateErrorState: false,
-        traceData: () => ({ cached: false }),
+        traceData: () => ({ cached: wasCached }),
         onSuccess: (balance) => {
+          if (wasCached) {
+            return;
+          }
+
           this.update((state) => {
             state.balances[address] = {
               balance,
@@ -2193,6 +2193,12 @@ export class PredictController extends BaseController<
         },
       },
       async () => {
+        const cachedBalance = this.state.balances[address];
+        if (cachedBalance && cachedBalance.validUntil > Date.now()) {
+          wasCached = true;
+          return cachedBalance.balance;
+        }
+
         await this.invalidateQueryCache(this.provider.chainId);
         return this.provider.getBalance({ ...params, address });
       },

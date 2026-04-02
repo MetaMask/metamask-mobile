@@ -21,6 +21,13 @@ export interface RawFeatureFlags {
   localOverrides?: Record<string, unknown>;
 }
 
+/**
+ * Resolves the Predict feature flags used by both the controller and selectors.
+ * Local overrides take precedence over remote values when both are present.
+ *
+ * @param rawState - Raw RemoteFeatureFlagController state slices used by Predict.
+ * @returns The normalized Predict feature flag set.
+ */
 export function resolvePredictFeatureFlags(
   rawState: RawFeatureFlags,
 ): PredictFeatureFlags {
