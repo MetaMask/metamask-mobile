@@ -16,7 +16,6 @@ import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { errorCodes, providerErrors } from '@metamask/rpc-errors';
 import Engine from '../../Engine';
 import NavigationService from '../../NavigationService';
-import { trackWalletEvent } from './v2-analytics';
 
 /**
  * Known user-rejection error codes across ecosystems.
@@ -62,8 +61,6 @@ export class Connection {
   public readonly hostApp: IHostApplicationAdapter;
   public readonly bridge: IRPCBridgeAdapter;
 
-  private pendingSessionRequestId: unknown = undefined;
-
   private constructor(
     connInfo: ConnectionInfo,
     client: WalletClient,
@@ -95,10 +92,6 @@ export class Connection {
         typeof payload.data === 'object' &&
         'method' in payload.data &&
         payload.data.method === 'wallet_createSession';
-
-      if (isWalletCreateSessionRequest) {
-        this.pendingSessionRequestId = data?.id;
-      }
 
       // If the request is a wallet_createSession request and there are pending approval requests, clear those pending approvals before
       // showing the wallet_createSession approval. We do this to prevent the user from seeing a stale wallet_createSession approval in the
@@ -154,19 +147,6 @@ export class Connection {
 
           if (REJECTION_CODES.has(errCode) || isRejectionMessage(errMessage)) {
             this.hostApp.showConfirmationRejectionError(this.info);
-
-            if (
-              this.pendingSessionRequestId !== undefined &&
-              responseData.id === this.pendingSessionRequestId
-            ) {
-              this.pendingSessionRequestId = undefined;
-              trackWalletEvent('wallet_connection_user_rejected', {
-                anon_id: this.id,
-                platform: 'mobile',
-                sdk_version: this.info.metadata?.sdk?.version,
-                sdk_platform: this.info.metadata?.sdk?.platform,
-              });
-            }
           } else if (isInternalError(errCode)) {
             this.hostApp.showInternalError(this.info);
           } else {

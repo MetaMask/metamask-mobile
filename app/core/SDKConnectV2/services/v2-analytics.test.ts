@@ -59,7 +59,7 @@ describe('trackWalletEvent', () => {
   it('sends POST request with correct payload when analytics is enabled', () => {
     mockAnalytics.isEnabled.mockReturnValue(true);
     const eventName: WalletConnectionEventName =
-      'wallet_connection_user_approved';
+      'wallet_connection_request_received';
     const properties = createProperties({ sdk_version: '1.0.0' });
 
     trackWalletEvent(eventName, properties);
@@ -96,7 +96,7 @@ describe('trackWalletEvent', () => {
       found_in_store: true,
     });
 
-    trackWalletEvent('wallet_connection_user_rejected', properties);
+    trackWalletEvent('wallet_connection_request_failed', properties);
 
     const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
     expect(body[0].properties).toStrictEqual(properties);

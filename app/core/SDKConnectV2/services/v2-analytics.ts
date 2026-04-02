@@ -17,9 +17,7 @@ const V2_ANALYTICS_ENDPOINT =
  */
 export type WalletConnectionEventName =
   | 'wallet_connection_request_received'
-  | 'wallet_connection_request_failed'
-  | 'wallet_connection_user_approved'
-  | 'wallet_connection_user_rejected';
+  | 'wallet_connection_request_failed';
 
 export interface WalletEventProperties {
   anon_id: string;
