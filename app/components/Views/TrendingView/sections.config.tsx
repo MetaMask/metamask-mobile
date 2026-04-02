@@ -323,9 +323,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         <PredictMarket
           market={item as PredictMarketType}
           isCarousel
-          testID={`predict-market-list-trending-card-${
-            (item as PredictMarketType).id
-          }`}
+          testID={`predict-market-row-item-${(item as PredictMarketType).id}`}
         />
       </Box>
     ),
