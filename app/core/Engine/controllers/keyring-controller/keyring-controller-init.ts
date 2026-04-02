@@ -1,4 +1,5 @@
 import { ControllerInitFunction } from '../../types';
+import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
@@ -43,7 +44,12 @@ export const keyringControllerInit: ControllerInitFunction<
   initialKeyringState,
   qrKeyringScanner,
   getController,
+  getState,
 }) => {
+  const { remoteFeatureFlags } = getController(
+    'RemoteFeatureFlagController',
+  ).state;
+
   // Required by the HD keyring and money keyring to use native crypto functions.
   const cryptographicFunctions: CryptographicFunctions = {
     pbkdf2Sha512: pbkdf2,
@@ -77,31 +83,35 @@ export const keyringControllerInit: ControllerInitFunction<
   hdKeyringBuilder.type = HdKeyring.type;
   additionalKeyrings.push(hdKeyringBuilder);
 
-  const moneyKeyringBuilder = () =>
-    new MoneyKeyring({
-      cryptographicFunctions,
-      getMnemonic: async (entropySource: string) =>
-        // This builder needs the controller itself, so we re-use `getController` to access
-        // the controller instance as it will be available when this method gets called.
-        // NOTE: This is required since we cannot self-use our own actions with the init messenger.
-        getController('KeyringController').withKeyringUnsafe(
-          {
-            filter: (keyring, metadata): keyring is HdKeyring =>
-              keyring.type === KeyringTypes.hd && metadata.id === entropySource,
-          },
-          async ({ keyring }) => {
-            if (!keyring?.mnemonic) {
-              throw new Error(
-                `Unable to get mnemonic to initialize MoneyKeyring`,
-              );
-            }
+  // We only need this keyring if Money accounts are enabled.
+  if (isMoneyAccountEnabled(remoteFeatureFlags)) {
+    const moneyKeyringBuilder = () =>
+      new MoneyKeyring({
+        cryptographicFunctions,
+        getMnemonic: async (entropySource: string) =>
+          // This builder needs the controller itself, so we re-use `getController` to access
+          // the controller instance as it will be available when this method gets called.
+          // NOTE: This is required since we cannot self-use our own actions with the init messenger.
+          getController('KeyringController').withKeyringUnsafe(
+            {
+              filter: (keyring, metadata): keyring is HdKeyring =>
+                keyring.type === KeyringTypes.hd &&
+                metadata.id === entropySource,
+            },
+            async ({ keyring }) => {
+              if (!keyring?.mnemonic) {
+                throw new Error(
+                  `Unable to get mnemonic to initialize MoneyKeyring`,
+                );
+              }
 
-            return encodeMnemonic(keyring.mnemonic);
-          },
-        ),
-    });
-  moneyKeyringBuilder.type = MoneyKeyring.type;
-  additionalKeyrings.push(moneyKeyringBuilder);
+              return encodeMnemonic(keyring.mnemonic);
+            },
+          ),
+      });
+    moneyKeyringBuilder.type = MoneyKeyring.type;
+    additionalKeyrings.push(moneyKeyringBuilder);
+  }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringBuilder = getController('SnapKeyringBuilder');

@@ -1,5 +1,13 @@
 import { AccountTreeInitService } from './index';
 
+jest.mock('../../lib/Money/feature-flags', () => ({
+  isMoneyAccountEnabled: jest.fn(),
+}));
+
+const mockIsMoneyAccountEnabled = jest.requireMock(
+  '../../lib/Money/feature-flags',
+).isMoneyAccountEnabled as jest.Mock;
+
 const mockUpdateAccounts = jest.fn();
 const mockAccountTreeInit = jest.fn();
 const mockAccountTreeClearState = jest.fn();
@@ -32,6 +40,9 @@ jest.mock('../../core/Engine', () => ({
           .fn()
           .mockImplementation(() => mockMoneyAccountClearState()),
       },
+      RemoteFeatureFlagController: {
+        state: { remoteFeatureFlags: {} },
+      },
     },
   },
 }));
@@ -51,6 +62,7 @@ describe('AccountTreeInitService', () => {
   beforeEach(() => {
     service = new AccountTreeInitService();
     jest.clearAllMocks();
+    mockIsMoneyAccountEnabled.mockReturnValue(true);
   });
 
   describe('initializeAccountTree', () => {
@@ -64,9 +76,20 @@ describe('AccountTreeInitService', () => {
       expect(mockAccountTreeInit).toHaveBeenCalled();
     });
 
-    it('calls MoneyAccountController.init', async () => {
+    it('calls MoneyAccountController.init when the flag is enabled', async () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(true);
+
       await service.initializeAccountTree();
+
       expect(mockMoneyAccountInit).toHaveBeenCalled();
+    });
+
+    it('does not call MoneyAccountController.init when the flag is disabled', async () => {
+      mockIsMoneyAccountEnabled.mockReturnValue(false);
+
+      await service.initializeAccountTree();
+
+      expect(mockMoneyAccountInit).not.toHaveBeenCalled();
     });
 
     it('forwards the selected account group to the Snap keyring', async () => {
