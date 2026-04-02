@@ -172,9 +172,11 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
 
   // Multi-series
   useEffect(() => {
-    if (!isChartReady || !series) return;
-    postMessage({ type: 'SET_SERIES', payload: { series } });
-  }, [series, isChartReady, postMessage]);
+    if (!isChartReady) return;
+
+    postMessage({ type: 'SET_DATA', payload: { data, value } });
+    postMessage({ type: 'SET_SERIES', payload: { series: series ?? null } });
+  }, [data, value, series, isChartReady, postMessage]);
 
   // Dynamic props that can change without reloading the WebView
   useEffect(() => {
@@ -187,24 +189,36 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
 
   // Candlestick data (streamed the same way as series)
   useEffect(() => {
-    if (!isChartReady || !candles) return;
-    postMessage({ type: 'SET_PROPS', payload: { candles } });
+    if (!isChartReady) return;
+    postMessage({ type: 'SET_PROPS', payload: { candles: candles ?? null } });
   }, [candles, isChartReady, postMessage]);
 
   useEffect(() => {
-    if (!isChartReady || liveCandle === undefined) return;
-    postMessage({ type: 'SET_PROPS', payload: { liveCandle } });
+    if (!isChartReady) return;
+    postMessage({
+      type: 'SET_PROPS',
+      payload: { liveCandle: liveCandle ?? null },
+    });
   }, [liveCandle, isChartReady, postMessage]);
 
   useEffect(() => {
-    if (!isChartReady || lineData === undefined) return;
-    postMessage({ type: 'SET_PROPS', payload: { lineData, lineValue } });
+    if (!isChartReady) return;
+    postMessage({
+      type: 'SET_PROPS',
+      payload: {
+        lineData: lineData ?? null,
+        lineValue: lineValue ?? null,
+      },
+    });
   }, [lineData, lineValue, isChartReady, postMessage]);
 
   // Hidden series (toggled externally by the host)
   useEffect(() => {
     if (!isChartReady) return;
-    postMessage({ type: 'SET_PROPS', payload: { hiddenSeriesIds } });
+    postMessage({
+      type: 'SET_PROPS',
+      payload: { hiddenSeriesIds: hiddenSeriesIds ?? null },
+    });
   }, [hiddenSeriesIds, isChartReady, postMessage]);
 
   const handleMessage = useCallback(

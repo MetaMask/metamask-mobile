@@ -305,6 +305,24 @@ describe('LivelineChart', () => {
       );
     });
 
+    it('sends SET_SERIES with null when series prop is removed after CHART_READY', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} series={MOCK_SERIES} />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      makeReady(webView);
+      mockPostMessage.mockClear();
+
+      rerender(<LivelineChart data={MOCK_DATA} value={43.1} />);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'SET_SERIES',
+          payload: { series: null },
+        }),
+      );
+    });
+
     it('sends SET_PROPS with loading/paused/emptyText when they change after CHART_READY', () => {
       const { getByTestId, rerender } = render(
         <LivelineChart data={MOCK_DATA} value={43.1} />,
@@ -351,6 +369,24 @@ describe('LivelineChart', () => {
       );
     });
 
+    it('sends SET_PROPS with candles null when candles prop is removed after CHART_READY', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} candles={[MOCK_CANDLE]} />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      makeReady(webView);
+      mockPostMessage.mockClear();
+
+      rerender(<LivelineChart data={MOCK_DATA} value={43.1} />);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'SET_PROPS',
+          payload: { candles: null },
+        }),
+      );
+    });
+
     it('sends SET_PROPS with liveCandle when liveCandle prop changes after CHART_READY', () => {
       const { getByTestId, rerender } = render(
         <LivelineChart data={MOCK_DATA} value={43.1} />,
@@ -371,6 +407,28 @@ describe('LivelineChart', () => {
         JSON.stringify({
           type: 'SET_PROPS',
           payload: { liveCandle: MOCK_CANDLE },
+        }),
+      );
+    });
+
+    it('sends SET_PROPS with liveCandle null when liveCandle prop is removed after CHART_READY', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart
+          data={MOCK_DATA}
+          value={43.1}
+          liveCandle={MOCK_CANDLE}
+        />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      makeReady(webView);
+      mockPostMessage.mockClear();
+
+      rerender(<LivelineChart data={MOCK_DATA} value={43.1} />);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'SET_PROPS',
+          payload: { liveCandle: null },
         }),
       );
     });
@@ -400,6 +458,29 @@ describe('LivelineChart', () => {
       );
     });
 
+    it('sends SET_PROPS with lineData and lineValue null when line props are removed after CHART_READY', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart
+          data={MOCK_DATA}
+          value={43.1}
+          lineData={MOCK_DATA}
+          lineValue={43.1}
+        />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      makeReady(webView);
+      mockPostMessage.mockClear();
+
+      rerender(<LivelineChart data={MOCK_DATA} value={43.1} />);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'SET_PROPS',
+          payload: { lineData: null, lineValue: null },
+        }),
+      );
+    });
+
     it('sends SET_PROPS with hiddenSeriesIds when hiddenSeriesIds prop changes after CHART_READY', () => {
       const { getByTestId, rerender } = render(
         <LivelineChart data={MOCK_DATA} value={43.1} />,
@@ -420,6 +501,28 @@ describe('LivelineChart', () => {
         JSON.stringify({
           type: 'SET_PROPS',
           payload: { hiddenSeriesIds: ['series-1'] },
+        }),
+      );
+    });
+
+    it('sends SET_PROPS with hiddenSeriesIds null when hiddenSeriesIds prop is removed after CHART_READY', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart
+          data={MOCK_DATA}
+          value={43.1}
+          hiddenSeriesIds={['series-1']}
+        />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      makeReady(webView);
+      mockPostMessage.mockClear();
+
+      rerender(<LivelineChart data={MOCK_DATA} value={43.1} />);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'SET_PROPS',
+          payload: { hiddenSeriesIds: null },
         }),
       );
     });

@@ -160,11 +160,20 @@ export type RNToWebViewMessage =
     }
   | {
       type: 'SET_SERIES';
-      payload: { series: LivelineSeries[] };
+      payload: { series: LivelineSeries[] | null };
     }
   | {
       type: 'SET_PROPS';
-      payload: Partial<LivelineChartProps>;
+      payload: {
+        loading?: boolean;
+        paused?: boolean;
+        emptyText?: string;
+        candles?: CandlePoint[] | null;
+        liveCandle?: CandlePoint | null;
+        lineData?: LivelinePoint[] | null;
+        lineValue?: number | null;
+        hiddenSeriesIds?: string[] | null;
+      };
     };
 
 /** Messages sent from WebView → React Native. */
