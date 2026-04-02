@@ -77,16 +77,6 @@ jest.mock('../Engine/Engine', () => {
         getSelectedAccount: jest.fn().mockReturnValue({
           address: '0x1234567890abcdef1234567890abcdef12345678',
         }),
-        state: {
-          internalAccounts: {
-            selectedAccount: 'mock-selected-account-id',
-            accounts: {
-              'mock-selected-account-id': {
-                address: '0x1234567890abcdef1234567890abcdef12345678',
-              },
-            },
-          },
-        },
       },
       MultichainNetworkController: {
         setActiveNetwork: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -1194,6 +1184,28 @@ describe('WalletConnect2Session', () => {
   });
 
   describe('WalletConnectPort chainChanged forwarding', () => {
+    const mockEngineDefault =
+      jest.requireMock<typeof import('../Engine')>('../Engine').default;
+    const accountsControllerWithOptionalState = mockEngineDefault.context
+      .AccountsController as { state?: Record<string, unknown> };
+
+    beforeEach(() => {
+      accountsControllerWithOptionalState.state = {
+        internalAccounts: {
+          selectedAccount: 'mock-selected-account-id',
+          accounts: {
+            'mock-selected-account-id': {
+              address: '0x1234567890abcdef1234567890abcdef12345678',
+            },
+          },
+        },
+      };
+    });
+
+    afterEach(() => {
+      delete accountsControllerWithOptionalState.state;
+    });
+
     it('calls updateSession when chainChanged notification arrives', () => {
       const mockUpdateSession = jest.fn();
       const port = new WalletConnectPort({
