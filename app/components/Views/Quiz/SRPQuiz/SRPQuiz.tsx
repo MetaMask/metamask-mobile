@@ -53,7 +53,6 @@ const SRPQuiz = (props: SRPQuizProps) => {
     },
   } = props;
   
-  const showDismissModalStackOnDone = dismissModalStackOnDone ?? false;
   
   
   const modalRef = useRef<BottomSheetRef>(null);
