@@ -5,7 +5,7 @@ import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
-import { MINIMUM_BET } from '../../PredictBuyPreview/PredictBuyPreview';
+import { MINIMUM_BET } from '../../../constants/transactions';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
