@@ -5,7 +5,6 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
-import MoneyAccountSelector from '../../MoneyAccountSelector';
 
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
@@ -17,26 +16,10 @@ export function MoneyAccountDepositInfo() {
   >(undefined);
   const transactionMeta = useTransactionMetadataRequest();
 
-  const handleToAccountSelected = useCallback(
-    (address: string) => {
-      setSelectedToAddress(address);
-      if (transactionMeta?.id) {
-        updateEditableParams(transactionMeta.id, { to: address as Hex });
-      }
-    },
-    [transactionMeta?.id],
-  );
-
   return (
     <CustomAmountInfo
       currency={MONEY_ACCOUNT_CURRENCY}
       disableConfirm={!selectedToAddress}
-      afterPayWith={
-        <MoneyAccountSelector
-          selectedAddress={selectedToAddress}
-          onAccountSelected={handleToAccountSelected}
-        />
-      }
     />
   );
 }
