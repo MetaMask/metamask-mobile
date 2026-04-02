@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import-x/no-commonjs */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, Linking, AppState } from 'react-native';
+import { Linking, AppState } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -18,7 +21,6 @@ import { SRP_GUIDE_URL } from '../../../../constants/urls';
 
 import { QuizStage } from '../types';
 import { QuizContent } from '../QuizContent';
-import stylesheet from './styles';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 
 import {
@@ -41,14 +43,13 @@ interface SRPQuizRouteParams {
 }
 
 const SRPQuiz = () => {
+  const tw = useTailwind();
   const route = useRoute<RouteProp<{ params: SRPQuizRouteParams }, 'params'>>();
   const {
     params: { keyringId, dismissModalStackOnDone },
   } = route;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
-  const { styles, theme } = useStyles(stylesheet, {});
-  const { colors } = theme;
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -81,10 +82,10 @@ const SRPQuiz = () => {
       <Icon
         size={IconSize.Xl}
         name={IconName.Danger}
-        color={colors.error.default}
+        color={IconColor.ErrorDefault}
       />
     ),
-    [colors.error.default],
+    [],
   );
 
   const rightAnswerIcon = useCallback(
@@ -92,10 +93,10 @@ const SRPQuiz = () => {
       <Icon
         size={IconSize.Xl}
         name={IconName.Confirmation}
-        color={colors.success.default}
+        color={IconColor.SuccessDefault}
       />
     ),
-    [colors.success.default],
+    [],
   );
 
   const goToRevealPrivateCredential = useCallback((): void => {
@@ -203,7 +204,7 @@ const SRPQuiz = () => {
         icon={rightAnswerIcon}
         title={{
           content: strings('srp_security_quiz.question_one.right_answer_title'),
-          style: styles.rightText,
+          style: tw.style('text-success-default'),
           testID:
             SrpSecurityQuestionOneSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
         }}
@@ -226,13 +227,7 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    rightAnswerIcon,
-    styles.rightText,
-    openSupportArticle,
-  ]);
+  }, [trackEvent, createEventBuilder, rightAnswerIcon, tw, openSupportArticle]);
 
   const wrongAnswerQuestionOne = useCallback((): React.ReactElement => {
     trackEvent(
@@ -246,7 +241,7 @@ const SRPQuiz = () => {
         icon={wrongAnswerIcon}
         title={{
           content: strings('srp_security_quiz.question_one.wrong_answer_title'),
-          style: styles.wrongText,
+          style: tw.style('text-error-default'),
           testID:
             SrpSecurityQuestionOneSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
         }}
@@ -270,13 +265,7 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    wrongAnswerIcon,
-    styles.wrongText,
-    openSupportArticle,
-  ]);
+  }, [trackEvent, createEventBuilder, wrongAnswerIcon, tw, openSupportArticle]);
 
   const questionTwo = useCallback((): React.ReactElement => {
     trackEvent(
@@ -327,7 +316,7 @@ const SRPQuiz = () => {
         icon={rightAnswerIcon}
         title={{
           content: strings('srp_security_quiz.question_two.right_answer_title'),
-          style: styles.rightText,
+          style: tw.style('text-success-default'),
           testID:
             SrpSecurityQuestionTwoSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
         }}
@@ -354,7 +343,7 @@ const SRPQuiz = () => {
     trackEvent,
     createEventBuilder,
     rightAnswerIcon,
-    styles.rightText,
+    tw,
     goToRevealPrivateCredential,
     openSupportArticle,
   ]);
@@ -371,7 +360,7 @@ const SRPQuiz = () => {
         icon={wrongAnswerIcon}
         title={{
           content: strings('srp_security_quiz.question_two.wrong_answer_title'),
-          style: styles.wrongText,
+          style: tw.style('text-error-default'),
           testID:
             SrpSecurityQuestionTwoSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
         }}
@@ -395,13 +384,7 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    wrongAnswerIcon,
-    styles.wrongText,
-    openSupportArticle,
-  ]);
+  }, [trackEvent, createEventBuilder, wrongAnswerIcon, tw, openSupportArticle]);
 
   const quizPage = useCallback(() => {
     switch (stage) {
@@ -433,7 +416,9 @@ const SRPQuiz = () => {
 
   return (
     <BottomSheet ref={modalRef}>
-      <View style={styles.modal}>{quizPage()}</View>
+      <Box twClassName="mx-4 min-h-[300px] rounded-[10px] bg-default">
+        {quizPage()}
+      </Box>
     </BottomSheet>
   );
 };
