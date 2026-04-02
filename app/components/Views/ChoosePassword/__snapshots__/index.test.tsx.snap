@@ -209,11 +209,12 @@ exports[`ChoosePassword renders correctly 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#4459ff",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#949596",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
+                    "gap": 12,
                     "height": 48,
                     "paddingLeft": 16,
                     "paddingRight": 16,
@@ -229,6 +230,8 @@ exports[`ChoosePassword renders correctly 1`] = `
                     "flexBasis": "0%",
                     "flexGrow": 1,
                     "flexShrink": 1,
+                    "justifyContent": "center",
+                    "minHeight": 0,
                   }
                 }
               >
@@ -239,6 +242,8 @@ exports[`ChoosePassword renders correctly 1`] = `
                   autoFocus={true}
                   editable={true}
                   keyboardAppearance="light"
+                  multiline={false}
+                  numberOfLines={1}
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
@@ -254,45 +259,35 @@ exports[`ChoosePassword renders correctly 1`] = `
                         "borderWidth": 0,
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "height": 46,
                       },
                       {
-                        "textAlignVertical": "center",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
                       },
                     ]
                   }
                   value=""
                 />
               </View>
-              <View
-                style={
-                  {
-                    "marginLeft": 8,
-                  }
-                }
+              <TouchableOpacity
+                onPress={[Function]}
               >
-                <TouchableOpacity
-                  onPress={[Function]}
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Eye"
-                    style={
-                      [
-                        {
-                          "color": "#66676a",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </TouchableOpacity>
-              </View>
+                <SvgMock
+                  fill="currentColor"
+                  name="Eye"
+                  style={
+                    [
+                      {
+                        "color": "#66676a",
+                        "height": 24,
+                        "width": 24,
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </TouchableOpacity>
             </View>
             <Text
               accessibilityRole="text"
@@ -379,11 +374,12 @@ exports[`ChoosePassword renders correctly 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "#949596",
+                    "backgroundColor": "#b4b4b528",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
+                    "gap": 12,
                     "height": 48,
                     "opacity": 0.5,
                     "paddingLeft": 16,
@@ -400,6 +396,8 @@ exports[`ChoosePassword renders correctly 1`] = `
                     "flexBasis": "0%",
                     "flexGrow": 1,
                     "flexShrink": 1,
+                    "justifyContent": "center",
+                    "minHeight": 0,
                   }
                 }
               >
@@ -410,6 +408,8 @@ exports[`ChoosePassword renders correctly 1`] = `
                   autoFocus={false}
                   editable={false}
                   keyboardAppearance="light"
+                  multiline={false}
+                  numberOfLines={1}
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
@@ -425,46 +425,36 @@ exports[`ChoosePassword renders correctly 1`] = `
                         "borderWidth": 0,
                         "color": "#131416",
                         "fontFamily": "Geist-Regular",
-                        "fontSize": 16,
-                        "fontWeight": 400,
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "height": 46,
                       },
                       {
-                        "textAlignVertical": "center",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
                       },
                     ]
                   }
                   value=""
                 />
               </View>
-              <View
-                style={
-                  {
-                    "marginLeft": 8,
-                  }
-                }
+              <TouchableOpacity
+                disabled={true}
+                onPress={[Function]}
               >
-                <TouchableOpacity
-                  disabled={true}
-                  onPress={[Function]}
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="Eye"
-                    style={
-                      [
-                        {
-                          "color": "#66676a",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </TouchableOpacity>
-              </View>
+                <SvgMock
+                  fill="currentColor"
+                  name="Eye"
+                  style={
+                    [
+                      {
+                        "color": "#66676a",
+                        "height": 24,
+                        "width": 24,
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </TouchableOpacity>
             </View>
           </View>
           <View

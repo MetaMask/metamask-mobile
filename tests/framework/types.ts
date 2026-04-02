@@ -1,3 +1,23 @@
+// Device Matrix
+
+export interface DeviceMatrixEntry {
+  name: string;
+  os_version: string;
+  category: 'high' | 'medium' | 'low';
+  description: string;
+}
+
+export interface DeviceMatrix {
+  android_devices: DeviceMatrixEntry[];
+  ios_devices: DeviceMatrixEntry[];
+  device_categories: Record<string, string>;
+  os_coverage: {
+    android: string[];
+    ios: string[];
+  };
+  notes: Record<string, string>;
+}
+
 // Gestures
 
 import { LanguageAndLocale } from 'detox/detox';
@@ -28,8 +48,6 @@ export interface EmulatorConfig {
   provider: 'emulator';
   name?: string;
   osVersion?: string;
-  packageName?: string;
-  launchableActivity?: string;
   udid?: string;
   orientation?: DeviceOrientation;
 }
@@ -40,6 +58,12 @@ export interface BrowserStackConfig {
   osVersion: string;
   orientation?: DeviceOrientation;
   enableCameraImageInjection?: boolean;
+}
+
+export interface AppConfig {
+  appId?: string;
+  packageName?: string;
+  launchableActivity?: string;
 }
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
@@ -56,8 +80,8 @@ export interface WebDriverConfig {
   device: DeviceConfig;
   buildPath: string;
   appBundleId: string;
-  launchableActivity: string;
   expectTimeout: number;
+  app: AppConfig;
 }
 /**
  * END OF WDIO PLAYWRIIGHT
@@ -95,6 +119,7 @@ export interface LongPressOptions extends GestureOptions {
 
 export interface MatcherOptions {
   exact?: boolean;
+  lastElement?: boolean;
 }
 
 /**

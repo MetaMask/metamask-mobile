@@ -1076,6 +1076,7 @@ const MainNavigator = () => {
         options={{
           gestureEnabled: false,
           cardStyle: { backgroundColor: colors.background.default },
+          ...slideFromRightAnimation,
         }}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
@@ -1104,14 +1105,28 @@ const MainNavigator = () => {
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
-      <Stack.Screen name={Routes.RAMP.BUY}>
+      <Stack.Screen
+        name={Routes.RAMP.BUY}
+        options={{
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      >
         {() => <RampRoutes rampType={RampType.BUY} />}
       </Stack.Screen>
-      <Stack.Screen name={Routes.RAMP.SELL}>
+      <Stack.Screen
+        name={Routes.RAMP.SELL}
+        options={{
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
+      >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+      <Stack.Screen
+        name={Routes.BRIDGE.ROOT}
+        component={BridgeScreenStack}
+        options={slideFromRightAnimation}
+      />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
