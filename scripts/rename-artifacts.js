@@ -25,8 +25,35 @@ const packageJson = JSON.parse(
 );
 const appVersion = packageJson.version;
 
-// Get build number from environment (GitHub Actions run number or 1 for local)
-const buildNumber = process.env.GITHUB_RUN_NUMBER || '1';
+/**
+ * Read the native build number from the platform config files
+ * (versionCode in build.gradle for Android, CURRENT_PROJECT_VERSION in
+ * project.pbxproj for iOS) rather than using the GitHub Actions run number.
+ */
+function readNativeBuildNumber() {
+  if (platform === 'android') {
+    const gradle = fs.readFileSync(
+      path.join(__dirname, '../android/app/build.gradle'),
+      'utf8',
+    );
+    const match = gradle.match(/versionCode\s+(\d+)/);
+    if (match) return match[1];
+  } else {
+    const pbxproj = fs.readFileSync(
+      path.join(
+        __dirname,
+        '../ios/MetaMask.xcodeproj/project.pbxproj',
+      ),
+      'utf8',
+    );
+    const match = pbxproj.match(/CURRENT_PROJECT_VERSION\s*=\s*(\d+)/);
+    if (match) return match[1];
+  }
+  console.warn('⚠️  Could not read native build number, falling back to 0');
+  return '0';
+}
+
+const buildNumber = readNativeBuildNumber();
 
 // Required env vars
 const buildType = process.env.METAMASK_BUILD_TYPE;

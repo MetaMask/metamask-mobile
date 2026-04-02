@@ -6747,6 +6747,15 @@
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
+    "quote_stream_complete_retry": "Unable to get a quote right now. Try again.",
+    "quote_stream_complete_amount_too_high": "No quotes available. Try a smaller amount.",
+    "quote_stream_complete_amount_too_low": "No quotes available. Try a larger amount.",
+    "quote_stream_complete_slippage_too_high": "Slippage is too high. Try lowering your slippage setting.",
+    "quote_stream_complete_slippage_too_low": "Slippage is too low. Try increasing your slippage setting.",
+    "quote_stream_complete_token_not_supported": "This token isn't supported. Try using a different token.",
+    "quote_stream_complete_rwa_geo_restricted": "This swap isn't available in your region.",
+    "quote_stream_complete_rwa_native_token_unsupported": "Swaps between this token and real-world assets aren't supported yet. Try using a different token.",
+    "quote_stream_complete_rwa_market_unavailable": "The market for this asset is currently unavailable. Try again later.",
     "max": "Max",
     "approval_needed": "Approves token for swap.",
     "approval_tooltip_title": "Grant exact access",
@@ -6777,7 +6786,11 @@
     "got_it": "Got it",
     "price_impact_warning_title": "High price impact",
     "price_impact_error_title": "Very high price impact",
-    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate.",
+    "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
+    "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
+    "token_warning_modal_suspicious_title": "Suspicious token",
+    "token_warning_modal_malicious_title": "Malicious token"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
