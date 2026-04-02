@@ -36,6 +36,8 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
+const EMPTY_INDICATORS: IndicatorType[] = [];
+
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
   '1D': 'asset_overview.chart_time_period.1d',
@@ -54,7 +56,6 @@ export interface PriceAdvancedProps {
   currentPrice: number;
   currentCurrency: string;
   comparePrice: number;
-  isLoading: boolean;
 }
 
 interface NoDataOverlayProps {
@@ -114,7 +115,6 @@ const PriceAdvanced = ({
   currentPrice,
   currentCurrency,
   comparePrice,
-  isLoading,
 }: PriceAdvancedProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
@@ -122,7 +122,6 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const indicators: IndicatorType[] = [];
 
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
@@ -266,7 +265,7 @@ const PriceAdvanced = ({
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : priceDiff !== undefined ? (
+          ) : (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -296,7 +295,7 @@ const PriceAdvanced = ({
                 {dateLabel}
               </Text>
             </Text>
-          ) : null}
+          )}
         </Text>
       </View>
       <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
@@ -318,7 +317,7 @@ const PriceAdvanced = ({
               showVolume={chartType === ChartType.Candles}
               volumeOverlay
               chartType={chartType}
-              indicators={indicators}
+              indicators={EMPTY_INDICATORS}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvHasMoreHistory={hasMore}

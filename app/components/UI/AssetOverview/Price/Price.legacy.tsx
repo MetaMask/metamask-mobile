@@ -84,6 +84,7 @@ const PriceLegacy = ({
       : priceDiff;
 
   const displayDiff = diff ?? priceDiff;
+  const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
   const { styles, theme } = useStyles(styleSheet);
 
@@ -140,7 +141,7 @@ const PriceLegacy = ({
               }
               allowFontScaling={false}
             >
-              {displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : ''}
+              {diffSign}
               {displayDiff !== 0
                 ? formatPriceWithSubscriptNotation(
                     Math.abs(displayDiff),

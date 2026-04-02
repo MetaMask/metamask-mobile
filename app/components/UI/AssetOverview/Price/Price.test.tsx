@@ -30,16 +30,19 @@ jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
   };
 });
 
+const mockUseOHLCVChart = jest.fn().mockReturnValue({
+  ohlcvData: [
+    { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+    { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+  ],
+  isLoading: false,
+  error: undefined,
+  fetchMoreHistory: jest.fn(),
+  hasMore: false,
+});
+
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
-  useOHLCVChart: () => ({
-    ohlcvData: [
-      { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
-      { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
-    ],
-    isLoading: false,
-    error: undefined,
-    fetchMoreHistory: jest.fn(),
-  }),
+  useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
 }));
 
 jest.mock('../PriceChart/PriceChart', () => {
@@ -95,16 +98,21 @@ describe('Price Component', () => {
     });
   });
 
-  it('shows loading state when isLoading is true (advanced)', () => {
+  it('shows loading state when chart is loading (advanced)', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewAdvancedChartEnabled) {
         return true;
       }
       return undefined;
     });
-    const { getByTestId } = renderWithProviders(
-      <Price {...{ ...unifiedProps, isLoading: true }} />,
-    );
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [],
+      isLoading: true,
+      error: undefined,
+      fetchMoreHistory: jest.fn(),
+      hasMore: false,
+    });
+    const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
 
     expect(getByTestId('loading-price-diff')).toBeTruthy();
   });
