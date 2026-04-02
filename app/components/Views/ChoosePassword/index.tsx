@@ -33,7 +33,10 @@ import {
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch } from 'react-redux';
-import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  saveOnboardingEvent as saveEvent,
+  setWalletCreatedAtForFundsTracking,
+} from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
   passwordUnset as passwordUnsetAction,
@@ -476,6 +479,8 @@ const ChoosePassword = () => {
 
       await handlePostWalletCreation(authType);
 
+      dispatch(setWalletCreatedAtForFundsTracking(Date.now()));
+
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
@@ -500,6 +505,7 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
+    dispatch,
   ]);
 
   const onPasswordChange = useCallback(

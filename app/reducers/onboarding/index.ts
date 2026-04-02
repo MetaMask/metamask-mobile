@@ -9,6 +9,8 @@ import {
   CLEAR_ACCOUNT_TYPE,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
+  SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING,
+  MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -24,6 +26,11 @@ export interface OnboardingState {
     clientId: string;
     authConnection: AuthConnection;
   };
+
+  /** Set when a wallet is created post–analytics feature; used for "days since creation". */
+  walletCreatedAtForFundsTrackingMs?: number;
+  /** True once we emitted the event or permanently stopped monitoring (e.g. already had balance). */
+  walletFundsObtainedFlowComplete?: boolean;
 }
 
 export const initialOnboardingState: OnboardingState = {
@@ -67,6 +74,8 @@ const onboardingReducer = (
         ...state,
         accountType: undefined,
         onboardingVersion: undefined,
+        walletCreatedAtForFundsTrackingMs: undefined,
+        walletFundsObtainedFlowComplete: false,
       };
     case SET_SEEDLESS_ONBOARDING:
       return {
@@ -80,6 +89,17 @@ const onboardingReducer = (
       return {
         ...state,
         seedlessOnboarding: undefined,
+      };
+    case SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING:
+      return {
+        ...state,
+        walletCreatedAtForFundsTrackingMs: action.timestampMs,
+        walletFundsObtainedFlowComplete: false,
+      };
+    case MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE:
+      return {
+        ...state,
+        walletFundsObtainedFlowComplete: true,
       };
     default:
       return state;

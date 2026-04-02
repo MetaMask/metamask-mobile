@@ -9,6 +9,10 @@ export const SET_ACCOUNT_TYPE = 'SET_ACCOUNT_TYPE';
 export const CLEAR_ACCOUNT_TYPE = 'CLEAR_ACCOUNT_TYPE';
 export const SET_SEEDLESS_ONBOARDING = 'SET_SEEDLESS_ONBOARDING';
 export const CLEAR_SEEDLESS_ONBOARDING = 'CLEAR_SEEDLESS_ONBOARDING';
+export const SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING =
+  'SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING';
+export const MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE =
+  'MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -44,6 +48,15 @@ export interface ClearSeedlessOnboardingAction {
   type: typeof CLEAR_SEEDLESS_ONBOARDING;
 }
 
+export interface SetWalletCreatedAtForFundsTrackingAction {
+  type: typeof SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING;
+  timestampMs: number;
+}
+
+export interface MarkWalletFundsObtainedFlowCompleteAction {
+  type: typeof MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
@@ -51,7 +64,9 @@ export type OnboardingActionTypes =
   | SetAccountTypeAction
   | ClearAccountTypeAction
   | SetSeedlessOnboardingAction
-  | ClearSeedlessOnboardingAction;
+  | ClearSeedlessOnboardingAction
+  | SetWalletCreatedAtForFundsTrackingAction
+  | MarkWalletFundsObtainedFlowCompleteAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -108,5 +123,20 @@ export function setSeedlessOnboarding(params: {
 export function clearSeedlessOnboarding(): ClearSeedlessOnboardingAction {
   return {
     type: CLEAR_SEEDLESS_ONBOARDING,
+  };
+}
+
+export function setWalletCreatedAtForFundsTracking(
+  timestampMs: number,
+): SetWalletCreatedAtForFundsTrackingAction {
+  return {
+    type: SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING,
+    timestampMs,
+  };
+}
+
+export function markWalletFundsObtainedFlowComplete(): MarkWalletFundsObtainedFlowCompleteAction {
+  return {
+    type: MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE,
   };
 }

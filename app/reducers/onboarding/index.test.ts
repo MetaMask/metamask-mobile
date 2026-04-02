@@ -7,6 +7,8 @@ import {
   CLEAR_ACCOUNT_TYPE,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
+  SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING,
+  MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -71,6 +73,8 @@ describe('onboardingReducer', () => {
       ...initialState,
       accountType: AccountType.MetamaskGoogle,
       onboardingVersion,
+      walletCreatedAtForFundsTrackingMs: 99,
+      walletFundsObtainedFlowComplete: true,
     };
 
     const action = { type: CLEAR_ACCOUNT_TYPE } as const;
@@ -78,6 +82,27 @@ describe('onboardingReducer', () => {
 
     expect(state.accountType).toBeUndefined();
     expect(state.onboardingVersion).toBeUndefined();
+    expect(state.walletCreatedAtForFundsTrackingMs).toBeUndefined();
+    expect(state.walletFundsObtainedFlowComplete).toBe(false);
+  });
+
+  it('handles SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING', () => {
+    const action = {
+      type: SET_WALLET_CREATED_AT_FOR_FUNDS_TRACKING,
+      timestampMs: 555,
+    } as const;
+    const state = onboardingReducer(
+      { ...initialState, walletFundsObtainedFlowComplete: true },
+      action,
+    );
+    expect(state.walletCreatedAtForFundsTrackingMs).toBe(555);
+    expect(state.walletFundsObtainedFlowComplete).toBe(false);
+  });
+
+  it('handles MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE', () => {
+    const action = { type: MARK_WALLET_FUNDS_OBTAINED_FLOW_COMPLETE } as const;
+    const state = onboardingReducer(initialState, action);
+    expect(state.walletFundsObtainedFlowComplete).toBe(true);
   });
 
   it('handles the SET_SEEDLESS_ONBOARDING action', () => {

@@ -54,6 +54,7 @@ import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
+import { WalletFundsObtainedMonitor } from './controllers/notifications/wallet-funds-obtained-monitor';
 ///: END:ONLY_INCLUDE_IF
 import {
   backendWebSocketServiceInit,
@@ -224,6 +225,8 @@ export class Engine {
   appStateListener: NativeEventSubscription;
 
   subjectMetadataController: SubjectMetadataController;
+
+  walletFundsObtainedMonitor: WalletFundsObtainedMonitor;
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -725,6 +728,14 @@ export class Engine {
     this.startPolling();
     this.handleVaultBackup();
 
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.walletFundsObtainedMonitor = new WalletFundsObtainedMonitor({
+      messenger: this.controllerMessenger,
+      getContext: () => this.context,
+    });
+    this.walletFundsObtainedMonitor.setupMonitoring();
+    ///: END:ONLY_INCLUDE_IF
+
     Engine.instance = this;
   }
 
@@ -1161,6 +1172,9 @@ export class Engine {
   }
 
   async destroyEngineInstance() {
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.walletFundsObtainedMonitor?.destroy();
+    ///: END:ONLY_INCLUDE_IF
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
