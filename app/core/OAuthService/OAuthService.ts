@@ -21,6 +21,7 @@ import {
   web3AuthNetwork as currentWeb3AuthNetwork,
   SupportedPlatforms,
   AUTH_SERVER_MARKETING_OPT_IN_PATH,
+  GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
@@ -33,6 +34,9 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import ReduxService from '../redux';
+import { setSeedlessOnboarding } from '../../actions/onboarding';
+import Device from '../../util/device';
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -54,6 +58,19 @@ export interface OAuthServiceConfig {
   web3AuthNetwork: Web3AuthNetwork;
   authServerUrl: string;
 }
+
+const getAuthConnectionIdFromClientId = (params: {
+  clientId: string;
+  authConnection: SeedlessAuthConnection;
+  authConnectionConfig: OAuthServiceConfig['authConnectionConfig'];
+}): { authConnectionId: string; groupedAuthConnectionId?: string } => {
+  const { clientId, authConnection, authConnectionConfig } = params;
+
+  if (Device.isAndroid() || clientId === GoogleWebGID) {
+    return authConnectionConfig[SupportedPlatforms.Android][authConnection];
+  }
+  return authConnectionConfig[SupportedPlatforms.IOS][authConnection];
+};
 
 interface OAuthServiceLocalState {
   userId?: string;
@@ -111,6 +128,7 @@ export class OAuthService {
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
     authConnection: SeedlessAuthConnection,
+    clientId: string,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       const { userId, accountName } = this.localState;
@@ -119,10 +137,11 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      const authConnectionConfig =
-        this.config.authConnectionConfig[Platform.OS as SupportedPlatforms]?.[
-          authConnection
-        ];
+      const authConnectionConfig = getAuthConnectionIdFromClientId({
+        clientId,
+        authConnection,
+        authConnectionConfig: this.config.authConnectionConfig,
+      });
 
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
@@ -288,6 +307,7 @@ export class OAuthService {
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
+
       if (result) {
         let getAuthTokensSuccess = false;
         try {
@@ -350,6 +370,7 @@ export class OAuthService {
           handleCodeFlowResult = await this.handleSeedlessAuthenticate(
             data,
             authConnection,
+            result.clientId,
           );
           seedlessAuthSuccess = true;
         } catch (error) {
@@ -380,6 +401,14 @@ export class OAuthService {
         }
 
         this.#dispatchPostLogin(handleCodeFlowResult);
+
+        // store client id and auth connection in redux
+        ReduxService.store.dispatch(
+          setSeedlessOnboarding({
+            clientId: result.clientId,
+            authConnection: loginHandler.authConnection,
+          }),
+        );
         return handleCodeFlowResult;
       }
       throw new OAuthError('No result', OAuthErrorType.LoginError);
