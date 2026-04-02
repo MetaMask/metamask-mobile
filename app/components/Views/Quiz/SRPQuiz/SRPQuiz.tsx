@@ -114,7 +114,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
       shouldUpdateNav: true,
       keyringId,
       skipQuiz: true,
-      ...(dismissModalStackOnDone ? { dismissModalStackOnDone: true } : {}),
+      ...(dismissModalStackOnDone && { dismissModalStackOnDone: true }),
     });
   }, [
     navigation,
