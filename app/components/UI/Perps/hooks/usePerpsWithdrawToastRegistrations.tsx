@@ -39,16 +39,14 @@ function getWithdrawConfirmedDescription(
   const { metamaskPay } = txMeta ?? {};
 
   if (!metamaskPay?.isPostQuote) {
-    return strings('perps.withdrawal.toast_completed_subtitle', {
-      amount: '',
-    });
+    return strings('perps.withdrawal.toast_completed_subtitle_generic');
   }
 
   const targetFiat = Number(metamaskPay.targetFiat);
   const withdrawAmount =
     Number.isFinite(targetFiat) && targetFiat > 0
       ? `$${targetFiat.toFixed(2)}`
-      : '';
+      : undefined;
 
   const chainId = metamaskPay.chainId as Hex | undefined;
   const tokenAddress = metamaskPay.tokenAddress as Hex | undefined;
@@ -66,6 +64,10 @@ function getWithdrawConfirmedDescription(
   }
   if (!tokenSymbol) {
     tokenSymbol = 'USDC';
+  }
+
+  if (!withdrawAmount) {
+    return strings('perps.withdrawal.toast_completed_subtitle_generic');
   }
 
   return strings('perps.withdrawal.toast_completed_any_token_subtitle', {

@@ -316,7 +316,7 @@ describe('usePerpsWithdrawToastRegistrations', () => {
         iconName: IconName.Confirmation,
         labelOptions: expect.arrayContaining([
           expect.objectContaining({
-            label: expect.stringContaining('USDC'),
+            label: strings('perps.withdrawal.toast_completed_subtitle_generic'),
             isBold: false,
           }),
         ]),
