@@ -8956,17 +8956,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-controller@npm:@metamask-previews/money-account-controller@0.0.0-preview-aedd6e96a":
-  version: 0.0.0-preview-aedd6e96a
-  resolution: "@metamask-previews/money-account-controller@npm:0.0.0-preview-aedd6e96a"
+"@metamask/money-account-controller@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/money-account-controller@npm:0.1.0"
   dependencies:
+    "@metamask/accounts-controller": "npm:^37.2.0"
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/eth-money-keyring": "npm:^2.0.0"
     "@metamask/keyring-api": "npm:^21.6.0"
     "@metamask/keyring-controller": "npm:^25.2.0"
     "@metamask/messenger": "npm:^1.1.0"
-    uuid: "npm:^8.3.2"
-  checksum: 10/4c3b8fb9c38e0f85c67196ce66e3d5941693b86912ca7ca6d162055845c98f655203e4cbf7420781c4c1c055d92b4122ea7a7ba83a3b05cc6c519cd7421ef5bf
+    async-mutex: "npm:^0.5.0"
+  checksum: 10/62d34c42ea388d621346277cfaf9038cd80b87dccfaade8b93d3cec087b9c77ec5ec71ff9f30c02a3f566ac71ec4e8234761cb775f11896a8cf85583b8e6ed06
   languageName: node
   linkType: hard
 
@@ -35483,7 +35484,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
-    "@metamask/money-account-controller": "npm:^0.0.0"
+    "@metamask/money-account-controller": "npm:^0.1.0"
     "@metamask/multichain-account-service": "npm:^8.0.1"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:1.2.5"

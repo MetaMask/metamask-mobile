@@ -193,8 +193,7 @@
     "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/accounts-controller": "^37.2.0",
-    "@metamask/profile-sync-controller": "^28.0.2",
-    "@metamask/money-account-controller@^0.0.0": "npm:@metamask-previews/money-account-controller@0.0.0-preview-aedd6e96a"
+    "@metamask/profile-sync-controller": "^28.0.2"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -272,7 +271,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
-    "@metamask/money-account-controller": "^0.0.0",
+    "@metamask/money-account-controller": "^0.1.0",
     "@metamask/multichain-account-service": "^8.0.1",
     "@metamask/multichain-api-client": "^0.10.1",
     "@metamask/multichain-api-middleware": "1.2.5",
