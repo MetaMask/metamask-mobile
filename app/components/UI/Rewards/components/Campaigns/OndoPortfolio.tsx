@@ -40,14 +40,9 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
+  getChainHex,
 } from './OndoPortfolio.utils';
 import { formatComputedAt } from './OndoLeaderboard.utils';
-
-const getChainHex = (caip19: string): Hex | undefined => {
-  const parsed = parseCAIP19AssetId(caip19);
-  if (!parsed || parsed.namespace !== 'eip155') return undefined;
-  return `0x${parseInt(parsed.chainId, 10).toString(16)}` as Hex;
-};
 
 const getAssetNavParams = (
   tokenAsset: string,

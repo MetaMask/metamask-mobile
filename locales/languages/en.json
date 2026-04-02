@@ -8067,6 +8067,18 @@
       "no_entries_in_tier": "No participants in this tier yet",
       "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
     },
+    "ondo_campaign_activity": {
+      "title": "Activity",
+      "type_deposit": "Deposit",
+      "type_withdraw": "Withdraw",
+      "type_rebalance": "Rebalance",
+      "type_external_outflow": "Transfer Out",
+      "error_title": "Failed to load activity",
+      "error_description": "Something went wrong while loading the activity. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No activity yet",
+      "empty_description": "Your campaign activity will appear here once you have transactions."
+    },
     "campaigns_preview": {
       "title": "Campaigns",
       "coming_soon": "Coming soon",

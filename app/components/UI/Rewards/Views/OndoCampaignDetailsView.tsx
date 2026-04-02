@@ -29,6 +29,7 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
+import OndoActivityPreview from '../components/Campaigns/OndoActivityPreview';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import {
   getCampaignStatus,
@@ -370,6 +371,15 @@ const OndoCampaignDetailsView: React.FC = () => {
                       hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
                     />
+                  </Box>
+                </>
+              )}
+
+              {isOptedIn && (
+                <>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <OndoActivityPreview campaignId={campaignId} />
                   </Box>
                 </>
               )}
