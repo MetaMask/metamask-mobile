@@ -1,6 +1,12 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
+
 import ErrorDetailsModal from './ErrorDetailsModal';
 import { strings } from '../../../../../../../../locales/i18n';
 

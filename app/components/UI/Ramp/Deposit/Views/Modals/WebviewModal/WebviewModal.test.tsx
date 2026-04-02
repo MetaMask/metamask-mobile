@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { act, screen } from '@testing-library/react-native';
+
 import WebviewModal from './WebviewModal';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
@@ -23,6 +24,11 @@ function renderWithProvider(component: React.ComponentType) {
     },
   );
 }
+
+jest.mock(
+  'react-native-safe-area-context',
+  () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
+);
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
