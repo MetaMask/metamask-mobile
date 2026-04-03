@@ -36,7 +36,7 @@ export function useAccountTokens({
 
     const assetsWithBalance = flatAssets.filter((asset) => {
       if (tokenFilter) {
-        const address = asset.assetId;
+        const address = asset.address;
         if (
           !asset.chainId ||
           !address ||
@@ -103,9 +103,7 @@ export function useAccountTokens({
         `${chain.toLowerCase()}:${addr.toLowerCase()}`;
 
       const existing = new Set(
-        flatAssets.map((a) =>
-          getAssetKey(a.chainId, 'address' in a ? a.address : a.assetId),
-        ),
+        flatAssets.map((a) => getAssetKey(a.chainId, a.address)),
       );
 
       for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {

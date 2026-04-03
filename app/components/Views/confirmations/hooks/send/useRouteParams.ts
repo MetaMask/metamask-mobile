@@ -47,7 +47,7 @@ export const useRouteParams = () => {
           address?.toLowerCase() === paramsAsset.address?.toLowerCase(),
       ) as AssetType | Nft | undefined;
 
-      console.log('useRouteParams', {
+      console.log('DEBUG XXXXXuseRouteParams', {
         filteredAsset,
         paramsAsset,
         flatAssets,

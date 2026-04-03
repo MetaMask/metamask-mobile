@@ -278,6 +278,7 @@ const extractAssetProperties = (
   urlParams: UrlParamValues,
   sensitiveProps: Record<string, string>,
 ): void => {
+  // TODO CHECK IF THIS REQUIRES ADDRESS FOR EVM
   const assetValue = getStringValue(urlParams, 'assetId');
   addPropertyIfExists(sensitiveProps, 'asset', assetValue);
 };

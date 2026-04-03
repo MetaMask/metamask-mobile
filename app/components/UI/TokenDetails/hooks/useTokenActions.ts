@@ -379,10 +379,6 @@ export const useTokenActions = ({
     const hasPositiveBalance = (a: { fiat?: { balance?: number } }) =>
       (a.fiat?.balance ?? 0) > 0;
 
-    console.log('useTokenActions', {
-      token,
-      userAssets,
-    });
     // Priority 1: Find highest USD value token on same chain (with positive balance)
     // Note: assetId contains the token address for EVM assets
     const sameChainAssets = userAssets
@@ -397,8 +393,8 @@ export const useTokenActions = ({
     if (sameChainAssets.length > 0) {
       const asset = sameChainAssets[0];
       return {
-        address: asset.assetId,
-        chainId: asset.chainId as Hex | CaipChainId,
+        address: asset.address,
+        chainId: asset.chainId,
         decimals: asset.decimals,
         symbol: asset.symbol,
         name: asset.name,
@@ -422,8 +418,8 @@ export const useTokenActions = ({
     const nativeAsset = crossChainAssets.find((a) => a.isNative);
     if (nativeAsset) {
       return {
-        address: nativeAsset.assetId,
-        chainId: nativeAsset.chainId as Hex | CaipChainId,
+        address: nativeAsset.address,
+        chainId: nativeAsset.chainId,
         decimals: nativeAsset.decimals,
         symbol: nativeAsset.symbol,
         name: nativeAsset.name,
@@ -438,8 +434,8 @@ export const useTokenActions = ({
     if (crossChainAssets.length > 0) {
       const asset = crossChainAssets[0];
       return {
-        address: asset.assetId,
-        chainId: asset.chainId as Hex | CaipChainId,
+        address: asset.address,
+        chainId: asset.chainId,
         decimals: asset.decimals,
         symbol: asset.symbol,
         name: asset.name,
