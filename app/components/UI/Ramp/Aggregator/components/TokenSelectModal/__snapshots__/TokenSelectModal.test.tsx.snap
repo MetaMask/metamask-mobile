@@ -504,7 +504,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,

@@ -387,7 +387,7 @@ exports[`TokenNotAvailableModal matches snapshot 1`] = `
                                 [
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
@@ -1102,7 +1102,7 @@ exports[`TokenNotAvailableModal matches snapshot with missing provider and token
                                 [
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,
