@@ -4,8 +4,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { Box } from '../../../Box/Box';
-import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import {
   Button,
   ButtonSize,
