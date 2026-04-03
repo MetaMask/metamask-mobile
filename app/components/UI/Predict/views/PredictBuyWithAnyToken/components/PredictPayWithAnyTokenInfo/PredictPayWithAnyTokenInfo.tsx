@@ -56,60 +56,56 @@ function PredictPayWithAnyTokenInfoInner({
   );
 
   const depositAmount = useMemo(() => {
-    if (!preview?.fees || currentValue < MINIMUM_BET) {
-      return 0;
-    }
-
-    const remainingAmount = new BigNumber(totalPayForPredictBalance)
-      .minus(predictBalance)
-      .decimalPlaces(2, BigNumber.ROUND_UP)
-      .toNumber();
-    if (remainingAmount <= 0) {
-      return new BigNumber(totalPayForPredictBalance)
-        .decimalPlaces(2, BigNumber.ROUND_UP)
-        .toNumber();
-    }
-    return remainingAmount;
-  }, [preview?.fees, currentValue, totalPayForPredictBalance, predictBalance]);
-
-  const parsedDepositAmount = useMemo(() => {
-    if (isPredictBalanceSelected || depositAmount <= 0) {
+    if (
+      isPredictBalanceSelected ||
+      !preview?.fees ||
+      currentValue < MINIMUM_BET
+    ) {
       return '';
     }
-    return new BigNumber(depositAmount)
-      .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-      .toString(10);
-  }, [isPredictBalanceSelected, depositAmount]);
+
+    const totalPay = new BigNumber(totalPayForPredictBalance);
+    const remaining = totalPay.minus(predictBalance);
+
+    const amount = remaining.lte(0)
+      ? totalPay.decimalPlaces(2, BigNumber.ROUND_UP)
+      : remaining.decimalPlaces(2, BigNumber.ROUND_UP);
+
+    const parsedDepositAmount = amount.toString(10);
+
+    return parsedDepositAmount;
+  }, [
+    isPredictBalanceSelected,
+    preview?.fees,
+    currentValue,
+    totalPayForPredictBalance,
+    predictBalance,
+  ]);
+
+  const hasValidDepositAmount = useMemo(
+    () => depositAmount && depositAmount.trim() !== '' && transactionMeta,
+    [depositAmount, transactionMeta],
+  );
 
   const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
     currency: PREDICT_CURRENCY,
   });
 
   useEffect(() => {
-    if (
-      parsedDepositAmount &&
-      parsedDepositAmount.trim() !== '' &&
-      transactionMeta
-    ) {
-      updatePendingAmount(parsedDepositAmount);
+    if (hasValidDepositAmount) {
+      updatePendingAmount(depositAmount);
     }
-  }, [parsedDepositAmount, transactionMeta, updatePendingAmount]);
+  }, [depositAmount, hasValidDepositAmount, updatePendingAmount]);
 
   useEffect(() => {
-    if (
-      amountHuman &&
-      amountHuman !== '0' &&
-      parsedDepositAmount &&
-      parsedDepositAmount.trim() !== '' &&
-      transactionMeta
-    ) {
-      updateTokenAmountCallback(parsedDepositAmount);
+    if (amountHuman && amountHuman !== '0' && hasValidDepositAmount) {
+      updateTokenAmountCallback(amountHuman);
     }
   }, [
     amountHuman,
-    transactionMeta,
     updateTokenAmountCallback,
-    parsedDepositAmount,
+    depositAmount,
+    hasValidDepositAmount,
   ]);
 
   useEffect(() => {

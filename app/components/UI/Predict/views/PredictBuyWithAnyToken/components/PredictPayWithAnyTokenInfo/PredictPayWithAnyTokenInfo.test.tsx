@@ -368,13 +368,12 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
-      // depositAmount = 2.08 → parsedDepositAmount = "2.08"
       expect(mockUpdatePendingAmount).toHaveBeenCalledWith('2.08');
     });
   });
 
   describe('updateTokenAmountCallback effect', () => {
-    it('calls updateTokenAmountCallback with the parsed deposit amount when amountHuman is valid', () => {
+    it('calls updateTokenAmountCallback with amountHuman when deposit is valid', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
       mockAmountHuman = '100.50';
@@ -386,10 +385,10 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
-      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100.50');
     });
 
-    it('uses the rounded parsed deposit amount instead of the fiat-converted amountHuman', () => {
+    it('passes amountHuman from useTransactionCustomAmount, not the raw depositAmount', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
       mockAmountHuman = '2.078803';
@@ -409,8 +408,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         />,
       );
 
-      // depositAmount = 2.08 → parsedDepositAmount = "2.08"
-      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('2.08');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('2.078803');
     });
 
     it('does not call updateTokenAmountCallback when amountHuman is "0"', () => {
@@ -443,7 +441,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
       expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
     });
 
-    it('does not call updateTokenAmountCallback when parsedDepositAmount is empty', () => {
+    it('does not call updateTokenAmountCallback when depositAmount is empty', () => {
       mockIsPredictBalanceSelected = true;
       mockActiveTransactionMeta = { id: 'tx-1' };
       mockAmountHuman = '100.50';
