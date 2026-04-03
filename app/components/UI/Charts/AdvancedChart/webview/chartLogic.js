@@ -807,7 +807,7 @@ function formatSubscriptNotationCrosshair(abs) {
       if (leadingZeros >= 4) {
         var sig = match[1];
         var significantDigits =
-          sig.slice(0, 4).replace(/0+$/, '') || sig.slice(0, 2);
+          sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
         return (
           '0.0' + toSubscriptDigitsCrosshair(leadingZeros) + significantDigits
         );
