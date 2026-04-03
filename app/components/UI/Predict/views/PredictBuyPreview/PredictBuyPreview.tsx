@@ -65,7 +65,7 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
-export const MINIMUM_BET = 1; // $1 minimum bet
+import { MINIMUM_BET } from '../../constants/transactions';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -467,7 +467,7 @@ const PredictBuyPreview = () => {
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center flex-wrap">
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}

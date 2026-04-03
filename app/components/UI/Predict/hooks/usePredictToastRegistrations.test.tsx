@@ -755,6 +755,56 @@ describe('usePredictToastRegistrations', () => {
   });
 
   describe('order transactions', () => {
+    it('shows pending toast with spinner on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          hasNoTimeout: false,
+          startAccessory: expect.any(Object),
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress_description',
+              isBold: false,
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('invalidates positions queries on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+    });
+
     it('shows prediction placed toast on confirmed status', () => {
       const handler = getHandler();
 
@@ -796,39 +846,6 @@ describe('usePredictToastRegistrations', () => {
       );
     });
 
-    it('shows prediction placed toast with View button when marketId is present', () => {
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'confirmed',
-          senderAddress: selectedAddress,
-          marketId: 'market-123',
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: 'Icon',
-          iconName: 'Check',
-          linkButtonOptions: expect.objectContaining({
-            label: 'predict.order.view',
-            onPress: expect.any(Function),
-          }),
-        }),
-      );
-
-      const onView = showToast.mock.calls[0][0].linkButtonOptions.onPress;
-      onView();
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: { marketId: 'market-123' },
-      });
-    });
-
     it('shows prediction placed toast without View button when marketId is absent', () => {
       const handler = getHandler();
 
@@ -867,38 +884,6 @@ describe('usePredictToastRegistrations', () => {
           hasNoTimeout: false,
         }),
       );
-    });
-
-    it('shows error toast with Try Again button when marketId is present', () => {
-      const handler = getHandler();
-
-      handler(
-        {
-          type: 'order',
-          status: 'failed',
-          senderAddress: selectedAddress,
-          marketId: 'market-456',
-        },
-        showToast,
-      );
-
-      expect(showToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          iconName: 'Error',
-          linkButtonOptions: expect.objectContaining({
-            label: 'predict.order.try_again',
-            onPress: expect.any(Function),
-          }),
-        }),
-      );
-
-      const onRetry = showToast.mock.calls[0][0].linkButtonOptions.onPress;
-      onRetry();
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: { marketId: 'market-456' },
-      });
     });
 
     it('shows error toast without Try Again button when marketId is absent', () => {

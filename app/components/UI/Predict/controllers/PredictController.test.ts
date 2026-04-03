@@ -174,10 +174,10 @@ const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 function setActiveOrderForTest(
   controller: PredictController,
-  order: PredictControllerState['activeBuyOrder'],
+  order: PredictControllerState['activeBuyOrders'][string],
 ) {
   controller.updateStateForTesting((state) => {
-    state.activeBuyOrder = order;
+    state.activeBuyOrders[MOCK_ADDRESS] = order;
   });
 }
 
@@ -266,12 +266,17 @@ describe('PredictController', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
+      createOptimisticPositionFromPreview: jest.fn(),
+      clearOptimisticPosition: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Default safe mocks for async fire-and-forget methods
     // (prevents unhandled rejections when payWithAnyTokenConfirmation is
     // triggered by onBuyPaymentTokenChange but the async chain completes
     // after mock cleanup)
+    mockPolymarketProvider.createOptimisticPositionFromPreview.mockResolvedValue(
+      undefined,
+    );
     mockPolymarketProvider.prepareDeposit.mockResolvedValue({
       transactions: [
         {
@@ -1214,7 +1219,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not publish order confirmed event when there is an active buy order', async () => {
+    it('publishes order confirmed event when there is an active buy order', async () => {
       const mockResult = {
         success: true as const,
         response: {
@@ -1239,8 +1244,8 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview });
 
-          expect(handler).not.toHaveBeenCalledWith(
-            expect.objectContaining({ type: 'order' }),
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order', status: 'confirmed' }),
           );
         },
         {
@@ -1330,9 +1335,12 @@ describe('PredictController', () => {
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 
-          await expect(controller.placeOrder({ preview })).rejects.toThrow(
-            'Order placement failed',
-          );
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-background',
+            }),
+          ).rejects.toThrow('Order placement failed');
 
           expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -1351,7 +1359,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not publish order failed event when buy order fails and there is an active buy order', async () => {
+    it('publishes order failed event when buy order fails and there is an active buy order', async () => {
       await withController(
         async ({ controller, messenger }) => {
           mockPolymarketProvider.placeOrder.mockRejectedValue(
@@ -1364,16 +1372,20 @@ describe('PredictController', () => {
           );
           setActiveOrderForTest(controller, {
             state: ActiveOrderState.PLACING_ORDER,
+            transactionId: 'tx-active',
           });
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 
-          await expect(controller.placeOrder({ preview })).rejects.toThrow(
-            'Order placement failed',
-          );
+          await expect(
+            controller.placeOrder({
+              preview,
+              transactionId: 'tx-background',
+            }),
+          ).rejects.toThrow('Order placement failed');
 
-          expect(handler).not.toHaveBeenCalledWith(
-            expect.objectContaining({ type: 'order' }),
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order', status: 'failed' }),
           );
         },
         {
@@ -3965,7 +3977,7 @@ describe('PredictController', () => {
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -4080,13 +4092,15 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeBuyOrder?.transactionId).toBe(
-          'batch-123',
-        );
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBe('batch-123');
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
 
@@ -4103,10 +4117,12 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
         expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
         expect(addTransactionBatch).not.toHaveBeenCalled();
       });
@@ -4124,7 +4140,7 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -4142,7 +4158,7 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -4150,7 +4166,8 @@ describe('PredictController', () => {
 
     it('still sets selectedPaymentToken when activeOrder is null', () => {
       withController(({ controller }) => {
-        expect(controller.state.activeBuyOrder).toBeNull();
+        controller.clearActiveOrder();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
 
         controller.selectPaymentToken(
           createAssetToken({
@@ -4179,7 +4196,9 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
 
@@ -4191,13 +4210,16 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
-        expect(controller.state.activeBuyOrder).toBeNull();
+        controller.clearActiveOrder();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
 
         expect(() => controller.clearOrderError()).not.toThrow();
       });
@@ -4212,7 +4234,7 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -4248,7 +4270,7 @@ describe('PredictController', () => {
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -4261,14 +4283,16 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
     });
 
-    it('onPlaceOrderEnd sets activeBuyOrder to null and does not clear pendingOrderPreviews', () => {
+    it('clearActiveOrder sets activeBuyOrder to null and does not clear pendingOrderPreviews', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.SUCCESS,
@@ -4278,9 +4302,9 @@ describe('PredictController', () => {
           signerAddress: MOCK_ADDRESS,
         };
 
-        controller.onPlaceOrderEnd();
+        controller.clearActiveOrder();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
         expect(getPendingOrderPreviews(controller)['tx-123']).toBeDefined();
       });
     });
@@ -4301,7 +4325,7 @@ describe('PredictController', () => {
             transactionId: 'tx-100',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
             ActiveOrderState.DEPOSITING,
           );
           expect(
@@ -4334,13 +4358,13 @@ describe('PredictController', () => {
           symbol: 'USDC.e',
         } as any);
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
     });
 
-    it('isCurrentActiveBuyOrder returns false when activeBuyOrder has no transactionId and a transactionId is provided', async () => {
+    it('updates activeBuyOrder to SUCCESS when buy order completes regardless of transactionId mismatch', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -4363,8 +4387,8 @@ describe('PredictController', () => {
             transactionId: 'tx-1',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PREVIEW,
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            ActiveOrderState.SUCCESS,
           );
         },
         {
@@ -4379,8 +4403,11 @@ describe('PredictController', () => {
   });
 
   describe('payWithAnyTokenConfirmation', () => {
-    it('initializes an order when there is no active order', async () => {
+    it('initializes deposit batch with default active order in PREVIEW state', async () => {
       await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PREVIEW,
+        });
         controller.setSelectedPaymentToken({
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
           chainId: '0x89',
@@ -4395,10 +4422,9 @@ describe('PredictController', () => {
             batchId: 'default-batch',
           },
         });
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.selectedPaymentToken).toBeNull();
         expect(mockPolymarketProvider.prepareDeposit).toHaveBeenCalled();
         expect(addTransactionBatch).toHaveBeenCalled();
       });
@@ -4414,7 +4440,7 @@ describe('PredictController', () => {
         const result = await controller.initPayWithAnyToken();
 
         expect(result.success).toBe(true);
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -4511,7 +4537,7 @@ describe('PredictController', () => {
     it('clears error on activeBuyOrder after successful batch creation', async () => {
       await withController(async ({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.activeBuyOrder = {
+          state.activeBuyOrders[MOCK_ADDRESS] = {
             state: ActiveOrderState.PREVIEW,
             error: 'previous-error',
           };
@@ -4525,7 +4551,9 @@ describe('PredictController', () => {
             batchId: 'default-batch',
           },
         });
-        expect(controller.state.activeBuyOrder?.error).toBeUndefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeUndefined();
       });
     });
   });
@@ -4985,7 +5013,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('clears preview activeOrder when deposit-and-order transaction is rejected after switching back to balance', () => {
+    it('resets activeOrder to PREVIEW when deposit-and-order transaction is rejected after switching back to balance', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -5008,11 +5036,16 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBeUndefined();
       });
     });
 
-    it('clears activeOrder when deposit-and-order transaction is rejected from preview while an external token is still selected', () => {
+    it('resets activeOrder to PREVIEW and clears selectedPaymentToken when deposit-and-order transaction is rejected from preview while an external token is still selected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -5040,12 +5073,17 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBeUndefined();
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
-    it('clears activeOrder when deposit-and-order transaction is rejected outside preview', () => {
+    it('resets activeOrder to PREVIEW when deposit-and-order transaction is rejected outside preview', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -5068,7 +5106,12 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBeUndefined();
       });
     });
 
@@ -7445,8 +7488,8 @@ describe('PredictController', () => {
     });
   });
 
-  describe('onPlaceOrderEnd', () => {
-    it('clears activeOrder and selectedPaymentToken', () => {
+  describe('onPlaceOrderSuccess', () => {
+    it('resets activeBuyOrder to PREVIEW and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.SUCCESS,
@@ -7457,14 +7500,16 @@ describe('PredictController', () => {
           symbol: 'USDC',
         });
 
-        controller.onPlaceOrderEnd();
+        controller.onPlaceOrderSuccess();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
+          state: ActiveOrderState.PREVIEW,
+        });
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
-    it('does not clear pendingOrderPreviews on navigation away', () => {
+    it('does not clear pendingOrderPreviews on success reset', () => {
       withController(({ controller }) => {
         (
           controller as unknown as {
@@ -7480,7 +7525,7 @@ describe('PredictController', () => {
           signerAddress: MOCK_ADDRESS,
         };
 
-        controller.onPlaceOrderEnd();
+        controller.onPlaceOrderSuccess();
 
         expect(
           (
@@ -7518,11 +7563,237 @@ describe('PredictController', () => {
             success: false,
             response: { status: 'deposit_in_progress' },
           });
-          expect(controller.state.activeBuyOrder).toEqual({
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.DEPOSITING,
             transactionId: 'tx-deposit-1',
           });
           expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('publishes order depositing event when transitioning to depositing state', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'depositing',
+              senderAddress: MOCK_ADDRESS,
+              marketId: 'market-1',
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not publish order depositing event when flag is disabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller, messenger }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+        const handler = jest.fn();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          handler,
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview,
+          transactionId: 'tx-deposit-1',
+        });
+
+        expect(handler).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'order',
+            status: 'depositing',
+          }),
+        );
+      });
+    });
+
+    it('creates optimistic position from preview when transitioning to depositing', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(
+            mockPolymarketProvider.createOptimisticPositionFromPreview,
+          ).toHaveBeenCalledWith({
+            address: MOCK_ADDRESS,
+            preview,
+          });
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('still publishes depositing event when optimistic position creation fails', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          mockPolymarketProvider.createOptimisticPositionFromPreview.mockRejectedValue(
+            new Error('Market details unavailable'),
+          );
+
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'depositing',
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('awaits optimistic position creation before publishing depositing event', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const callOrder: string[] = [];
+
+          mockPolymarketProvider.createOptimisticPositionFromPreview.mockImplementation(
+            () =>
+              new Promise<void>((resolve) => {
+                callOrder.push('optimistic');
+                resolve();
+              }),
+          );
+
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            () => {
+              callOrder.push('event');
+            },
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(callOrder).toEqual(['optimistic', 'event']);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('clears optimistic position when buy order fails with flag enabled', async () => {
+      mockPolymarketProvider.placeOrder.mockRejectedValue(
+        new Error('Order failed'),
+      );
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order failed',
+          );
+
+          expect(
+            mockPolymarketProvider.clearOptimisticPosition,
+          ).toHaveBeenCalledWith(MOCK_ADDRESS, preview.outcomeTokenId);
         },
         {
           mocks: {
@@ -7554,7 +7825,7 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview });
 
-          expect(controller.state.activeBuyOrder).toEqual({
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
             state: ActiveOrderState.SUCCESS,
           });
         },
@@ -7597,12 +7868,12 @@ describe('PredictController', () => {
 
           expect(retrySpy).toHaveBeenCalledTimes(1);
           expect(
-            controller.state.activeBuyOrder?.transactionId,
+            controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
           ).toBeUndefined();
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
             ActiveOrderState.PREVIEW,
           );
-          expect(controller.state.activeBuyOrder?.error).toBe(
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
             'Order placement failed',
           );
         },
@@ -7621,8 +7892,10 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          setActiveOrderForTest(controller, {
-            state: ActiveOrderState.PREVIEW,
+          controller.updateStateForTesting((state) => {
+            state.activeBuyOrders[explicitAddress] = {
+              state: ActiveOrderState.PREVIEW,
+            };
           });
 
           mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -7638,7 +7911,7 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview, address: explicitAddress });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
+          expect(controller.state.activeBuyOrders[explicitAddress]?.state).toBe(
             ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledWith(
@@ -7696,11 +7969,14 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not update activeBuyOrder when background order completes for a different active order', async () => {
+    it('updates activeBuyOrder to SUCCESS when background order completes for any buy order', async () => {
+      const bgAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       await withController(
         async ({ controller }) => {
-          setActiveOrderForTest(controller, {
-            state: ActiveOrderState.PREVIEW,
+          controller.updateStateForTesting((state) => {
+            state.activeBuyOrders[bgAddress] = {
+              state: ActiveOrderState.PREVIEW,
+            };
           });
 
           (
@@ -7715,7 +7991,7 @@ describe('PredictController', () => {
             }
           ).pendingOrderPreviews['tx-bg-1'] = {
             preview: createMockOrderPreview({ side: Side.BUY }),
-            signerAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            signerAddress: bgAddress,
           };
 
           mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -7731,12 +8007,12 @@ describe('PredictController', () => {
 
           await controller.placeOrder({
             preview,
-            address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            address: bgAddress,
             transactionId: 'tx-bg-1',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PREVIEW,
+          expect(controller.state.activeBuyOrders[bgAddress]?.state).toBe(
+            ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
           expect(
@@ -7762,7 +8038,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not clear selectedPaymentToken when background order fails for a different active order', async () => {
+    it('clears selectedPaymentToken when buy order fails with flag enabled', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -7785,11 +8061,7 @@ describe('PredictController', () => {
             controller.placeOrder({ preview, transactionId: 'tx-bg-1' }),
           ).rejects.toThrow('Order failed');
 
-          expect(controller.state.selectedPaymentToken).toEqual({
-            address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-            chainId: '0x89',
-            symbol: 'USDC',
-          });
+          expect(controller.state.selectedPaymentToken).toBeNull();
         },
         {
           mocks: {
@@ -7906,11 +8178,14 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not enter PAY_WITH_ANY_TOKEN branch when transactionId has existing pending preview', async () => {
+    it('skips PAY_WITH_ANY_TOKEN deposit branch and places order directly when transactionId has existing pending preview', async () => {
+      const bgAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       await withController(
         async ({ controller }) => {
-          setActiveOrderForTest(controller, {
-            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          controller.updateStateForTesting((state) => {
+            state.activeBuyOrders[bgAddress] = {
+              state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            };
           });
 
           (
@@ -7925,7 +8200,7 @@ describe('PredictController', () => {
             }
           ).pendingOrderPreviews['tx-bg-1'] = {
             preview: createMockOrderPreview({ side: Side.BUY }),
-            signerAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            signerAddress: bgAddress,
           };
 
           mockPolymarketProvider.placeOrder.mockResolvedValue({
@@ -7941,12 +8216,12 @@ describe('PredictController', () => {
 
           await controller.placeOrder({
             preview,
-            address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            address: bgAddress,
             transactionId: 'tx-bg-1',
           });
 
-          expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          expect(controller.state.activeBuyOrders[bgAddress]?.state).toBe(
+            ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
         },
@@ -7987,7 +8262,7 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
-        expect(controller.state.activeBuyOrder?.state).not.toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).not.toBe(
           ActiveOrderState.DEPOSITING,
         );
       });
@@ -8010,7 +8285,7 @@ describe('PredictController', () => {
 
         await controller.placeOrder({ preview });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -8034,7 +8309,7 @@ describe('PredictController', () => {
 
         await controller.placeOrder({ preview });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -8055,7 +8330,7 @@ describe('PredictController', () => {
           'Order failed',
         );
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PLACING_ORDER,
         );
         expect(controller.state.lastError).toBe('Order failed');
@@ -8087,7 +8362,9 @@ describe('PredictController', () => {
         );
 
         expect(retrySpy).not.toHaveBeenCalled();
-        expect(controller.state.activeBuyOrder?.transactionId).toBe('batch-1');
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
+        ).toBe('batch-1');
       });
     });
   });
@@ -8207,7 +8484,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('returns activeBuyOrder to preview and retries when depositAndOrder transaction fails', () => {
+    it('returns activeBuyOrder to PAY_WITH_ANY_TOKEN and retries when depositAndOrder transaction fails', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.DEPOSITING,
@@ -8234,8 +8511,8 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
         expect(retrySpy).toHaveBeenCalledTimes(1);
       });
@@ -8277,10 +8554,10 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
-        expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
-        expect(controller.state.activeBuyOrder?.error).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.error).toBe(
           'User rejected the request.',
         );
       });
@@ -8312,9 +8589,69 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder?.error).toBeDefined();
+        expect(
+          controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
+        ).toBeDefined();
         expect(retrySpy).toHaveBeenCalledTimes(1);
       });
+    });
+
+    it('clears optimistic position when depositAndOrder transaction fails', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            outcomeTokenId: 'token-abc',
+          });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-1',
+          });
+
+          jest
+            .spyOn(controller, 'initPayWithAnyToken')
+            .mockResolvedValue(undefined as never);
+
+          mockPolymarketProvider.clearOptimisticPosition.mockClear();
+
+          const transactionMeta = {
+            id: 'tx-1',
+            status: TransactionStatus.failed,
+            txParams: {
+              from: MOCK_ADDRESS,
+              to: '0x0000000000000000000000000000000000000001',
+              value: '0x0',
+              data: '0x',
+            },
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Transaction reverted' },
+          } as unknown as TransactionMeta;
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          });
+
+          expect(
+            mockPolymarketProvider.clearOptimisticPosition,
+          ).toHaveBeenCalledWith(MOCK_ADDRESS, 'token-abc');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
     });
 
     it('publishes order failed event when depositAndOrder fails and there is no active buy order', () => {
@@ -8350,11 +8687,11 @@ describe('PredictController', () => {
       });
     });
 
-    it('does not publish order failed event when depositAndOrder fails and there is an active buy order', () => {
+    it('publishes order failed event when depositAndOrder fails and there is an active buy order', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.DEPOSITING,
-          transactionId: 'tx-1',
+          transactionId: 'tx-active',
         });
 
         jest
@@ -8383,8 +8720,8 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(handler).not.toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'order' }),
+        expect(handler).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'order', status: 'failed' }),
         );
       });
     });
@@ -8444,13 +8781,13 @@ describe('PredictController', () => {
           address: accountAddress,
           transactionId: 'tx-1',
         });
-        expect(controller.state.activeBuyOrder?.state).toBe(
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
     });
 
-    it('does not retry initPayWithAnyToken when deposit fails for a different active order', () => {
+    it('retries initPayWithAnyToken when deposit fails and activeBuyOrder exists', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.PREVIEW,
@@ -8476,9 +8813,9 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(retrySpy).not.toHaveBeenCalled();
-        expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
+        expect(retrySpy).toHaveBeenCalledTimes(1);
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
     });
@@ -8564,7 +8901,7 @@ describe('PredictController', () => {
             } as any);
 
           controller.updateStateForTesting((state) => {
-            state.activeBuyOrder = {
+            state.activeBuyOrders[MOCK_ADDRESS] = {
               state: ActiveOrderState.DEPOSITING,
               transactionId: 'tx-switched',
             };
@@ -8610,7 +8947,7 @@ describe('PredictController', () => {
       it('forwards the transaction address to initPayWithAnyToken when depositAndOrder fails after account switch', () => {
         withController(({ controller, messenger }) => {
           controller.updateStateForTesting((state) => {
-            state.activeBuyOrder = {
+            state.activeBuyOrders[originalAddress] = {
               state: ActiveOrderState.DEPOSITING,
               transactionId: 'tx-switched',
             };
@@ -8635,8 +8972,8 @@ describe('PredictController', () => {
           } as { transactionMeta: TransactionMeta });
 
           expect(retrySpy).toHaveBeenCalled();
-          expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PREVIEW,
+          expect(controller.state.activeBuyOrders[originalAddress]?.state).toBe(
+            ActiveOrderState.PAY_WITH_ANY_TOKEN,
           );
         });
       });

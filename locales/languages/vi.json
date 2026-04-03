@@ -21,10 +21,10 @@
     }
   },
   "access_restricted": {
-    "title": "Access restricted",
-    "description_line1": "This wallet address has been flagged during compliance screening. As a result, some MetaMask services are unavailable.",
-    "description_line2": "If you believe this is an error, contact support to request a review.",
-    "contact_support": "Contact support"
+    "title": "Truy cập bị hạn chế",
+    "description_line1": "Địa chỉ ví này đã bị gắn cờ trong quá trình kiểm tra tuân thủ. Do đó, một số dịch vụ của MetaMask hiện không khả dụng.",
+    "description_line2": "Nếu bạn cho rằng đây là lỗi, hãy liên hệ bộ phận hỗ trợ để yêu cầu xem xét.",
+    "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
   "alert_system": {
     "alert_modal": {
@@ -240,7 +240,6 @@
     "import_wallet_button": "Đồng bộ hoặc nhập ví",
     "new_to_crypto": "Bạn mới tìm hiểu về tiền mã hóa?",
     "start_exploring_now": "Tạo một ví mới",
-    "unlock": "Mở khóa",
     "new_to_metamask": "Bạn mới sử dụng MetaMask?",
     "already_have_wallet": "Bạn đã có ví?",
     "optin_back_title": "Chú ý!",
@@ -476,7 +475,10 @@
     "biometric_authentication_cancelled": "Xác thực sinh trắc học đã bị hủy",
     "biometric_authentication_cancelled_title": "Thiết lập sinh trắc học thất bại",
     "biometric_authentication_cancelled_description": "Vui lòng thiết lập lại xác thực sinh trắc học trong phần cài đặt.",
-    "biometric_authentication_cancelled_button": "Xác nhận"
+    "biometric_authentication_cancelled_button": "Xác nhận",
+    "biometric_changed": "Sinh trắc học đã thay đổi",
+    "biometric_changed_alert_desc": "Sinh trắc học của bạn đã được thay đổi. Vui lòng bật lại sinh trắc học trong phần cài đặt.",
+    "biometric_changed_alert_confirm": "Xác nhận"
   },
   "connect_hardware": {
     "title_select_hardware": "Kết nối ví cứng",
@@ -1008,6 +1010,11 @@
       "see_more": "Xem thêm"
     }
   },
+  "social_leaderboard": {
+    "top_traders_view": {
+      "title": "Top Traders"
+    }
+  },
   "perps": {
     "basic_functionality_disabled_title": "Hợp đồng vĩnh cửu không khả dụng",
     "title": "Vĩnh cửu",
@@ -1477,8 +1484,8 @@
       "stop_loss_invalid_price": "Giá cắt lỗ phải {{direction}} giá {{priceType}}",
       "stop_loss_beyond_liquidation_error": "Giá cắt lỗ phải {{direction}} giá thanh lý",
       "stop_loss_order_view_warning": "Giá cắt lỗ {{direction}} giá thanh lý",
-      "take_profit_wrong_side_warning": "Take profit must be {{direction}} {{priceType}} price. Update or clear it to place the order.",
-      "stop_loss_wrong_side_warning": "Stop loss must be {{direction}} {{priceType}} price. Update or clear it to place the order.",
+      "take_profit_wrong_side_warning": "Lệnh chốt lời phải là giá {{priceType}} {{direction}}. Hãy cập nhật hoặc xóa để đặt lệnh.",
+      "stop_loss_wrong_side_warning": "Lệnh cắt lỗ phải là giá {{priceType}} {{direction}}. Hãy cập nhật hoặc xóa để đặt lệnh.",
       "above": "cao hơn",
       "below": "thấp hơn",
       "done": "Hoàn tất",
@@ -2309,6 +2316,7 @@
       "cashing_out_subtitle": "Ước tính {{time}} giây",
       "placing_prediction": "Đặt dự đoán",
       "prediction_placed": "Dự đoán đã đặt",
+      "prediction_failed": "Failed to place prediction",
       "order_failed": "Đặt lệnh không thành công",
       "payments_made_in_usdc": "Tất cả các khoản thanh toán được thực hiện bằng USDC",
       "prediction_insufficient_funds": "Không đủ tiền. Bạn có thể sử dụng tối đa {{amount}}.",
@@ -2322,6 +2330,7 @@
       "order_failed_title": "Đặt lệnh không thành công",
       "order_failed_body": "Không có đủ thanh khoản ở mức giá này. Bạn có muốn thử lại không?",
       "try_again": "Thử lại",
+      "view": "Xem",
       "yes_buy": "Có, mua",
       "yes_sell": "Có, bán"
     },
@@ -2376,7 +2385,8 @@
       "unknown_error": "Đã xảy ra lỗi không xác định",
       "order_not_fully_filled": "Không thể thực hiện lệnh của bạn",
       "buy_order_not_fully_filled": "Hiện không có đủ cổ phần theo giá thị trường để đặt lệnh vào lúc này.",
-      "sell_order_not_fully_filled": "Không có đủ nhu cầu theo giá thị trường để rút tiền ngay bây giờ."
+      "sell_order_not_fully_filled": "Không có đủ nhu cầu theo giá thị trường để rút tiền ngay bây giờ.",
+      "preview_not_available": "No preview available"
     },
     "game_details_footer": {
       "pick_a_winner": "Chọn người chiến thắng",
@@ -3993,6 +4003,7 @@
     "tx_review_predict_deposit": "Dự đoán đã nạp tiền",
     "tx_review_predict_claim": "Tiền thắng đã nhận",
     "tx_review_predict_withdraw": "Rút tiền dự đoán",
+    "tx_review_perps_withdraw": "Rút tiền hợp đồng vĩnh cửu",
     "tx_review_musd_conversion": "Chuyển đổi mUSD",
     "claim": "Nhận",
     "sent_ether": "Đã gửi ETH",
@@ -5992,6 +6003,7 @@
     "percentage_bonus": "Thưởng {{percentage}}%",
     "claimable_bonus": "Thưởng có thể nhận",
     "claim_bonus": "Nhận thưởng",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Tiền thưởng sẽ được trả trên {{networkName}}.",
     "percentage_bonus_on_linea": "Thưởng {{percentage}}% trên Linea",
     "claim": "Nhận",
@@ -6151,54 +6163,54 @@
     "your_stablecoins": "Đồng ổn định của bạn"
   },
   "money": {
-    "title": "Money",
-    "apy_label": "{{percentage}}% APY",
+    "title": "Tài chính",
+    "apy_label": "APY {{percentage}}%",
     "action": {
-      "add": "Add",
-      "transfer": "Transfer",
-      "card": "Card"
+      "add": "Thêm",
+      "transfer": "Chuyển",
+      "card": "Thẻ"
     },
     "your_position": {
-      "title": "Your position",
-      "current_rate": "Current rate",
-      "lifetime_earnings": "Lifetime earnings",
-      "available_balance": "Avail. balance"
+      "title": "Vị thế của bạn",
+      "current_rate": "Tỷ giá hiện tại",
+      "lifetime_earnings": "Thu nhập trọn đời",
+      "available_balance": "Số dư khả dụng"
     },
     "how_it_works": {
-      "title": "How it works",
-      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
+      "title": "Cách hoạt động",
+      "description": "Nắm giữ mUSD trong Tài khoản Tài chính và tự động sinh lời. Đây là đồng ổn định được bảo chứng theo USD, luôn có thanh khoản và sẵn sàng để chi tiêu, giao dịch hoặc gửi bất cứ lúc nào.",
       "musd_name": "MetaMask USD",
       "musd_symbol": "mUSD",
-      "add": "Add"
+      "add": "Thêm"
     },
     "potential_earnings": {
-      "title": "Potential earnings",
-      "amount": "+$26,800",
-      "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "convert": "Convert",
-      "no_fee": "No fee",
-      "see_earnings": "See potential earnings"
+      "title": "Thu nhập tiềm năng",
+      "amount": "+$26.800",
+      "description": "Xem tiền của bạn có thể tăng trưởng theo thời gian như thế nào bằng cách chuyển đổi tiền mã hóa sang mUSD.",
+      "convert": "Chuyển đổi",
+      "no_fee": "Không tốn phí",
+      "see_earnings": "Xem thu nhập tiềm năng"
     },
     "metamask_card": {
-      "title": "MetaMask Card",
-      "subtitle": "Spend your money anywhere.",
-      "virtual_card": "Virtual card",
-      "metal_card": "Metal card",
-      "cashback": "{{percentage}}% cashback",
-      "get_now": "Get now"
+      "title": "Thẻ MetaMask",
+      "subtitle": "Chi tiêu tiền của bạn ở mọi nơi.",
+      "virtual_card": "Thẻ ảo",
+      "metal_card": "Thẻ kim loại",
+      "cashback": "Hoàn tiền {{percentage}}%",
+      "get_now": "Nhận ngay"
     },
     "why_metamask_money": {
-      "title": "Why MetaMask Money?",
-      "benefit_auto_earn": "Auto-earn ",
-      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
-      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
-      "benefit_spend_cashback": "1-3% cashback",
-      "benefit_global": "Send and receive money globally with no middle man",
-      "learn_more": "Learn more"
+      "title": "Tại sao chọn MetaMask Tài chính?",
+      "benefit_auto_earn": "Tự động sinh lời ",
+      "benefit_dollar_backed": "Tiền của bạn được nắm giữ dưới dạng mUSD, một đồng ổn định được bảo chứng 1:1 theo USD",
+      "benefit_liquidity": "Khả năng thanh khoản cao, không bị khóa vốn, cho phép giao dịch hoặc rút tiền bất cứ lúc nào",
+      "benefit_spend_prefix": "Chi tiêu tại hơn 150 triệu điểm chấp nhận với Thẻ MetaMask và được ",
+      "benefit_spend_cashback": "hoàn tiền 1-3%",
+      "benefit_global": "Gửi và nhận tiền toàn cầu mà không cần trung gian",
+      "learn_more": "Tìm hiểu thêm"
     },
     "footer": {
-      "add_money": "Add money"
+      "add_money": "Nạp tiền"
     }
   },
   "stake": {
@@ -6497,9 +6509,10 @@
       "switch_account_type": "Cập nhật tài khoản",
       "approve": "Phê duyệt yêu cầu",
       "perps_deposit": "Nạp tiền",
+      "perps_withdraw": "Rút tiền",
       "predict_deposit": "Nạp tiền Dự đoán",
       "predict_withdraw": "Rút tiền",
-      "perps_withdraw": "Withdraw"
+      "money_account_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
@@ -6625,7 +6638,7 @@
     "nested_transaction_heading": "Giao dịch {{index}}",
     "transaction": "Bảo vệ",
     "available_balance": "Số dư khả dụng: ",
-    "available_perps_balance": "Available Perps balance: ",
+    "available_perps_balance": "Số dư Hợp đồng vĩnh cửu khả dụng: ",
     "edit_amount_done": "Tiếp tục",
     "deposit_edit_amount_done": "Nạp tiền",
     "deposit_edit_amount_predict_withdraw": "Rút tiền",
@@ -6810,7 +6823,13 @@
     "oauth_error_button": "Thử lại",
     "no_internet_connection_title": "Không thể kết nối",
     "no_internet_connection_description": "Kết nối internet của bạn không ổn định. Hãy kiểm tra kết nối và thử lại.",
-    "no_internet_connection_button": "Thử lại"
+    "no_internet_connection_button": "Thử lại",
+    "ios_need_update_title": "Cần cập nhật iOS",
+    "ios_need_update_description": "Đăng nhập Google của MetaMask sẽ sớm yêu cầu ",
+    "ios_need_update_description_version": "iOS 17.4 trở lên",
+    "ios_need_update_description_end": ". Bạn vẫn có thể tiếp tục sử dụng Đăng nhập Google trên thiết bị này ở thời điểm hiện tại, nhưng tính năng này sẽ không còn được hỗ trợ trong bản cập nhật sắp tới.",
+    "ios_need_update_description2": "Bạn vẫn có thể truy cập ví của mình bằng cùng tài khoản Google trên thiết bị được hỗ trợ hoặc tiện ích mở rộng MetaMask. Chúng tôi đặc biệt khuyên bạn nên sao lưu Cụm từ khôi phục bí mật để đảm bảo quyền truy cập không bị gián đoạn.",
+    "ios_need_update_button": "Tiếp tục"
   },
   "password_hint": {
     "title": "Gợi ý mật khẩu",
@@ -7430,7 +7449,9 @@
       "loading": "Đang tải các token khả dụng...",
       "load_error": "Không thể tải token. Vui lòng thử lại.",
       "retry": "Thử lại",
-      "on_linea": "trên Linea"
+      "on_linea": "trên Linea",
+      "account_label": "Tài khoản",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Hoàn tiền",
@@ -7881,6 +7902,7 @@
       "daily_bonus": "Thưởng có thể nhận hằng ngày",
       "annualized_bonus": "Thưởng theo năm",
       "disclaimer": "Đây chỉ là ước tính. Phần thưởng có thể thay đổi.",
+      "disclaimer_brief": "Mức thưởng chỉ là ước tính và có thể thay đổi.",
       "buy_button": "Mua mUSD",
       "swap_button": "Hoán đổi sang mUSD"
     },
@@ -7919,8 +7941,8 @@
     "campaign": {
       "starts_date": "Bắt đầu {{date}}",
       "ends_date": "Kết thúc {{date}}",
-      "ended_date": "Ended {{date}}",
-      "pill_up_next": "Sắp tới",
+      "ended_date": "Đã kết thúc {{date}}",
+      "pill_up_next": "Sắp ra mắt",
       "pill_active": "Đang diễn ra",
       "pill_complete": "Hoàn tất",
       "enter_now": "Tham gia ngay",
@@ -7932,7 +7954,8 @@
       "opt_in_sheet_link_text": "Điều khoản sử dụng bổ sung và Thông báo quyền riêng tư",
       "opt_in_sheet_description_post_link": "Chúng tôi sẽ theo dõi hoạt động trên chuỗi để tự động tặng thưởng cho bạn.",
       "geo_restriction_banner_title": "Không khả dụng tại khu vực của bạn",
-      "geo_restriction_banner_description": "Chiến dịch này không khả dụng tại khu vực của bạn do quy định địa phương."
+      "geo_restriction_banner_description": "Chiến dịch này không khả dụng tại khu vực của bạn do quy định địa phương.",
+      "opt_in_success_toast": "Bạn đã sẵn sàng!"
     },
     "campaign_mechanics": {
       "title": "Cơ chế"
@@ -7945,9 +7968,59 @@
       "opted_in": "Bạn đã tham gia chiến dịch này",
       "opt_in_error": "Không thể tham gia. Vui lòng thử lại.",
       "join_campaign": "Tham gia chiến dịch",
+      "entries_closed_title": "Đã đóng đăng ký",
+      "entries_closed_description": "Bạn đã bỏ lỡ thời gian tham gia",
+      "competition_closed_title": "Competition no longer open",
+      "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Đang kiểm tra trạng thái tham gia",
       "swap": "Hoán đổi",
       "how_it_works": "Cách hoạt động"
+    },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Vị thế của bạn",
+      "rank": "Xếp hạng của tôi",
+      "tier": "Hạng của tôi",
+      "rate_of_return": "Lợi nhuận",
+      "total_deposited": "Tổng số tiền đã nạp",
+      "current_value": "Giá trị hiện tại",
+      "not_found": "Chưa có trên bảng xếp hạng. Vui lòng quay lại sau.",
+      "updated_at": "Cập nhật lần cuối: {{time}}",
+      "error_loading": "Không thể tải vị thế của bạn",
+      "error_loading_description": "Đã xảy ra lỗi khi tải vị thế của bạn trên bảng xếp hạng. Vui lòng thử lại.",
+      "retry": "Thử lại"
+    },
+    "ondo_campaign_portfolio": {
+      "title": "My Positions",
+      "total_value": "Tổng giá trị",
+      "portfolio_pnl": "Lãi/Lỗ",
+      "portfolio_pnl_percent": "Lãi/Lỗ (%)",
+      "summary_cost_basis": "Cơ sở chi phí",
+      "summary_net_deposit": "Tiền nạp ròng",
+      "position_current_value": "Giá trị",
+      "position_unrealized_pnl": "Lãi/Lỗ",
+      "updated_at": "Cập nhật lần cuối: {{time}}",
+      "error_loading": "Không thể tải vị thế.",
+      "error_loading_description": "Đã xảy ra lỗi khi tải các vị thế của bạn. Vui lòng thử lại.",
+      "retry": "Thử lại",
+      "loading": "Đang tải vị thế...",
+      "empty": "Chưa tìm thấy vị thế nào.",
+      "empty_description": "Bắt đầu nhận phần thưởng bằng cách mở một vị thế trong tài sản thế giới thực được token hóa.",
+      "empty_cta": "Mở vị thế",
+      "position_units": "{{units}} cổ phần"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Bảng xếp hạng",
+      "your_position": "Vị thế của bạn",
+      "of_total": "trên tổng số {{total}} người tham gia",
+      "total_participants": "{{count}} người tham gia",
+      "updated_at": "Cập nhật lần cuối: {{time}}",
+      "error_loading": "Không thể tải bảng xếp hạng",
+      "error_loading_description": "Đã xảy ra lỗi khi tải bảng xếp hạng. Vui lòng thử lại.",
+      "error_loading_position": "Không thể tải vị thế của bạn",
+      "retry": "Thử lại",
+      "no_data": "Không có dữ liệu bảng xếp hạng",
+      "no_entries_in_tier": "Chưa có người tham gia nào trong hạng này",
+      "not_yet_computed": "Bảng xếp hạng chưa được tính toán xong. Vui lòng quay lại sau."
     },
     "campaigns_preview": {
       "title": "Chiến dịch",
@@ -7983,6 +8056,7 @@
       "musd_conversion": "Đã chuyển đổi sang mUSD",
       "musd_claim": "Đã nhận mUSD",
       "perps_deposit": "Đã nạp tiền tài khoản vĩnh cửu",
+      "perps_withdraw": "Rút tiền",
       "predict_claim": "Đã nhận tiền thắng",
       "predict_deposit": "Tài khoản Dự đoán đã được nạp tiền",
       "predict_withdraw": "Rút tiền",
@@ -8010,6 +8084,7 @@
       "musd_convert_send": "Đã gửi {{sourceSymbol}} từ {{sourceChain}}",
       "musd_claim": "Nhận mUSD",
       "perps_deposit": "Nạp tiền",
+      "perps_withdraw": "Rút tiền",
       "predict_deposit": "Nạp tiền",
       "swap": "Hoán đổi token",
       "swap_approval": "Phê duyệt token"
@@ -8082,6 +8157,7 @@
     "sites": "Trang web",
     "popular_sites": "Trang web phổ biến",
     "search_sites": "Tìm kiếm trang web",
+    "view_all": "Xem tất cả",
     "enable_basic_functionality": "Bật chức năng cơ bản",
     "basic_functionality_disabled_title": "Khám phá không khả dụng",
     "basic_functionality_disabled_description": "Chúng tôi không thể tìm nạp siêu dữ liệu cần thiết khi chức năng cơ bản bị tắt.",
@@ -8199,6 +8275,7 @@
       "perpetuals": "Hợp đồng vĩnh cửu",
       "predictions": "Dự đoán",
       "whats_happening": "Tình hình hiện nay",
+      "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Địa chính trị",
         "macro": "Vĩ mô",

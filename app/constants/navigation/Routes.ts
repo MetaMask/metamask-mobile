@@ -294,6 +294,7 @@ const Routes = {
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
+      TOKEN_WARNING_MODAL: 'TokenWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -398,6 +399,9 @@ const Routes = {
   MONEY: {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
+  },
+  MONEY_ACCOUNT: {
+    ROOT: 'MoneyAccountScreens',
   },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',

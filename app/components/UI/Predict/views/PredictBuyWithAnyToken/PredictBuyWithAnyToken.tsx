@@ -40,7 +40,7 @@ import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
+
 import {
   selectPredictFakOrdersEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
@@ -62,8 +62,6 @@ const PredictBuyWithAnyToken = () => {
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   const { isPlacingOrder } = usePredictActiveOrder();
-  const { showOrderPlacedToast, invalidateOrderQueries } =
-    usePredictPlaceOrder();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -148,7 +146,6 @@ const PredictBuyWithAnyToken = () => {
     isBelowMinimum,
     isInsufficientBalance,
     maxBetAmount,
-    canSelectToken,
   } = usePredictBuyConditions({
     currentValue,
     preview,
@@ -175,8 +172,6 @@ const PredictBuyWithAnyToken = () => {
     analyticsProperties,
     preview,
     setIsConfirming,
-    showOrderPlacedToast,
-    invalidateOrderQueries,
   });
 
   useEffect(() => {
@@ -240,7 +235,7 @@ const PredictBuyWithAnyToken = () => {
             isPlacingOrder={isPlacingOrder}
           />
           {payWithAnyTokenEnabled && (
-            <PredictPayWithRow disabled={isPlacingOrder || !canSelectToken} />
+            <PredictPayWithRow disabled={isPlacingOrder} />
           )}
         </Box>
       </ScrollView>

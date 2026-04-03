@@ -18,9 +18,9 @@
   },
   "AccountTreeController": {
     "accountTree": {
-      "selectedAccountGroup": "",
       "wallets": {}
     },
+    "selectedAccountGroup": "",
     "accountGroupsMetadata": {},
     "accountWalletsMetadata": {},
     "hasAccountTreeSyncingSyncedAtLeastOnce": false,
@@ -34,10 +34,10 @@
     "optedIn": false
   },
   "GatorPermissionsController": {
-    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
-    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "grantedPermissions": [],
     "isFetchingGatorPermissions": false,
-    "isGatorPermissionsEnabled": false
+    "lastSyncedTimestamp": -1,
+    "pendingRevocations": []
   },
   "NftController": {
     "allNftContracts": {},
@@ -386,7 +386,7 @@
   "SnapInterfaceController": {
     "interfaces": {}
   },
-  "SnapsRegistry": {
+  "SnapRegistryController": {
     "database": null,
     "databaseUnavailable": false,
     "lastUpdated": null,
@@ -625,6 +625,7 @@
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
+    "quoteStreamComplete": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {
@@ -733,7 +734,7 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
-    "activeBuyOrder": null,
+    "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
@@ -792,6 +793,10 @@
       }
     },
     "requests": {},
-    "orders": []
+    "orders": [],
+    "providerAutoSelected": false
+  },
+  "MoneyAccountController": {
+    "moneyAccounts": {}
   }
 }

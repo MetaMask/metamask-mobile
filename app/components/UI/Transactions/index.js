@@ -38,7 +38,6 @@ import {
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import { decGWEIToHexWEI } from '../../../util/conversions';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
@@ -47,12 +46,16 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
 } from '../../../util/networks';
-import { addHexPrefix } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
+  getPreviousGasFromController,
   speedUpTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
+import {
+  getGasValuesForReplacement,
+  getMediumGasPriceHex,
+} from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -531,7 +534,12 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      const params = this.getParamsToSend(transactionObject);
+      const rawParams = this.getParamsToSend(transactionObject);
+      const params = getGasValuesForReplacement(
+        rawParams,
+        getPreviousGasFromController(this.speedUpTxId),
+        SPEED_UP_RATE,
+      );
       if (isLedgerAccount) {
         const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
@@ -604,7 +612,12 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      const params = this.getParamsToSend(transactionObject);
+      const rawParams = this.getParamsToSend(transactionObject);
+      const params = getGasValuesForReplacement(
+        rawParams,
+        getPreviousGasFromController(this.cancelTxId),
+        CANCEL_RATE,
+      );
       if (isLedgerAccount) {
         const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
@@ -799,19 +812,7 @@ class Transactions extends PureComponent {
       }
     }
 
-    return { gasPrice: this.getGasPriceEstimate() };
-  }
-
-  getGasPriceEstimate() {
-    const { gasFeeEstimates } = this.props;
-
-    const estimateGweiDecimal =
-      gasFeeEstimates?.medium?.suggestedMaxFeePerGas ??
-      gasFeeEstimates?.medium ??
-      gasFeeEstimates.gasPrice ??
-      '0';
-
-    return addHexPrefix(decGWEIToHexWEI(estimateGweiDecimal));
+    return { gasPrice: getMediumGasPriceHex(this.props.gasFeeEstimates) };
   }
 }
 

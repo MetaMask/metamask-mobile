@@ -1,26 +1,13 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useConnectionHandler } from './useConnectionHandler';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../components/hooks/useMetrics';
+import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../util/test/analyticsMock';
 
-jest.mock('../../components/hooks/useMetrics');
+jest.mock('../../components/hooks/useAnalytics/useAnalytics');
 
 const mockTrackEvent = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 describe('useConnectionHandler', () => {
   const mockNavigation = { navigate: jest.fn() };
@@ -28,6 +15,12 @@ describe('useConnectionHandler', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   afterEach(() => {
@@ -43,7 +36,7 @@ describe('useConnectionHandler', () => {
 
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_DROPPED,
       ).build(),
     );
@@ -60,7 +53,7 @@ describe('useConnectionHandler', () => {
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith('OfflineModeView');
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_DROPPED,
       ).build(),
     );
@@ -74,7 +67,7 @@ describe('useConnectionHandler', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_DROPPED,
       ).build(),
     );
@@ -91,7 +84,7 @@ describe('useConnectionHandler', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenNthCalledWith(
       2,
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_RESTORED,
       ).build(),
     );
@@ -132,7 +125,7 @@ describe('useConnectionHandler', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_DROPPED,
       ).build(),
     );
@@ -144,7 +137,7 @@ describe('useConnectionHandler', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_RESTORED,
       ).build(),
     );
