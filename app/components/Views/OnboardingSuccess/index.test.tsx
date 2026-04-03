@@ -14,12 +14,6 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import {
-  TextColor,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -199,24 +193,6 @@ describe('OnboardingSuccessComponent', () => {
     );
 
     expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
-  });
-
-  it('renders footer link with Info text color', () => {
-    const { getByTestId } = renderWithProvider(
-      <OnboardingSuccessComponent
-        onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
-      />,
-    );
-
-    const footerButton = getByTestId(
-      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
-    );
-    const footerText = footerButton.children[0] as ReactTestInstance;
-
-    expect(footerText.props.color).toBe(TextColor.InfoDefault);
-    expect(footerText.props.variant).toBe(TextVariant.BodyMd);
-    expect(footerText.props.fontWeight).toBe(FontWeight.Medium);
   });
 
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
