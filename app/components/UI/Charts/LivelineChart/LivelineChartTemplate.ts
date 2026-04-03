@@ -65,13 +65,33 @@ export const createLivelineChartTemplate = (
   <script>${reactDomLib}</script>
 
   <!-- 3. react/jsx-runtime shim — liveline's bundle externalizes
-       react/jsx-runtime to window.ReactJsxRuntime -->
+       react/jsx-runtime to window.ReactJsxRuntime.
+       The jsx/jsxs signatures differ from createElement:
+         jsx(type, props, key?)  — children live inside props.children
+         createElement(type, props, ...children) — children are variadic args
+       We must extract children from props and pass key via the props object. -->
   <script>
-    window.ReactJsxRuntime = {
-      jsx:      window.React.createElement,
-      jsxs:     window.React.createElement,
-      Fragment: window.React.Fragment,
-    };
+    (function() {
+      var createElement = window.React.createElement;
+      function jsx(type, props, key) {
+        var config = Object.assign({}, props);
+        if (key !== undefined) { config.key = key; }
+        var children = config.children;
+        delete config.children;
+        if (children === undefined) {
+          return createElement(type, config);
+        }
+        if (Array.isArray(children)) {
+          return createElement.apply(null, [type, config].concat(children));
+        }
+        return createElement(type, config, children);
+      }
+      window.ReactJsxRuntime = {
+        jsx:      jsx,
+        jsxs:     jsx,
+        Fragment: window.React.Fragment,
+      };
+    })();
   </script>
 
   <!-- 4. liveline IIFE — sets window.Liveline = { Liveline, … } -->

@@ -185,10 +185,23 @@ export interface LivelineChartProps {
  * Single message type sent from React Native → WebView.
  * The full props snapshot is sent on every change; the WebView calls
  * `root.render(createElement(Liveline, props))` on receipt.
+ *
+ * Callback props (onHover, onWindowChange, onModeChange, onSeriesToggle) are
+ * omitted — they cannot cross the JSON bridge and are wired inside the WebView,
+ * posting messages back to RN instead.
  */
 export interface RNToWebViewMessage {
   type: 'SET_PROPS';
-  payload: Omit<LivelineChartProps, 'height' | 'onChartReady' | 'onError'>;
+  payload: Omit<
+    LivelineChartProps,
+    | 'height'
+    | 'onChartReady'
+    | 'onError'
+    | 'onHover'
+    | 'onWindowChange'
+    | 'onModeChange'
+    | 'onSeriesToggle'
+  >;
 }
 
 /** Messages sent from WebView → React Native. */
