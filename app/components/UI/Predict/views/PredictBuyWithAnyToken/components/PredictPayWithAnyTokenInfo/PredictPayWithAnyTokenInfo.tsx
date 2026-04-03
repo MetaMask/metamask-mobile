@@ -5,15 +5,20 @@ import { useTransactionCustomAmount } from '../../../../../../Views/confirmation
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
+import { usePredictBalance } from '../../../../hooks/usePredictBalance';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { MINIMUM_BET } from '../../../../constants/transactions';
+import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
 
 interface PredictPayWithAnyTokenInfoProps {
-  depositAmount: number;
+  currentValue: number;
+  preview?: OrderPreview | null;
 }
 
 const PredictPayWithAnyTokenInfo = ({
-  depositAmount,
+  currentValue,
+  preview,
 }: PredictPayWithAnyTokenInfoProps) => {
   const transactionMeta = useTransactionMetadataRequest();
 
@@ -21,19 +26,51 @@ const PredictPayWithAnyTokenInfo = ({
     return null;
   }
 
-  return <PredictPayWithAnyTokenInfoInner depositAmount={depositAmount} />;
+  return (
+    <PredictPayWithAnyTokenInfoInner
+      currentValue={currentValue}
+      preview={preview}
+    />
+  );
 };
 
 function PredictPayWithAnyTokenInfoInner({
-  depositAmount,
+  currentValue,
+  preview,
 }: PredictPayWithAnyTokenInfoProps) {
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
   const { setPayToken, payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
+  const { data: predictBalance = 0 } = usePredictBalance();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
+
+  const totalPayForPredictBalance = useMemo(
+    () =>
+      currentValue +
+      (preview?.fees?.providerFee ?? 0) +
+      (preview?.fees?.metamaskFee ?? 0),
+    [currentValue, preview?.fees?.providerFee, preview?.fees?.metamaskFee],
+  );
+
+  const depositAmount = useMemo(() => {
+    if (!preview?.fees || currentValue < MINIMUM_BET) {
+      return 0;
+    }
+
+    const remainingAmount = new BigNumber(totalPayForPredictBalance)
+      .minus(predictBalance)
+      .decimalPlaces(2, BigNumber.ROUND_UP)
+      .toNumber();
+    if (remainingAmount <= 0) {
+      return new BigNumber(totalPayForPredictBalance)
+        .decimalPlaces(2, BigNumber.ROUND_UP)
+        .toNumber();
+    }
+    return remainingAmount;
+  }, [preview?.fees, currentValue, totalPayForPredictBalance, predictBalance]);
 
   const parsedDepositAmount = useMemo(() => {
     if (isPredictBalanceSelected || depositAmount <= 0) {
