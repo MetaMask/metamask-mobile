@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- revert(perps): add Perps Withdraw confirmation flow and post-quote config (#28105)
 - chore/modify runway ota build core workflow (#28310)
 - Chore/abstract build from upload to testflight (#28309)
 - chore: display OTA push platform in summary (#28059)
