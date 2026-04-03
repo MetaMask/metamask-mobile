@@ -7,15 +7,8 @@ import Engine from '../../../Engine';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
-  setAlwaysShowCardButton,
 } from '../../../redux/slices/card';
-import {
-  selectCardExperimentalSwitch,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 /**
  * Card home deeplink handler
@@ -49,25 +42,6 @@ export const handleCardHome = () => {
     const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsAuthenticatedCard(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
-    const geolocationLocation = selectGeolocationLocation(state);
-    const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
-    const displayCardButtonFeatureFlag =
-      selectDisplayCardButtonFeatureFlag(state);
-    const cardSupportedCountries = selectCardSupportedCountries(
-      state,
-    ) as Record<string, boolean>;
-    const shouldCardBeEnabled =
-      isCardExperimentalSwitchEnabled ||
-      (cardSupportedCountries?.[geolocationLocation as string] === true &&
-        displayCardButtonFeatureFlag);
-
-    if (!shouldCardBeEnabled) {
-      DevLogger.log('[handleCardHome] Card is not enabled, skipping');
-      return;
-    }
-
-    ReduxService.store.dispatch(setAlwaysShowCardButton(true));
-    DevLogger.log('[handleCardHome] Successfully enabled card button');
 
     if (isAuthenticated || hasCardLinkedAccount) {
       if (hasCardLinkedAccount && !isAuthenticated) {
