@@ -17,6 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { createLivelineChartTemplate } from './LivelineChartTemplate';
+import { REACT_LIB, REACT_DOM_LIB, LIVELINE_LIB } from './LivelineChartAssets';
 import {
   parseWebViewMessage,
   type LivelineChartProps,
@@ -42,7 +43,13 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
   const [webViewError, setWebViewError] = useState<string | null>(null);
 
   const htmlContent = useMemo(
-    () => createLivelineChartTemplate(theme),
+    () =>
+      createLivelineChartTemplate(
+        theme,
+        REACT_LIB,
+        REACT_DOM_LIB,
+        LIVELINE_LIB,
+      ),
     [theme],
   );
 
@@ -155,7 +162,7 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
         style={tw.style('flex-1 bg-background-default')}
         onMessage={handleMessage}
         onError={handleWebViewError}
-        originWhitelist={['*']}
+        originWhitelist={['about:*', 'file:*']}
         javaScriptEnabled
         domStorageEnabled
         scrollEnabled={false}
@@ -164,7 +171,6 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
         showsVerticalScrollIndicator={false}
         allowsInlineMediaPlayback
         androidLayerType="hardware"
-        mixedContentMode="always"
       />
 
       {!isChartReady && (

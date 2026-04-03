@@ -8,6 +8,20 @@ import {
   type HoverPoint,
 } from '../LivelineChart.types';
 
+// Mock the generated asset file — it contains ~200 KB of minified JS strings
+// that are irrelevant for unit tests and would slow down the test suite.
+jest.mock('../LivelineChartAssets', () => ({
+  REACT_LIB: '/* react */',
+  REACT_DOM_LIB: '/* react-dom */',
+  LIVELINE_LIB: '/* liveline */',
+}));
+
+// Mock the template so tests don't depend on the HTML string shape.
+jest.mock('../LivelineChartTemplate', () => ({
+  createLivelineChartTemplate: () =>
+    '<html><body><div id="root"></div></body></html>',
+}));
+
 const mockPostMessage = jest.fn();
 
 jest.mock('@metamask/react-native-webview', () => {

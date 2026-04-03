@@ -2,11 +2,13 @@
  * Types for the LivelineChart React Native wrapper.
  *
  * These mirror the public API of the upstream `liveline@0.0.7` package.
- * The package is not installed as a dependency — it is loaded from esm.sh
- * at runtime inside the WebView — so types are maintained locally here.
+ * liveline is installed as a devDependency (build-time only); at runtime the
+ * pre-built IIFE bundle embedded in LivelineChartAssets.ts is used.
  *
- * When upgrading liveline, cross-check against:
- * https://esm.sh/liveline@<version>/dist/index.d.ts
+ * When upgrading liveline:
+ * 1. Bump the version in package.json devDependencies
+ * 2. Run `yarn build:liveline-webview` to rebuild LivelineChartAssets.ts
+ * 3. Cross-check types against the new dist/index.d.ts
  */
 
 // ---- Upstream data types (mirror liveline@0.0.7) ----
