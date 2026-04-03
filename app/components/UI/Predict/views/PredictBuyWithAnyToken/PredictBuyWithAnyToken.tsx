@@ -146,7 +146,6 @@ const PredictBuyWithAnyToken = () => {
     isBelowMinimum,
     isInsufficientBalance,
     maxBetAmount,
-    canSelectToken,
   } = usePredictBuyConditions({
     currentValue,
     preview,
@@ -236,7 +235,7 @@ const PredictBuyWithAnyToken = () => {
             isPlacingOrder={isPlacingOrder}
           />
           {payWithAnyTokenEnabled && (
-            <PredictPayWithRow disabled={isPlacingOrder || !canSelectToken} />
+            <PredictPayWithRow disabled={isPlacingOrder} />
           )}
         </Box>
       </ScrollView>
