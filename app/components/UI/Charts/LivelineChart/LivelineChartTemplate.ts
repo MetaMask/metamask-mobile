@@ -16,16 +16,21 @@
  * via `ReactNativeWebView.postMessage`.
  */
 
+import { Theme } from '@metamask/design-tokens';
+
 const LIVELINE_VERSION = '0.0.7';
 const REACT_VERSION = '18.3.1';
 
 const ESM_BASE = 'https://esm.sh';
+const REACT_DEPS = `deps=react@${REACT_VERSION},react-dom@${REACT_VERSION}`;
 const REACT_URL = `${ESM_BASE}/react@${REACT_VERSION}`;
 const REACT_DOM_CLIENT_URL = `${ESM_BASE}/react-dom@${REACT_VERSION}/client`;
-const LIVELINE_URL = `${ESM_BASE}/liveline@${LIVELINE_VERSION}`;
+// Pin liveline's peer deps to the exact React version we import so the
+// browser resolves a single shared module instance (avoids dual-React).
+const LIVELINE_URL = `${ESM_BASE}/liveline@${LIVELINE_VERSION}?${REACT_DEPS}`;
 
 export const createLivelineChartTemplate = (
-  bgColor: string,
+  theme: Theme,
 ): string => `<!DOCTYPE html>
 <html>
 <head>
@@ -33,8 +38,14 @@ export const createLivelineChartTemplate = (
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    html,body{width:100%;height:100%;overflow:hidden;background:${bgColor}}
-    #root{width:100%;height:100%}
+    html,body{width:100%;height:100%;overflow:hidden;background:${theme.colors.background.default}}
+    #root{width:100%;height:100%;display:flex;flex-direction:column}
+    /* The Liveline Fragment renders: optional showValue span, optional
+       control-bar div, then the canvas-wrapper div. Only the canvas wrapper
+       should grow to fill remaining space; preceding siblings take their
+       natural height. Using last-child covers all combinations. */
+    #root>*{flex-shrink:0}
+    #root>*:last-child{flex:1;min-height:0}
   </style>
 </head>
 <body>
@@ -72,6 +83,11 @@ export const createLivelineChartTemplate = (
       const props = {
         ...rest,
         ...callbacks,
+        // width:100% ensures the canvas fills the flex item horizontally.
+        // height is intentionally omitted — the CSS flex layout gives the
+        // canvas-wrapper div flex:1 so it grows to fill all remaining space
+        // after any showValue / control-bar siblings have taken their height.
+        style: { width: '100%' },
         ...(formatValue ? { formatValue: new Function('v', formatValue) } : {}),
         ...(formatTime  ? { formatTime:  new Function('t', formatTime)  } : {}),
       };

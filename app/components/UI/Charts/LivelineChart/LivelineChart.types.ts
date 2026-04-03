@@ -104,9 +104,9 @@ export interface LivelineChartProps {
   series?: LivelineSeries[];
 
   // -- Appearance --
-  theme?: ThemeMode;
   color?: string;
   lineWidth?: number;
+  // theme?: ThemeMode; -- not used
 
   // -- Feature flags --
   grid?: boolean;

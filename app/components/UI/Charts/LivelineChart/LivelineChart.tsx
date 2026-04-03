@@ -36,18 +36,14 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
   ...chartProps
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const theme = useTheme();
   const webViewRef = useRef<WebView>(null);
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
 
-  // Capture the background colour once at mount. The HTML shell is static for
-  // the lifetime of this component instance; all chart props are sent via
-  // postMessage after CHART_READY.
-  const bgColorRef = useRef(colors.background.default);
   const htmlContent = useMemo(
-    () => createLivelineChartTemplate(bgColorRef.current),
-    [],
+    () => createLivelineChartTemplate(theme),
+    [theme],
   );
 
   const postMessage = useCallback((message: RNToWebViewMessage) => {
@@ -60,7 +56,10 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
   //
   // chartProps is destructured from the component props so it is a new object
   // on every render; we JSON-serialise it to get a stable dep-comparable value.
-  const chartPropsJson = JSON.stringify(chartProps);
+  const chartPropsJson = JSON.stringify({
+    ...chartProps,
+    theme: theme.themeAppearance,
+  });
   useEffect(() => {
     if (!isChartReady) return;
     // chartPropsJson is the stable dep; parse it back so the payload is a
@@ -128,35 +127,13 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
     [onError],
   );
 
-  const containerStyle = useMemo(
-    () =>
-      tw.style('w-full', {
-        height,
-        backgroundColor: colors.background.default,
-      }),
-    [tw, height, colors.background.default],
-  );
-
-  const webViewStyle = useMemo(
-    () => tw.style('flex-1', { backgroundColor: colors.background.default }),
-    [tw, colors.background.default],
-  );
-
-  const overlayStyle = useMemo(
-    () =>
-      tw.style('absolute top-0 right-0 bottom-0 left-0', {
-        backgroundColor: colors.background.default,
-      }),
-    [tw, colors.background.default],
-  );
-
   if (webViewError) {
     return (
       <Box
         testID="liveline-chart-error"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        style={containerStyle}
+        style={tw.style('w-full bg-background-default', { height })}
         twClassName="px-5"
       >
         <Text
@@ -170,12 +147,12 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
   }
 
   return (
-    <Box style={containerStyle}>
+    <Box style={tw.style('w-full bg-background-default', { height })}>
       <WebView
         testID="liveline-chart-webview"
         ref={webViewRef}
         source={{ html: htmlContent }}
-        style={webViewStyle}
+        style={tw.style('flex-1 bg-background-default')}
         onMessage={handleMessage}
         onError={handleWebViewError}
         originWhitelist={['*']}
@@ -195,9 +172,14 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
           testID="liveline-chart-loading"
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          style={overlayStyle}
+          style={tw.style(
+            'absolute top-0 left-0 right-0 bottom-0 bg-background-default',
+          )}
         >
-          <ActivityIndicator size="large" color={colors.primary.default} />
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.primary.default}
+          />
           <Text variant={TextVariant.BodySm} twClassName="mt-3 text-text-muted">
             Loading chart...
           </Text>
