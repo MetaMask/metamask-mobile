@@ -10,8 +10,16 @@ export interface PredictAnalyticsEventConfig {
   logLabel?: string;
 }
 
+export type PredictAnalyticsEventKey =
+  | 'activityViewed'
+  | 'positionViewed'
+  | 'feedViewed'
+  | 'shareAction'
+  | 'geoBlockTriggered'
+  | 'marketDetailsOpened';
+
 export const PREDICT_ANALYTICS_EVENTS: Record<
-  string,
+  PredictAnalyticsEventKey,
   PredictAnalyticsEventConfig
 > = {
   activityViewed: {

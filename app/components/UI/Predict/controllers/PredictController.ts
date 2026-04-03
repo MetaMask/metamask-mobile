@@ -700,8 +700,11 @@ export class PredictController extends BaseController<
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.POSITIONS_FAILED,
         traceData: (positions) => ({ positionCount: positions.length }),
+        updateErrorState: false,
         onSuccess: (positions) => {
           this.update((state) => {
+            state.lastError = null;
+            state.lastUpdateTimestamp = Date.now();
             if (params.claimable === true) {
               state.claimablePositions[selectedAddress] = [...positions];
             } else if (params.claimable === undefined) {
@@ -712,8 +715,23 @@ export class PredictController extends BaseController<
           });
         },
       },
-      async () =>
-        this.provider.getPositions({ ...params, address: selectedAddress }),
+      async () => {
+        try {
+          return await this.provider.getPositions({
+            ...params,
+            address: selectedAddress,
+          });
+        } catch (error) {
+          this.update((state) => {
+            state.lastError =
+              error instanceof Error
+                ? error.message
+                : PREDICT_ERROR_CODES.POSITIONS_FAILED;
+            state.lastUpdateTimestamp = Date.now();
+          });
+          throw error;
+        }
+      },
     );
   }
 
