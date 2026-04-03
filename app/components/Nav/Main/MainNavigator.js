@@ -1127,7 +1127,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={slideFromRightAnimation}
+        options={{ presentation: 'modal' }}
       />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
