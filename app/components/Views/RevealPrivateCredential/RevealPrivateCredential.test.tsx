@@ -68,12 +68,14 @@ let mockNavigationReturn: {
   pop: jest.Mock;
   popToTop: jest.Mock;
   setOptions: jest.Mock;
+  dispatch: jest.Mock;
 } | null = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   pop: jest.fn(),
   popToTop: jest.fn(),
   setOptions: jest.fn(),
+  dispatch: jest.fn(),
 };
 
 jest.mock('@react-navigation/native', () => ({
@@ -951,15 +953,16 @@ describe('RevealPrivateCredential', () => {
       );
     });
 
-    it('calls navigation.pop when shouldUpdateNav is true', async () => {
-      const mockPop = jest.fn();
+    it('calls navigation.dispatch with pop when shouldUpdateNav is true', async () => {
+      const mockDispatchNav = jest.fn();
       mockRouteParams = { shouldUpdateNav: true };
       mockNavigationReturn = {
         navigate: jest.fn(),
         goBack: jest.fn(),
-        pop: mockPop,
+        pop: jest.fn(),
         popToTop: jest.fn(),
         setOptions: jest.fn(),
+        dispatch: mockDispatchNav,
       };
       mockReauthenticate.mockRejectedValue(
         new Error(
@@ -983,7 +986,9 @@ describe('RevealPrivateCredential', () => {
         fireEvent.press(cancelButton);
       });
 
-      expect(mockPop).toHaveBeenCalled();
+      expect(mockDispatchNav).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'POP', payload: { count: 1 } }),
+      );
     });
   });
 
