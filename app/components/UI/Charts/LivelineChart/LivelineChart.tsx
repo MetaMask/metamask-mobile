@@ -57,12 +57,14 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
     webViewRef.current?.postMessage(JSON.stringify(message));
   }, []);
 
-  // When htmlContent changes (e.g. theme switch) the WebView reloads and
-  // CHART_READY fires again. Reset isChartReady so the SET_PROPS effect
-  // re-fires once the new page is ready (otherwise the state stays true,
-  // CHART_READY is a no-op, and the chart renders blank after the reload).
+  // When htmlContent changes (e.g. theme switch) the WebView reloads.
+  // Reset both isChartReady and webViewError so the WebView re-mounts
+  // cleanly: if only isChartReady were reset, a prior error state would keep
+  // the error UI visible (early return at the error render branch), preventing
+  // the WebView from mounting and CHART_READY from ever firing — a deadlock.
   useEffect(() => {
     setIsChartReady(false);
+    setWebViewError(null);
   }, [htmlContent]);
 
   // Send the full props snapshot to the WebView whenever any chart prop
