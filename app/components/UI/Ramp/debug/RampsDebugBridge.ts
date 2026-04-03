@@ -1,10 +1,5 @@
-import {
-  createCacheKey,
-  type RampsController,
-} from '@metamask/ramps-controller';
+import type { RampsController } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
-
-type RampAction = 'buy' | 'sell';
 
 /** Default dashboard WebSocket; use `adb reverse tcp:8099 tcp:8099` on Android so the app can reach the host. */
 const DASHBOARD_WS_URL = 'ws://localhost:8099';
@@ -18,6 +13,11 @@ const EXCLUDED_PROPS = new Set([
   'destroy',
   'clearPendingResourceCountForTest',
 ]);
+
+type RequestsState = Record<
+  string,
+  { status: string; timestamp: number; lastFetchedAt: number }
+>;
 
 interface WidgetUrlRequestDetails {
   url: string;
@@ -295,170 +295,40 @@ function createFetchUrlTracker() {
   };
 }
 
-/**
- * Mirrors {@link RampsController} cache keys for executeRequest-backed fetches
- * so the dashboard can label cache hit vs miss per call (not vs unrelated keys).
- */
-function tryComputeDataFetchCacheKey(
-  methodName: string,
-  args: unknown[],
+function snapshotRequestTimestamps(
   controller: RampsController,
-): string | null {
-  const state = controller.state;
-
-  switch (methodName) {
-    case 'getCountries':
-      return createCacheKey('getCountries', []);
-
-    case 'getTokens': {
-      const region = args[0] as string | undefined;
-      const action = (args[1] as RampAction | undefined) ?? 'buy';
-      const options = args[2] as { provider?: string | string[] } | undefined;
-      const regionCode = region ?? state.userRegion?.regionCode;
-      if (!regionCode) {
-        return null;
-      }
-      const normalizedRegion = regionCode.toLowerCase().trim();
-      return createCacheKey('getTokens', [
-        normalizedRegion,
-        action,
-        options?.provider,
-      ]);
+): Map<string, number> {
+  const requests = (controller.state as unknown as { requests?: RequestsState })
+    .requests;
+  const snap = new Map<string, number>();
+  if (requests) {
+    for (const [key, val] of Object.entries(requests)) {
+      snap.set(key, val.timestamp);
     }
-
-    case 'getProviders': {
-      const region = args[0] as string | undefined;
-      const options = args[1] as
-        | {
-            provider?: string | string[];
-            crypto?: string | string[];
-            fiat?: string | string[];
-            payments?: string | string[];
-          }
-        | undefined;
-      const regionCode = region ?? state.userRegion?.regionCode;
-      if (!regionCode) {
-        return null;
-      }
-      const normalizedRegion = regionCode.toLowerCase().trim();
-      return createCacheKey('getProviders', [
-        normalizedRegion,
-        options?.provider,
-        options?.crypto,
-        options?.fiat,
-        options?.payments,
-      ]);
-    }
-
-    case 'getPaymentMethods': {
-      const region = args[0] as string | undefined;
-      const options = args[1] as
-        | { fiat?: string; assetId?: string; provider?: string }
-        | undefined;
-      const regionCode = region ?? state.userRegion?.regionCode;
-      if (!regionCode) {
-        return null;
-      }
-      const normalizedRegion = regionCode.toLowerCase().trim();
-      const fiatToUse =
-        options?.fiat ?? state.userRegion?.country?.currency ?? null;
-      if (!fiatToUse) {
-        return null;
-      }
-      const normalizedFiat = fiatToUse.toLowerCase().trim();
-      const assetIdToUse =
-        options?.assetId ?? state.tokens.selected?.assetId ?? '';
-      const providerToUse =
-        options?.provider ?? state.providers.selected?.id ?? '';
-      return createCacheKey('getPaymentMethods', [
-        normalizedRegion,
-        normalizedFiat,
-        assetIdToUse,
-        providerToUse,
-      ]);
-    }
-
-    case 'getQuotes': {
-      const options = args[0] as {
-        region?: string;
-        fiat?: string;
-        assetId?: string;
-        amount: number;
-        walletAddress: string;
-        paymentMethods?: string[];
-        providers?: string[];
-        redirectUrl?: string;
-        action?: RampAction;
-      };
-      if (!options || typeof options.amount !== 'number') {
-        return null;
-      }
-      const regionToUse = options.region ?? state.userRegion?.regionCode;
-      if (!regionToUse) {
-        return null;
-      }
-      const fiatToUse =
-        options.fiat ?? state.userRegion?.country?.currency ?? null;
-      if (!fiatToUse) {
-        return null;
-      }
-      const paymentMethodsToUse =
-        options.paymentMethods ??
-        state.paymentMethods.data.map((pm: { id: string }) => pm.id);
-      const providersToUse =
-        options.providers ??
-        state.providers.data.map((p: { id: string }) => p.id);
-      const action = options.action ?? 'buy';
-      const assetIdToUse = (
-        options.assetId ??
-        state.tokens.selected?.assetId ??
-        ''
-      ).trim();
-      if (assetIdToUse === '') {
-        return null;
-      }
-      if (
-        paymentMethodsToUse.length === 0 ||
-        paymentMethodsToUse.some((pm) => pm.trim() === '')
-      ) {
-        return null;
-      }
-      if (!options.walletAddress || options.walletAddress.trim() === '') {
-        return null;
-      }
-      const normalizedRegion = regionToUse.toLowerCase().trim();
-      const normalizedFiat = fiatToUse.toLowerCase().trim();
-      const normalizedWalletAddress = options.walletAddress.trim();
-      return createCacheKey('getQuotes', [
-        normalizedRegion,
-        normalizedFiat,
-        assetIdToUse,
-        options.amount,
-        normalizedWalletAddress,
-        [...paymentMethodsToUse].sort().join(','),
-        [...providersToUse].sort().join(','),
-        options.redirectUrl,
-        action,
-      ]);
-    }
-
-    default:
-      return null;
   }
+  return snap;
 }
 
-/**
- * After {@link RampsController.executeRequest}'s synchronous prelude: a cache hit
- * returns cached data without calling {@link RampsController.getRequestState} updates,
- * so the entry timestamp for this key is unchanged. A miss sets loading state first.
- */
-function detectExecuteRequestCacheHit(
+function detectCacheStatus(
   controller: RampsController,
-  cacheKey: string,
-  timestampBeforeCall: number | undefined,
-): boolean {
-  const tsAfterSync = controller.getRequestState(cacheKey)?.timestamp;
-  return tsAfterSync === timestampBeforeCall;
+  before: Map<string, number>,
+): 'hit' | 'miss' | null {
+  const requests = (controller.state as unknown as { requests?: RequestsState })
+    .requests;
+  if (!requests) return null;
+
+  for (const [key, val] of Object.entries(requests)) {
+    const prevTs = before.get(key);
+    if (prevTs === undefined || prevTs !== val.timestamp) {
+      return 'miss';
+    }
+  }
+
+  if (before.size !== Object.keys(requests).length) {
+    return 'miss';
+  }
+
+  return 'hit';
 }
 
 const DATA_FETCH_METHODS = new Set([
@@ -503,13 +373,9 @@ function wrapControllerMethods(
 
     ctrl[name] = function (...args: unknown[]) {
       const start = Date.now();
-      const executeRequestCacheKey = trackCache
-        ? tryComputeDataFetchCacheKey(name, args, controller)
+      const requestsBefore = trackCache
+        ? snapshotRequestTimestamps(controller)
         : null;
-      const timestampBeforeCall =
-        executeRequestCacheKey !== null
-          ? controller.getRequestState(executeRequestCacheKey)?.timestamp
-          : undefined;
 
       let result: unknown;
 
@@ -529,17 +395,6 @@ function wrapControllerMethods(
         throw err;
       }
 
-      const cacheHit =
-        executeRequestCacheKey !== null
-          ? detectExecuteRequestCacheHit(
-              controller,
-              executeRequestCacheKey,
-              timestampBeforeCall,
-            )
-          : null;
-      const resolvedCacheStatus: 'hit' | 'miss' | null =
-        executeRequestCacheKey !== null ? (cacheHit ? 'hit' : 'miss') : null;
-
       const isPromiseLike =
         result &&
         typeof result === 'object' &&
@@ -552,6 +407,10 @@ function wrapControllerMethods(
         // eslint-disable-next-line @typescript-eslint/no-floating-promises -- debug-only side effect; original promise is still returned to callers
         (result as Promise<unknown>).then(
           (resolved) => {
+            const cacheStatus =
+              trackCache && requestsBefore
+                ? detectCacheStatus(controller, requestsBefore)
+                : null;
             send({
               type: 'method',
               name,
@@ -559,7 +418,7 @@ function wrapControllerMethods(
               result: sanitizeResult(resolved),
               duration: Date.now() - start,
               timestamp: Date.now(),
-              cacheStatus: resolvedCacheStatus,
+              cacheStatus,
               requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
             });
           },
@@ -577,6 +436,10 @@ function wrapControllerMethods(
           },
         );
       } else {
+        const cacheStatus =
+          trackCache && requestsBefore
+            ? detectCacheStatus(controller, requestsBefore)
+            : null;
         send({
           type: 'method',
           name,
@@ -584,7 +447,7 @@ function wrapControllerMethods(
           result: sanitizeResult(result),
           duration: Date.now() - start,
           timestamp: Date.now(),
-          cacheStatus: resolvedCacheStatus,
+          cacheStatus,
           requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
         });
       }
