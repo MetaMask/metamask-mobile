@@ -295,7 +295,6 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
-        goBack={navigation.goBack}
       >
         {sharedHeader}
         <WebView
@@ -345,7 +344,6 @@ const Checkout = () => {
       goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
-      goBack={navigation.goBack}
     >
       {sharedHeader}
       <ScreenLayout>

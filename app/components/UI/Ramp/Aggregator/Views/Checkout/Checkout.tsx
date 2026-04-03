@@ -225,7 +225,6 @@ const CheckoutWebView = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
         isFullscreen
         keyboardAvoidingViewEnabled={false}
         goBack={navigation.goBack}
@@ -264,7 +263,6 @@ const CheckoutWebView = () => {
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
@@ -315,7 +313,6 @@ const CheckoutWebView = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
       isFullscreen
       keyboardAvoidingViewEnabled={false}
       goBack={navigation.goBack}
