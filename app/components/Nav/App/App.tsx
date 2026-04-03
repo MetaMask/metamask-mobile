@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -38,6 +38,7 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -473,7 +474,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet as ScreenComponent}
+      component={AddNewAccountBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -482,7 +483,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal as ScreenComponent}
+      component={SDKSessionModal}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -494,7 +495,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal as ScreenComponent}
+      component={SDKDisconnectModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -1197,6 +1198,11 @@ const App: React.FC = () => {
 
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
+  const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
+  const toastRegistrations = useMemo(
+    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
+    [predictRegistrations, perpsWithdrawRegistrations],
+  );
 
   if (isFirstRender.current) {
     trace({
@@ -1276,7 +1282,7 @@ const App: React.FC = () => {
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
-        <ControllerEventToastBridge registrations={predictRegistrations} />
+        <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
