@@ -166,6 +166,18 @@ jest.mock('../components/Campaigns/OndoPortfolio', () => {
   };
 });
 
+jest.mock('../components/Campaigns/OndoActivityPreview', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'ondo-activity-preview',
+      }),
+  };
+});
+
 jest.mock('../components/RewardsInfoBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -894,6 +906,99 @@ describe('OndoCampaignDetailsView', () => {
       expect(
         getByText('rewards.ondo_campaign_leaderboard.title'),
       ).toBeDefined();
+    });
+  });
+
+  describe('activity section', () => {
+    it('shows OndoActivityPreview when opted in and portfolio section is visible', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-activity-preview')).toBeDefined();
+    });
+
+    it('does not show OndoActivityPreview when not opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: false, participantCount: 0 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-activity-preview')).toBeNull();
+    });
+
+    it('does not show OndoActivityPreview when opted in but competition ended with no positions', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: null,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-activity-preview')).toBeNull();
+    });
+
+    it('shows OndoActivityPreview when opted in and portfolio is loading', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: null,
+        isLoading: true,
+        hasError: false,
+        hasFetched: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-activity-preview')).toBeDefined();
     });
   });
 

@@ -13,7 +13,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, type NavigationProp , ParamListBase } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { useGetOndoCampaignActivity } from '../../hooks/useGetOndoCampaignActivity';
 import OndoActivityRow from './OndoActivityRow';
 import RewardsErrorBanner from '../RewardsErrorBanner';

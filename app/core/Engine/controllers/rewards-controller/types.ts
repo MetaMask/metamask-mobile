@@ -509,23 +509,34 @@ export type ActivityEntryType =
   | 'EXTERNAL_OUTFLOW';
 
 /**
+ * Token metadata within an activity entry.
+ */
+export interface ActivityTokenDto {
+  /**
+   * CAIP-19 asset type identifier
+   * @example 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da'
+   */
+  tokenAsset: string;
+
+  /** @example 'AAPLon' */
+  tokenSymbol: string;
+
+  /** @example 'Apple Inc.' */
+  tokenName: string;
+}
+
+/**
  * DTO for a single activity entry from GET /ondo-gm/:campaignId/activity/me
  */
 export interface OndoGmActivityEntryDto {
   /** @example 'DEPOSIT' */
   type: ActivityEntryType;
 
-  /**
-   * Source token (CAIP-19 asset type)
-   * @example 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da'
-   */
-  srcToken: string;
+  /** Source token */
+  srcToken: ActivityTokenDto;
 
-  /**
-   * Destination token (CAIP-19 asset type), null for withdrawals
-   * @example 'eip155:59144/erc20:0xa219439258ca9da29e9cc4ce5596924745e12b93'
-   */
-  destToken: string | null;
+  /** Destination token, null for withdrawals */
+  destToken: ActivityTokenDto | null;
 
   /**
    * Recipient wallet address (only set for EXTERNAL_OUTFLOW events)
@@ -556,13 +567,23 @@ export interface PaginatedOndoGmActivityDto {
 }
 
 /**
+ * Serializable state for token metadata within an activity entry.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActivityTokenState = {
+  tokenAsset: string;
+  tokenSymbol: string;
+  tokenName: string;
+};
+
+/**
  * Serializable state for a single activity entry (mirrors {@link OndoGmActivityEntryDto}).
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoGmActivityEntryState = {
   type: string;
-  srcToken: string;
-  destToken: string | null;
+  srcToken: ActivityTokenState;
+  destToken: ActivityTokenState | null;
   destAddress: string | null;
   usdAmount: string | null;
   timestamp: string;

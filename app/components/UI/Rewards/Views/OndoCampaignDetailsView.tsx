@@ -148,6 +148,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     showLeaderboardSection,
     showLeaderboardPositionSection,
     showPortfolioSection,
+    showActivitySection,
   } = useMemo(() => {
     if (!campaign) {
       return {
@@ -156,8 +157,16 @@ const OndoCampaignDetailsView: React.FC = () => {
         showLeaderboardSection: false,
         showLeaderboardPositionSection: false,
         showPortfolioSection: false,
+        showActivitySection: false,
       };
     }
+
+    const showHowItWorksSection =
+      Boolean(campaign.details?.howItWorks) &&
+      !isParticipantStatusLoading &&
+      !isOptedIn &&
+      !areEntriesClosed &&
+      getCampaignStatus(campaign) === 'active';
 
     const showCompetitionEndedBanner =
       getCampaignStatus(campaign) === 'complete' ||
@@ -167,6 +176,7 @@ const OndoCampaignDetailsView: React.FC = () => {
           (portfolioHasFetched && !hasPositions && !hasPortfolioError)));
 
     const showLeaderboardPositionSection = isOptedIn && hasPositions;
+
     const showPortfolioSection =
       isOptedIn &&
       (!showCompetitionEndedBanner ||
@@ -174,25 +184,24 @@ const OndoCampaignDetailsView: React.FC = () => {
         isPortfolioLoading ||
         (hasPortfolioError && !hasPositions));
 
-    return {
-      showHowItWorksSection:
-        Boolean(campaign.details?.howItWorks) &&
-        !isParticipantStatusLoading &&
-        !isOptedIn &&
-        !areEntriesClosed &&
-        getCampaignStatus(campaign) === 'active',
+    const showLeaderboardSection =
+      (showCompetitionEndedBanner &&
+        !showLeaderboardPositionSection &&
+        !showPortfolioSection) ||
+      (isOptedIn &&
+        !showCompetitionEndedBanner &&
+        !hasPositions &&
+        !isPortfolioLoading);
 
+    const showActivitySection = isOptedIn && showPortfolioSection;
+
+    return {
+      showHowItWorksSection,
       showCompetitionEndedBanner,
       showLeaderboardPositionSection,
-      showLeaderboardSection:
-        (showCompetitionEndedBanner &&
-          !showLeaderboardPositionSection &&
-          !showPortfolioSection) ||
-        (isOptedIn &&
-          !showCompetitionEndedBanner &&
-          !hasPositions &&
-          !isPortfolioLoading),
+      showLeaderboardSection,
       showPortfolioSection,
+      showActivitySection,
     };
   }, [
     campaign,
@@ -375,7 +384,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {isOptedIn && (
+              {showActivitySection && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">

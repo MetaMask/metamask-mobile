@@ -7,66 +7,7 @@ import {
 } from '../../../../selectors/rewards';
 import { selectOndoCampaignActivityById } from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignActivity } from '../../../../reducers/rewards';
-import type {
-  OndoGmActivityEntryDto,
-  ActivityEntryType,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
-
-// ── Mock data for visual testing ────────────────────────────────────────
-// Set to `true` to bypass the real API and return hardcoded entries.
-const USE_MOCK_DATA = true;
-
-const MOCK_ACTIVITY_ENTRIES: OndoGmActivityEntryDto[] = [
-  {
-    type: 'DEPOSIT' as ActivityEntryType,
-    srcToken: 'eip155:59144/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    destToken: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    destAddress: null,
-    usdAmount: '5000.000000',
-    timestamp: '2026-03-28T14:30:00.000Z',
-  },
-  {
-    type: 'REBALANCE' as ActivityEntryType,
-    srcToken: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    destToken: 'eip155:59144/erc20:0xa219439258ca9da29e9cc4ce5596924745e12b93',
-    destAddress: null,
-    usdAmount: null,
-    timestamp: '2026-03-27T10:15:00.000Z',
-  },
-  {
-    type: 'WITHDRAW' as ActivityEntryType,
-    srcToken: 'eip155:59144/erc20:0xa219439258ca9da29e9cc4ce5596924745e12b93',
-    destToken: null,
-    destAddress: null,
-    usdAmount: '-1250.500000',
-    timestamp: '2026-03-26T08:45:00.000Z',
-  },
-  {
-    type: 'EXTERNAL_OUTFLOW' as ActivityEntryType,
-    srcToken: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    destToken: null,
-    destAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    usdAmount: '-750.000000',
-    timestamp: '2026-03-25T16:20:00.000Z',
-  },
-  {
-    type: 'DEPOSIT' as ActivityEntryType,
-    srcToken: 'eip155:59144/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    destToken: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    destAddress: null,
-    usdAmount: '10000.000000',
-    timestamp: '2026-03-24T12:00:00.000Z',
-  },
-  {
-    type: 'REBALANCE' as ActivityEntryType,
-    srcToken: 'eip155:59144/erc20:0xa219439258ca9da29e9cc4ce5596924745e12b93',
-    destToken: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    destAddress: null,
-    usdAmount: null,
-    timestamp: '2026-03-23T09:30:00.000Z',
-  },
-];
-// ─────────────────────────────────────────────────────────────────────────
+import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseGetOndoCampaignActivityResult {
   activityEntries: OndoGmActivityEntryDto[] | null;
@@ -79,14 +20,9 @@ export interface UseGetOndoCampaignActivityResult {
   isRefreshing: boolean;
 }
 
-const noop = () => undefined;
-
 /**
  * Hook to fetch paginated Ondo GM campaign activity.
  * First page is cached for 1 minute by the controller.
- *
- * When `USE_MOCK_DATA` is `true` the hook returns hardcoded entries
- * without hitting the network -- useful for visual / Storybook testing.
  */
 export const useGetOndoCampaignActivity = (
   campaignId: string | undefined,
@@ -102,11 +38,11 @@ export const useGetOndoCampaignActivity = (
 
   const [activityEntries, setActivityEntries] = useState<
     OndoGmActivityEntryDto[] | null
-  >(USE_MOCK_DATA ? MOCK_ACTIVITY_ENTRIES : null);
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasMore, setHasMore] = useState(!USE_MOCK_DATA);
+  const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isLoadingRef = useRef(false);
@@ -121,8 +57,6 @@ export const useGetOndoCampaignActivity = (
       isFirstPage: boolean;
       currentCursor?: string | null;
     }): Promise<{ cancelled: boolean }> => {
-      if (USE_MOCK_DATA) return { cancelled: false };
-
       if (!isFirstPage && isLoadingRef.current) {
         return { cancelled: false };
       }
@@ -209,14 +143,12 @@ export const useGetOndoCampaignActivity = (
   );
 
   const loadMore = useCallback(() => {
-    if (USE_MOCK_DATA) return;
     if (!isLoadingMore && hasMore && cursor) {
       fetchActivity({ isFirstPage: false, currentCursor: cursor });
     }
   }, [isLoadingMore, hasMore, cursor, fetchActivity]);
 
   const refresh = useCallback(async () => {
-    if (USE_MOCK_DATA) return;
     setIsRefreshing(true);
     setCursor(null);
     setHasMore(true);
@@ -228,7 +160,6 @@ export const useGetOndoCampaignActivity = (
 
   // Hydrate from Redux cache when local state is empty
   useEffect(() => {
-    if (USE_MOCK_DATA) return;
     if (!isLoading && activityEntries === null && cachedActivity) {
       setActivityEntries(cachedActivity);
     }
@@ -236,7 +167,6 @@ export const useGetOndoCampaignActivity = (
 
   // Initial fetch
   useEffect(() => {
-    if (USE_MOCK_DATA) return;
     if (!campaignId || !subscriptionId || !isOptedIn) {
       return;
     }
@@ -245,19 +175,6 @@ export const useGetOndoCampaignActivity = (
     setHasMore(true);
     fetchActivity({ isFirstPage: true });
   }, [campaignId, subscriptionId, isOptedIn, fetchActivity]);
-
-  if (USE_MOCK_DATA) {
-    return {
-      activityEntries: MOCK_ACTIVITY_ENTRIES,
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      error: null,
-      loadMore: noop,
-      refresh: noop,
-      isRefreshing: false,
-    };
-  }
 
   return {
     activityEntries,

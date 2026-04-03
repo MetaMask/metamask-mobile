@@ -19,17 +19,12 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import type {
   OndoGmActivityEntryDto,
   ActivityEntryType,
+  ActivityTokenDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import {
-  formatRewardsDate,
-  getChainHex,
-  shortenAddress,
-  getAssetReference,
-} from '../../utils/formatUtils';
+import { formatRewardsDate, getChainHex } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
 
 const ICON_MAP: Record<ActivityEntryType, IconName> = {
@@ -57,8 +52,8 @@ const formatUsdAmount = (raw: string | null): string => {
   })}`;
 };
 
-const tokenDetail = (caip19: string): string =>
-  shortenAddress(getAssetReference(caip19));
+const tokenLabel = (token: ActivityTokenDto): string =>
+  token.tokenSymbol || token.tokenName;
 
 interface OndoActivityRowProps {
   entry: OndoGmActivityEntryDto;
@@ -72,10 +67,13 @@ const OndoActivityRow: React.FC<OndoActivityRowProps> = ({ entry, testID }) => {
   const label = labelKey ? strings(labelKey) : entry.type;
 
   const detail = entry.destToken
-    ? `${tokenDetail(entry.srcToken)} → ${tokenDetail(entry.destToken)}`
-    : tokenDetail(entry.srcToken);
+    ? `${tokenLabel(entry.srcToken)} → ${tokenLabel(entry.destToken)}`
+    : tokenLabel(entry.srcToken);
 
-  const chainHex = useMemo(() => getChainHex(entry.srcToken), [entry.srcToken]);
+  const chainHex = useMemo(
+    () => getChainHex(entry.srcToken.tokenAsset),
+    [entry.srcToken.tokenAsset],
+  );
 
   return (
     <Box

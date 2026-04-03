@@ -3707,19 +3707,22 @@ export class RewardsController extends BaseController<
   /**
    * Get paginated activity for an Ondo GM campaign.
    * First page is cached for 1 minute; subsequent pages are always fetched fresh.
-   * @param params - Campaign ID, subscription ID, and pagination cursor.
+   * When `forceFresh` is true the cache is bypassed but a last-updated check
+   * avoids redundant fetches if the server data hasn't changed.
+   * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
    * @returns Paginated activity entries.
    */
   async getOndoCampaignActivity(params: {
     campaignId: string;
     subscriptionId: string;
     cursor: string | null;
+    forceFresh?: boolean;
   }): Promise<PaginatedOndoGmActivityDto> {
     if (!this.isRewardsFeatureEnabled()) {
       return { has_more: false, cursor: null, results: [] };
     }
 
-    const { campaignId, subscriptionId, cursor } = params;
+    const { campaignId, subscriptionId, cursor, forceFresh } = params;
 
     if (cursor) {
       return this.#withAuthRetry(
@@ -3730,6 +3733,13 @@ export class RewardsController extends BaseController<
             subscriptionId,
             cursor,
           ) as Promise<PaginatedOndoGmActivityDto>,
+        subscriptionId,
+      );
+    }
+
+    if (forceFresh) {
+      return this.#withAuthRetry(
+        () => this.getActivityIfChanged(campaignId, subscriptionId),
         subscriptionId,
       );
     }
@@ -3757,12 +3767,11 @@ export class RewardsController extends BaseController<
           Logger.log(
             'RewardsController: Fetching fresh campaign activity via API call',
           );
-          return (await this.messenger.call(
-            'RewardsDataService:getOndoCampaignActivity',
+          const activity = await this.getActivityIfChanged(
             campaignId,
             subscriptionId,
-            null,
-          )) as PaginatedOndoGmActivityDto;
+          );
+          return activity;
         }, subscriptionId),
       writeCache: (k, payload) => {
         this.update((state) => {
@@ -3776,6 +3785,95 @@ export class RewardsController extends BaseController<
       },
     });
     return result;
+  }
+
+  /**
+   * Fetch the first page of activity only if the server data has changed
+   * since the last cached entry. Falls back to cached data when unchanged.
+   */
+  async getActivityIfChanged(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PaginatedOndoGmActivityDto> {
+    const key = `${subscriptionId}:${campaignId}`;
+
+    const hasChanged = await this.hasActivityChanged(
+      campaignId,
+      subscriptionId,
+    );
+
+    if (!hasChanged) {
+      const cached = this.state.ondoCampaignActivity[key];
+      return cached
+        ? {
+            results: cached.results as PaginatedOndoGmActivityDto['results'],
+            has_more: cached.has_more,
+            cursor: cached.cursor,
+          }
+        : { has_more: false, cursor: null, results: [] };
+    }
+
+    return (await this.messenger.call(
+      'RewardsDataService:getOndoCampaignActivity',
+      campaignId,
+      subscriptionId,
+      null,
+    )) as PaginatedOndoGmActivityDto;
+  }
+
+  /**
+   * Get the last-updated timestamp for Ondo GM campaign activity.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The last-updated date, or null if no activity exists.
+   */
+  async getActivityLastUpdated(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<Date | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
+    Logger.log('RewardsController: Getting campaign activity last updated', {
+      campaignId,
+      subscriptionId,
+    });
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getOndoCampaignActivityLastUpdated',
+          campaignId,
+          subscriptionId,
+        ),
+      subscriptionId,
+    );
+  }
+
+  /**
+   * Check if campaign activity has changed since the last fetch.
+   * Compares the server's last-updated timestamp against the most recent
+   * cached entry's timestamp.
+   * @returns true if fresh data should be fetched.
+   */
+  async hasActivityChanged(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<boolean> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return false;
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const cached = this.state.ondoCampaignActivity[key];
+
+    const cachedLatestTimestamp = cached?.results?.[0]?.timestamp;
+    if (!cachedLatestTimestamp) return true;
+
+    const lastUpdated = await this.getActivityLastUpdated(
+      campaignId,
+      subscriptionId,
+    );
+    return lastUpdated
+      ? lastUpdated.toISOString() !== cachedLatestTimestamp
+      : true;
   }
 
   /**
