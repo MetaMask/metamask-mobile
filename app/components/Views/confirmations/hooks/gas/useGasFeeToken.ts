@@ -5,7 +5,6 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
@@ -13,11 +12,10 @@ import I18n from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
 import { useFeeCalculations } from './useFeeCalculations';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { RootState } from '../../../../../reducers';
 import { useEthFiatAmount } from '../useEthFiatAmount';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useMemo } from 'react';
+import { useNativeCurrencySymbol } from '../useNativeCurrencySymbol';
 
 export const RATE_WEI_NATIVE = '0xDE0B6B3A7640000'; // 1x10^18
 
@@ -118,8 +116,8 @@ function useNativeGasFeeToken(): GasFeeToken {
       : ({ txParams: {} } as TransactionMeta),
   );
 
-  const networkConfiguration = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, transactionMeta?.chainId),
+  const { nativeCurrencySymbol } = useNativeCurrencySymbol(
+    transactionMeta?.chainId,
   );
 
   const { balanceWeiInHex: balance } = useAccountNativeBalance(
@@ -127,7 +125,6 @@ function useNativeGasFeeToken(): GasFeeToken {
     transactionMeta?.txParams?.from as string,
   );
 
-  const { nativeCurrency } = networkConfiguration ?? {};
   const { gas, maxFeePerGas, maxPriorityFeePerGas } = txParams ?? {};
 
   return useMemo(
@@ -141,7 +138,7 @@ function useNativeGasFeeToken(): GasFeeToken {
       maxPriorityFeePerGas: maxPriorityFeePerGas as Hex,
       rateWei: RATE_WEI_NATIVE,
       recipient: NATIVE_TOKEN_ADDRESS,
-      symbol: nativeCurrency,
+      symbol: nativeCurrencySymbol,
       tokenAddress: NATIVE_TOKEN_ADDRESS,
     }),
     [
@@ -150,7 +147,7 @@ function useNativeGasFeeToken(): GasFeeToken {
       gas,
       maxFeePerGas,
       maxPriorityFeePerGas,
-      nativeCurrency,
+      nativeCurrencySymbol,
     ],
   );
 }

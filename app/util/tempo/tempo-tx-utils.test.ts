@@ -3,10 +3,14 @@ import { TransactionParams } from '@metamask/transaction-controller';
 import {
   buildBatchTransactionsFromTempoTransactionCalls,
   checkIsValidTempoTransaction,
+  getAddTransactionSendCallExtraOptions,
   getTempoExtraOptionsForChain,
   isTempoChain,
   isTempoTransactionType,
 } from './tempo-tx-utils';
+import { KeyringController } from '@metamask/keyring-controller';
+import { NetworkController } from '@metamask/network-controller';
+import { accountSupports7702 } from '../transactions/account-supports-7702';
 
 const MOCK_FEE_TOKEN = '0x20c000000000000000000000b9537d11c60e8b50' as Hex;
 const MOCK_FROM = '0x13b7e6ebcd40777099e4c45d407745ab2de1d1f8' as Hex;
@@ -28,6 +32,10 @@ const MOCK_TEMPO_CALLS = [
     value: '0x' as const,
   },
 ];
+
+jest.mock('../transactions/account-supports-7702', () => ({
+  accountSupports7702: jest.fn().mockResolvedValue(true),
+}));
 
 describe('tempo-tx-utils', () => {
   describe('isTempoTransactionType', () => {
@@ -215,6 +223,84 @@ describe('tempo-tx-utils', () => {
     });
     it('return an empty object for Polygon Mainnet', () => {
       expect(getTempoExtraOptionsForChain('0x89')).toEqual({});
+    });
+  });
+
+  describe('addTransactionSendCallExtraOptions', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+    it('non-reg: returns {} if controllers are uninitalized', async () => {
+      expect(
+        await getAddTransactionSendCallExtraOptions({
+          keyringController: {} as KeyringController,
+          networkController: {} as NetworkController,
+          req: {
+            networkClientId: '123',
+            params: [{ from: '0x123' }],
+          },
+        }),
+      ).toEqual({});
+      expect(accountSupports7702).not.toHaveBeenCalled();
+    });
+
+    it('non-reg: returns {} params if NOT Tempo chain', async () => {
+      expect(
+        await getAddTransactionSendCallExtraOptions({
+          keyringController: {} as KeyringController,
+          networkController: {
+            getNetworkConfigurationByNetworkClientId: () => ({
+              chainId: '0x1', // not Tempo
+            }),
+          } as unknown as NetworkController,
+          req: {
+            networkClientId: '123',
+            params: [{ from: '0x123' }],
+          },
+        }),
+      ).toEqual({});
+      expect(accountSupports7702).not.toHaveBeenCalled();
+    });
+
+    it('tempo: returns {} params if Tempo chain but account doesnt support 7702', async () => {
+      (accountSupports7702 as jest.Mock).mockResolvedValueOnce(false);
+      expect(
+        await getAddTransactionSendCallExtraOptions({
+          keyringController: {} as KeyringController,
+          networkController: {
+            getNetworkConfigurationByNetworkClientId: () => ({
+              chainId: '0x1079',
+            }),
+          } as unknown as NetworkController,
+          req: {
+            networkClientId: '123',
+            params: [{ from: '0x123' }],
+          },
+        }),
+      ).toEqual({});
+      expect(accountSupports7702).toHaveBeenCalledTimes(1);
+    });
+
+    it('tempo: returns Tempo params if Tempo chain', async () => {
+      (accountSupports7702 as jest.Mock).mockResolvedValueOnce(true);
+      expect(
+        await getAddTransactionSendCallExtraOptions({
+          keyringController: {} as KeyringController,
+          networkController: {
+            getNetworkConfigurationByNetworkClientId: () => ({
+              chainId: '0x1079',
+            }),
+          } as unknown as NetworkController,
+          req: {
+            networkClientId: '123',
+            params: [{ from: '0x123' }],
+          },
+        }),
+      ).toEqual({
+        excludeNativeTokenForFee: true,
+        gasFeeToken: '0x20c0000000000000000000000000000000000000',
+      });
+      expect(accountSupports7702).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -13,6 +13,7 @@ import { store } from '../../store';
 import { RootState } from '../../reducers';
 import { Hex } from '@metamask/utils';
 import { checkIsValidTempoTransaction } from '../tempo/tempo-tx-utils';
+import { accountSupports7702 } from '../transactions/account-supports-7702';
 
 jest.mock('../tempo/tempo-tx-utils', () => ({
   ...jest.requireActual('../tempo/tempo-tx-utils'),
@@ -35,6 +36,10 @@ jest.mock('../../store', () => ({
       settings: { basicFunctionalityEnabled: true },
     })),
   },
+}));
+
+jest.mock('../transactions/account-supports-7702', () => ({
+  accountSupports7702: jest.fn().mockResolvedValue(true),
 }));
 
 const ID_MOCK = 'testId';
@@ -292,6 +297,19 @@ describe('Transaction Controller Util', () => {
       await expect(
         addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
       ).rejects.toThrow();
+      expect(
+        Engine.context.TransactionController.addTransactionBatch,
+      ).not.toHaveBeenCalled();
+      expect(
+        Engine.context.TransactionController.getTransactions,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not call addTransactionBatch if accountSupports7702 resolves to false', async () => {
+      (accountSupports7702 as jest.Mock).mockResolvedValueOnce(false);
+      await expect(
+        addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
+      ).rejects.toThrow(`Wallet not supported for Tempo Transactions.`);
       expect(
         Engine.context.TransactionController.addTransactionBatch,
       ).not.toHaveBeenCalled();
