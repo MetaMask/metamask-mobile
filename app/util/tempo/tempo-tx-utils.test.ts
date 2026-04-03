@@ -236,7 +236,7 @@ describe('tempo-tx-utils', () => {
           keyringController: {} as KeyringController,
           networkController: {} as NetworkController,
           networkClientId: '123',
-          params: [{ from: '0x123' }],
+          from: '0x123',
         }),
       ).toEqual({});
       expect(accountSupports7702).not.toHaveBeenCalled();
@@ -252,7 +252,7 @@ describe('tempo-tx-utils', () => {
             }),
           } as unknown as NetworkController,
           networkClientId: '123',
-          params: [{ from: '0x123' }],
+          from: '0x123',
         }),
       ).toEqual({});
       expect(accountSupports7702).not.toHaveBeenCalled();
@@ -269,7 +269,7 @@ describe('tempo-tx-utils', () => {
             }),
           } as unknown as NetworkController,
           networkClientId: '123',
-          params: [{ from: '0x123' }],
+          from: '0x123',
         }),
       ).toEqual({});
       expect(accountSupports7702).toHaveBeenCalledTimes(1);
@@ -286,7 +286,7 @@ describe('tempo-tx-utils', () => {
             }),
           } as unknown as NetworkController,
           networkClientId: '123',
-          params: [{ from: '0x123' }],
+          from: '0x123',
         }),
       ).toEqual({
         excludeNativeTokenForFee: true,

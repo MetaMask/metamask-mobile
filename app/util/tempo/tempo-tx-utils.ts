@@ -150,12 +150,12 @@ export function getTempoTransactionBatchArgs({
 
 export async function getAddTransactionSendCallExtraOptions({
   networkClientId,
-  params,
+  from,
   networkController,
   keyringController,
 }: {
   networkClientId: string;
-  params?: [{ from: string }];
+  from: string;
   networkController: NetworkController;
   keyringController: KeyringController;
 }) {
@@ -181,7 +181,7 @@ export async function getAddTransactionSendCallExtraOptions({
       return {};
     }
     const isEip7702SupportedByAccount = await accountSupports7702(
-      params?.[0]?.from,
+      from,
       keyringController,
     );
     if (!isEip7702SupportedByAccount) {
