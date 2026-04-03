@@ -3,7 +3,6 @@ import { StyleProp, TextStyle } from 'react-native';
 import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 import { PaymentIcon, PaymentIconType } from '@consensys/on-ramp-sdk/dist/API';
 
-import { parseRampPaymentType } from '../utils/parseRampPaymentType';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import EvilIconsIcon from 'react-native-vector-icons/EvilIcons';
@@ -21,8 +20,7 @@ import ZocialIcon from 'react-native-vector-icons/Zocial';
 
 interface iconParams {
   paymentMethodIcons?: Payment['icons'];
-  /** SDK payment type or ramps API string (e.g. `apple-pay`). */
-  paymentMethodType?: PaymentType | string;
+  paymentMethodType?: PaymentType;
   style?: StyleProp<TextStyle>;
   name?: string;
   size: number;
@@ -115,15 +113,6 @@ const PaymentMethodIcon = ({
   paymentMethodType,
   ...props
 }: iconParams & Omit<React.ComponentProps<typeof AntDesignIcon>, 'name'>) => {
-  const normalizedPaymentType = parseRampPaymentType(paymentMethodType);
-
-  // Payment list on `main` used type-only rendering: FontAwesome `apple`, not API icons.
-  // The ramps API often maps Apple Pay to `apple-pay` / `cc-apple-pay` (FontAwesome5 / Fontisto),
-  // which draw the full Apple Pay mark. Ignore those when we know the method is Apple Pay.
-  if (normalizedPaymentType === PaymentType.ApplePay) {
-    return <FontAwesomeIcon name={Icon.Apple} {...props} />;
-  }
-
   if (paymentMethodIcons && paymentMethodIcons.length > 0) {
     const IconComponent = getIcon(paymentMethodIcons[0]);
     if (IconComponent) {
@@ -131,8 +120,11 @@ const PaymentMethodIcon = ({
     }
   }
 
-  if (normalizedPaymentType) {
-    switch (normalizedPaymentType) {
+  if (paymentMethodType) {
+    switch (paymentMethodType) {
+      case PaymentType.ApplePay: {
+        return <FontAwesomeIcon name={Icon.Apple} {...props} />;
+      }
       case PaymentType.GooglePay: {
         return <FontAwesomeIcon name={Icon.GooglePay} {...props} />;
       }
@@ -141,11 +133,6 @@ const PaymentMethodIcon = ({
       }
       case PaymentType.DebitCreditCard: {
         return <MaterialsIconsIcon name={Icon.Card} {...props} />;
-      }
-      case PaymentType.RevPay: {
-        return (
-          <MaterialsCommunityIconsIcon name="contactless-payment" {...props} />
-        );
       }
       case PaymentType.Wallet:
       default: {
