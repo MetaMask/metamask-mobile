@@ -37,8 +37,6 @@ const HomepageEntryPoints = {
 let mockGetViewedSectionCount = jest.fn(() => 3);
 let mockNotifySectionViewed = jest.fn();
 let mockGetVisitMaxDepth = jest.fn(() => 2);
-let mockGetSessionMaxDepth = jest.fn(() => 3);
-let mockGetAndRecordVisitDepths = jest.fn(() => [2, 3]);
 
 let mockContextValue = {
   subscribeToScroll: jest.fn(() => jest.fn()),
@@ -49,8 +47,6 @@ let mockContextValue = {
   notifySectionViewed: mockNotifySectionViewed,
   getViewedSectionCount: mockGetViewedSectionCount,
   getVisitMaxDepth: mockGetVisitMaxDepth,
-  getSessionMaxDepth: mockGetSessionMaxDepth,
-  getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
   appSessionId: 'test-app-session-id',
 };
 
@@ -88,8 +84,6 @@ describe('useHomeSessionSummary', () => {
     mockGetViewedSectionCount = jest.fn(() => 3);
     mockNotifySectionViewed = jest.fn();
     mockGetVisitMaxDepth = jest.fn(() => 2);
-    mockGetSessionMaxDepth = jest.fn(() => 3);
-    mockGetAndRecordVisitDepths = jest.fn(() => [2, 3]);
     mockContextValue = {
       subscribeToScroll: jest.fn(() => jest.fn()),
       viewportHeight: 800,
@@ -99,8 +93,6 @@ describe('useHomeSessionSummary', () => {
       notifySectionViewed: mockNotifySectionViewed,
       getViewedSectionCount: mockGetViewedSectionCount,
       getVisitMaxDepth: mockGetVisitMaxDepth,
-      getSessionMaxDepth: mockGetSessionMaxDepth,
-      getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
       appSessionId: 'test-app-session-id',
     };
   });
@@ -354,127 +346,6 @@ describe('useHomeSessionSummary', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ max_scroll_depth_visit: 3 }),
-      );
-    });
-
-    it('includes max_scroll_depth_session from getSessionMaxDepth()', () => {
-      mockGetSessionMaxDepth = jest.fn(() => 5);
-      mockContextValue = {
-        ...mockContextValue,
-        getSessionMaxDepth: mockGetSessionMaxDepth,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ max_scroll_depth_session: 5 }),
-      );
-    });
-
-    it('computes avg_scroll_depth as the mean of all visit depths', () => {
-      // visits: depth 1, 3, 5 → avg = 3
-      mockGetAndRecordVisitDepths = jest.fn(() => [1, 3, 5]);
-      mockContextValue = {
-        ...mockContextValue,
-        getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ avg_scroll_depth: 3 }),
-      );
-    });
-
-    it('computes median_scroll_depth for an odd number of visits', () => {
-      // visits: 1, 3, 5 → median = 3
-      mockGetAndRecordVisitDepths = jest.fn(() => [1, 3, 5]);
-      mockContextValue = {
-        ...mockContextValue,
-        getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ median_scroll_depth: 3 }),
-      );
-    });
-
-    it('computes median_scroll_depth for an even number of visits', () => {
-      // visits: 1, 3, 5, 7 → median = (3 + 5) / 2 = 4
-      mockGetAndRecordVisitDepths = jest.fn(() => [1, 3, 5, 7]);
-      mockContextValue = {
-        ...mockContextValue,
-        getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ median_scroll_depth: 4 }),
-      );
-    });
-
-    it('returns -1 for avg and median when no visits have been recorded', () => {
-      mockGetAndRecordVisitDepths = jest.fn(() => []);
-      mockContextValue = {
-        ...mockContextValue,
-        getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          avg_scroll_depth: -1,
-          median_scroll_depth: -1,
-        }),
-      );
-    });
-
-    it('correctly sorts unsorted visit depths before computing median', () => {
-      // Depths arrive out of order: [5, 1, 3] → sorted: [1, 3, 5] → median = 3
-      mockGetAndRecordVisitDepths = jest.fn(() => [5, 1, 3]);
-      mockContextValue = {
-        ...mockContextValue,
-        getAndRecordVisitDepths: mockGetAndRecordVisitDepths,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ median_scroll_depth: 3 }),
       );
     });
   });

@@ -631,10 +631,6 @@ const Wallet = ({
   const viewedSectionsRef = useRef<Set<string>>(new Set());
   // Max section index reached this visit (reset on each focus).
   const maxDepthThisVisitRef = useRef<number>(-1);
-  // Cumulative max section index across all visits this app session.
-  const sessionMaxDepthRef = useRef<number>(-1);
-  // Per-visit max depths accumulated across the session for avg/median.
-  const visitDepthsRef = useRef<number[]>([]);
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -1294,13 +1290,8 @@ const Wallet = ({
       // Only update depth for sections that required the user to scroll to them.
       // Non-rendered sections (sectionRef === null) pass recordDepth=false so they
       // are counted in total_sections_viewed without inflating depth metrics.
-      if (recordDepth) {
-        if (sectionIndex > maxDepthThisVisitRef.current) {
-          maxDepthThisVisitRef.current = sectionIndex;
-        }
-        if (sectionIndex > sessionMaxDepthRef.current) {
-          sessionMaxDepthRef.current = sectionIndex;
-        }
+      if (recordDepth && sectionIndex > maxDepthThisVisitRef.current) {
+        maxDepthThisVisitRef.current = sectionIndex;
       }
     },
     [],
@@ -1313,14 +1304,6 @@ const Wallet = ({
 
   const getVisitMaxDepth = useCallback(() => maxDepthThisVisitRef.current, []);
 
-  const getSessionMaxDepth = useCallback(() => sessionMaxDepthRef.current, []);
-
-  const getAndRecordVisitDepths = useCallback(() => {
-    const updated = [...visitDepthsRef.current, maxDepthThisVisitRef.current];
-    visitDepthsRef.current = updated;
-    return updated;
-  }, []);
-
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
@@ -1331,8 +1314,6 @@ const Wallet = ({
       notifySectionViewed,
       getViewedSectionCount,
       getVisitMaxDepth,
-      getSessionMaxDepth,
-      getAndRecordVisitDepths,
       appSessionId: HOMEPAGE_APP_SESSION_ID,
     }),
     [
@@ -1344,8 +1325,6 @@ const Wallet = ({
       notifySectionViewed,
       getViewedSectionCount,
       getVisitMaxDepth,
-      getSessionMaxDepth,
-      getAndRecordVisitDepths,
     ],
   );
 

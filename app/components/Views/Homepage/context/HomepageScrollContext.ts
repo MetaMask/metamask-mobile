@@ -62,17 +62,6 @@ interface HomepageScrollContextValue {
    */
   getVisitMaxDepth: () => number;
   /**
-   * Returns the maximum section index reached across all visits this app session.
-   * Never resets within a session.
-   */
-  getSessionMaxDepth: () => number;
-  /**
-   * Appends the current visit's max depth to the running list, then returns
-   * the full array of per-visit max depths for avg/median computation.
-   * Call once per visit, in the session_summary blur handler.
-   */
-  getAndRecordVisitDepths: () => number[];
-  /**
    * Ephemeral identifier for the current app launch. Generated once on app
    * start and never persisted. Groups all homepage visits within one session,
    * distinguishing "navigated away and back" from a fresh app launch.
@@ -93,8 +82,6 @@ const defaultValue: HomepageScrollContextValue = {
   notifySectionViewed: () => undefined,
   getViewedSectionCount: () => 0,
   getVisitMaxDepth: () => -1,
-  getSessionMaxDepth: () => -1,
-  getAndRecordVisitDepths: () => [],
   appSessionId: '',
 };
 

@@ -27,8 +27,6 @@ const useHomeSessionSummary = ({
     entryPoint,
     getViewedSectionCount,
     getVisitMaxDepth,
-    getSessionMaxDepth,
-    getAndRecordVisitDepths,
     appSessionId,
   } = useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -70,20 +68,6 @@ const useHomeSessionSummary = ({
           (Date.now() - sessionStartRef.current) / 1000,
         );
 
-        const visitMaxDepth = getVisitMaxDepth();
-        const sessionMaxDepth = getSessionMaxDepth();
-        const allDepths = getAndRecordVisitDepths();
-        const avgDepth = allDepths.length
-          ? allDepths.reduce((a, b) => a + b, 0) / allDepths.length
-          : -1;
-        const sortedDepths = [...allDepths].sort((a, b) => a - b);
-        const mid = Math.floor(sortedDepths.length / 2);
-        const medianDepth = sortedDepths.length
-          ? sortedDepths.length % 2 !== 0
-            ? sortedDepths[mid]
-            : (sortedDepths[mid - 1] + sortedDepths[mid]) / 2
-          : -1;
-
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
             .addProperties({
@@ -95,22 +79,12 @@ const useHomeSessionSummary = ({
               session_time: sessionTime,
               app_session_id: appSessionIdRef.current,
               visit_number: visitIdRef.current,
-              max_scroll_depth_visit: visitMaxDepth,
-              max_scroll_depth_session: sessionMaxDepth,
-              avg_scroll_depth: avgDepth,
-              median_scroll_depth: medianDepth,
+              max_scroll_depth_visit: getVisitMaxDepth(),
             })
             .build(),
         );
       },
-      [
-        trackEvent,
-        createEventBuilder,
-        getViewedSectionCount,
-        getVisitMaxDepth,
-        getSessionMaxDepth,
-        getAndRecordVisitDepths,
-      ],
+      [trackEvent, createEventBuilder, getViewedSectionCount, getVisitMaxDepth],
     ),
   );
 };
