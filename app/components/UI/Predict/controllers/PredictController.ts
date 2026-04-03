@@ -102,6 +102,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
+import type { PredictControllerMethodActions } from './PredictController-method-action-types';
 import { withTrace, type TraceableController } from './utils/withTrace';
 
 /**
@@ -282,18 +283,19 @@ export type PredictControllerEvents =
   | PredictControllerTransactionStatusChangedEvent;
 
 /**
+ * The action which can be used to retrieve the state of the PredictController.
+ */
+export type PredictControllerGetStateAction = ControllerGetStateAction<
+  'PredictController',
+  PredictControllerState
+>;
+
+/**
  * PredictController actions
  */
 export type PredictControllerActions =
-  | ControllerGetStateAction<'PredictController', PredictControllerState>
-  | {
-      type: 'PredictController:refreshEligibility';
-      handler: PredictController['refreshEligibility'];
-    }
-  | {
-      type: 'PredictController:placeOrder';
-      handler: PredictController['placeOrder'];
-    };
+  | PredictControllerGetStateAction
+  | PredictControllerMethodActions;
 
 /**
  * External actions the PredictController can call
@@ -337,6 +339,45 @@ export interface PredictControllerOptions {
   state?: Partial<PredictControllerState>;
 }
 
+const MESSENGER_EXPOSED_METHODS = [
+  'beforeSign',
+  'claimWithConfirmation',
+  'clearActiveOrder',
+  'clearActiveOrderTransactionId',
+  'clearOrderError',
+  'clearPendingDeposit',
+  'clearWithdrawTransaction',
+  'confirmClaim',
+  'depositWithConfirmation',
+  'getAccountState',
+  'getActivity',
+  'getBalance',
+  'getConnectionStatus',
+  'getMarket',
+  'getMarkets',
+  'getPositions',
+  'getPriceHistory',
+  'getPrices',
+  'getUnrealizedPnL',
+  'initPayWithAnyToken',
+  'onPlaceOrderSuccess',
+  'placeOrder',
+  'prepareWithdraw',
+  'previewOrder',
+  'refreshEligibility',
+  'selectPaymentToken',
+  'setSelectedPaymentToken',
+  'subscribeToGameUpdates',
+  'subscribeToMarketPrices',
+  'trackActivityViewed',
+  'trackFeedViewed',
+  'trackGeoBlockTriggered',
+  'trackMarketDetailsOpened',
+  'trackPositionViewed',
+  'trackPredictOrderEvent',
+  'trackShareAction',
+] as const;
+
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
@@ -374,6 +415,11 @@ export class PredictController extends BaseController<
       messenger,
       state: { ...getDefaultPredictControllerState(), ...state },
     });
+
+    this.messenger.registerMethodActionHandlers(
+      this,
+      MESSENGER_EXPOSED_METHODS,
+    );
 
     this.provider = new PolymarketProvider({
       getFeatureFlags: () => this.resolveFeatureFlags(),
@@ -2455,3 +2501,42 @@ export class PredictController extends BaseController<
     });
   }
 }
+
+export type {
+  PredictControllerBeforeSignAction,
+  PredictControllerClaimWithConfirmationAction,
+  PredictControllerClearActiveOrderAction,
+  PredictControllerClearActiveOrderTransactionIdAction,
+  PredictControllerClearOrderErrorAction,
+  PredictControllerClearPendingDepositAction,
+  PredictControllerClearWithdrawTransactionAction,
+  PredictControllerConfirmClaimAction,
+  PredictControllerDepositWithConfirmationAction,
+  PredictControllerGetAccountStateAction,
+  PredictControllerGetActivityAction,
+  PredictControllerGetBalanceAction,
+  PredictControllerGetConnectionStatusAction,
+  PredictControllerGetMarketAction,
+  PredictControllerGetMarketsAction,
+  PredictControllerGetPositionsAction,
+  PredictControllerGetPriceHistoryAction,
+  PredictControllerGetPricesAction,
+  PredictControllerGetUnrealizedPnLAction,
+  PredictControllerInitPayWithAnyTokenAction,
+  PredictControllerOnPlaceOrderSuccessAction,
+  PredictControllerPlaceOrderAction,
+  PredictControllerPrepareWithdrawAction,
+  PredictControllerPreviewOrderAction,
+  PredictControllerRefreshEligibilityAction,
+  PredictControllerSelectPaymentTokenAction,
+  PredictControllerSetSelectedPaymentTokenAction,
+  PredictControllerSubscribeToGameUpdatesAction,
+  PredictControllerSubscribeToMarketPricesAction,
+  PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackFeedViewedAction,
+  PredictControllerTrackGeoBlockTriggeredAction,
+  PredictControllerTrackMarketDetailsOpenedAction,
+  PredictControllerTrackPositionViewedAction,
+  PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackShareActionAction,
+} from './PredictController-method-action-types';

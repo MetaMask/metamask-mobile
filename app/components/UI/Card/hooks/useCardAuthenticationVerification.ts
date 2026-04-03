@@ -1,15 +1,9 @@
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import {
-  resetAuthenticatedData,
-  selectIsAuthenticatedCard,
-  verifyCardAuthentication,
-} from '../../../../core/redux/slices/card';
+import { verifyCardAuthentication } from '../../../../core/redux/slices/card';
 import { selectUserLoggedIn } from '../../../../reducers/user';
 import Logger from '../../../../util/Logger';
-import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
-import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 /**
  * Hook that automatically verifies card authentication status when the app loads.
@@ -19,20 +13,13 @@ import { selectGeolocationLocation } from '../../../../selectors/geolocationCont
 export const useCardAuthenticationVerification = () => {
   const dispatch = useThunkDispatch();
   const userLoggedIn = useSelector(selectUserLoggedIn);
-  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const geolocationLocation = useSelector(selectGeolocationLocation);
 
   const checkAuthentication = useCallback(() => {
-    dispatch(
-      verifyCardAuthentication({
-        isBaanxLoginEnabled,
-      }),
-    );
-  }, [isBaanxLoginEnabled, dispatch]);
+    dispatch(verifyCardAuthentication());
+  }, [dispatch]);
 
   useEffect(() => {
-    if (userLoggedIn && isBaanxLoginEnabled) {
+    if (userLoggedIn) {
       try {
         checkAuthentication();
       } catch (error) {
@@ -41,17 +28,6 @@ export const useCardAuthenticationVerification = () => {
           'useCardAuthenticationVerification::Error verifying authentication',
         );
       }
-    } else if (userLoggedIn && !isBaanxLoginEnabled && isAuthenticated) {
-      if (!!geolocationLocation && geolocationLocation !== 'UNKNOWN') {
-        dispatch(resetAuthenticatedData());
-      }
     }
-  }, [
-    userLoggedIn,
-    isBaanxLoginEnabled,
-    isAuthenticated,
-    geolocationLocation,
-    checkAuthentication,
-    dispatch,
-  ]);
+  }, [userLoggedIn, checkAuthentication, dispatch]);
 };

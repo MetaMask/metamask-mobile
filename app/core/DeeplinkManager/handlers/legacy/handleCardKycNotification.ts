@@ -6,16 +6,11 @@ import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
   selectUserCardLocation,
-  selectAlwaysShowCardButton,
 } from '../../../redux/slices/card';
 import {
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
   selectCardFeatureFlag,
   CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
-import { isBaanxLoginEnabled } from '../../../../components/UI/Card/hooks/isBaanxLoginEnabled';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
 import { CardVerificationState } from '../../../../components/UI/Card/types';
 
@@ -50,24 +45,6 @@ export const handleCardKycNotification = async () => {
 
   try {
     const state = ReduxService.store.getState();
-
-    // Check feature flags
-    const shouldHandleKycNotification = isBaanxLoginEnabled({
-      alwaysShowCardButton: selectAlwaysShowCardButton(state),
-      geolocationLocation: selectGeolocationLocation(state),
-      cardSupportedCountries: selectCardSupportedCountries(state) as Record<
-        string,
-        boolean
-      >,
-      displayCardButtonFeatureFlag: selectDisplayCardButtonFeatureFlag(state),
-    });
-
-    if (!shouldHandleKycNotification) {
-      Logger.log(
-        '[handleCardKycNotification] Card feature is not enabled, skipping',
-      );
-      return;
-    }
 
     // Get user state
     const onboardingId = selectOnboardingId(state);
