@@ -8,15 +8,8 @@ import Logger from '../../../../../util/Logger';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
-  setAlwaysShowCardButton,
 } from '../../../../redux/slices/card';
-import {
-  selectCardExperimentalSwitch,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-} from '../../../../../selectors/featureFlagController/card';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -32,7 +25,6 @@ jest.mock('../../../../Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 jest.mock('../../../../redux/slices/card');
-jest.mock('../../../../../selectors/featureFlagController/card');
 jest.mock('../../../../../selectors/accountsController');
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -63,14 +55,6 @@ describe('handleCardHome', () => {
 
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
     (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
-    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
-    (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
-    (
-      selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-    ).mockReturnValue(false);
-    (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({});
     (selectInternalAccounts as unknown as jest.Mock).mockReturnValue([
       { address: mockInternalAccountAddress },
     ]);
@@ -81,247 +65,7 @@ describe('handleCardHome', () => {
     jest.clearAllMocks();
   });
 
-  describe('feature flag edge cases', () => {
-    describe('when cardExperimentalSwitch is enabled', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          true,
-        );
-      });
-
-      it('enables card and navigates to Card Welcome for unauthenticated user without card account', () => {
-        handleCardHome();
-
-        expect(mockDispatch).toHaveBeenCalledWith(
-          setAlwaysShowCardButton(true),
-        );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
-      });
-
-      it('enables card regardless of geo location', () => {
-        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-          'UNSUPPORTED_COUNTRY',
-        );
-
-        handleCardHome();
-
-        expect(mockDispatch).toHaveBeenCalledWith(
-          setAlwaysShowCardButton(true),
-        );
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
-      });
-
-      it('enables card regardless of displayCardButtonFeatureFlag', () => {
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(false);
-
-        handleCardHome();
-
-        expect(mockDispatch).toHaveBeenCalledWith(
-          setAlwaysShowCardButton(true),
-        );
-        expect(mockNavigate).toHaveBeenCalled();
-      });
-    });
-
-    describe('when displayCardButtonFeatureFlag is enabled with supported country', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(true);
-        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-          'GB',
-        );
-        (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
-          GB: true,
-          DE: true,
-          FR: true,
-        });
-      });
-
-      it('enables card and dispatches setAlwaysShowCardButton', () => {
-        handleCardHome();
-
-        expect(mockDispatch).toHaveBeenCalledWith(
-          setAlwaysShowCardButton(true),
-        );
-        expect(mockNavigate).toHaveBeenCalled();
-      });
-
-      it('navigates to Card Welcome for unauthenticated user without card account', () => {
-        handleCardHome();
-
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
-        });
-      });
-    });
-
-    describe('when displayCardButtonFeatureFlag is enabled but country is not supported', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(true);
-        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-          'UNSUPPORTED',
-        );
-        (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
-          GB: true,
-          DE: true,
-        });
-      });
-
-      it('does not dispatch setAlwaysShowCardButton', () => {
-        handleCardHome();
-
-        expect(mockDispatch).not.toHaveBeenCalled();
-      });
-
-      it('does not navigate', () => {
-        handleCardHome();
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-
-      it('logs that card is not enabled', () => {
-        handleCardHome();
-
-        expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardHome] Card is not enabled, skipping',
-        );
-      });
-    });
-
-    describe('when displayCardButtonFeatureFlag is disabled but country is in supported list', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(false);
-        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-          'GB',
-        );
-        (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
-          GB: true,
-        });
-      });
-
-      it('does not enable card', () => {
-        handleCardHome();
-
-        expect(mockDispatch).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when country is explicitly set to false in supported countries', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(true);
-        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-          'XX',
-        );
-        (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
-          XX: false,
-          GB: true,
-        });
-      });
-
-      it('does not enable card', () => {
-        handleCardHome();
-
-        expect(mockDispatch).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when both feature flags are disabled', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(false);
-      });
-
-      it('does not enable card', () => {
-        handleCardHome();
-
-        expect(mockDispatch).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-
-      it('logs skipping message', () => {
-        handleCardHome();
-
-        expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardHome] Card is not enabled, skipping',
-        );
-      });
-    });
-
-    describe('when cardSupportedCountries is undefined or null', () => {
-      beforeEach(() => {
-        (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-          false,
-        );
-        (
-          selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-        ).mockReturnValue(true);
-        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-          'GB',
-        );
-      });
-
-      it('does not enable card when cardSupportedCountries is undefined', () => {
-        (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue(
-          undefined,
-        );
-
-        handleCardHome();
-
-        expect(mockDispatch).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-
-      it('does not enable card when cardSupportedCountries is null', () => {
-        (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue(
-          null,
-        );
-
-        handleCardHome();
-
-        expect(mockDispatch).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('navigation behavior when card is enabled', () => {
-    beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
-    });
-
+  describe('navigation behavior', () => {
     describe('when user is authenticated without card-linked account', () => {
       beforeEach(() => {
         (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
@@ -493,12 +237,6 @@ describe('handleCardHome', () => {
   });
 
   describe('error handling', () => {
-    beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
-    });
-
     describe('when getState throws an error', () => {
       const mockError = new Error('Redux state error');
 
@@ -704,25 +442,11 @@ describe('handleCardHome', () => {
   });
 
   describe('logging', () => {
-    beforeEach(() => {
-      (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
-    });
-
     it('logs starting message', () => {
       handleCardHome();
 
       expect(mockDevLogger).toHaveBeenCalledWith(
         '[handleCardHome] Starting card home deeplink handling',
-      );
-    });
-
-    it('logs successful card button enablement', () => {
-      handleCardHome();
-
-      expect(mockDevLogger).toHaveBeenCalledWith(
-        '[handleCardHome] Successfully enabled card button',
       );
     });
   });
