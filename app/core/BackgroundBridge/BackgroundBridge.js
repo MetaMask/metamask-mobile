@@ -880,6 +880,8 @@ export class BackgroundBridge extends EventEmitter {
             Engine.context.TransactionController.addTransaction(txParams, {
               ...options,
               ...(await getAddTransactionSendCallExtraOptions({
+                keyringController: Engine.context.KeyringController,
+                networkController: Engine.context.NetworkController,
                 networkClientId: options.networkClientId,
                 from: txParams.from,
               })),
@@ -888,6 +890,8 @@ export class BackgroundBridge extends EventEmitter {
             Engine.context.TransactionController.addTransactionBatch({
               ...request,
               ...(await getAddTransactionSendCallExtraOptions({
+                keyringController: Engine.context.KeyringController,
+                networkController: Engine.context.NetworkController,
                 networkClientId: request.networkClientId,
                 from: request.from,
               })),

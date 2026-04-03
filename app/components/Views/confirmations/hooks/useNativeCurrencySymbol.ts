@@ -22,7 +22,6 @@ const currencySymbolOverrides: {
  */
 export const useNativeCurrencySymbol = (chainId?: Hex | CaipChainId) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  console.warn('useNativeCurrencySymbol', { chainId, networkConfigurations });
   return useMemo(() => {
     // chainId can be undefined during view transistions which escapes inference.
     // 'ETH' is often used as fallback for native token symbol.

@@ -149,14 +149,13 @@ export function getTempoTransactionBatchArgs({
 }
 
 export async function getAddTransactionSendCallExtraOptions({
-  req,
+  networkClientId,
+  params,
   networkController,
   keyringController,
 }: {
-  req: {
-    networkClientId: string;
-    params?: [{ from: string }];
-  };
+  networkClientId: string;
+  params?: [{ from: string }];
   networkController: NetworkController;
   keyringController: KeyringController;
 }) {
@@ -169,11 +168,11 @@ export async function getAddTransactionSendCallExtraOptions({
   try {
     const networkConfiguration =
       networkController.getNetworkConfigurationByNetworkClientId(
-        req.networkClientId,
+        networkClientId,
       );
     if (!networkConfiguration) {
       Logger.log(
-        `addTransactionSendCallExtraOptions: No networkConfiguration for networkClientId ${req.networkClientId}`,
+        `addTransactionSendCallExtraOptions: No networkConfiguration for networkClientId ${networkClientId}`,
       );
       return {};
     }
@@ -182,7 +181,7 @@ export async function getAddTransactionSendCallExtraOptions({
       return {};
     }
     const isEip7702SupportedByAccount = await accountSupports7702(
-      req.params?.[0]?.from,
+      params?.[0]?.from,
       keyringController,
     );
     if (!isEip7702SupportedByAccount) {

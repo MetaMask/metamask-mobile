@@ -16,6 +16,7 @@ import { selectUseTransactionSimulations } from '../../../../../selectors/prefer
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
+import { useNativeCurrencySymbol } from '../useNativeCurrencySymbol';
 
 const IGNORE_TYPES = [
   TransactionType.perpsWithdraw,
@@ -49,7 +50,6 @@ export const useInsufficientBalanceAlert = ({
       isGasFeeSponsored,
       gasFeeTokens,
       excludeNativeTokenForFee,
-      chainId,
     } = transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
@@ -91,12 +91,6 @@ export const useInsufficientBalanceAlert = ({
       !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
       !isSponsoredTransaction;
 
-    const nativeSymbolToDisplay = excludeNativeTokenForFee
-      ? (CURRENCY_SYMBOL_BY_CHAIN_ID[
-          chainId as keyof typeof CURRENCY_SYMBOL_BY_CHAIN_ID
-        ] ?? nativeCurrency)
-      : nativeCurrency;
-
     if (!showAlert) {
       return [];
     }
@@ -105,7 +99,7 @@ export const useInsufficientBalanceAlert = ({
       {
         action: {
           label: strings('alert_system.insufficient_balance.buy_action', {
-            nativeCurrency: nativeSymbolToDisplay,
+            nativeCurrency,
           }),
           callback: () => {
             goToBuy();
@@ -116,7 +110,7 @@ export const useInsufficientBalanceAlert = ({
         field: RowAlertKey.EstimatedFee,
         key: AlertKeys.InsufficientBalance,
         message: strings('alert_system.insufficient_balance.message', {
-          nativeCurrency: nativeSymbolToDisplay,
+          nativeCurrency,
         }),
         title: strings('alert_system.insufficient_balance.title'),
         severity: Severity.Danger,
@@ -132,8 +126,8 @@ export const useInsufficientBalanceAlert = ({
     ignoreGasFeeToken,
     isUsingPay,
     hasInsufficientBalance,
-    nativeCurrency,
     isQuotesLoading,
+    nativeCurrency,
     goToBuy,
     onReject,
   ]);
