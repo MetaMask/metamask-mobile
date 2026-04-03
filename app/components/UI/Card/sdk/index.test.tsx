@@ -55,14 +55,10 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
-  setIsAuthenticatedCard: jest.fn(),
   setContactVerificationId: jest.fn(),
   selectOnboardingId: jest.fn(),
   resetOnboardingState: jest.fn(() => ({
     type: 'card/resetOnboardingState',
-  })),
-  resetAuthenticatedData: jest.fn(() => ({
-    type: 'card/resetAuthenticatedData',
   })),
 }));
 
@@ -394,30 +390,6 @@ describe('CardSDK Context', () => {
       expect(mockDispatch).toHaveBeenCalled();
     });
 
-    it('dispatches resetAuthenticatedData action on logout', async () => {
-      // Given: SDK available
-      setupMockSDK();
-      setupMockUseSelector(mockCardFeatureFlag);
-
-      const { result } = renderHook(() => useCardSDK(), {
-        wrapper: createWrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // When: user logs out
-      await act(async () => {
-        await result.current.logoutFromProvider();
-      });
-
-      // Then: should dispatch resetAuthenticatedData
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-      );
-    });
-
     it('dispatches resetOnboardingState action on logout', async () => {
       // Given: SDK available
       setupMockSDK();
@@ -464,9 +436,6 @@ describe('CardSDK Context', () => {
       });
 
       expect(mockControllerLogout).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-      );
     });
 
     it('clears Redux state even when CardController.logout() fails', async () => {
@@ -492,9 +461,6 @@ describe('CardSDK Context', () => {
 
       // Then: Redux state should still be cleared
       expect(mockControllerLogout).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-      );
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'card/resetOnboardingState' }),
       );

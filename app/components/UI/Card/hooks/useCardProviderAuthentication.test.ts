@@ -8,7 +8,6 @@ import { CardError, CardErrorType, CardLoginInitiateResponse } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
 import { strings } from '../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
-import { setIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 
 jest.mock('@sentry/core');
 jest.mock('../sdk');
@@ -31,9 +30,6 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
-jest.mock('../../../../core/redux/slices/card', () => ({
-  setIsAuthenticatedCard: jest.fn(),
-}));
 
 const mockUuid4 = uuid4 as jest.MockedFunction<typeof uuid4>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
@@ -48,8 +44,6 @@ const mockGenerateState = generateState as jest.MockedFunction<
 >;
 const mockStrings = strings as jest.MockedFunction<typeof strings>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
-const mockSetIsAuthenticatedCard =
-  setIsAuthenticatedCard as jest.MockedFunction<typeof setIsAuthenticatedCard>;
 
 describe('useCardProviderAuthentication', () => {
   const mockSdk = {
@@ -87,10 +81,6 @@ describe('useCardProviderAuthentication', () => {
     mockStrings.mockImplementation((key: string) => `mocked_${key}`);
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockUseSelector.mockReturnValue('international'); // Default location
-    mockSetIsAuthenticatedCard.mockReturnValue({
-      type: 'card/setIsAuthenticatedCard',
-      payload: true,
-    } as ReturnType<typeof setIsAuthenticatedCard>);
   });
 
   describe('initial state', () => {
@@ -618,11 +608,6 @@ describe('useCardProviderAuthentication', () => {
         accessTokenExpiresAt: mockExchangeTokenResponse.expiresIn,
         refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
         location: 'international',
-      });
-      expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: 'card/setIsAuthenticatedCard',
-        payload: true,
       });
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);

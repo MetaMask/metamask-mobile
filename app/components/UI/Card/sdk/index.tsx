@@ -19,7 +19,6 @@ import {
 import {
   selectOnboardingId,
   resetOnboardingState,
-  resetAuthenticatedData,
   setContactVerificationId,
 } from '../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../selectors/cardController';
@@ -141,7 +140,6 @@ export const CardSDKProvider = ({
       });
     }
 
-    dispatch(resetAuthenticatedData());
     queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);

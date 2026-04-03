@@ -76,7 +76,6 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import { resetAuthenticatedData } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
@@ -1138,7 +1137,6 @@ const CardHome = () => {
           return;
         }
 
-        dispatch(resetAuthenticatedData());
         queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({

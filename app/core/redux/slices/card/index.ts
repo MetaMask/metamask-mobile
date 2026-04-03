@@ -10,14 +10,12 @@ export interface OnboardingState {
 
 export interface CardSliceState {
   hasViewedCardButton: boolean;
-  isAuthenticated: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
 }
 
 export const initialState: CardSliceState = {
   hasViewedCardButton: false,
-  isAuthenticated: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -35,9 +33,6 @@ const slice = createSlice({
     resetCardState: () => initialState,
     setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
       state.hasViewedCardButton = action.payload;
-    },
-    setIsAuthenticatedCard: (state, action: PayloadAction<boolean>) => {
-      state.isAuthenticated = action.payload;
     },
     setIsDaimoDemo: (state, action: PayloadAction<boolean>) => {
       state.isDaimoDemo = action.payload;
@@ -57,9 +52,6 @@ const slice = createSlice({
         contactVerificationId: null,
         consentSetId: null,
       };
-    },
-    resetAuthenticatedData: (state) => {
-      state.isAuthenticated = false;
     },
   },
 });
@@ -100,11 +92,9 @@ export const selectConsentSetId = createSelector(
 export const {
   resetCardState,
   setHasViewedCardButton,
-  setIsAuthenticatedCard,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
   resetOnboardingState,
-  resetAuthenticatedData,
   setIsDaimoDemo,
 } = actions;

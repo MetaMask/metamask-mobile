@@ -5,7 +5,6 @@ import cardReducer, {
   initialState,
   setHasViewedCardButton,
   selectHasViewedCardButton,
-  setIsAuthenticatedCard,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -13,14 +12,12 @@ import cardReducer, {
   selectOnboardingId,
   selectContactVerificationId,
   selectConsentSetId,
-  resetAuthenticatedData,
 } from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
   hasViewedCardButton: true,
-  isAuthenticated: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -32,7 +29,6 @@ const CARD_STATE_MOCK: CardSliceState = {
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
   hasViewedCardButton: false,
-  isAuthenticated: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
@@ -134,7 +130,6 @@ describe('Card Reducer', () => {
       const currentState: CardSliceState = {
         isDaimoDemo: false,
         hasViewedCardButton: true,
-        isAuthenticated: false,
         onboarding: {
           onboardingId: null,
           contactVerificationId: null,
@@ -310,73 +305,6 @@ describe('Card Reducer', () => {
           });
         });
       });
-    });
-
-    describe('resetAuthenticatedData', () => {
-      it('resets isAuthenticated to false', () => {
-        const currentState: CardSliceState = {
-          ...initialState,
-          isAuthenticated: true,
-        };
-
-        const state = cardReducer(currentState, resetAuthenticatedData());
-
-        expect(state.isAuthenticated).toBe(false);
-      });
-
-      it('does not affect other state properties', () => {
-        const currentState: CardSliceState = {
-          ...initialState,
-          hasViewedCardButton: true,
-          isAuthenticated: true,
-          onboarding: {
-            onboardingId: 'test-id',
-            contactVerificationId: 'verification-123',
-            consentSetId: 'consent-456',
-          },
-        };
-
-        const state = cardReducer(currentState, resetAuthenticatedData());
-
-        expect(state.isAuthenticated).toBe(false);
-        expect(state.hasViewedCardButton).toBe(true);
-        expect(state.onboarding).toEqual({
-          onboardingId: 'test-id',
-          contactVerificationId: 'verification-123',
-          consentSetId: 'consent-456',
-        });
-      });
-
-      it('works when authenticated data is already at initial values', () => {
-        const state = cardReducer(initialState, resetAuthenticatedData());
-
-        expect(state.isAuthenticated).toBe(false);
-      });
-    });
-  });
-});
-
-describe('Authentication Actions', () => {
-  describe('setIsAuthenticatedCard', () => {
-    it('sets isAuthenticated to true', () => {
-      const state = cardReducer(initialState, setIsAuthenticatedCard(true));
-      expect(state.isAuthenticated).toBe(true);
-    });
-
-    it('sets isAuthenticated to false when previously true', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        isAuthenticated: true,
-      };
-      const state = cardReducer(currentState, setIsAuthenticatedCard(false));
-      expect(state.isAuthenticated).toBe(false);
-    });
-
-    it('does not affect other state properties', () => {
-      const state = cardReducer(initialState, setIsAuthenticatedCard(true));
-      expect(state.hasViewedCardButton).toEqual(
-        initialState.hasViewedCardButton,
-      );
     });
   });
 });

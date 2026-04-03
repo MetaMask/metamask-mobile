@@ -28,7 +28,6 @@ import {
   selectConsentSetId,
   selectOnboardingId,
   setConsentSetId,
-  setIsAuthenticatedCard,
 } from '../../../../../core/redux/slices/card';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
@@ -511,7 +510,6 @@ const PhysicalAddress = () => {
           // Sync controller state: sets CardController.isAuthenticated = true
           // and providerData.baanx.location so route guards read the correct state.
           await Engine.context.CardController.validateAndRefreshSession();
-          dispatch(setIsAuthenticatedCard(true));
         }
 
         // Step 10: Link consent to user (only if needed)

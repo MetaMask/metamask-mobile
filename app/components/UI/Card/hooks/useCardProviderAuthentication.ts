@@ -4,8 +4,7 @@ import { storeCardBaanxToken } from '../util/cardTokenVault';
 import { generatePKCEPair, generateState } from '../util/pkceHelpers';
 import { CardError, CardErrorType, CardLoginResponse } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { useDispatch, useSelector } from 'react-redux';
-import { setIsAuthenticatedCard as setIsAuthenticatedAction } from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
 import { selectCardUserLocation } from '../../../../selectors/cardController';
 import Engine from '../../../../core/Engine';
 
@@ -60,7 +59,6 @@ interface UseCardProviderAuthenticationResponse {
 
 const useCardProviderAuthentication =
   (): UseCardProviderAuthenticationResponse => {
-    const dispatch = useDispatch();
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
@@ -163,7 +161,6 @@ const useCardProviderAuthentication =
           await Engine.context.CardController.validateAndRefreshSession();
 
           setError(null);
-          dispatch(setIsAuthenticatedAction(true));
 
           return loginResponse;
         } catch (err) {
@@ -175,7 +172,7 @@ const useCardProviderAuthentication =
           setLoading(false);
         }
       },
-      [sdk, dispatch, location],
+      [sdk, location],
     );
 
     return useMemo(
