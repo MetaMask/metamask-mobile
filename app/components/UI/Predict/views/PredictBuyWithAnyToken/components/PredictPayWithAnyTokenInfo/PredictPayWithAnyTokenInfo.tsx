@@ -50,6 +50,9 @@ function PredictPayWithAnyTokenInfoInner({
   const { data: predictBalance = 0 } = usePredictBalance();
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
+  const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
+    currency: PREDICT_CURRENCY,
+  });
 
   const totalPayForPredictBalance = useMemo(
     () =>
@@ -98,10 +101,6 @@ function PredictPayWithAnyTokenInfoInner({
     () => depositAmount !== '' && transactionMeta,
     [depositAmount, transactionMeta],
   );
-
-  const { updatePendingAmount, amountHuman } = useTransactionCustomAmount({
-    currency: PREDICT_CURRENCY,
-  });
 
   const lastEmittedDepositRef = useRef('');
   const lastEmittedAmountHumanRef = useRef('');
