@@ -362,7 +362,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('shows payment method without quote when only custom-action quote matches', () => {
+  it('filters out payment method when only custom-action quote matches', () => {
     const customActionQuote = {
       provider: '/providers/transak',
       quote: {
@@ -381,7 +381,11 @@ describe('PaymentSelectionModal', () => {
       loading: false,
     }));
 
-    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
-    expect(getAllByText('Debit or Credit').length).toBeGreaterThan(0);
+    const { queryAllByText, getByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+    // Payment methods with only custom-action quotes are filtered out
+    expect(queryAllByText('Debit or Credit').length).toBe(0);
+    expect(getByText('fiat_on_ramp.no_payment_methods_available')).toBeTruthy();
   });
 });
