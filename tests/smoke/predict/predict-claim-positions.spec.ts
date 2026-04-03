@@ -107,7 +107,7 @@ const positions = {
 };
 
 describe(SmokePredictions('Claim winnings:'), () => {
-  it.only('claim winnings via predictions section', async () => {
+  it('claim winnings via predictions section', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
