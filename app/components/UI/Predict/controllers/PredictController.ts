@@ -120,6 +120,7 @@ import {
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { ensureError } from '../utils/predictErrorHandler';
 import { validateDepositTransactions } from '../utils/validateTransactions';
+import type { PredictControllerMethodActions } from './PredictController-method-action-types';
 
 /**
  * State shape for PredictController
@@ -274,7 +275,8 @@ export type PredictTransactionEventStatus =
   | 'approved'
   | 'confirmed'
   | 'failed'
-  | 'rejected';
+  | 'rejected'
+  | 'depositing';
 
 export interface PredictControllerTransactionStatusChangedEvent {
   type: 'PredictController:transactionStatusChanged';
@@ -298,18 +300,19 @@ export type PredictControllerEvents =
   | PredictControllerTransactionStatusChangedEvent;
 
 /**
+ * The action which can be used to retrieve the state of the PredictController.
+ */
+export type PredictControllerGetStateAction = ControllerGetStateAction<
+  'PredictController',
+  PredictControllerState
+>;
+
+/**
  * PredictController actions
  */
 export type PredictControllerActions =
-  | ControllerGetStateAction<'PredictController', PredictControllerState>
-  | {
-      type: 'PredictController:refreshEligibility';
-      handler: PredictController['refreshEligibility'];
-    }
-  | {
-      type: 'PredictController:placeOrder';
-      handler: PredictController['placeOrder'];
-    };
+  | PredictControllerGetStateAction
+  | PredictControllerMethodActions;
 
 /**
  * External actions the PredictController can call
@@ -353,6 +356,45 @@ export interface PredictControllerOptions {
   state?: Partial<PredictControllerState>;
 }
 
+const MESSENGER_EXPOSED_METHODS = [
+  'beforeSign',
+  'claimWithConfirmation',
+  'clearActiveOrder',
+  'clearActiveOrderTransactionId',
+  'clearOrderError',
+  'clearPendingDeposit',
+  'clearWithdrawTransaction',
+  'confirmClaim',
+  'depositWithConfirmation',
+  'getAccountState',
+  'getActivity',
+  'getBalance',
+  'getConnectionStatus',
+  'getMarket',
+  'getMarkets',
+  'getPositions',
+  'getPriceHistory',
+  'getPrices',
+  'getUnrealizedPnL',
+  'initPayWithAnyToken',
+  'onPlaceOrderSuccess',
+  'placeOrder',
+  'prepareWithdraw',
+  'previewOrder',
+  'refreshEligibility',
+  'selectPaymentToken',
+  'setSelectedPaymentToken',
+  'subscribeToGameUpdates',
+  'subscribeToMarketPrices',
+  'trackActivityViewed',
+  'trackFeedViewed',
+  'trackGeoBlockTriggered',
+  'trackMarketDetailsOpened',
+  'trackPositionViewed',
+  'trackPredictOrderEvent',
+  'trackShareAction',
+] as const;
+
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
@@ -383,6 +425,11 @@ export class PredictController extends BaseController<
       messenger,
       state: { ...getDefaultPredictControllerState(), ...state },
     });
+
+    this.messenger.registerMethodActionHandlers(
+      this,
+      MESSENGER_EXPOSED_METHODS,
+    );
 
     this.provider = new PolymarketProvider({
       getFeatureFlags: () => this.resolveFeatureFlags(),
@@ -1501,6 +1548,26 @@ export class PredictController extends BaseController<
             transactionId;
         }
       });
+
+      try {
+        await this.provider.createOptimisticPositionFromPreview({
+          address: activeOrderAddress,
+          preview: params.preview,
+        });
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to create optimistic position at deposit',
+          { error: error instanceof Error ? error.message : String(error) },
+        );
+      }
+
+      this.messenger.publish('PredictController:transactionStatusChanged', {
+        type: 'order',
+        status: 'depositing',
+        senderAddress: activeOrderAddress,
+        marketId: params.analyticsProperties?.marketId,
+      });
+
       return {
         success: false,
         response: { status: 'deposit_in_progress' },
@@ -1673,6 +1740,13 @@ export class PredictController extends BaseController<
           state.selectedPaymentToken = null;
         }
       });
+
+      if (isBuyWithAnyToken) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          preview.outcomeTokenId,
+        );
+      }
 
       traceData = { success: false, error: errorMessage };
 
@@ -2564,6 +2638,7 @@ export class PredictController extends BaseController<
         ? this.pendingOrderPreviews[transactionId]
         : null;
       const marketId = pendingOrder?.analyticsProperties?.marketId;
+      const outcomeTokenId = pendingOrder?.preview?.outcomeTokenId;
 
       const isBackgroundOrder =
         transactionId !== undefined &&
@@ -2571,6 +2646,10 @@ export class PredictController extends BaseController<
 
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
+      }
+
+      if (outcomeTokenId) {
+        this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
       if (this.state.activeBuyOrders[address]) {
@@ -3084,3 +3163,42 @@ export class PredictController extends BaseController<
     });
   }
 }
+
+export type {
+  PredictControllerBeforeSignAction,
+  PredictControllerClaimWithConfirmationAction,
+  PredictControllerClearActiveOrderAction,
+  PredictControllerClearActiveOrderTransactionIdAction,
+  PredictControllerClearOrderErrorAction,
+  PredictControllerClearPendingDepositAction,
+  PredictControllerClearWithdrawTransactionAction,
+  PredictControllerConfirmClaimAction,
+  PredictControllerDepositWithConfirmationAction,
+  PredictControllerGetAccountStateAction,
+  PredictControllerGetActivityAction,
+  PredictControllerGetBalanceAction,
+  PredictControllerGetConnectionStatusAction,
+  PredictControllerGetMarketAction,
+  PredictControllerGetMarketsAction,
+  PredictControllerGetPositionsAction,
+  PredictControllerGetPriceHistoryAction,
+  PredictControllerGetPricesAction,
+  PredictControllerGetUnrealizedPnLAction,
+  PredictControllerInitPayWithAnyTokenAction,
+  PredictControllerOnPlaceOrderSuccessAction,
+  PredictControllerPlaceOrderAction,
+  PredictControllerPrepareWithdrawAction,
+  PredictControllerPreviewOrderAction,
+  PredictControllerRefreshEligibilityAction,
+  PredictControllerSelectPaymentTokenAction,
+  PredictControllerSetSelectedPaymentTokenAction,
+  PredictControllerSubscribeToGameUpdatesAction,
+  PredictControllerSubscribeToMarketPricesAction,
+  PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackFeedViewedAction,
+  PredictControllerTrackGeoBlockTriggeredAction,
+  PredictControllerTrackMarketDetailsOpenedAction,
+  PredictControllerTrackPositionViewedAction,
+  PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackShareActionAction,
+} from './PredictController-method-action-types';

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -38,6 +38,7 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -1192,6 +1193,11 @@ const App: React.FC = () => {
 
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
+  const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
+  const toastRegistrations = useMemo(
+    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
+    [predictRegistrations, perpsWithdrawRegistrations],
+  );
 
   if (isFirstRender.current) {
     trace({
@@ -1271,7 +1277,7 @@ const App: React.FC = () => {
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
-        <ControllerEventToastBridge registrations={predictRegistrations} />
+        <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
