@@ -223,9 +223,6 @@ jest.mock(
   '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions',
   () => () => <MockView testID="mock-mc-actions" />,
 );
-jest.mock('../../Views/CardNotification', () => () => (
-  <MockView testID="mock-card-notification" />
-));
 jest.mock('../../Views/ReturnToAppNotification', () => () => (
   <MockView testID="mock-return-notif" />
 ));
