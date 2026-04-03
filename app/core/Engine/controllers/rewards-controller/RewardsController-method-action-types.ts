@@ -532,6 +532,49 @@ export type RewardsControllerGetOndoCampaignPortfolioPositionAction = {
 };
 
 /**
+ * Get paginated activity for an Ondo GM campaign.
+ * First page is cached for 1 minute; subsequent pages are always fetched fresh.
+ *
+ * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
+ * @returns Paginated activity entries.
+ */
+export type RewardsControllerGetOndoCampaignActivityAction = {
+  type: `RewardsController:getOndoCampaignActivity`;
+  handler: RewardsController['getOndoCampaignActivity'];
+};
+
+/**
+ * Fetch the first page of activity only if the server data has changed
+ * since the last cached entry. Falls back to cached data when unchanged.
+ */
+export type RewardsControllerGetActivityIfChangedAction = {
+  type: `RewardsController:getActivityIfChanged`;
+  handler: RewardsController['getActivityIfChanged'];
+};
+
+/**
+ * Get the last-updated timestamp for Ondo GM campaign activity.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The last-updated date, or null if no activity exists.
+ */
+export type RewardsControllerGetActivityLastUpdatedAction = {
+  type: `RewardsController:getActivityLastUpdated`;
+  handler: RewardsController['getActivityLastUpdated'];
+};
+
+/**
+ * Check if campaign activity has changed since the last fetch.
+ *
+ * @returns true if fresh data should be fetched.
+ */
+export type RewardsControllerHasActivityChangedAction = {
+  type: `RewardsController:hasActivityChanged`;
+  handler: RewardsController['hasActivityChanged'];
+};
+
+/**
  * Claim a reward
  *
  * @param rewardId - The reward ID
@@ -667,6 +710,10 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
+  | RewardsControllerGetOndoCampaignActivityAction
+  | RewardsControllerGetActivityIfChangedAction
+  | RewardsControllerGetActivityLastUpdatedAction
+  | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerApplyReferralCodeAction

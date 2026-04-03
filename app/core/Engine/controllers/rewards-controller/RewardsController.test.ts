@@ -19757,6 +19757,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
