@@ -1160,7 +1160,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
+  }, [cardError, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
