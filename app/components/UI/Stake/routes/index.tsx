@@ -21,9 +21,6 @@ import { clearStackNavigatorOptions } from '../../../../constants/navigation/cle
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
-
 // Regular Stack for Screens
 const StakeScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
@@ -38,11 +35,11 @@ const StakeScreenStack = () => {
         />
         <Stack.Screen
           name={Routes.STAKING.STAKE_CONFIRMATION}
-          component={StakeConfirmationView as ScreenComponent}
+          component={StakeConfirmationView}
         />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE_CONFIRMATION}
-          component={UnstakeConfirmationView as ScreenComponent}
+          component={UnstakeConfirmationView}
         />
         <Stack.Screen
           name={Routes.STAKING.EARNINGS_HISTORY}
@@ -88,7 +85,7 @@ const StakeModalStack = () => (
       />
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.GAS_IMPACT}
-        component={GasImpactModal as ScreenComponent}
+        component={GasImpactModal}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

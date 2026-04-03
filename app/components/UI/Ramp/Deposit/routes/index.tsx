@@ -45,9 +45,6 @@ interface DepositParamList {
     | undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
-
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator<DepositParamList>();
 const ModalsStack = createStackNavigator();
@@ -193,10 +190,7 @@ const DepositRoutes = () => (
       initialRouteName={Routes.DEPOSIT.ROOT}
       screenOptions={{ headerShown: false }}
     >
-      <RootStack.Screen
-        name={Routes.DEPOSIT.ROOT}
-        component={MainRoutes as ScreenComponent}
-      />
+      <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
       <RootStack.Screen
         name={Routes.DEPOSIT.MODALS.ID}
         component={DepositModalsRoutes}

@@ -15,9 +15,6 @@ import { PriceImpactModal } from './components/PriceImpactModal';
 import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
-
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator
@@ -58,7 +55,7 @@ export const BridgeModalStack = () => (
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
-      component={BlockExplorersModal as ScreenComponent}
+      component={BlockExplorersModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
