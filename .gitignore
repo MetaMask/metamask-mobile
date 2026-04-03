@@ -1,6 +1,9 @@
 # typescript incremental build cache
 *.tsbuildinfo
 
+# Ramps PR screenshots (local only; attach to GitHub PR description instead of committing)
+docs/ramps/*.png
+
 # task working directory (agent-local, not shipped)
 .task/
 
