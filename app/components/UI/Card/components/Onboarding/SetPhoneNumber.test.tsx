@@ -896,7 +896,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockSendPhoneVerification).toHaveBeenCalled();
+        expect(mockSendPhoneVerificationConflict).toHaveBeenCalled();
       });
 
       await waitFor(
