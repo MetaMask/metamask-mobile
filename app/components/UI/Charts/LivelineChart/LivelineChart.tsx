@@ -209,5 +209,4 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
 
 LivelineChart.displayName = 'LivelineChart';
 
-// eslint-disable-next-line import-x/no-default-export
 export default LivelineChart;
