@@ -274,7 +274,8 @@ export type PredictTransactionEventStatus =
   | 'approved'
   | 'confirmed'
   | 'failed'
-  | 'rejected';
+  | 'rejected'
+  | 'depositing';
 
 export interface PredictControllerTransactionStatusChangedEvent {
   type: 'PredictController:transactionStatusChanged';
@@ -1501,6 +1502,26 @@ export class PredictController extends BaseController<
             transactionId;
         }
       });
+
+      try {
+        await this.provider.createOptimisticPositionFromPreview({
+          address: activeOrderAddress,
+          preview: params.preview,
+        });
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to create optimistic position at deposit',
+          { error: error instanceof Error ? error.message : String(error) },
+        );
+      }
+
+      this.messenger.publish('PredictController:transactionStatusChanged', {
+        type: 'order',
+        status: 'depositing',
+        senderAddress: activeOrderAddress,
+        marketId: params.analyticsProperties?.marketId,
+      });
+
       return {
         success: false,
         response: { status: 'deposit_in_progress' },
@@ -1673,6 +1694,13 @@ export class PredictController extends BaseController<
           state.selectedPaymentToken = null;
         }
       });
+
+      if (isBuyWithAnyToken) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          preview.outcomeTokenId,
+        );
+      }
 
       traceData = { success: false, error: errorMessage };
 
@@ -2564,6 +2592,7 @@ export class PredictController extends BaseController<
         ? this.pendingOrderPreviews[transactionId]
         : null;
       const marketId = pendingOrder?.analyticsProperties?.marketId;
+      const outcomeTokenId = pendingOrder?.preview?.outcomeTokenId;
 
       const isBackgroundOrder =
         transactionId !== undefined &&
@@ -2571,6 +2600,10 @@ export class PredictController extends BaseController<
 
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
+      }
+
+      if (outcomeTokenId) {
+        this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
       if (this.state.activeBuyOrders[address]) {

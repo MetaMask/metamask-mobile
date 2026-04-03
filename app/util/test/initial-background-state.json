@@ -795,5 +795,8 @@
     "requests": {},
     "orders": [],
     "providerAutoSelected": false
+  },
+  "MoneyAccountController": {
+    "moneyAccounts": {}
   }
 }
