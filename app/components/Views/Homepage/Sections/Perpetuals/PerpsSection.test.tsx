@@ -48,6 +48,13 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
     orders: [],
     isInitialLoading: false,
   })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      unrealizedPnl: '95.39',
+      returnOnEquity: '9.4',
+    },
+    isInitialLoading: false,
+  })),
   usePerpsMarkets: jest.fn(() => ({
     markets: [],
     isLoading: false,
@@ -170,8 +177,12 @@ jest.mock('./components/PerpsMarketTileCard', () => {
   };
 });
 
-const { usePerpsLivePositions, usePerpsLiveOrders, usePerpsMarkets } =
-  jest.requireMock('../../../../UI/Perps/hooks');
+const {
+  usePerpsLivePositions,
+  usePerpsLiveOrders,
+  usePerpsMarkets,
+  usePerpsLiveAccount,
+} = jest.requireMock('../../../../UI/Perps/hooks');
 
 const makePosition = (overrides: Record<string, unknown> = {}) => ({
   symbol: 'BTC',
@@ -288,6 +299,45 @@ describe('PerpsSection', () => {
 
     expect(screen.getByText('BTC 10X position')).toBeOnTheScreen();
     expect(screen.getByText('ETH 40X position')).toBeOnTheScreen();
+  });
+
+  it('shows aggregate unrealized P&L row when user has filled positions', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    usePerpsLiveAccount.mockReturnValue({
+      account: {
+        unrealizedPnl: '95.39',
+        returnOnEquity: '9.4',
+      },
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      screen.getByTestId('homepage-perps-unrealized-pnl'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not show unrealized P&L row when user has only open orders', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
+    usePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.queryByTestId('homepage-perps-unrealized-pnl')).toBeNull();
   });
 
   it('renders multiple position rows', () => {
@@ -1300,7 +1350,7 @@ describe('PerpsSection', () => {
       );
     });
 
-    it('passes isEmpty: false when trending markets are shown', () => {
+    it('passes isEmpty: true when trending markets are shown (no positions/orders = empty state)', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [makeTrendingMarket()],
         isLoading: false,
@@ -1314,7 +1364,7 @@ describe('PerpsSection', () => {
       );
 
       expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({ isEmpty: false }),
+        expect.objectContaining({ isEmpty: true }),
       );
     });
 

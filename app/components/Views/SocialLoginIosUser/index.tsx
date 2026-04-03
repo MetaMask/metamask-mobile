@@ -7,15 +7,16 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import LottieView, { AnimationObject } from 'lottie-react-native';
+import { useTheme } from '../../../util/theme';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -31,6 +32,7 @@ interface SocialLoginIosUserProps {
 const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { colors } = useTheme();
 
   const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
     (route.params as {
@@ -65,8 +67,13 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const isUserTypeNew = type === 'new';
 
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.wrapper}>
-      <View style={styles.root}>
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={[styles.wrapper, { backgroundColor: colors.background.default }]}
+    >
+      <View
+        style={[styles.root, { backgroundColor: colors.background.default }]}
+      >
         <View style={styles.animationContainer}>
           <View style={styles.largeFoxWrapper}>
             <LottieView
@@ -81,6 +88,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           <Text
             variant={TextVariant.DisplayMD}
             color={TextColor.Default}
+            style={styles.title}
             testID={
               isUserTypeNew
                 ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE
@@ -97,21 +105,22 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
 
         <View style={styles.ctaContainer}>
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             testID={
               isUserTypeNew
                 ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
                 : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
             }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            label={strings(
+            onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
+          >
+            {strings(
               isUserTypeNew
                 ? 'social_login_ios_user.new_user_button'
                 : 'social_login_ios_user.existing_user_button',
             )}
-            onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
-          />
+          </Button>
         </View>
       </View>
     </SafeAreaView>

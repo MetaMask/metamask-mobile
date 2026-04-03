@@ -235,6 +235,9 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
+  [TransactionType.perpsWithdraw]: strings(
+    'transactions.tx_review_perps_withdraw',
+  ),
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
   ),
@@ -610,6 +613,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return TransactionType.predictWithdraw;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
+    return TransactionType.perpsWithdraw;
   }
 
   if (!to) {

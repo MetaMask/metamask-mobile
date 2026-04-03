@@ -18,9 +18,9 @@
   },
   "AccountTreeController": {
     "accountTree": {
-      "selectedAccountGroup": "",
       "wallets": {}
     },
+    "selectedAccountGroup": "",
     "accountGroupsMetadata": {},
     "accountWalletsMetadata": {},
     "hasAccountTreeSyncingSyncedAtLeastOnce": false,
@@ -34,10 +34,10 @@
     "optedIn": false
   },
   "GatorPermissionsController": {
-    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
-    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "grantedPermissions": [],
     "isFetchingGatorPermissions": false,
-    "isGatorPermissionsEnabled": false
+    "lastSyncedTimestamp": -1,
+    "pendingRevocations": []
   },
   "NftController": {
     "allNftContracts": {},
@@ -386,7 +386,7 @@
   "SnapInterfaceController": {
     "interfaces": {}
   },
-  "SnapsRegistry": {
+  "SnapRegistryController": {
     "database": null,
     "databaseUnavailable": false,
     "lastUpdated": null,
@@ -443,6 +443,8 @@
       "activeWithdrawalId": null
     },
     "lastWithdrawResult": null,
+    "lastCompletedWithdrawalTimestamp": null,
+    "lastCompletedWithdrawalTxHashes": [],
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -622,7 +624,9 @@
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
-    "quotesRefreshCount": 0
+    "quotesRefreshCount": 0,
+    "quoteStreamComplete": null,
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -709,6 +713,7 @@
     "pointsEvents": {},
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
+    "ondoCampaignPortfolio": {},
     "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
@@ -729,7 +734,7 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
-    "activeOrder": null,
+    "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
@@ -745,6 +750,7 @@
       "isLoading": false,
       "error": null
     },
+    "providerAutoSelected": false,
     "providers": {
       "data": [],
       "selected": null,
@@ -787,6 +793,10 @@
       }
     },
     "requests": {},
-    "orders": []
+    "orders": [],
+    "providerAutoSelected": false
+  },
+  "MoneyAccountController": {
+    "moneyAccounts": {}
   }
 }

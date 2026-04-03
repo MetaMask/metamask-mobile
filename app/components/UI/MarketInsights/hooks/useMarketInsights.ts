@@ -9,6 +9,8 @@ import { formatRelativeTime } from '../utils/marketInsightsFormatting';
 export interface UseMarketInsightsResult {
   /** The market insights report data, or null if unavailable */
   report: MarketInsightsReport | null;
+  /** The assetIdentifier the current report was fetched for, or null while loading/cleared */
+  reportAssetId: string | null;
   /** Whether the data is currently loading */
   isLoading: boolean;
   /** Error message if the data fetch failed */
@@ -33,6 +35,7 @@ export const useMarketInsights = (
   isEnabled = false,
 ): UseMarketInsightsResult => {
   const [report, setReport] = useState<MarketInsightsReport | null>(null);
+  const [reportAssetId, setReportAssetId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(
     Boolean(isEnabled && assetIdentifier),
   );
@@ -41,12 +44,15 @@ export const useMarketInsights = (
   const fetchInsights = useCallback(async () => {
     if (!isEnabled || !assetIdentifier) {
       setReport(null);
+      setReportAssetId(null);
       setError(null);
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
+    setReport(null);
+    setReportAssetId(null);
     setError(null);
 
     try {
@@ -55,9 +61,11 @@ export const useMarketInsights = (
           assetIdentifier,
         );
       setReport(data as MarketInsightsReport | null);
+      setReportAssetId(data ? assetIdentifier : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights');
       setReport(null);
+      setReportAssetId(null);
     } finally {
       setIsLoading(false);
     }
@@ -72,5 +80,5 @@ export const useMarketInsights = (
     [report],
   );
 
-  return { report, isLoading, error, timeAgo };
+  return { report, reportAssetId, isLoading, error, timeAgo };
 };

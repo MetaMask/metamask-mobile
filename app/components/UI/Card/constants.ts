@@ -32,6 +32,8 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'monad',
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
+export const HUBSPOT_WAITLIST_URL =
+  'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 export const NON_PRODUCTION_ENVIRONMENTS = [
   'e2e',
   'dev',
@@ -59,12 +61,16 @@ export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
   },
 };
 
-export const caipChainIdToNetwork: Record<CaipChainId, CardNetwork> = {
-  'eip155:59144': 'linea',
-  'eip155:8453': 'base',
-  'eip155:143': 'monad',
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
-};
+export const CARD_CHAIN_IDS = Object.values(cardNetworkInfos).map(
+  (info) => info.caipChainId,
+);
+
+export const caipChainIdToNetwork = Object.fromEntries(
+  Object.entries(cardNetworkInfos).map(([network, info]) => [
+    info.caipChainId,
+    network,
+  ]),
+) as Record<CaipChainId, CardNetwork>;
 
 /**
  * Tokens that don't support the spending limit progress bar feature.

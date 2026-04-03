@@ -110,6 +110,7 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
+  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
@@ -293,6 +294,7 @@ const Routes = {
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
+      TOKEN_WARNING_MODAL: 'TokenWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -335,6 +337,10 @@ const Routes = {
   MARKET_INSIGHTS: {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
+  },
+  SOCIAL_LEADERBOARD: {
+    ROOT: 'SocialLeaderboard',
+    VIEW: 'TopTradersView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -394,6 +400,9 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
   },
+  MONEY_ACCOUNT: {
+    ROOT: 'MoneyAccountScreens',
+  },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
@@ -437,7 +446,6 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
-    NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
@@ -470,6 +478,8 @@ const Routes = {
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
+      SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
+      WAITLIST_FORM: 'CardWaitlistFormModal',
     },
   },
   SEND: {

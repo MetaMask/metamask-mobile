@@ -13,14 +13,10 @@ export const formatRateOfReturn = (rate: number): string => {
  */
 export const formatComputedAt = (isoString: string | null): string => {
   if (!isoString) return '';
-  try {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'shortOffset',
-    });
-  } catch {
-    return '';
-  }
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  const h = date.getHours().toString().padStart(2, '0');
+  const m = date.getMinutes().toString().padStart(2, '0');
+  const s = date.getSeconds().toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
 };

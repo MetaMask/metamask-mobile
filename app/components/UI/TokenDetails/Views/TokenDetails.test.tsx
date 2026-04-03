@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -44,6 +44,17 @@ const mockRouteParams = jest.fn().mockReturnValue({
   isNative: false,
   balance: '10.5',
 });
+const defaultRouteParams = {
+  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  chainId: '0x1',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+  image: 'https://example.com/dai.png',
+  isETH: false,
+  isNative: false,
+  balance: '10.5',
+};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -80,6 +91,7 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockGoToSwaps = jest.fn();
+const mockHandleStickySwapPress = jest.fn();
 const mockOnBuy = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
@@ -108,16 +120,43 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: () => null,
 }));
 
+let mockAutoResolveMarketInsights = true;
+let mockLatestMarketInsightsResolver:
+  | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
+  | undefined;
+
+const triggerMarketInsightsResolved = (params: {
+  isDisplayed: boolean;
+  severity: string | undefined;
+}) => {
+  act(() => {
+    mockLatestMarketInsightsResolver?.(params);
+  });
+};
+
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
+    token,
   }: {
-    onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+    onMarketInsightsDisplayResolved?: (params: {
+      isDisplayed: boolean;
+      severity: string | undefined;
+    }) => void;
+    token?: { address?: string; chainId?: string; symbol?: string };
   }) => {
+    const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
-      onMarketInsightsDisplayResolved?.(true);
-    }, [onMarketInsightsDisplayResolved]);
+      mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
+      if (!mockAutoResolveMarketInsights) {
+        return;
+      }
+      onMarketInsightsDisplayResolved?.({
+        isDisplayed: true,
+        severity: undefined,
+      });
+    }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
 
     return null;
   };
@@ -152,6 +191,17 @@ jest.mock('../../../../selectors/networkController', () => ({
 
 jest.mock('../../Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUsePerpsMarketForAsset = jest.fn((_symbol: string | null) => ({
+  hasPerpsMarket: false,
+  marketData: null,
+  isLoading: false,
+  error: null,
+}));
+jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: (symbol: string | null) =>
+    mockUsePerpsMarketForAsset(symbol),
 }));
 
 jest.mock('../../Earn/selectors/featureFlags', () => ({
@@ -191,9 +241,16 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+jest.mock('../../MarketInsights', () => ({
+  MarketInsightsDisclaimerBottomSheet: () => null,
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams.mockReturnValue(defaultRouteParams);
+    mockAutoResolveMarketInsights = true;
+    mockLatestMarketInsightsResolver = undefined;
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
@@ -217,6 +274,7 @@ describe('TokenDetails', () => {
       goToSwaps: mockGoToSwaps,
       handleBuyPress: jest.fn(),
       handleSellPress: jest.fn(),
+      handleStickySwapPress: mockHandleStickySwapPress,
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
@@ -237,6 +295,11 @@ describe('TokenDetails', () => {
       if (selector === selectDepositMinimumVersionFlag) return null;
       return undefined;
     });
+  });
+
+  afterEach(() => {
+    mockAutoResolveMarketInsights = true;
+    mockLatestMarketInsightsResolver = undefined;
   });
 
   it('renders loader when txLoading is true', () => {
@@ -286,6 +349,14 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
+    it('passes scrollToTopOnNav when sticky Swap is pressed', () => {
+      const { getByText } = render(<TokenDetails />);
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockHandleStickySwapPress).toHaveBeenCalledTimes(1);
+    });
+
     it('shows only Swap when user has eligible tokens but token is not buyable', () => {
       mockUseTokenBuyability.mockReturnValue({
         isBuyable: false,
@@ -306,6 +377,7 @@ describe('TokenDetails', () => {
         goToSwaps: mockGoToSwaps,
         handleBuyPress: jest.fn(),
         handleSellPress: jest.fn(),
+        handleStickySwapPress: mockHandleStickySwapPress,
         hasEligibleSwapTokens: false,
         networkModal: null,
       });
@@ -326,6 +398,7 @@ describe('TokenDetails', () => {
           token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
           token_symbol: 'DAI',
           market_insights_displayed: true,
+          has_perps_market: false,
         }),
       );
     });
@@ -349,6 +422,7 @@ describe('TokenDetails', () => {
           token_address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           token_symbol: 'USDC',
           market_insights_displayed: true,
+          has_perps_market: false,
         }),
       );
     });
@@ -365,6 +439,70 @@ describe('TokenDetails', () => {
 
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not flush stale pending insights after token navigation', async () => {
+    mockAutoResolveMarketInsights = false;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectNetworkConfigurationByChainId)
+        return { name: 'Ethereum' };
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+      if (selector === getRampNetworks) return [];
+      if (selector === selectDepositActiveFlag) return false;
+      if (selector === selectDepositMinimumVersionFlag) return null;
+      return undefined;
+    });
+    mockUsePerpsMarketForAsset.mockImplementation((symbol: string | null) => ({
+      hasPerpsMarket: symbol === 'USDC',
+      marketData: null,
+      isLoading: symbol === 'DAI',
+      error: null,
+    }));
+
+    const { rerender } = render(<TokenDetails />);
+
+    triggerMarketInsightsResolved({
+      isDisplayed: false,
+      severity: 'warning',
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
+
+    rerender(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    triggerMarketInsightsResolved({
+      isDisplayed: true,
+      severity: undefined,
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
+          has_perps_market: true,
+        }),
+      );
     });
   });
 });

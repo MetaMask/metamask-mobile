@@ -10,6 +10,7 @@ import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { strings } from '../../../../locales/i18n';
 import {
+  AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
 } from '@metamask/seedless-onboarding-controller';
@@ -24,6 +25,8 @@ import { captureException } from '@sentry/react-native';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { AccountType } from '../../../constants/onboarding';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockEngine = jest.mocked(Engine) as any;
@@ -37,6 +40,8 @@ const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
 const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
+const mockAnalyticsIdentify = jest.fn();
+const mockAnalyticsTrackEvent = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -55,6 +60,21 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
 }));
 
 jest.mock('../../../util/Logger');
+
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    identify: (...args: unknown[]) => mockAnalyticsIdentify(...args),
+    trackEvent: (...args: unknown[]) => mockAnalyticsTrackEvent(...args),
+    trackView: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
+    getAnalyticsId: jest
+      .fn()
+      .mockResolvedValue('01c53eb9-aeb9-4cd1-9414-7194419fe88b'),
+    isEnabled: jest.fn().mockReturnValue(true),
+    isOptedIn: jest.fn().mockResolvedValue(true),
+  },
+}));
 
 jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
 jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
@@ -139,8 +159,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockGetMarketingOptInStatus = jest.fn().mockResolvedValue({
+  is_opt_in: false,
+});
+
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
+  getMarketingOptInStatus: (...args: unknown[]) =>
+    mockGetMarketingOptInStatus(...args),
 }));
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -173,6 +199,9 @@ const enterPasswordAndSubmit = async (
 describe('OAuthRehydration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetMarketingOptInStatus.mockResolvedValue({
+      is_opt_in: false,
+    });
     mockRoute.mockReturnValue({
       params: { locked: false, oauthLoginSuccess: true },
     });
@@ -182,7 +211,13 @@ describe('OAuthRehydration', () => {
     mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
       undefined,
     );
-    mockUnlockWallet.mockResolvedValue(undefined);
+    mockUnlockWallet.mockImplementation(
+      async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+        if (options.onBeforeNavigate) {
+          await options.onBeforeNavigate();
+        }
+      },
+    );
     mockGetAuthType.mockResolvedValue({
       currentAuthType: 'password',
       availableBiometryType: null,
@@ -207,9 +242,14 @@ describe('OAuthRehydration', () => {
 
   describe('Successful login flow', () => {
     it('navigates to home after successful password login', async () => {
-      mockUnlockWallet.mockImplementationOnce(async () => {
-        mockReplace(Routes.ONBOARDING.HOME_NAV);
-      });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -222,6 +262,9 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+      await waitFor(() => {
+        expect(mockGetMarketingOptInStatus).toHaveBeenCalled();
       });
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
@@ -237,6 +280,43 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
+      });
+    });
+
+    it('syncs marketing consent into Redux and analytics after unlock', async () => {
+      mockGetMarketingOptInStatus.mockResolvedValueOnce({
+        is_opt_in: true,
+      });
+
+      const { getByTestId, store } = renderWithProvider(<OAuthRehydration />, {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                authConnection: AuthConnection.Google,
+              },
+            },
+          },
+        },
+      });
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+        expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+        });
+        expect(mockAnalyticsTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+            properties: expect.objectContaining({
+              [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+              updated_after_onboarding: true,
+              location: 'oauth_rehydration',
+              account_type: AccountType.ImportedGoogle,
+            }),
+          }),
+        );
       });
     });
 
@@ -648,7 +728,7 @@ describe('OAuthRehydration', () => {
     it('disables login button when password is empty', () => {
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton.props.disabled).toBe(true);
+      expect(loginButton).toBeDisabled();
     });
 
     it('enables login button when password is entered', () => {
@@ -657,14 +737,15 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       fireEvent.changeText(passwordInput, 'password123');
-      expect(loginButton.props.disabled).toBe(false);
+      expect(loginButton).toBeEnabled();
     });
 
     it('shows loading state when isDeletingInProgress is true', () => {
       mockIsDeletingInProgress.mockReturnValue(true);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton.props.loading).toBe(true);
+      expect(loginButton).toBeDisabled();
+      expect(loginButton.props.accessibilityState.busy).toBe(true);
     });
 
     it('does not submit when already loading', async () => {
@@ -922,6 +1003,7 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
+      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );

@@ -1667,6 +1667,7 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.lendingDeposit,
     TransactionType.lendingWithdraw,
     TransactionType.perpsDeposit,
+    TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };

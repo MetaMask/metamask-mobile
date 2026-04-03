@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useEffect, useCallback, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -31,6 +31,8 @@ export interface UseGetOndoLeaderboardResult {
   isLoading: boolean;
   /** Whether there was an error fetching the leaderboard */
   hasError: boolean;
+  /** Whether the leaderboard hasn't been computed yet by the backend (404) */
+  isLeaderboardNotYetComputed: boolean;
   /** List of available tier names (e.g., ['STARTER', 'MID', 'UPPER']) */
   tierNames: string[];
   /** Currently selected tier name */
@@ -63,6 +65,8 @@ export const useGetOndoLeaderboard = (
   const leaderboard = useSelector(selectOndoCampaignLeaderboard);
   const isLoading = useSelector(selectOndoCampaignLeaderboardLoading);
   const hasError = useSelector(selectOndoCampaignLeaderboardError);
+  const [isLeaderboardNotYetComputed, setIsLeaderboardNotYetComputed] =
+    useState(false);
   const tierNames = useSelector(selectOndoCampaignLeaderboardTierNames);
   const selectedTier = useSelector(selectOndoCampaignLeaderboardSelectedTier);
 
@@ -73,19 +77,28 @@ export const useGetOndoLeaderboard = (
     if (!campaignId) {
       dispatch(setOndoCampaignLeaderboardLoading(false));
       dispatch(setOndoCampaignLeaderboardError(false));
+      setIsLeaderboardNotYetComputed(false);
       return;
     }
 
     try {
       dispatch(setOndoCampaignLeaderboardLoading(true));
       dispatch(setOndoCampaignLeaderboardError(false));
+      setIsLeaderboardNotYetComputed(false);
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignLeaderboard',
         campaignId,
       );
       dispatch(setOndoCampaignLeaderboard(result));
-    } catch {
-      dispatch(setOndoCampaignLeaderboardError(true));
+    } catch (error) {
+      const is404 =
+        error instanceof Error &&
+        error.message.includes('Get campaign leaderboard failed: 404');
+      if (is404) {
+        setIsLeaderboardNotYetComputed(true);
+      } else {
+        dispatch(setOndoCampaignLeaderboardError(true));
+      }
     } finally {
       dispatch(setOndoCampaignLeaderboardLoading(false));
     }
@@ -126,10 +139,11 @@ export const useGetOndoLeaderboard = (
     leaderboard,
     isLoading,
     hasError,
+    isLeaderboardNotYetComputed,
     tierNames,
     selectedTier,
     selectedTierData,
-    computedAt: leaderboard?.computed_at ?? null,
+    computedAt: leaderboard?.computedAt ?? null,
     setSelectedTier,
     refetch: fetchLeaderboard,
   };

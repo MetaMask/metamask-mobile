@@ -528,6 +528,69 @@ describe('PerpsLimitPriceBottomSheet', () => {
     });
   });
 
+  describe('Preset decimal precision (TAT-2399)', () => {
+    const xrpProps = {
+      ...defaultProps,
+      asset: 'XRP',
+      currentPrice: 2.3418,
+    };
+
+    beforeEach(() => {
+      const { usePerpsTopOfBook } = jest.requireMock('../../hooks/stream');
+      usePerpsTopOfBook.mockReturnValue({
+        bestBid: '2.3412',
+        bestAsk: '2.3426',
+      });
+    });
+
+    it('Mid preset uses 5 significant figures (not 4) for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="long" />);
+
+      const midButton = screen.getByText(
+        'perps.order.limit_price_modal.mid_price',
+      );
+      fireEvent.press(midButton);
+
+      // With 5 sig figs: 2.3418 → 4 decimals (intDig=1, dec=4)
+      // With 4 sig figs (bug): 2.3418 → 3 decimals (2.342)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3418');
+    });
+
+    it('Bid preset uses 5 significant figures for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="long" />);
+
+      const bidButton = screen.getByText(
+        'perps.order.limit_price_modal.bid_price',
+      );
+      fireEvent.press(bidButton);
+
+      // bestBid='2.3412' → parseFloat → 2.3412 → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3412');
+    });
+
+    it('Ask preset uses 5 significant figures for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="short" />);
+
+      const askButton = screen.getByText(
+        'perps.order.limit_price_modal.ask_price',
+      );
+      fireEvent.press(askButton);
+
+      // bestAsk='2.3426' → parseFloat → 2.3426 → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3426');
+    });
+
+    it('Percentage preset uses 5 significant figures for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="long" />);
+
+      const pctButton = screen.getByText('-1%');
+      fireEvent.press(pctButton);
+
+      // BigNumber mock returns base price (2.3418) → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3418');
+    });
+  });
+
   describe('Validation and Error States', () => {
     it('shows muted text style for placeholder limit price', () => {
       // Act

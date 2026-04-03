@@ -33,6 +33,7 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardError,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
+  setOndoCampaignPortfolioPosition,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -55,6 +56,7 @@ import {
   CampaignType,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -2151,6 +2153,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardError: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
+        ondoCampaignPortfolio: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2264,6 +2267,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardError: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
+        ondoCampaignPortfolio: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2578,14 +2582,14 @@ describe('rewardsReducer', () => {
 
     it('should restore ondoCampaignLeaderboardPositions from persisted state', () => {
       const mockPosition: CampaignLeaderboardPositionDto = {
-        projected_tier: 'MID',
+        projectedTier: 'MID',
         rank: 3,
-        total_in_tier: 150,
-        rate_of_return: 0.15,
-        current_usd_value: 12500.5,
-        total_usd_deposited: 10000,
-        net_deposit: 8500,
-        computed_at: '2024-03-20T12:00:00.000Z',
+        totalInTier: 150,
+        rateOfReturn: 0.15,
+        currentUsdValue: 12500.5,
+        totalUsdDeposited: 10000,
+        netDeposit: 8500,
+        computedAt: '2024-03-20T12:00:00.000Z',
       };
       const persistedRewardsState: RewardsState = {
         ...initialState,
@@ -2618,6 +2622,52 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(initialState, rehydrateAction);
 
       expect(state.ondoCampaignLeaderboardPositions).toEqual({});
+    });
+
+    it('should restore ondoCampaignPortfolio from persisted state', () => {
+      const persisted: OndoGmPortfolioDto = {
+        positions: [],
+        summary: {
+          totalCurrentValue: '1',
+          totalCostBasis: '1',
+          totalUsdDeposited: '1',
+          netDeposit: '1',
+          portfolioPnl: '0',
+          portfolioPnlPercent: '0',
+        },
+        computedAt: '2024-03-20T12:00:00.000Z',
+      };
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        ondoCampaignPortfolio: {
+          'sub-1:campaign-1': persisted,
+        },
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsState },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignPortfolio).toEqual({
+        'sub-1:campaign-1': persisted,
+      });
+    });
+
+    it('should default ondoCampaignPortfolio to {} when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        ondoCampaignPortfolio: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignPortfolio).toEqual({});
     });
   });
 
@@ -4890,54 +4940,67 @@ describe('setVersionGuardError', () => {
 });
 
 const mockLeaderboard: CampaignLeaderboardDto = {
-  campaign_id: 'campaign-1',
-  computed_at: '2024-03-20T12:00:00.000Z',
+  campaignId: 'campaign-1',
+  computedAt: '2024-03-20T12:00:00.000Z',
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referral_code: 'TOP001', rate_of_return: 0.325 },
-        { rank: 2, referral_code: 'TOP002', rate_of_return: 0.284 },
-        { rank: 3, referral_code: 'TOP003', rate_of_return: 0.261 },
-        { rank: 4, referral_code: 'TOP004', rate_of_return: 0.238 },
-        { rank: 5, referral_code: 'TOP005', rate_of_return: 0.217 },
-        { rank: 6, referral_code: 'TOP006', rate_of_return: 0.198 },
-        { rank: 7, referral_code: 'TOP007', rate_of_return: 0.182 },
-        { rank: 8, referral_code: 'TOP008', rate_of_return: 0.167 },
-        { rank: 9, referral_code: 'TOP009', rate_of_return: 0.154 },
-        { rank: 10, referral_code: 'TOP010', rate_of_return: 0.141 },
-        { rank: 11, referral_code: 'TOP011', rate_of_return: 0.129 },
-        { rank: 12, referral_code: 'TOP012', rate_of_return: 0.118 },
-        { rank: 13, referral_code: 'TOP013', rate_of_return: 0.108 },
-        { rank: 14, referral_code: 'TOP014', rate_of_return: 0.099 },
-        { rank: 15, referral_code: 'TOP015', rate_of_return: 0.091 },
-        { rank: 16, referral_code: 'TOP016', rate_of_return: 0.083 },
-        { rank: 17, referral_code: 'TOP017', rate_of_return: 0.076 },
-        { rank: 18, referral_code: 'TOP018', rate_of_return: 0.069 },
-        { rank: 19, referral_code: 'MY_CODE', rate_of_return: 0.063 },
-        { rank: 20, referral_code: 'TOP020', rate_of_return: 0.057 },
+        { rank: 1, referralCode: 'TOP001', rateOfReturn: 0.325 },
+        { rank: 2, referralCode: 'TOP002', rateOfReturn: 0.284 },
+        { rank: 3, referralCode: 'TOP003', rateOfReturn: 0.261 },
+        { rank: 4, referralCode: 'TOP004', rateOfReturn: 0.238 },
+        { rank: 5, referralCode: 'TOP005', rateOfReturn: 0.217 },
+        { rank: 6, referralCode: 'TOP006', rateOfReturn: 0.198 },
+        { rank: 7, referralCode: 'TOP007', rateOfReturn: 0.182 },
+        { rank: 8, referralCode: 'TOP008', rateOfReturn: 0.167 },
+        { rank: 9, referralCode: 'TOP009', rateOfReturn: 0.154 },
+        { rank: 10, referralCode: 'TOP010', rateOfReturn: 0.141 },
+        { rank: 11, referralCode: 'TOP011', rateOfReturn: 0.129 },
+        { rank: 12, referralCode: 'TOP012', rateOfReturn: 0.118 },
+        { rank: 13, referralCode: 'TOP013', rateOfReturn: 0.108 },
+        { rank: 14, referralCode: 'TOP014', rateOfReturn: 0.099 },
+        { rank: 15, referralCode: 'TOP015', rateOfReturn: 0.091 },
+        { rank: 16, referralCode: 'TOP016', rateOfReturn: 0.083 },
+        { rank: 17, referralCode: 'TOP017', rateOfReturn: 0.076 },
+        { rank: 18, referralCode: 'TOP018', rateOfReturn: 0.069 },
+        { rank: 19, referralCode: 'MY_CODE', rateOfReturn: 0.063 },
+        { rank: 20, referralCode: 'TOP020', rateOfReturn: 0.057 },
       ],
-      total_participants: 150,
+      totalParticipants: 150,
     },
     MID: {
       entries: [
-        { rank: 1, referral_code: 'MID001', rate_of_return: 0.412 },
-        { rank: 2, referral_code: 'MID002', rate_of_return: 0.368 },
-        { rank: 3, referral_code: 'MID003', rate_of_return: 0.341 },
+        { rank: 1, referralCode: 'MID001', rateOfReturn: 0.412 },
+        { rank: 2, referralCode: 'MID002', rateOfReturn: 0.368 },
+        { rank: 3, referralCode: 'MID003', rateOfReturn: 0.341 },
       ],
-      total_participants: 75,
+      totalParticipants: 75,
     },
   },
 };
 
 const mockPosition: CampaignLeaderboardPositionDto = {
-  projected_tier: 'STARTER',
+  projectedTier: 'STARTER',
   rank: 19,
-  total_in_tier: 150,
-  rate_of_return: 0.063,
-  current_usd_value: 5063,
-  total_usd_deposited: 5000,
-  net_deposit: 4800,
-  computed_at: '2024-03-20T12:00:00.000Z',
+  totalInTier: 150,
+  rateOfReturn: 0.063,
+  currentUsdValue: 5063,
+  totalUsdDeposited: 5000,
+  netDeposit: 4800,
+  computedAt: '2024-03-20T12:00:00.000Z',
+};
+
+const mockPortfolio: OndoGmPortfolioDto = {
+  positions: [],
+  summary: {
+    totalCurrentValue: '5063',
+    totalCostBasis: '5000',
+    totalUsdDeposited: '5000',
+    netDeposit: '4800',
+    portfolioPnl: '63',
+    portfolioPnlPercent: '0.0126',
+  },
+  computedAt: '2024-03-20T12:00:00.000Z',
 };
 
 describe('setOndoCampaignLeaderboard', () => {
@@ -5131,7 +5194,7 @@ describe('setOndoCampaignLeaderboardPosition', () => {
       }),
     );
 
-    const position2 = { ...mockPosition, rank: 10, projected_tier: 'MID' };
+    const position2 = { ...mockPosition, rank: 10, projectedTier: 'MID' };
     currentState = rewardsReducer(
       currentState,
       setOndoCampaignLeaderboardPosition({
@@ -5147,5 +5210,37 @@ describe('setOndoCampaignLeaderboardPosition', () => {
     expect(
       currentState.ondoCampaignLeaderboardPositions['sub-1:campaign-2'],
     ).toEqual(position2);
+  });
+});
+
+describe('setOndoCampaignPortfolioPosition', () => {
+  it('should set portfolio for a campaign', () => {
+    const action = setOndoCampaignPortfolioPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      portfolio: mockPortfolio,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toEqual(
+      mockPortfolio,
+    );
+  });
+
+  it('should remove portfolio when null is provided', () => {
+    const stateWithPortfolio: RewardsState = {
+      ...initialState,
+      ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+    };
+    const action = setOndoCampaignPortfolioPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      portfolio: null,
+    });
+
+    const state = rewardsReducer(stateWithPortfolio, action);
+
+    expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toBeUndefined();
   });
 });

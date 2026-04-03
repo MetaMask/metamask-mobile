@@ -99,20 +99,9 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[cardNetworkInfos.linea.caipChainId]
-        ?.enabled || false
-    );
-  }
-
   getSupportedTokensByChainId(
     caipChainId: CaipChainId = 'eip155:59144',
   ): SupportedToken[] {
-    if (!this.isCardEnabled) {
-      return [];
-    }
-
     const tokens = this.cardFeatureFlag.chains?.[caipChainId]?.tokens;
 
     if (!tokens) {
@@ -361,8 +350,8 @@ export class CardSDK {
   isCardHolder = async (
     accounts: `${string}:${string}:${string}`[],
   ): Promise<`${string}:${string}:${string}`[]> => {
-    // Early return for invalid input or disabled feature
-    if (!this.isCardEnabled || !accounts?.length) {
+    // Early return for invalid input
+    if (!accounts?.length) {
       return [];
     }
 
@@ -476,10 +465,6 @@ export class CardSDK {
       globalAllowance: ethers.BigNumber;
     }[]
   > => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     const supportedTokensAddresses = this.getSupportedTokensByChainId()
       .map((token) => token.address)
       // Ensure all addresses are valid Ethereum addresses
@@ -537,10 +522,6 @@ export class CardSDK {
     address: string,
     nonZeroBalanceTokens: string[],
   ): Promise<CardToken | null> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
       this.logDebugInfo('getPriorityToken (Simple Case 1)', {
@@ -1466,10 +1447,6 @@ export class CardSDK {
   updateWalletPriority = async (
     wallets: { id: number; priority: number }[],
   ): Promise<void> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     this.logDebugInfo('updateWalletPriority', { wallets });
 
     const requestBody = { wallets };
@@ -2447,15 +2424,10 @@ export class CardSDK {
    * Google Wallet provisioning flow:
    * 1. Card provider returns opaquePaymentCard (OPC)
    *
-   * @param params - The Google Wallet provisioning request parameters
-   * @returns Promise resolving to the provisioning response with encrypted opaque payment card
+   * @returns Promise resolving to the opaque payment card string
    * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
    */
   createGoogleWalletProvisioningRequest = async (): Promise<{
-    cardNetwork: string;
-    lastFourDigits: string;
-    cardholderName: string;
-    cardDescription?: string;
     opaquePaymentCard: string;
   }> => {
     const endpoint = 'card/wallet/provision/google';
@@ -2488,12 +2460,6 @@ export class CardSDK {
     const responseData = (await response.json()) as {
       success: boolean;
       data?: {
-        cardNetwork?: string;
-        lastFourDigits?: string;
-        panLast4?: string;
-        cardholderName?: string;
-        holderName?: string;
-        cardDescription?: string;
         opaquePaymentCard?: string;
       };
     };
@@ -2507,14 +2473,8 @@ export class CardSDK {
       );
     }
 
-    const data = responseData.data;
-
     return {
-      cardNetwork: data.cardNetwork || 'MASTERCARD',
-      lastFourDigits: data.lastFourDigits || data.panLast4 || '',
-      cardholderName: data.cardholderName || data.holderName || '',
-      cardDescription: data.cardDescription,
-      opaquePaymentCard: data.opaquePaymentCard as string,
+      opaquePaymentCard: responseData.data.opaquePaymentCard,
     };
   };
 

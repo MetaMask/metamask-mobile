@@ -30,18 +30,22 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
 }));
-jest.mock('../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      primary: {
-        inverse: '#FFFFFF',
+jest.mock('../../../util/theme', () => {
+  const actualTheme = jest.requireActual('../../../util/theme');
+  return {
+    ...actualTheme,
+    useAppThemeFromContext: jest.fn(() => ({
+      colors: {
+        primary: {
+          inverse: actualTheme.mockTheme.colors.primary.inverse,
+        },
+        background: {
+          default: actualTheme.mockTheme.colors.background.default,
+        },
       },
-      background: {
-        default: '#000000',
-      },
-    },
-  })),
-}));
+    })),
+  };
+});
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 jest.mock('../../../util/metrics');
 jest.mock('react-native/Libraries/Linking/Linking', () => ({

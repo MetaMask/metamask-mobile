@@ -63,7 +63,7 @@ class TokenOverview {
           TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
+        PlaywrightMatchers.getElementByCatchAll(
           TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
         ),
     });

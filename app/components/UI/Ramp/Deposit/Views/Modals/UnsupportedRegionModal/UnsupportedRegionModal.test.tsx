@@ -11,7 +11,7 @@ const mockGoToAggregator = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
-const mockDangerouslyGetParent = jest.fn(() => ({
+const mockGetParent = jest.fn(() => ({
   pop: mockPop,
 }));
 
@@ -22,7 +22,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      dangerouslyGetParent: mockDangerouslyGetParent,
+      getParent: mockGetParent,
       isFocused: jest.fn(() => true),
     }),
   };
@@ -97,7 +97,7 @@ describe('UnsupportedRegionModal', () => {
     const buyCryptoButton = getByText('Buy crypto');
     fireEvent.press(buyCryptoButton);
 
-    expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    expect(mockGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });

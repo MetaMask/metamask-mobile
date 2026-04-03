@@ -3,6 +3,12 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import MusdCalculatorTab from './MusdCalculatorTab';
 
 const mockGoToSwaps = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({ event: 'test' });
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties });
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'usd'),
@@ -20,6 +26,19 @@ jest.mock('../../../../../../core/DeeplinkManager', () => ({
 jest.mock('../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
+  },
 }));
 
 jest.mock('../../../../../../util/theme', () => {
@@ -44,12 +63,12 @@ describe('MusdCalculatorTab', () => {
     expect(getByText('rewards.musd.initial_amount')).toBeTruthy();
     expect(getByText('rewards.musd.daily_bonus')).toBeTruthy();
     expect(getByText('rewards.musd.annualized_bonus')).toBeTruthy();
-    expect(getByText('rewards.musd.disclaimer')).toBeTruthy();
+    expect(getByText('rewards.musd.disclaimer_brief')).toBeTruthy();
     expect(getByText('rewards.musd.buy_button')).toBeTruthy();
     expect(getByText('rewards.musd.swap_button')).toBeTruthy();
   });
 
-  it('calls handleDeeplink with buy URL when Buy button is pressed', () => {
+  it('calls handleDeeplink and tracks buy_musd event when Buy button is pressed', () => {
     const { handleDeeplink } = jest.requireMock(
       '../../../../../../core/DeeplinkManager',
     );
@@ -60,13 +79,27 @@ describe('MusdCalculatorTab', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: expect.stringContaining('link.metamask.io/buy'),
     });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      'rewards_page_button_clicked',
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      button_type: 'buy_musd',
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('navigates to swap screen when Swap button is pressed', () => {
+  it('navigates to swap screen and tracks swap_to_musd event when Swap button is pressed', () => {
     const { getByText } = render(<MusdCalculatorTab />);
     fireEvent.press(getByText('rewards.musd.swap_button'));
 
     expect(mockGoToSwaps).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      'rewards_page_button_clicked',
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      button_type: 'swap_to_musd',
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('updates input value when amount changes', () => {
