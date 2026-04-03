@@ -260,6 +260,7 @@ jest.mock('./components/PredictPayWithAnyTokenInfo', () => {
     currentValue,
   }: {
     currentValue: number;
+    isInputFocused: boolean;
   }) {
     return <Text testID="predict-pay-with-any-token-info">{currentValue}</Text>;
   };

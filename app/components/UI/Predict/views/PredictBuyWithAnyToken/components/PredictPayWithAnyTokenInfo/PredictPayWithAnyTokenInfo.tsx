@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PREDICT_CURRENCY } from '../../../../../../Views/confirmations/constants/predict';
 import { useTransactionCustomAmount } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
@@ -14,11 +14,13 @@ import { Hex } from '@metamask/utils';
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
   preview?: OrderPreview | null;
+  isInputFocused: boolean;
 }
 
 const PredictPayWithAnyTokenInfo = ({
   currentValue,
   preview,
+  isInputFocused,
 }: PredictPayWithAnyTokenInfoProps) => {
   const transactionMeta = useTransactionMetadataRequest();
 
@@ -30,6 +32,7 @@ const PredictPayWithAnyTokenInfo = ({
     <PredictPayWithAnyTokenInfoInner
       currentValue={currentValue}
       preview={preview}
+      isInputFocused={isInputFocused}
     />
   );
 };
@@ -37,13 +40,14 @@ const PredictPayWithAnyTokenInfo = ({
 function PredictPayWithAnyTokenInfoInner({
   currentValue,
   preview,
+  isInputFocused,
 }: PredictPayWithAnyTokenInfoProps) {
+  const [depositAmount, setDepositAmount] = useState('');
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
   const { setPayToken, payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const { data: predictBalance = 0 } = usePredictBalance();
-
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
 
@@ -55,12 +59,17 @@ function PredictPayWithAnyTokenInfoInner({
     [currentValue, preview?.fees?.providerFee, preview?.fees?.metamaskFee],
   );
 
-  const depositAmount = useMemo(() => {
-    if (
-      isPredictBalanceSelected ||
-      !preview?.fees ||
-      currentValue < MINIMUM_BET
-    ) {
+  const canTriggerDepositAmountCalculation = useMemo(
+    () =>
+      !isPredictBalanceSelected &&
+      !!preview?.fees &&
+      currentValue >= MINIMUM_BET &&
+      !isInputFocused,
+    [isPredictBalanceSelected, preview?.fees, currentValue, isInputFocused],
+  );
+
+  const computedDepositAmount = useMemo(() => {
+    if (!canTriggerDepositAmountCalculation) {
       return '';
     }
 
@@ -71,19 +80,22 @@ function PredictPayWithAnyTokenInfoInner({
       ? totalPay.decimalPlaces(2, BigNumber.ROUND_UP)
       : remaining.decimalPlaces(2, BigNumber.ROUND_UP);
 
-    const parsedDepositAmount = amount.toString(10);
-
-    return parsedDepositAmount;
+    return amount.toString(10);
   }, [
-    isPredictBalanceSelected,
-    preview?.fees,
-    currentValue,
+    canTriggerDepositAmountCalculation,
     totalPayForPredictBalance,
     predictBalance,
   ]);
 
+  useEffect(() => {
+    if (!canTriggerDepositAmountCalculation) return;
+    setDepositAmount((prev) =>
+      prev === computedDepositAmount ? prev : computedDepositAmount,
+    );
+  }, [canTriggerDepositAmountCalculation, computedDepositAmount]);
+
   const hasValidDepositAmount = useMemo(
-    () => depositAmount && depositAmount.trim() !== '' && transactionMeta,
+    () => depositAmount !== '' && transactionMeta,
     [depositAmount, transactionMeta],
   );
 
@@ -91,16 +103,31 @@ function PredictPayWithAnyTokenInfoInner({
     currency: PREDICT_CURRENCY,
   });
 
+  const lastEmittedDepositRef = useRef('');
+  const lastEmittedAmountHumanRef = useRef('');
+
   useEffect(() => {
-    if (hasValidDepositAmount) {
-      updatePendingAmount(depositAmount);
+    if (
+      !hasValidDepositAmount ||
+      depositAmount === lastEmittedDepositRef.current
+    ) {
+      return;
     }
+    lastEmittedDepositRef.current = depositAmount;
+    updatePendingAmount(depositAmount);
   }, [depositAmount, hasValidDepositAmount, updatePendingAmount]);
 
   useEffect(() => {
-    if (amountHuman && amountHuman !== '0' && hasValidDepositAmount) {
-      updateTokenAmountCallback(amountHuman);
+    if (
+      !amountHuman ||
+      amountHuman === '0' ||
+      !hasValidDepositAmount ||
+      amountHuman === lastEmittedAmountHumanRef.current
+    ) {
+      return;
     }
+    lastEmittedAmountHumanRef.current = amountHuman;
+    updateTokenAmountCallback(amountHuman);
   }, [
     amountHuman,
     updateTokenAmountCallback,

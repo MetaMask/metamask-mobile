@@ -128,11 +128,12 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('render', () => {
-    it('returns null', () => {
+    it('returns null when transactionMeta is missing', () => {
       const { UNSAFE_root } = render(
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -141,34 +142,42 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('depositAmount computation', () => {
-    it('produces 0 when preview is null', () => {
-      mockActiveTransactionMeta = { id: 'tx-1' };
-
-      render(<PredictPayWithAnyTokenInfo currentValue={1} preview={null} />);
-
-      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
-    });
-
-    it('produces 0 when preview has no fees', () => {
+    it('produces empty when preview is null', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
       render(
         <PredictPayWithAnyTokenInfo
           currentValue={1}
-          preview={createMockPreview({ fees: undefined })}
+          preview={null}
+          isInputFocused={false}
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('produces 0 when currentValue is below minimum bet', () => {
+    it('produces empty when preview has no fees', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={1}
+          preview={createMockPreview({ fees: undefined })}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+    });
+
+    it('produces empty when currentValue is below minimum bet', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
       render(
         <PredictPayWithAnyTokenInfo
           currentValue={0.5}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -191,6 +200,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -214,6 +224,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -237,6 +248,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -260,6 +272,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -284,6 +297,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -292,8 +306,118 @@ describe('PredictPayWithAnyTokenInfo', () => {
     });
   });
 
+  describe('deposit amount gating', () => {
+    it('does not commit deposit amount while input is focused', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+    });
+
+    it('commits deposit amount when input loses focus', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+    });
+
+    it('does not re-trigger deposit update when value is unchanged after unfocus', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledTimes(1);
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+
+      mockUpdatePendingAmount.mockClear();
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused
+        />,
+      );
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+    });
+
+    it('updates deposit amount when value changes after unfocus', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      mockUpdatePendingAmount.mockClear();
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={200}
+          preview={defaultPreview}
+          isInputFocused
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={200}
+          preview={defaultPreview}
+          isInputFocused={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('200');
+    });
+  });
+
   describe('updatePendingAmount effect', () => {
-    it('calls updatePendingAmount when depositAmount > 0, not isPredictBalanceSelected, and has transactionMeta', () => {
+    it('calls updatePendingAmount when depositAmount is valid and has transactionMeta', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -301,6 +425,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -315,13 +440,14 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('does not call updatePendingAmount when depositAmount is 0', () => {
+    it('does not call updatePendingAmount when depositAmount is empty', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
 
@@ -329,6 +455,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -343,6 +470,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -365,6 +493,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -382,6 +511,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -405,6 +535,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
+          isInputFocused={false}
         />,
       );
 
@@ -420,6 +551,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -435,6 +567,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -450,6 +583,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -465,6 +599,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -480,6 +615,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -503,6 +639,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -527,6 +664,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -545,6 +683,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -559,6 +698,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 
@@ -576,6 +716,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
+          isInputFocused={false}
         />,
       );
 

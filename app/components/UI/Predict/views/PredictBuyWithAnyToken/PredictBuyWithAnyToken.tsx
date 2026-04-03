@@ -293,6 +293,7 @@ const PredictBuyWithAnyToken = () => {
       <PredictPayWithAnyTokenInfo
         currentValue={currentValue}
         preview={preview}
+        isInputFocused={isInputFocused}
       />
     </SafeAreaView>
   );
