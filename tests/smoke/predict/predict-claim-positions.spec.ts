@@ -34,6 +34,7 @@ import Utilities from '../../framework/Utilities';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 
 /*
 Test Scenario: Claim winning positions
@@ -156,8 +157,8 @@ describe(SmokePredictions('Claim winnings:'), () => {
           description:
             'Wallet screen should be visible after returning from activity',
         });
-        await WalletView.scrollAndTapPredictionsSection('up');
-
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed('$48.16');
 
         // Verify analytics events
