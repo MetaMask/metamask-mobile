@@ -82,12 +82,19 @@ function ProviderSelectionModal() {
     '';
   const assetId = paramAssetId ?? selectedToken?.assetId ?? '';
 
+  /**
+   * Only list (and quote) providers that support the effective asset. Uses the
+   * same id as `getQuotes` (`paramAssetId ?? selectedToken?.assetId`), so flows
+   * without route `assetId` still filter when `selectedToken` is set.
+   */
   const displayProviders = useMemo(() => {
-    if (!paramAssetId) return providers;
+    if (!assetId) {
+      return providers;
+    }
     return providers.filter(
-      (p) => p.supportedCryptoCurrencies?.[paramAssetId] === true,
+      (p) => p.supportedCryptoCurrencies?.[assetId] === true,
     );
-  }, [providers, paramAssetId]);
+  }, [providers, assetId]);
 
   const providerIds = useMemo(
     () => displayProviders.map((p) => p.id),

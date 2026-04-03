@@ -516,6 +516,9 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                       "width": 90,
                                     },
                                     "name": "Transak",
+                                    "supportedCryptoCurrencies": {
+                                      "eip155:1/slip44:60": true,
+                                    },
                                   },
                                   "type": "provider",
                                 },
@@ -533,6 +536,9 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                       "width": 90,
                                     },
                                     "name": "MoonPay",
+                                    "supportedCryptoCurrencies": {
+                                      "eip155:1/slip44:60": true,
+                                    },
                                   },
                                   "type": "provider",
                                 },

@@ -63,6 +63,8 @@ jest.mock('react-native', () => {
   };
 });
 
+const defaultTestAssetId = 'eip155:1/slip44:60';
+
 const mockProviders = [
   {
     id: '/providers/transak',
@@ -77,6 +79,7 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
+    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
   {
     id: '/providers/moonpay',
@@ -91,6 +94,7 @@ const mockProviders = [
       height: 24,
       width: 90,
     },
+    supportedCryptoCurrencies: { [defaultTestAssetId]: true },
   },
 ];
 
@@ -244,6 +248,29 @@ describe('ProviderSelectionModal', () => {
     renderWithProvider(ProviderSelectionModal);
 
     expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
+  });
+
+  it('filters providers by selectedToken.assetId when route assetId is omitted', () => {
+    mockUseParams.mockReturnValue({ amount: 100, skipQuotes: true });
+    mockUseRampsController.mockImplementation(() => ({
+      ...defaultControllerReturn,
+      providers: [
+        {
+          ...mockProviders[0],
+          supportedCryptoCurrencies: { [defaultTestAssetId]: true },
+        },
+        {
+          ...mockProviders[1],
+          supportedCryptoCurrencies: {},
+        },
+      ],
+    }));
+    const { getByText, queryByText } = renderWithProvider(
+      ProviderSelectionModal,
+    );
+
+    expect(getByText('Transak')).toBeOnTheScreen();
+    expect(queryByText('MoonPay')).toBeNull();
   });
 
   it('filters providers by assetId when provided', () => {
