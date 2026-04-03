@@ -340,7 +340,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#4459ff",
                           "fontSize": 16,
                         },
                         undefined,
@@ -1046,7 +1046,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#4459ff",
                           "fontSize": 16,
                         },
                         undefined,
@@ -1752,7 +1752,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#4459ff",
                           "fontSize": 16,
                         },
                         undefined,
@@ -2458,7 +2458,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#4459ff",
                           "fontSize": 16,
                         },
                         undefined,
@@ -3164,7 +3164,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#4459ff",
                           "fontSize": 16,
                         },
                         undefined,
@@ -3870,7 +3870,7 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#4459ff",
                           "fontSize": 16,
                         },
                         undefined,

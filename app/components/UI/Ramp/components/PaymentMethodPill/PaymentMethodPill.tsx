@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import type { PaymentMethod } from '@metamask/ramps-controller';
+import type { PaymentType } from '@consensys/on-ramp-sdk';
 import {
   Icon,
   IconName,
@@ -15,13 +16,11 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
 
 import PaymentMethodIcon from '../../Aggregator/components/PaymentMethodIcon';
-import { parseRampPaymentType } from '../../Aggregator/utils/parseRampPaymentType';
 import styleSheet from './PaymentMethodPill.styles';
 import { PAYMENT_METHOD_PILL_TEST_IDS } from './PaymentMethodPill.testIds';
 
 const PAYMENT_METHOD_ICON_SIZE = 16;
 
-/** `paymentType` only — same icon path as the payment list on `main` (e.g. FontAwesome apple for Apple Pay). */
 export type PaymentMethodForPill = Pick<PaymentMethod, 'paymentType'>;
 
 export interface PaymentMethodPillProps {
@@ -33,10 +32,7 @@ export interface PaymentMethodPillProps {
   isLoading?: boolean;
   /** Test ID for testing */
   testID?: string;
-  /**
-   * When set (unified buy v2), the leading icon matches the parsed `paymentType` (same vectors as the payment list).
-   * When omitted or when `paymentType` does not map to a known SDK type, shows the generic card icon.
-   */
+  /** Selected method: same `PaymentMethodIcon` + `paymentType` pattern as the payment selection list (primary icon color). */
   paymentMethod?: PaymentMethodForPill | null;
 }
 
@@ -50,9 +46,8 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
 
-  const hasKnownPaymentType =
-    parseRampPaymentType(paymentMethod?.paymentType) != null;
-  const shouldRenderMethodIcon = hasKnownPaymentType;
+  const paymentType = paymentMethod?.paymentType;
+  const hasPaymentType = paymentType != null && String(paymentType).length > 0;
 
   if (isLoading) {
     return (
@@ -73,11 +68,11 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
       activeOpacity={0.7}
     >
       <View style={styles.iconWrapper}>
-        {shouldRenderMethodIcon ? (
+        {hasPaymentType ? (
           <PaymentMethodIcon
-            paymentMethodType={paymentMethod?.paymentType}
+            paymentMethodType={paymentType as PaymentType}
             size={PAYMENT_METHOD_ICON_SIZE}
-            color={colors.icon.default}
+            color={colors.primary.default}
           />
         ) : (
           <Icon

@@ -71,8 +71,8 @@ describe('PaymentMethodPill', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders generic card when paymentType is unknown', () => {
-    const { queryByTestId } = renderWithTheme(
+  it('renders PaymentMethodIcon for any non-empty paymentType like the payment list', () => {
+    const { getByTestId, getByText } = renderWithTheme(
       <PaymentMethodPill
         label="Pay"
         paymentMethod={{
@@ -81,7 +81,8 @@ describe('PaymentMethodPill', () => {
       />,
     );
 
-    expect(queryByTestId('mock-payment-method-icon')).toBeNull();
+    expect(getByTestId('mock-payment-method-icon')).toBeOnTheScreen();
+    expect(getByText('future-payment-method')).toBeOnTheScreen();
   });
 
   it('renders PaymentMethodIcon when paymentMethod has paymentType', () => {
