@@ -10,11 +10,11 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
 import { useDispatch, useSelector } from 'react-redux';
@@ -76,13 +76,14 @@ const ExperimentalSettings = ({ navigation }: Props) => {
         {strings('experimental_settings.wallet_connect_dapps_desc')}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={strings('experimental_settings.wallet_connect_dapps_cta')}
         onPress={goToWalletConnectSessions}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {strings('experimental_settings.wallet_connect_dapps_cta')}
+      </Button>
     </>
   );
 
@@ -172,13 +173,14 @@ const ExperimentalSettings = ({ navigation }: Props) => {
         Download Performance Metrics
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={'Download Performance Metrics'}
         onPress={downloadPerformanceMetrics}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         testID="download-performance-metrics-button"
-      />
+      >
+        {'Download Performance Metrics'}
+      </Button>
     </View>
   );
   return (

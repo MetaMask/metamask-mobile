@@ -11,7 +11,7 @@ import I18n from '../../../../../../locales/i18n';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import {
   useIsTransactionPayLoading,
