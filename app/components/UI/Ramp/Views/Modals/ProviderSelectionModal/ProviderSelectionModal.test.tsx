@@ -261,7 +261,7 @@ describe('ProviderSelectionModal', () => {
         },
         {
           ...mockProviders[1],
-          supportedCryptoCurrencies: {},
+          supportedCryptoCurrencies: { [defaultTestAssetId]: false },
         },
       ],
     }));
@@ -281,16 +281,25 @@ describe('ProviderSelectionModal', () => {
       providers: [
         {
           ...mockProviders[0],
-          supportedCryptoCurrencies: { [assetId]: true },
+          supportedCryptoCurrencies: {
+            [assetId]: true,
+            [defaultTestAssetId]: false,
+          },
         },
         {
           ...mockProviders[1],
-          supportedCryptoCurrencies: { [assetId]: true },
+          supportedCryptoCurrencies: {
+            [assetId]: true,
+            [defaultTestAssetId]: false,
+          },
         },
         {
           id: '/providers/other',
           name: 'Other',
-          supportedCryptoCurrencies: { 'eip155:1/slip44:60': true },
+          supportedCryptoCurrencies: {
+            [defaultTestAssetId]: true,
+            [assetId]: false,
+          },
           environmentType: 'PRODUCTION',
           description: '',
           hqAddress: '',
