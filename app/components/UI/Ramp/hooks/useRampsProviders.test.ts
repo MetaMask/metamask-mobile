@@ -289,7 +289,7 @@ describe('useRampsProviders', () => {
         autoSelected: false,
       });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
@@ -307,7 +307,7 @@ describe('useRampsProviders', () => {
         autoSelected: false,
       });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
@@ -321,7 +321,7 @@ describe('useRampsProviders', () => {
       mockGetOrders.mockReturnValue(emptyOrders);
       mockDeterminePreferredProvider.mockReturnValue(null);
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
