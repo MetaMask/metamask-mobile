@@ -4,6 +4,7 @@ import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 import { PaymentIcon, PaymentIconType } from '@consensys/on-ramp-sdk/dist/API';
 
 import { useAssetFromTheme } from '../../../../../util/theme';
+import { parseRampPaymentType } from '../utils/parseRampPaymentType';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import EvilIconsIcon from 'react-native-vector-icons/EvilIcons';
@@ -29,7 +30,8 @@ const APPLE_PAY_MARK_WIDTH_RATIO = 1.65;
 
 interface iconParams {
   paymentMethodIcons?: Payment['icons'];
-  paymentMethodType?: PaymentType;
+  /** SDK payment type or API string (unknown strings fall back to card when icons are missing). */
+  paymentMethodType?: PaymentType | string;
   style?: StyleProp<TextStyle>;
   name?: string;
   size: number;
@@ -162,6 +164,8 @@ const PaymentMethodIcon = ({
   paymentMethodType,
   ...props
 }: iconParams & Omit<React.ComponentProps<typeof AntDesignIcon>, 'name'>) => {
+  const normalizedPaymentType = parseRampPaymentType(paymentMethodType);
+
   const firstIcon =
     paymentMethodIcons && paymentMethodIcons.length > 0
       ? paymentMethodIcons[0]
@@ -169,7 +173,7 @@ const PaymentMethodIcon = ({
 
   if (
     firstIcon &&
-    !shouldUseBrandedApplePayMark(paymentMethodType, firstIcon)
+    !shouldUseBrandedApplePayMark(normalizedPaymentType, firstIcon)
   ) {
     const IconComponent = getIcon(firstIcon);
     if (IconComponent) {
@@ -177,8 +181,8 @@ const PaymentMethodIcon = ({
     }
   }
 
-  if (paymentMethodType) {
-    switch (paymentMethodType) {
+  if (normalizedPaymentType) {
+    switch (normalizedPaymentType) {
       case PaymentType.ApplePay: {
         return <ApplePayMark size={props.size} style={props.style} />;
       }
@@ -191,14 +195,25 @@ const PaymentMethodIcon = ({
       case PaymentType.DebitCreditCard: {
         return <MaterialsIconsIcon name={Icon.Card} {...props} />;
       }
-      case PaymentType.Wallet:
-      default: {
+      case PaymentType.RevPay: {
+        return (
+          <MaterialsCommunityIconsIcon name="contactless-payment" {...props} />
+        );
+      }
+      case PaymentType.Wallet: {
         return <SimpleLineIconsIcon name={Icon.Wallet} {...props} />;
+      }
+      default: {
+        return <MaterialsIconsIcon name={Icon.Card} {...props} />;
       }
     }
   }
 
-  return <SimpleLineIconsIcon name={Icon.Wallet} {...props} />;
+  if (paymentMethodType == null || paymentMethodType === '') {
+    return <SimpleLineIconsIcon name={Icon.Wallet} {...props} />;
+  }
+
+  return <MaterialsIconsIcon name={Icon.Card} {...props} />;
 };
 
 export default PaymentMethodIcon;
