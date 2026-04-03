@@ -313,6 +313,7 @@ describe('RevealPrivateCredential', () => {
       pop: jest.fn(),
       popToTop: jest.fn(),
       setOptions: jest.fn(),
+      dispatch: jest.fn(),
     };
 
     // Restore mock implementations after clearAllMocks
