@@ -534,6 +534,8 @@ export type RewardsControllerGetOndoCampaignPortfolioPositionAction = {
 /**
  * Get paginated activity for an Ondo GM campaign.
  * First page is cached for 1 minute; subsequent pages are always fetched fresh.
+ * When `forceFresh` is true the cache is bypassed but a last-updated check
+ * avoids redundant fetches if the server data hasn't changed.
  *
  * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
  * @returns Paginated activity entries.
@@ -566,6 +568,8 @@ export type RewardsControllerGetActivityLastUpdatedAction = {
 
 /**
  * Check if campaign activity has changed since the last fetch.
+ * Compares the server's last-updated timestamp against the most recent
+ * cached entry's timestamp.
  *
  * @returns true if fresh data should be fetched.
  */
