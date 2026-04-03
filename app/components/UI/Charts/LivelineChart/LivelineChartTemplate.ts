@@ -1,86 +1,32 @@
-import type { Theme } from '../../../../util/theme/models';
-import livelineBundle from './liveline-bundle';
-
 /**
- * Subset of LivelineOptions that are baked into the initial HTML template.
- * Props that change frequently (data, candles, liveCandle, hiddenSeriesIds)
- * are sent via postMessage after mount and are NOT included here.
+ * Generates the self-contained HTML page that runs inside the LivelineChart
+ * WebView.
+ *
+ * The page loads `liveline`, React, and ReactDOM from esm.sh via ES module
+ * imports. On first load the browser fetches ~200KB; subsequent loads are
+ * served from the browser cache (esm.sh pins versions with
+ * `max-age=31536000, immutable`).
+ *
+ * The page listens for a single `SET_PROPS` postMessage from React Native,
+ * rebuilds the props object, and calls `root.render(createElement(Liveline,
+ * props))`. React's own reconciler handles all diffing.
+ *
+ * Callback props (`onHover`, `onWindowChange`, `onModeChange`,
+ * `onSeriesToggle`) are wired inside the WebView and posted back to RN
+ * via `ReactNativeWebView.postMessage`.
  */
-interface LivelineTemplateOptions {
-  // Appearance
-  theme: 'light' | 'dark';
-  color?: string;
-  lineWidth?: number;
 
-  // Feature flags
-  grid?: boolean;
-  badge?: boolean;
-  badgeTail?: boolean;
-  badgeVariant?: string;
-  momentum?: boolean | string;
-  fill?: boolean;
-  scrub?: boolean;
-  exaggerate?: boolean;
-  showValue?: boolean;
-  valueMomentumColor?: boolean;
-  degen?: boolean | { scale?: number; downMomentum?: boolean };
-  pulse?: boolean;
+const LIVELINE_VERSION = '0.0.7';
+const REACT_VERSION = '18.3.1';
 
-  // Time window
-  window?: number;
-
-  // Crosshair
-  tooltipY?: number;
-  tooltipOutline?: boolean;
-
-  // Reference line
-  referenceLine?: { value: number; label?: string };
-
-  // Orderbook
-  orderbook?: { bids: [number, number][]; asks: [number, number][] };
-
-  /**
-   * Serialised JS function body for value formatting.
-   * Will be called as: new Function('v', formatValue)(v)
-   * Example: "return v.toFixed(2) + '%'"
-   */
-  formatValue?: string;
-
-  /**
-   * Serialised JS function body for time formatting.
-   * Will be called as: new Function('t', formatTime)(t)
-   * Example: "var d = new Date(t*1000); return d.toLocaleTimeString()"
-   */
-  formatTime?: string;
-
-  // Layout / animation
-  padding?: { top?: number; right?: number; bottom?: number; left?: number };
-  lerpSpeed?: number;
-
-  // Candlestick mode
-  mode?: 'line' | 'candle';
-  candleWidth?: number;
-}
+const ESM_BASE = 'https://esm.sh';
+const REACT_URL = `${ESM_BASE}/react@${REACT_VERSION}`;
+const REACT_DOM_CLIENT_URL = `${ESM_BASE}/react-dom@${REACT_VERSION}/client`;
+const LIVELINE_URL = `${ESM_BASE}/liveline@${LIVELINE_VERSION}`;
 
 export const createLivelineChartTemplate = (
-  appTheme: Theme,
-  options: LivelineTemplateOptions = { theme: 'dark' },
-): string => {
-  const bgColor = appTheme.colors.background.default;
-
-  // Separate formatValue/formatTime from the rest — they need special handling
-  const { formatValue, formatTime, ...serializableOptions } = options;
-  const initialConfig = JSON.stringify(serializableOptions);
-
-  // Build function source strings to be eval'd in the WebView.
-  // Fall back to sensible defaults if not provided.
-  const formatValueSrc =
-    formatValue ?? "return v < 1 ? v.toFixed(1) + '%' : Math.round(v) + '%'";
-  const formatTimeSrc =
-    formatTime ??
-    "var d = new Date(t * 1000); var h = String(d.getHours()).padStart(2,'0'); var m = String(d.getMinutes()).padStart(2,'0'); var s = String(d.getSeconds()).padStart(2,'0'); return h + ':' + m + ':' + s";
-
-  return `<!DOCTYPE html>
+  bgColor: string,
+): string => `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -93,101 +39,63 @@ export const createLivelineChartTemplate = (
 </head>
 <body>
   <div id="root"></div>
-  <script>${livelineBundle}</script>
-  <script>
-    var chart = null;
-    var currentProps = ${initialConfig};
-    var currentData = [];
-    var currentValue = 0;
-    var currentSeries = null;
-    var currentCandles = null;
-    var currentLiveCandle = null;
-    var currentLineData = null;
-    var currentLineValue = null;
-    var currentHiddenSeriesIds = null;
+  <script type="module">
+    import { createElement } from '${REACT_URL}';
+    import { createRoot } from '${REACT_DOM_CLIENT_URL}';
+    import { Liveline } from '${LIVELINE_URL}';
 
     function sendToRN(type, payload) {
       if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({type, payload: payload !== undefined ? payload : {}}));
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({ type, payload: payload !== undefined ? payload : {} })
+        );
       }
     }
 
-    var formatValue = new Function('v', ${JSON.stringify(formatValueSrc)});
-    var formatTime = new Function('t', ${JSON.stringify(formatTimeSrc)});
+    // Callbacks wired inside the WebView — they are functions so they cannot
+    // cross the JSON bridge from RN. We create them here and attach them to
+    // every render.
+    const callbacks = {
+      onHover: (point) => sendToRN('HOVER', point),
+      onWindowChange: (secs) => sendToRN('WINDOW_CHANGE', { secs }),
+      onModeChange: (mode) => sendToRN('MODE_CHANGE', { mode }),
+      onSeriesToggle: (id, visible) => sendToRN('SERIES_TOGGLE', { id, visible }),
+    };
 
-    function buildOptions() {
-      var opts = Object.assign({}, currentProps, {
-        data: currentData,
-        value: currentValue,
-        formatValue: formatValue,
-        formatTime: formatTime,
-      });
-      if (currentSeries) opts.series = currentSeries;
-      if (currentCandles) opts.candles = currentCandles;
-      if (currentLiveCandle !== null) opts.liveCandle = currentLiveCandle;
-      if (currentLineData !== null) opts.lineData = currentLineData;
-      if (currentLineValue !== null) opts.lineValue = currentLineValue;
-      if (currentHiddenSeriesIds !== null) {
-        opts.hiddenSeriesIds = new Set(currentHiddenSeriesIds);
-      }
-      return opts;
+    const root = createRoot(document.getElementById('root'));
+    let currentProps = null;
+
+    function render() {
+      if (!currentProps) return;
+      // Reconstruct formatValue / formatTime from their serialised bodies.
+      const { formatValue, formatTime, ...rest } = currentProps;
+      const props = {
+        ...rest,
+        ...callbacks,
+        ...(formatValue ? { formatValue: new Function('v', formatValue) } : {}),
+        ...(formatTime  ? { formatTime:  new Function('t', formatTime)  } : {}),
+      };
+      root.render(createElement(Liveline, props));
     }
 
     function handleMessage(event) {
       try {
-        var msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        switch (msg.type) {
-          case 'SET_DATA':
-            currentData = msg.payload.data;
-            currentValue = msg.payload.value;
-            if (chart) chart.update(buildOptions());
-            break;
-          case 'UPDATE_VALUE': {
-            var pt = {time: msg.payload.time, value: msg.payload.value};
-            currentData = currentData.concat([pt]);
-            currentValue = msg.payload.value;
-            if (chart) chart.update(buildOptions());
-            break;
-          }
-          case 'SET_SERIES':
-            currentSeries = msg.payload.series;
-            if (chart) chart.update(buildOptions());
-            break;
-          case 'SET_PROPS': {
-            var p = msg.payload;
-            // Handle props that need local variable updates
-            if (p.candles !== undefined) currentCandles = p.candles;
-            if (p.liveCandle !== undefined) currentLiveCandle = p.liveCandle;
-            if (p.lineData !== undefined) currentLineData = p.lineData;
-            if (p.lineValue !== undefined) currentLineValue = p.lineValue;
-            if (p.hiddenSeriesIds !== undefined) currentHiddenSeriesIds = p.hiddenSeriesIds;
-            // Remaining props merge into currentProps
-            var remainder = Object.assign({}, p);
-            delete remainder.candles;
-            delete remainder.liveCandle;
-            delete remainder.lineData;
-            delete remainder.lineValue;
-            delete remainder.hiddenSeriesIds;
-            currentProps = Object.assign({}, currentProps, remainder);
-            if (chart) chart.update(buildOptions());
-            break;
-          }
+        const msg = typeof event.data === 'string'
+          ? JSON.parse(event.data)
+          : event.data;
+        if (msg.type === 'SET_PROPS') {
+          currentProps = msg.payload;
+          render();
         }
-      } catch(e) {
-        sendToRN('ERROR', {message: e.message});
+      } catch (e) {
+        sendToRN('ERROR', { message: e.message });
       }
     }
 
     window.addEventListener('message', handleMessage);
     document.addEventListener('message', handleMessage);
 
-    chart = window.Liveline.createLiveline(
-      document.getElementById('root'),
-      buildOptions()
-    );
-
     sendToRN('CHART_READY');
   </script>
 </body>
 </html>`;
-};

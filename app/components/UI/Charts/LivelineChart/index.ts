@@ -1,4 +1,7 @@
-export { default as LivelineChart } from './LivelineChart';
+export {
+  default as LivelineChart,
+  DEFAULT_CHART_HEIGHT,
+} from './LivelineChart';
 export type {
   LivelineChartProps,
   LivelinePoint,
@@ -11,4 +14,7 @@ export type {
   DegenOptions,
   Momentum,
   BadgeVariant,
+  ThemeMode,
+  WindowOption,
+  WindowStyle,
 } from './LivelineChart.types';

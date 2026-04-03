@@ -23,254 +23,53 @@ import {
   type RNToWebViewMessage,
 } from './LivelineChart.types';
 
-const DEFAULT_CHART_HEIGHT = 250;
+export const DEFAULT_CHART_HEIGHT = 250;
 
 const LivelineChart: React.FC<LivelineChartProps> = ({
-  // Data
-  data,
-  value,
-  series,
-
-  // Appearance
-  theme: chartTheme = 'dark',
-  color,
-  lineWidth,
   height = DEFAULT_CHART_HEIGHT,
-
-  // Feature flags
-  grid,
-  badge,
-  badgeTail,
-  badgeVariant,
-  momentum,
-  fill,
-  loading = false,
-  paused,
-  emptyText,
-  scrub,
-  exaggerate,
-  showValue,
-  valueMomentumColor,
-  degen,
-  pulse,
-
-  // Time window
-  window: windowSecs,
-
-  // Crosshair
-  tooltipY,
-  tooltipOutline,
-
-  // Reference line
-  referenceLine,
-
-  // Orderbook
-  orderbook,
-
-  // Formatting (serialised function bodies)
-  formatValue,
-  formatTime,
-
-  // Layout / animation
-  padding,
-  lerpSpeed,
-
-  // Multi-series visibility
-  hiddenSeriesIds,
-
-  // Candlestick mode
-  mode,
-  candles,
-  candleWidth,
-  liveCandle,
-  lineData,
-  lineValue,
-
-  // RN-only callbacks
   onChartReady,
   onError,
   onHover,
+  onWindowChange,
+  onModeChange,
+  onSeriesToggle,
+  ...chartProps
 }) => {
   const tw = useTailwind();
-  const theme = useTheme();
+  const { colors } = useTheme();
   const webViewRef = useRef<WebView>(null);
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
 
-  const containerStyle = useMemo(
-    () =>
-      tw.style('w-full', {
-        height,
-        backgroundColor: theme.colors.background.default,
-      }),
-    [height, theme.colors.background.default, tw],
-  );
-
-  const webViewStyle = useMemo(
-    () =>
-      tw.style('flex-1', {
-        backgroundColor: theme.colors.background.default,
-      }),
-    [theme.colors.background.default, tw],
-  );
-
-  const overlayStyle = useMemo(
-    () =>
-      tw.style('absolute top-0 right-0 bottom-0 left-0', {
-        backgroundColor: theme.colors.background.default,
-      }),
-    [theme.colors.background.default, tw],
-  );
-
-  const errorTextStyle = useMemo(
-    () =>
-      tw.style({
-        color: theme.colors.error.default,
-        textAlign: 'center',
-      }),
-    [theme.colors.error.default, tw],
-  );
-
-  const loadingTextStyle = useMemo(
-    () =>
-      tw.style('mt-3', {
-        color: theme.colors.text.muted,
-      }),
-    [theme.colors.text.muted, tw],
-  );
-
-  // Structural props that require a full WebView reload (baked into the HTML).
-  // Data, value, series, loading, paused, emptyText, hiddenSeriesIds are sent
-  // via postMessage after mount and do NOT belong here.
+  // Capture the background colour once at mount. The HTML shell is static for
+  // the lifetime of this component instance; all chart props are sent via
+  // postMessage after CHART_READY.
+  const bgColorRef = useRef(colors.background.default);
   const htmlContent = useMemo(
-    () =>
-      createLivelineChartTemplate(theme, {
-        theme: chartTheme,
-        color,
-        lineWidth,
-        grid,
-        badge,
-        badgeTail,
-        badgeVariant,
-        momentum,
-        fill,
-        scrub,
-        exaggerate,
-        showValue,
-        valueMomentumColor,
-        degen,
-        pulse,
-        window: windowSecs,
-        tooltipY,
-        tooltipOutline,
-        referenceLine,
-        orderbook,
-        formatValue,
-        formatTime,
-        padding,
-        lerpSpeed,
-        mode,
-        candleWidth,
-      }),
-    [
-      theme,
-      chartTheme,
-      color,
-      lineWidth,
-      grid,
-      badge,
-      badgeTail,
-      badgeVariant,
-      momentum,
-      fill,
-      scrub,
-      exaggerate,
-      showValue,
-      valueMomentumColor,
-      degen,
-      pulse,
-      windowSecs,
-      tooltipY,
-      tooltipOutline,
-      referenceLine,
-      orderbook,
-      formatValue,
-      formatTime,
-      padding,
-      lerpSpeed,
-      mode,
-      candleWidth,
-    ],
+    () => createLivelineChartTemplate(bgColorRef.current),
+    [],
   );
-
-  // Reset chart-ready state whenever structural props change and the WebView
-  // reloads with new HTML. Without this, postMessage effects would fire against
-  // the freshly-mounted WebView before it emits CHART_READY.
-  useEffect(() => {
-    setIsChartReady(false);
-    setWebViewError(null);
-  }, [htmlContent]);
 
   const postMessage = useCallback((message: RNToWebViewMessage) => {
     webViewRef.current?.postMessage(JSON.stringify(message));
   }, []);
 
-  // Data / value
+  // Send the full props snapshot to the WebView whenever any chart prop
+  // changes. The WebView calls root.render(<Liveline {...props} />) on receipt,
+  // letting React's own reconciler diff and update.
+  //
+  // chartProps is destructured from the component props so it is a new object
+  // on every render; we JSON-serialise it to get a stable dep-comparable value.
+  const chartPropsJson = JSON.stringify(chartProps);
   useEffect(() => {
     if (!isChartReady) return;
-    postMessage({ type: 'SET_DATA', payload: { data, value } });
-  }, [data, value, isChartReady, postMessage]);
-
-  // Multi-series
-  useEffect(() => {
-    if (!isChartReady) return;
-
-    postMessage({ type: 'SET_DATA', payload: { data, value } });
-    postMessage({ type: 'SET_SERIES', payload: { series: series ?? null } });
-  }, [data, value, series, isChartReady, postMessage]);
-
-  // Dynamic props that can change without reloading the WebView
-  useEffect(() => {
-    if (!isChartReady) return;
+    // chartPropsJson is the stable dep; parse it back so the payload is a
+    // plain object (avoids sending the stale chartProps closure value).
     postMessage({
       type: 'SET_PROPS',
-      payload: { loading, paused, emptyText },
+      payload: JSON.parse(chartPropsJson),
     });
-  }, [loading, paused, emptyText, isChartReady, postMessage]);
-
-  // Candlestick data (streamed the same way as series)
-  useEffect(() => {
-    if (!isChartReady) return;
-    postMessage({ type: 'SET_PROPS', payload: { candles: candles ?? null } });
-  }, [candles, isChartReady, postMessage]);
-
-  useEffect(() => {
-    if (!isChartReady) return;
-    postMessage({
-      type: 'SET_PROPS',
-      payload: { liveCandle: liveCandle ?? null },
-    });
-  }, [liveCandle, isChartReady, postMessage]);
-
-  useEffect(() => {
-    if (!isChartReady) return;
-    postMessage({
-      type: 'SET_PROPS',
-      payload: {
-        lineData: lineData ?? null,
-        lineValue: lineValue ?? null,
-      },
-    });
-  }, [lineData, lineValue, isChartReady, postMessage]);
-
-  // Hidden series (toggled externally by the host)
-  useEffect(() => {
-    if (!isChartReady) return;
-    postMessage({
-      type: 'SET_PROPS',
-      payload: { hiddenSeriesIds: hiddenSeriesIds ?? null },
-    });
-  }, [hiddenSeriesIds, isChartReady, postMessage]);
+  }, [isChartReady, postMessage, chartPropsJson]);
 
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -297,11 +96,27 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
         case 'HOVER':
           onHover?.(message.payload);
           break;
+        case 'WINDOW_CHANGE':
+          onWindowChange?.(message.payload.secs);
+          break;
+        case 'MODE_CHANGE':
+          onModeChange?.(message.payload.mode);
+          break;
+        case 'SERIES_TOGGLE':
+          onSeriesToggle?.(message.payload.id, message.payload.visible);
+          break;
         default:
           break;
       }
     },
-    [onChartReady, onError, onHover],
+    [
+      onChartReady,
+      onError,
+      onHover,
+      onWindowChange,
+      onModeChange,
+      onSeriesToggle,
+    ],
   );
 
   const handleWebViewError = useCallback(
@@ -311,6 +126,28 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
       onError?.(description);
     },
     [onError],
+  );
+
+  const containerStyle = useMemo(
+    () =>
+      tw.style('w-full', {
+        height,
+        backgroundColor: colors.background.default,
+      }),
+    [tw, height, colors.background.default],
+  );
+
+  const webViewStyle = useMemo(
+    () => tw.style('flex-1', { backgroundColor: colors.background.default }),
+    [tw, colors.background.default],
+  );
+
+  const overlayStyle = useMemo(
+    () =>
+      tw.style('absolute top-0 right-0 bottom-0 left-0', {
+        backgroundColor: colors.background.default,
+      }),
+    [tw, colors.background.default],
   );
 
   if (webViewError) {
@@ -323,9 +160,8 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
         twClassName="px-5"
       >
         <Text
-          testID="liveline-chart-error-message"
           variant={TextVariant.BodyMd}
-          style={errorTextStyle}
+          twClassName="text-error-default text-center"
         >
           Failed to load chart: {webViewError}
         </Text>
@@ -361,11 +197,8 @@ const LivelineChart: React.FC<LivelineChartProps> = ({
           justifyContent={BoxJustifyContent.Center}
           style={overlayStyle}
         >
-          <ActivityIndicator
-            size="large"
-            color={theme.colors.primary.default}
-          />
-          <Text variant={TextVariant.BodySm} style={loadingTextStyle}>
+          <ActivityIndicator size="large" color={colors.primary.default} />
+          <Text variant={TextVariant.BodySm} twClassName="mt-3 text-text-muted">
             Loading chart...
           </Text>
         </Box>

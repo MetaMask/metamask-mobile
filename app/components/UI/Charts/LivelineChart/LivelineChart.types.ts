@@ -1,12 +1,15 @@
 /**
  * Types for the LivelineChart React Native wrapper.
  *
- * These mirror the full LivelineOptions API from @metamask/liveline, exposed
- * as a React Native-friendly interface. The wrapper serialises them into the
- * WebView via postMessage.
+ * These mirror the public API of the upstream `liveline@0.0.7` package.
+ * The package is not installed as a dependency — it is loaded from esm.sh
+ * at runtime inside the WebView — so types are maintained locally here.
+ *
+ * When upgrading liveline, cross-check against:
+ * https://esm.sh/liveline@<version>/dist/index.d.ts
  */
 
-// ---- Data types (match the web library) ----
+// ---- Upstream data types (mirror liveline@0.0.7) ----
 
 export interface LivelinePoint {
   /** Unix timestamp in seconds */
@@ -50,9 +53,14 @@ export interface Padding {
   left?: number;
 }
 
+export interface WindowOption {
+  label: string;
+  secs: number;
+}
+
 export interface OrderbookData {
-  bids: [number, number][]; // [price, size][]
-  asks: [number, number][]; // [price, size][]
+  bids: [number, number][];
+  asks: [number, number][];
 }
 
 export interface DegenOptions {
@@ -64,33 +72,47 @@ export interface DegenOptions {
 
 export type Momentum = 'up' | 'down' | 'flat';
 export type BadgeVariant = 'default' | 'minimal';
+export type ThemeMode = 'light' | 'dark';
+export type WindowStyle = 'default' | 'rounded' | 'text';
 
 // ---- Component props ----
 
+/**
+ * Props for the React Native LivelineChart wrapper.
+ *
+ * Mirrors the upstream `LivelineProps` API from `liveline@0.0.7`, with the
+ * following differences:
+ *
+ * - `height` — container height in logical pixels (RN-only, default 250)
+ * - `onChartReady` — fires once the WebView has mounted and rendered (RN-only)
+ * - `onError` — fires on WebView or chart errors (RN-only)
+ * - `formatValue` / `formatTime` — accept serialised JS function body strings
+ * instead of real functions, because functions cannot cross the RN ↔ WebView
+ * JSON bridge. Reconstructed in the WebView via `new Function(...)`.
+ * @example formatValue="return v.toFixed(2) + '%'"
+ *
+ * All other upstream props are forwarded as-is. Callback props (`onHover`,
+ * `onWindowChange`, `onModeChange`, `onSeriesToggle`) are bridged back to RN
+ * via the WebView message protocol.
+ */
 export interface LivelineChartProps {
   // -- Data --
-  /** Time-series data points. Required when not using series mode. */
   data: LivelinePoint[];
-  /** Current / latest value. Required when not using series mode. */
   value: number;
 
-  // -- Multi-series (optional) --
-  /** When provided, overrides data / value / color. */
+  // -- Multi-series --
   series?: LivelineSeries[];
 
   // -- Appearance --
-  theme?: 'light' | 'dark';
+  theme?: ThemeMode;
   color?: string;
   lineWidth?: number;
-  /** Chart container height in px. @default 250 */
-  height?: number;
 
   // -- Feature flags --
   grid?: boolean;
   badge?: boolean;
   badgeTail?: boolean;
   badgeVariant?: BadgeVariant;
-  /** true = auto-detect, false = hide, 'up'|'down'|'flat' = override */
   momentum?: boolean | Momentum;
   fill?: boolean;
   loading?: boolean;
@@ -100,17 +122,19 @@ export interface LivelineChartProps {
   exaggerate?: boolean;
   showValue?: boolean;
   valueMomentumColor?: boolean;
-  /** true = enable with defaults, object = enable with custom options */
   degen?: boolean | DegenOptions;
   pulse?: boolean;
 
   // -- Time window --
-  /** Visible time window in seconds. @default 30 */
   window?: number;
+  windows?: WindowOption[];
+  onWindowChange?: (secs: number) => void;
+  windowStyle?: WindowStyle;
 
   // -- Crosshair --
   tooltipY?: number;
   tooltipOutline?: boolean;
+  cursor?: string;
 
   // -- Reference line --
   referenceLine?: ReferenceLine;
@@ -118,71 +142,64 @@ export interface LivelineChartProps {
   // -- Orderbook --
   orderbook?: OrderbookData;
 
-  // -- Value / time formatting --
-  formatValue?: string; // serialised as JS function body: "return v.toFixed(2)"
-  formatTime?: string; // serialised as JS function body: "return new Date(t*1000).toISOString()"
+  // -- Hover callback --
+  onHover?: (point: HoverPoint | null) => void;
 
-  // -- Layout --
+  // -- Layout / animation --
   padding?: Padding;
-
-  // -- Animation --
   lerpSpeed?: number;
 
   // -- Multi-series visibility --
   hiddenSeriesIds?: string[];
+  onSeriesToggle?: (id: string, visible: boolean) => void;
+  seriesToggleCompact?: boolean;
 
   // -- Candlestick mode --
   mode?: 'line' | 'candle';
   candles?: CandlePoint[];
   candleWidth?: number;
   liveCandle?: CandlePoint;
+  lineMode?: boolean;
   lineData?: LivelinePoint[];
   lineValue?: number;
+  onModeChange?: (mode: 'line' | 'candle') => void;
 
-  // -- Callbacks (RN-side, not forwarded into WebView) --
+  // -- Formatting (serialised function bodies, not real functions) --
+  formatValue?: string;
+  formatTime?: string;
+
+  // -- RN-only --
+  /** Container height in logical pixels. @default 250 */
+  height?: number;
+  /** Fired once the WebView has initialised and the chart is ready. */
   onChartReady?: () => void;
+  /** Fired on WebView load errors or chart runtime errors. */
   onError?: (message: string) => void;
-  onHover?: (point: HoverPoint | null) => void;
 }
 
 // ---- WebView ↔ RN message protocol ----
 
-/** Messages sent from React Native → WebView. */
-export type RNToWebViewMessage =
-  | {
-      type: 'SET_DATA';
-      payload: { data: LivelinePoint[]; value: number };
-    }
-  | {
-      type: 'UPDATE_VALUE';
-      payload: { time: number; value: number };
-    }
-  | {
-      type: 'SET_SERIES';
-      payload: { series: LivelineSeries[] | null };
-    }
-  | {
-      type: 'SET_PROPS';
-      payload: {
-        loading?: boolean;
-        paused?: boolean;
-        emptyText?: string;
-        candles?: CandlePoint[] | null;
-        liveCandle?: CandlePoint | null;
-        lineData?: LivelinePoint[] | null;
-        lineValue?: number | null;
-        hiddenSeriesIds?: string[] | null;
-      };
-    };
+/**
+ * Single message type sent from React Native → WebView.
+ * The full props snapshot is sent on every change; the WebView calls
+ * `root.render(createElement(Liveline, props))` on receipt.
+ */
+export interface RNToWebViewMessage {
+  type: 'SET_PROPS';
+  payload: Omit<LivelineChartProps, 'height' | 'onChartReady' | 'onError'>;
+}
 
 /** Messages sent from WebView → React Native. */
 export type WebViewToRNMessage =
-  | { type: 'CHART_READY'; payload: Record<string, never> }
+  | { type: 'CHART_READY' }
   | { type: 'ERROR'; payload: { message: string } }
-  | { type: 'HOVER'; payload: HoverPoint | null };
+  | { type: 'HOVER'; payload: HoverPoint | null }
+  | { type: 'WINDOW_CHANGE'; payload: { secs: number } }
+  | { type: 'MODE_CHANGE'; payload: { mode: 'line' | 'candle' } }
+  | { type: 'SERIES_TOGGLE'; payload: { id: string; visible: boolean } };
 
 /**
- * Type-safe parser for incoming WebView messages.
+ * Type-safe parser for incoming WebView → RN messages.
  */
 export const parseWebViewMessage = (
   raw: unknown,
@@ -193,7 +210,7 @@ export const parseWebViewMessage = (
 
   switch (obj.type) {
     case 'CHART_READY':
-      return { type: 'CHART_READY', payload: {} };
+      return { type: 'CHART_READY' };
     case 'ERROR': {
       const payload = obj.payload as { message?: string } | undefined;
       return {
@@ -204,6 +221,29 @@ export const parseWebViewMessage = (
     case 'HOVER': {
       const payload = obj.payload as HoverPoint | null | undefined;
       return { type: 'HOVER', payload: payload ?? null };
+    }
+    case 'WINDOW_CHANGE': {
+      const payload = obj.payload as { secs?: number } | undefined;
+      return {
+        type: 'WINDOW_CHANGE',
+        payload: { secs: payload?.secs ?? 0 },
+      };
+    }
+    case 'MODE_CHANGE': {
+      const payload = obj.payload as { mode?: 'line' | 'candle' } | undefined;
+      return {
+        type: 'MODE_CHANGE',
+        payload: { mode: payload?.mode ?? 'line' },
+      };
+    }
+    case 'SERIES_TOGGLE': {
+      const payload = obj.payload as
+        | { id?: string; visible?: boolean }
+        | undefined;
+      return {
+        type: 'SERIES_TOGGLE',
+        payload: { id: payload?.id ?? '', visible: payload?.visible ?? true },
+      };
     }
     default:
       return null;
