@@ -126,7 +126,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -825,7 +825,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1524,7 +1524,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2223,7 +2223,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2922,7 +2922,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -3621,7 +3621,7 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
