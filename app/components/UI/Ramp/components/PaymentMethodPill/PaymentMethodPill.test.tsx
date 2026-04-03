@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
-import { PaymentIconType } from '@consensys/on-ramp-sdk/dist/API';
 import PaymentMethodPill from './PaymentMethodPill';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
@@ -72,7 +71,7 @@ describe('PaymentMethodPill', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders generic card when paymentType is unknown and there are no API icons', () => {
+  it('renders generic card when paymentType is unknown', () => {
     const { queryByTestId } = renderWithTheme(
       <PaymentMethodPill
         label="Pay"
@@ -85,32 +84,12 @@ describe('PaymentMethodPill', () => {
     expect(queryByTestId('mock-payment-method-icon')).toBeNull();
   });
 
-  it('renders PaymentMethodIcon when API provides icons even if paymentType is unknown', () => {
-    const { getByTestId } = renderWithTheme(
-      <PaymentMethodPill
-        label="Pay"
-        paymentMethod={{
-          paymentType: 'future-payment-method',
-          icons: [
-            {
-              type: PaymentIconType.FontAwesome,
-              name: 'credit-card',
-            },
-          ],
-        }}
-      />,
-    );
-
-    expect(getByTestId('mock-payment-method-icon')).toBeOnTheScreen();
-  });
-
   it('renders PaymentMethodIcon when paymentMethod has paymentType', () => {
     const { getByText, getByTestId } = renderWithTheme(
       <PaymentMethodPill
         label="Apple Pay"
         paymentMethod={{
           paymentType: PaymentType.ApplePay,
-          icons: [],
         }}
       />,
     );

@@ -1,7 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import type { PaymentMethod } from '@metamask/ramps-controller';
-import type { Payment } from '@consensys/on-ramp-sdk';
 import {
   Icon,
   IconName,
@@ -22,10 +21,8 @@ import { PAYMENT_METHOD_PILL_TEST_IDS } from './PaymentMethodPill.testIds';
 
 const PAYMENT_METHOD_ICON_SIZE = 16;
 
-/** Controller `PaymentMethod` plus optional SDK-style `icons` from the payment-methods API. */
-export type PaymentMethodForPill = Pick<PaymentMethod, 'paymentType'> & {
-  icons?: Payment['icons'];
-};
+/** `paymentType` only — same icon path as the payment list on `main` (e.g. FontAwesome apple for Apple Pay). */
+export type PaymentMethodForPill = Pick<PaymentMethod, 'paymentType'>;
 
 export interface PaymentMethodPillProps {
   /** Payment method label (e.g., "Debit card") */
@@ -37,8 +34,8 @@ export interface PaymentMethodPillProps {
   /** Test ID for testing */
   testID?: string;
   /**
-   * When set (unified buy v2), the leading icon matches the payment method.
-   * When omitted or without `paymentType`, shows the generic card icon (e.g. “Select payment method”).
+   * When set (unified buy v2), the leading icon matches the parsed `paymentType` (same vectors as the payment list).
+   * When omitted or when `paymentType` does not map to a known SDK type, shows the generic card icon.
    */
   paymentMethod?: PaymentMethodForPill | null;
 }
@@ -55,8 +52,7 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
 
   const hasKnownPaymentType =
     parseRampPaymentType(paymentMethod?.paymentType) != null;
-  const hasPaymentIcons = (paymentMethod?.icons?.length ?? 0) > 0;
-  const shouldRenderMethodIcon = hasKnownPaymentType || hasPaymentIcons;
+  const shouldRenderMethodIcon = hasKnownPaymentType;
 
   if (isLoading) {
     return (
@@ -79,7 +75,6 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
       <View style={styles.iconWrapper}>
         {shouldRenderMethodIcon ? (
           <PaymentMethodIcon
-            paymentMethodIcons={paymentMethod?.icons}
             paymentMethodType={paymentMethod?.paymentType}
             size={PAYMENT_METHOD_ICON_SIZE}
             color={colors.icon.default}
