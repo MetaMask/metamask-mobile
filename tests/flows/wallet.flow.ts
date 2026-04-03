@@ -2,13 +2,18 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
+  PlaywrightAssertions,
+  PlaywrightGestures,
   PortManager,
   ResourceType,
   sleep,
   Utilities,
 } from '../framework';
 import Assertions from '../framework/Assertions';
-import { asDetoxElement } from '../framework/EncapsulatedElement';
+import {
+  asDetoxElement,
+  asPlaywrightElement,
+} from '../framework/EncapsulatedElement';
 import NetworkEducationModal from '../page-objects/Network/NetworkEducationModal';
 import {
   getAnvilPortForFixture,
@@ -21,7 +26,6 @@ import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
 import Accounts from '../../wdio/helpers/Accounts';
-import MetaMetricsOptIn from '../page-objects/Onboarding/MetaMetricsOptInView';
 import EnableDeviceNotificationsAlert from '../page-objects/Onboarding/EnableDeviceNotificationsAlert';
 import ProtectYourWalletModal from '../page-objects/Onboarding/ProtectYourWalletModal';
 import SkipAccountSecurityModal from '../page-objects/Onboarding/SkipAccountSecurityModal';
@@ -31,6 +35,11 @@ import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
 import { waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
+import { getPasswordForScenario } from '../framework/utils/TestConstants';
+import PlaywrightUtilities from '../framework/PlaywrightUtilities';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
+import PredictModalView from '../page-objects/Predict/PredictModalView';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -213,14 +222,14 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapCreatePasswordButton();
 
   if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+    await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
       description: 'MetaMetrics Opt-In should be visible',
     });
     if (!optInToMetrics) {
-      await MetaMetricsOptIn.tapMetricsCheckbox();
+      await MetaMetricsOptInView.tapMetricsCheckbox();
     }
 
-    await MetaMetricsOptIn.tapAgreeButton();
+    await MetaMetricsOptInView.tapAgreeButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -323,14 +332,14 @@ export const CreateNewWallet = async ({
   });
   await ManualBackupStep1View.tapOnRemindMeLaterButton();
 
-  await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+  await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
   if (!optInToMetrics) {
-    await MetaMetricsOptIn.tapMetricsCheckbox();
+    await MetaMetricsOptInView.tapMetricsCheckbox();
   }
 
-  await MetaMetricsOptIn.tapAgreeButton();
+  await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -421,5 +430,132 @@ export const loginToApp = async (password?: string): Promise<void> => {
       interval: 3000,
       description: 'login to app after rehydration',
     },
+  );
+};
+
+// Playwright (appium specific functions)
+// -----------------------------------------
+/**
+ * Logs into the application using the provided password or a default password.
+ *
+ * @async
+ * @function loginToAppPlaywright
+ */
+export const loginToAppPlaywright = async (
+  options: { scenarioType?: string; dismissModals?: boolean } = {},
+): Promise<void> => {
+  const { scenarioType = 'login' } = options;
+
+  const password = getPasswordForScenario(scenarioType);
+  // Type password and unlock
+  await LoginView.enterPassword(password ?? '');
+  await LoginView.tapLoginButton();
+
+  await PlaywrightUtilities.wait(5000);
+};
+
+/**
+ * Selects the account for the device based on the device-matrix.json file.
+ * @param deviceName - The name of the device the test is running on to map
+ * against the device-matrix.json file
+ * @returns {Promise<void>} Resolves when the account is selected.
+ * @throws {Error} Throws an error if the account name is not found for the device.
+ */
+export const selectAccountByDevice = async (
+  deviceName: string,
+): Promise<void> => {
+  const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
+  const accountName = deviceAccountMapping[deviceName];
+
+  if (!(deviceName in deviceAccountMapping)) {
+    throw new Error(`Account name not found for device: ${deviceName}`);
+  }
+
+  if (!accountName) {
+    logger.info(
+      `Device "${deviceName}" uses default Account 1 — skipping account switch`,
+    );
+    return;
+  }
+
+  logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
+
+  await WalletView.tapIdenticon();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(AccountListBottomSheet.accountList),
+  );
+  await AccountListBottomSheet.waitForAccountSyncToComplete();
+  await AccountListBottomSheet.tapAccountByNameV2(accountName);
+};
+
+/**
+ * Dismisses the predictions modal.
+ * @async
+ * @function dismisspredictionsModalPlaywright
+ * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
+ */
+export const dismisspredictionsModalPlaywright = async (): Promise<void> => {
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(PredictModalView.notNowButton),
+    );
+    await PredictModalView.tapNotNowButton();
+  } catch {
+    logger.error('Predict Modal Not Now Button is not visible');
+  }
+};
+
+/**
+ * Completes the onboarding flow for importing a SRP.
+ * @param srp - The SRP to import.
+ * @returns {Promise<void>} Resolves when the onboarding flow for importing a SRP is complete.
+ */
+export const onboardingFlowImportSRPPlaywright = async (
+  srp: string,
+): Promise<void> => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingView.newWalletButton),
+  );
+
+  await OnboardingView.tapHaveAnExistingWallet();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingSheet.importSeedButton),
+  );
+
+  await OnboardingSheet.tapImportSeedButton();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(ImportWalletView.title),
+  );
+
+  await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
+
+  await ImportWalletView.tapContinueButton();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+  );
+
+  await CreatePasswordView.enterPassword(
+    getPasswordForScenario('onboarding') ?? '',
+  );
+  await CreatePasswordView.reEnterPassword(
+    getPasswordForScenario('onboarding') ?? '',
+  );
+  await CreatePasswordView.tapPasswordVisibilityIcon();
+  await PlaywrightGestures.hideKeyboard();
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
+
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+  );
+  await MetaMetricsOptInView.tapIAgreeButton();
+
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingSuccessView.doneButton),
+  );
+  await OnboardingSuccessView.tapDone();
+  await dismisspredictionsModalPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(WalletView.container),
   );
 };
