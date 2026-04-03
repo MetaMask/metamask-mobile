@@ -22,6 +22,6 @@ export const usePriceImpactFiat = (
 
   if (sourceFiat == null || destFiat == null) return undefined;
 
-  const diff = Number(sourceFiat) - Number(destFiat);
+  const diff = Math.abs(Number(sourceFiat) - Number(destFiat));
   return formatCurrency(diff, currentCurrency);
 };
