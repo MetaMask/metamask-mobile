@@ -101,6 +101,17 @@ describe('selectExploreSectionsOrder', () => {
     expect(result).toBeNull();
   });
 
+  it('returns null when an array contains duplicate IDs', () => {
+    const result = selectExploreSectionsOrder.resultFunc({
+      exploreSectionsOrder: {
+        ...validConfig,
+        home: ['tokens', 'tokens', 'sites'],
+      },
+    });
+
+    expect(result).toBeNull();
+  });
+
   it('unwraps a progressive rollout wrapper shape', () => {
     const result = selectExploreSectionsOrder.resultFunc({
       exploreSectionsOrder: {

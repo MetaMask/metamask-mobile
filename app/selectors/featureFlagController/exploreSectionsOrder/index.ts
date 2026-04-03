@@ -19,6 +19,7 @@ export interface ExploreSectionsOrderConfig {
 const isValidSectionIdArray = (arr: unknown): arr is SectionId[] =>
   Array.isArray(arr) &&
   arr.length > 0 &&
+  new Set(arr).size === arr.length &&
   arr.every((id) => typeof id === 'string' && VALID_SECTION_IDS.has(id));
 
 /**
