@@ -19789,7 +19789,7 @@ describe('RewardsController', () => {
         state: getRewardsControllerDefaultState(),
       });
 
-      mockMessenger.call.mockResolvedValue(mockActivity);
+      mockMessenger.call.mockResolvedValue(mockActivity as any);
 
       const result = await ctrl.getOndoCampaignActivity({
         campaignId: mockCampaignId,
@@ -19808,7 +19808,7 @@ describe('RewardsController', () => {
         state: getRewardsControllerDefaultState(),
       });
 
-      mockMessenger.call.mockResolvedValue(mockActivity);
+      mockMessenger.call.mockResolvedValue(mockActivity as any);
 
       await ctrl.getOndoCampaignActivity({
         campaignId: mockCampaignId,
