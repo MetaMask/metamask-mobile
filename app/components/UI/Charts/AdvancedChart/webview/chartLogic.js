@@ -745,9 +745,9 @@ function applyChartScaleLayout(type) {
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
       'paneProperties.separatorColor': theme.backgroundColor,
-      'paneProperties.topMargin': 5,
+      'paneProperties.topMargin': 8,
       // Same margin in both modes so scale padding (and logo anchor) does not shift on toggle.
-      'paneProperties.bottomMargin': 5,
+      'paneProperties.bottomMargin': 8,
     });
   } catch (e) {}
 
@@ -1695,6 +1695,8 @@ function buildChartDomUnclipCss(targetDoc) {
   return (
     p +
     '.layout__area--center,' +
+    p +
+    '.layout__area--right,' +
     p +
     '.js-rootresizer__contents,' +
     p +
