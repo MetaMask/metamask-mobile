@@ -95,7 +95,6 @@ function PaymentSelectionModal() {
             assetId,
             providers: selectedProvider ? [selectedProvider.id] : undefined,
             paymentMethods: paymentMethodIds,
-            forceRefresh: true,
           }
         : null,
     [

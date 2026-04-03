@@ -114,7 +114,6 @@ function ProviderSelectionModal() {
             assetId,
             providers: providerIds,
             paymentMethods: [selectedPaymentMethod.id],
-            forceRefresh: true,
           }
         : null,
     [
