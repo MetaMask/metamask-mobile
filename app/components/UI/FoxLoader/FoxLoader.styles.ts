@@ -1,8 +1,10 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 /**
  * Style sheet function for FoxLoader component.
@@ -21,9 +23,21 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    animationWrapper: {
+      alignItems: 'center',
+      width: screenWidth * 0.5,
+      height: screenWidth * 0.5,
+    },
+    riveAnimation: {
+      width: screenWidth * 0.5,
+      height: screenWidth * 0.5,
+    },
     image: {
       width: 72,
       height: 72,
+    },
+    hidden: {
+      opacity: 0,
     },
     spacer: {
       marginVertical: 16,
