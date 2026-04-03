@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleProp, TextStyle } from 'react-native';
+import { Image, ImageStyle, StyleProp, TextStyle } from 'react-native';
 import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 import { PaymentIcon, PaymentIconType } from '@consensys/on-ramp-sdk/dist/API';
 
+import { useAssetFromTheme } from '../../../../../util/theme';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import EvilIconsIcon from 'react-native-vector-icons/EvilIcons';
@@ -17,6 +18,14 @@ import MaterialsCommunityIconsIcon from 'react-native-vector-icons/MaterialCommu
 import OcticonsIcon from 'react-native-vector-icons/Octicons';
 import SimpleLineIconsIcon from 'react-native-vector-icons/SimpleLineIcons';
 import ZocialIcon from 'react-native-vector-icons/Zocial';
+
+/* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+const ApplePayLogoLight = require('images/ApplePayLogo-light.png');
+const ApplePayLogoDark = require('images/ApplePayLogo-dark.png');
+/* eslint-enable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+
+/** Box wider than tall so the mark fits payment rows (e.g. 44px icon circles) without clipping. */
+const APPLE_PAY_MARK_WIDTH_RATIO = 1.65;
 
 interface iconParams {
   paymentMethodIcons?: Payment['icons'];
@@ -108,22 +117,70 @@ function getIcon(icon: PaymentIcon) {
   return null;
 }
 
+function shouldUseBrandedApplePayMark(
+  paymentMethodType: PaymentType | undefined,
+  firstIcon: PaymentIcon | undefined,
+): boolean {
+  if (paymentMethodType !== PaymentType.ApplePay || !firstIcon) {
+    return false;
+  }
+  // Backend often maps Apple Pay to a generic FontAwesome "apple" glyph, which
+  // is not the Apple Pay mark and can render incorrectly on newer iOS builds.
+  return (
+    firstIcon.type === PaymentIconType.FontAwesome &&
+    firstIcon.name === Icon.Apple
+  );
+}
+
+const ApplePayMark: React.FC<{
+  size: number;
+  style?: StyleProp<ImageStyle>;
+}> = ({ size, style }) => {
+  // `ApplePayLogoLight` / `ApplePayLogoDark` match the full checkout button: light
+  // theme uses the white mark on a black button; dark theme uses the dark mark on a
+  // white button. PaymentMethodIcon renders on muted / section surfaces instead, so
+  // we swap: light app theme → dark artwork, dark app theme → light artwork.
+  const source = useAssetFromTheme(ApplePayLogoDark, ApplePayLogoLight);
+  return (
+    <Image
+      accessibilityIgnoresInvertColors
+      source={source}
+      style={[
+        {
+          width: Math.round(size * APPLE_PAY_MARK_WIDTH_RATIO),
+          height: size,
+        },
+        style,
+      ]}
+      resizeMode="contain"
+    />
+  );
+};
+
 const PaymentMethodIcon = ({
   paymentMethodIcons,
   paymentMethodType,
   ...props
 }: iconParams & Omit<React.ComponentProps<typeof AntDesignIcon>, 'name'>) => {
-  if (paymentMethodIcons && paymentMethodIcons.length > 0) {
-    const IconComponent = getIcon(paymentMethodIcons[0]);
+  const firstIcon =
+    paymentMethodIcons && paymentMethodIcons.length > 0
+      ? paymentMethodIcons[0]
+      : undefined;
+
+  if (
+    firstIcon &&
+    !shouldUseBrandedApplePayMark(paymentMethodType, firstIcon)
+  ) {
+    const IconComponent = getIcon(firstIcon);
     if (IconComponent) {
-      return <IconComponent name={paymentMethodIcons[0].name} {...props} />;
+      return <IconComponent name={firstIcon.name} {...props} />;
     }
   }
 
   if (paymentMethodType) {
     switch (paymentMethodType) {
       case PaymentType.ApplePay: {
-        return <FontAwesomeIcon name={Icon.Apple} {...props} />;
+        return <ApplePayMark size={props.size} style={props.style} />;
       }
       case PaymentType.GooglePay: {
         return <FontAwesomeIcon name={Icon.GooglePay} {...props} />;
