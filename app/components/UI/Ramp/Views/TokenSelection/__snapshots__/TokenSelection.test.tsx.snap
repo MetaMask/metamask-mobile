@@ -551,6 +551,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -664,6 +665,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -777,6 +779,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -1627,6 +1630,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -1740,6 +1744,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -1853,6 +1858,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -4209,6 +4215,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -4322,6 +4329,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }
@@ -4435,6 +4443,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             "borderRadius": 4,
                                             "height": 16,
                                             "justifyContent": "center",
+                                            "marginRight": 8,
                                             "overflow": "hidden",
                                             "width": 16,
                                           }

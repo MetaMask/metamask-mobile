@@ -158,112 +158,36 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
           },
         ]
       }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 32,
-            "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-          },
-          {
-            "transform": [
-              {
-                "scale": 1,
-              },
-            ],
-          },
-        ]
-      }
     >
       <View
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Ethereum
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -353,59 +277,31 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Optimism
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -495,59 +391,31 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Polygon
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -735,112 +603,36 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
           },
         ]
       }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#b4b4b528",
-            "borderColor": "transparent",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 32,
-            "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-          },
-          {
-            "transform": [
-              {
-                "scale": 1,
-              },
-            ],
-          },
-        ]
-      }
     >
       <View
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Ethereum
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -930,59 +722,31 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Optimism
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -1072,59 +836,31 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Polygon
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -1312,110 +1048,36 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
           },
         ]
       }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "columnGap": 8,
-            "flexDirection": "row",
-            "height": 32,
-            "justifyContent": "center",
-            "minWidth": 80,
-            "opacity": 1,
-            "overflow": "hidden",
-            "paddingLeft": 16,
-            "paddingRight": 16,
-          },
-          {
-            "transform": [
-              {
-                "scale": 1,
-              },
-            ],
-          },
-        ]
-      }
     >
       <View
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Ethereum
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -1505,59 +1167,31 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Optimism
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
@@ -1647,59 +1281,31 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         style={{}}
       >
         <View
-          alignItems="center"
-          flexDirection="row"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "height": 16,
+              "justifyContent": "center",
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
+            }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 4,
                 "height": 16,
-                "justifyContent": "center",
-                "marginRight": 8,
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Polygon
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
       </View>
       <View
