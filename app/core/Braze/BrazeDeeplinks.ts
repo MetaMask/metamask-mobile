@@ -52,6 +52,11 @@ export function subscribeToBrazePushDeeplinks(
     return Braze.addListener(
       Braze.Events.PUSH_NOTIFICATION_EVENT,
       (event: PushNotificationEvent) => {
+        // Only handle user-tapped notifications, not foreground-received ones
+        if (event.payload_type !== 'push_opened') {
+          return;
+        }
+
         if (event.is_braze_internal || event.is_silent) {
           return;
         }

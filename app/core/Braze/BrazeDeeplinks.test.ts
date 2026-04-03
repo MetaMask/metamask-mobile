@@ -107,6 +107,7 @@ describe('BrazeDeeplinks', () => {
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
+        payload_type: 'push_opened',
         url: 'https://link.metamask.io/rewards',
         is_braze_internal: false,
         is_silent: false,
@@ -125,6 +126,23 @@ describe('BrazeDeeplinks', () => {
       expect(Braze.addListener).not.toHaveBeenCalled();
     });
 
+    it('ignores push_received events (foreground notifications)', () => {
+      Object.defineProperty(Platform, 'OS', { value: 'android' });
+      const callback = jest.fn();
+
+      subscribeToBrazePushDeeplinks(callback);
+
+      const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
+      handler({
+        payload_type: 'push_received',
+        url: 'https://link.metamask.io/home',
+        is_braze_internal: false,
+        is_silent: false,
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
     it('ignores silent push notifications', () => {
       Object.defineProperty(Platform, 'OS', { value: 'android' });
       const callback = jest.fn();
@@ -133,6 +151,7 @@ describe('BrazeDeeplinks', () => {
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
+        payload_type: 'push_opened',
         url: 'https://link.metamask.io/home',
         is_braze_internal: false,
         is_silent: true,
@@ -149,6 +168,7 @@ describe('BrazeDeeplinks', () => {
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
+        payload_type: 'push_opened',
         url: 'https://link.metamask.io/home',
         is_braze_internal: true,
         is_silent: false,
@@ -165,6 +185,7 @@ describe('BrazeDeeplinks', () => {
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
+        payload_type: 'push_opened',
         url: '',
         is_braze_internal: false,
         is_silent: false,
