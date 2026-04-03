@@ -26,7 +26,7 @@ import {
   UNAUTHENTICATED_CACHE_DURATION,
 } from '../constants';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import Engine from '../../../../core/Engine';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import {
@@ -141,7 +141,7 @@ export const useGetPriorityCardToken = (
   } | null,
 ) => {
   const { TokensController, NetworkController } = Engine.context;
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const { sdk } = useCardSDK();
 
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(

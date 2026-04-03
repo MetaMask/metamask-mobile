@@ -2,11 +2,11 @@ import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectOnboardingId } from '../../../redux/slices/card';
 import {
-  selectIsAuthenticatedCard,
-  selectOnboardingId,
-} from '../../../redux/slices/card';
-import { selectCardUserLocation } from '../../../../selectors/cardController';
+  selectCardUserLocation,
+  selectIsCardAuthenticated,
+} from '../../../../selectors/cardController';
 import {
   selectCardFeatureFlag,
   CardFeatureFlag,
@@ -48,7 +48,7 @@ export const handleCardKycNotification = async () => {
 
     // Get user state
     const onboardingId = selectOnboardingId(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const cardFeatureFlag = selectCardFeatureFlag(state);
 
     Logger.log('[handleCardKycNotification] User state:', {

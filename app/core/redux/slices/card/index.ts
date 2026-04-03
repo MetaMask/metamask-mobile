@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
-import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -76,12 +75,6 @@ export const selectHasViewedCardButton = createSelector(
   selectCardState,
   (card) => card.hasViewedCardButton,
 );
-
-/**
- * Re-exported from cardController selectors — reads from controller state,
- * which is populated by validateAndRefreshSession() on app unlock.
- */
-export { selectIsCardAuthenticated as selectIsAuthenticatedCard };
 
 export const selectIsDaimoDemo = createSelector(
   selectCardState,

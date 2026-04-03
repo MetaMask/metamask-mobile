@@ -89,8 +89,7 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
-import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
-import {
+import { selectIsCardAuthenticated ,
   selectCardholderAccounts,
   selectCardUserLocation,
 } from '../../../../../selectors/cardController';
@@ -604,7 +603,7 @@ function setupMockSelectors(
     if (selector === selectDepositMinimumVersionFlag)
       return config.depositMinVersion;
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
-    if (selector === selectIsAuthenticatedCard) return config.isAuthenticated;
+    if (selector === selectIsCardAuthenticated) return config.isAuthenticated;
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;

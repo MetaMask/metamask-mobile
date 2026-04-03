@@ -3,11 +3,11 @@ import ReduxService from '../../../../redux';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { selectOnboardingId } from '../../../../redux/slices/card';
 import {
-  selectIsAuthenticatedCard,
-  selectOnboardingId,
-} from '../../../../redux/slices/card';
-import { selectCardUserLocation } from '../../../../../selectors/cardController';
+  selectCardUserLocation,
+  selectIsCardAuthenticated,
+} from '../../../../../selectors/cardController';
 import { selectCardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../../../../../components/UI/Card/sdk/CardSDK';
 
@@ -21,6 +21,7 @@ jest.mock('../../../../redux', () => ({
 }));
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../redux/slices/card');
+jest.mock('../../../../../selectors/cardController');
 jest.mock('../../../../../selectors/featureFlagController/card');
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../../util/Logger');
@@ -61,7 +62,7 @@ describe('handleCardKycNotification', () => {
     } as unknown as typeof NavigationService.navigation;
 
     (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
-    (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
+    (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(false);
     (selectCardUserLocation as unknown as jest.Mock).mockReturnValue(
       'international',
     );
@@ -254,7 +255,7 @@ describe('handleCardKycNotification', () => {
   describe('authenticated flow', () => {
     beforeEach(() => {
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
-      (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(true);
+      (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(true);
     });
 
     describe('when user is REJECTED', () => {
@@ -403,7 +404,7 @@ describe('handleCardKycNotification', () => {
   describe('fallback behavior', () => {
     beforeEach(() => {
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
-      (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+      (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
         false,
       );
     });
@@ -498,7 +499,7 @@ describe('handleCardKycNotification', () => {
       const apiError = new Error('API error');
 
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           true,
         );
         mockGetUserDetails.mockRejectedValue(apiError);
@@ -559,7 +560,7 @@ describe('handleCardKycNotification', () => {
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(
         'test-onboarding-id',
       );
-      (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+      (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
         false,
       );
       mockGetRegistrationStatus.mockResolvedValue({

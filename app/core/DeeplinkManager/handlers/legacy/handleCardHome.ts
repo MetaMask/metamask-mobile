@@ -4,8 +4,10 @@ import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
-import { selectIsAuthenticatedCard } from '../../../redux/slices/card';
-import { selectCardholderAccounts } from '../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardholderAccounts,
+} from '../../../../selectors/cardController';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
@@ -39,7 +41,7 @@ export const handleCardHome = () => {
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
 
     if (isAuthenticated || hasCardLinkedAccount) {

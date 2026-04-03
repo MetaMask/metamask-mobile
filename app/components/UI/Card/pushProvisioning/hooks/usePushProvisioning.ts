@@ -24,8 +24,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
 import { useCardSDK } from '../../sdk';
-import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
-import { selectCardUserLocation } from '../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardUserLocation,
+} from '../../../../../selectors/cardController';
 import {
   selectGalileoAppleWalletProvisioningEnabled,
   selectGalileoGoogleWalletProvisioningEnabled,
@@ -81,7 +83,7 @@ export function usePushProvisioning(
   // Get SDK and location
   const { sdk: cardSDK, isLoading: isSDKLoading } = useCardSDK();
   const userCardLocation = useSelector(selectCardUserLocation);
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
 
   // Get feature flags for push provisioning
   const isAppleWalletProvisioningEnabled = useSelector(

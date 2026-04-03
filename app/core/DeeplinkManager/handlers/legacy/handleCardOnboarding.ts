@@ -4,8 +4,10 @@ import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
-import { selectIsAuthenticatedCard } from '../../../redux/slices/card';
-import { selectCardholderAccounts } from '../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardholderAccounts,
+} from '../../../../selectors/cardController';
 
 /**
  * Card onboarding deeplink handler
@@ -34,7 +36,7 @@ export const handleCardOnboarding = () => {
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
 
     // If user is logged in OR has a card-linked account

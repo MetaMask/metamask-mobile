@@ -5,8 +5,10 @@ import Engine from '../../../../Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { selectIsAuthenticatedCard } from '../../../../redux/slices/card';
-import { selectCardholderAccounts } from '../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardholderAccounts,
+} from '../../../../../selectors/cardController';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 
 jest.mock('../../../../redux', () => ({
@@ -54,7 +56,7 @@ describe('handleCardHome', () => {
     } as unknown as typeof NavigationService.navigation;
 
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
-    (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
+    (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(false);
     (selectInternalAccounts as unknown as jest.Mock).mockReturnValue([
       { address: mockInternalAccountAddress },
     ]);
@@ -68,7 +70,7 @@ describe('handleCardHome', () => {
   describe('navigation behavior', () => {
     describe('when user is authenticated without card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           true,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
@@ -103,7 +105,7 @@ describe('handleCardHome', () => {
 
     describe('when user is authenticated and has card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           true,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
@@ -132,7 +134,7 @@ describe('handleCardHome', () => {
 
     describe('when user is not authenticated but has card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
@@ -180,7 +182,7 @@ describe('handleCardHome', () => {
 
     describe('when user is not authenticated and has no card-linked account', () => {
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
@@ -215,7 +217,7 @@ describe('handleCardHome', () => {
       const secondCardholderCaipId = `eip155:1:${secondCardholderAddress}`;
 
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
@@ -343,7 +345,7 @@ describe('handleCardHome', () => {
       const switchError = new Error('Account switch failed');
 
       beforeEach(() => {
-        (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
+        (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(
           false,
         );
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
