@@ -8,7 +8,11 @@
 import { Platform } from 'react-native';
 import { CardSDK } from '../sdk/CardSDK';
 import { GalileoCardAdapter, ICardProviderAdapter } from './adapters/card';
-import { GoogleWalletAdapter, IWalletProviderAdapter } from './adapters/wallet';
+import {
+  AppleWalletAdapter,
+  GoogleWalletAdapter,
+  IWalletProviderAdapter,
+} from './adapters/wallet';
 import { CardLocation } from '../types';
 
 /**
@@ -37,8 +41,11 @@ export function getCardProvider(
  * @returns The wallet provider adapter for the current platform, or null if not supported
  */
 export function getWalletProvider(): IWalletProviderAdapter | null {
-  if (Platform.OS === 'android') {
+  if (Platform.OS === 'ios') {
+    return new AppleWalletAdapter();
+  } else if (Platform.OS === 'android') {
     return new GoogleWalletAdapter();
   }
+
   return null;
 }

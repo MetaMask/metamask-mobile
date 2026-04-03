@@ -473,7 +473,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet as ScreenComponent}
+      component={AddNewAccountBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -482,7 +482,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal as ScreenComponent}
+      component={SDKSessionModal}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -494,7 +494,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal as ScreenComponent}
+      component={SDKDisconnectModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -531,7 +531,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
-      component={BasicFunctionalityModal as ScreenComponent}
+      component={BasicFunctionalityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
@@ -547,17 +547,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation as ScreenComponent}
+      component={AssetHideConfirmation}
     />
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions as ScreenComponent}
-    />
-    <Stack.Screen
-      name={'NftOptions'}
-      component={NftOptions as ScreenComponent}
-    />
+    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+    <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
     <Stack.Screen
       name={Routes.MODAL.OTA_UPDATES_MODAL}
@@ -571,7 +565,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     }
     <Stack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
-      component={SRPQuiz as ScreenComponent}
+      component={SRPQuiz}
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
@@ -607,11 +601,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-      component={OriginSpamModal as ScreenComponent}
+      component={OriginSpamModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
-      component={ChangeInSimulationModal as ScreenComponent}
+      component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
@@ -625,7 +619,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
-      component={LearnMoreBottomSheet as ScreenComponent}
+      component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -634,7 +628,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
-      component={ReturnToAppNotification as ScreenComponent}
+      component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
     />
     <Stack.Screen

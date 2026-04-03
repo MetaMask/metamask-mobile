@@ -29,12 +29,10 @@ import {
   IconSize,
   IconColor,
   TextField,
-  TextFieldSize,
   Button,
   ButtonVariant,
   ButtonSize,
   TextButton,
-  TextButtonSize,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
@@ -334,7 +332,6 @@ const ManualBackupStep1 = () => {
                 keyboardAppearance={themeAppearance}
                 autoCapitalize="none"
                 autoFocus
-                size={TextFieldSize.Lg}
               />
               {warningIncorrectPassword && (
                 <Text
@@ -454,7 +451,7 @@ const ManualBackupStep1 = () => {
         {!hasFunds && !backupFlow && !settingsBackup && (
           <TextButton
             onPress={showRemindLater}
-            size={TextButtonSize.BodyMd}
+            variant={TextVariant.BodyMd}
             testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
           >
             {strings('account_backup_step_1.remind_me_later')}
