@@ -170,8 +170,7 @@ describe('useCardProviderAuthentication', () => {
         refreshTokenExpiresAt: mockExchangeTokenResponse.refreshTokenExpiresIn,
         location: 'international',
       });
-      expect(mockSetIsAuthenticatedCard).toHaveBeenCalledWith(true);
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(result.current.error).toBeNull();
       expect(result.current.loading).toBe(false);
     });

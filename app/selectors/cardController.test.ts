@@ -11,7 +11,7 @@ import {
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
-import type { InternalAccount } from '@metamask/accounts-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('./multichainAccounts/accounts');
 jest.mock('../core/Multichain/utils');

@@ -526,7 +526,7 @@ describe('CardController — event subscriptions', () => {
     mockTokenStore.get.mockResolvedValue(null);
 
     const mockMessenger = buildMockMessenger();
-    mockMessenger.call.mockImplementation((action: string) => {
+    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
       if (action === 'AccountsController:getState') {
         return { internalAccounts: { accounts: {} } };
       }
