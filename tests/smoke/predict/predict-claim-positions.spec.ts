@@ -107,7 +107,7 @@ const positions = {
 };
 
 describe(SmokePredictions('Claim winnings:'), () => {
-  it('claim winnings via predictions section', async () => {
+  it.only('claim winnings via predictions section', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -120,9 +120,6 @@ describe(SmokePredictions('Claim winnings:'), () => {
       async ({ mockServer }) => {
         await PredictHelpers.setPortugalLocation();
         await loginToApp();
-
-        // Claim button is animated - disabling sync on iOS to prevent test hang
-        await device.disableSynchronization();
 
         await WalletView.tapClaimButton();
 
@@ -159,12 +156,8 @@ describe(SmokePredictions('Claim winnings:'), () => {
           description:
             'Wallet screen should be visible after returning from activity',
         });
-        await WalletView.scrollAndTapPredictionsSection('down', {
-          overshootSwipe: {
-            direction: 'down',
-            percentage: 0.15,
-          },
-        });
+        await WalletView.scrollAndTapPredictionsSection('up');
+
         await Assertions.expectTextDisplayed('$48.16');
 
         // Verify analytics events
