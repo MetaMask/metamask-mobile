@@ -68,7 +68,6 @@ const PerpsTooltipView: React.FC = () => {
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      shouldNavigateBack
       goBack={navigation.goBack}
       testID="perps-tooltip-bottom-sheet"
     >
