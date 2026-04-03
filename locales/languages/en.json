@@ -1191,7 +1191,15 @@
       "provider_fee": "Provider fee",
       "you_will_receive": "You receive",
       "continue": "Continue",
-      "funds_received": "{{amount}} {{symbol}} received"
+      "funds_received": "{{amount}} {{symbol}} received",
+      "toast_pending_title": "Withdrawal in progress",
+      "toast_pending_subtitle": "Available in about 1 minute",
+      "toast_completed_title": "Withdrawal complete",
+      "toast_completed_subtitle_generic": "Funds moved to your wallet",
+      "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
+      "toast_error_title": "Something went wrong",
+      "toast_error_description": "Failed to proceed with withdrawal"
     },
     "quote": {
       "network_fee": "Network fee",
