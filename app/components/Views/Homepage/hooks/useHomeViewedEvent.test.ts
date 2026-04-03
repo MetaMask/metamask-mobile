@@ -44,7 +44,6 @@ let mockContextValue = {
   visitId: 0,
   notifySectionViewed: mockNotifySectionViewed,
   getViewedSectionCount: jest.fn(() => 0),
-  getSessionMaxDepth: jest.fn(() => -1),
   appSessionId: 'test-app-session-id',
 };
 
@@ -94,7 +93,6 @@ describe('useHomeViewedEvent', () => {
       visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
       notifySectionViewed: mockNotifySectionViewed,
       getViewedSectionCount: jest.fn(() => 0),
-      getSessionMaxDepth: jest.fn(() => -1),
       appSessionId: 'test-app-session-id',
     };
   });
@@ -445,7 +443,6 @@ describe('useHomeViewedEvent', () => {
       mockContextValue = {
         ...mockContextValue,
         visitId: 2,
-        getSessionMaxDepth: jest.fn(() => 3),
         appSessionId: 'test-app-session-id',
       };
 
@@ -472,7 +469,6 @@ describe('useHomeViewedEvent', () => {
         entry_point: HomeEntryPointsValues.APP_OPENED,
         app_session_id: 'test-app-session-id',
         visit_number: 2,
-        max_scroll_depth_session: 3,
       });
     });
 
@@ -533,76 +529,6 @@ describe('useHomeViewedEvent', () => {
       );
     });
 
-    it('includes max_scroll_depth_session as max of sectionIndex and getSessionMaxDepth()', () => {
-      // sectionIndex=2, prior session max=4 → prior max wins via Math.max.
-      // Must use a rendered section (sectionRef !== null) — the Math.max branch
-      // only runs for viewport-checked sections; null-ref sections return
-      // getSessionMaxDepth() directly and would not catch a regression where
-      // Math.max is accidentally replaced with just sectionIndex.
-      mockContextValue = {
-        ...mockContextValue,
-        getSessionMaxDepth: jest.fn(() => 4),
-      };
-      const mockRef = createMockRef(0, 200); // fully visible
-
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: mockRef,
-          sectionIndex: 2,
-        }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ max_scroll_depth_session: 4 }),
-      );
-    });
-
-    it('reports current sectionIndex when it exceeds the prior session max', () => {
-      // sectionIndex=5, prior session max=2 → current section is the new deepest.
-      // Must use a rendered section (sectionRef !== null) — only viewport-checked
-      // sections apply Math.max; null-ref sections report getSessionMaxDepth() as-is.
-      mockContextValue = {
-        ...mockContextValue,
-        getSessionMaxDepth: jest.fn(() => 2),
-      };
-      const mockRef = createMockRef(0, 200); // fully visible
-
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: mockRef,
-          sectionIndex: 5,
-        }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ max_scroll_depth_session: 5 }),
-      );
-    });
-
-    it('reports sectionIndex as session max on first section viewed (prior max is -1)', () => {
-      // Prior session max is -1 (nothing viewed yet) → current section sets the depth.
-      // Must use a rendered section (sectionRef !== null) for the same reason above.
-      mockContextValue = {
-        ...mockContextValue,
-        getSessionMaxDepth: jest.fn(() => -1),
-      };
-      const mockRef = createMockRef(0, 200); // fully visible
-
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: mockRef,
-          sectionIndex: 0,
-        }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ max_scroll_depth_session: 0 }),
-      );
-    });
-
     it('calls notifySectionViewed with recordDepth=false for null-ref sections', () => {
       renderHook(() =>
         useHomeViewedEvent({
@@ -635,26 +561,6 @@ describe('useHomeViewedEvent', () => {
         HomeSectionNames.TOKENS,
         1,
         true, // viewport-checked section — should update depth
-      );
-    });
-
-    it('null-ref section does not include sectionIndex in max_scroll_depth_session', () => {
-      // Session max is 1, null-ref section is at index 4 — should NOT bump to 4.
-      mockContextValue = {
-        ...mockContextValue,
-        getSessionMaxDepth: jest.fn(() => 1),
-      };
-
-      renderHook(() =>
-        useHomeViewedEvent({
-          ...defaultParams,
-          sectionRef: null,
-          sectionIndex: 4,
-        }),
-      );
-
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ max_scroll_depth_session: 1 }),
       );
     });
   });

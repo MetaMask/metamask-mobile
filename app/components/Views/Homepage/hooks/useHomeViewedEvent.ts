@@ -67,7 +67,6 @@ const useHomeViewedEvent = ({
     entryPoint,
     visitId,
     notifySectionViewed,
-    getSessionMaxDepth,
     appSessionId,
   } = useHomepageScrollContext();
 
@@ -101,14 +100,6 @@ const useHomeViewedEvent = ({
           entry_point: entryPoint,
           app_session_id: appSessionId,
           visit_number: visitId,
-          // For rendered sections (sectionRef !== null), include the current
-          // sectionIndex via Math.max since notifySectionViewed hasn't updated
-          // the depth ref yet at this point in the call order. For non-rendered
-          // sections, just report the current session max — they don't affect depth.
-          max_scroll_depth_session:
-            sectionRef !== null
-              ? Math.max(sectionIndex, getSessionMaxDepth())
-              : getSessionMaxDepth(),
         })
         .build(),
     );
@@ -125,7 +116,6 @@ const useHomeViewedEvent = ({
     itemCount,
     entryPoint,
     appSessionId,
-    getSessionMaxDepth,
     trackEvent,
     createEventBuilder,
     notifySectionViewed,
