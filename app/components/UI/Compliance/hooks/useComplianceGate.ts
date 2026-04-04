@@ -64,13 +64,29 @@ export function useComplianceGate(address?: AddressInput) {
   // taps a button before the prefetch has resolved.
   const prefetchRef = useRef<Promise<unknown> | null>(null);
 
+  // Stores the resolved blocked status from the most recent API call.
+  // Default false = fail-open: assume not blocked until the API says otherwise.
+  // Reset to false at the start of each prefetch (while in-flight) so gate()
+  // never reads a stale result from a previous address.
+  const prefetchBlockedRef = useRef<boolean>(false);
+
   // Prefetch compliance status on mount and whenever the address changes.
-  // Errors are swallowed — gate() falls back to the cached Redux state.
   useEffect(() => {
-    if (!isComplianceEnabled) return;
-    prefetchRef.current = checkCompliance().catch(() => {
-      DevLogger.log('[useComplianceGate] Prefetch compliance check failed');
-    });
+    if (!isComplianceEnabled) {
+      prefetchBlockedRef.current = false;
+      return;
+    }
+    prefetchBlockedRef.current = false; // reset while in-flight
+    prefetchRef.current = checkCompliance()
+      .then((results) => {
+        prefetchBlockedRef.current = results
+          ? results.some((r) => r.blocked)
+          : false;
+      })
+      .catch(() => {
+        prefetchBlockedRef.current = false; // fail-open on error
+        DevLogger.log('[useComplianceGate] Prefetch compliance check failed');
+      });
   }, [isComplianceEnabled, checkCompliance]);
 
   const gate = useCallback(
@@ -83,11 +99,15 @@ export function useComplianceGate(address?: AddressInput) {
       }
 
       // If the prefetch is still in-flight (user tapped very quickly), wait for
-      // it to settle so we read a fresh isBlocked value from Redux.
+      // it to settle so prefetchBlockedRef reflects the fresh API result.
       // If it has already resolved this is effectively instant (~0ms).
       await prefetchRef.current;
 
-      if (isBlocked) {
+      // Read the fresh result from the ref — it was written by the prefetch
+      // .then() handler, so no closure staleness or store access needed.
+      const freshIsBlocked = isComplianceEnabled && prefetchBlockedRef.current;
+
+      if (freshIsBlocked) {
         DevLogger.log('[useComplianceGate] Wallet blocked, showing modal');
         showAccessRestrictedModal();
         return;
@@ -96,7 +116,7 @@ export function useComplianceGate(address?: AddressInput) {
       DevLogger.log('[useComplianceGate] Wallet not blocked, proceeding');
       return action();
     },
-    [isComplianceEnabled, isBlocked, showAccessRestrictedModal],
+    [isComplianceEnabled, showAccessRestrictedModal],
   );
 
   return useMemo(

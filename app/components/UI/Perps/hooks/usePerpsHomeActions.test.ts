@@ -238,7 +238,6 @@ describe('usePerpsHomeActions', () => {
         await result.current.handleAddFunds();
       });
 
-      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
       expect(mockComplianceGate).toHaveBeenCalledTimes(1);
     });

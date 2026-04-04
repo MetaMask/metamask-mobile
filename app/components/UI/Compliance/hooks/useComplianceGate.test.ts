@@ -43,7 +43,7 @@ const SAFE_ADDRESS = '0xSAFE';
 describe('useComplianceGate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default mock for checkCompliance calls triggered by the prefetch effect.
+    // Default: API returns no blocked wallets — drives prefetchBlockedRef inside gate().
     mockCheckWalletsCompliance.mockResolvedValue([]);
   });
 
@@ -159,7 +159,15 @@ describe('useComplianceGate', () => {
     it('blocks action and shows modal when cache says address is blocked', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
-        .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked
+        .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked (render)
+      // API returns blocked — drives prefetchBlockedRef inside gate().
+      mockCheckWalletsCompliance.mockResolvedValue([
+        {
+          address: BLOCKED_ADDRESS,
+          blocked: true,
+          checkedAt: '2025-01-01T00:00:00Z',
+        },
+      ]);
 
       const action = jest.fn();
       const { result } = renderHook(() => useComplianceGate(BLOCKED_ADDRESS));
@@ -174,7 +182,20 @@ describe('useComplianceGate', () => {
     it('blocks action and shows modal when any address in an array is blocked', async () => {
       mockUseSelector
         .mockReturnValueOnce(true) // selectComplianceEnabled
-        .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked
+        .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked (render)
+      // API returns one blocked address — drives prefetchBlockedRef inside gate().
+      mockCheckWalletsCompliance.mockResolvedValue([
+        {
+          address: SAFE_ADDRESS,
+          blocked: false,
+          checkedAt: '2025-01-01T00:00:00Z',
+        },
+        {
+          address: BLOCKED_ADDRESS,
+          blocked: true,
+          checkedAt: '2025-01-01T00:00:00Z',
+        },
+      ]);
 
       const action = jest.fn();
       const { result } = renderHook(() =>
