@@ -10,21 +10,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 
 import Logger from '../../../../util/Logger';
+import Engine from '../../../../core/Engine';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { useCardholderCheck } from '../hooks/useCardholderCheck';
-import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
 import {
-  selectUserCardLocation,
   selectOnboardingId,
   resetOnboardingState,
-  resetAuthenticatedData,
   setContactVerificationId,
-  setUserCardLocation,
 } from '../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
@@ -59,7 +56,7 @@ export const CardSDKProvider = ({
   ...props
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const userCardLocation = useSelector(selectUserCardLocation);
+  const userCardLocation = useSelector(selectCardUserLocation);
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -101,11 +98,11 @@ export const CardSDKProvider = ({
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
       }
-      dispatch(
-        setUserCardLocation(
-          mapCountryToLocation(userData.countryOfResidence ?? null),
-        ),
-      );
+      if (userData.countryOfResidence) {
+        Engine.context.CardController.setUserLocation(
+          mapCountryToLocation(userData.countryOfResidence),
+        );
+      }
 
       setUser(userData);
     } catch (err) {
@@ -135,23 +132,20 @@ export const CardSDKProvider = ({
   }, [sdk]);
 
   const logoutFromProvider = useCallback(async () => {
-    if (!sdk) {
-      throw new Error('SDK not available for logout');
-    }
-
     try {
-      await sdk.logout();
+      // CardController.logout() calls the provider API, removes stored tokens,
+      // and sets isAuthenticated = false in controller state.
+      await Engine.context.CardController.logout();
     } catch (error) {
       Logger.error(error as Error, {
         message: '[CardSDK] Logout failed, clearing local state anyway',
       });
     }
 
-    dispatch(resetAuthenticatedData());
     queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [sdk, dispatch, queryClient]);
+  }, [dispatch, queryClient]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(
@@ -199,18 +193,5 @@ export const withCardSDK =
       <Component {...props} />
     </CardSDKProvider>
   );
-
-/**
- * Component that performs cardholder verification.
- * This should be mounted at the app entry level to ensure
- * cardholder verification is always up-to-date.
- * Returns null as it's just a side-effect component.
- */
-export const CardVerification: React.FC = () => {
-  useCardholderCheck();
-  useCardAuthenticationVerification();
-
-  return null;
-};
 
 export default CardSDKContext;

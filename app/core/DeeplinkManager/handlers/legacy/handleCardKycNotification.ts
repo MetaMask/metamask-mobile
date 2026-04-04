@@ -2,11 +2,11 @@ import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectOnboardingId } from '../../../redux/slices/card';
 import {
-  selectIsAuthenticatedCard,
-  selectOnboardingId,
-  selectUserCardLocation,
-} from '../../../redux/slices/card';
+  selectCardUserLocation,
+  selectIsCardAuthenticated,
+} from '../../../../selectors/cardController';
 import {
   selectCardFeatureFlag,
   CardFeatureFlag,
@@ -48,7 +48,7 @@ export const handleCardKycNotification = async () => {
 
     // Get user state
     const onboardingId = selectOnboardingId(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const cardFeatureFlag = selectCardFeatureFlag(state);
 
     Logger.log('[handleCardKycNotification] User state:', {
@@ -121,7 +121,7 @@ async function handleOnboardingFlow(
   );
 
   // Get location from selectedCountry
-  const location = selectUserCardLocation(state);
+  const location = selectCardUserLocation(state);
 
   Logger.log('[handleCardKycNotification] Determined location:', {
     location,
@@ -156,7 +156,7 @@ async function handleAuthenticatedFlow(
   Logger.log('[handleCardKycNotification] Handling authenticated flow');
 
   // Get location directly from userCardLocation (already stored for authenticated users)
-  const userCardLocation = selectUserCardLocation(state);
+  const userCardLocation = selectCardUserLocation(state);
 
   Logger.log(
     '[handleCardKycNotification] User card location:',
