@@ -35,8 +35,6 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useComplianceGate } from '../../../Compliance';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import {
   getPerpsDisplaySymbol,
   PERPS_EVENT_PROPERTY,
@@ -92,8 +90,6 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     useState(false);
 
   const isEligible = useSelector(selectPerpsEligibility);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
     let direction: OpenOrderCardDerivedData['direction'];
@@ -146,33 +142,31 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       return;
     }
 
-    return gate(async () => {
-      if (!isEligible) {
-        // Track geo-block screen viewed
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
-            .addProperties({
-              [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-                PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-              [PERPS_EVENT_PROPERTY.SOURCE]:
-                PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
-            })
-            .build(),
-        );
-        setIsEligibilityModalVisible(true);
-        return;
-      }
+    if (!isEligible) {
+      // Track geo-block screen viewed
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
+          .addProperties({
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
+          })
+          .build(),
+      );
+      setIsEligibilityModalVisible(true);
+      return;
+    }
 
-      // Set local state immediately to prevent rapid clicks
-      isLocallyCancellingRef.current = true;
+    // Set local state immediately to prevent rapid clicks
+    isLocallyCancellingRef.current = true;
 
-      DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
-        orderId: order.orderId,
-      });
-
-      onCancel?.(order);
+    DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
+      orderId: order.orderId,
     });
-  }, [gate, isEligible, onCancel, order, trackEvent, createEventBuilder]);
+
+    onCancel?.(order);
+  }, [isEligible, onCancel, order, trackEvent, createEventBuilder]);
 
   const handleCardPress = useCallback(() => {
     if (onSelect) {

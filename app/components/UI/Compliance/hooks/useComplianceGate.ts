@@ -54,11 +54,11 @@ export function useComplianceGate(address?: AddressInput) {
   const isBlocked = isComplianceEnabled && rawIsBlocked;
 
   const checkCompliance = useCallback(async () => {
-    if (!address) return undefined;
+    if (!addressKey) return undefined;
     return Engine.context.ComplianceController.checkWalletsCompliance(
       addresses,
     );
-  }, [addresses, address]);
+  }, [addresses, addressKey]);
 
   // Holds the in-flight prefetch promise so gate() can await it if the user
   // taps a button before the prefetch has resolved.

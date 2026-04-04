@@ -367,9 +367,11 @@ describe('usePerpsHomeActions', () => {
   describe('handleWithdraw - feature flag enabled (withdraw to any token)', () => {
     beforeEach(() => {
       // First call: selectPerpsEligibility → true
-      // Second call: selectPayQuoteConfig → { enabled: true }
+      // Second call: selectSelectedInternalAccountAddress → address string
+      // Third call: selectPayQuoteConfig → { enabled: true }
       (useSelector as jest.Mock)
         .mockReturnValueOnce(true)
+        .mockReturnValueOnce('0x1234567890abcdef1234567890abcdef12345678')
         .mockReturnValueOnce({ enabled: true });
     });
 
