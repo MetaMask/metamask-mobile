@@ -24,14 +24,13 @@ The compliance system is composed of two Engine-level modules:
            ▼
 ┌──────────────────────────┐
 │  Redux selectors         │
-│  selectIsWalletBlocked   │
+│  selectAreAnyWalletsBlocked │
 └──────────┬───────────────┘
            │
            ▼
 ┌──────────────────────────────────────────┐
 │  React hooks                             │
-│  useWalletCompliance  (base layer)       │
-│  useComplianceGate    (gate() wrapper)   │
+│  useComplianceGate    (public API)       │
 └──────────┬───────────────────────────────┘
            │
            ▼
@@ -43,13 +42,13 @@ The compliance system is composed of two Engine-level modules:
 
 Compliance is gated behind the `complianceEnabled` remote feature flag. When the flag is `false` (the default):
 
-- The `ComplianceController` is still instantiated (so its state slot exists in Redux), but `init()` is not called -- no API requests are made.
+- The `ComplianceController` is still instantiated (so its state slot exists in Redux), but no API requests are made.
 - `useComplianceGate` returns `isBlocked: false` and `gate()` skips the compliance check, executing the action directly.
 
 To enable compliance:
 
 1. Set `complianceEnabled: true` in LaunchDarkly (or via the local feature flag override screen in dev builds).
-2. The controller will fetch the blocked wallets list on next app launch.
+2. Compliance status will be fetched per-address whenever a gated action is triggered.
 
 > **Version gating:** The feature flag uses `validatedVersionGatedFeatureFlag`, which compares against the **native binary version** reported by `react-native-device-info`'s `getVersion()` — not `package.json`. If your device has a stale build installed, the version check may fail even if the flag is enabled. Do a clean native rebuild to pick up the correct version.
 
@@ -127,33 +126,7 @@ function SendConfirmation({ recipientAddress }: { recipientAddress: string }) {
 }
 ```
 
-### Option 3: `useWalletCompliance` (base layer, detailed control)
-
-Use this when you need the raw `checkCompliance` function without the feature flag guard or modal integration:
-
-```tsx
-import { useWalletCompliance } from 'app/components/UI/Compliance';
-
-function AddressInput({ address }: { address: string }) {
-  const { isBlocked, checkCompliance } = useWalletCompliance(address);
-
-  const handleSubmit = async () => {
-    const result = await checkCompliance();
-    if (result.blocked) {
-      // handle blocked
-    }
-  };
-
-  return (
-    <>
-      {isBlocked && <WarningBanner />}
-      <SubmitButton onPress={handleSubmit} />
-    </>
-  );
-}
-```
-
-### Option 4: Redux selectors (for non-component code)
+### Option 3: Redux selectors (for non-component code)
 
 ```typescript
 import { selectIsWalletBlocked } from 'app/selectors/complianceController';
@@ -162,24 +135,17 @@ import { store } from 'app/store';
 const isBlocked = selectIsWalletBlocked('0x1234...')(store.getState());
 ```
 
-### Option 5: Direct Engine access (for controller-to-controller or middleware code)
+### Option 4: Direct Engine access (for controller-to-controller or middleware code)
 
 ```typescript
 import Engine from 'app/core/Engine';
 
-// Check a single wallet
-const status =
-  await Engine.context.ComplianceController.checkWalletCompliance('0x1234...');
-
-// Check multiple wallets
+// Check one or more wallets (always returns an array)
 const statuses =
   await Engine.context.ComplianceController.checkWalletsCompliance([
     '0xaaaa...',
     '0xbbbb...',
   ]);
-
-// Force refresh the blocklist
-await Engine.context.ComplianceController.updateBlockedWallets();
 ```
 
 ## How the Compliance Cache Works
@@ -187,8 +153,8 @@ await Engine.context.ComplianceController.updateBlockedWallets();
 Compliance status is populated exclusively via **per-address API checks** — there is no bulk blocklist fetch.
 
 1. When a screen containing a compliance-gated action mounts, `useComplianceGate` fires a background `checkCompliance()` call (prefetch) and stores the in-flight promise in a ref.
-2. `checkCompliance()` calls `ComplianceController.checkWalletCompliance` / `checkWalletsCompliance`, which hit the Compliance API and persist the result in `walletComplianceStatusMap`.
-3. `selectIsWalletBlocked(address)` reads **synchronously** from `walletComplianceStatusMap` — no API call at render time.
+2. `checkCompliance()` calls `ComplianceController.checkWalletsCompliance`, which hits the Compliance API and persists the result in `walletComplianceStatusMap`.
+3. `selectAreAnyWalletsBlocked(addresses)` reads **synchronously** from `walletComplianceStatusMap` — no API call at render time.
 4. When the user presses a guarded button, `gate()` awaits `prefetchRef.current`. If the prefetch has already settled this is instant (~0ms); if the user tapped before it finished, `gate()` joins the single in-flight request. After settling, `isBlocked` is read from the up-to-date Redux state.
 5. Prefetch errors are swallowed silently. If no cached result exists for an address, `isBlocked` defaults to `false` (fail-open).
 
@@ -229,7 +195,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 // For useComplianceGate (isBlocked + gate):
 mockUseSelector
   .mockReturnValueOnce(true) // selectComplianceEnabled
-  .mockReturnValueOnce(true); // selectIsWalletBlocked
+  .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked
 ```
 
 To test `gate()` behaviour, also mock `AccessRestrictedContext` and the Engine:
@@ -251,7 +217,7 @@ jest.mock(
 jest.mock('app/core/Engine', () => ({
   context: {
     ComplianceController: {
-      checkWalletCompliance: jest.fn().mockResolvedValue({ blocked: true }),
+      checkWalletsCompliance: jest.fn().mockResolvedValue([{ blocked: true }]),
     },
   },
 }));
@@ -264,14 +230,13 @@ Add compliance state to your test fixture:
 ```typescript
 new FixtureBuilder()
   .withComplianceController({
-    walletComplianceStatusMap: {},
-    blockedWallets: {
-      addresses: ['0xBLOCKED'],
-      sources: { ofac: 1, remote: 0 },
-      lastUpdated: '2025-01-01T00:00:00Z',
-      fetchedAt: '2025-01-01T00:00:00Z',
+    walletComplianceStatusMap: {
+      '0xBLOCKED': {
+        address: '0xBLOCKED',
+        blocked: true,
+        checkedAt: '2025-01-01T00:00:00Z',
+      },
     },
-    blockedWalletsLastFetched: Date.now(),
     lastCheckedAt: new Date().toISOString(),
   })
   .build();
@@ -287,19 +252,19 @@ new FixtureBuilder()
 | `app/core/Engine/controllers/compliance/compliance-service-init.ts`        | Service initialization                                  |
 | `app/core/Engine/controllers/compliance/compliance-controller-init.ts`     | Controller initialization (feature flag gates `init()`) |
 | `app/core/Engine/messengers/compliance/compliance-service-messenger.ts`    | Service messenger setup                                 |
-| `app/core/Engine/messengers/compliance/compliance-controller-messenger.ts` | Controller + init messenger setup                       |
+| `app/core/Engine/messengers/compliance/compliance-controller-messenger.ts` | Controller messenger setup                              |
 | `app/selectors/complianceController.ts`                                    | Redux selectors                                         |
 | `app/selectors/featureFlagController/compliance.ts`                        | Feature flag selector                                   |
 | `app/__mocks__/@metamask/compliance-controller.ts`                         | Manual mock for tests                                   |
 
 ### Hooks and UI
 
-| File                                                                | Purpose                                                    |
-| ------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `app/components/UI/Compliance/hooks/useWalletCompliance.ts`         | `useWalletCompliance`, `useComplianceGate` (with `gate()`) |
-| `app/components/UI/Compliance/AccessRestrictedModal/`               | Access-restricted modal component                          |
-| `app/components/UI/Compliance/contexts/AccessRestrictedContext.tsx` | Provider and `useAccessRestrictedModal` hook               |
-| `app/components/UI/Compliance/index.ts`                             | Public exports                                             |
+| File                                                                | Purpose                                      |
+| ------------------------------------------------------------------- | -------------------------------------------- |
+| `app/components/UI/Compliance/hooks/useComplianceGate.ts`           | `useComplianceGate` — single exported hook   |
+| `app/components/UI/Compliance/AccessRestrictedModal/`               | Access-restricted modal component            |
+| `app/components/UI/Compliance/contexts/AccessRestrictedContext.tsx` | Provider and `useAccessRestrictedModal` hook |
+| `app/components/UI/Compliance/index.ts`                             | Public exports                               |
 
 ### Consumer flows
 
