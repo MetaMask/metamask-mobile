@@ -92,7 +92,7 @@ export const CardSDKProvider = ({
     try {
       const userData = await sdk.getRegistrationStatus(
         onboardingId,
-        userCardLocation,
+        userCardLocation ?? 'international',
       );
 
       if (userData.contactVerificationId) {

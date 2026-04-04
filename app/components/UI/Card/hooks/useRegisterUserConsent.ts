@@ -43,7 +43,7 @@ interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
 export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
   const { sdk } = useCardSDK();
   const queryClient = useQueryClient();
-  const location = useSelector(selectCardUserLocation);
+  const location = useSelector(selectCardUserLocation) ?? 'international';
   const [state, setState] = useState<UseRegisterUserConsentState>({
     isLoading: false,
     isSuccess: false,

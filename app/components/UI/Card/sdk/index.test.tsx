@@ -143,7 +143,7 @@ describe('CardSDK Context', () => {
         return onboardingId;
       }
       if (selector === mockSelectCardUserLocation) {
-        return userCardLocation ?? 'international';
+        return userCardLocation;
       }
       return null;
     });
@@ -223,7 +223,7 @@ describe('CardSDK Context', () => {
       // Then: SDK should be created with feature flag
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        userCardLocation: 'international',
+        userCardLocation: null,
       });
     });
 
