@@ -302,7 +302,9 @@ describe('useRampsPaymentMethods', () => {
     // Second argument is the options object containing assetId
     expect(callArgs[1].assetId).toBe(checksummedAssetId.toLowerCase());
 
+    queryClient.cancelQueries();
     unmount();
     queryClient.clear();
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 });
