@@ -152,7 +152,7 @@
     "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup",
     "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup",
     "messenger-action-types:generate": "messenger-action-types --generate app && prettier --write \"app/**/*-method-action-types.ts\"",
-    "messenger-action-types:check": "yarn messenger-action-types:generate && git diff --exit-code \"app/**/*-method-action-types.ts\""
+    "messenger-action-types:check": "messenger-action-types --generate app; prettier --write \"app/**/*-method-action-types.ts\" && git diff --exit-code \"app/**/*-method-action-types.ts\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
