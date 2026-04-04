@@ -126,7 +126,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -334,20 +334,27 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                 testID="build-quote-payment-pill"
               >
                 <View>
-                  <SvgMock
-                    fill="currentColor"
-                    name="Card"
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
-                          "color": "#131416",
-                          "height": 16,
-                          "width": 16,
+                          "color": "#4459ff",
+                          "fontSize": 16,
                         },
                         undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
                       ]
                     }
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
@@ -825,7 +832,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1033,20 +1040,27 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                 testID="build-quote-payment-pill"
               >
                 <View>
-                  <SvgMock
-                    fill="currentColor"
-                    name="Card"
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
-                          "color": "#131416",
-                          "height": 16,
-                          "width": 16,
+                          "color": "#4459ff",
+                          "fontSize": 16,
                         },
                         undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
                       ]
                     }
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
@@ -1524,7 +1538,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1732,20 +1746,27 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                 testID="build-quote-payment-pill"
               >
                 <View>
-                  <SvgMock
-                    fill="currentColor"
-                    name="Card"
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
-                          "color": "#131416",
-                          "height": 16,
-                          "width": 16,
+                          "color": "#4459ff",
+                          "fontSize": 16,
                         },
                         undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
                       ]
                     }
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
@@ -2223,7 +2244,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -2431,20 +2452,27 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                 testID="build-quote-payment-pill"
               >
                 <View>
-                  <SvgMock
-                    fill="currentColor"
-                    name="Card"
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
-                          "color": "#131416",
-                          "height": 16,
-                          "width": 16,
+                          "color": "#4459ff",
+                          "fontSize": 16,
                         },
                         undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
                       ]
                     }
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
@@ -2922,7 +2950,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -3130,20 +3158,27 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                 testID="build-quote-payment-pill"
               >
                 <View>
-                  <SvgMock
-                    fill="currentColor"
-                    name="Card"
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
-                          "color": "#131416",
-                          "height": 16,
-                          "width": 16,
+                          "color": "#4459ff",
+                          "fontSize": 16,
                         },
                         undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
                       ]
                     }
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
@@ -3621,7 +3656,7 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -3829,20 +3864,27 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
                 testID="build-quote-payment-pill"
               >
                 <View>
-                  <SvgMock
-                    fill="currentColor"
-                    name="Card"
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
-                          "color": "#131416",
-                          "height": 16,
-                          "width": 16,
+                          "color": "#4459ff",
+                          "fontSize": 16,
                         },
                         undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
                       ]
                     }
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"

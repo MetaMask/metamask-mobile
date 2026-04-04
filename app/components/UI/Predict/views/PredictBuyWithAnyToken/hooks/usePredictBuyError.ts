@@ -90,10 +90,10 @@ export const usePredictBuyError = ({
         maximumDecimals: 2,
       });
       return maxBetAmount >= MINIMUM_BET
-        ? strings('predict.order.prediction_insufficient_funds', {
+        ? strings('predict.order.prediction_insufficient_funds_try_token', {
             amount: formattedMax,
           })
-        : strings('predict.order.no_funds_enough');
+        : strings('predict.order.no_funds_enough_try_token');
     }
 
     if (!errorResult) {

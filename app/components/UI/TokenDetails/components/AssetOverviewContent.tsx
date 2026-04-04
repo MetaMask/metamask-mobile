@@ -205,7 +205,15 @@ export interface AssetOverviewContentProps {
   stakedTrxAsset?: TokenI;
   inLockPeriodBalance?: string;
   readyForWithdrawalBalance?: string;
-  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  /**
+   * Stable callback from TokenDetails route wrapper. Payload includes
+   * `severity` from `securityData?.resultType` so the parent callback identity
+   * does not change when security loads (avoids market-insights effect loops).
+   */
+  onMarketInsightsDisplayResolved?: (params: {
+    isDisplayed: boolean;
+    severity: string | undefined;
+  }) => void;
   onMarketInsightsDisclaimerPress?: () => void;
 
   // Security & Trust
@@ -497,8 +505,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   useEffect(() => {
+    const severity = securityData?.resultType;
     if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved?.(false);
+      onMarketInsightsDisplayResolved?.({ isDisplayed: false, severity });
       return;
     }
     if (isMarketInsightsLoading) {
@@ -511,13 +520,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         id: marketInsightsCaip19Id,
       });
     }
-    onMarketInsightsDisplayResolved?.(Boolean(marketInsightsReport));
+    onMarketInsightsDisplayResolved?.({
+      isDisplayed: Boolean(marketInsightsReport),
+      severity,
+    });
   }, [
     onMarketInsightsDisplayResolved,
     isMarketInsightsEnabled,
     isMarketInsightsLoading,
     marketInsightsReport,
     marketInsightsCaip19Id,
+    securityData?.resultType,
   ]);
 
   // Start the entry card trace synchronously during render so it is registered

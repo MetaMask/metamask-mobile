@@ -115,6 +115,7 @@ import {
   getEarnControllerInitMessenger,
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
+import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -331,6 +332,10 @@ export const CONTROLLER_MESSENGERS = {
   MultichainRoutingService: {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
+  },
+  MoneyAccountController: {
+    getMessenger: getMoneyAccountControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
