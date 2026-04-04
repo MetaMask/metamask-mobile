@@ -431,7 +431,6 @@ function BuildQuote() {
             redirectUrl: getRampCallbackBaseUrl(),
             paymentMethods: [selectedPaymentMethod.id],
             providers: [selectedProvider.id],
-            forceRefresh: true,
           }
         : null,
     [
