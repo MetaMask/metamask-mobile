@@ -466,12 +466,12 @@ describe('CardSDK Context', () => {
       );
     });
 
-    it('clears user state even when sdk.logout() fails', async () => {
-      // Given: SDK logout fails and user is set
-      const mockLogout = jest
-        .fn()
-        .mockRejectedValue(new Error('Network error'));
-      setupMockSDK({ logout: mockLogout });
+    it('clears user state even when CardController.logout() fails', async () => {
+      // Given: controller logout fails and user is set
+      const mockControllerLogout = Engine.context.CardController
+        .logout as jest.Mock;
+      mockControllerLogout.mockRejectedValue(new Error('Network error'));
+      setupMockSDK();
       setupMockUseSelector(mockCardFeatureFlag);
 
       const mockUser: UserResponse = {

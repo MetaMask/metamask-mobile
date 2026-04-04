@@ -155,10 +155,9 @@ const useCardProviderAuthentication =
             refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
             location,
           });
-
-          // Sync controller state: sets CardController.isAuthenticated = true
-          // and providerData.baanx.location, so route guards read the correct state.
-          await Engine.context.CardController.validateAndRefreshSession();
+          await Engine.context.CardController.validateAndRefreshSession().catch(
+            () => undefined,
+          );
 
           setError(null);
 
