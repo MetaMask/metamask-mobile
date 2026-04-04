@@ -115,7 +115,7 @@ const OnboardingNavigator: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   // Track user data fetch separately from SDK's isLoading to guard against
   // the SDK init effect resetting isLoading mid-fetch (e.g. when fetchUserData
-  // calls setUserLocation and triggers SDK re-initialization).
+  // dispatches setUserCardLocation and triggers SDK re-initialization).
   const [isFetchingUserData, setIsFetchingUserData] = useState(
     () => !!onboardingId && !user,
   );
@@ -160,7 +160,7 @@ const OnboardingNavigator: React.FC = () => {
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
-      if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
+      if (cardUserPhase === 'ACCOUNT') {
         return Routes.CARD.ONBOARDING.SIGN_UP;
       }
       if (cardUserPhase === 'PHONE_NUMBER') {
@@ -237,6 +237,7 @@ const OnboardingNavigator: React.FC = () => {
   useEffect(() => {
     if (
       (isReturningSession || cardUserPhase) &&
+      user &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
       initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
@@ -264,6 +265,7 @@ const OnboardingNavigator: React.FC = () => {
     initialRouteName,
     cardUserPhase,
     navigation,
+    user,
     user?.verificationState,
     isDeeplinkToComplete,
   ]);

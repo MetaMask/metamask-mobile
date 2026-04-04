@@ -98,9 +98,11 @@ export const CardSDKProvider = ({
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
       }
-      Engine.context.CardController.setUserLocation(
-        mapCountryToLocation(userData.countryOfResidence ?? null),
-      );
+      if (userData.countryOfResidence) {
+        Engine.context.CardController.setUserLocation(
+          mapCountryToLocation(userData.countryOfResidence),
+        );
+      }
 
       setUser(userData);
     } catch (err) {

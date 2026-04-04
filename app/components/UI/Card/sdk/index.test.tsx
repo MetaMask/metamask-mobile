@@ -740,6 +740,58 @@ describe('CardSDK Context', () => {
       );
     });
 
+    it('calls setUserLocation when countryOfResidence is provided', async () => {
+      const userWithCountry: UserResponse = {
+        ...mockUserResponse,
+        countryOfResidence: 'US',
+      };
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(userWithCountry);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, null, 'test-onboarding-id');
+
+      const mockSetUserLocation = Engine.context.CardController
+        .setUserLocation as jest.Mock;
+      mockSetUserLocation.mockClear();
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.user).toEqual(userWithCountry);
+      });
+
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+    });
+
+    it('does not call setUserLocation when countryOfResidence is null', async () => {
+      const userWithoutCountry: UserResponse = {
+        ...mockUserResponse,
+        countryOfResidence: null,
+      };
+      const mockGetRegistrationStatus = jest
+        .fn()
+        .mockResolvedValue(userWithoutCountry);
+      setupMockSDK({ getRegistrationStatus: mockGetRegistrationStatus });
+      setupMockUseSelector(mockCardFeatureFlag, 'us', 'test-onboarding-id');
+
+      const mockSetUserLocation = Engine.context.CardController
+        .setUserLocation as jest.Mock;
+      mockSetUserLocation.mockClear();
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.user).toEqual(userWithoutCountry);
+      });
+
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
+    });
+
     it('does not fetch user data when SDK is not available', async () => {
       // Given: no SDK available but onboardingId exists
       setupMockUseSelector(
