@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -14,7 +14,6 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -37,7 +36,6 @@ import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
-import cardStyleSheet from './FeaturedCarouselCard.styles';
 import {
   calculateTotalVolume,
   getTimeRemaining,
@@ -46,7 +44,6 @@ import {
 } from './FeaturedCarouselCard.utils';
 
 const TEAM_LOGO_SIZE = 32;
-const LEAGUE_LOGO_SIZE = 15;
 
 interface FeaturedCarouselSportCardProps {
   market: PredictMarket;
@@ -63,7 +60,6 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToBuyPreview } = usePredictNavigation();
-  const { styles } = useStyles(cardStyleSheet, {});
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const game = market.game as PredictMarketGame;
@@ -170,7 +166,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
       onPress={handleCardPress}
       activeOpacity={0.9}
     >
-      <Box style={styles.cardContainer}>
+      <Box twClassName="bg-section rounded-xl p-4 h-full justify-between">
         <Box twClassName="flex-1">
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -178,16 +174,6 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             justifyContent={BoxJustifyContent.Center}
             twClassName="mb-3 gap-2"
           >
-            {config.leagueLogo && (
-              <Image
-                source={{ uri: config.leagueLogo }}
-                style={tw.style({
-                  width: LEAGUE_LOGO_SIZE,
-                  height: LEAGUE_LOGO_SIZE * 0.8,
-                })}
-                resizeMode="contain"
-              />
-            )}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -302,9 +288,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               <Box twClassName="flex-1">
                 <Button
                   onPress={() => handleBuy(homeToken)}
-                  style={{
-                    backgroundColor: styles.buyButton.backgroundColor,
-                  }}
+                  twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                 >
@@ -339,9 +323,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
               <Box twClassName="flex-1">
                 <Button
                   onPress={() => handleBuy(awayToken)}
-                  style={{
-                    backgroundColor: styles.buyButton.backgroundColor,
-                  }}
+                  twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                 >

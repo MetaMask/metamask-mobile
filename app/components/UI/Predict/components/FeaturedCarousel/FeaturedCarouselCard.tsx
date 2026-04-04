@@ -14,7 +14,6 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket,
@@ -33,7 +32,6 @@ import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
-import cardStyleSheet from './FeaturedCarouselCard.styles';
 import { calculateTotalVolume } from './FeaturedCarouselCard.utils';
 
 interface FeaturedCarouselCardProps {
@@ -51,7 +49,6 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToBuyPreview } = usePredictNavigation();
-  const { styles } = useStyles(cardStyleSheet, {});
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const handleCardPress = useCallback(() => {
@@ -114,7 +111,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
       onPress={handleCardPress}
       activeOpacity={0.9}
     >
-      <Box style={styles.cardContainer}>
+      <Box twClassName="bg-section rounded-xl p-4 h-full justify-between">
         <Box twClassName="flex-1">
           {market.image && (
             <Box alignItems={BoxAlignItems.Center} twClassName="mb-3">
@@ -176,9 +173,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                         outcomeIdx,
                       )}
                       onPress={() => handleBuy(outcome, token)}
-                      style={{
-                        backgroundColor: styles.buyButton.backgroundColor,
-                      }}
+                      twClassName="bg-success-muted"
                       isFullWidth
                       size={ButtonBaseSize.Lg}
                     >

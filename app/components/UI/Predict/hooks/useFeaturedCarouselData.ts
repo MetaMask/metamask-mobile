@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
-import Engine from '../../../../core/Engine';
+import { useCallback, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
-import { PredictMarket } from '../types';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { predictQueries } from '../queries';
+import type { PredictMarket } from '../types';
+import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UseFeaturedCarouselDataResult {
   markets: PredictMarket[];
@@ -11,40 +14,35 @@ export interface UseFeaturedCarouselDataResult {
 }
 
 export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
-  const [markets, setMarkets] = useState<PredictMarket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const controller = Engine.context.PredictController;
-      if (!controller) {
-        throw new Error('PredictController not available');
-      }
-
-      const result = await controller.getCarouselMarkets();
-      setMarkets(result);
-    } catch (e) {
-      const message =
-        e instanceof Error ? e.message : 'Failed to fetch carousel';
-      setError(message);
-      Logger.error(e instanceof Error ? e : new Error(message));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const query = useQuery(predictQueries.featuredCarousel.options());
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!query.error) return;
+
+    Logger.error(ensureError(query.error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'useFeaturedCarouselData',
+      },
+      context: {
+        name: 'useFeaturedCarouselData',
+        data: {
+          method: 'queryFn',
+          action: 'featured_carousel_load',
+          operation: 'data_fetching',
+        },
+      },
+    });
+  }, [query.error]);
+
+  const refetch = useCallback(async () => {
+    await query.refetch();
+  }, [query]);
 
   return {
-    markets,
-    isLoading,
-    error,
-    refetch: fetchData,
+    markets: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error?.message ?? null,
+    refetch,
   };
 };
