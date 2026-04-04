@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
@@ -10,7 +10,7 @@ export interface UseFeaturedCarouselDataResult {
   markets: PredictMarket[];
   isLoading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<unknown>;
 }
 
 export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
@@ -35,14 +35,10 @@ export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
     });
   }, [query.error]);
 
-  const refetch = useCallback(async () => {
-    await query.refetch();
-  }, [query]);
-
   return {
     markets: query.data ?? [],
     isLoading: query.isLoading,
     error: query.error?.message ?? null,
-    refetch,
+    refetch: query.refetch,
   };
 };
