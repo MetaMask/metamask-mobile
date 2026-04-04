@@ -358,7 +358,6 @@ describe('PaymentSelectionModal', () => {
         '/payments/debit-credit-card-1',
         '/payments/debit-credit-card-2',
       ],
-      forceRefresh: true,
     });
   });
 
