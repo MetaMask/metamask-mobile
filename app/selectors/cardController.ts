@@ -60,11 +60,11 @@ export const selectIsCardholder = createSelector(
 
 export const selectCardUserLocation = createSelector(
   selectCardControllerState,
-  (cardState: CardControllerState | undefined): CardLocation => {
+  (cardState: CardControllerState | undefined): CardLocation | null => {
     const pid = cardState?.activeProviderId ?? 'baanx';
     const provData = cardState?.providerData?.[pid] as
       | { location?: string }
       | undefined;
-    return (provData?.location as CardLocation) ?? 'international';
+    return (provData?.location as CardLocation) ?? null;
   },
 );

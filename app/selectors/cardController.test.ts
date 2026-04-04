@@ -220,9 +220,9 @@ describe('selectIsCardholder', () => {
 });
 
 describe('selectCardUserLocation', () => {
-  it('returns international by default when providerData is empty', () => {
+  it('returns null by default when providerData is empty', () => {
     const state = createMockRootState({ providerData: {} });
-    expect(selectCardUserLocation(state)).toBe('international');
+    expect(selectCardUserLocation(state)).toBeNull();
   });
 
   it('returns the location from providerData for the active provider', () => {
@@ -233,12 +233,12 @@ describe('selectCardUserLocation', () => {
     expect(selectCardUserLocation(state)).toBe('us');
   });
 
-  it('returns international when providerData has no location field', () => {
+  it('returns null when providerData has no location field', () => {
     const state = createMockRootState({
       activeProviderId: 'baanx',
       providerData: { baanx: {} },
     });
-    expect(selectCardUserLocation(state)).toBe('international');
+    expect(selectCardUserLocation(state)).toBeNull();
   });
 
   it('falls back to baanx provider when activeProviderId is null', () => {
@@ -249,10 +249,10 @@ describe('selectCardUserLocation', () => {
     expect(selectCardUserLocation(state)).toBe('us');
   });
 
-  it('returns international when CardController state is undefined', () => {
+  it('returns null when CardController state is undefined', () => {
     const state = {
       engine: { backgroundState: {} },
     } as unknown as RootState;
-    expect(selectCardUserLocation(state)).toBe('international');
+    expect(selectCardUserLocation(state)).toBeNull();
   });
 });

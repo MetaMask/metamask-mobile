@@ -143,7 +143,7 @@ describe('CardSDK Context', () => {
         return onboardingId;
       }
       if (selector === mockSelectCardUserLocation) {
-        return userCardLocation ?? 'international';
+        return userCardLocation;
       }
       return null;
     });
