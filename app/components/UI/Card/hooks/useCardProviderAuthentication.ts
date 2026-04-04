@@ -63,7 +63,7 @@ const useCardProviderAuthentication =
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
     const [otpError, setOtpError] = useState<string | null>(null);
-    const location = useSelector(selectCardUserLocation);
+    const location = useSelector(selectCardUserLocation) ?? 'international';
     const { sdk } = useCardSDK();
 
     const clearOtpError = useCallback(() => {
