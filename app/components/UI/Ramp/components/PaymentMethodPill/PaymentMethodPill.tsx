@@ -32,7 +32,7 @@ export interface PaymentMethodPillProps {
   isLoading?: boolean;
   /** Test ID for testing */
   testID?: string;
-  /** Selected method: same `PaymentMethodIcon` + `paymentType` pattern as the payment selection list (primary icon color). */
+  /** Selected method: same `PaymentMethodIcon` + `paymentType` as the payment list; icon uses default color (not primary—modal only uses primary for the selected row). */
   paymentMethod?: PaymentMethodForPill | null;
 }
 
@@ -72,7 +72,7 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
           <PaymentMethodIcon
             paymentMethodType={paymentType as PaymentType}
             size={PAYMENT_METHOD_ICON_SIZE}
-            color={colors.primary.default}
+            color={colors.icon.default}
           />
         ) : (
           <Icon
