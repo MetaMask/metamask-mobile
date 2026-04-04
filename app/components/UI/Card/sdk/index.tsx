@@ -57,6 +57,7 @@ export const CardSDKProvider = ({
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const userCardLocation = useSelector(selectCardUserLocation);
+  const effectiveLocation = userCardLocation ?? 'international';
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -72,7 +73,7 @@ export const CardSDKProvider = ({
       setIsLoading(true);
       const cardSDK = new CardSDK({
         cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
-        userCardLocation,
+        userCardLocation: effectiveLocation,
       });
       setSdk(cardSDK);
       setIsLoading(false);
@@ -80,7 +81,7 @@ export const CardSDKProvider = ({
       setSdk(null);
       setIsLoading(false);
     }
-  }, [cardFeatureFlag, userCardLocation]);
+  }, [cardFeatureFlag, effectiveLocation]);
 
   const fetchUserData = useCallback(async () => {
     if (!sdk || !onboardingId) {
@@ -92,7 +93,7 @@ export const CardSDKProvider = ({
     try {
       const userData = await sdk.getRegistrationStatus(
         onboardingId,
-        userCardLocation ?? 'international',
+        effectiveLocation,
       );
 
       if (userData.contactVerificationId) {
@@ -113,7 +114,7 @@ export const CardSDKProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [sdk, onboardingId, dispatch, userCardLocation]);
+  }, [sdk, onboardingId, dispatch, effectiveLocation]);
 
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);

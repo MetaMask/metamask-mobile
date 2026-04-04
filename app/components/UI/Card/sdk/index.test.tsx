@@ -223,7 +223,7 @@ describe('CardSDK Context', () => {
       // Then: SDK should be created with feature flag
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        userCardLocation: null,
+        userCardLocation: 'international',
       });
     });
 
