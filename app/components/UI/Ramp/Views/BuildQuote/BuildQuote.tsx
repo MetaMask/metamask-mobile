@@ -923,6 +923,7 @@ function BuildQuote() {
                     selectedPaymentMethod?.name ||
                     strings('fiat_on_ramp.select_payment_method')
                   }
+                  paymentMethod={selectedPaymentMethod}
                   isLoading={paymentMethodsLoading}
                   onPress={
                     isTokenUnavailable ? undefined : handlePaymentPillPress
