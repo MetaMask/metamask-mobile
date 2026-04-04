@@ -13,10 +13,8 @@
     "gem:bundle:install": "bundle install --gemfile=ios/Gemfile",
     "clean:android": "rm -rf android/app/build",
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
-    "generate-method-action-types": "messenger-generate-action-types --fix app && prettier --write 'app/**/*-method-action-types.ts'",
-    "generate-method-action-types:check": "yarn generate-method-action-types && git diff --exit-code 'app/**/*-method-action-types.ts'",
-    "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache && yarn generate-method-action-types:check",
-    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache && yarn generate-method-action-types",
+    "lint": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --cache && yarn messenger-action-types:check",
+    "lint:fix": "NODE_OPTIONS='--max-old-space-size=8192' eslint '**/*.{js,ts,tsx}' --fix --cache && yarn messenger-action-types:generate",
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
@@ -152,7 +150,9 @@
     "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --wallet-setup",
     "a:android": "scripts/perps/agentic/preflight.sh --platform android --wallet-setup",
     "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup",
-    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup"
+    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup",
+    "messenger-action-types:generate": "messenger-action-types --generate app && prettier --write \"app/**/*-method-action-types.ts\"",
+    "messenger-action-types:check": "yarn messenger-action-types:generate && git diff --exit-code \"app/**/*-method-action-types.ts\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -542,6 +542,7 @@
     "@metamask/eslint-config-typescript": "^13.0.0",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
     "@metamask/foundryup": "1.0.0",
+    "@metamask/messenger-cli": "^0.1.0",
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
