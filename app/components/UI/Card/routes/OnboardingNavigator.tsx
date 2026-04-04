@@ -266,7 +266,6 @@ const OnboardingNavigator: React.FC = () => {
     cardUserPhase,
     navigation,
     user,
-    user?.verificationState,
     isDeeplinkToComplete,
   ]);
 
