@@ -10,6 +10,7 @@ import { useTransactionPayToken } from '../../../../../../Views/confirmations/ho
 import { MINIMUM_BET } from '../../../../constants/transactions';
 import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
+import EngineService from '../../../../../../../core/EngineService';
 
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
@@ -114,6 +115,7 @@ function PredictPayWithAnyTokenInfoInner({
     }
     lastEmittedDepositRef.current = depositAmount;
     updatePendingAmount(depositAmount);
+    EngineService.flushState();
   }, [depositAmount, hasValidDepositAmount, updatePendingAmount]);
 
   useEffect(() => {
@@ -127,6 +129,7 @@ function PredictPayWithAnyTokenInfoInner({
     }
     lastEmittedAmountHumanRef.current = amountHuman;
     updateTokenAmountCallback(amountHuman);
+    EngineService.flushState();
   }, [
     amountHuman,
     updateTokenAmountCallback,
@@ -150,6 +153,7 @@ function PredictPayWithAnyTokenInfoInner({
         address: selectedPaymentToken.address as Hex,
         chainId: selectedPaymentToken.chainId as Hex,
       });
+      EngineService.flushState();
     }
   }, [
     transactionMeta,
