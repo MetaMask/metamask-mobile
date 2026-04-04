@@ -262,4 +262,47 @@ describe('useRampsPaymentMethods', () => {
       Engine.context.RampsController.setSelectedPaymentMethod,
     ).toHaveBeenCalledWith(null);
   });
+
+  it('lowercases checksummed assetId before passing to getPaymentMethods', async () => {
+    const checksummedAssetId =
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    const store = createMockStore({
+      tokens: {
+        ...baseRampsState.tokens,
+        selected: {
+          assetId: checksummedAssetId,
+          chainId: 'eip155:1',
+          name: 'USDC',
+          symbol: 'USDC',
+          decimals: 6,
+          iconUrl: '',
+          tokenSupported: true,
+        },
+      },
+    });
+    const { Wrapper, queryClient } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockResolvedValue({ payments: mockPaymentMethods });
+
+    const { unmount } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.RampsController.getPaymentMethods,
+      ).toHaveBeenCalled();
+    });
+
+    const callArgs = (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mock.calls[0];
+    // Second argument is the options object containing assetId
+    expect(callArgs[1].assetId).toBe(checksummedAssetId.toLowerCase());
+
+    unmount();
+    queryClient.clear();
+  });
 });
