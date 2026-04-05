@@ -447,7 +447,6 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
-    NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
@@ -481,6 +480,7 @@ const Routes = {
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
+      WAITLIST_FORM: 'CardWaitlistFormModal',
     },
   },
   SEND: {

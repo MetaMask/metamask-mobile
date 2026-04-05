@@ -150,7 +150,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                               },
                               undefined,
                               {
@@ -297,7 +297,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                 },
                                 undefined,
                                 undefined,

@@ -379,7 +379,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -1505,7 +1505,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -1932,7 +1932,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -2986,7 +2986,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -3413,7 +3413,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -4479,7 +4479,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -4906,7 +4906,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 24,
                                           "letterSpacing": 0,
                                           "lineHeight": 32,
@@ -5993,7 +5993,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,

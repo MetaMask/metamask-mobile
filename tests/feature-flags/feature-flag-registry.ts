@@ -463,17 +463,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  cardExperimentalSwitch2: {
-    name: 'cardExperimentalSwitch2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.58.1',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   cardFeature: {
     name: 'cardFeature',
     type: FeatureFlagType.Remote,
@@ -2526,17 +2515,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  displayCardButton: {
-    name: 'displayCardButton',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.64.1',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
@@ -2905,6 +2883,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       moneyAccountDepositEnabled: false,
       moneyAccountWithdrawEnabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableMoneyAccount: {
+    name: 'moneyEnableMoneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
