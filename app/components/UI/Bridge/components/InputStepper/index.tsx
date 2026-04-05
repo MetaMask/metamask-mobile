@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
-import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import {
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
   IconColor,
   IconName,
+  Input,
   Text,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
