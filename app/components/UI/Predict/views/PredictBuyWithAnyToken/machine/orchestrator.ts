@@ -14,8 +14,13 @@ export interface BuyOrderOrchestrator {
   destroy(): void;
 }
 
+export interface OrchestratorOptions {
+  onStateChange?: (state: BuyOrderMachineState | null) => void;
+}
+
 export function createBuyOrderOrchestrator(
   ports: BuyOrderPorts,
+  options?: OrchestratorOptions,
 ): BuyOrderOrchestrator {
   let currentState: BuyOrderMachineState | null = {
     state: BuyOrderState.PREVIEW,
@@ -29,10 +34,28 @@ export function createBuyOrderOrchestrator(
           ports.analytics.trackOrderEvent(effect.status);
           break;
         case 'PLACE_ORDER':
-          break;
-        case 'STORE_PENDING_ORDER':
-          break;
-        case 'CLEAR_PENDING_ORDER':
+          ports.orderExecution
+            .placeOrder()
+            .then((result) => {
+              if (result.success) {
+                send({
+                  type: 'ORDER_SUCCEEDED',
+                  spentAmount: result.response.spentAmount,
+                  receivedAmount: result.response.receivedAmount,
+                });
+              } else {
+                send({
+                  type: 'ORDER_FAILED',
+                  error: result.error ?? 'Order failed',
+                });
+              }
+            })
+            .catch((err) => {
+              send({
+                type: 'ORDER_FAILED',
+                error: err instanceof Error ? err.message : 'Order failed',
+              });
+            });
           break;
         case 'SHOW_TOAST':
           if (effect.variant === 'order_placed') {
@@ -57,27 +80,28 @@ export function createBuyOrderOrchestrator(
           ports.approval.rejectApproval();
           break;
         case 'RESET_PAYMENT_TOKEN':
-          break;
-        case 'CLEAR_OPTIMISTIC_POSITION':
-          break;
-        case 'PUBLISH_ORDER_CONFIRMED':
-          break;
-        case 'PUBLISH_ORDER_FAILED':
-          break;
-        case 'PUBLISH_DEPOSIT_FAILED':
+          ports.resetPaymentToken();
           break;
         case 'LOG_ERROR':
+          ports.logError(effect.error);
+          break;
+        case 'STORE_PENDING_ORDER':
+        case 'CLEAR_PENDING_ORDER':
+        case 'CLEAR_OPTIMISTIC_POSITION':
+        case 'PUBLISH_ORDER_CONFIRMED':
+        case 'PUBLISH_ORDER_FAILED':
+        case 'PUBLISH_DEPOSIT_FAILED':
           break;
       }
     } catch (_e) {
-      // Effect execution failures are isolated — one failing effect
-      // must not prevent remaining effects from executing.
+      // Effect isolation: one failing effect must not block others
     }
   }
 
   function send(event: BuyOrderEvent): void {
     const result = transition(currentState, event);
     currentState = result.nextState;
+    options?.onStateChange?.(currentState);
 
     for (const effect of result.effects) {
       executeEffect(effect);
@@ -132,6 +156,7 @@ export function createBuyOrderOrchestrator(
     }
     cleanupFns = [];
     currentState = null;
+    options?.onStateChange?.(null);
   }
 
   return { getState, send, start, destroy };

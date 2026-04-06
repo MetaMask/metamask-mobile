@@ -1,4 +1,4 @@
-import { OrderPreview, PlaceOrderParams, Result } from '../../../types';
+import { Result } from '../../../types';
 
 // ---- Port 1: Transaction Monitoring (deposit lifecycle) ----
 
@@ -32,9 +32,9 @@ export interface NavigationPort {
 // ---- Port 4: Order Execution (provider delegation) ----
 
 export interface OrderExecutionPort {
-  placeOrder(
-    params: PlaceOrderParams,
-  ): Promise<Result<{ spentAmount: string; receivedAmount: string }>>;
+  placeOrder(): Promise<
+    Result<{ spentAmount: string; receivedAmount: string }>
+  >;
   initPayWithAnyToken(): Promise<Result<{ batchId: string }>>;
 }
 
@@ -65,4 +65,6 @@ export interface BuyOrderPorts {
   toast: ToastPort;
   analytics: AnalyticsPort;
   queryCache: QueryCachePort;
+  resetPaymentToken: () => void;
+  logError: (error: string) => void;
 }

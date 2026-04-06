@@ -17,6 +17,9 @@ function createTestPorts() {
   const analytics = { trackOrderEvent: jest.fn() };
   const queryCache = { invalidate: jest.fn() };
 
+  const resetPaymentToken = jest.fn();
+  const logError = jest.fn();
+
   const ports: BuyOrderPorts = {
     navigation,
     transactionMonitor,
@@ -25,6 +28,8 @@ function createTestPorts() {
     toast,
     analytics,
     queryCache,
+    resetPaymentToken,
+    logError,
   };
 
   return {
@@ -36,6 +41,8 @@ function createTestPorts() {
     toast,
     analytics,
     queryCache,
+    resetPaymentToken,
+    logError,
   };
 }
 
@@ -47,17 +54,23 @@ describe('createBuyOrderOrchestrator', () => {
     expect(orchestrator.getState()?.state).toBe(BuyOrderState.PREVIEW);
   });
 
-  it('transitions to PLACING_ORDER on CONFIRM_BALANCE_PATH', () => {
-    const { ports, analytics } = createTestPorts();
+  it('transitions to PLACING_ORDER on CONFIRM_BALANCE_PATH and resolves to SUCCESS', async () => {
+    const { ports, analytics, toast, queryCache } = createTestPorts();
     const orchestrator = createBuyOrderOrchestrator(ports);
 
     orchestrator.send({ type: 'CONFIRM_BALANCE_PATH' });
 
     expect(orchestrator.getState()?.state).toBe(BuyOrderState.PLACING_ORDER);
     expect(analytics.trackOrderEvent).toHaveBeenCalledWith('submitted');
+
+    await Promise.resolve();
+
+    expect(orchestrator.getState()?.state).toBe(BuyOrderState.SUCCESS);
+    expect(toast.showOrderPlaced).toHaveBeenCalledTimes(1);
+    expect(queryCache.invalidate).toHaveBeenCalledTimes(1);
   });
 
-  it('transitions through full any-token flow on deposit confirmed', () => {
+  it('transitions through full any-token flow on deposit confirmed', async () => {
     const {
       ports,
       navigation,
@@ -82,11 +95,7 @@ describe('createBuyOrderOrchestrator', () => {
 
     expect(orchestrator.getState()?.state).toBe(BuyOrderState.PLACING_ORDER);
 
-    orchestrator.send({
-      type: 'ORDER_SUCCEEDED',
-      spentAmount: '10',
-      receivedAmount: '20',
-    });
+    await Promise.resolve();
 
     expect(orchestrator.getState()?.state).toBe(BuyOrderState.SUCCESS);
     expect(navigation.popCallCount).toBe(1);

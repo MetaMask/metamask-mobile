@@ -1,18 +1,18 @@
-import type { PlaceOrderParams, Result } from '../../../../types';
+import type { Result } from '../../../../types';
 import type { OrderExecutionPort } from '../ports';
 
-interface PredictTradingHook {
-  placeOrder: (params: PlaceOrderParams) => Promise<Result>;
+interface OrderExecutionContext {
+  placeOrder: () => Promise<Result>;
   initPayWithAnyToken: () => Promise<Result<{ batchId: string }>>;
 }
 
 export function createOrderExecutionAdapter(
-  trading: PredictTradingHook,
+  ctx: OrderExecutionContext,
 ): OrderExecutionPort {
   return {
-    placeOrder: async (params) => {
-      const result = await trading.placeOrder(params);
-      const response = result.response as
+    placeOrder: async () => {
+      const result = await ctx.placeOrder();
+      const response = result.response as unknown as
         | { spentAmount: string; receivedAmount: string }
         | undefined;
 
@@ -22,6 +22,6 @@ export function createOrderExecutionAdapter(
       } as Result<{ spentAmount: string; receivedAmount: string }>;
     },
 
-    initPayWithAnyToken: () => trading.initPayWithAnyToken(),
+    initPayWithAnyToken: () => ctx.initPayWithAnyToken(),
   };
 }
