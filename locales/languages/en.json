@@ -6868,6 +6868,7 @@
     "ios_need_update_button": "Continue",
     "ios_google_login_unsupported_blocking_title": "Update iOS to create a wallet with Google",
     "ios_google_login_unsupported_blocking_description": "MetaMask's Google Sign-In requires iOS 17.4 or later. Update your iPhone to continue creating a wallet with Google.",
+    "ios_google_login_unsupported_blocking_description_2": "Alternatively, you can create a wallet using a Secret Recovery Phrase instead.",
     "ios_google_login_unsupported_blocking_button": "Close",
     "ios_google_login_unsupported_blocking_rehydration_title": "Google Sign-In unavailable on this iOS version",
     "ios_google_login_unsupported_blocking_rehydration_description": "MetaMask's Google Sign-In now requires iOS 17.4 or later. Your wallet and funds are safe.",

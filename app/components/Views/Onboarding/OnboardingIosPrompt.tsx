@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from '@metamask/design-system-react-native';
+import { Box, Text } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
 import {
@@ -12,22 +12,27 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const IosGoogleLoginUnsupportedBlockingSheetDescription = () => {
   const tw = useTailwind();
   return (
-    <>
+    <Box gap={4}>
       <Text style={tw.style('text-pretty')}>
         {strings(
           'error_sheet.ios_google_login_unsupported_blocking_description',
         )}
       </Text>
-    </>
+      <Text style={tw.style('text-pretty')}>
+        {strings(
+          'error_sheet.ios_google_login_unsupported_blocking_description_2',
+        )}
+      </Text>
+    </Box>
   );
 };
 const IosGoogleLoginUnsupportedBlockingSheetRehydrationDescription = () => {
   const tw = useTailwind();
   return (
-    <>
+    <Box gap={4}>
       <Text style={tw.style('text-pretty')}>
         {strings(
-          'error_sheet.ios_google_login_unsupported_blocking_rehydration_description_2',
+          'error_sheet.ios_google_login_unsupported_blocking_rehydration_description',
         )}
       </Text>
       <Text style={tw.style('text-pretty')}>
@@ -35,19 +40,19 @@ const IosGoogleLoginUnsupportedBlockingSheetRehydrationDescription = () => {
           'error_sheet.ios_google_login_unsupported_blocking_rehydration_description_2',
         )}
       </Text>
-      <Text>
+      <Text style={tw.style('text-pretty')}>
         {strings(
           'error_sheet.ios_google_login_unsupported_blocking_rehydration_description_3',
         )}
       </Text>
-    </>
+    </Box>
   );
 };
 
 export const IosGoogleLoginVersionWarningDescription = () => {
   const tw = useTailwind();
   return (
-    <>
+    <Box gap={4}>
       <Text style={tw.style('text-pretty')}>
         {strings('error_sheet.ios_need_update_description')}
         <Text twClassName="font-bold">
@@ -58,7 +63,7 @@ export const IosGoogleLoginVersionWarningDescription = () => {
       <Text style={tw.style('text-pretty')}>
         {strings('error_sheet.ios_need_update_description2')}
       </Text>
-    </>
+    </Box>
   );
 };
 
