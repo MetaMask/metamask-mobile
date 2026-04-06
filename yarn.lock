@@ -20811,7 +20811,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.8.10, @xmldom/xmldom@npm:^0.8.8, @xmldom/xmldom@npm:^0.x":
+"@xmldom/xmldom@npm:^0.8.12":
+  version: 0.8.12
+  resolution: "@xmldom/xmldom@npm:0.8.12"
+  checksum: 10/0fc20bc72a057a939ed17afc3fb35d6be2eb19e42aa9ba3c78aa8bdf471da0b4b17c2710581ce6a2cd68ce3995c2ee7d689593a70a26df1273c0c9c29dfca257
+  languageName: node
+  linkType: hard
+
+"@xmldom/xmldom@npm:^0.8.8, @xmldom/xmldom@npm:^0.x":
   version: 0.8.11
   resolution: "@xmldom/xmldom@npm:0.8.11"
   checksum: 10/f6d6ffdf71cf19d9b3c10e978fad40d2f85453bf5b2aa05be8aa0c5ad13f84690c3153316729213cc652d06ec12c605ddb0aa03886f1d73d51b974b4105d31e3
@@ -35740,7 +35747,7 @@ __metadata:
     "@walletconnect/utils": "npm:^2.23.0"
     "@wdio/protocols": "npm:^9.24.0"
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
-    "@xmldom/xmldom": "npm:^0.8.10"
+    "@xmldom/xmldom": "npm:^0.8.12"
     appium: "npm:^2.12.1"
     appium-adb: "npm:^9.11.4"
     appium-chromium-driver: "npm:^2.0.2"
