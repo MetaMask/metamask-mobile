@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -61,9 +61,11 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
   const isOptedIn = participantStatus?.status?.optedIn === true;
   const optinAllowed = isOptinAllowed(campaign);
   const isEntriesClosed = isActive && !isOptedIn && !optinAllowed;
+  const hasShownEntriesToast = useRef(false);
 
   useEffect(() => {
-    if (isEntriesClosed) {
+    if (isEntriesClosed && !hasShownEntriesToast.current) {
+      hasShownEntriesToast.current = true;
       showToast(
         RewardsToastOptions.entriesClosed(
           strings('rewards.campaign_details.entries_closed_title'),

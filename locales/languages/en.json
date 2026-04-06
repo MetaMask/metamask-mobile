@@ -8070,7 +8070,7 @@
       "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
     },
     "ondo_campaign_activity": {
-      "title": "Activity",
+      "title": "All activity",
       "type_deposit": "Deposit",
       "type_withdraw": "Withdraw",
       "type_rebalance": "Rebalance",
