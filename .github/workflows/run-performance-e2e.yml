@@ -82,6 +82,11 @@ on:
         required: false
         type: string
         default: 'rc'
+      is_test_build:
+        description: 'Whether this is a test build (performance)'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
