@@ -59,9 +59,13 @@ on:
           - main-prod
           - main-beta
           - main-rc
+          - main-rc-with-srp
+          - main-rc-without-srp
           - main-test
           - main-e2e
           - main-exp
+          - main-exp-with-srp
+          - main-exp-without-srp
           - main-dev
           - flask-prod
           - flask-test
@@ -89,7 +93,7 @@ permissions:
 
 jobs:
   # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
-  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
+  # Skipped when skip_version_bump=true (e.g. BrowserStack builds, nightly builds).
   update-build-version:
     if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml
