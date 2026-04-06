@@ -71,14 +71,6 @@ jobs:
       ota_version: ${{ steps.decide.outputs.ota_version }}
       pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
     steps:
-      - name: Debug ref context
-        run: |
-          echo "github.ref_name = ${{ github.ref_name }}"
-          echo "github.ref      = ${{ github.ref }}"
-          echo "inputs.source_branch = ${{ inputs.source_branch }}"
-          echo "resolved ref (source_branch || github.ref_name) = ${{ inputs.source_branch || github.ref_name }}"
-          echo "resolved ref (source_branch || github.ref)      = ${{ inputs.source_branch || github.ref }}"
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -202,12 +194,11 @@ jobs:
     if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
-      source_branch: ${{ inputs.source_branch || github.ref_name }}
       environment: ${{ inputs.environment }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_branch: ${{ inputs.source_branch || github.ref_name }}
       build_name: ${{ inputs.build_name }}
-      summary_logical_source_branch: ${{ inputs.source_branch || github.ref_name }}
-      summary_build_ref: ${{ needs.trigger-build.outputs.checkout_ref }}
-      summary_build_version: ${{ needs.trigger-build.outputs.semantic_version }}
-      summary_android_version_code: ${{ needs.trigger-build.outputs.android_version_code }}
-      summary_built_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+      build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+      build_version: ${{ needs.trigger-build.outputs.semantic_version }}
+      build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
     secrets: inherit

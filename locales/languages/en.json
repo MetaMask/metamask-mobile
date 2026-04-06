@@ -7187,7 +7187,9 @@
         "country_label": "Country of residence",
         "country_placeholder": "Select your country",
         "invalid_email": "Invalid email address",
-        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
+        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
+        "join_waitlist": "Join waitlist",
+        "country_not_available": "Card sign-up isn't available in your country yet."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -7333,6 +7335,12 @@
       "confirm_button": "Confirm",
       "retry_button": "Try again",
       "close_button": "Got it",
+      "waitlist_form": {
+        "title": "Join waitlist",
+        "load_error": "Something went wrong loading the form. Please try again.",
+        "try_again": "Try again",
+        "success_toast": "You're on the waitlist! We'll let you know when the card is available in your country."
+      },
       "region_selector": {
         "title": "Select your Region"
       },

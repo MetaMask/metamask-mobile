@@ -3,7 +3,6 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
@@ -15,7 +14,6 @@ import { cardQueries } from '../queries';
 
 const useLoadCardData = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
   const queryClient = useQueryClient();
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:0',
@@ -189,7 +187,6 @@ const useLoadCardData = () => {
     error,
     warning,
     isAuthenticated,
-    isBaanxLoginEnabled,
     fetchAllData,
     fetchCardDetails,
   };
