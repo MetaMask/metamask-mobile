@@ -7,6 +7,11 @@ import React, {
   useRef,
 } from 'react';
 import { Linking } from 'react-native';
+import {
+  useNavigation,
+  useRoute,
+  StackActions,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   BannerBase,
@@ -45,16 +50,20 @@ import {
   SRPTabView,
 } from './components';
 import { useRevealCredential, useSRPQuiz } from './hooks';
-import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
+import {
+  IRevealPrivateCredentialProps,
+  RevealPrivateCredentialRouteProp,
+  RevealSrpStage,
+} from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 const RevealPrivateCredential = ({
-  navigation,
   cancel,
-  route,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
-  const hasNavigation = !!navigation;
+  const navigation = useNavigation();
+  const route = useRoute<RevealPrivateCredentialRouteProp>();
+  const hasNavigation = !cancel;
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const keyringId = route?.params?.keyringId;
 
@@ -143,18 +152,18 @@ const RevealPrivateCredential = ({
         return;
       }
       if (route?.params?.popToTopOnDone) {
-        navigation.popToTop();
+        navigation.dispatch(StackActions.popToTop());
         return;
       }
       if (options?.forDone && route?.params?.dismissModalStackOnDone) {
-        navigation.pop(2);
+        navigation.dispatch(StackActions.pop(2));
         return;
       }
       if (shouldUpdateNav) {
-        navigation.pop();
+        navigation.dispatch(StackActions.pop());
         return;
       }
-      navigation.pop();
+      navigation.dispatch(StackActions.pop());
     },
     [
       hasNavigation,

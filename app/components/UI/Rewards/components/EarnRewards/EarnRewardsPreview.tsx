@@ -27,10 +27,8 @@ import {
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
 import {
-  selectCardIsLoaded,
   selectIsCardholder,
   selectIsAuthenticatedCard,
-  selectIsUserInSupportedCardCountry,
 } from '../../../../../core/redux/slices/card';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
@@ -96,7 +94,7 @@ const EarnCard: React.FC<EarnCardProps> = ({
  * - mUSD calculator card: shown when geoLocation has settled AND is not UK.
  * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined (loading)
  * or 'GB' to prevent flash for UK users.
- * - MetaMask Card card: shown when card geo is loaded and country is in the supported list.
+ * - MetaMask Card card: shown when card geo is loaded (no country restriction).
  * - While geo is loading (status 'idle' or 'loading'): skeletons shown; title always visible
  */
 const EarnRewardsPreview: React.FC = () => {
@@ -111,21 +109,13 @@ const EarnRewardsPreview: React.FC = () => {
   const showMusdCard =
     geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
 
-  // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
-  const isCardGeoLoaded = useSelector(selectCardIsLoaded);
-  const isUserInSupportedCardCountry = useSelector(
-    selectIsUserInSupportedCardCountry,
-  );
+  // Card check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardholder = useSelector(selectIsCardholder);
   const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
-  const isCardGeoLoading = !isCardGeoLoaded;
-  const showCardCard = isCardGeoLoaded && isUserInSupportedCardCountry;
   const cardSubtitle =
     isCardholder || isAuthenticatedCard
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')
       : strings('rewards.earn_rewards.card_subtitle');
-
-  const isAnyGeoLoading = isMusdGeoLoading || isCardGeoLoading;
 
   const handleMusdPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
@@ -134,10 +124,6 @@ const EarnRewardsPreview: React.FC = () => {
   const handleCardPress = useCallback(() => {
     handleDeeplink({ uri: 'metamask://card-onboarding' });
   }, []);
-
-  if (!isAnyGeoLoading && !showMusdCard && !showCardCard) {
-    return null;
-  }
 
   return (
     <Box
@@ -149,7 +135,7 @@ const EarnRewardsPreview: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        {isAnyGeoLoading && (
+        {isMusdGeoLoading && (
           <ActivityIndicator size="small" color={colors.primary.default} />
         )}
         <Text variant={TextVariant.HeadingMd}>
@@ -170,19 +156,13 @@ const EarnRewardsPreview: React.FC = () => {
           />
         )
       )}
-      {isCardGeoLoading ? (
-        <Skeleton style={tw.style('h-28 rounded-xl')} />
-      ) : (
-        showCardCard && (
-          <EarnCard
-            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-            image={cardImage}
-            title={strings('rewards.earn_rewards.card_title')}
-            subtitle={cardSubtitle}
-            onPress={handleCardPress}
-          />
-        )
-      )}
+      <EarnCard
+        testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+        image={cardImage}
+        title={strings('rewards.earn_rewards.card_title')}
+        subtitle={cardSubtitle}
+        onPress={handleCardPress}
+      />
     </Box>
   );
 };

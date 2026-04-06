@@ -832,7 +832,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                       {
                         "color": "#ffffff",
                         "flex": 1,
-                        "fontFamily": "Geist-Bold",
+                        "fontFamily": "Geist-SemiBold",
                         "fontSize": 14,
                         "lineHeight": 18,
                         "marginBottom": 2,
@@ -1729,7 +1729,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                       {
                         "color": "#ffffff",
                         "flex": 1,
-                        "fontFamily": "Geist-Bold",
+                        "fontFamily": "Geist-SemiBold",
                         "fontSize": 14,
                         "lineHeight": 18,
                         "marginBottom": 2,

@@ -504,7 +504,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -1533,7 +1533,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
@@ -2762,7 +2762,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "fontWeight": 400,
                                           "letterSpacing": 0,
