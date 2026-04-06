@@ -6,9 +6,7 @@ import useGetUserKYCStatus from './useGetUserKYCStatus';
 import { useCardSDK } from '../sdk';
 import { CardSDK } from '../sdk/CardSDK';
 import { CardError, CardErrorType } from '../types';
-import cardReducer, {
-  setIsAuthenticatedCard,
-} from '../../../../core/redux/slices/card';
+import cardReducer from '../../../../core/redux/slices/card';
 
 jest.mock('../sdk');
 
@@ -95,7 +93,6 @@ describe('useGetUserKYCStatus', () => {
     );
 
     const store = createTestStore();
-    store.dispatch(setIsAuthenticatedCard(true));
 
     renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
@@ -224,7 +221,6 @@ describe('useGetUserKYCStatus', () => {
     });
 
     const store = createTestStore();
-    store.dispatch(setIsAuthenticatedCard(true));
 
     const { result } = renderHook(() => useGetUserKYCStatus(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
