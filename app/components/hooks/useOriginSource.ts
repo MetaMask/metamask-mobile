@@ -38,7 +38,7 @@ export const useOriginSource = ({
   // Look it up in the v2Connections store (populated by
   // HostApplicationAdapter.syncConnectionList, keyed by connection ID).
   if (isUUID(origin) && v2Connections?.[origin]) {
-    return SourceType.SDK_CONNECT_V2;
+    return SourceType.MM_CONNECT;
   }
 
   // --- SDK v1 ---

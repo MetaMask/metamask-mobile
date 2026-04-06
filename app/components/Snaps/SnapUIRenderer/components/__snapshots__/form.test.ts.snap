@@ -1023,9 +1023,9 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 [
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 16,
-                                    "fontWeight": 700,
+                                    "fontWeight": 600,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   },
@@ -1759,9 +1759,9 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 [
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 16,
-                                    "fontWeight": 700,
+                                    "fontWeight": 600,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   },

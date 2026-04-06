@@ -69,7 +69,7 @@ describe('useOriginSource', () => {
     expect(result.current).toBe(SourceType.SDK);
   });
 
-  it('should return SDK_CONNECT_V2 source for UUID origin present in v2Connections', () => {
+  it('should return MM_CONNECT source for UUID origin present in v2Connections', () => {
     const v2Uuid = 'aabbccdd-1122-3344-5566-778899aabbcc';
     const v2State = {
       ...mockState,
@@ -86,10 +86,10 @@ describe('useOriginSource', () => {
     );
 
     const { result } = renderHook(() => useOriginSource({ origin: v2Uuid }));
-    expect(result.current).toBe(SourceType.SDK_CONNECT_V2);
+    expect(result.current).toBe(SourceType.MM_CONNECT);
   });
 
-  it('should prefer SDK_CONNECT_V2 over SDK when UUID exists in both stores', () => {
+  it('should prefer MM_CONNECT over SDK when UUID exists in both stores', () => {
     // UUID '123e4567-...' is recognized by the V1 SDKConnect mock above.
     // When it also appears in v2Connections, V2 should win.
     const sharedUuid = '123e4567-e89b-12d3-a456-426614174000';
@@ -110,10 +110,10 @@ describe('useOriginSource', () => {
     const { result } = renderHook(() =>
       useOriginSource({ origin: sharedUuid }),
     );
-    expect(result.current).toBe(SourceType.SDK_CONNECT_V2);
+    expect(result.current).toBe(SourceType.MM_CONNECT);
   });
 
-  it('should not return SDK_CONNECT_V2 for UUID origin not in v2Connections', () => {
+  it('should not return MM_CONNECT for UUID origin not in v2Connections', () => {
     const unknownUuid = 'aabbccdd-1122-3344-5566-000000000000';
     const { result } = renderHook(() =>
       useOriginSource({ origin: unknownUuid }),
