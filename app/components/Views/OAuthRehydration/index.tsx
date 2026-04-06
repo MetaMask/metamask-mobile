@@ -1,17 +1,16 @@
 import React, {
   useEffect,
-  useRef,
   useState,
   useMemo,
   useCallback,
   useContext,
+  useRef,
 } from 'react';
 import {
   SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
-  TextInput,
   Platform,
   Alert,
   StatusBar,
@@ -129,8 +128,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
-
-  const fieldRef = useRef<TextInput>(null);
 
   const route =
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
@@ -741,7 +738,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       await onRehydrateLogin();
     }
     setPassword('');
-    fieldRef.current?.clear();
   };
 
   const toggleWarningModal = () => {
@@ -762,7 +758,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       returnKeyType={'done'}
       autoCapitalize="none"
       secureTextEntry
-      ref={fieldRef}
       onChangeText={handlePasswordChange}
       value={password}
       onSubmitEditing={handleLogin}
