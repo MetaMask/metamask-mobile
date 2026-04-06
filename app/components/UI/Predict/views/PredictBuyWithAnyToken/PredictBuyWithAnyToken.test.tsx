@@ -130,7 +130,6 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
     providerFee: 2,
     total: 23,
     depositFee: 3,
-    depositAmount: 4,
     rewardsFeeAmount: 5,
     totalPayForPredictBalance: 20,
   }),
@@ -258,13 +257,12 @@ jest.mock('../../components/PredictOrderRetrySheet', () => {
 jest.mock('./components/PredictPayWithAnyTokenInfo', () => {
   const { Text } = jest.requireActual('react-native');
   return function MockPredictPayWithAnyTokenInfo({
-    depositAmount,
+    currentValue,
   }: {
-    depositAmount: number;
+    currentValue: number;
+    isInputFocused: boolean;
   }) {
-    return (
-      <Text testID="predict-pay-with-any-token-info">{depositAmount}</Text>
-    );
+    return <Text testID="predict-pay-with-any-token-info">{currentValue}</Text>;
   };
 });
 

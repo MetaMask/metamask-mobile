@@ -1,6 +1,10 @@
 import { Messenger } from '@metamask/messenger';
 import { CardController, defaultCardControllerState } from './CardController';
-import { type CardControllerActions, type CardControllerEvents } from './types';
+import {
+  type CardControllerActions,
+  type CardControllerEvents,
+  type CardControllerMessenger,
+} from './types';
 import {
   CardProviderError,
   CardProviderErrorCode,
@@ -21,6 +25,22 @@ function buildMessenger() {
     CardControllerActions,
     CardControllerEvents
   >({ namespace: 'CardController' });
+}
+
+function buildMockMessenger(
+  overrides: Partial<CardControllerMessenger> = {},
+): jest.Mocked<CardControllerMessenger> {
+  return {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+    call: jest.fn(),
+    publish: jest.fn(),
+    registerActionHandler: jest.fn(),
+    unregisterActionHandler: jest.fn(),
+    clearEventSubscriptions: jest.fn(),
+    registerInitialEventPayload: jest.fn(),
+    ...overrides,
+  } as unknown as jest.Mocked<CardControllerMessenger>;
 }
 
 function buildMockProvider(
@@ -433,5 +453,221 @@ describe('CardController — auth methods', () => {
       expect(result).toStrictEqual({ isAuthenticated: false });
       expect(controller.state.isAuthenticated).toBe(false);
     });
+
+    it('persists location in providerData when tokens are valid', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue({ ...mockTokenSet, location: 'us' });
+      provider.validateTokens.mockReturnValue('valid');
+      const controller = buildController(provider);
+
+      await controller.validateAndRefreshSession();
+
+      expect(controller.state.providerData.baanx).toStrictEqual({
+        location: 'us',
+      });
+    });
+
+    it('persists location in providerData after token refresh', async () => {
+      const provider = buildMockProvider();
+      const refreshedTokens: CardAuthTokens = {
+        ...mockTokenSet,
+        accessToken: 'new-at',
+        location: 'us',
+      };
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('needs_refresh');
+      provider.refreshTokens.mockResolvedValue(refreshedTokens);
+      mockTokenStore.set.mockResolvedValue(true);
+      const controller = buildController(provider);
+
+      await controller.validateAndRefreshSession();
+
+      expect(controller.state.providerData.baanx).toStrictEqual({
+        location: 'us',
+      });
+    });
+  });
+});
+
+describe('CardController — event subscriptions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('subscribes to KeyringController:unlock on construction', () => {
+    const mockMessenger = buildMockMessenger();
+    new CardController({
+      messenger: mockMessenger,
+      providers: {},
+    });
+
+    expect(mockMessenger.subscribe).toHaveBeenCalledWith(
+      'KeyringController:unlock',
+      expect.any(Function),
+    );
+  });
+
+  it('subscribes to AccountTreeController:stateChange on construction', () => {
+    const mockMessenger = buildMockMessenger();
+    new CardController({
+      messenger: mockMessenger,
+      providers: {},
+    });
+
+    expect(mockMessenger.subscribe).toHaveBeenCalledWith(
+      'AccountTreeController:stateChange',
+      expect.any(Function),
+      expect.any(Function),
+    );
+  });
+
+  it('calls validateAndRefreshSession on KeyringController:unlock', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(null);
+
+    const mockMessenger = buildMockMessenger();
+    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'AccountsController:getState') {
+        return { internalAccounts: { accounts: {} } };
+      }
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: {} };
+      }
+      return undefined;
+    });
+
+    const controller = new CardController({
+      messenger: mockMessenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    const validateSpy = jest
+      .spyOn(controller, 'validateAndRefreshSession')
+      .mockResolvedValue({ isAuthenticated: false });
+
+    // Simulate unlock event
+    const unlockHandler = (
+      mockMessenger.subscribe as jest.Mock
+    ).mock.calls.find(([event]) => event === 'KeyringController:unlock')?.[1];
+    await unlockHandler?.();
+
+    expect(validateSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CardController — checkCardholderAccounts', () => {
+  const accountsApiUrl = 'https://accounts.api.example.com/';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('stores cardholder accounts returned by the API', async () => {
+    const caipIds = [
+      'eip155:0:0xabc' as `${string}:${string}:${string}`,
+      'eip155:0:0xdef' as `${string}:${string}:${string}`,
+    ];
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ is: ['eip155:0:0xabc'] }),
+    });
+
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+
+    expect(controller.state.cardholderAccounts).toStrictEqual([
+      'eip155:0:0xabc',
+    ]);
+  });
+
+  it('stores empty array when API returns no cardholder accounts', async () => {
+    const caipIds = ['eip155:0:0xabc' as `${string}:${string}:${string}`];
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ is: [] }),
+    });
+
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+
+    expect(controller.state.cardholderAccounts).toStrictEqual([]);
+  });
+
+  it('is a no-op when caipAccountIds is empty', async () => {
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    await controller.checkCardholderAccounts([], accountsApiUrl);
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(controller.state.cardholderAccounts).toStrictEqual([]);
+  });
+
+  it('leaves state unchanged and logs error when API call fails', async () => {
+    const caipIds = ['eip155:0:0xabc' as `${string}:${string}:${string}`];
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+
+    const provider = buildMockProvider();
+    const controller = buildController(provider, {
+      cardholderAccounts: ['eip155:0:0xprev'],
+    });
+
+    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+
+    expect(controller.state.cardholderAccounts).toStrictEqual([
+      'eip155:0:0xprev',
+    ]);
+  });
+
+  it('batches requests for more than BATCH_SIZE accounts', async () => {
+    const caipIds = Array.from(
+      { length: 55 },
+      (_, i) =>
+        `eip155:0:0x${i.toString(16).padStart(4, '0')}` as `${string}:${string}:${string}`,
+    );
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ is: [] }),
+    });
+
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+
+    // 55 accounts → 2 batches (50 + 5)
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('caps at MAX_BATCHES (3) even with more than 150 accounts', async () => {
+    const caipIds = Array.from(
+      { length: 160 },
+      (_, i) =>
+        `eip155:0:0x${i.toString(16).padStart(4, '0')}` as `${string}:${string}:${string}`,
+    );
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ is: [] }),
+    });
+
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    await controller.checkCardholderAccounts(caipIds, accountsApiUrl);
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
   });
 });

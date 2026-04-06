@@ -59,7 +59,7 @@ exports[`Tab Active State applies active styling when isActive is true 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -80,7 +80,7 @@ exports[`Tab Active State applies active styling when isActive is true 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -164,7 +164,7 @@ exports[`Tab Active State applies inactive styling when isActive is false 1`] = 
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -270,7 +270,7 @@ exports[`Tab Disabled State applies disabled styling when isDisabled is true 1`]
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -376,7 +376,7 @@ exports[`Tab Disabled State shows disabled styling even when marked as active 1`
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -482,7 +482,7 @@ exports[`Tab Disabled State shows muted text color when disabled and inactive 1`
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,
@@ -587,7 +587,7 @@ exports[`Tab Rendering renders correctly 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "fontWeight": 400,
             "letterSpacing": 0,

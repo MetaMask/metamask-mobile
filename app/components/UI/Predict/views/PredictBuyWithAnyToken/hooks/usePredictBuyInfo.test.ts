@@ -11,7 +11,6 @@ let mockPayTotals: {
   };
 } | null = null;
 let mockActiveOrder: { error?: string } | null = null;
-let mockPredictBalance = 0;
 let mockAvailableBalance = 1000;
 let mockIsBalanceLoading = false;
 let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
@@ -32,13 +31,6 @@ jest.mock(
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     activeOrder: mockActiveOrder,
-  }),
-}));
-
-jest.mock('../../../hooks/usePredictBalance', () => ({
-  usePredictBalance: () => ({
-    data: mockPredictBalance,
-    isLoading: false,
   }),
 }));
 
@@ -75,10 +67,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../utils/format', () => ({
   formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
-}));
-
-jest.mock('../../../constants/transactions', () => ({
-  MINIMUM_BET: 1,
 }));
 
 const createMockPreview = (
@@ -121,7 +109,6 @@ describe('usePredictBuyInfo', () => {
     mockIsPredictBalanceSelected = true;
     mockPayTotals = null;
     mockActiveOrder = null;
-    mockPredictBalance = 0;
     mockAvailableBalance = 1000;
     mockIsBalanceLoading = false;
     mockInsufficientPayTokenBalanceAlert = null;
@@ -324,136 +311,6 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
       expect(result.current.toWin).toBe(0);
-    });
-  });
-
-  describe('depositAmount', () => {
-    it('returns 0 when preview is null', () => {
-      mockPredictBalance = 0;
-      const params = { ...defaultParams, currentValue: 1, preview: null };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(0);
-    });
-
-    it('returns 0 when preview has no fees', () => {
-      mockPredictBalance = 0;
-      const params = {
-        ...defaultParams,
-        currentValue: 1,
-        preview: createMockPreview({ fees: undefined }),
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(0);
-    });
-
-    it('returns 0 when currentValue is below minimum bet', () => {
-      mockPredictBalance = 0;
-      const params = {
-        ...defaultParams,
-        currentValue: 0.5,
-        preview: createMockPreview(),
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(0);
-    });
-
-    it('returns the remaining amount needed after predict balance is applied', () => {
-      mockPredictBalance = 80;
-
-      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
-
-      expect(result.current.depositAmount).toBe(25);
-    });
-
-    it('rounds the remaining amount up to 2 decimals when a deposit is still needed', () => {
-      mockPredictBalance = 0;
-      const params = {
-        ...defaultParams,
-        currentValue: 2,
-        preview: createMockPreview({
-          fees: {
-            totalFee: 0.075,
-            metamaskFee: 0.035,
-            providerFee: 0.04,
-            totalFeePercentage: 4,
-            collector: '0xCollector',
-          },
-        }),
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(2.08);
-    });
-
-    it('rounds up even when the third decimal is below 5 so the deposit fully covers the shortfall', () => {
-      mockPredictBalance = 0;
-      const params = {
-        ...defaultParams,
-        currentValue: 2,
-        preview: createMockPreview({
-          fees: {
-            totalFee: 0.074,
-            metamaskFee: 0.034,
-            providerFee: 0.04,
-            totalFeePercentage: 4,
-            collector: '0xCollector',
-          },
-        }),
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(2.08);
-    });
-
-    it('rounds a tiny positive shortfall up to the minimum cent instead of zero', () => {
-      mockPredictBalance = 2.075889;
-      const params = {
-        ...defaultParams,
-        currentValue: 2,
-        preview: createMockPreview({
-          fees: {
-            totalFee: 0.08,
-            metamaskFee: 0.04,
-            providerFee: 0.04,
-            totalFeePercentage: 4,
-            collector: '0xCollector',
-          },
-        }),
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(0.01);
-    });
-
-    it('returns the full preview total when predict balance already covers the bet', () => {
-      mockPredictBalance = 110;
-      const params = {
-        ...defaultParams,
-        currentValue: 1,
-        preview: createMockPreview({
-          maxAmountSpent: 1,
-          fees: {
-            totalFee: 0.04,
-            metamaskFee: 0.02,
-            providerFee: 0.02,
-            totalFeePercentage: 4,
-            collector: '0xCollector',
-          },
-        }),
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.depositAmount).toBe(1.04);
     });
   });
 

@@ -426,7 +426,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -545,7 +545,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -622,7 +622,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
@@ -691,7 +691,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -810,7 +810,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -929,7 +929,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -1048,7 +1048,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             style={
                               {
                                 "color": "#131416",
-                                "fontFamily": "Geist-Bold",
+                                "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
                                 "lineHeight": 32,
@@ -1180,7 +1180,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
+                                  "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
