@@ -279,7 +279,9 @@ export class PolymarketProvider implements PredictProvider {
       const isSportsEvent =
         liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
 
-      await this.#ensureTeamsLoadedForEvents([event], supportedLeagues);
+      if (isSportsEvent) {
+        await this.#ensureTeamsLoadedForEvents([event], supportedLeagues);
+      }
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
 
