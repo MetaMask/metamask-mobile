@@ -14,7 +14,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       justifyContent: 'center',
       alignItems: 'center',
       gap: 14,
-      paddingTop: 80,
     },
 
     disabledButton: {

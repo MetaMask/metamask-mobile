@@ -18,7 +18,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const { Text: RNText } = jest.requireActual('react-native');
   const MockText = ({
     children,
@@ -29,12 +29,12 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     variant?: string;
     color?: string;
     testID?: string;
+    twClassName?: string;
   }) => <RNText {...props}>{children}</RNText>;
   return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: { BodyMD: 'BodyMD', HeadingMD: 'HeadingMD' },
-    TextColor: { Alternative: 'Alternative' },
+    Text: MockText,
+    TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
+    TextColor: { TextAlternative: 'TextAlternative' },
   };
 });
 

@@ -14,17 +14,19 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
-import Text, {
+import {
+  FontWeight,
+  Skeleton,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import Icon, {
   IconColor,
   IconName,
@@ -117,7 +119,7 @@ export function PayWithRow() {
         justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {label}
         </Text>
         <Box
@@ -130,8 +132,9 @@ export function PayWithRow() {
             chainId={displayToken.chainId}
           />
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {displayToken.symbol}
@@ -177,7 +180,7 @@ function PayWithFiatPaymentMethodRow({
         justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {label}
         </Text>
         <Box
@@ -190,8 +193,9 @@ function PayWithFiatPaymentMethodRow({
             size={20}
           />
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {paymentMethod.name}

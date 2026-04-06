@@ -13,10 +13,11 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
@@ -120,7 +121,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         style={styles.row}
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('confirm.label.to')}
         </Text>
         <View style={styles.valueContainer}>
@@ -133,16 +134,19 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                 size={AvatarSize.Sm}
               />
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
                 numberOfLines={1}
                 ellipsizeMode="middle"
-                style={styles.accountText}
+                twClassName="shrink"
               >
                 {accountName}
               </Text>
             </>
           ) : (
-            <Text variant={TextVariant.BodyMD} style={styles.placeholderText}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('transaction.recipient_address')}
             </Text>
           )}
@@ -162,7 +166,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text variant={TextVariant.HeadingMD}>
+            <Text variant={TextVariant.HeadingMd}>
               {strings('bridge.select_recipient')}
             </Text>
             <TouchableOpacity onPress={closeModal}>

@@ -38,9 +38,6 @@ const stylesheet = (params: { theme: Theme }) => {
     accountText: {
       flexShrink: 1,
     },
-    placeholderText: {
-      color: theme.colors.text.alternative,
-    },
   });
 };
 
