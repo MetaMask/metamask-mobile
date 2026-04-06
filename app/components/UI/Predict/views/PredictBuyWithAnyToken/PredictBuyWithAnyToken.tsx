@@ -6,18 +6,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
@@ -32,25 +24,9 @@ import PredictKeypad, {
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
-import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
-import { usePredictBuyConditions } from './hooks/usePredictBuyConditions';
-import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
-import { usePredictBuyInputState } from './hooks/usePredictBuyInputState';
-import { usePredictBuyActions } from './hooks/usePredictBuyActions';
-import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
-import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
-import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-
-import {
-  selectPredictFakOrdersEnabledFlag,
-  selectPredictWithAnyTokenEnabledFlag,
-} from '../../selectors/featureFlags';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { parseAnalyticsProperties } from '../../utils/analytics';
-import { formatPrice } from '../../utils/format';
-import { usePredictBuyError } from './hooks/usePredictBuyError';
-import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
+import { usePredictBuyFlow } from './machine/usePredictBuyFlow';
 
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
@@ -61,44 +37,7 @@ const PredictBuyWithAnyToken = () => {
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
-  const { isPlacingOrder } = usePredictActiveOrder();
-
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-
-  const payWithAnyTokenEnabled = useSelector(
-    selectPredictWithAnyTokenEnabledFlag,
-  );
-  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
-
-  const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
-  );
-
-  const { availableBalance, isBalanceLoading } =
-    usePredictBuyAvailableBalance();
-
-  const availableBalanceDisplay = useMemo(
-    () =>
-      formatPrice(availableBalance, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      }),
-    [availableBalance],
-  );
-
-  const {
-    currentValue,
-    setCurrentValue,
-    currentValueUSDString,
-    setCurrentValueUSDString,
-    isInputFocused,
-    setIsInputFocused,
-    isUserInputChange,
-    setIsUserInputChange,
-    isConfirming,
-    setIsConfirming,
-  } = usePredictBuyInputState();
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
@@ -109,100 +48,41 @@ const PredictBuyWithAnyToken = () => {
   }, []);
 
   const {
-    preview,
-    error: previewError,
-    isCalculating: isPreviewCalculating,
-  } = usePredictOrderPreview({
-    marketId: market.id,
-    outcomeId: outcome.id,
-    outcomeTokenId: outcomeToken.id,
-    side: Side.BUY,
-    size: currentValue,
-    autoRefreshTimeout: 1000,
-  });
-
-  const {
-    toWin,
-    metamaskFee,
-    providerFee,
-    total,
-    depositFee,
-    depositAmount,
-    rewardsFeeAmount,
-    totalPayForPredictBalance,
-  } = usePredictBuyInfo({
-    currentValue,
-    preview,
-    previewError,
-    isConfirming,
     isPlacingOrder,
-  });
-
-  const {
-    canPlaceBet,
+    preview,
+    input,
+    availableBalanceDisplay,
+    isBalanceLoading,
+    isBalancePulsing,
+    toWin,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
-    isBalancePulsing,
-    isBelowMinimum,
-    isInsufficientBalance,
-    maxBetAmount,
-  } = usePredictBuyConditions({
-    currentValue,
-    preview,
-    isPreviewCalculating,
-    isUserInputChange,
-    isConfirming,
-    totalPayForPredictBalance,
-    isInputFocused,
-  });
-
-  const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
-    usePredictBuyError({
-      preview,
-      previewError,
-      isPlacingOrder,
-      isBelowMinimum,
-      isInsufficientBalance,
-      maxBetAmount,
-      isConfirming,
-      isPayFeesLoading,
-    });
-
-  const { handleConfirm, placeOrder } = usePredictBuyActions({
-    analyticsProperties,
-    preview,
-    setIsConfirming,
-  });
-
-  useEffect(() => {
-    if (!isPreviewCalculating) {
-      setIsUserInputChange(false);
-    }
-  }, [isPreviewCalculating, setIsUserInputChange]);
-
-  const {
+    canPlaceBet,
+    total,
+    rewardsFeeAmount,
+    metamaskFee,
+    providerFee,
+    depositFee,
+    depositAmount,
+    errorMessage,
+    handleConfirm,
     retrySheetRef,
     retrySheetVariant,
     isRetrying,
     handleRetryWithBestPrice,
-  } = usePredictOrderRetry({
-    preview,
-    placeOrder,
-    analyticsProperties,
-    isOrderNotFilled,
     resetOrderNotFilled,
-  });
+    payWithAnyTokenEnabled,
+    fakOrdersEnabled,
+  } = usePredictBuyFlow({ market, outcome, outcomeToken, entryPoint });
 
-  // Track screen load performance (balance + initial preview)
-  usePredictMeasurement({
-    traceName: TraceName.PredictBuyPreviewView,
-    conditions: [!isBalanceLoading, availableBalance !== undefined, !!market],
-    debugContext: {
-      marketId: market?.id,
-      hasBalance: availableBalance !== undefined,
-      isBalanceLoading,
-    },
-  });
+  const {
+    currentValue,
+    setCurrentValue,
+    currentValueUSDString,
+    setCurrentValueUSDString,
+    isInputFocused,
+    setIsInputFocused,
+  } = input;
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
