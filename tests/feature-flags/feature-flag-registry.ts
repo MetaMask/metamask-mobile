@@ -2825,6 +2825,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  googleLoginIosUnsupportedBlockingEnabled: {
+    name: 'googleLoginIosUnsupportedBlockingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   metalCardCheckoutEnabled: {
     name: 'metalCardCheckoutEnabled',
     type: FeatureFlagType.Remote,

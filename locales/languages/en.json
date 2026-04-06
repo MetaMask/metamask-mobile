@@ -6865,6 +6865,9 @@
     "ios_need_update_description_version": "iOS 17.4 or later",
     "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
     "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase to ensure uninterrupted access.",
+    "ios_google_login_unsupported_blocking_title": "Google login not supported",
+    "ios_google_login_unsupported_blocking_description": "Google login is not supported on this device. Please update your device to iOS 17.4 or later to continue using Google login.",
+    "ios_google_login_unsupported_blocking_button": "Confirm",
     "ios_need_update_button": "Continue"
   },
   "password_hint": {

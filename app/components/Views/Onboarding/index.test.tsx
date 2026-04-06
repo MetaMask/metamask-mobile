@@ -76,6 +76,7 @@ import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { AccountType } from '../../../constants/onboarding';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 // Mock netinfo - using existing mock
@@ -108,6 +109,21 @@ const getIosGoogleWarningSheetCall = () =>
       route === Routes.MODAL.ROOT_MODAL_FLOW &&
       params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
       params?.params?.title === IOS_GOOGLE_WARNING_TITLE,
+  );
+
+const IOS_GOOGLE_BLOCKING_ERROR_TITLE = strings(
+  'error_sheet.oauth_error_title',
+);
+const IOS_GOOGLE_BLOCKING_ERROR_BUTTON = strings(
+  'error_sheet.oauth_error_button',
+);
+
+const getIosGoogleBlockingErrorSheetCall = () =>
+  mockNavigate.mock.calls.find(
+    ([route, params]) =>
+      route === Routes.MODAL.ROOT_MODAL_FLOW &&
+      params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+      params?.params?.title === IOS_GOOGLE_BLOCKING_ERROR_TITLE,
   );
 
 const mockInitialState = {
@@ -1399,6 +1415,93 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         true,
+      );
+    });
+
+    it('blocks Google login on iOS < 17.4 when googleLoginIosUnsupportedBlockingEnabled is true', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockClear();
+      mockAnalytics.trackEvent.mockClear();
+
+      const stateWithBlockingFlag = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...mockInitialState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: stateWithBlockingFlag,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      const errorSheetCall = getIosGoogleBlockingErrorSheetCall();
+
+      expect(errorSheetCall).toEqual([
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            type: 'error',
+            title: IOS_GOOGLE_BLOCKING_ERROR_TITLE,
+            description: strings('error_sheet.oauth_error_description'),
+            descriptionAlign: 'center',
+            primaryButtonLabel: IOS_GOOGLE_BLOCKING_ERROR_BUTTON,
+            onPrimaryButtonPress: expect.any(Function),
+            closeOnPrimaryButtonPress: true,
+          }),
+        }),
+      ]);
+
+      await act(async () => {
+        await errorSheetCall?.[1].params.onPrimaryButtonPress?.();
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockCreateLoginHandler).not.toHaveBeenCalled();
+      expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Wallet Google Ios Warning Viewed',
+        }),
       );
     });
 

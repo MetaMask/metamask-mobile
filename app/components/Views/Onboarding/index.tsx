@@ -38,6 +38,7 @@ import {
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
+import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -161,6 +162,9 @@ const Onboarding = () => {
     (state: RootState) => state.user.loadingMsg || '',
   );
   const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
+  const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
+    selectGoogleLoginIosUnsupportedBlockingEnabled,
+  );
 
   const setLoading = useCallback(
     (msg?: string) => dispatch(loadingSet(msg || '')),
@@ -773,6 +777,24 @@ const Onboarding = () => {
           Device.isIos() &&
           Device.comparePlatformVersionTo('17.4') < 0
         ) {
+          if (isGoogleLoginIosUnsupportedBlockingEnabled) {
+            await navigateToSuccessErrorSheetPromise(navigation, {
+              type: 'error',
+              title: strings(
+                `error_sheet.ios_google_login_unsupported_blocking_title`,
+              ),
+              description: strings(
+                `error_sheet.ios_google_login_unsupported_blocking_description`,
+              ),
+              descriptionAlign: 'center',
+              primaryButtonLabel: strings(
+                `error_sheet.ios_google_login_unsupported_blocking_button`,
+              ),
+              closeOnPrimaryButtonPress: true,
+            });
+            return;
+          }
+
           const description = () => (
             <>
               <Text style={tw.style('text-pretty')}>
@@ -840,6 +862,7 @@ const Onboarding = () => {
       handleLoginError,
       handlePostSocialLogin,
       handleExistingUser,
+      isGoogleLoginIosUnsupportedBlockingEnabled,
     ],
   );
 
