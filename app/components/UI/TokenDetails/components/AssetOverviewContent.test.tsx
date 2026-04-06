@@ -818,6 +818,7 @@ describe('AssetOverviewContent', () => {
 
     it.each([
       [false, undefined],
+      [false, ''],
       [false, '0'],
       [true, '1,000.50'],
       [true, '1.000,50'],
