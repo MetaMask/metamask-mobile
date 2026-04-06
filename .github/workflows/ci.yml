@@ -282,12 +282,13 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - name: Cache prepared node_modules
+      - name: Cache prepared workspace
         uses: actions/cache/save@v4
         with:
           path: |
             node_modules
             .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
           key: unit-test-deps-${{ github.sha }}
 
   unit-tests:
@@ -305,12 +306,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Restore prepared node_modules
+      - name: Restore prepared workspace
         uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
           key: unit-test-deps-${{ github.sha }}
           fail-on-cache-miss: true
       - name: Restore Jest transform cache
@@ -362,12 +364,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Restore prepared node_modules
+      - name: Restore prepared workspace
         uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
           key: unit-test-deps-${{ github.sha }}
           fail-on-cache-miss: true
       - uses: actions/download-artifact@v4
@@ -473,12 +476,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Restore prepared node_modules
+      - name: Restore prepared workspace
         uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
           key: unit-test-deps-${{ github.sha }}
           fail-on-cache-miss: true
       - name: Prepare results directory
