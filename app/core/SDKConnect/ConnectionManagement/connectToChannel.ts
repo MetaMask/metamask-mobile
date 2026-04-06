@@ -76,11 +76,11 @@ async function connectToChannel({
 
   if (anonId) {
     DevLogger.log(
-      `[MM SDK Analytics] event=wallet_connection_request_received anonId=${anonId}`,
+      `[MM SDK Analytics] event=MMConnect Request Received anonId=${anonId}`,
     );
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_CONNECTION_REQUEST_RECEIVED,
+        MetaMetricsEvents.MMCONNECT_REQUEST_RECEIVED,
       )
         .addProperties({
           transport_type: 'socket_relay',

@@ -70,11 +70,11 @@ export const handleConnectionMessage = async ({
 
   if (anonId && ANALYTICS_TRACKED_RPC_METHODS.includes(message.method)) {
     DevLogger.log(
-      `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
+      `[MM SDK Analytics] event=SDK RPC Request Received anonId=${anonId}`,
     );
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_ACTION_RECEIVED,
+        MetaMetricsEvents.SDK_RPC_REQUEST_RECEIVED,
       )
         .addProperties({
           transport_type: 'socket_relay',

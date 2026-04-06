@@ -65,13 +65,15 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
-  // SDK wallet connection events (SDKv1 socket relay)
-  WALLET_CONNECTION_REQUEST_RECEIVED = 'wallet_connection_request_received',
+  // MMConnect connection events (shared across SDKv1 socket relay and MWP)
+  MMCONNECT_REQUEST_RECEIVED = 'MMConnect Request Received',
   WALLET_CONNECTION_USER_APPROVED = 'wallet_connection_user_approved',
   WALLET_CONNECTION_USER_REJECTED = 'wallet_connection_user_rejected',
-  WALLET_ACTION_RECEIVED = 'wallet_action_received',
-  WALLET_ACTION_USER_APPROVED = 'wallet_action_user_approved',
-  WALLET_ACTION_USER_REJECTED = 'wallet_action_user_rejected',
+
+  // SDK RPC events (SDKv1 socket relay only)
+  SDK_RPC_REQUEST_RECEIVED = 'SDK RPC Request Received',
+  SDK_RPC_REQUEST_APPROVED = 'SDK RPC Request Approved',
+  SDK_RPC_REQUEST_REJECTED = 'SDK RPC Request Rejected',
 
   // Phishing
   PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
@@ -782,9 +784,9 @@ const events = {
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
 
-  // SDK wallet connection events (SDKv1 socket relay)
-  WALLET_CONNECTION_REQUEST_RECEIVED: generateOpt(
-    EVENT_NAME.WALLET_CONNECTION_REQUEST_RECEIVED,
+  // MMConnect connection events (shared across SDKv1 socket relay and MWP)
+  MMCONNECT_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.MMCONNECT_REQUEST_RECEIVED,
   ),
   WALLET_CONNECTION_USER_APPROVED: generateOpt(
     EVENT_NAME.WALLET_CONNECTION_USER_APPROVED,
@@ -792,13 +794,11 @@ const events = {
   WALLET_CONNECTION_USER_REJECTED: generateOpt(
     EVENT_NAME.WALLET_CONNECTION_USER_REJECTED,
   ),
-  WALLET_ACTION_RECEIVED: generateOpt(EVENT_NAME.WALLET_ACTION_RECEIVED),
-  WALLET_ACTION_USER_APPROVED: generateOpt(
-    EVENT_NAME.WALLET_ACTION_USER_APPROVED,
-  ),
-  WALLET_ACTION_USER_REJECTED: generateOpt(
-    EVENT_NAME.WALLET_ACTION_USER_REJECTED,
-  ),
+
+  // SDK RPC events (SDKv1 socket relay only)
+  SDK_RPC_REQUEST_RECEIVED: generateOpt(EVENT_NAME.SDK_RPC_REQUEST_RECEIVED),
+  SDK_RPC_REQUEST_APPROVED: generateOpt(EVENT_NAME.SDK_RPC_REQUEST_APPROVED),
+  SDK_RPC_REQUEST_REJECTED: generateOpt(EVENT_NAME.SDK_RPC_REQUEST_REJECTED),
 
   // Phishing events
   PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),

@@ -35,8 +35,8 @@ export const handleSendMessage = async ({
       anonId
     ) {
       const event = msg?.data?.error
-        ? MetaMetricsEvents.WALLET_ACTION_USER_REJECTED
-        : MetaMetricsEvents.WALLET_ACTION_USER_APPROVED;
+        ? MetaMetricsEvents.SDK_RPC_REQUEST_REJECTED
+        : MetaMetricsEvents.SDK_RPC_REQUEST_APPROVED;
 
       DevLogger.log(
         `[MM SDK Analytics] event=${event.category} anonId=${anonId}`,

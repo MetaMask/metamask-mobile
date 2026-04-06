@@ -260,7 +260,7 @@ describe('connectToChannel', () => {
   });
 
   describe('Analytics', () => {
-    it('should track wallet_connection_request_received when anonId is present', async () => {
+    it('should track MMConnect Request Received when anonId is present', async () => {
       originatorInfo.anonId = 'test-anon-id';
       (checkPermissions as jest.Mock).mockResolvedValue(true); // Ensure checkPermissions resolves
 
@@ -277,7 +277,7 @@ describe('connectToChannel', () => {
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'wallet_connection_request_received',
+          name: 'MMConnect Request Received',
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
           }),
