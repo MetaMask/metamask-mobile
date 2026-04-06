@@ -67,6 +67,7 @@ enum EVENT_NAME {
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECT_REQUEST_RECEIVED = 'Remote Connect Request Received',
+  REMOTE_CONNECT_REQUEST_FAILED = 'Remote Connect Request Failed',
   WALLET_CONNECTION_USER_APPROVED = 'wallet_connection_user_approved',
   WALLET_CONNECTION_USER_REJECTED = 'wallet_connection_user_rejected',
 
@@ -787,6 +788,9 @@ const events = {
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
   REMOTE_CONNECT_REQUEST_RECEIVED: generateOpt(
     EVENT_NAME.REMOTE_CONNECT_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECT_REQUEST_FAILED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECT_REQUEST_FAILED,
   ),
   WALLET_CONNECTION_USER_APPROVED: generateOpt(
     EVENT_NAME.WALLET_CONNECTION_USER_APPROVED,
