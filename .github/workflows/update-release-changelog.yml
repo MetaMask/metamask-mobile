@@ -74,6 +74,8 @@ jobs:
           GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
         run: |
           set -euo pipefail
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
           corepack enable
           yarn install --immutable
           bash .github/scripts/run-update-release-changelog-mobile.sh \
