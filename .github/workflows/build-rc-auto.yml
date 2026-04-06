@@ -107,7 +107,7 @@ jobs:
     with:
       platform: android
       source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
-      skip_version_bump: true
+      skip_version_bump: true # iOS step already bumped the version
     secrets: inherit
 
   post-rc-build-comment:
