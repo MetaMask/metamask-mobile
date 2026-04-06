@@ -1,9 +1,9 @@
 import { test as base, type FullProject } from '@playwright/test';
-import { SrpProfile, WebDriverConfig } from '../types.ts';
+import { SrpProfile, WebDriverConfig } from '../types';
 import {
   DEFAULT_IMPLICIT_WAIT_MS,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-} from '../Constants.ts';
+} from '../Constants';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import {
   MetricsOutput,
@@ -17,8 +17,8 @@ import {
 } from '../quality-gates';
 import { getTeamInfoFromTags } from '../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
-import CommandQueueServer from '../fixtures/CommandQueueServer.ts';
-import { PlatformDetector } from '../PlatformLocator.ts';
+import CommandQueueServer from '../fixtures/CommandQueueServer';
+import { PlatformDetector } from '../PlatformLocator';
 
 // Extend globalThis to include driver property
 declare global {

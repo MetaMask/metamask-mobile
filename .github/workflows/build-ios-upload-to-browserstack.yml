@@ -25,10 +25,10 @@ on:
         type: string
         description: 'Build variant for Bitrise (rc = release, exp = experimental)'
         default: 'rc'
-      is_performance_build:
+      is_test_build:
         required: false
         type: boolean
-        description: 'Whether this is a performance build'
+        description: 'Whether this is a test build (performance)'
         default: false
     outputs:
       ipa-uploaded:
@@ -57,7 +57,7 @@ env:
   BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
   BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
   BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
-  IS_PERFORMANCE_BUILD: ${{ inputs.is_performance_build }}
+  IS_TEST_BUILD: ${{ inputs.is_test_build }}
   
 jobs:
   check-builds-needed:
@@ -132,8 +132,8 @@ jobs:
               "is_expand": true
             },
             {
-              "mapped_to": "IS_PERFORMANCE_BUILD",
-              "value": "'"$IS_PERFORMANCE_BUILD"'",
+              "mapped_to": "IS_TEST_BUILD",
+              "value": "'"$IS_TEST_BUILD"'",
               "is_expand": true
             }
           ]'

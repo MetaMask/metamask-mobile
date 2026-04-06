@@ -40,8 +40,8 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
-      is_performance_build:
-        description: 'Whether this is a performance build'
+      is_test_build:
+        description: 'Whether this is a test build (performance)'
         required: false
         type: boolean
         default: true
@@ -209,7 +209,7 @@ jobs:
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
-      is_performance_build: true
+      is_test_build: ${{ inputs.is_test_build || true }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -220,7 +220,7 @@ jobs:
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
-      is_performance_build: true
+      is_test_build: ${{ inputs.is_test_build || true }}
     secrets: inherit
 
   # =============================================================================

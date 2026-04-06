@@ -28,7 +28,7 @@ const fetchWithTimeout = (url: string) =>
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
-const isPerformanceBuild = process.env.IS_PERFORMANCE_BUILD === 'true';
+const isTestBuild = process.env.IS_TEST_BUILD === 'true';
 
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
@@ -62,7 +62,7 @@ export const mmConnectSrps = [process.env.MM_CONNECT_SRP_1];
  * This should be called during EngineService startup
  */
 async function applyVaultInitialization() {
-  if (!isPerformanceBuild) {
+  if (!isTestBuild) {
     return null;
   }
 

@@ -1,13 +1,8 @@
-import { getLocalHost } from './FixtureUtils.ts';
+import { getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
-import { createLogger } from '../logger.ts';
-import {
-  E2ECommandTypes,
-  Resource,
-  ServerStatus,
-  SrpProfile,
-} from '../types.ts';
-import PortManager, { ResourceType } from '../PortManager.ts';
+import { createLogger } from '../logger';
+import { E2ECommandTypes, Resource, ServerStatus, SrpProfile } from '../types';
+import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'CommandQueueServer',
