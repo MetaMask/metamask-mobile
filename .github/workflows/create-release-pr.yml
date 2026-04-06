@@ -211,14 +211,11 @@ jobs:
           BRANCH="release/${SEMVER}"
           PATCH="${SEMVER##*.}"
           SEMVER_CL="${SEMVER%.*}.${PATCH:0:1}-ota.${PATCH:1:1}"
+          BODY="OTA hotfix: branch \`${BRANCH}\`."
+          BODY="${BODY}"$'\n\n'"- Native semver and build version are **not** bumped."
+          BODY="${BODY}"$'\n'"- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`."
+          BODY="${BODY}"$'\n'"- CHANGELOG.md uses the SemVer prerelease format \`${SEMVER_CL}\` (maps to Runway \`${SEMVER}\`) because auto-changelog validates all headers as strict SemVer."
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \
-            --body "$(cat <<EOFBODY
-OTA hotfix: branch \`${BRANCH}\`.
-
-- Native semver and build version are **not** bumped.
-- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`.
-- CHANGELOG.md uses the SemVer prerelease format \`${SEMVER_CL}\` (maps to Runway \`${SEMVER}\`) because auto-changelog validates all headers as strict SemVer.
-EOFBODY
-)"
+            --body "$BODY"
