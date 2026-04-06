@@ -14,7 +14,6 @@ import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
-import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
@@ -49,7 +48,7 @@ interface RampStackParamList {
     url: string;
     providerName: string;
     userAgent?: string;
-    callbackKey?: string;
+    onNavigationStateChange?: (navState: { url: string }) => void;
   };
   [key: string]: object | undefined;
 }
@@ -357,11 +356,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToWebviewModalCallback = useCallback(
     ({ paymentUrl, amount }: { paymentUrl: string; amount?: number }) => {
-      const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
         providerName: 'Transak',
-        callbackKey,
+        onNavigationStateChange: handleNavigationStateChange,
       });
       navigation.reset({
         index: 1,
