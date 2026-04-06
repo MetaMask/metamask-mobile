@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import {
   MoneyAccountDepositInfo,
   MONEY_ACCOUNT_CURRENCY,

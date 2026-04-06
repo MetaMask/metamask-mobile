@@ -1,5 +1,5 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
-import { Hex , toCaipAssetType } from '@metamask/utils';
+import { Hex, toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -385,6 +385,7 @@ function useButtonLabel() {
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
+      TransactionType.moneyAccountWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
