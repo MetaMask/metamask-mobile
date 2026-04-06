@@ -6872,7 +6872,7 @@
     "ios_google_login_unsupported_blocking_button": "Close",
     "ios_google_login_unsupported_blocking_rehydration_title": "Google Sign-In unavailable on this iOS version",
     "ios_google_login_unsupported_blocking_rehydration_description": "MetaMask's Google Sign-In now requires iOS 17.4 or later. Your wallet and funds are safe.",
-    "ios_google_login_unsupported_blocking_rehydration_description_2": "ContinueUpdate your iPhone to iOS 17.4 or later to continue using Google Sign-In.",
+    "ios_google_login_unsupported_blocking_rehydration_description_2": "Update your iPhone to iOS 17.4 or later to continue using Google Sign-In.",
     "ios_google_login_unsupported_blocking_rehydration_description_3": "Can't update? You can still access your wallet by signing in on another device with the same Google login and password or importing with your Secret Recovery Phrase.",
     "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
