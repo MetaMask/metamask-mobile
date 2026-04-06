@@ -492,7 +492,9 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#b4b4b528",
+                                        "borderColor": "#131416",
                                         "borderRadius": 8,
+                                        "borderWidth": 1,
                                         "display": "flex",
                                         "flexBasis": "0%",
                                         "flexDirection": "column",
