@@ -1,5 +1,5 @@
 # Same as run-performance-e2e-release but for experimental builds (main branch, build-exp).
-# Builds main-exp-with-srp / main-exp-without-srp via GitHub Actions and runs performance E2E.
+# Triggers Bitrise build_android_main_exp / build_ios_main_exp and runs performance E2E.
 name: Performance E2E Tests for Experimental Builds
 on:
   schedule:
