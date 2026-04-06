@@ -8019,6 +8019,8 @@
       "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
+      "open_position": "Open Position",
+      "swap_ondo_assets": "Swap Ondo Assets",
       "how_it_works": "How it works"
     },
     "ondo_campaign_leaderboard_position": {

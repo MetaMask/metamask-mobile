@@ -29,7 +29,7 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
-import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
+import CampaignCTA from '../components/Campaigns/CampaignCTA';
 import {
   getCampaignStatus,
   isOptinAllowed,
@@ -96,15 +96,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const isOptedIn = participantStatusData?.optedIn === true;
 
-  // Campaign is active but the deposit cutoff date has passed — user can no longer opt in
-  const areEntriesClosed = useMemo(
-    () =>
-      campaign !== null &&
-      getCampaignStatus(campaign) === 'active' &&
-      !isOptinAllowed(campaign),
-    [campaign],
-  );
-
   // Single fetch point for portfolio — data is passed to both the portfolio section and
   // used to gate the leaderboard rank section visibility
   const {
@@ -162,7 +153,8 @@ const OndoCampaignDetailsView: React.FC = () => {
       Boolean(campaign.details?.howItWorks) &&
       !hasPositions &&
       !isPortfolioLoading &&
-      getCampaignStatus(campaign) === 'active';
+      getCampaignStatus(campaign) === 'active' &&
+      isOptinAllowed(campaign);
 
     const showCompetitionEndedBanner =
       getCampaignStatus(campaign) === 'complete' ||
@@ -444,12 +436,13 @@ const OndoCampaignDetailsView: React.FC = () => {
         </ScrollView>
 
         {campaign && (
-          <CampaignJoinCTA
+          <CampaignCTA
             campaign={campaign}
             participantStatus={{
               status: participantStatusData,
               isLoading: isParticipantStatusLoading,
             }}
+            hasPositions={hasPositions}
           />
         )}
       </SafeAreaView>
