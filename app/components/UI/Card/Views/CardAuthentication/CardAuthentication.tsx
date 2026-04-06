@@ -167,7 +167,7 @@ const CardAuthentication = () => {
 
       try {
         if (!isOtpStep) {
-          await initiate.mutateAsync(location);
+          await initiate.mutateAsync(location ?? 'international');
         }
         const result = await submit.mutateAsync({
           type: 'email_password',
