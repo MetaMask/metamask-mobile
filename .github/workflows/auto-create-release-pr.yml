@@ -3,8 +3,10 @@ name: Auto Create Release PR
 # When Runway creates release/X.Y.Z, this workflow calls create-release-pr.yml.
 # Semver convention for mobile hotfixes:
 # - X.Y.0 — regular release (no OTA_VERSION bump)
-# - X.Y.Z with a normal patch (e.g. 7.71.1, 7.71.10) — regular hotfix (no OTA_VERSION bump)
-# - X.Y.Z with a leading-zero–padded patch (e.g. 7.73.01) — OTA hotfix; OTA_VERSION is v7.73.01 (no normalization). NOTE: auto-changelog rejects leading-zero patches (not valid SemVer).
+# - X.Y.Z with a single-digit patch (e.g. 7.71.1, 7.71.2) — regular hotfix (no OTA_VERSION bump)
+# - X.Y.AB with a two-digit patch (e.g. 7.73.01, 7.73.21) — OTA hotfix; OTA_VERSION is v7.73.01.
+#   Two-digit patch AB → base patch A, OTA iteration B.
+#   Changelog tooling converts AB to A-ota.B for SemVer compliance, then converts back.
 
 on:
   create:

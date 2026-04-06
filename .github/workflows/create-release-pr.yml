@@ -46,10 +46,12 @@ jobs:
           fi
 
           patch="${SEMVER##*.}"
-          # OTA hotfix: patch is leading-zero–padded (e.g. 7.72.01). Normal multi-digit patches (e.g. 7.71.10) must not match—length-only checks misclassify those as OTA.
-          if [[ "$patch" =~ ^0[0-9]+$ ]]; then
+          # OTA hotfix: patch has exactly two digits (e.g. 01, 21, 22).
+          # Two-digit patch AB → base patch A, OTA iteration B.
+          # Single-digit patches are regular hotfixes; single-digit 0 is a regular release.
+          if [[ ${#patch} -eq 2 ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
-            echo "OTA hotfix (zero-padded patch: ${patch}): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
+            echo "OTA hotfix (two-digit patch: ${patch}): branch release/${SEMVER}; OTA_VERSION v${SEMVER}."
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
             echo "Not OTA hotfix (patch segment: ${patch})."
@@ -163,7 +165,7 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Changelog: version flows through as-is (no normalization). auto-changelog will reject leading-zero patches.
+      # Changelog: run-update-release-changelog-mobile.sh converts OTA two-digit patches to valid SemVer prereleases and converts back after generation.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
@@ -210,4 +212,4 @@ jobs:
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \
-            --body "OTA hotfix: branch \`${BRANCH}\`. Native semver and build version are not bumped. \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`. Changelog uses the raw version (no normalization)."
+            --body "OTA hotfix: branch \`${BRANCH}\`. Native semver and build version are not bumped. \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`. Changelog uses the Runway version (two-digit patch converted to SemVer prerelease for tooling, then converted back)."
