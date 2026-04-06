@@ -26,7 +26,7 @@ jest.mock('../actions/settings', () => ({
 let applyVaultInitialization: () => Promise<null>;
 let VAULT_INITIALIZED_KEY: string;
 let predefinedPassword: string | undefined;
-let additionalSrps: (string | undefined)[];
+let additionalSrps: (string | undefined)[] | undefined;
 
 // Type the mocked modules
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
@@ -53,7 +53,7 @@ describe('generateSkipOnboardingState', () => {
     applyVaultInitialization = actualModule.applyVaultInitialization;
     VAULT_INITIALIZED_KEY = actualModule.VAULT_INITIALIZED_KEY;
     predefinedPassword = actualModule.predefinedPassword;
-    additionalSrps = actualModule.additionalSrps;
+    additionalSrps = actualModule.performanceSrps;
   });
 
   beforeEach(() => {
