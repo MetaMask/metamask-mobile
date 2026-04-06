@@ -22,7 +22,7 @@ jobs:
   repack-ios-flask-apps:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     name: 'Repack iOS Flask Apps'
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
     permissions:
       contents: read
       id-token: write

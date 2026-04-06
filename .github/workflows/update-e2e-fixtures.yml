@@ -180,7 +180,7 @@ jobs:
   update-fixtures:
     name: Export & update fixtures
     needs: [prepare]
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
     timeout-minutes: 30
 
     env:
