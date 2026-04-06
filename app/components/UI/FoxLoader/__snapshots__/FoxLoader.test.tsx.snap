@@ -3,34 +3,67 @@
 exports[`FoxLoader renders correctly and matches snapshot 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "flex": 1,
-      "justifyContent": "center",
-    }
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "justifyContent": "center",
+      },
+      false,
+    ]
   }
 >
-  <Image
-    resizeMode="contain"
-    source={1}
-    style={
-      {
-        "height": 72,
-        "width": 72,
-      }
-    }
-  />
   <View
     style={
       {
-        "marginVertical": 16,
+        "alignItems": "center",
+        "height": 145,
+        "width": 145,
       }
     }
-  />
-  <ActivityIndicator
-    color="orange"
-    size="large"
-  />
+  >
+    <Image
+      collapsable={false}
+      resizeMode="contain"
+      source={1}
+      style={
+        {
+          "height": 98,
+          "marginTop": -50,
+          "opacity": 0,
+          "position": "absolute",
+          "top": "50%",
+          "width": 98,
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        {
+          "height": 145,
+          "opacity": 1,
+          "width": 145,
+        }
+      }
+    >
+      <View
+        alignment="center"
+        autoplay={true}
+        fit="contain"
+        onStateChanged={[Function]}
+        source="splash_screen.riv"
+        stateMachineName="Splash_animation"
+        style={
+          {
+            "height": 145,
+            "width": 145,
+          }
+        }
+        testID="mock-rive-animation"
+      />
+    </View>
+  </View>
 </View>
 `;

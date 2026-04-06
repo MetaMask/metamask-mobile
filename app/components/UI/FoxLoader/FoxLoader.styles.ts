@@ -1,10 +1,17 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
 
-const { width: screenWidth } = Dimensions.get('window');
+// Match the native splash fox size exactly per platform:
+// iOS LaunchScreen.xib: fixed 150pt wide
+// Android launch_screen.xml: scaleType="center" renders mdpi asset at natural 125dp
+// DO NOT DELETE
+// Pixel 4: 140 works perfectly for the animation
+// Pixel 8: 140 works perfectly for the animation
+// iPhone 17 Pro: works perfectly for the animation
+const FOX_SIZE = Platform.OS === 'ios' ? 145 : 140;
 
 /**
  * Style sheet function for FoxLoader component.
@@ -25,22 +32,22 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     animationWrapper: {
       alignItems: 'center',
-      width: screenWidth * 0.5,
-      height: screenWidth * 0.5,
+      width: FOX_SIZE,
+      height: FOX_SIZE,
     },
     riveAnimation: {
-      width: screenWidth * 0.5,
-      height: screenWidth * 0.5,
+      width: FOX_SIZE,
+      height: FOX_SIZE,
     },
-    image: {
-      width: 72,
-      height: 72,
+    staticFox: {
+      width: 98,
+      height: 98,
+      position: 'absolute',
+      top: '50%',
+      marginTop: -(100 / 2),
     },
     hidden: {
       opacity: 0,
-    },
-    spacer: {
-      marginVertical: 16,
     },
   });
 };

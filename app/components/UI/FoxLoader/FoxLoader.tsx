@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Animated, Platform } from 'react-native';
 import Rive, {
   Fit,
   Alignment,
@@ -45,6 +45,8 @@ const FoxLoader = ({
   const [isComplete, setIsComplete] = useState(false);
   const exitTriggered = useRef(false);
   const isCompleteRef = useRef(false);
+  const staticFoxOpacity = useRef(new Animated.Value(1)).current;
+  const riveOpacity = useRef(new Animated.Value(0)).current;
 
   const startAnimation = useCallback(() => {
     if (isE2E || animationStarted) return;
@@ -75,8 +77,10 @@ const FoxLoader = ({
   useEffect(() => {
     if (isPlaying) {
       startAnimation();
+      staticFoxOpacity.setValue(0);
+      riveOpacity.setValue(1);
     }
-  }, [isPlaying, startAnimation]);
+  }, [isPlaying, startAnimation, staticFoxOpacity, riveOpacity]);
 
   // Once both the app is ready and the fox is in its idle loop, fire the exit animation
   useEffect(() => {
@@ -88,25 +92,33 @@ const FoxLoader = ({
   return (
     <View style={[styles.container, isComplete && styles.hidden]}>
       <View style={styles.animationWrapper}>
-        <Rive
-          ref={riveRef}
-          source={splashRiveFile}
-          style={styles.riveAnimation}
-          autoplay
-          fit={Fit.Contain}
-          alignment={Alignment.Center}
-          stateMachineName={SPLASH_STATE_MACHINE}
-          onPlay={() => setIsPlaying(true)}
-          onStateChanged={(_machineName, stateName) => {
-            if (isCompleteRef.current) return;
-            setIsIdle(stateName === 'Blink and look around (Shorter)');
-            if (exitTriggered.current && stateName === 'ExitState') {
-              isCompleteRef.current = true;
-              setIsComplete(true);
-              onAnimationComplete();
-            }
-          }}
+        <Animated.Image
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          source={require('../../../images/branding/fox.png')}
+          style={[styles.staticFox, { opacity: staticFoxOpacity }]}
+          resizeMode="contain"
         />
+        <Animated.View style={[styles.riveAnimation, { opacity: riveOpacity }]}>
+          <Rive
+            ref={riveRef}
+            source={splashRiveFile}
+            style={styles.riveAnimation}
+            autoplay
+            fit={Fit.Contain}
+            alignment={Alignment.Center}
+            stateMachineName={SPLASH_STATE_MACHINE}
+            onPlay={() => setIsPlaying(true)}
+            onStateChanged={(_machineName, stateName) => {
+              if (isCompleteRef.current) return;
+              setIsIdle(stateName === 'Blink and look around (Shorter)');
+              if (exitTriggered.current && stateName === 'ExitState') {
+                isCompleteRef.current = true;
+                setIsComplete(true);
+                onAnimationComplete();
+              }
+            }}
+          />
+        </Animated.View>
       </View>
     </View>
   );
