@@ -49,7 +49,7 @@ import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
 const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
-const pump = require('pump');
+const { safePump: pump } = require('../../util/streams');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
@@ -188,7 +188,8 @@ export class BackgroundBridge extends EventEmitter {
 
     const portStream = new MobilePortStream(this.port, url);
     // setup multiplexing
-    const mux = setupMultiplex(portStream);
+    const muxLabel = `BackgroundBridge|${this.channelId ?? 'no-channel'}|${this.origin}`;
+    const mux = setupMultiplex(portStream, muxLabel);
     // connect features
     this.setupProviderConnectionEip1193(
       mux.createStream(
@@ -556,11 +557,19 @@ export class BackgroundBridge extends EventEmitter {
 
     const filterStream = createDupeReqFilterStream();
 
-    pump(outStream, filterStream, providerStream, outStream, (err) => {
-      // handle any middleware cleanup
-      this.engine.destroy();
-      if (err) Logger.log('Error with provider stream conn', err);
-    });
+    const eip1193PumpLabel = `BackgroundBridge:EIP1193|${this.channelId ?? 'no-channel'}|${this.origin}`;
+    pump(
+      eip1193PumpLabel,
+      outStream,
+      filterStream,
+      providerStream,
+      outStream,
+      (err) => {
+        // handle any middleware cleanup
+        this.engine.destroy();
+        if (err) Logger.log('Error with provider stream conn', err);
+      },
+    );
   }
 
   /**
@@ -589,11 +598,19 @@ export class BackgroundBridge extends EventEmitter {
 
     const filterStream = createDupeReqFilterStream();
 
-    pump(outStream, filterStream, providerStream, outStream, (err) => {
-      // handle any middleware cleanup
-      this.multichainEngine.destroy();
-      if (err) Logger.log('Error with provider stream conn', err);
-    });
+    const caipPumpLabel = `BackgroundBridge:CAIP|${this.channelId ?? 'no-channel'}|${this.origin}`;
+    pump(
+      caipPumpLabel,
+      outStream,
+      filterStream,
+      providerStream,
+      outStream,
+      (err) => {
+        // handle any middleware cleanup
+        this.multichainEngine.destroy();
+        if (err) Logger.log('Error with CAIP provider stream conn', err);
+      },
+    );
   }
 
   /**

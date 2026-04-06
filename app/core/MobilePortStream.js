@@ -40,6 +40,16 @@ export default class PortDuplexStream extends Duplex {
    * @private
    */
   _onDisconnect = function () {
+    // Push null to signal readable end-of-stream, then end the writable side.
+    // This sets _readableState.ended and _writableState.ended before the
+    // 'close' event fires, preventing ERR_STREAM_PREMATURE_CLOSE from the
+    // end-of-stream listener used by pump().
+    if (!this._readableState?.ended) {
+      this.push(null);
+    }
+    if (!this._writableState?.ended) {
+      this.end();
+    }
     this.destroy && this.destroy();
   };
 

@@ -69,6 +69,14 @@ MobilePortStream.prototype._onMessage = function (event) {
  * @private
  */
 MobilePortStream.prototype._onDisconnect = function () {
+  // Gracefully end both sides before destroying to prevent
+  // ERR_STREAM_PREMATURE_CLOSE from end-of-stream/pump.
+  if (this._readableState && !this._readableState.ended) {
+    try { this.push(null); } catch (_e) { /* already ended */ }
+  }
+  if (this._writableState && !this._writableState.ended) {
+    try { this.end(); } catch (_e) { /* already ended */ }
+  }
   this.destroy();
 };
 

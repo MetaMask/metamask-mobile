@@ -1,7 +1,11 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 // @ts-expect-error - No types declarations
-import pump from 'pump';
+import {
+  safePump as pump,
+  absorbPrematureClose,
+  setupMultiplex,
+} from '../../util/streams';
 
 import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 // @ts-expect-error - No types declarations
@@ -28,7 +32,6 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../Engine/Engine';
-import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
 import {
   createLoggerMiddleware,
@@ -345,34 +348,43 @@ export default class SnapBridge {
   setupProviderConnection() {
     Logger.log('[SNAP BRIDGE] Setting up provider connection');
 
-    const mux = setupMultiplex(this.#stream);
+    const muxLabel = `SnapBridge:mux|${this.#snapId}`;
+    const mux = setupMultiplex(this.#stream, muxLabel);
     const stream = mux.createStream('metamask-provider');
 
     const engine = this.#setupProviderEngine();
 
     const providerStream = createEngineStream({ engine });
+    absorbPrematureClose(providerStream);
 
+    const eip1193PumpLabel = `SnapBridge:EIP1193|${this.#snapId}`;
     /* istanbul ignore next 2 */
-    pump(stream, providerStream, stream, (error: Error | null) => {
-      engine.destroy();
-
-      if (error) {
-        Logger.log('[SNAP BRIDGE] Error with provider stream:', error);
-      }
-    });
+    pump(
+      eip1193PumpLabel,
+      stream,
+      providerStream,
+      stream,
+      (_error: Error | null) => {
+        engine.destroy();
+      },
+    );
 
     const caipStream = mux.createStream('metamask-multichain-provider');
     const caipEngine = this.#setupProviderEngineCaip();
 
     const caipProviderStream = createEngineStream({ engine: caipEngine });
+    absorbPrematureClose(caipProviderStream);
 
+    const caipPumpLabel = `SnapBridge:CAIP|${this.#snapId}`;
     /* istanbul ignore next 2 */
-    pump(caipStream, caipProviderStream, caipStream, (error: Error | null) => {
-      caipEngine.destroy();
-
-      if (error) {
-        Logger.log('[SNAP BRIDGE] Error with CAIP provider stream:', error);
-      }
-    });
+    pump(
+      caipPumpLabel,
+      caipStream,
+      caipProviderStream,
+      caipStream,
+      (_error: Error | null) => {
+        caipEngine.destroy();
+      },
+    );
   }
 }

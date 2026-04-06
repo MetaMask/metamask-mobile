@@ -49,31 +49,47 @@ const makeExpirySet = () => {
 };
 
 /**
+ * JSON-RPC request deduper. Extends Transform and overrides `_destroy` so we
+ * do not pass `options.destroy` into the constructor: readable-stream assigns
+ * that to `this._destroy`, which replaces Transform's default teardown and
+ * causes pump/end-of-stream to report "premature close" when the bridge tears
+ * down.
+ */
+class DupeReqFilterTransform extends Transform {
+  private readonly seenRequestIds = makeExpirySet();
+
+  constructor() {
+    super({ objectMode: true });
+  }
+
+  _transform(
+    chunk: JsonRpcRequest,
+    _encoding: BufferEncoding,
+    cb: (error?: Error | null, data?: JsonRpcRequest) => void,
+  ): void {
+    // JSON-RPC notifications have no ids; our only recourse is to let them through.
+    const hasNoId = chunk.id === undefined;
+    const requestNotYetSeen = this.seenRequestIds.add(chunk.id);
+
+    if (hasNoId || requestNotYetSeen) {
+      cb(null, chunk);
+    } else {
+      cb();
+    }
+  }
+
+  _destroy(error: Error | null, callback: (error: Error | null) => void): void {
+    this.seenRequestIds.destroy();
+    super._destroy(error, callback);
+  }
+}
+
+/**
  * Returns a transform stream that filters out requests whose ids we've already seen.
  * Ignores JSON-RPC notifications, i.e. requests with an `undefined` id.
  *
  * @returns The stream object.
  */
-export default function createDupeReqFilterStream() {
-  const seenRequestIds = makeExpirySet();
-  return new Transform({
-    transform(chunk: JsonRpcRequest, _, cb) {
-      // JSON-RPC notifications have no ids; our only recourse is to let them through.
-      const hasNoId = chunk.id === undefined;
-      const requestNotYetSeen = seenRequestIds.add(chunk.id);
-
-      if (hasNoId || requestNotYetSeen) {
-        cb(null, chunk);
-      } else {
-        // eslint-disable-next-line no-console
-        console.debug(`RPC request with id "${chunk.id}" already seen.`);
-        cb();
-      }
-    },
-    destroy(error, cb) {
-      seenRequestIds.destroy();
-      cb(error);
-    },
-    objectMode: true,
-  });
+export default function createDupeReqFilterStream(): DupeReqFilterTransform {
+  return new DupeReqFilterTransform();
 }
