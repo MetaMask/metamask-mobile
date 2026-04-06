@@ -1228,31 +1228,37 @@ describe('RevealPrivateCredential', () => {
       ).toBeOnTheScreen();
     });
 
-    it('calls navigation.pop(2) on Done when dismissModalStackOnDone is true', async () => {
-      const mockPop = jest.fn();
-      const mockNavigation = {
-        pop: mockPop,
-        setOptions: jest.fn(),
+    it('dispatches StackActions.pop(2) on Done when dismissModalStackOnDone is true', async () => {
+      const mockDispatchNav = jest.fn();
+      mockRouteParams = {
+        skipQuiz: true,
+        shouldUpdateNav: true,
+        dismissModalStackOnDone: true,
       };
+      mockNavigationReturn = {
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+        pop: jest.fn(),
+        popToTop: jest.fn(),
+        setOptions: jest.fn(),
+        dispatch: mockDispatchNav,
+      };
+      mockReauthenticate.mockResolvedValue({ password: 'test-password' });
+      mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
       const { getByTestId } = renderWithProviders(
-        <RevealPrivateCredential
-          route={createDefaultRoute({
-            skipQuiz: true,
-            shouldUpdateNav: true,
-            dismissModalStackOnDone: true,
-          })}
-          navigation={mockNavigation}
-          cancel={() => null}
-        />,
+        <RevealPrivateCredential cancel={undefined as unknown as () => void} />,
       );
 
       await waitFor(() => {
-        expect(
-          getByTestId(
-            RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
-          ),
-        ).toBeOnTheScreen();
+        expect(mockRevealSRP).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        const doneButton = getByTestId(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+        );
+        expect(doneButton).toBeOnTheScreen();
       });
 
       fireEvent.press(
@@ -1261,14 +1267,28 @@ describe('RevealPrivateCredential', () => {
         ),
       );
 
-      expect(mockPop).toHaveBeenCalledWith(2);
+      expect(mockDispatchNav).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'POP',
+          payload: expect.objectContaining({ count: 2 }),
+        }),
+      );
     });
 
-    it('calls navigation.pop once on Cancel when dismissModalStackOnDone is true', async () => {
-      const mockPop = jest.fn();
-      const mockNavigation = {
-        pop: mockPop,
+    it('dispatches StackActions.pop once on Cancel when dismissModalStackOnDone is true', async () => {
+      const mockDispatchNav = jest.fn();
+      mockRouteParams = {
+        skipQuiz: true,
+        shouldUpdateNav: true,
+        dismissModalStackOnDone: true,
+      };
+      mockNavigationReturn = {
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+        pop: jest.fn(),
+        popToTop: jest.fn(),
         setOptions: jest.fn(),
+        dispatch: mockDispatchNav,
       };
       mockReauthenticate.mockRejectedValue(
         new Error(
@@ -1278,12 +1298,6 @@ describe('RevealPrivateCredential', () => {
 
       const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential
-          route={createDefaultRoute({
-            skipQuiz: true,
-            shouldUpdateNav: true,
-            dismissModalStackOnDone: true,
-          })}
-          navigation={mockNavigation}
           cancel={undefined as unknown as () => void}
           showCancelButton
         />,
@@ -1303,8 +1317,13 @@ describe('RevealPrivateCredential', () => {
         ),
       );
 
-      expect(mockPop).toHaveBeenCalledTimes(1);
-      expect(mockPop).toHaveBeenCalledWith();
+      expect(mockDispatchNav).toHaveBeenCalledTimes(1);
+      expect(mockDispatchNav).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'POP',
+          payload: expect.objectContaining({ count: 1 }),
+        }),
+      );
     });
   });
 
