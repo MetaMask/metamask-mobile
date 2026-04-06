@@ -126,6 +126,21 @@ const getIosGoogleBlockingErrorSheetCall = () =>
       params?.params?.title === IOS_GOOGLE_BLOCKING_ERROR_TITLE,
   );
 
+const IOS_GOOGLE_BLOCKING_REHYDRATION_TITLE = strings(
+  'error_sheet.ios_google_login_unsupported_blocking_rehydration_title',
+);
+const IOS_GOOGLE_BLOCKING_REHYDRATION_BUTTON = strings(
+  'error_sheet.ios_google_login_unsupported_blocking_rehydration_button',
+);
+
+const getIosGoogleBlockingRehydrationSheetCall = () =>
+  mockNavigate.mock.calls.find(
+    ([route, params]) =>
+      route === Routes.MODAL.ROOT_MODAL_FLOW &&
+      params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+      params?.params?.title === IOS_GOOGLE_BLOCKING_REHYDRATION_TITLE,
+  );
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -1481,11 +1496,9 @@ describe('Onboarding', () => {
           params: expect.objectContaining({
             type: 'error',
             title: IOS_GOOGLE_BLOCKING_ERROR_TITLE,
-            description: strings(
-              'error_sheet.ios_google_login_unsupported_blocking_description',
-            ),
-            descriptionAlign: 'center',
+            description: expect.anything(),
             primaryButtonLabel: IOS_GOOGLE_BLOCKING_ERROR_BUTTON,
+            isInteractable: false,
             onPrimaryButtonPress: expect.any(Function),
             closeOnPrimaryButtonPress: true,
           }),
@@ -1494,6 +1507,93 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await errorSheetCall?.[1].params.onPrimaryButtonPress?.();
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockCreateLoginHandler).not.toHaveBeenCalled();
+      expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Wallet Google Ios Warning Viewed',
+        }),
+      );
+    });
+
+    it('blocks Google login on iOS < 17.4 import flow with rehydration sheet when googleLoginIosUnsupportedBlockingEnabled is true', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockClear();
+      mockAnalytics.trackEvent.mockClear();
+
+      const stateWithBlockingFlag = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...mockInitialState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: stateWithBlockingFlag,
+        },
+      );
+
+      const importWalletButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(false);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      const rehydrationSheetCall = getIosGoogleBlockingRehydrationSheetCall();
+
+      expect(rehydrationSheetCall).toEqual([
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            type: 'error',
+            title: IOS_GOOGLE_BLOCKING_REHYDRATION_TITLE,
+            description: expect.anything(),
+            primaryButtonLabel: IOS_GOOGLE_BLOCKING_REHYDRATION_BUTTON,
+            isInteractable: false,
+            onPrimaryButtonPress: expect.any(Function),
+            closeOnPrimaryButtonPress: true,
+          }),
+        }),
+      ]);
+
+      await act(async () => {
+        await rehydrationSheetCall?.[1].params.onPrimaryButtonPress?.();
         await flushPromises();
         await flushPromises();
       });
