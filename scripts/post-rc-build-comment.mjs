@@ -63,7 +63,7 @@ async function minimizeComment(octokit, nodeId) {
  * Android uses a public install URL when available; otherwise links to the CI pipeline run.
  *
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, SEMVER,
- * BUILD_NUMBER, BUILD_PIPELINE_URL
+ * IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER, BUILD_PIPELINE_URL
  * Optional: ANDROID_PUBLIC_URL
  */
 async function start() {
@@ -72,7 +72,8 @@ async function start() {
     GITHUB_REPOSITORY,
     PR_NUMBER,
     SEMVER,
-    BUILD_NUMBER,
+    IOS_BUILD_NUMBER,
+    ANDROID_BUILD_NUMBER,
     ANDROID_PUBLIC_URL,
     BUILD_PIPELINE_URL,
   } = process.env;
@@ -102,20 +103,21 @@ async function start() {
   // Build the comment body
   const rows = [];
   const version = SEMVER || 'Unknown';
-  const buildNum = BUILD_NUMBER || 'Unknown';
+  const iosBuild = IOS_BUILD_NUMBER || 'Unknown';
+  const androidBuild = ANDROID_BUILD_NUMBER || 'Unknown';
 
   // iOS always uses TestFlight link with build number reference
-  rows.push(`| **iOS** | [TestFlight](${TESTFLIGHT_URL}) | Go to TestFlight and download build \`${buildNum}\` |`);
+  rows.push(`| **iOS** | [TestFlight](${TESTFLIGHT_URL}) | Go to TestFlight and download build \`${iosBuild}\` |`);
 
   // Add Android row — prefer a direct public URL; fall back to the CI pipeline link.
   if (isValidUrl(ANDROID_PUBLIC_URL)) {
-    rows.push(`| **Android** | [Install](${ANDROID_PUBLIC_URL}) | RC ${version} (${buildNum}) |`);
+    rows.push(`| **Android** | [Install](${ANDROID_PUBLIC_URL}) | RC ${version} (${androidBuild}) |`);
   } else if (isValidUrl(BUILD_PIPELINE_URL)) {
     console.warn('No Android public install URL available; linking to CI pipeline run.');
-    rows.push(`| **Android** | [Download from CI](${BUILD_PIPELINE_URL}) | RC ${version} (${buildNum}) — download APK artifact from the linked run |`);
+    rows.push(`| **Android** | [Download from CI](${BUILD_PIPELINE_URL}) | RC ${version} (${androidBuild}) — download APK artifact from the linked run |`);
   } else {
     console.warn('No Android public install URL or CI pipeline URL available.');
-    rows.push(`| **Android** | _See build artifacts_ | RC ${version} (${buildNum}) |`);
+    rows.push(`| **Android** | _See build artifacts_ | RC ${version} (${androidBuild}) |`);
   }
 
   const pipelineLink = isValidUrl(BUILD_PIPELINE_URL)
@@ -133,7 +135,8 @@ ${rows.join('\n')}
 <summary>More Info</summary>
 
 *   **Version**: \`${version}\`
-*   **Build Number**: \`${buildNum}\`
+*   **iOS Build Number**: \`${iosBuild}\`
+*   **Android Build Number**: \`${androidBuild}\`
 *   **Build Pipeline**: ${pipelineLink}
 </details>
 `;

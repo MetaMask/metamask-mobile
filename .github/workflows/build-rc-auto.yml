@@ -126,15 +126,13 @@ jobs:
           # Fetch the release branch after the iOS build's version-bump commit.
           ref: ${{ needs.validate-and-check-label.outputs.branch-name }}
           fetch-depth: 1
-      - name: Read build number from repo
-        id: build-meta
-        run: |
-          BUILD_NUMBER=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
-          echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: yarn
+      - name: Read build metadata from repo
+        id: build-meta
+        run: ./scripts/get-build-metadata.sh --ci
       - name: Install dependencies
         run: yarn install --immutable
       - name: Post RC Build Comment
@@ -144,7 +142,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ needs.validate-and-check-label.outputs.pr-number }}
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          BUILD_NUMBER: ${{ steps.build-meta.outputs.build-number }}
+          IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Post Slack notification
         run: |
@@ -155,6 +154,7 @@ jobs:
           fi
         env:
           SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          BUILD_NUMBER: ${{ steps.build-meta.outputs.build-number }}
-          BITRISE_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
+          BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
