@@ -18,6 +18,7 @@ import {
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
+import { endTrace, trace } from '../../../../util/trace';
 import {
   addTransaction,
   addTransactionBatch,
@@ -51,6 +52,13 @@ jest.mock('../providers/polymarket/PolymarketProvider');
 jest.mock('../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
   addTransactionBatch: jest.fn(),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  __esModule: true,
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 // Default mock values for messenger actions
@@ -7116,6 +7124,9 @@ describe('PredictController', () => {
   });
 
   describe('getBalance - caching behavior', () => {
+    const mockTrace = jest.mocked(trace);
+    const mockEndTrace = jest.mocked(endTrace);
+
     beforeEach(() => {
       jest.useFakeTimers();
     });
@@ -7136,6 +7147,38 @@ describe('PredictController', () => {
           // Assert
           expect(result).toBe(1500);
           expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
+        },
+        {
+          state: {
+            balances: {
+              '0x1234567890123456789012345678901234567890':
+                createMockPredictBalance({
+                  balance: 1500,
+                  validUntil: now + 500,
+                }),
+            },
+          },
+        },
+      );
+    });
+
+    it('ends trace with cached balance metadata when cache entry is still valid', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.getBalance({});
+
+          expect(result).toBe(1500);
+          expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
+          expect(mockTrace).toHaveBeenCalledTimes(1);
+          expect(mockEndTrace).toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: `getBalance-${now}`,
+              data: { success: true, cached: true },
+            }),
+          );
         },
         {
           state: {
