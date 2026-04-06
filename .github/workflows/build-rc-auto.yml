@@ -95,7 +95,6 @@ jobs:
     with:
       platform: ios
       source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
-      upload_testflight: true
     secrets: inherit
 
   trigger-android-rc-build:

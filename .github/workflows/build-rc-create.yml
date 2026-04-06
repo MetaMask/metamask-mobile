@@ -57,7 +57,6 @@ jobs:
     with:
       platform: ios
       source_branch: release/${{ inputs.semver }}
-      upload_testflight: true
     secrets: inherit
 
   trigger-android-rc-build:

@@ -34,5 +34,4 @@ jobs:
     with:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
-      upload_testflight: true
     secrets: inherit
