@@ -136,3 +136,13 @@ export const selectPredictWithAnyTokenEnabledFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWithAnyTokenEnabled,
 );
+
+export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictTabFeaturedCarousel,
+      ),
+    ) ?? false,
+);

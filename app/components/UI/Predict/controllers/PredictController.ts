@@ -620,6 +620,30 @@ export class PredictController extends BaseController<
     );
   }
 
+  async getCarouselMarkets(): Promise<PredictMarket[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCarouselMarkets',
+        trace: {
+          name: TraceName.PredictGetMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: { providerId: POLYMARKET_PROVIDER_ID },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (markets) => ({ marketCount: markets.length }),
+      },
+      async () => (await this.provider.getCarouselMarkets?.()) ?? [],
+    );
+  }
+
+  /**
+   * Get detailed information for a single market
+   */
   async getMarket({
     marketId,
   }: {

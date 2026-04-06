@@ -10,6 +10,9 @@ export type PredictControllerGetMarketsAction = {
   handler: PredictController['getMarkets'];
 };
 
+/**
+ * Get detailed information for a single market
+ */
 export type PredictControllerGetMarketAction = {
   type: `PredictController:getMarket`;
   handler: PredictController['getMarket'];
