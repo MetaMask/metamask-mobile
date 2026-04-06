@@ -1,7 +1,11 @@
 import { test as perfTest } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions , SrpProfile } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  SrpProfile,
+} from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
