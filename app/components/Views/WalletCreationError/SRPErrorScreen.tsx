@@ -144,8 +144,18 @@ const SRPErrorScreen = ({
   }, [errorReport]);
 
   const handleContactSupport = useCallback(() => {
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+      )
+        .addProperties({
+          flow_type: 'srp',
+        })
+        .build(),
+      saveOnboardingEvent,
+    );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, []);
+  }, [saveOnboardingEvent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>

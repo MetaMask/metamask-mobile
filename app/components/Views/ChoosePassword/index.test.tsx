@@ -548,7 +548,7 @@ describe('ChoosePassword', () => {
         .calls[0][0] as AnalyticsTrackingEvent;
       expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
       expect(trackingEvent.properties).toEqual({
-        wallet_setup_type: 'import',
+        wallet_setup_type: 'new',
         error_type: strings('choose_password.password_length_error'),
       });
     });
