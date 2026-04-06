@@ -60,10 +60,11 @@ async function minimizeComment(octokit, nodeId) {
  * Posts a new PR comment with RC build links and minimizes older RC build comments.
  *
  * iOS uses TestFlight link with build number reference.
- * Android uses Bitrise public install page URL.
+ * Android uses a public install URL when available; otherwise links to the CI pipeline run.
  *
  * Requires environment variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, SEMVER,
- * BUILD_NUMBER, ANDROID_PUBLIC_URL, BITRISE_PIPELINE_URL
+ * BUILD_NUMBER, BUILD_PIPELINE_URL
+ * Optional: ANDROID_PUBLIC_URL
  */
 async function start() {
   const {
@@ -73,7 +74,7 @@ async function start() {
     SEMVER,
     BUILD_NUMBER,
     ANDROID_PUBLIC_URL,
-    BITRISE_PIPELINE_URL,
+    BUILD_PIPELINE_URL,
   } = process.env;
 
   // Validate required environment variables
@@ -106,18 +107,19 @@ async function start() {
   // iOS always uses TestFlight link with build number reference
   rows.push(`| **iOS** | [TestFlight](${TESTFLIGHT_URL}) | Go to TestFlight and download build \`${buildNum}\` |`);
 
-  // Add Android row if public URL is available
+  // Add Android row — prefer a direct public URL; fall back to the CI pipeline link.
   if (isValidUrl(ANDROID_PUBLIC_URL)) {
     rows.push(`| **Android** | [Install](${ANDROID_PUBLIC_URL}) | RC ${version} (${buildNum}) |`);
+  } else if (isValidUrl(BUILD_PIPELINE_URL)) {
+    console.warn('No Android public install URL available; linking to CI pipeline run.');
+    rows.push(`| **Android** | [Download from CI](${BUILD_PIPELINE_URL}) | RC ${version} (${buildNum}) — download APK artifact from the linked run |`);
   } else {
-    console.error('ERROR: No Android public install URL available.');
-    console.error(`  ANDROID_PUBLIC_URL: ${ANDROID_PUBLIC_URL || '(not set)'}`);
-    console.error('This may indicate a Bitrise configuration issue - artifact may not have public page enabled.');
-    process.exit(1);
+    console.warn('No Android public install URL or CI pipeline URL available.');
+    rows.push(`| **Android** | _See build artifacts_ | RC ${version} (${buildNum}) |`);
   }
 
-  const pipelineLink = isValidUrl(BITRISE_PIPELINE_URL)
-    ? `[View Pipeline](${BITRISE_PIPELINE_URL})`
+  const pipelineLink = isValidUrl(BUILD_PIPELINE_URL)
+    ? `[View Pipeline](${BUILD_PIPELINE_URL})`
     : 'Not available';
 
   const commentBody = `${RC_BUILD_COMMENT_MARKER}
@@ -132,7 +134,7 @@ ${rows.join('\n')}
 
 *   **Version**: \`${version}\`
 *   **Build Number**: \`${buildNum}\`
-*   **Bitrise Pipeline**: ${pipelineLink}
+*   **Build Pipeline**: ${pipelineLink}
 </details>
 `;
 
