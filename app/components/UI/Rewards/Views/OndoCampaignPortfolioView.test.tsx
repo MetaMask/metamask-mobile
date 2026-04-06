@@ -1,10 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import OndoCampaignActivityView, {
-  CAMPAIGN_ACTIVITY_TEST_IDS,
-} from './OndoCampaignActivityView';
-import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
+import OndoCampaignPortfolioView, {
+  CAMPAIGN_PORTFOLIO_TEST_IDS,
+} from './OndoCampaignPortfolioView';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
 import {
   CampaignType,
   type CampaignDto,
@@ -79,6 +80,16 @@ jest.mock('../../../Views/ErrorBoundary', () => {
   };
 });
 
+jest.mock('../components/Campaigns/OndoPortfolio', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'ondo-portfolio' }),
+  };
+});
+
 jest.mock('../components/Campaigns/OndoActivityRow', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -127,20 +138,21 @@ jest.mock('../components/RewardsInfoBanner', () => {
   };
 });
 
+jest.mock('../hooks/useGetOndoPortfolioPosition');
+const mockUseGetOndoPortfolioPosition = jest.mocked(
+  useGetOndoPortfolioPosition,
+);
+
 jest.mock('../hooks/useGetOndoCampaignActivity');
-const mockUseGetOndoCampaignActivity =
-  useGetOndoCampaignActivity as jest.MockedFunction<
-    typeof useGetOndoCampaignActivity
-  >;
+const mockUseGetOndoCampaignActivity = jest.mocked(useGetOndoCampaignActivity);
 
 jest.mock('../hooks/useRewardCampaigns');
-const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
-  typeof useRewardCampaigns
->;
+const mockUseRewardCampaigns = jest.mocked(useRewardCampaigns);
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
+      'rewards.ondo_campaign_portfolio.positions_title': 'Positions',
       'rewards.ondo_campaign_activity.title': 'Activity',
       'rewards.ondo_campaign_activity.error_title': 'Failed to load activity',
       'rewards.ondo_campaign_activity.error_description': 'Please try again.',
@@ -180,7 +192,15 @@ const MOCK_ENTRY: OndoGmActivityEntryDto = {
 
 const emptyCategorized = { active: [], upcoming: [], previous: [] };
 
-const hookDefaults = {
+const portfolioDefaults = {
+  portfolio: null,
+  isLoading: false,
+  hasError: false,
+  hasFetched: false,
+  refetch: jest.fn(),
+};
+
+const activityDefaults = {
   activityEntries: null as OndoGmActivityEntryDto[] | null,
   isLoading: false,
   isLoadingMore: false,
@@ -191,7 +211,7 @@ const hookDefaults = {
   isRefreshing: false,
 };
 
-describe('OndoCampaignActivityView', () => {
+describe('OndoCampaignPortfolioView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRewardCampaigns.mockReturnValue({
@@ -202,66 +222,58 @@ describe('OndoCampaignActivityView', () => {
       hasError: false,
       fetchCampaigns: jest.fn(),
     });
-    mockUseGetOndoCampaignActivity.mockReturnValue(hookDefaults);
+    mockUseGetOndoPortfolioPosition.mockReturnValue(portfolioDefaults);
+    mockUseGetOndoCampaignActivity.mockReturnValue(activityDefaults);
   });
 
   it('renders the container', () => {
-    const { getByTestId } = render(<OndoCampaignActivityView />);
-    expect(getByTestId(CAMPAIGN_ACTIVITY_TEST_IDS.CONTAINER)).toBeDefined();
+    const { getByTestId } = render(<OndoCampaignPortfolioView />);
+    expect(getByTestId(CAMPAIGN_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
   });
 
-  it('renders campaign name in header title', () => {
-    const { getByText } = render(<OndoCampaignActivityView />);
-    expect(getByText('Test Campaign Activity')).toBeDefined();
+  it('renders "Positions" as the header title', () => {
+    const { getByText } = render(<OndoCampaignPortfolioView />);
+    expect(getByText('Positions')).toBeDefined();
   });
 
-  it('renders activity rows when data is available', () => {
+  it('renders the portfolio component in the list header', () => {
+    const { getByTestId } = render(<OndoCampaignPortfolioView />);
+    expect(getByTestId('ondo-portfolio')).toBeDefined();
+  });
+
+  it('renders activity rows when entries are available', () => {
     mockUseGetOndoCampaignActivity.mockReturnValue({
-      ...hookDefaults,
+      ...activityDefaults,
       activityEntries: [
         MOCK_ENTRY,
         { ...MOCK_ENTRY, timestamp: '2026-03-27T10:00:00.000Z' },
       ],
     });
 
-    const { getByTestId } = render(<OndoCampaignActivityView />);
+    const { getByTestId } = render(<OndoCampaignPortfolioView />);
 
-    expect(getByTestId('campaign-activity-row-0')).toBeDefined();
-    expect(getByTestId('campaign-activity-row-1')).toBeDefined();
+    expect(getByTestId('portfolio-activity-row-0')).toBeDefined();
+    expect(getByTestId('portfolio-activity-row-1')).toBeDefined();
   });
 
-  it('renders empty banner when no entries and not loading', () => {
+  it('renders empty state when no activity entries', () => {
     mockUseGetOndoCampaignActivity.mockReturnValue({
-      ...hookDefaults,
+      ...activityDefaults,
       activityEntries: [],
     });
 
-    const { getByTestId } = render(<OndoCampaignActivityView />);
+    const { getByTestId } = render(<OndoCampaignPortfolioView />);
     expect(getByTestId('info-banner')).toBeDefined();
   });
 
-  it('renders error banner when error and no entries', () => {
+  it('renders error banner when activity fetch fails', () => {
     mockUseGetOndoCampaignActivity.mockReturnValue({
-      ...hookDefaults,
+      ...activityDefaults,
       activityEntries: [],
       error: 'Network error',
     });
 
-    const { getByTestId } = render(<OndoCampaignActivityView />);
+    const { getByTestId } = render(<OndoCampaignPortfolioView />);
     expect(getByTestId('error-banner')).toBeDefined();
-  });
-
-  it('renders generic title when campaign not found', () => {
-    mockUseRewardCampaigns.mockReturnValue({
-      campaigns: [],
-      categorizedCampaigns: emptyCategorized,
-      isLoading: false,
-      hasLoaded: true,
-      hasError: false,
-      fetchCampaigns: jest.fn(),
-    });
-
-    const { getByText } = render(<OndoCampaignActivityView />);
-    expect(getByText('Activity')).toBeDefined();
   });
 });

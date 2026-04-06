@@ -7,32 +7,39 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
-import { Box, Skeleton } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Skeleton,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoActivityRow from '../components/Campaigns/OndoActivityRow';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type ActivityRouteParams = {
+type PortfolioRouteParams = {
   [key: string]: { campaignId: string };
 };
 
-export const CAMPAIGN_ACTIVITY_TEST_IDS = {
-  CONTAINER: 'campaign-activity-container',
+export const CAMPAIGN_PORTFOLIO_TEST_IDS = {
+  CONTAINER: 'campaign-portfolio-container',
 } as const;
 
-const OndoCampaignActivityView: React.FC = () => {
+const OndoCampaignPortfolioView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
-  const route = useRoute<RouteProp<ActivityRouteParams>>();
+  const route = useRoute<RouteProp<PortfolioRouteParams>>();
   const { campaignId } = route.params;
 
   const { campaigns } = useRewardCampaigns();
@@ -42,22 +49,34 @@ const OndoCampaignActivityView: React.FC = () => {
   );
 
   const {
+    portfolio,
+    isLoading: isPortfolioLoading,
+    hasError: hasPortfolioError,
+    hasFetched: portfolioHasFetched,
+    refetch: refetchPortfolio,
+  } = useGetOndoPortfolioPosition(campaignId);
+
+  const {
     activityEntries,
-    isLoading,
+    isLoading: isActivityLoading,
     isLoadingMore,
     hasMore,
-    error,
+    error: activityError,
     loadMore,
-    refresh,
+    refresh: refreshActivity,
     isRefreshing,
   } = useGetOndoCampaignActivity(campaignId);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchPortfolio(), refreshActivity()]);
+  }, [refetchPortfolio, refreshActivity]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: OndoGmActivityEntryDto; index: number }) => (
       <Box twClassName="px-4">
         <OndoActivityRow
           entry={item}
-          testID={`campaign-activity-row-${index}`}
+          testID={`portfolio-activity-row-${index}`}
         />
       </Box>
     ),
@@ -86,17 +105,17 @@ const OndoCampaignActivityView: React.FC = () => {
   }, [isLoadingMore]);
 
   const renderEmpty = useCallback(() => {
-    if (isLoading) return null;
+    if (isActivityLoading) return null;
 
-    if (error) {
+    if (activityError) {
       return (
-        <Box twClassName="px-4 pt-4">
+        <Box twClassName="px-4 pt-2">
           <RewardsErrorBanner
             title={strings('rewards.ondo_campaign_activity.error_title')}
             description={strings(
               'rewards.ondo_campaign_activity.error_description',
             )}
-            onConfirm={refresh}
+            onConfirm={refreshActivity}
             confirmButtonLabel={strings(
               'rewards.ondo_campaign_activity.retry_button',
             )}
@@ -106,7 +125,7 @@ const OndoCampaignActivityView: React.FC = () => {
     }
 
     return (
-      <Box twClassName="px-4 pt-4">
+      <Box twClassName="px-4 pt-2">
         <RewardsInfoBanner
           title={strings('rewards.ondo_campaign_activity.empty_title')}
           description={strings(
@@ -115,36 +134,63 @@ const OndoCampaignActivityView: React.FC = () => {
         />
       </Box>
     );
-  }, [isLoading, error, refresh]);
+  }, [isActivityLoading, activityError, refreshActivity]);
 
   const renderHeader = useCallback(() => {
-    if (isLoading && (!activityEntries || activityEntries.length === 0)) {
-      return (
-        <Box twClassName="px-4 pt-4 gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} style={tw.style('h-12 rounded-lg')} />
-          ))}
+    const showActivitySkeletons =
+      isActivityLoading && (!activityEntries || activityEntries.length === 0);
+
+    return (
+      <Box>
+        <Box twClassName="p-4">
+          <OndoPortfolio
+            portfolio={portfolio}
+            isLoading={isPortfolioLoading}
+            hasError={hasPortfolioError}
+            hasFetched={portfolioHasFetched}
+            refetch={refetchPortfolio}
+          />
         </Box>
-      );
-    }
-    return null;
-  }, [isLoading, activityEntries, tw]);
+
+        <Box twClassName="border-b border-border-muted" />
+
+        <Box twClassName="px-4 pt-4 pb-2">
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.ondo_campaign_activity.title')}
+          </Text>
+        </Box>
+
+        {showActivitySkeletons && (
+          <Box twClassName="px-4 pb-2 gap-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} style={tw.style('h-12 rounded-lg')} />
+            ))}
+          </Box>
+        )}
+      </Box>
+    );
+  }, [
+    portfolio,
+    isPortfolioLoading,
+    hasPortfolioError,
+    portfolioHasFetched,
+    refetchPortfolio,
+    isActivityLoading,
+    activityEntries,
+    tw,
+  ]);
 
   return (
-    <ErrorBoundary navigation={navigation} view="OndoCampaignActivityView">
+    <ErrorBoundary navigation={navigation} view="OndoCampaignPortfolioView">
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
-        testID={CAMPAIGN_ACTIVITY_TEST_IDS.CONTAINER}
+        testID={CAMPAIGN_PORTFOLIO_TEST_IDS.CONTAINER}
       >
         <HeaderCompactStandard
-          title={
-            campaign?.name
-              ? `${campaign.name} ${strings('rewards.ondo_campaign_activity.title')}`
-              : strings('rewards.ondo_campaign_activity.title')
-          }
+          title={strings('rewards.ondo_campaign_portfolio.positions_title')}
           onBack={() => navigation.goBack()}
-          backButtonProps={{ testID: 'campaign-activity-back-button' }}
+          backButtonProps={{ testID: 'campaign-portfolio-back-button' }}
           includesTopInset
         />
 
@@ -158,7 +204,10 @@ const OndoCampaignActivityView: React.FC = () => {
           ListFooterComponent={renderFooter}
           ListEmptyComponent={renderEmpty}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={refresh} />
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+            />
           }
           showsVerticalScrollIndicator={false}
         />
@@ -167,4 +216,4 @@ const OndoCampaignActivityView: React.FC = () => {
   );
 };
 
-export default OndoCampaignActivityView;
+export default OndoCampaignPortfolioView;

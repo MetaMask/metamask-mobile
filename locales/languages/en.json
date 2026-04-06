@@ -8035,7 +8035,6 @@
       "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
-      "title": "My Positions",
       "total_value": "Total value",
       "portfolio_pnl": "P&L",
       "portfolio_pnl_percent": "P&L (%)",
@@ -8048,10 +8047,11 @@
       "error_loading_description": "There was an error loading your positions. Please try again.",
       "retry": "Retry",
       "loading": "Loading positions...",
-      "empty": "No positions found yet.",
+      "empty": "You don't have any positions",
       "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
       "empty_cta": "Open a position",
-      "position_units": "{{units}} shares"
+      "position_units": "{{units}} shares",
+      "positions_title": "Positions"
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
@@ -8102,6 +8102,11 @@
       "error_description": "We couldn't load the campaigns. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
+    },
+    "campaign_status": {
+      "deposit_window": "Deposit Window",
+      "deposit_closes": "Closes {{date}}",
+      "deposit_closed_on": "Closed on {{date}}"
     }
   },
   "time": {

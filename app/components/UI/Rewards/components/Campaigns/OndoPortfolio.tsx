@@ -7,6 +7,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Icon,
   IconColor,
   IconName,
@@ -35,7 +38,8 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { OndoGmPortfolioDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import RewardsInfoBanner from '../RewardsInfoBanner';
+import NoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
+import { useTheme } from '../../../../../util/theme';
 import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
@@ -95,6 +99,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const theme = useTheme();
 
   const grouped = useMemo(
     () =>
@@ -108,9 +113,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   if (hasError && !portfolio) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.ERROR}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_portfolio.title')}
-        </Text>
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_portfolio.error_loading')}
           description={strings(
@@ -126,15 +128,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   if (showSkeleton) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.LOADING}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 gap-2"
-        >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_portfolio.title')}
-          </Text>
-        </Box>
         <Skeleton style={tw.style('h-32 rounded-xl')} />
         <Skeleton style={tw.style('h-24 rounded-xl')} />
         <Skeleton style={tw.style('h-24 rounded-xl')} />
@@ -144,22 +137,38 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   if (hasFetched && (!portfolio || portfolio.positions.length === 0)) {
     return (
-      <Box testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY} twClassName="gap-3">
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_portfolio.title')}
+      <Box
+        testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="gap-2 py-4"
+      >
+        <NoPositionsImage
+          name="NoPositionsImage"
+          color={
+            theme.themeAppearance === 'dark'
+              ? theme.colors.background.default
+              : theme.colors.text.muted
+          }
+          width={80}
+          height={80}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-alternative max-w-xs text-center"
+        >
+          {strings('rewards.ondo_campaign_portfolio.empty')}
         </Text>
-        <RewardsInfoBanner
-          title={strings('rewards.ondo_campaign_portfolio.empty')}
-          description={strings(
-            'rewards.ondo_campaign_portfolio.empty_description',
-          )}
-          onConfirm={() =>
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Sm}
+          twClassName="self-center"
+          onPress={() =>
             navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never)
           }
-          confirmButtonLabel={strings(
-            'rewards.ondo_campaign_portfolio.empty_cta',
-          )}
-        />
+        >
+          {strings('rewards.ondo_campaign_portfolio.empty_cta')}
+        </Button>
       </Box>
     );
   }
@@ -185,9 +194,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="mb-4 gap-2"
         >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_portfolio.title')}
-          </Text>
           {grouped.length > 0 && (
             <Icon
               name={IconName.ArrowRight}

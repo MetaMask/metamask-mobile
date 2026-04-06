@@ -29,7 +29,6 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
-import OndoActivityPreview from '../components/Campaigns/OndoActivityPreview';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import {
   getCampaignStatus,
@@ -148,7 +147,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     showLeaderboardSection,
     showLeaderboardPositionSection,
     showPortfolioSection,
-    showActivitySection,
   } = useMemo(() => {
     if (!campaign) {
       return {
@@ -157,15 +155,13 @@ const OndoCampaignDetailsView: React.FC = () => {
         showLeaderboardSection: false,
         showLeaderboardPositionSection: false,
         showPortfolioSection: false,
-        showActivitySection: false,
       };
     }
 
     const showHowItWorksSection =
       Boolean(campaign.details?.howItWorks) &&
-      !isParticipantStatusLoading &&
-      !isOptedIn &&
-      !areEntriesClosed &&
+      !hasPositions &&
+      !isPortfolioLoading &&
       getCampaignStatus(campaign) === 'active';
 
     const showCompetitionEndedBanner =
@@ -193,21 +189,17 @@ const OndoCampaignDetailsView: React.FC = () => {
         !hasPositions &&
         !isPortfolioLoading);
 
-    const showActivitySection = isOptedIn && showPortfolioSection;
-
     return {
       showHowItWorksSection,
       showCompetitionEndedBanner,
       showLeaderboardPositionSection,
       showLeaderboardSection,
       showPortfolioSection,
-      showActivitySection,
     };
   }, [
     campaign,
     isOptedIn,
     hasPositions,
-    areEntriesClosed,
     isParticipantStatusLoading,
     isOptinClosed,
     portfolioHasFetched,
@@ -276,7 +268,6 @@ const OndoCampaignDetailsView: React.FC = () => {
               {/* Phase 1: Not opted in, show how it works section */}
               {showHowItWorksSection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="px-4 py-4">
                     <CampaignHowItWorks
                       howItWorks={
@@ -373,6 +364,27 @@ const OndoCampaignDetailsView: React.FC = () => {
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW,
+                          { campaignId },
+                        )
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2 mb-4"
+                      >
+                        <Text variant={TextVariant.HeadingMd}>
+                          {strings(
+                            'rewards.ondo_campaign_portfolio.positions_title',
+                          )}
+                        </Text>
+                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                      </Box>
+                    </Pressable>
                     <OndoPortfolio
                       portfolio={portfolioData}
                       isLoading={isPortfolioLoading}
@@ -380,15 +392,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
                     />
-                  </Box>
-                </>
-              )}
-
-              {showActivitySection && (
-                <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <OndoActivityPreview campaignId={campaignId} />
                   </Box>
                 </>
               )}
