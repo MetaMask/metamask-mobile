@@ -75,7 +75,6 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   RouteProp,
   StackActions,
