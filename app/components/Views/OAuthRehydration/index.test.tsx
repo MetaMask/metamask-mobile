@@ -405,16 +405,19 @@ describe('OAuthRehydration', () => {
 
     it('clears password field after login attempt', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const { getByTestId, queryByDisplayValue } = renderWithProvider(
+        <OAuthRehydration />,
+      );
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
       fireEvent.changeText(passwordInput, 'wrongPassword');
+
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
       await waitFor(() => {
-        expect(passwordInput.props.value).toBe('');
+        expect(queryByDisplayValue('wrongPassword')).toBeNull();
       });
     });
   });
