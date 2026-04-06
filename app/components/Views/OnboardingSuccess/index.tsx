@@ -1,5 +1,4 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -25,7 +24,6 @@ import {
   FontFamily,
   FontWeight,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -115,19 +113,15 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     }
 
     return (
-      <TouchableOpacity
+      <Button
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        style={tw.style('py-2 items-center')}
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Lg}
+        isFullWidth
       >
-        <Text
-          color={TextColor.InfoDefault}
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('onboarding_success.manage_default_settings')}
-        </Text>
-      </TouchableOpacity>
+        {strings('onboarding_success.manage_default_settings')}
+      </Button>
     );
   };
 

@@ -12,7 +12,11 @@
   <!-- Android < 12 -->
   <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+  <!-- Merge with react-native-ble-plx (no maxSdkVersion); Play forbids duplicate maxSdkVersion for the same permission -->
+  <uses-permission
+    android:name="android.permission.ACCESS_FINE_LOCATION"
+    android:maxSdkVersion="30"
+    tools:replace="android:maxSdkVersion" />
   <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
   <!-- Bluetooth permissions: Android API >= 31 (Android 12)-->

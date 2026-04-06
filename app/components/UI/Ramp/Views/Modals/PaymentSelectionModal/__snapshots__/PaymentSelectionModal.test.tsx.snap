@@ -403,7 +403,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
@@ -1319,7 +1319,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
@@ -1961,7 +1961,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
@@ -4383,7 +4383,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                     [
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
                                         "letterSpacing": 0,
