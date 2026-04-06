@@ -113,7 +113,7 @@ jest.mock('../../../../../util/theme', () => {
 });
 
 jest.mock('./OndoLeaderboard.utils', () => ({
-  formatComputedAt: jest.fn(() => '1 hour ago'),
+  formatComputedAt: jest.fn(),
 }));
 
 const mockRefetch = jest.fn();
@@ -324,11 +324,6 @@ describe('OndoPortfolio', () => {
     it('renders the units text', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       expect(getByText('45.2 units')).toBeDefined();
-    });
-
-    it('renders the updated at text', () => {
-      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-      expect(getByText('Updated: 1 hour ago')).toBeDefined();
     });
 
     it('renders positive PnL percent in green', () => {

@@ -62,7 +62,7 @@ describe('OndoActivityRow', () => {
     expect(getByText('+$5,000.00')).toBeDefined();
   });
 
-  it('renders withdraw entry with negative amount (no plus sign)', () => {
+  it('renders withdraw entry with negative sign', () => {
     const { getByText } = render(
       <OndoActivityRow
         entry={createEntry({
@@ -74,7 +74,7 @@ describe('OndoActivityRow', () => {
     );
 
     expect(getByText('Withdraw')).toBeDefined();
-    expect(getByText('$1,250.50')).toBeDefined();
+    expect(getByText('-$1,250.50')).toBeDefined();
   });
 
   it('renders rebalance entry with dash for null amount', () => {

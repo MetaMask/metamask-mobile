@@ -179,43 +179,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   return (
     <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.CONTAINER}>
-      {/* Section header */}
-      <TouchableOpacity
-        onPress={
-          grouped.length > 0
-            ? () =>
-                navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never)
-            : undefined
-        }
-        activeOpacity={grouped.length > 0 ? 0.7 : 1}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 gap-2"
-        >
-          {grouped.length > 0 && (
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
-            />
-          )}
-          {portfolio.computedAt && portfolio.positions.length > 0 && (
-            <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {strings('rewards.ondo_campaign_portfolio.updated_at', {
-                  time: formatComputedAt(portfolio.computedAt),
-                })}
-              </Text>
-            </Box>
-          )}
-        </Box>
-      </TouchableOpacity>
-
       {/* Positions */}
       <Box twClassName="gap-3">
         {grouped.map((row) => {

@@ -45,7 +45,7 @@ const formatUsdAmount = (raw: string | null): string => {
   if (raw === null) return '—';
   const num = parseFloat(raw);
   if (Number.isNaN(num)) return raw;
-  const sign = num >= 0 ? '+' : '';
+  const sign = num > 0 ? '+' : num < 0 ? '-' : '';
   return `${sign}$${Math.abs(num).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
