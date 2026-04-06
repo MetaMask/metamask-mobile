@@ -297,6 +297,34 @@ class PerpsView {
       elemDescription: 'Back button position sheet',
     });
   }
+
+  /**
+   * Retries until the positions list row for this market/direction is gone (e.g. after liquidation).
+   * Uses {@link getPositionItemAnyLeverage} so leverage does not need to match a fixed mock value.
+   */
+  async expectPositionRowNotVisibleAnyLeverage(
+    symbol: string,
+    direction: 'long' | 'short',
+    index = 0,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToNotBeVisible(
+          this.getPositionItemAnyLeverage(symbol, direction, index),
+          {
+            description: `Perps position row for ${symbol} ${direction} not visible after liquidation`,
+            timeout: 3000,
+          },
+        );
+      },
+      {
+        interval: 1000,
+        timeout: 30000,
+        description:
+          'wait for perps position row to disappear after liquidation (any leverage)',
+      },
+    );
+  }
 }
 
 export default new PerpsView();

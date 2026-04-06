@@ -28,6 +28,19 @@ interface ControllerWithUpdate {
   update: (fn: (state: PerpsControllerState) => void) => void;
 }
 
+type PerpsDepositTransactionType = 'perpsDepositAndOrder' | 'perpsDeposit';
+
+type AddTransactionMessengerResult =
+  | {
+      result?: Promise<string>;
+      transactionMeta?: { id?: string };
+      transactionMetaId?: string;
+      id?: string;
+    }
+  | undefined;
+
+const PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
 /**
  * E2E Controller Method Overrides
  * These methods replace controller methods when applied via applyE2EPerpsControllerMocks
@@ -59,19 +72,22 @@ export class E2EControllerOverrides {
     return result;
   }
 
-  // Mock one-click trade deposit initialization used by navigateToOrder()
-  async depositWithOrder(): Promise<{ result: Promise<string> }> {
-    const fallbackTxId = `0xmock_perps_deposit_with_order_${Date.now()}`;
+  /**
+   * Best effort: if messenger returns a real transaction id, use it.
+   * Never throw here; fallback keeps E2E stable.
+   */
+  private async mockPerpsDepositTransaction(params: {
+    fallbackTxId: string;
+    transactionType: PerpsDepositTransactionType;
+  }): Promise<{ result: Promise<string> }> {
+    const { fallbackTxId, transactionType } = params;
     const controllerRecord = this.controller as Record<string, unknown>;
     const messenger = controllerRecord.messenger as
       | { call: (...args: unknown[]) => unknown }
       | undefined;
 
     let resolvedTxId = fallbackTxId;
-    const ADD_TRANSACTION_TIMEOUT_MS = 1200;
 
-    // Best effort: if messenger returns a real transaction id, use it.
-    // Never throw here; fallback keeps E2E stable.
     if (messenger) {
       const selectedAccounts = messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -104,21 +120,16 @@ export class E2EControllerOverrides {
               networkClientId,
               origin: 'metamask',
               skipInitialGasEstimate: true,
-              type: 'perpsDepositAndOrder',
+              type: transactionType,
             },
           ),
-        ) as Promise<
-          | {
-              result?: Promise<string>;
-              transactionMeta?: { id?: string };
-              transactionMetaId?: string;
-              id?: string;
-            }
-          | undefined
-        >;
+        ) as Promise<AddTransactionMessengerResult>;
 
         const timeout = new Promise<undefined>((resolve) =>
-          setTimeout(() => resolve(undefined), ADD_TRANSACTION_TIMEOUT_MS),
+          setTimeout(
+            () => resolve(undefined),
+            PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS,
+          ),
         );
         const maybeAddResult = await Promise.race([
           addTransactionCall,
@@ -144,87 +155,20 @@ export class E2EControllerOverrides {
     return { result: Promise.resolve(resolvedTxId) };
   }
 
+  // Mock one-click trade deposit initialization used by navigateToOrder()
+  async depositWithOrder(): Promise<{ result: Promise<string> }> {
+    return this.mockPerpsDepositTransaction({
+      fallbackTxId: `0xmock_perps_deposit_with_order_${Date.now()}`,
+      transactionType: 'perpsDepositAndOrder',
+    });
+  }
+
   // Mock generic deposit initialization used by add-funds flows
   async depositWithConfirmation(): Promise<{ result: Promise<string> }> {
-    const fallbackTxId = `0xmock_perps_deposit_with_confirmation_${Date.now()}`;
-    const controllerRecord = this.controller as Record<string, unknown>;
-    const messenger = controllerRecord.messenger as
-      | { call: (...args: unknown[]) => unknown }
-      | undefined;
-
-    let resolvedTxId = fallbackTxId;
-    const ADD_TRANSACTION_TIMEOUT_MS = 1200;
-
-    if (messenger) {
-      const selectedAccounts = messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ) as { address?: string }[];
-      const fromAddress = selectedAccounts?.[0]?.address;
-      const networkClientId = messenger.call(
-        'NetworkController:findNetworkClientIdByChainId',
-        '0xa4b1',
-      ) as string | undefined;
-
-      if (fromAddress && networkClientId) {
-        const recipientPadded = fromAddress
-          .toLowerCase()
-          .replace('0x', '')
-          .padStart(64, '0');
-        const amountPadded = '0'.padStart(64, '0');
-        const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
-
-        const addTransactionCall = Promise.resolve(
-          messenger.call(
-            'TransactionController:addTransaction',
-            {
-              from: fromAddress,
-              to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-              value: '0x0',
-              data: transferData,
-              gas: '0x493e0',
-            },
-            {
-              networkClientId,
-              origin: 'metamask',
-              skipInitialGasEstimate: true,
-              type: 'perpsDeposit',
-            },
-          ),
-        ) as Promise<
-          | {
-              result?: Promise<string>;
-              transactionMeta?: { id?: string };
-              transactionMetaId?: string;
-              id?: string;
-            }
-          | undefined
-        >;
-
-        const timeout = new Promise<undefined>((resolve) =>
-          setTimeout(() => resolve(undefined), ADD_TRANSACTION_TIMEOUT_MS),
-        );
-        const maybeAddResult = await Promise.race([
-          addTransactionCall,
-          timeout,
-        ]);
-
-        resolvedTxId =
-          maybeAddResult?.transactionMeta?.id ??
-          maybeAddResult?.transactionMetaId ??
-          maybeAddResult?.id ??
-          fallbackTxId;
-      }
-    }
-
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.lastDepositTransactionId = resolvedTxId;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
-
-    return { result: Promise.resolve(resolvedTxId) };
+    return this.mockPerpsDepositTransaction({
+      fallbackTxId: `0xmock_perps_deposit_with_confirmation_${Date.now()}`,
+      transactionType: 'perpsDeposit',
+    });
   }
 
   // Mock liquidation price calculation: return entry price (0% distance scenario)

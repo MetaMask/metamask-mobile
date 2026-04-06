@@ -3,6 +3,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import {
   PERPS_ARBITRUM_MOCKS,
@@ -12,7 +13,7 @@ import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
-import { createLogger, LogLevel } from '../../framework/logger';
+import { createLogger, LogLevel } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -71,12 +72,11 @@ describe(SmokePerps('Perps Position'), () => {
 
         // Navigate to Perps via homepage section (same click path as smoke perps tests)
         await WalletView.scrollAndTapPerpsSection();
+        await PerpsHomeView.tapExploreCryptoIfVisible();
 
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
 
-        // await PerpsOrderView.openOrderTypeSelector();
-        // await PerpsOrderView.selectMarketOrderType();
         // Custom TP trigger above mock ETH mark (~2500) for a long
         await PerpsOrderView.tapTakeProfitButton();
         await PerpsOrderView.enterCustomTakeProfitTriggerPrice('2800');

@@ -3,6 +3,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import {
   PERPS_ARBITRUM_MOCKS,
@@ -10,10 +11,13 @@ import {
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
-import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
-import Utilities from '../../framework/Utilities';
-import { TestSuiteParams } from '../../framework/types';
+import {
+  createLogger,
+  LogLevel,
+  Utilities,
+  type TestSuiteParams,
+} from '../../framework';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -72,6 +76,8 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
         await device.disableSynchronization();
 
         await WalletView.scrollAndTapPerpsSection();
+        await PerpsHomeView.tapExploreCryptoIfVisible();
+
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
 

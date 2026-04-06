@@ -433,13 +433,11 @@ export class PerpsE2EMockService {
     };
     this.mockOrderFills.push(closeFill);
 
-    // Recompute account unrealized PnL based on remaining positions
+    // Recompute account-level unrealized from remaining positions only.
+    // totalBalance stays cash + locked margin (same invariant as reset / mockPushPrice);
+    // do not add unrealized here — it is already reflected via totalBalance += pnl on close.
     const recomputedUnrealized = this.computeTotalUnrealizedPnl();
     this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
-    // Keep totalBalance aligned with equity (realized + unrealized)
-    this.mockAccount.totalBalance = (
-      parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
-    ).toFixed(2);
 
     // Notify position subscribers about the change
     this.notifyPositionCallbacks();
@@ -820,9 +818,6 @@ export class PerpsE2EMockService {
 
     const recomputedUnrealized = this.computeTotalUnrealizedPnl();
     this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
-    this.mockAccount.totalBalance = (
-      parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
-    ).toFixed(2);
 
     symbolsClosed.add(order.symbol);
     delete this.orderMeta[order.orderId];
@@ -1073,13 +1068,9 @@ export class PerpsE2EMockService {
 
     this.mockPositions = remaining;
 
-    // Recompute unrealized and totalBalance after potential closures
     if (didAnyClose) {
       const recomputedUnrealized = this.computeTotalUnrealizedPnl();
       this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
-      this.mockAccount.totalBalance = (
-        parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
-      ).toFixed(2);
     }
 
     return didAnyClose;

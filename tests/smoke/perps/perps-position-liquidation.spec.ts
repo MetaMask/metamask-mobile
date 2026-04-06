@@ -11,11 +11,8 @@ import {
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
-import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
-import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
-import { TestSuiteParams } from '../../framework/types';
+import { createLogger, LogLevel, type TestSuiteParams } from '../../framework';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -26,6 +23,7 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
+// Skipped until liquidation mock + assertions are verified stable on iOS and Android in CI.
 describe.skip(SmokePerps('Perps Position Liquidation'), () => {
   it('opens a long position and gets liquidated', async () => {
     await withFixtures(
@@ -102,7 +100,7 @@ describe.skip(SmokePerps('Perps Position Liquidation'), () => {
           'ETH',
         );
         logger.info(
-          '🔥 E2E Mock: Liquidation not triggered for ETH at 2125.00',
+          'E2E Mock: First liquidation attempt at 2125 — position expected to stay open until a lower mark',
         );
 
         await PerpsView.tapBackButtonPositionSheet();
@@ -116,20 +114,14 @@ describe.skip(SmokePerps('Perps Position Liquidation'), () => {
           'ETH',
         );
 
-        logger.info('🔥 E2E Mock: Liquidation triggered for ETH');
+        logger.info(
+          'E2E Mock: Second liquidation attempt at 1200 — position expected to clear',
+        );
 
-        await Utilities.executeWithRetry(
-          async () => {
-            await Assertions.expectElementToNotBeVisible(
-              PerpsView.getPositionItemAnyLeverage('ETH', 'long', 0),
-              {
-                description:
-                  'ETH long position row should disappear after liquidation (any leverage)',
-                timeout: 3000,
-              },
-            );
-          },
-          { interval: 1000, timeout: 30000 },
+        await PerpsView.expectPositionRowNotVisibleAnyLeverage(
+          'ETH',
+          'long',
+          0,
         );
       },
     );
