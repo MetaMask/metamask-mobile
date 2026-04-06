@@ -1327,7 +1327,7 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.74.0;
+				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1393,7 +1393,7 @@
 					"${inherited}",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.74.0;
+				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1462,7 +1462,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.74.0;
+				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1526,7 +1526,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.74.0;
+				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1692,7 +1692,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.74.0;
+				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1759,7 +1759,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 7.74.0;
+				MARKETING_VERSION = 2.1.1;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
