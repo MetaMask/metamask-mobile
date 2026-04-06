@@ -4,12 +4,9 @@ import { storeCardBaanxToken } from '../util/cardTokenVault';
 import { generatePKCEPair, generateState } from '../util/pkceHelpers';
 import { CardError, CardErrorType, CardLoginResponse } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectUserCardLocation,
-  setIsAuthenticatedCard as setIsAuthenticatedAction,
-  setUserCardLocation,
-} from '../../../../core/redux/slices/card';
+import { useSelector } from 'react-redux';
+import { selectCardUserLocation } from '../../../../selectors/cardController';
+import Engine from '../../../../core/Engine';
 
 /**
  * Maps CardError types to user-friendly localized error messages
@@ -62,12 +59,11 @@ interface UseCardProviderAuthenticationResponse {
 
 const useCardProviderAuthentication =
   (): UseCardProviderAuthenticationResponse => {
-    const dispatch = useDispatch();
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
     const [otpError, setOtpError] = useState<string | null>(null);
-    const location = useSelector(selectUserCardLocation);
+    const location = useSelector(selectCardUserLocation) ?? 'international';
     const { sdk } = useCardSDK();
 
     const clearOtpError = useCallback(() => {
@@ -159,10 +155,11 @@ const useCardProviderAuthentication =
             refreshTokenExpiresAt: exchangeTokenResponse.refreshTokenExpiresIn,
             location,
           });
+          await Engine.context.CardController.validateAndRefreshSession().catch(
+            () => undefined,
+          );
 
           setError(null);
-          dispatch(setIsAuthenticatedAction(true));
-          dispatch(setUserCardLocation(location));
 
           return loginResponse;
         } catch (err) {
@@ -174,7 +171,7 @@ const useCardProviderAuthentication =
           setLoading(false);
         }
       },
-      [sdk, dispatch, location],
+      [sdk, location],
     );
 
     return useMemo(

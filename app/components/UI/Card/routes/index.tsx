@@ -14,9 +14,9 @@ import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
-  selectIsAuthenticatedCard,
+  selectIsCardAuthenticated,
   selectIsCardholder,
-} from '../../../../core/redux/slices/card';
+} from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -136,7 +136,7 @@ export const cardChooseYourCardNavigationOptions = ({
 };
 
 const MainRoutes = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const isCardholder = useSelector(selectIsCardholder);
 
   const initialRouteName = useMemo(
