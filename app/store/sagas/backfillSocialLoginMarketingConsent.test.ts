@@ -18,6 +18,7 @@ jest.mock('../../core/Analytics', () => ({
 
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
+    identify: jest.fn(),
     trackEvent: jest.fn(),
   },
 }));
