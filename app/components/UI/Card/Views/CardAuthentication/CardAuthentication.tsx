@@ -16,7 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { useTheme } from '../../../../../util/theme';
-import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
+import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -42,16 +42,10 @@ const CardAuthentication = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
-  const [step, setStep] = useState<'login' | 'otp'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
   const location = useSelector(selectCardUserLocation);
-  const [otpData, setOtpData] = useState<{
-    userId: string;
-    maskedPhoneNumber?: string;
-  } | null>(null);
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -59,68 +53,78 @@ const CardAuthentication = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const dispatch = useDispatch();
   const theme = useTheme();
+
   const {
-    login,
-    error,
-    clearError,
-    sendOtpLogin,
-    otpError,
-    clearOtpError,
-    otpLoading,
-  } = useCardProviderAuthentication();
+    currentStep,
+    initiate,
+    submit,
+    stepAction,
+    resetToLogin,
+    getErrorMessage,
+  } = useCardAuth();
+
+  // React Query guarantees mutate is referentially stable — safe to use as effect dep
+  const { mutate: triggerStepAction } = stepAction;
+
+  // Derived state — no useState needed for these
+  const isOtpStep = currentStep.type === 'otp';
+  const loading = initiate.isPending || submit.isPending;
+  const otpLoading = stepAction.isPending;
+  const error =
+    initiate.error || submit.error
+      ? getErrorMessage(initiate.error ?? submit.error)
+      : null;
+  const otpError = stepAction.error ? getErrorMessage(stepAction.error) : null;
+  const maskedPhoneNumber =
+    isOtpStep && currentStep.type === 'otp'
+      ? currentStep.destination
+      : undefined;
 
   const handleEmailChange = useCallback(
     (newEmail: string) => {
       setEmail(newEmail);
-      if (error) {
-        clearError();
+      if (initiate.error || submit.error) {
+        initiate.reset();
+        submit.reset();
       }
     },
-    [error, clearError],
+    [initiate, submit],
   );
 
   const handlePasswordChange = useCallback(
     (newPassword: string) => {
       setPassword(newPassword);
-      if (error) {
-        clearError();
+      if (initiate.error || submit.error) {
+        initiate.reset();
+        submit.reset();
       }
     },
-    [error, clearError],
+    [initiate, submit],
   );
 
   const handleOtpValueChange = useCallback(
     (text: string) => {
       setConfirmCode(text);
       setLatestValueSubmitted(null);
-      if (error) {
-        clearError();
+      if (submit.error) {
+        submit.reset();
       }
-      if (otpError) {
-        clearOtpError();
+      if (stepAction.error) {
+        stepAction.reset();
       }
     },
-    [error, clearError, otpError, clearOtpError],
+    [submit, stepAction],
   );
 
   // Send OTP when entering OTP step
   useEffect(() => {
-    if (step === 'otp' && otpData?.userId) {
-      const sendOtp = async () => {
-        try {
-          await sendOtpLogin({
-            userId: otpData.userId,
-          });
-          // Reset countdown when OTP is sent
-          setResendCooldown(60);
-        } catch (err) {
-          Logger.log('CardAuthentication::Send OTP login failed', err);
-        }
-      };
-
-      sendOtp();
-    }
-  }, [step, otpData?.userId, sendOtpLogin]);
+    if (!isOtpStep) return;
+    triggerStepAction(undefined, {
+      onSuccess: () => setResendCooldown(60),
+      onError: (err) =>
+        Logger.log('CardAuthentication::Send OTP login failed', err),
+    });
+  }, [isOtpStep, triggerStepAction]);
 
   // Cooldown timer effect
   useEffect(() => {
@@ -134,10 +138,9 @@ const CardAuthentication = () => {
   }, [resendCooldown]);
 
   useEffect(() => {
-    const screenName =
-      step === 'login'
-        ? CardScreens.AUTHENTICATION
-        : CardScreens.OTP_AUTHENTICATION;
+    const screenName = isOtpStep
+      ? CardScreens.OTP_AUTHENTICATION
+      : CardScreens.AUTHENTICATION;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
@@ -146,14 +149,13 @@ const CardAuthentication = () => {
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder, step]);
+  }, [trackEvent, createEventBuilder, isOtpStep]);
 
   const performLogin = useCallback(
     async (otpCode?: string) => {
-      const action =
-        step === 'login'
-          ? CardActions.AUTHENTICATION_LOGIN_BUTTON
-          : CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON;
+      const action = isOtpStep
+        ? CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON
+        : CardActions.AUTHENTICATION_LOGIN_BUTTON;
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -164,53 +166,52 @@ const CardAuthentication = () => {
       );
 
       try {
-        setLoading(true);
-        const loginResponse = await login({
+        if (!isOtpStep) {
+          await initiate.mutateAsync(location ?? 'international');
+        }
+        const result = await submit.mutateAsync({
+          type: 'email_password',
           email,
           password,
           ...(otpCode ? { otpCode } : {}),
         });
 
-        if (loginResponse?.isOtpRequired) {
-          // Switch to OTP step instead of navigating
-          setOtpData({
-            userId: loginResponse.userId,
-            maskedPhoneNumber: loginResponse.phoneNumber ?? undefined,
-          });
-          setStep('otp');
+        if (result.nextStep?.type === 'otp') {
+          // currentStep is updated by useCardAuth — view re-renders to OTP form automatically
           return;
         }
 
-        if (loginResponse?.phase) {
-          dispatch(setOnboardingId(loginResponse.userId));
+        if (result.onboardingRequired) {
+          dispatch(setOnboardingId(result.onboardingRequired.sessionId));
           navigation.reset({
             index: 0,
             routes: [
               {
                 name: Routes.CARD.ONBOARDING.ROOT,
-                params: { cardUserPhase: loginResponse.phase },
+                params: { cardUserPhase: result.onboardingRequired.phase },
               },
             ],
           });
           return;
         }
 
-        // Successful login - navigate to home
+        // Successful login — navigate to home
         navigation.reset({
           index: 0,
           routes: [{ name: Routes.CARD.HOME }],
         });
       } catch (err) {
         Logger.log('CardAuthentication::Login failed', err);
-      } finally {
-        setLoading(false);
+        // error is displayed via the derived `error` variable above
       }
     },
     [
       email,
-      login,
+      initiate,
+      submit,
+      isOtpStep,
+      location,
       password,
-      step,
       navigation,
       dispatch,
       trackEvent,
@@ -221,69 +222,62 @@ const CardAuthentication = () => {
   // Auto-submit when all OTP digits are entered
   useEffect(() => {
     if (
-      step === 'otp' &&
+      isOtpStep &&
       confirmCode.length === CODE_LENGTH &&
       latestValueSubmitted !== confirmCode
     ) {
       setLatestValueSubmitted(confirmCode);
       performLogin(confirmCode);
     }
-  }, [confirmCode, performLogin, latestValueSubmitted, step]);
+  }, [confirmCode, performLogin, latestValueSubmitted, isOtpStep]);
 
   const isLoginDisabled = useMemo(
     () => !!error || email.length === 0 || password.length === 0,
     [error, email, password],
   );
 
-  const handleResendOtp = useCallback(async () => {
-    if (resendCooldown > 0 || !otpData?.userId || otpLoading) {
-      return;
-    }
-
-    try {
-      await sendOtpLogin({
-        userId: otpData.userId,
-      });
-      setResendCooldown(60);
-    } catch (err) {
-      Logger.log('CardAuthentication::Resend OTP failed', err);
-    }
-  }, [resendCooldown, otpData?.userId, sendOtpLogin, otpLoading]);
+  const handleResendOtp = useCallback(() => {
+    if (resendCooldown > 0 || otpLoading) return;
+    triggerStepAction(undefined, {
+      onSuccess: () => setResendCooldown(60),
+      onError: (err) =>
+        Logger.log('CardAuthentication::Resend OTP failed', err),
+    });
+  }, [resendCooldown, triggerStepAction, otpLoading]);
 
   const handleBackToLogin = useCallback(() => {
-    setStep('login');
     setConfirmCode('');
     setLatestValueSubmitted(null);
-    setOtpData(null);
     setResendCooldown(60);
-    clearOtpError();
-  }, [clearOtpError]);
+    resetToLogin();
+  }, [resetToLogin]);
 
   const title = useMemo(
     () =>
-      step === 'otp'
+      isOtpStep
         ? strings('card.card_otp_authentication.title')
         : strings('card.card_authentication.title'),
-    [step],
+    [isOtpStep],
   );
+
   const description = useMemo(
     () =>
-      step === 'otp'
-        ? otpData?.maskedPhoneNumber
+      isOtpStep
+        ? maskedPhoneNumber
           ? strings(
               'card.card_otp_authentication.description_with_phone_number',
-              { maskedPhoneNumber: otpData.maskedPhoneNumber },
+              { maskedPhoneNumber },
             )
           : strings(
               'card.card_otp_authentication.description_without_phone_number',
             )
         : '',
-    [otpData?.maskedPhoneNumber, step],
+    [maskedPhoneNumber, isOtpStep],
   );
 
   const formFields = useMemo(
     () =>
-      step === 'otp' ? (
+      isOtpStep ? (
         <>
           <Box>
             <TextField
@@ -455,19 +449,20 @@ const CardAuthentication = () => {
       handlePasswordChange,
       handleResendOtp,
       isPasswordVisible,
+      isOtpStep,
       otpError,
       otpLoading,
       password,
       performLogin,
       resendCooldown,
-      step,
       tw,
       location,
     ],
   );
+
   const actions = useMemo(
     () =>
-      step === 'otp' ? (
+      isOtpStep ? (
         <>
           <Button
             variant={ButtonVariant.Primary}
@@ -538,10 +533,10 @@ const CardAuthentication = () => {
       error,
       handleBackToLogin,
       isLoginDisabled,
+      isOtpStep,
       loading,
       navigation,
       performLogin,
-      step,
       theme.colors.error.default,
     ],
   );
