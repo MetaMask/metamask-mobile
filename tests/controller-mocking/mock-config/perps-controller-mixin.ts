@@ -59,6 +59,174 @@ export class E2EControllerOverrides {
     return result;
   }
 
+  // Mock one-click trade deposit initialization used by navigateToOrder()
+  async depositWithOrder(): Promise<{ result: Promise<string> }> {
+    const fallbackTxId = `0xmock_perps_deposit_with_order_${Date.now()}`;
+    const controllerRecord = this.controller as Record<string, unknown>;
+    const messenger = controllerRecord.messenger as
+      | { call: (...args: unknown[]) => unknown }
+      | undefined;
+
+    let resolvedTxId = fallbackTxId;
+    const ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
+    // Best effort: if messenger returns a real transaction id, use it.
+    // Never throw here; fallback keeps E2E stable.
+    if (messenger) {
+      const selectedAccounts = messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ) as { address?: string }[];
+      const fromAddress = selectedAccounts?.[0]?.address;
+      const networkClientId = messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        '0xa4b1',
+      ) as string | undefined;
+
+      if (fromAddress && networkClientId) {
+        const recipientPadded = fromAddress
+          .toLowerCase()
+          .replace('0x', '')
+          .padStart(64, '0');
+        const amountPadded = '0'.padStart(64, '0');
+        const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
+
+        const addTransactionCall = Promise.resolve(
+          messenger.call(
+            'TransactionController:addTransaction',
+            {
+              from: fromAddress,
+              to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              value: '0x0',
+              data: transferData,
+              gas: '0x493e0',
+            },
+            {
+              networkClientId,
+              origin: 'metamask',
+              skipInitialGasEstimate: true,
+              type: 'perpsDepositAndOrder',
+            },
+          ),
+        ) as Promise<
+          | {
+              result?: Promise<string>;
+              transactionMeta?: { id?: string };
+              transactionMetaId?: string;
+              id?: string;
+            }
+          | undefined
+        >;
+
+        const timeout = new Promise<undefined>((resolve) =>
+          setTimeout(() => resolve(undefined), ADD_TRANSACTION_TIMEOUT_MS),
+        );
+        const maybeAddResult = await Promise.race([
+          addTransactionCall,
+          timeout,
+        ]);
+
+        resolvedTxId =
+          maybeAddResult?.transactionMeta?.id ??
+          maybeAddResult?.transactionMetaId ??
+          maybeAddResult?.id ??
+          fallbackTxId;
+      }
+    }
+
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.lastDepositTransactionId = resolvedTxId;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
+
+    return { result: Promise.resolve(resolvedTxId) };
+  }
+
+  // Mock generic deposit initialization used by add-funds flows
+  async depositWithConfirmation(): Promise<{ result: Promise<string> }> {
+    const fallbackTxId = `0xmock_perps_deposit_with_confirmation_${Date.now()}`;
+    const controllerRecord = this.controller as Record<string, unknown>;
+    const messenger = controllerRecord.messenger as
+      | { call: (...args: unknown[]) => unknown }
+      | undefined;
+
+    let resolvedTxId = fallbackTxId;
+    const ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
+    if (messenger) {
+      const selectedAccounts = messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ) as { address?: string }[];
+      const fromAddress = selectedAccounts?.[0]?.address;
+      const networkClientId = messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        '0xa4b1',
+      ) as string | undefined;
+
+      if (fromAddress && networkClientId) {
+        const recipientPadded = fromAddress
+          .toLowerCase()
+          .replace('0x', '')
+          .padStart(64, '0');
+        const amountPadded = '0'.padStart(64, '0');
+        const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
+
+        const addTransactionCall = Promise.resolve(
+          messenger.call(
+            'TransactionController:addTransaction',
+            {
+              from: fromAddress,
+              to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              value: '0x0',
+              data: transferData,
+              gas: '0x493e0',
+            },
+            {
+              networkClientId,
+              origin: 'metamask',
+              skipInitialGasEstimate: true,
+              type: 'perpsDeposit',
+            },
+          ),
+        ) as Promise<
+          | {
+              result?: Promise<string>;
+              transactionMeta?: { id?: string };
+              transactionMetaId?: string;
+              id?: string;
+            }
+          | undefined
+        >;
+
+        const timeout = new Promise<undefined>((resolve) =>
+          setTimeout(() => resolve(undefined), ADD_TRANSACTION_TIMEOUT_MS),
+        );
+        const maybeAddResult = await Promise.race([
+          addTransactionCall,
+          timeout,
+        ]);
+
+        resolvedTxId =
+          maybeAddResult?.transactionMeta?.id ??
+          maybeAddResult?.transactionMetaId ??
+          maybeAddResult?.id ??
+          fallbackTxId;
+      }
+    }
+
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.lastDepositTransactionId = resolvedTxId;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
+
+    return { result: Promise.resolve(resolvedTxId) };
+  }
+
   // Mock liquidation price calculation: return entry price (0% distance scenario)
   async calculateLiquidationPrice(
     params: LiquidationPriceParams,
@@ -255,6 +423,8 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   // Override key methods with E2E mocks
   const methodsToOverride = [
     'placeOrder',
+    'depositWithOrder',
+    'depositWithConfirmation',
     'cancelOrder',
     'getAccountState',
     'getPositions',

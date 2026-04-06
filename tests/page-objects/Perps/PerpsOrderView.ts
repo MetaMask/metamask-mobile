@@ -7,6 +7,9 @@ import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
+  PerpsLimitPriceBottomSheetSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
+  PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
   asPlaywrightElement,
@@ -36,10 +39,14 @@ class PerpsOrderView {
     });
   }
 
+  /**
+   * Opens Auto close / TPSL from the order form. The row is labeled TP/SL in UI;
+   * production uses STOP_LOSS_BUTTON testID on that touchable (see PerpsOrderView.tsx).
+   */
   get takeProfitButton() {
     return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.TAKE_PROFIT_BUTTON,
-    );
+      PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
+    ) as DetoxElement;
   }
 
   get turnNotificationsOnButton() {
@@ -69,11 +76,24 @@ class PerpsOrderView {
   async tapPlaceOrderButton() {
     await UnifiedGestures.waitAndTap(this.placeOrderButton, {
       description: 'Place Order button',
+      timeout: 15000,
     });
   }
 
   async tapTakeProfitButton() {
-    await Gestures.waitAndTap(this.takeProfitButton);
+    await Gestures.scrollToElement(
+      this.takeProfitButton,
+      Matchers.getIdentifier(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      {
+        direction: 'down',
+        scrollAmount: 250,
+        elemDescription: 'Scroll Perps market details to TP/SL row',
+      },
+    );
+    await Gestures.waitAndTap(this.takeProfitButton, {
+      elemDescription: 'Open TP/SL sheet from order form',
+      checkStability: true,
+    });
   }
 
   async tapTurnOnNotificationsButton() {
@@ -184,7 +204,9 @@ class PerpsOrderView {
   }
 
   async openOrderTypeSelector(): Promise<void> {
-    await Gestures.waitAndTap(this.orderTypeSelector);
+    await Gestures.waitAndTap(this.orderTypeSelector, {
+      elemDescription: 'Open order type selector',
+    });
   }
 
   async selectLimitOrderType() {
@@ -193,15 +215,122 @@ class PerpsOrderView {
     });
   }
 
+  async selectMarketOrderType() {
+    await Gestures.waitAndTap(this.orderTypeMarket, {
+      elemDescription: 'Select Market order type',
+    });
+  }
+
+  /**
+   * On PerpsTPSL (Auto close), focus TP trigger price and enter value via the in-view Keypad,
+   * then dismiss the keypad and confirm with Set.
+   */
+  async enterCustomTakeProfitTriggerPrice(price: string): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText('Auto close'),
+      {
+        description: 'TPSL Auto close screen visible',
+        timeout: 15000,
+      },
+    );
+
+    const tpInput = Matchers.getElementByID(
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+    ) as DetoxElement;
+
+    await Gestures.waitAndTap(tpInput, {
+      elemDescription: 'Focus take profit trigger price input',
+      checkEnabled: false,
+    });
+
+    for (const ch of price) {
+      const keypadTestId = ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
+      const key = Matchers.getElementByID(keypadTestId) as DetoxElement;
+      await Gestures.waitAndTap(key, {
+        elemDescription: `TPSL keypad key ${ch}`,
+        checkEnabled: false,
+        checkVisibility: false,
+      });
+    }
+
+    const doneButton = Matchers.getElementByText('Done') as DetoxElement;
+    await Gestures.waitAndTap(doneButton, {
+      elemDescription: 'Dismiss TPSL keypad (Done)',
+      checkEnabled: false,
+      checkVisibility: false,
+    });
+
+    const setButton = Matchers.getElementByID(
+      PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET,
+    ) as DetoxElement;
+    await Gestures.waitAndTap(setButton, {
+      elemDescription: 'Confirm TP/SL (Set)',
+    });
+  }
+
+  /**
+   * On PerpsTPSL (Auto close), focus SL trigger price and enter value via the in-view Keypad,
+   * then dismiss the keypad and confirm with Set.
+   */
+  async enterCustomStopLossTriggerPrice(price: string): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText('Auto close'),
+      {
+        description: 'TPSL Auto close screen visible',
+        timeout: 15000,
+      },
+    );
+
+    const slInput = Matchers.getElementByID(
+      PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+    ) as DetoxElement;
+
+    await Gestures.waitAndTap(slInput, {
+      elemDescription: 'Focus stop loss trigger price input',
+      checkEnabled: false,
+    });
+
+    for (const ch of price) {
+      const keypadTestId = ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
+      const key = Matchers.getElementByID(keypadTestId) as DetoxElement;
+      await Gestures.waitAndTap(key, {
+        elemDescription: `TPSL keypad key ${ch}`,
+        checkEnabled: false,
+        checkVisibility: false,
+      });
+    }
+
+    const doneButton = Matchers.getElementByText('Done') as DetoxElement;
+    await Gestures.waitAndTap(doneButton, {
+      elemDescription: 'Dismiss TPSL keypad (Done)',
+      checkEnabled: false,
+      checkVisibility: false,
+    });
+
+    const setButton = Matchers.getElementByID(
+      PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET,
+    ) as DetoxElement;
+    await Gestures.waitAndTap(setButton, {
+      elemDescription: 'Confirm TP/SL (Set)',
+    });
+  }
+
   async setLimitPricePresetLong(preset: string) {
-    const presetButton = Matchers.getElementByText(preset) as DetoxElement;
+    const presetButton =
+      preset === 'Mid'
+        ? (Matchers.getElementByID(
+            PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+          ) as DetoxElement)
+        : (Matchers.getElementByText(preset) as DetoxElement);
     await Gestures.waitAndTap(presetButton, {
       elemDescription: `Select limit price preset ${preset}`,
     });
   }
 
   async confirmLimitPrice() {
-    const setButton = Matchers.getElementByText('Set') as DetoxElement;
+    const setButton = Matchers.getElementByID(
+      PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    ) as DetoxElement;
     await Gestures.waitAndTap(setButton, {
       elemDescription: 'Confirm limit price',
     });

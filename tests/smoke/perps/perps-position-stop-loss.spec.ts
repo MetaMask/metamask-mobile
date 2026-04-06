@@ -8,24 +8,24 @@ import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
-import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
+import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
+import Utilities from '../../framework/Utilities';
+import { TestSuiteParams } from '../../framework/types';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-// E2E environment setup - mocks auto-configure via isE2E flag
-
 const logger = createLogger({
-  name: 'PerpsPositionSpec',
+  name: 'PerpsPositionStopLossSpec',
   level: LogLevel.INFO,
 });
 
-describe(SmokePerps('Perps Position'), () => {
-  it('opens a long position with custom profit and closes it', async () => {
+describe(SmokePerps('Perps Position Stop Loss'), () => {
+  it('opens a long with stop loss and closes when mark crosses the SL trigger', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -60,44 +60,60 @@ describe(SmokePerps('Perps Position'), () => {
             RampsRegions[RampsRegionsEnum.SPAIN],
           );
         },
+        useCommandQueueServer: true,
       },
-      async () => {
+      async ({ commandQueueServer }: TestSuiteParams) => {
+        if (!commandQueueServer) {
+          throw new Error('Command queue server not found');
+        }
+
         logger.info('💰 Using E2E mock balance - no wallet import needed');
-        logger.info('🎯 Mock account: $10,000 total, $8,000 available');
         await loginToApp();
-        // Keep consistency with other passing Perps smoke flows where
-        // streaming/network activity can block Detox idling.
         await device.disableSynchronization();
 
-        // Navigate to Perps via homepage section (same click path as smoke perps tests)
         await WalletView.scrollAndTapPerpsSection();
-
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();
 
-        // await PerpsOrderView.openOrderTypeSelector();
-        // await PerpsOrderView.selectMarketOrderType();
-        // Custom TP trigger above mock ETH mark (~2500) for a long
         await PerpsOrderView.tapTakeProfitButton();
-        await PerpsOrderView.enterCustomTakeProfitTriggerPrice('2800');
+        // Default ETH mock mark ~2500; SL below entry for a long
+        await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
+
         await PerpsOrderView.tapPlaceOrderButton();
 
         if (device.getPlatform() === 'ios') {
           await PerpsOrderView.tapTurnOnNotificationsButton();
         }
 
-        // Wait for screen ready and assert Close Position availability
         await PerpsMarketDetailsView.waitForScreenReady();
         await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
-        await PerpsView.tapClosePositionButton();
+        logger.info('📈 E2E Mock: Long opened with stop loss trigger at 2300');
 
-        logger.info('📉 E2E Mock: Preparing to close position');
+        await PerpsE2EModifiers.updateMarketPriceServer(
+          commandQueueServer,
+          'ETH',
+          '2250.00',
+        );
 
-        await PerpsView.tapClosePositionBottomSheetButton();
+        logger.info(
+          '📉 E2E Mock: Mark pushed below SL — position should close via trigger',
+        );
 
-        logger.info('🎉 E2E Mock: Position closed successfully');
-        logger.info('💰 E2E Mock: Balance updated with P&L');
+        // Assert on market details (same screen as above): Close position was shown when the long
+        // existed; after SL the mock removes the position — do not use Perps tab row + fixed "3x"
+        // (mock uses params.leverage || 1; UI default is usually 3x but is not guaranteed here).
+        await Utilities.executeWithRetry(
+          async () => {
+            await PerpsMarketDetailsView.expectClosePositionButtonNotVisible();
+          },
+          {
+            interval: 1000,
+            timeout: 30000,
+            description:
+              'wait for Close position to disappear after stop loss trigger',
+          },
+        );
       },
     );
   });

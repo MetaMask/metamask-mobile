@@ -51,15 +51,11 @@ describe(
           // Go to Perps from homepage section (same click path as smoke perps tests)
           await WalletView.scrollAndTapPerpsSection();
 
-          // Start Trading should be present for first-time/no-positions
-          await PerpsTabView.tapOnboardingButton();
-
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
           await PerpsOnboarding.tapContinueButton();
-
           await PerpsOnboarding.tapContinueButton();
 
           // After skipping tutorial, user should land on markets screen

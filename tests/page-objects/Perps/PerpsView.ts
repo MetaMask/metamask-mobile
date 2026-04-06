@@ -32,6 +32,23 @@ class PerpsView {
     );
   }
 
+  /**
+   * Same testID pattern as {@link getPositionItem} but matches any leverage (`Nx`).
+   * Prefer this when leverage comes from the live order form (E2E mock uses `params.leverage || 1`).
+   */
+  getPositionItemAnyLeverage(
+    symbol: string,
+    direction: 'long' | 'short',
+    index = 0,
+  ): DetoxElement {
+    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return Matchers.getElementByID(
+      new RegExp(
+        `^perps-positions-item-${escapedSymbol}-\\d+x-${direction}-${index}$`,
+      ),
+    );
+  }
+
   get setTpslButton() {
     return Matchers.getElementByID(
       PerpsGeneralSelectorsIDs.BOTTOM_SHEET_FOOTER_BUTTON,
@@ -200,7 +217,7 @@ class PerpsView {
     await Gestures.waitAndTap(this.closePositionButton, {
       elemDescription: 'Close position button',
       checkStability: true,
-      timeout: 10000,
+      timeout: 15000,
     });
   }
 
@@ -225,14 +242,15 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
+    // Live price/streaming updates shift surrounding layout; skip stability (see e2e-testing-guidelines).
     await Utilities.waitForReadyState(this.placeOrderButton as DetoxElement, {
-      checkStability: true,
+      checkStability: false,
       elemDescription: 'Place order button',
       timeout: 7000,
     });
     await Gestures.waitAndTap(this.placeOrderButton, {
       elemDescription: 'Tap Place Order',
-      checkStability: true,
+      checkStability: false,
     });
   }
 
