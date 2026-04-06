@@ -20,7 +20,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictOrderPreview } from '../../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../../hooks/usePredictOrderRetry';
 import { usePredictMeasurement } from '../../../hooks/usePredictMeasurement';
@@ -81,8 +80,6 @@ export function usePredictBuyFlow({
   const { onReject } = useConfirmActions();
   const { placeOrder: controllerPlaceOrder, initPayWithAnyToken } =
     usePredictTrading();
-  const { clearActiveOrderTransactionId } = usePredictActiveOrder();
-
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
@@ -112,6 +109,9 @@ export function usePredictBuyFlow({
 
   const hasInitializedPayWithAnyTokenRef = useRef(false);
   const didInitiateOrderRef = useRef(false);
+  const executePlaceOrderRef = useRef<() => Promise<PlaceOrderOutcome>>(() =>
+    Promise.resolve({ status: 'error' as const, error: 'not initialized' }),
+  );
 
   // ---- Leaf hooks ----
 
@@ -239,7 +239,6 @@ export function usePredictBuyFlow({
             break;
           case 'REJECT_APPROVAL':
             onReject(undefined, true);
-            clearActiveOrderTransactionId();
             break;
           case 'NAVIGATE_POP':
             navigation.dispatch(StackActions.pop());
@@ -258,17 +257,16 @@ export function usePredictBuyFlow({
           case 'RESET_PAYMENT_TOKEN':
             Engine.context.PredictController.setSelectedPaymentToken(null);
             break;
+          case 'PLACE_ORDER':
+            executePlaceOrderRef.current().catch((_e) => undefined);
+            break;
           case 'CLEAR_OPTIMISTIC_POSITION':
-            break;
           case 'PUBLISH_ORDER_CONFIRMED':
-            Engine.context.PredictController.onPlaceOrderSuccess();
-            break;
           case 'STORE_PENDING_ORDER':
           case 'CLEAR_PENDING_ORDER':
           case 'PUBLISH_ORDER_FAILED':
           case 'PUBLISH_DEPOSIT_FAILED':
           case 'LOG_ERROR':
-          case 'PLACE_ORDER':
             break;
         }
       } catch (_e) {
@@ -278,7 +276,6 @@ export function usePredictBuyFlow({
     [
       onApprovalConfirm,
       onReject,
-      clearActiveOrderTransactionId,
       navigation,
       showOrderPlacedToast,
       invalidateOrderQueries,
@@ -343,6 +340,7 @@ export function usePredictBuyFlow({
     },
     [controllerPlaceOrder, send],
   );
+  executePlaceOrderRef.current = executePlaceOrder;
 
   // ---- handleConfirm (the primary user action) ----
 
@@ -366,8 +364,7 @@ export function usePredictBuyFlow({
         type: 'CONFIRM_ANY_TOKEN_PATH',
         transactionId: transactionId ?? '',
       });
-
-      return executePlaceOrder(transactionId);
+      return { status: 'deposit_in_progress' as const };
     }
 
     send({ type: 'CONFIRM_BALANCE_PATH' });
@@ -404,6 +401,49 @@ export function usePredictBuyFlow({
       send({ type: 'CLEANUP' });
     });
   }, [navigation, payWithAnyTokenEnabled, send]);
+
+  useEffect(() => {
+    if (!payWithAnyTokenEnabled) return;
+
+    interface ControllerMessengerLike {
+      subscribe: (event: string, handler: (payload: unknown) => void) => void;
+      unsubscribe: (event: string, handler: (payload: unknown) => void) => void;
+    }
+
+    const messenger =
+      Engine.controllerMessenger as unknown as ControllerMessengerLike;
+
+    const handler = (payload: unknown) => {
+      const event = payload as {
+        type: string;
+        status: string;
+        transactionId?: string;
+      };
+
+      if (event.type !== 'depositAndOrder') return;
+
+      const transactionId = event.transactionId ?? '';
+
+      if (event.status === 'confirmed') {
+        send({ type: 'DEPOSIT_CONFIRMED', transactionId });
+      } else if (event.status === 'failed') {
+        send({
+          type: 'DEPOSIT_FAILED',
+          transactionId,
+          error: 'Deposit failed',
+        });
+      } else if (event.status === 'rejected') {
+        send({ type: 'DEPOSIT_REJECTED', transactionId });
+      }
+    };
+
+    messenger.subscribe('PredictController:transactionStatusChanged', handler);
+    return () =>
+      messenger.unsubscribe(
+        'PredictController:transactionStatusChanged',
+        handler,
+      );
+  }, [payWithAnyTokenEnabled, send]);
 
   useEffect(() => {
     if (isPlacingOrder) {
