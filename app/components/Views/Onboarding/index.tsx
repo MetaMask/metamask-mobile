@@ -458,6 +458,10 @@ const Onboarding = () => {
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
       });
+      metrics.identify({
+        login_method: 'social',
+        social_provider: provider,
+      });
       if (createWallet) {
         if (result.existingUser) {
           navigation.navigate('AccountAlreadyExists', {
@@ -525,7 +529,7 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch, onboardingVersion],
+    [navigation, track, dispatch, onboardingVersion, metrics],
   );
 
   const handleOAuthLoginError = useCallback(
