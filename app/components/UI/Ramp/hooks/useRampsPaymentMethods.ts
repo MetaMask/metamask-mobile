@@ -77,7 +77,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: selectedToken?.assetId ?? '', // passed to API but not in the query key
+      assetId: selectedToken?.assetId?.toLowerCase() ?? '', // lowercase for API; not in the query key
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,
