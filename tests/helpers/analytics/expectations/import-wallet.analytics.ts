@@ -23,7 +23,7 @@ export const importWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
         is_metrics_opted_in: true,
         location: 'onboarding_metametrics',
         updated_after_onboarding: false,
-        account_type: 'srp_import',
+        account_type: 'imported',
       },
     },
     {
@@ -47,7 +47,7 @@ export const importWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
       matchProperties: {
         wallet_setup_type: 'import',
         new_wallet: false,
-        account_type: 'srp_import',
+        account_type: 'imported',
       },
     },
   ],

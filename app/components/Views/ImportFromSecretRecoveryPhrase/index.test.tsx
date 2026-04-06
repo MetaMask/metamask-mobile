@@ -2135,7 +2135,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       return { getByText, getByPlaceholderText, getByRole, getByTestId };
     };
 
-    it('uses SrpImport account_type when oauthLoginSuccess is false', async () => {
+    it('uses SrpImport account_type on trace when oauthLoginSuccess is false', async () => {
       const mockTrace = trace as jest.MockedFunction<typeof trace>;
       mockTrace.mockClear();
 
@@ -2177,13 +2177,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
             name: TraceName.OnboardingSRPAccountImportTime,
             tags: expect.objectContaining({
               account_type: 'srp_import',
+              is_social_login: false,
             }),
           }),
         );
       });
     });
 
-    it('uses SocialImport account_type when oauthLoginSuccess is true', async () => {
+    it('uses SocialImport account_type on trace when oauthLoginSuccess is true', async () => {
       const mockTrace = trace as jest.MockedFunction<typeof trace>;
       mockTrace.mockClear();
 
@@ -2225,6 +2226,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
             name: TraceName.OnboardingSRPAccountImportTime,
             tags: expect.objectContaining({
               account_type: 'social_import',
+              is_social_login: true,
             }),
           }),
         );

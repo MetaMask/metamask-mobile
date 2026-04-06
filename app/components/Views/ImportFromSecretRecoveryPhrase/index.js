@@ -464,9 +464,7 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
-          account_type: oauthLoginSuccess
-            ? AccountType.SocialImport
-            : AccountType.SrpImport,
+          account_type: AccountType.Imported,
         });
 
         fetchAccountsWithActivity();
@@ -492,9 +490,7 @@ const ImportFromSecretRecoveryPhrase = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
-            accountType: oauthLoginSuccess
-              ? AccountType.SocialImport
-              : AccountType.SrpImport,
+            accountType: AccountType.Imported,
           });
         }
       } catch (error) {
