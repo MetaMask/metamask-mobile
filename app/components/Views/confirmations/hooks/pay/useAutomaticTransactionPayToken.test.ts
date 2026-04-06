@@ -710,4 +710,28 @@ describe('useAutomaticTransactionPayToken', () => {
       chainId: CHAIN_ID_2_MOCK,
     });
   });
+
+  it('does not re-select when payToken is already set and from unchanged', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      setPayToken: setPayTokenMock,
+    });
+
+    runHook();
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
 });

@@ -15,6 +15,7 @@ import { createDeepEqualSelector } from '../util';
 import {
   createSelectSortedAssetsBySelectedAccountGroup,
   selectAsset,
+  selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
@@ -1834,5 +1835,26 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,
     });
+  });
+});
+
+describe('selectAssetsByAccountGroupId', () => {
+  it('returns empty object when accountGroupId is undefined', () => {
+    const state = mockState();
+
+    const result = selectAssetsByAccountGroupId(state, undefined);
+
+    expect(result).toStrictEqual({});
+  });
+
+  it('returns empty object when accountGroupId does not exist in assets', () => {
+    const state = mockState();
+
+    const result = selectAssetsByAccountGroupId(
+      state,
+      'entropy:nonexistent/0' as AccountGroupId,
+    );
+
+    expect(result).toStrictEqual({});
   });
 });
