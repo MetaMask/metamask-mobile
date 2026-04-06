@@ -785,6 +785,9 @@ const Onboarding = () => {
                 navigation,
               );
             }
+            track(MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED, {
+              account_type: accountType,
+            });
             return;
           }
 
