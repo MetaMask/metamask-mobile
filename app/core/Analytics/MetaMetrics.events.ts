@@ -65,8 +65,8 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
-  // MMConnect connection events (shared across SDKv1 socket relay and MWP)
-  MMCONNECT_REQUEST_RECEIVED = 'MMConnect Request Received',
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  REMOTE_CONNECT_REQUEST_RECEIVED = 'Remote Connect Request Received',
   WALLET_CONNECTION_USER_APPROVED = 'wallet_connection_user_approved',
   WALLET_CONNECTION_USER_REJECTED = 'wallet_connection_user_rejected',
 
@@ -784,9 +784,9 @@ const events = {
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
 
-  // MMConnect connection events (shared across SDKv1 socket relay and MWP)
-  MMCONNECT_REQUEST_RECEIVED: generateOpt(
-    EVENT_NAME.MMCONNECT_REQUEST_RECEIVED,
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  REMOTE_CONNECT_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECT_REQUEST_RECEIVED,
   ),
   WALLET_CONNECTION_USER_APPROVED: generateOpt(
     EVENT_NAME.WALLET_CONNECTION_USER_APPROVED,
