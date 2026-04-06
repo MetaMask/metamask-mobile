@@ -637,7 +637,6 @@ export interface RootStackParamList extends ParamListBase {
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: undefined;
-  CardNotification: undefined;
   CardSpendingLimit: undefined;
   CardChangeAsset: undefined;
   VerifyingRegistration: undefined;

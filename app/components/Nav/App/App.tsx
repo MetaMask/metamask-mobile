@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -38,6 +38,7 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -77,7 +78,6 @@ import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityB
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import CardNotification from '../../Views/CardNotification';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import LockScreen from '../../Views/LockScreen';
@@ -474,7 +474,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
-      component={AddNewAccountBottomSheet as ScreenComponent}
+      component={AddNewAccountBottomSheet}
     />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
@@ -483,7 +483,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal as ScreenComponent}
+      component={SDKSessionModal}
     />
     <Stack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
@@ -495,7 +495,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal as ScreenComponent}
+      component={SDKDisconnectModal}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
@@ -532,7 +532,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
-      component={BasicFunctionalityModal as ScreenComponent}
+      component={BasicFunctionalityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
@@ -548,17 +548,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation as ScreenComponent}
+      component={AssetHideConfirmation}
     />
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions as ScreenComponent}
-    />
-    <Stack.Screen
-      name={'NftOptions'}
-      component={NftOptions as ScreenComponent}
-    />
+    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+    <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
     <Stack.Screen
       name={Routes.MODAL.OTA_UPDATES_MODAL}
@@ -637,10 +631,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
       component={ReturnToAppNotification}
       initialParams={{ ...props.route.params }}
-    />
-    <Stack.Screen
-      name={Routes.CARD.NOTIFICATION}
-      component={CardNotification}
     />
     <Stack.Screen
       name={Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS}
@@ -1208,6 +1198,11 @@ const App: React.FC = () => {
 
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
+  const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
+  const toastRegistrations = useMemo(
+    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
+    [predictRegistrations, perpsWithdrawRegistrations],
+  );
 
   if (isFirstRender.current) {
     trace({
@@ -1287,7 +1282,7 @@ const App: React.FC = () => {
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
-        <ControllerEventToastBridge registrations={predictRegistrations} />
+        <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>

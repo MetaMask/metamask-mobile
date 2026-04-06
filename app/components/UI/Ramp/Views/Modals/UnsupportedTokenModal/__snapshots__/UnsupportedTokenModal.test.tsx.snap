@@ -387,7 +387,7 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
                                 [
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
+                                    "fontFamily": "Geist-SemiBold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
                                     "letterSpacing": 0,

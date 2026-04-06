@@ -64,6 +64,12 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     if (key === 'predict.order.no_funds_enough') {
       return 'Not enough funds.';
     }
+    if (key === 'predict.order.prediction_insufficient_funds_try_token') {
+      return `Not enough funds. You can use up to ${options?.amount}, or try a different token.`;
+    }
+    if (key === 'predict.order.no_funds_enough_try_token') {
+      return 'Not enough funds. Try a different token.';
+    }
     return key;
   }),
 }));
@@ -284,7 +290,7 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBe(
-        'Not enough funds. You can use up to $50.00.',
+        'Not enough funds. You can use up to $50.00, or try a different token.',
       );
     });
 
@@ -297,7 +303,9 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe('Not enough funds.');
+      expect(result.current.errorMessage).toBe(
+        'Not enough funds. Try a different token.',
+      );
     });
 
     it('returns undefined when no error conditions exist', () => {

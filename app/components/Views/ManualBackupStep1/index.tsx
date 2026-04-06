@@ -32,7 +32,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  TextButton,
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
@@ -449,13 +448,15 @@ const ManualBackupStep1 = () => {
           {strings('manual_backup_step_1.continue')}
         </Button>
         {!hasFunds && !backupFlow && !settingsBackup && (
-          <TextButton
+          <Button
+            variant={ButtonVariant.Tertiary}
             onPress={showRemindLater}
-            variant={TextVariant.BodyMd}
+            size={ButtonSize.Lg}
+            isFullWidth
             testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
           >
             {strings('account_backup_step_1.remind_me_later')}
-          </TextButton>
+          </Button>
         )}
       </Box>
     </Box>

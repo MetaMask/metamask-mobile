@@ -101,7 +101,6 @@ import {
   ButtonSize,
   ButtonVariant,
   Text,
-  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -318,15 +317,6 @@ const Onboarding = () => {
         );
       }
     }, [navigation, route]);
-
-  const onLogin = useCallback(async (): Promise<void> => {
-    if (!passwordSet) {
-      await Authentication.resetVault();
-      navigation.dispatch(StackActions.replace(Routes.ONBOARDING.HOME_NAV));
-    } else {
-      await Authentication.lockApp({ navigateToLogin: true });
-    }
-  }, [navigation, passwordSet]);
 
   const handleExistingUser = useCallback(
     async (action: () => void | Promise<void>): Promise<void> => {
@@ -1118,14 +1108,6 @@ const Onboarding = () => {
               </Box>
             )}
           </Box>
-
-          {existingUser && !loading && (
-            <Box twClassName="mb-10 -mt-10">
-              <TextButton onPress={onLogin}>
-                {strings('onboarding.unlock')}
-              </TextButton>
-            </Box>
-          )}
         </ScrollView>
 
         <FadeOutOverlay />
