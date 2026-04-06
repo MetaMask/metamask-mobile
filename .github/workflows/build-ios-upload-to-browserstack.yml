@@ -1,6 +1,6 @@
 # This workflow creates two iOS Builds and uploads to BrowserStack using GitHub Actions.
-# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — main-rc-bs-with-srp / main-exp-with-srp
-# Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — main-rc-bs-without-srp / main-exp-without-srp
+# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
+# Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
 
 name: Build iOS Dual Versions and Upload to BrowserStack
 
@@ -22,8 +22,8 @@ on:
       build_variant:
         required: false
         type: string
-        description: 'Build variant (rc = release candidate, exp = experimental)'
-        default: 'rc'
+        description: 'Build variant (e2e = e2e environment, exp = experimental)'
+        default: 'e2e'
     outputs:
       with-srp-ipa-uploaded:
         description: 'Whether the with-SRP IPA was successfully uploaded'
@@ -79,7 +79,7 @@ jobs:
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
     with:
-      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || 'main-rc-bs-with-srp' }}
+      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || 'main-e2e-bs-with-srp' }}
       platform: ios
       skip_version_bump: true
       source_branch: ${{ inputs.branch_name || github.ref_name }}
@@ -91,7 +91,7 @@ jobs:
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
     with:
-      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || 'main-rc-bs-without-srp' }}
+      build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || 'main-e2e-bs-without-srp' }}
       platform: ios
       skip_version_bump: true
       source_branch: ${{ inputs.branch_name || github.ref_name }}
@@ -116,13 +116,13 @@ jobs:
       - name: Download with-SRP IPA
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || 'main-rc-bs-with-srp' }}
+          name: ios-ipa-${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || 'main-e2e-bs-with-srp' }}
           path: artifacts/with-srp
 
       - name: Download without-SRP IPA
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || 'main-rc-bs-without-srp' }}
+          name: ios-ipa-${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || 'main-e2e-bs-without-srp' }}
           path: artifacts/without-srp
 
       - name: Upload IPAs to BrowserStack

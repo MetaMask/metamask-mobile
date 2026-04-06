@@ -209,14 +209,22 @@ builds:
     code_fencing: *code_fencing_main
 
   # BrowserStack E2E builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
-  main-rc-bs-with-srp:
-    github_environment: build-rc
-    signing: *signing_rc
+  main-e2e-bs-with-srp:
+    github_environment: build-e2e
+    signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
       DISABLE_NOTIFICATION_PROMPT: 'true'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
     secrets:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
@@ -224,15 +232,23 @@ builds:
     code_fencing: *code_fencing_main
 
   # BrowserStack E2E builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
-  main-rc-bs-without-srp:
-    github_environment: build-rc
-    signing: *signing_rc
+  main-e2e-bs-without-srp:
+    github_environment: build-e2e
+    signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
     secrets:
       <<: *secrets
       E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
@@ -306,7 +322,7 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
-  # BrowserStack E2E builds (experimental) — with pre-imported wallet
+  # BrowserStack experimental builds — with pre-imported wallet
   main-exp-with-srp:
     github_environment: build-exp
     signing: *signing_uat
@@ -322,7 +338,7 @@ builds:
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
     code_fencing: *code_fencing_experimental
 
-  # BrowserStack device builds - experimental variant (seedless / fresh wallet)
+  # BrowserStack experimental builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   main-exp-without-srp:
     github_environment: build-exp
     signing: *signing_uat
