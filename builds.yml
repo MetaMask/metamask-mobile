@@ -210,11 +210,11 @@ builds:
 
   # BrowserStack E2E builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   main-rc-bs-with-srp:
-    github_environment: build-rc
-    signing: *signing_rc
+  github_environment: build-uat
+    signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
       DISABLE_NOTIFICATION_PROMPT: 'true'
     secrets:
@@ -225,11 +225,11 @@ builds:
 
   # BrowserStack E2E builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   main-rc-bs-without-srp:
-    github_environment: build-rc
-    signing: *signing_rc
+  github_environment: build-uat
+    signing: *signing_uat
     env:
       <<: *public_envs
-      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
