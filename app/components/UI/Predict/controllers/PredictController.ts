@@ -701,6 +701,9 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Get detailed information for a single market
+   */
   async getMarket({
     marketId,
   }: {
