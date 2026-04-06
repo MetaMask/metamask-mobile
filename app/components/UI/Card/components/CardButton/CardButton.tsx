@@ -25,7 +25,6 @@ import {
   CARD_BUTTON_BADGE_AB_KEY,
   CARD_BUTTON_BADGE_VARIANTS,
 } from './abTestConfig';
-import Logger from '../../../../../util/Logger';
 
 interface CardButtonProps {
   onPress: () => void;
@@ -56,9 +55,6 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   useEffect(() => {
     if (hasTrackedViewedEvent.current || !flagsResolved) return;
     hasTrackedViewedEvent.current = true;
-    Logger.log({
-      active_ab_tests: [{ key: CARD_BUTTON_BADGE_AB_KEY, value: variantName }],
-    });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)

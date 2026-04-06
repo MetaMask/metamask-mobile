@@ -16,6 +16,7 @@ import { Minimizer } from '../NativeModules';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { Hex, CaipChainId } from '@metamask/utils';
+import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -29,6 +30,11 @@ jest.mock('../AppConstants', () => ({
   },
   BUNDLE_IDS: {
     ANDROID: 'com.test.app',
+  },
+  NOTIFICATION_NAMES: {
+    chainChanged: 'metamask_chainChanged',
+    accountsChanged: 'metamask_accountsChanged',
+    unlockStateChanged: 'metamask_unlockStateChanged',
   },
 }));
 
@@ -222,8 +228,6 @@ describe('WalletConnect2Session', () => {
   let mockClient: IWalletKit;
   let mockSession: SessionTypes.Struct;
   let mockNavigation: NavigationContainerRef<ParamListBase>;
-  let mockStoreUnsubscribe: jest.Mock;
-
   const testChainId = '0x89';
   const testNetworkClientId = `test-network-${parseInt(testChainId, 16)}`;
   const testChainCaip = `eip155:${parseInt(testChainId, 16)}` as CaipChainId;
@@ -299,9 +303,6 @@ describe('WalletConnect2Session', () => {
         rpcEndpoints: [{ networkClientId: testNetworkClientId }],
       },
     });
-
-    mockStoreUnsubscribe = jest.fn();
-    (store.subscribe as jest.Mock).mockReturnValue(mockStoreUnsubscribe);
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -445,7 +446,6 @@ describe('WalletConnect2Session', () => {
 
     await session.removeListeners();
 
-    expect(mockStoreUnsubscribe).toHaveBeenCalled();
     expect(mockOnDisconnect).toHaveBeenCalled();
   });
 
@@ -535,123 +535,6 @@ describe('WalletConnect2Session', () => {
 
     // Restore original updateSession method
     session.updateSession = originalUpdateSession;
-  });
-
-  it('subscribes to chain changes', async () => {
-    // eslint-disable-next-line no-empty-function
-    let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation(
-      (callback: () => void) => {
-        subscriberCallback = callback;
-      },
-    );
-
-    // Mock initial chain ID
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    session = new WalletConnect2Session({
-      web3Wallet: mockClient,
-      session: mockSession,
-      channelId: 'test-channel',
-      deeplink: true,
-      navigation: mockNavigation,
-    });
-
-    const handleChainChangeSpy = jest.spyOn(
-      session as any,
-      'handleChainChange',
-    );
-
-    // Change the chain ID
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
-
-    subscriberCallback();
-
-    await new Promise(process.nextTick);
-
-    expect(handleChainChangeSpy).toHaveBeenCalledWith(2);
-
-    subscriberCallback();
-    expect(handleChainChangeSpy).toHaveBeenCalledTimes(1);
-
-    handleChainChangeSpy.mockRestore();
-  });
-
-  it('does not trigger handleChainChange when handler is already running', async () => {
-    // eslint-disable-next-line no-empty-function
-    let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation(
-      (callback: () => void) => {
-        subscriberCallback = callback;
-      },
-    );
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    session = new WalletConnect2Session({
-      web3Wallet: mockClient,
-      session: mockSession,
-      channelId: 'test-channel',
-      deeplink: true,
-      navigation: mockNavigation,
-    });
-
-    (session as any).isHandlingChainChange = true;
-
-    const handleChainChangeSpy = jest.spyOn(
-      session as any,
-      'handleChainChange',
-    );
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
-
-    subscriberCallback();
-
-    await new Promise(process.nextTick);
-
-    expect(handleChainChangeSpy).not.toHaveBeenCalled();
-
-    handleChainChangeSpy.mockRestore();
-  });
-
-  it('logs warning on handleChainChange error', async () => {
-    // eslint-disable-next-line no-empty-function
-    let subscriberCallback: () => void = () => {};
-    (store.subscribe as jest.Mock).mockImplementation(
-      (callback: () => void) => {
-        subscriberCallback = callback;
-      },
-    );
-
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x1');
-
-    session = new WalletConnect2Session({
-      web3Wallet: mockClient,
-      session: mockSession,
-      channelId: 'test-channel',
-      deeplink: true,
-      navigation: mockNavigation,
-    });
-
-    const error = new Error('Chain change failed');
-    jest
-      .spyOn(session as any, 'handleChainChange')
-      .mockRejectedValueOnce(error);
-
-    (selectPerOriginChainId as unknown as jest.Mock).mockReturnValue('0x2');
-
-    subscriberCallback();
-
-    await new Promise(process.nextTick);
-
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      'WC2::store.subscribe Error handling chain change:',
-      error,
-    );
-
-    consoleWarnSpy.mockRestore();
   });
 
   describe('redirect', () => {
@@ -992,17 +875,9 @@ describe('WalletConnect2Session', () => {
           },
         },
       };
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const approveRequestSpy = jest.spyOn(session, 'approveRequest');
-      handleChainChangeSpy.mockResolvedValue(undefined);
 
       await buildCase(request, testChainId, testChainCaip);
-      expect(handleChainChangeSpy).toHaveBeenCalledWith(
-        parseInt(testChainId, 16),
-      );
       expect(approveRequestSpy).toHaveBeenCalledWith({
         id: request.id + '',
         result: true,
@@ -1031,16 +906,10 @@ describe('WalletConnect2Session', () => {
           },
         },
       };
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
       const mockRespondSessionRequest = jest
         .spyOn(mockClient, 'respondSessionRequest')
         .mockResolvedValue(undefined);
-
-      handleChainChangeSpy.mockResolvedValue(undefined);
 
       // Test with an invalid chainId that should cause handleSwitchToChain to throw
       await buildCase(
@@ -1089,11 +958,6 @@ describe('WalletConnect2Session', () => {
           'getChainIdForCaipChainId',
         )
         .mockReturnValue('eip155:2');
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
-      handleChainChangeSpy.mockResolvedValue(undefined);
 
       // Test with an invalid chainId that should cause handleSwitchToChain to throw
       await expect(
@@ -1129,16 +993,10 @@ describe('WalletConnect2Session', () => {
           },
         },
       };
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
       const mockRespondSessionRequest = jest
         .spyOn(mockClient, 'respondSessionRequest')
         .mockResolvedValue(undefined);
-
-      handleChainChangeSpy.mockResolvedValue(undefined);
 
       // Test with an invalid chainId that should cause handleSwitchToChain to throw
       await buildCase(
@@ -1183,23 +1041,10 @@ describe('WalletConnect2Session', () => {
         },
       };
 
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
-      const mockChainChangedEvent = jest
-        .spyOn(session, 'emitEvent')
-        .mockResolvedValue(undefined);
-
-      handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith(
-        'chainChanged',
-        parseInt(testChainId, 16),
-      );
     });
 
     it('handles eth_sendTransaction correctly with valid chainId that it has permissions for', async () => {
@@ -1233,24 +1078,11 @@ describe('WalletConnect2Session', () => {
         },
       };
 
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
-      const mockChainChangedEvent = jest
-        .spyOn(session, 'emitEvent')
-        .mockResolvedValue(undefined);
-
-      handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith(
-        'chainChanged',
-        parseInt(testChainId, 16),
-      );
     });
 
     it('handles eth_sendTransaction correctly with valid chainId that it has permissions for', async () => {
@@ -1284,24 +1116,11 @@ describe('WalletConnect2Session', () => {
         },
       };
 
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
-      const mockChainChangedEvent = jest
-        .spyOn(session, 'emitEvent')
-        .mockResolvedValue(undefined);
-
-      handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith(
-        'chainChanged',
-        parseInt(testChainId, 16),
-      );
     });
 
     it('handles eth_signTypedData_v3 correctly with valid chainId that it has permissions for', async () => {
@@ -1356,24 +1175,56 @@ describe('WalletConnect2Session', () => {
         },
       };
 
-      const handleChainChangeSpy = jest.spyOn(
-        session as any,
-        'handleChainChange',
-      );
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
-      const mockChainChangedEvent = jest
-        .spyOn(session, 'emitEvent')
-        .mockResolvedValue(undefined);
-
-      handleChainChangeSpy.mockResolvedValue(undefined);
       await buildCase(request, testChainId, testChainCaip);
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
-      expect(mockChainChangedEvent).toHaveBeenCalledWith(
-        'chainChanged',
-        parseInt(testChainId, 16),
-      );
+    });
+  });
+
+  describe('WalletConnectPort chainChanged forwarding', () => {
+    const mockEngineDefault =
+      jest.requireMock<typeof import('../Engine')>('../Engine').default;
+    const accountsControllerWithOptionalState = mockEngineDefault.context
+      .AccountsController as { state?: Record<string, unknown> };
+
+    beforeEach(() => {
+      accountsControllerWithOptionalState.state = {
+        internalAccounts: {
+          selectedAccount: 'mock-selected-account-id',
+          accounts: {
+            'mock-selected-account-id': {
+              address: '0x1234567890abcdef1234567890abcdef12345678',
+            },
+          },
+        },
+      };
+    });
+
+    afterEach(() => {
+      delete accountsControllerWithOptionalState.state;
+    });
+
+    it('calls updateSession when chainChanged notification arrives', () => {
+      const mockUpdateSession = jest.fn();
+      const port = new WalletConnectPort({
+        updateSession: mockUpdateSession,
+        approveRequest: jest.fn(),
+        rejectRequest: jest.fn(),
+      });
+
+      port.postMessage({
+        data: {
+          method: 'metamask_chainChanged',
+          params: { chainId: '0x1' },
+        },
+      });
+
+      expect(mockUpdateSession).toHaveBeenCalledWith({
+        chainId: 1,
+        accounts: ['0x1234567890abcdef1234567890abcdef12345678'],
+      });
     });
   });
 });

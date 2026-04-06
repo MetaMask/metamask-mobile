@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
@@ -26,7 +26,7 @@ import {
   UNAUTHENTICATED_CACHE_DURATION,
 } from '../constants';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import Engine from '../../../../core/Engine';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import {
@@ -141,9 +141,8 @@ export const useGetPriorityCardToken = (
   } | null,
 ) => {
   const { TokensController, NetworkController } = Engine.context;
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const { sdk } = useCardSDK();
-  const [isLoadingAddToken, setIsLoadingAddToken] = useState(false);
 
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:0',
@@ -347,7 +346,6 @@ export const useGetPriorityCardToken = (
             );
             const networkClientId =
               NetworkController.findNetworkClientIdByChainId(hexChainId as Hex);
-            setIsLoadingAddToken(true);
             await TokensController.addToken({
               address: priorityToken.address ?? '',
               symbol: priorityToken.symbol as string,
@@ -356,9 +354,6 @@ export const useGetPriorityCardToken = (
               image: iconUrl,
               networkClientId,
             });
-            if (!isCancelled) {
-              setIsLoadingAddToken(false);
-            }
           }
         }
       } catch (err) {
@@ -369,11 +364,6 @@ export const useGetPriorityCardToken = (
             normalizedError,
             'useGetPriorityCardToken::error adding priority token',
           );
-          setIsLoadingAddToken(false);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingAddToken(false);
         }
       }
     };
@@ -385,16 +375,11 @@ export const useGetPriorityCardToken = (
     };
   }, [priorityToken, TokensController, NetworkController, selectedAddress]);
 
-  const isLoadingFinal = useMemo(
-    () => isLoadingAddToken || isLoading,
-    [isLoadingAddToken, isLoading],
-  );
-
   return {
     fetchPriorityToken,
     priorityToken,
     allTokensWithAllowances,
-    isLoading: isLoadingFinal,
+    isLoading,
     error,
     warning,
   };
