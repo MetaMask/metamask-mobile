@@ -18,7 +18,6 @@ import {
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { TextVariant as ComponentLibTextVariant } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -81,12 +80,12 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  TextField,
   Label,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -777,7 +776,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     !!error && (
       <HelpText
         severity={HelpTextSeverity.Error}
-        variant={ComponentLibTextVariant.BodyMD}
         testID={LoginViewSelectors.PASSWORD_ERROR}
       >
         {error}
@@ -803,7 +801,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         onPress={handleUseOtherMethod}
         isDisabled={finalLoading}
         testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-        twClassName="self-center mt-8"
+        twClassName="self-center mt-6"
       >
         {strings('login.other_methods')}
       </Button>
