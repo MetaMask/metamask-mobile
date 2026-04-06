@@ -299,9 +299,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 700,
+                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                       "marginTop": 8,
@@ -1228,9 +1228,9 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 700,
+                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                       "marginTop": 8,
@@ -2274,9 +2274,9 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
-                                      "fontWeight": 700,
+                                      "fontWeight": 600,
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
                                       "marginTop": 8,

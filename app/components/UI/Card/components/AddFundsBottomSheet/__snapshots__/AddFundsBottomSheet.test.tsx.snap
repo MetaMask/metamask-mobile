@@ -493,7 +493,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1330,7 +1330,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1945,7 +1945,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -2671,7 +2671,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
