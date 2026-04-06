@@ -248,6 +248,7 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
@@ -597,6 +598,67 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    describe('getCarouselMarkets', () => {
+      it('returns markets from provider', async () => {
+        const mockMarkets = [{ id: 'carousel-1' }, { id: 'carousel-2' }];
+
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.getCarouselMarkets.mockResolvedValue(
+            mockMarkets as any,
+          );
+
+          const result = await controller.getCarouselMarkets();
+
+          expect(result).toEqual(mockMarkets as any);
+          expect(mockPolymarketProvider.getCarouselMarkets).toHaveBeenCalled();
+        });
+      });
+
+      it('updates state on success', async () => {
+        await withController(async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.lastError = 'Previous error';
+          });
+          mockPolymarketProvider.getCarouselMarkets.mockResolvedValue([]);
+
+          await controller.getCarouselMarkets();
+
+          expect(controller.state.lastError).toBeNull();
+          expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        });
+      });
+
+      it('updates lastError on failure and throws', async () => {
+        const errorMessage = 'Carousel failed';
+
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.getCarouselMarkets.mockRejectedValue(
+            new Error(errorMessage),
+          );
+
+          await expect(controller.getCarouselMarkets()).rejects.toThrow(
+            errorMessage,
+          );
+          expect(controller.state.lastError).toBe(errorMessage);
+        });
+      });
+
+      it('returns empty array when provider method is not available', async () => {
+        await withController(async ({ controller }) => {
+          (
+            mockPolymarketProvider as unknown as {
+              getCarouselMarkets?: () => Promise<unknown[]>;
+            }
+          ).getCarouselMarkets = undefined;
+
+          const result = await controller.getCarouselMarkets();
+
+          expect(result).toEqual([]);
+          expect(controller.state.lastError).toBeNull();
+        });
       });
     });
   });
