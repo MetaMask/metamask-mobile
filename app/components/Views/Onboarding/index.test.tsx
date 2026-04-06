@@ -235,7 +235,6 @@ interface MetricsProps {
   metrics: {
     isEnabled: () => boolean;
     trackEvent: (...args: unknown[]) => void;
-    identify: (traits: Record<string, unknown>) => void;
     enable: (enable?: boolean) => Promise<void>;
     createEventBuilder: () => EventBuilder;
   };
@@ -280,8 +279,6 @@ jest.mock(
           isEnabled: () => mockAnalytics.isEnabled(),
           trackEvent: (event: unknown) =>
             mockAnalytics.trackEvent(event as never),
-          identify: (traits: Record<string, unknown>) =>
-            mockAnalytics.identify(traits),
           enable: async (enable?: boolean) => {
             if (enable === false) {
               await mockAnalytics.optOut();

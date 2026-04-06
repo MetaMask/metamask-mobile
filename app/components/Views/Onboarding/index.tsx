@@ -458,7 +458,7 @@ const Onboarding = () => {
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
       });
-      metrics.identify({
+      metrics.addTraitsToUser({
         login_method: 'social',
         social_provider: provider,
       });
