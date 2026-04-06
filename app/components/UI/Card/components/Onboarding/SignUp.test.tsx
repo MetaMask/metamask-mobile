@@ -36,7 +36,8 @@ const mockGetRegionByCode = (code: string) =>
 jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    signUpRegions: mockSignUpRegions,
+    allRegions: mockSignUpRegions,
+    signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
     getRegionByCode: mockGetRegionByCode,
     isLoading: false,
   })),
@@ -448,19 +449,27 @@ describe('SignUp Component', () => {
       );
     });
 
-    it('does not pre-select country when geoLocation matches a canSignUp: false country', () => {
-      // GB exists in allRegions but has canSignUp: false — must not be pre-selected
+    it('pre-selects country when geoLocation matches a canSignUp: false country and enables waitlist mode', () => {
+      // GB exists in allRegions with canSignUp: false — now gets auto-selected and shows waitlist CTA
       const storeWithGB = createTestStore({ geoLocation: 'GB' });
 
-      const { queryByText, getByTestId } = render(
+      const { getByText, getByTestId, queryByTestId } = render(
         <Provider store={storeWithGB}>
           <SignUp />
         </Provider>,
       );
 
-      expect(queryByText('United Kingdom')).toBeNull();
-      // Continue button must remain disabled — no eligible country was selected
-      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      // GB is now pre-selected
+      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      // Button is enabled (country is selected) and shows waitlist label
+      expect(getByTestId('signup-continue-button')).toBeEnabled();
+      // Country not available info text shown
+      expect(
+        getByTestId('signup-country-not-available-text'),
+      ).toBeOnTheScreen();
+      // Password field hidden in waitlist mode
+      expect(queryByTestId('signup-password-input')).toBeNull();
+      // userCardLocation dispatched for GB
       expect(storeWithGB.getState().card.userCardLocation).toBe(
         'international',
       );
@@ -474,7 +483,8 @@ describe('SignUp Component', () => {
 
       const firstGetRegionByCode = jest.fn(mockGetRegionByCode);
       mockUseRegions.mockReturnValue({
-        signUpRegions: mockSignUpRegions,
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
         getRegionByCode: firstGetRegionByCode,
         isLoading: false,
       });
@@ -492,7 +502,8 @@ describe('SignUp Component', () => {
       // Simulate background refetch: new function identity, same data
       const secondGetRegionByCode = jest.fn(mockGetRegionByCode);
       mockUseRegions.mockReturnValue({
-        signUpRegions: mockSignUpRegions,
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
         getRegionByCode: secondGetRegionByCode,
         isLoading: false,
       });

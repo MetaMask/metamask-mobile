@@ -29,6 +29,7 @@ import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -36,15 +37,10 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: { backgroundColor: colors.transparent },
-  animationEnabled: false,
-};
 
 export const headerStyle = StyleSheet.create({
   icon: { marginHorizontal: 16 },
@@ -239,6 +235,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
       component={SpendingLimitOptionsSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.WAITLIST_FORM}
+      component={WaitlistFormModal}
     />
   </ModalsStack.Navigator>
 );

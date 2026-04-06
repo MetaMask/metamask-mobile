@@ -37,7 +37,6 @@ import { getErrorMessage } from '../util/getErrorMessage';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
-    isCardEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
@@ -49,9 +48,6 @@ jest.mock('./CardSDK', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
   selectCardFeatureFlag: jest.fn(),
-  selectCardExperimentalSwitch: jest.fn(() => false),
-  selectCardSupportedCountries: jest.fn(() => []),
-  selectDisplayCardButtonFeatureFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
@@ -167,7 +163,6 @@ describe('CardSDK Context', () => {
   const createMockSDK = (
     overrides: Partial<CardSDK> = {},
   ): Partial<CardSDK> => ({
-    isCardEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),

@@ -24,7 +24,6 @@ import {
   ButtonSize,
   Label,
   TextField,
-  TextFieldSize,
   Icon,
   IconName,
   IconSize,
@@ -735,7 +734,6 @@ const ChoosePassword = () => {
                     autoFocus
                     secureTextEntry={showPasswordIndex.includes(0)}
                     value={password}
-                    size={TextFieldSize.Lg}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
                     onBlur={() => setIsPasswordFieldFocused(false)}
@@ -792,7 +790,6 @@ const ChoosePassword = () => {
                   <TextField
                     ref={confirmPasswordInputRef}
                     value={confirmPassword}
-                    size={TextFieldSize.Lg}
                     onChangeText={setConfirmPasswordValue}
                     secureTextEntry={showPasswordIndex.includes(1)}
                     testID={

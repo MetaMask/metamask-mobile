@@ -366,27 +366,6 @@ describe('PredictBuyWithAnyToken', () => {
     expect(screen.queryByTestId('predict-pay-with-row')).not.toBeOnTheScreen();
   });
 
-  it('disables the pay with row when token selection is unavailable and forwards the confirm action', () => {
-    mockCanSelectToken = false;
-    mockErrorMessage = 'Insufficient balance';
-
-    renderWithProvider(<PredictBuyWithAnyToken />);
-
-    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
-      'disabled-true',
-    );
-    expect(screen.getByTestId('predict-buy-error')).toHaveTextContent(
-      'Insufficient balance',
-    );
-    expect(
-      screen.getByTestId('predict-pay-with-any-token-info'),
-    ).toHaveTextContent('4');
-
-    fireEvent.press(screen.getByTestId('predict-buy-action-button'));
-
-    expect(mockHandleConfirm).toHaveBeenCalledTimes(1);
-  });
-
   it('does not reset user input change while preview calculation is still running', () => {
     mockIsPreviewCalculating = true;
 

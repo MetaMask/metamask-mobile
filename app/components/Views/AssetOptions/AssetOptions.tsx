@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
@@ -78,24 +78,17 @@ interface Option {
   icon: IconName;
 }
 
-interface Props {
-  route: {
-    params: {
-      address: string;
-      isNativeCurrency: boolean;
-      chainId: string;
-      asset: TokenI;
-    };
-  };
+interface AssetOptionsRouteParams {
+  address: string;
+  isNativeCurrency: boolean;
+  chainId: string;
+  asset: TokenI;
 }
 
-const AssetOptions = (props: Props) => {
-  const {
-    address,
-    isNativeCurrency,
-    chainId: networkId,
-    asset,
-  } = props.route.params;
+const AssetOptions = () => {
+  const route =
+    useRoute<RouteProp<{ params: AssetOptionsRouteParams }, 'params'>>();
+  const { address, isNativeCurrency, chainId: networkId, asset } = route.params;
   const { styles } = useStyles(styleSheet);
   const navigation = useNavigation();
   const modalRef = useRef<BottomSheetRef>(null);
