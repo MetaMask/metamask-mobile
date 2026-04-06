@@ -36,6 +36,11 @@ export function* backfillSocialLoginMarketingConsentSaga() {
       marketingConsent = marketingOptIn.is_opt_in;
     }
 
+    analytics.identify({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingConsent
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
+    });
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )
