@@ -19,6 +19,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrder: {
     direction: 'long' | 'short';
     asset: string;
+    defaultSzDecimals?: number;
+    defaultMaxLeverage?: number;
     leverage?: number;
     amount?: string;
     price?: string;

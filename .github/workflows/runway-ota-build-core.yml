@@ -42,11 +42,11 @@ on:
         required: false
         type: boolean
         default: false
-      ios_testflight_summary_title:
-        description: 'Step summary heading when upload_testflight is true'
+      environment:
+        description: 'Build environment / track passed to upload-to-testflight (e.g. rc, prod)'
         required: false
         type: string
-        default: 'Runway iOS RC'
+        default: 'rc'
       skip_version_bump:
         description: >-
           If true, build.yml skips update-latest-build-version. Android Runway entry workflows set
@@ -91,9 +91,10 @@ jobs:
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
           # Try same-repo head first, then owner:branch (required by API when listing pulls)
-          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
           if [[ -z "$PR_NUMBER" ]]; then
-            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
           fi
 
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
@@ -136,13 +137,12 @@ jobs:
             echo "No OTA version bump (base: $BASE_OTA, current: $CURRENT_OTA) → will trigger build"
           fi
 
-  trigger-ota:
-    name: Trigger OTA update
+  # Reusable workflows must be job-level `uses:` (not a step). Steps only support actions (action.yml).
+  validate-ota-pr:
+    name: Validate PR for OTA
     needs: decide
     if: needs.decide.outputs.ota_bump == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      release_tag: ${{ steps.release_tag.outputs.release_tag }}
     steps:
       - name: Validate PR number
         run: |
@@ -153,32 +153,18 @@ jobs:
           fi
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
-      - name: Trigger Push OTA Update workflow
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const ref = '${{ inputs.source_branch || github.ref_name }}'.replace(/^refs\/heads\//, '');
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'push-eas-update.yml',
-              ref: ref,
-              inputs: {
-                pr_number: '${{ needs.decide.outputs.pr_number }}',
-                base_branch: '${{ needs.decide.outputs.base_ref }}',
-                message: '${{ needs.decide.outputs.ota_version }}',
-                channel: '${{ inputs.ota_channel }}',
-                platform: '${{ inputs.platform }}'
-              }
-            });
-            core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
-
-      - name: Export release tag for OTA follow-up jobs
-        id: release_tag
-        run: |
-          # Tag name must match OTA_VERSION (app/constants/ota.ts), not package.json semver
-          echo "release_tag=${{ needs.decide.outputs.ota_version }}" >> "$GITHUB_OUTPUT"
+  trigger-ota:
+    name: Trigger OTA update
+    needs: [decide, validate-ota-pr]
+    if: needs.decide.outputs.ota_bump == 'true'
+    uses: ./.github/workflows/push-eas-update.yml
+    with:
+      pr_number: ${{ needs.decide.outputs.pr_number }}
+      base_branch: ${{ needs.decide.outputs.base_ref }}
+      message: ${{ needs.decide.outputs.ota_version }}
+      channel: ${{ inputs.ota_channel }}
+      platform: ${{ inputs.platform }}
+    secrets: inherit
 
   trigger-build:
     name: Trigger build mobile app
@@ -195,96 +181,25 @@ jobs:
 
   create-ota-production-tag:
     name: Create OTA production release tag
-    needs: [trigger-ota]
+    needs: [decide, trigger-ota]
     if: ${{ inputs.create_production_ota_tag == true }}
     uses: ./.github/workflows/runway-create-ota-production-tag.yml
     with:
-      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
+      tag_name: ${{ needs.decide.outputs.ota_version }}
       checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
-  testflight-upload-summary:
-    name: TestFlight upload summary
-    needs: [trigger-build]
-    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.source_branch || github.ref }}
-      - name: Display TestFlight upload summary
-        run: |
-          BUILD_VERSION=$(node -p "require('./package.json').version")
-          {
-            echo "### 📲 TestFlight Upload (${{ inputs.ios_testflight_summary_title }})"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Ref** | ${{ inputs.source_branch || github.ref_name }} |"
-            echo "| **Build name** | ${{ inputs.build_name }} |"
-            echo "| **Build version** | ${BUILD_VERSION} |"
-            echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   upload-ios-testflight:
     name: Upload iOS to TestFlight
-    needs: [trigger-build, testflight-upload-summary]
+    needs: [decide, trigger-build]
     if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: apple
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.source_branch || github.ref }}
-
-      - name: Setup Ruby (iOS)
-        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
-        with:
-          ruby-version: '3.2.9'
-          working-directory: ios
-          bundler-cache: true
-
-      - name: Download iOS build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-ipa-${{ inputs.build_name }}
-
-      - name: Find IPA path
-        id: ipa
-        run: |
-          IPA=$(find . -name '*.ipa' -type f | head -1)
-          if [ -z "$IPA" ]; then
-            echo "::error::No .ipa file found in artifact"
-            exit 1
-          fi
-          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
-          echo "path=$ABS" >> "$GITHUB_OUTPUT"
-
-      - name: Setup App Store Connect API Key
-        run: |
-          bash scripts/setup-app-store-connect-api-key.sh \
-            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
-            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
-            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
-
-      - name: Upload to TestFlight
-        run: |
-          bash scripts/upload-to-testflight.sh \
-            "github_actions_${{ inputs.build_name }}" \
-            "${{ inputs.source_branch || github.ref_name }}" \
-            "${{ steps.ipa.outputs.path }}" \
-            "" \
-            "false"
-
-      - name: Cleanup API Key
-        if: always()
-        run: |
-          rm -f ios/AuthKey.p8
-          echo "🧹 Cleaned up API key file"
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      environment: ${{ inputs.environment }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_name: ${{ inputs.build_name }}
+      build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+      build_version: ${{ needs.trigger-build.outputs.semantic_version }}
+      build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
+    secrets: inherit

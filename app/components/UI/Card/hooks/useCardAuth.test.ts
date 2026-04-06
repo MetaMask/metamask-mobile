@@ -55,6 +55,7 @@ describe('useCardAuth', () => {
         isPending: false,
         error: null,
         data: null,
+        reset: jest.fn(),
       }),
     );
   });
@@ -199,6 +200,33 @@ describe('useCardAuth', () => {
       });
 
       expect(mockController.executeStepAction).toHaveBeenCalled();
+    });
+  });
+
+  describe('resetToLogin', () => {
+    it('resets currentStep to email_password after OTP step', async () => {
+      mockController.submitCredentials.mockResolvedValue({
+        done: false,
+        nextStep: { type: 'otp', destination: '+1555****90' },
+      });
+      const { result } = renderHook(() => useCardAuth());
+
+      await act(async () => {
+        await result.current.submit.mutateAsync({
+          type: 'email_password',
+          email: 'a@b.com',
+          password: 'p',
+        });
+      });
+      expect(result.current.currentStep.type).toBe('otp');
+
+      act(() => {
+        result.current.resetToLogin();
+      });
+
+      expect(result.current.currentStep).toStrictEqual({
+        type: 'email_password',
+      });
     });
   });
 

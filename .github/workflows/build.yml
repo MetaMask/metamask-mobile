@@ -25,6 +25,31 @@ on:
         required: false
         type: boolean
         default: false
+    outputs:
+      build_name:
+        description: 'build_name input passed to this workflow'
+        value: ${{ inputs.build_name }}
+      platform:
+        description: 'platform input (android, ios, or both)'
+        value: ${{ inputs.platform }}
+      source_branch_input:
+        description: 'source_branch input (empty means default ref was used)'
+        value: ${{ inputs.source_branch }}
+      checkout_ref:
+        description: 'Git ref used for checkout (version-bump commit SHA or source_branch / triggering ref)'
+        value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at checkout_ref after build succeeded'
+        value: ${{ jobs.emit-build-metadata.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -241,7 +266,7 @@ jobs:
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
         env:
-          XCODE_VERSION: '16.3'
+          XCODE_VERSION: '26.3'
         run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
 
       # TapAndPay SDK Setup (Android only)
@@ -311,8 +336,10 @@ jobs:
       - name: Set Android environment variables
         if: matrix.platform == 'android'
         run: |
-          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+          {
+            echo "ANDROID_HOME=/opt/android-sdk"
+            echo "ANDROID_SDK_ROOT=/opt/android-sdk"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Java
         if: matrix.platform == 'android'
@@ -453,3 +480,35 @@ jobs:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
           if-no-files-found: warn
+
+  # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
+  emit-build-metadata:
+    name: Emit build metadata
+    needs: [prepare, build]
+    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+      ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Read metadata from tree at built ref
+        id: meta
+        run: |
+          REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
+          ANDROID_VERSION_CODE=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
+          IOS_VERSION_CODE=$(sed -n 's/.*CURRENT_PROJECT_VERSION = \([0-9][0-9]*\);/\1/p' ios/MetaMask.xcodeproj/project.pbxproj | head -1)
+          {
+            echo "checkout_ref=$REF"
+            echo "built_commit_sha=$(git rev-parse HEAD)"
+            echo "semantic_version=$(node -p "require('./package.json').version")"
+            echo "android_version_code=$ANDROID_VERSION_CODE"
+            echo "ios_version_code=$IOS_VERSION_CODE"
+          } >> "$GITHUB_OUTPUT"

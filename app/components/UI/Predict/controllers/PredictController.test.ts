@@ -248,6 +248,7 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
@@ -266,12 +267,17 @@ describe('PredictController', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
+      createOptimisticPositionFromPreview: jest.fn(),
+      clearOptimisticPosition: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Default safe mocks for async fire-and-forget methods
     // (prevents unhandled rejections when payWithAnyTokenConfirmation is
     // triggered by onBuyPaymentTokenChange but the async chain completes
     // after mock cleanup)
+    mockPolymarketProvider.createOptimisticPositionFromPreview.mockResolvedValue(
+      undefined,
+    );
     mockPolymarketProvider.prepareDeposit.mockResolvedValue({
       transactions: [
         {
@@ -592,6 +598,67 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    describe('getCarouselMarkets', () => {
+      it('returns markets from provider', async () => {
+        const mockMarkets = [{ id: 'carousel-1' }, { id: 'carousel-2' }];
+
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.getCarouselMarkets.mockResolvedValue(
+            mockMarkets as any,
+          );
+
+          const result = await controller.getCarouselMarkets();
+
+          expect(result).toEqual(mockMarkets as any);
+          expect(mockPolymarketProvider.getCarouselMarkets).toHaveBeenCalled();
+        });
+      });
+
+      it('updates state on success', async () => {
+        await withController(async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.lastError = 'Previous error';
+          });
+          mockPolymarketProvider.getCarouselMarkets.mockResolvedValue([]);
+
+          await controller.getCarouselMarkets();
+
+          expect(controller.state.lastError).toBeNull();
+          expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        });
+      });
+
+      it('updates lastError on failure and throws', async () => {
+        const errorMessage = 'Carousel failed';
+
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.getCarouselMarkets.mockRejectedValue(
+            new Error(errorMessage),
+          );
+
+          await expect(controller.getCarouselMarkets()).rejects.toThrow(
+            errorMessage,
+          );
+          expect(controller.state.lastError).toBe(errorMessage);
+        });
+      });
+
+      it('returns empty array when provider method is not available', async () => {
+        await withController(async ({ controller }) => {
+          (
+            mockPolymarketProvider as unknown as {
+              getCarouselMarkets?: () => Promise<unknown[]>;
+            }
+          ).getCarouselMarkets = undefined;
+
+          const result = await controller.getCarouselMarkets();
+
+          expect(result).toEqual([]);
+          expect(controller.state.lastError).toBeNull();
+        });
       });
     });
   });
@@ -7574,6 +7641,232 @@ describe('PredictController', () => {
       );
     });
 
+    it('publishes order depositing event when transitioning to depositing state', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'depositing',
+              senderAddress: MOCK_ADDRESS,
+              marketId: 'market-1',
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not publish order depositing event when flag is disabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller, messenger }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+        const handler = jest.fn();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          handler,
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview,
+          transactionId: 'tx-deposit-1',
+        });
+
+        expect(handler).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'order',
+            status: 'depositing',
+          }),
+        );
+      });
+    });
+
+    it('creates optimistic position from preview when transitioning to depositing', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(
+            mockPolymarketProvider.createOptimisticPositionFromPreview,
+          ).toHaveBeenCalledWith({
+            address: MOCK_ADDRESS,
+            preview,
+          });
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('still publishes depositing event when optimistic position creation fails', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          mockPolymarketProvider.createOptimisticPositionFromPreview.mockRejectedValue(
+            new Error('Market details unavailable'),
+          );
+
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'order',
+              status: 'depositing',
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('awaits optimistic position creation before publishing depositing event', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const callOrder: string[] = [];
+
+          mockPolymarketProvider.createOptimisticPositionFromPreview.mockImplementation(
+            () =>
+              new Promise<void>((resolve) => {
+                callOrder.push('optimistic');
+                resolve();
+              }),
+          );
+
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            () => {
+              callOrder.push('event');
+            },
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-deposit-1',
+          });
+
+          expect(callOrder).toEqual(['optimistic', 'event']);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('clears optimistic position when buy order fails with flag enabled', async () => {
+      mockPolymarketProvider.placeOrder.mockRejectedValue(
+        new Error('Order failed'),
+      );
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order failed',
+          );
+
+          expect(
+            mockPolymarketProvider.clearOptimisticPosition,
+          ).toHaveBeenCalledWith(MOCK_ADDRESS, preview.outcomeTokenId);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
     it('sets activeOrder to success after provider order placement succeeds', async () => {
       const mockResult = {
         success: true as const,
@@ -8363,6 +8656,64 @@ describe('PredictController', () => {
         ).toBeDefined();
         expect(retrySpy).toHaveBeenCalledTimes(1);
       });
+    });
+
+    it('clears optimistic position when depositAndOrder transaction fails', async () => {
+      await withController(
+        async ({ controller, messenger }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            outcomeTokenId: 'token-abc',
+          });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-1',
+          });
+
+          jest
+            .spyOn(controller, 'initPayWithAnyToken')
+            .mockResolvedValue(undefined as never);
+
+          mockPolymarketProvider.clearOptimisticPosition.mockClear();
+
+          const transactionMeta = {
+            id: 'tx-1',
+            status: TransactionStatus.failed,
+            txParams: {
+              from: MOCK_ADDRESS,
+              to: '0x0000000000000000000000000000000000000001',
+              value: '0x0',
+              data: '0x',
+            },
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Transaction reverted' },
+          } as unknown as TransactionMeta;
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          });
+
+          expect(
+            mockPolymarketProvider.clearOptimisticPosition,
+          ).toHaveBeenCalledWith(MOCK_ADDRESS, 'token-abc');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
     });
 
     it('publishes order failed event when depositAndOrder fails and there is no active buy order', () => {

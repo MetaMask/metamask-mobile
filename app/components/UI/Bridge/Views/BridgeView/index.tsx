@@ -375,6 +375,13 @@ const BridgeView = () => {
     return 'quote';
   };
   const contentMode = getContentMode();
+  const shouldShowTrendingTokens =
+    contentMode === 'zero' && isSwapsTrendingTokensEnabled;
+
+  const dismissInputAndKeypad = useCallback(() => {
+    inputRef.current?.blur();
+    keypadRef.current?.close();
+  }, []);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -394,13 +401,8 @@ const BridgeView = () => {
     <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
-        onStartShouldSetResponder={() =>
-          !(contentMode === 'zero' && isSwapsTrendingTokensEnabled)
-        }
-        onResponderRelease={() => {
-          inputRef.current?.blur();
-          keypadRef.current?.close();
-        }}
+        onStartShouldSetResponder={() => !shouldShowTrendingTokens}
+        onResponderRelease={dismissInputAndKeypad}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -409,6 +411,9 @@ const BridgeView = () => {
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
+          onScrollBeginDrag={
+            shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+          }
           onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
         >
           <Box style={styles.inputsContainer}>
@@ -546,7 +551,12 @@ const BridgeView = () => {
               : null}
           </Box>
 
-          <Box style={styles.dynamicContent}>
+          <Box
+            style={styles.dynamicContent}
+            onTouchEnd={
+              shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+            }
+          >
             {contentMode === 'loading' ? (
               <Box style={styles.loadingContainer}>
                 <QuoteDetailsCardSkeleton />
@@ -560,7 +570,7 @@ const BridgeView = () => {
                 />
               </Box>
             ) : null}
-            {contentMode === 'zero' && isSwapsTrendingTokensEnabled ? (
+            {shouldShowTrendingTokens ? (
               <BridgeTrendingTokensSection isNearBottom={isNearBottom} />
             ) : null}
           </Box>

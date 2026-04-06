@@ -158,9 +158,9 @@ exports[`OrderContent renders completed state correctly 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
-            "fontWeight": 700,
+            "fontWeight": 600,
             "letterSpacing": 0,
             "lineHeight": 50,
             "marginTop": 24,
@@ -756,9 +756,9 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
-            "fontWeight": 700,
+            "fontWeight": 600,
             "letterSpacing": 0,
             "lineHeight": 50,
             "marginTop": 24,
@@ -1251,9 +1251,9 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
-            "fontWeight": 700,
+            "fontWeight": 600,
             "letterSpacing": 0,
             "lineHeight": 50,
             "marginTop": 24,
