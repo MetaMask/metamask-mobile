@@ -165,7 +165,7 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Changelog: run-update-release-changelog-mobile.sh converts OTA two-digit patches to valid SemVer prereleases and converts back after generation.
+      # Changelog: run-update-release-changelog-mobile.sh converts OTA two-digit patches to valid SemVer prereleases. The SemVer format stays in CHANGELOG.md permanently.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         uses: actions/checkout@v4
@@ -209,7 +209,16 @@ jobs:
         run: |
           set -euo pipefail
           BRANCH="release/${SEMVER}"
+          PATCH="${SEMVER##*.}"
+          SEMVER_CL="${SEMVER%.*}.${PATCH:0:1}-ota.${PATCH:1:1}"
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \
-            --body "OTA hotfix: branch \`${BRANCH}\`. Native semver and build version are not bumped. \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`. Changelog uses the Runway version (two-digit patch converted to SemVer prerelease for tooling, then converted back)."
+            --body "$(cat <<EOFBODY
+OTA hotfix: branch \`${BRANCH}\`.
+
+- Native semver and build version are **not** bumped.
+- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`.
+- CHANGELOG.md uses the SemVer prerelease format \`${SEMVER_CL}\` (maps to Runway \`${SEMVER}\`) because auto-changelog validates all headers as strict SemVer.
+EOFBODY
+)"
