@@ -27,12 +27,9 @@ import {
   getBuildNumber,
 } from 'react-native-device-info';
 import {
-  selectAlwaysShowCardButton,
   selectIsDaimoDemo,
-  setAlwaysShowCardButton,
   setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
-import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
@@ -43,8 +40,6 @@ import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 const ExperimentalSettings = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
-  const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
-  const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
   const isDaimoDemo = useSelector(selectIsDaimoDemo);
 
   const theme = useTheme();
@@ -87,33 +82,9 @@ const ExperimentalSettings = ({ navigation }: Props) => {
     </>
   );
 
-  const handleAlwaysShowCardButtonToggle = (value: boolean) => {
-    dispatch(setAlwaysShowCardButton(value));
-  };
-
   const handleDaimoDemoToggle = (value: boolean) => {
     dispatch(setIsDaimoDemo(value));
   };
-
-  const renderCardSettings = () => (
-    <View style={styles.heading}>
-      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-        {strings('experimental_settings.card_title')}
-      </Text>
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
-        style={styles.desc}
-      >
-        {strings('experimental_settings.card_desc')}
-      </Text>
-      <Switch
-        value={alwaysShowCardButton}
-        onValueChange={handleAlwaysShowCardButtonToggle}
-        testID="always-show-card-button-switch"
-      />
-    </View>
-  );
 
   const renderDaimoDemoSettings = () => (
     <View style={styles.heading}>
@@ -196,7 +167,6 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       />
       <ScrollView style={styles.content}>
         {renderWalletConnectSettings()}
-        {cardExperimentalSwitch && renderCardSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
         {isTest && renderPerformanceSettings()}
       </ScrollView>

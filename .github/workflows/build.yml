@@ -266,7 +266,7 @@ jobs:
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
         env:
-          XCODE_VERSION: '16.3'
+          XCODE_VERSION: '26.3'
         run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
 
       # TapAndPay SDK Setup (Android only)

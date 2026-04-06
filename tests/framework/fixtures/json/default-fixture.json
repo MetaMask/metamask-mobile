@@ -56,7 +56,6 @@
       "cardholderAccounts": [],
       "geoLocation": "UNKNOWN",
       "hasViewedCardButton": false,
-      "isAuthenticated": false,
       "isDaimoDemo": false,
       "isLoaded": false,
       "lastFetchedByAddress": {},
@@ -66,8 +65,7 @@
         "onboardingId": null,
         "selectedCountry": null
       },
-      "priorityTokensByAddress": {},
-      "userCardLocation": "international"
+      "priorityTokensByAddress": {}
     },
     "collectibles": {
       "favorites": {},
