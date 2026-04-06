@@ -91,6 +91,11 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
+import {
+  presentIosGoogleLoginUnsupportedBlockingSheet,
+  presentIosGoogleLoginUnsupportedBlockingSheetRehydration,
+  presentIosGoogleLoginVersionWarningSheet,
+} from './OnboardingIosPrompt';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
@@ -111,11 +116,6 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
-import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
@@ -778,48 +778,17 @@ const Onboarding = () => {
           Device.comparePlatformVersionTo('17.4') < 0
         ) {
           if (isGoogleLoginIosUnsupportedBlockingEnabled) {
-            await navigateToSuccessErrorSheetPromise(navigation, {
-              type: 'error',
-              title: strings(
-                `error_sheet.ios_google_login_unsupported_blocking_title`,
-              ),
-              description: strings(
-                `error_sheet.ios_google_login_unsupported_blocking_description`,
-              ),
-              descriptionAlign: 'center',
-              primaryButtonLabel: strings(
-                `error_sheet.ios_google_login_unsupported_blocking_button`,
-              ),
-              closeOnPrimaryButtonPress: true,
-            });
+            if (createWallet) {
+              await presentIosGoogleLoginUnsupportedBlockingSheet(navigation);
+            } else {
+              await presentIosGoogleLoginUnsupportedBlockingSheetRehydration(
+                navigation,
+              );
+            }
             return;
           }
 
-          const description = () => (
-            <>
-              <Text style={tw.style('text-pretty')}>
-                {strings(`error_sheet.ios_need_update_description`)}
-                <Text twClassName="font-bold">
-                  {strings(`error_sheet.ios_need_update_description_version`)}
-                </Text>
-                {strings(`error_sheet.ios_need_update_description_end`)}
-              </Text>
-              <Text style={tw.style('text-pretty')}>
-                {strings(`error_sheet.ios_need_update_description2`)}
-              </Text>
-            </>
-          );
-
-          await navigateToSuccessErrorSheetPromise(navigation, {
-            type: 'error',
-            icon: IconName.Warning,
-            iconColor: IconColor.Warning,
-            title: strings(`error_sheet.ios_need_update_title`),
-            description: description(),
-            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
-            closeOnPrimaryButtonPress: true,
-            isInteractable: false,
-          });
+          await presentIosGoogleLoginVersionWarningSheet(navigation);
           track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
             account_type: accountType,
           });
@@ -853,7 +822,6 @@ const Onboarding = () => {
       handleExistingUser(action);
     },
     [
-      tw,
       navigation,
       metrics,
       track,

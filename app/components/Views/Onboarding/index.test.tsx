@@ -112,10 +112,10 @@ const getIosGoogleWarningSheetCall = () =>
   );
 
 const IOS_GOOGLE_BLOCKING_ERROR_TITLE = strings(
-  'error_sheet.oauth_error_title',
+  'error_sheet.ios_google_login_unsupported_blocking_title',
 );
 const IOS_GOOGLE_BLOCKING_ERROR_BUTTON = strings(
-  'error_sheet.oauth_error_button',
+  'error_sheet.ios_google_login_unsupported_blocking_button',
 );
 
 const getIosGoogleBlockingErrorSheetCall = () =>
@@ -1481,7 +1481,9 @@ describe('Onboarding', () => {
           params: expect.objectContaining({
             type: 'error',
             title: IOS_GOOGLE_BLOCKING_ERROR_TITLE,
-            description: strings('error_sheet.oauth_error_description'),
+            description: strings(
+              'error_sheet.ios_google_login_unsupported_blocking_description',
+            ),
             descriptionAlign: 'center',
             primaryButtonLabel: IOS_GOOGLE_BLOCKING_ERROR_BUTTON,
             onPrimaryButtonPress: expect.any(Function),
