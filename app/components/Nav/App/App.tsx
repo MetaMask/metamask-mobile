@@ -270,7 +270,7 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name="AccountStatus"
-        component={AccountStatus as ScreenComponent}
+        component={AccountStatus}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -869,7 +869,7 @@ const MultichainAccountDetailsActions = () => {
       />
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
-        component={SRPQuiz as ScreenComponent}
+        component={SRPQuiz}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -929,7 +929,7 @@ const ModalSwitchAccountType = () => (
   >
     <Stack.Screen
       name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
-      component={SwitchAccountTypeModal as ScreenComponent}
+      component={SwitchAccountTypeModal}
     />
   </Stack.Navigator>
 );
