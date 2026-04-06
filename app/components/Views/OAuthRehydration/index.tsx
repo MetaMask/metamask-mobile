@@ -617,6 +617,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+        account_type: accountType,
+        login_type: 'global_password_update',
+        biometrics: biometryChoice,
+      });
+
       // biometrics/passcode preference is applied only after sync succeeds
       const authData: AuthData = {
         currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -645,6 +651,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
       }
 
+      track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+        account_type: accountType,
+        login_type: 'global_password_update',
+        biometrics: biometryChoice,
+      });
+
       setLoading(false);
       setError(null);
     } catch (loginErr) {
@@ -655,10 +667,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [
     password,
     finalLoading,
+    biometryChoice,
+    track,
     handleLoginError,
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
+    accountType,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -679,7 +694,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {
+      login_type: 'seedless_rehydration',
+    });
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     return () => {

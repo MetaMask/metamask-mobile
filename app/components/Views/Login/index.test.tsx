@@ -1279,10 +1279,13 @@ describe('Login', () => {
   });
 
   describe('Analytics tracking', () => {
-    it('tracks LOGIN_SCREEN_VIEWED on mount', () => {
+    it('tracks LOGIN_SCREEN_VIEWED on mount with login_type srp', () => {
       renderWithProvider(<Login />);
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
-        MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
+        expect.objectContaining({
+          name: 'Login Screen Viewed',
+          properties: expect.objectContaining({ login_type: 'srp' }),
+        }),
         expect.any(Function),
       );
     });
