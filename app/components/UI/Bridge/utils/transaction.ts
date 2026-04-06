@@ -11,7 +11,9 @@ export const getIsBridgeTransaction = (txMeta: TransactionMeta) => {
   return (
     origin === ORIGIN_METAMASK &&
     (txMeta.type === TransactionType.bridgeApproval ||
-      txMeta.type === TransactionType.bridge)
+      txMeta.type === TransactionType.bridge ||
+      txMeta.type === TransactionType.swap ||
+      txMeta.type === TransactionType.swapApproval)
   );
 };
 

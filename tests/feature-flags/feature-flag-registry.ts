@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-03-02
+ * Production defaults last synced: 2026-03-25
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -79,6 +79,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialLeaderboardEnabled: {
+    name: 'aiSocialLeaderboardEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.72.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -448,17 +459,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         minimumVersion: '7.59.0',
       },
       refreshRate: 30000,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  cardExperimentalSwitch2: {
-    name: 'cardExperimentalSwitch2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.58.1',
-      enabled: true,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2515,17 +2515,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  displayCardButton: {
-    name: 'displayCardButton',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.64.1',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
@@ -2667,6 +2656,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: 0.9,
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMusdTokenRegistrationChainIds: {
+    name: 'earnMusdTokenRegistrationChainIds',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      chainIds: ['0x1', '0xe708'],
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -2818,14 +2817,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  importSrpWordSuggestion: {
-    name: 'importSrpWordSuggestion',
+  legacyIosGoogleConfigEnabled: {
+    name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      minimumVersion: '7.61.0',
-      enabled: true,
-    },
+    productionDefault: true,
     status: FeatureFlagStatus.Active,
   },
 
@@ -2869,18 +2865,43 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  mobileUxAccountMenu: {
-    name: 'mobileUxAccountMenu',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   mobileUxNetworkManagement: {
     name: 'mobileUxNetworkManagement',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccount: {
+    name: 'moneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      moneyAccountDepositEnabled: false,
+      moneyAccountWithdrawEnabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableMoneyAccount: {
+    name: 'moneyEnableMoneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyHomeScreenEnabled: {
+    name: 'moneyHomeScreenEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
@@ -3596,6 +3617,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.61.6',
       enabled: true,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  tronClaimUnstakedTrxButtonEnabled: {
+    name: 'tronClaimUnstakedTrxButtonEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 

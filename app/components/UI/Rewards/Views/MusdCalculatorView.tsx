@@ -18,7 +18,7 @@ const MusdCalculatorView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
       >
         <HeaderCompactStandard
-          title={strings('rewards.musd.title')}
+          title={strings('rewards.musd.page_title')}
           onBack={() => navigation.goBack()}
         />
         <MusdCalculatorTab />

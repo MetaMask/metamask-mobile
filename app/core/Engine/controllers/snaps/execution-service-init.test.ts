@@ -1,9 +1,6 @@
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { ControllerInitRequest } from '../../types';
-import {
-  ExecutionServiceMessenger,
-  getExecutionServiceMessenger,
-} from '../../messengers/snaps';
+import { getExecutionServiceMessenger } from '../../messengers/snaps';
 import { executionServiceInit } from './execution-service-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -11,6 +8,7 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { Duplex } from 'stream';
 import { SnapBridge } from '../../../Snaps';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { ExecutionServiceMessenger } from '@metamask/snaps-controllers';
 
 jest.mock('@metamask/snaps-controllers');
 jest.mock('@metamask/snaps-controllers/react-native');

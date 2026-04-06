@@ -22,8 +22,7 @@ import {
 } from '../../../reducers/collectibles';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import NftGridItem from './NftGridItem';
-import ActionSheet from '@metamask/react-native-actionsheet';
-import NftGridItemActionSheet from './NftGridItemActionSheet';
+import NftGridItemBottomSheet from './NftGridItemBottomSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -106,8 +105,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
     const isHomepageRedesignV1Enabled = useSelector(
       selectHomepageRedesignV1Enabled,
     );
-
-    const actionSheetRef = useRef<typeof ActionSheet>();
 
     const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
@@ -230,12 +227,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       }, [isFullView, detectNfts, abortDetection]),
     );
 
-    useEffect(() => {
-      if (longPressedCollectible) {
-        actionSheetRef.current.show();
-      }
-    }, [longPressedCollectible]);
-
     const goToAddCollectible = useCallback(() => {
       setIsAddNFTEnabled(false);
       navigation.navigate('AddAsset', { assetType: 'collectible' });
@@ -343,9 +334,10 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
             </Button>
           </Box>
         )}
-        <NftGridItemActionSheet
-          actionSheetRef={actionSheetRef}
-          longPressedCollectible={longPressedCollectible}
+        <NftGridItemBottomSheet
+          isVisible={longPressedCollectible !== null}
+          onClose={() => setLongPressedCollectible(null)}
+          nft={longPressedCollectible}
         />
       </>
     );

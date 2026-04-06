@@ -4,24 +4,29 @@ import QuoteDisplay from './QuoteDisplay';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 jest.mock('../../../../../../component-library/components/Skeleton', () => {
-  const { View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
   return {
-    Skeleton: ({ width, height }: { width: number; height: number }) => (
-      <View testID="skeleton" style={{ width, height }} />
-    ),
+    Skeleton: ({ width, height }: { width: number; height: number }) =>
+      ReactActual.createElement(View, {
+        testID: 'skeleton',
+        style: { width, height },
+      }),
   };
 });
 
-jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  const actual = jest.requireActual<
+    typeof import('@metamask/design-system-react-native')
+  >('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    IconName: { Warning: 'Warning' },
-    IconSize: { Sm: '16' },
-    IconColor: { Warning: 'Warning' },
-    default: ({ testID }: { testID?: string }) => (
-      <View testID={testID ?? 'icon'} />
-    ),
+    ...actual,
+    Icon: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID: testID ?? 'icon' }),
   };
 });
 

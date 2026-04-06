@@ -17,6 +17,7 @@ import Logger from '../../../../../../util/Logger';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+const MERKL_REWARDS_AUTO_REFRESH_INTERVAL_MS = 60_000;
 
 // Map of chains and eligible tokens
 // mUSD on mainnet is eligible because users earn rewards for holding it,
@@ -59,6 +60,7 @@ interface UseMerklRewardsReturn {
   claimableReward: string | null;
   hasClaimedBefore: boolean;
   refetch: () => void;
+  rewardsFetchVersion: number;
 }
 
 /**
@@ -69,6 +71,7 @@ export const useMerklRewards = ({
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
   const [hasClaimedBefore, setHasClaimedBefore] = useState(false);
+  const [rewardsFetchVersion, setRewardsFetchVersion] = useState(0);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -111,6 +114,7 @@ export const useMerklRewards = ({
         }
 
         if (!matchingReward) {
+          setClaimableReward(null);
           setHasClaimedBefore(false);
           return;
         }
@@ -169,6 +173,10 @@ export const useMerklRewards = ({
           error as Error,
           'useMerklRewards: Error fetching claimable rewards',
         );
+      } finally {
+        if (!controller.signal.aborted) {
+          setRewardsFetchVersion((version) => version + 1);
+        }
       }
     },
     [asset, selectedAddress],
@@ -191,9 +199,24 @@ export const useMerklRewards = ({
     };
   }, [fetchClaimableRewards]);
 
+  useEffect(() => {
+    if (!asset || !selectedAddress) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch();
+    }, MERKL_REWARDS_AUTO_REFRESH_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [asset, selectedAddress, refetch]);
+
   return {
     claimableReward,
     hasClaimedBefore,
     refetch,
+    rewardsFetchVersion,
   };
 };

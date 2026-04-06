@@ -6,20 +6,11 @@ import {
 } from './cardTokenVault';
 import { refreshCardToken } from './refreshCardToken';
 
-export const handleLocalAuthentication = async ({
-  isBaanxLoginEnabled,
-}: {
-  isBaanxLoginEnabled: boolean;
-}): Promise<{
+export const handleLocalAuthentication = async (): Promise<{
   isAuthenticated: boolean;
   userCardLocation?: CardLocation;
 }> => {
   try {
-    // If Baanx login is not enabled, user is not authenticated
-    if (!isBaanxLoginEnabled) {
-      return { isAuthenticated: false };
-    }
-
     const tokenResult = await getCardBaanxToken();
 
     // If token retrieval was successful but no token data, user is not authenticated

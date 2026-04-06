@@ -75,6 +75,16 @@ describe('useLinkAccountAddress', () => {
       iconName: 'error',
       hapticsType: 'error',
     }),
+    entriesClosed: jest.fn().mockReturnValue({
+      variant: 'icon',
+      iconName: 'lock',
+      hapticsType: 'warning',
+    }),
+    success: jest.fn().mockReturnValue({
+      variant: 'icon',
+      iconName: 'confirmation',
+      hapticsType: 'success',
+    }),
   };
 
   const mockAccount: InternalAccount = {
@@ -107,11 +117,6 @@ describe('useLinkAccountAddress', () => {
       showToast: mockShowToast,
       RewardsToastOptions: {
         ...mockRewardsToastOptions,
-        success: jest.fn().mockReturnValue({
-          variant: 'icon',
-          iconName: 'confirmation',
-          hapticsType: 'success',
-        }),
       },
     });
 

@@ -1,12 +1,15 @@
 import React, { Fragment, useRef } from 'react';
+import { SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+import { Box } from '@metamask/design-system-react-native';
+
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { SafeAreaView, View } from 'react-native';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import SelectSRP from './SelectSRP';
 import { strings } from '../../../../locales/i18n';
-import { useNavigation } from '@react-navigation/native';
 
 export const SelectSRPBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -22,12 +25,9 @@ export const SelectSRPBottomSheet = () => {
               navigation.goBack();
             }}
           />
-          <View
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={{ marginTop: -16 }}
-          >
+          <Box twClassName="-mt-4">
             <SelectSRP />
-          </View>
+          </Box>
         </Fragment>
       </SafeAreaView>
     </BottomSheet>

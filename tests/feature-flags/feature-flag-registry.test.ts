@@ -85,6 +85,7 @@ describe('Feature Flag Registry', () => {
       expect(flagNames).toContain('bridgeConfigV2');
       expect(flagNames).toContain('bitcoinAccounts');
       expect(flagNames).toContain('tronAccounts');
+      expect(flagNames).toContain('tronClaimUnstakedTrxButtonEnabled');
     });
   });
 

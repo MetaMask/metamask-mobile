@@ -28,29 +28,32 @@ const useGetUserKYCStatus = (): UseGetUserKYCStatusResult => {
   const sdkRef = useRef(sdk);
   sdkRef.current = sdk;
 
-  const { data, isLoading, error, refetch } = useQuery<UserKYCStatus | null>({
-    queryKey: cardQueries.dashboard.keys.kycStatus(),
-    queryFn: async () => {
-      try {
-        const currentSdk = sdkRef.current;
-        if (!currentSdk) throw new Error('SDK not initialized');
-        const response = await currentSdk.getUserDetails();
+  const { data, isLoading, isFetching, error, refetch } =
+    useQuery<UserKYCStatus | null>({
+      queryKey: cardQueries.dashboard.keys.kycStatus(),
+      queryFn: async () => {
+        try {
+          const currentSdk = sdkRef.current;
+          if (!currentSdk) throw new Error('SDK not initialized');
+          const response = await currentSdk.getUserDetails();
 
-        return {
-          verificationState: response.verificationState ?? null,
-          userId: response.id,
-          userDetails: response,
-        };
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err : new Error('Failed to fetch KYC status');
-        Logger.log('useGetUserKYCStatus: Error fetching KYC status', err);
-        throw errorMessage;
-      }
-    },
-    enabled: false,
-    staleTime: 0,
-  });
+          return {
+            verificationState: response.verificationState ?? null,
+            userId: response.id,
+            userDetails: response,
+          };
+        } catch (err) {
+          const errorMessage =
+            err instanceof Error
+              ? err
+              : new Error('Failed to fetch KYC status');
+          Logger.log('useGetUserKYCStatus: Error fetching KYC status', err);
+          throw errorMessage;
+        }
+      },
+      enabled: false,
+      staleTime: 0,
+    });
 
   const fetchKYCStatus = useCallback(async () => {
     const result = await refetch();
@@ -59,7 +62,7 @@ const useGetUserKYCStatus = (): UseGetUserKYCStatusResult => {
 
   return {
     kycStatus: data ?? null,
-    isLoading,
+    isLoading: isLoading && isFetching,
     error: error as Error | null,
     fetchKYCStatus,
   };

@@ -16,7 +16,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -32,7 +32,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -93,9 +93,9 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
+                  "fontWeight": 600,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -477,9 +477,9 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
+                  "fontWeight": 600,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -861,9 +861,9 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
+                  "fontWeight": 600,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -1168,7 +1168,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -1184,7 +1184,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -1245,9 +1245,9 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
+                  "fontWeight": 600,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,
@@ -1552,7 +1552,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -1568,7 +1568,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -1629,9 +1629,9 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 {
                   "alignSelf": "flex-start",
                   "color": "#131416",
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
-                  "fontWeight": 700,
+                  "fontWeight": 600,
                   "letterSpacing": 0,
                   "lineHeight": 40,
                   "marginBottom": 16,

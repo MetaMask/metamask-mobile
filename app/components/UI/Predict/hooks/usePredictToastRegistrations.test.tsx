@@ -753,4 +753,156 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
   });
+
+  describe('order transactions', () => {
+    it('shows pending toast with spinner on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          hasNoTimeout: false,
+          startAccessory: expect.any(Object),
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress_description',
+              isBold: false,
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('invalidates positions queries on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+    });
+
+    it('shows prediction placed toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Check',
+          hasNoTimeout: false,
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows prediction placed toast without View button when marketId is absent', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows error toast on failed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Error',
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows error toast without Try Again button when marketId is absent', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+  });
 });

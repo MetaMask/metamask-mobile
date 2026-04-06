@@ -10,14 +10,11 @@ import {
   Icon,
   IconName,
   IconSize,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
-
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
@@ -472,17 +469,18 @@ const CardAuthentication = () => {
       step === 'otp' ? (
         <>
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('card.card_otp_authentication.confirm_button')}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={() => performLogin(confirmCode)}
-            loading={loading}
+            isLoading={loading}
             isDisabled={
               loading || !confirmCode || confirmCode.length < CODE_LENGTH
             }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID="otp-confirm-button"
-          />
+          >
+            {strings('card.card_otp_authentication.confirm_button')}
+          </Button>
           <TouchableOpacity
             onPress={handleBackToLogin}
             testID="otp-back-to-login-button"
@@ -509,15 +507,16 @@ const CardAuthentication = () => {
           )}
           <Box>
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_authentication.login_button')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               testID={CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON}
               onPress={() => performLogin()}
-              loading={loading}
-              width={ButtonWidthTypes.Full}
+              isLoading={loading}
+              isFullWidth
               isDisabled={isLoginDisabled || loading}
-            />
+            >
+              {strings('card.card_authentication.login_button')}
+            </Button>
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
             >

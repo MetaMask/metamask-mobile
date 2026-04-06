@@ -58,6 +58,7 @@ import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
+  MarketInsightsEntryCardSkeleton,
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
@@ -202,7 +203,16 @@ export interface AssetOverviewContentProps {
   stakedTrxAsset?: TokenI;
   inLockPeriodBalance?: string;
   readyForWithdrawalBalance?: string;
-  onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+  /**
+   * Stable callback from TokenDetails route wrapper. Payload includes
+   * `severity` from `securityData?.resultType` so the parent callback identity
+   * does not change when security loads (avoids market-insights effect loops).
+   */
+  onMarketInsightsDisplayResolved?: (params: {
+    isDisplayed: boolean;
+    severity: string | undefined;
+  }) => void;
+  onMarketInsightsDisclaimerPress?: () => void;
 
   // Security & Trust
   /** Resolved security data owned by the parent (TokenDetails). */
@@ -250,6 +260,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   inLockPeriodBalance,
   readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
+  onMarketInsightsDisclaimerPress,
   securityData,
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
@@ -480,8 +491,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   useEffect(() => {
+    const severity = securityData?.resultType;
     if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved?.(false);
+      onMarketInsightsDisplayResolved?.({ isDisplayed: false, severity });
       return;
     }
     if (isMarketInsightsLoading) {
@@ -494,13 +506,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         id: marketInsightsCaip19Id,
       });
     }
-    onMarketInsightsDisplayResolved?.(Boolean(marketInsightsReport));
+    onMarketInsightsDisplayResolved?.({
+      isDisplayed: Boolean(marketInsightsReport),
+      severity,
+    });
   }, [
     onMarketInsightsDisplayResolved,
     isMarketInsightsEnabled,
     isMarketInsightsLoading,
     marketInsightsReport,
     marketInsightsCaip19Id,
+    securityData?.resultType,
   ]);
 
   // Start the entry card trace synchronously during render so it is registered
@@ -540,6 +556,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,
+          ...(marketInsightsReport && {
+            asset_symbol: marketInsightsReport.asset,
+            digest_id: marketInsightsReport.digestId,
+          }),
         })
         .build();
       trackEvent(event);
@@ -566,6 +586,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     createEventBuilder,
     token.symbol,
     marketInsightsCaip19Id,
+    marketInsightsReport,
     token.image,
     token.logo,
     token.address,
@@ -634,6 +655,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
     });
   };
+
+  const shouldShowMarketInsights =
+    isMarketInsightsEnabled &&
+    Boolean(marketInsightsCaip19Id) &&
+    (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
@@ -836,6 +862,22 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
+          {shouldShowMarketInsights ? (
+            <View style={styles.marketInsightsWrapper}>
+              {marketInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={marketInsightsReport}
+                  timeAgo={marketInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  onDisclaimerPress={onMarketInsightsDisclaimerPress}
+                  caip19Id={marketInsightsCaip19Id ?? undefined}
+                  testID="market-insights-entry-card"
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
+            </View>
+          ) : null}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />
@@ -922,19 +964,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           )}
-          {isMarketInsightsEnabled &&
-          marketInsightsReport &&
-          marketInsightsCaip19Id ? (
-            <View style={styles.marketInsightsWrapper}>
-              <MarketInsightsEntryCard
-                report={marketInsightsReport}
-                timeAgo={marketInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                caip19Id={marketInsightsCaip19Id}
-                testID="market-insights-entry-card"
-              />
-            </View>
-          ) : null}
           {showPerpsSection && !perpsPosition && marketData && (
             <PerpsDiscoveryBanner
               symbol={marketData.symbol}

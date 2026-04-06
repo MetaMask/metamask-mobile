@@ -31,6 +31,7 @@ const mockUsePerpsPositionForAsset = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
+  MarketInsightsEntryCardSkeleton: () => null,
   MarketInsightsEntryCard: ({
     onPress,
     testID,
@@ -202,6 +203,7 @@ const createMockSecurityData = (
 
 const defaultMarketInsightsResult = {
   report: {
+    digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
     asset: 'eth',
     generatedAt: '2026-02-17T11:55:00.000Z',
     headline: 'ETH outlook stays positive',
@@ -352,6 +354,8 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        asset_symbol: 'eth',
+        digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({
         category: 'market-insights-opened',
@@ -370,7 +374,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
 
     it('does not resolve market insights display while market insights is loading', () => {
@@ -403,7 +410,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(true);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: true,
+        severity: undefined,
+      });
     });
 
     it('resolves market insights display as false when report is unavailable after loading', () => {
@@ -422,7 +432,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+      expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
+        isDisplayed: false,
+        severity: undefined,
+      });
     });
   });
 

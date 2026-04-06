@@ -6,10 +6,8 @@ import { AllowanceState, CardTokenAllowance } from '../types';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
 import Engine from '../../../../core/Engine';
 import { balanceToFiatNumber } from '../../../../util/number';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -17,6 +15,7 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import { CARD_CHAIN_IDS } from '../constants';
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
@@ -86,14 +85,8 @@ export const useAssetBalances = (
 ): Map<string, AssetBalanceInfo> => {
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
-  const chainIds = [
-    CHAIN_IDS.LINEA_MAINNET,
-    SOLANA_MAINNET.chainId,
-    CHAIN_IDS.BASE,
-  ];
-
   const tokensWithBalance = useTokensWithBalance({
-    chainIds,
+    chainIds: CARD_CHAIN_IDS,
   });
 
   // Get raw state needed for asset lookups - these are stable references from Redux

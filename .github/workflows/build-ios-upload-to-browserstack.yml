@@ -253,14 +253,12 @@ jobs:
             exit 1
           fi
           
-          # Set environment variables for without-SRP build
-          ENV_VARS='[
-            {
-              "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
-              "value": "true", 
-              "is_expand": true
-            }
-          ]'
+          # Without-SRP build: seedless / BrowserStack perf onboarding (E2E_MOCK_OAUTH).
+          # Optional E2E_MOCK_OAUTH_EMAIL overrides request email_id (default newuser+e2e@web3auth.io).
+          ENV_VARS=$(jq -n \
+            --arg byoa "${{ secrets.E2E_BYOA_AUTH_SECRET }}" \
+            --arg email "${{ secrets.E2E_MOCK_OAUTH_EMAIL }}" \
+            '[{"mapped_to":"DISABLE_NOTIFICATION_PROMPT","value":"true","is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH","value":"true","is_expand":true},{"mapped_to":"E2E_BYOA_AUTH_SECRET","value":$byoa,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EMAIL","value":$email,"is_expand":true}]')
           CUSTOM_ID="MetaMask-iOS-Without-SRP-${{ github.run_id }}"
           
           # Trigger iOS workflow

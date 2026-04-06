@@ -284,7 +284,7 @@ describe('useTransakRouting', () => {
         'test-ott',
         mockQuote,
         MOCK_WALLET_ADDRESS,
-        expect.any(Object),
+        { theme: 'light' },
       );
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -482,10 +482,7 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
+        await result.current.routeAfterAuthentication(mockQuote as never, 25);
       });
 
       expect(mockReset).toHaveBeenCalledWith(
@@ -494,7 +491,7 @@ describe('useTransakRouting', () => {
           routes: [
             expect.objectContaining({
               name: 'RampAmountInput',
-              params: { amount: mockQuote.fiatAmount },
+              params: { amount: 25 },
             }),
             expect.objectContaining({
               name: 'RampAdditionalVerification',
@@ -502,6 +499,56 @@ describe('useTransakRouting', () => {
                 quote: mockQuote,
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
+                amount: 25,
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('handles ADDITIONAL_FORMS_REQUIRED with IDPROOF when user amount is omitted', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'https://kyc.example.com',
+              workFlowRunId: 'wf-123',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never);
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: undefined },
+            }),
+            expect.objectContaining({
+              name: 'RampAdditionalVerification',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                kycUrl: 'https://kyc.example.com',
+                workFlowRunId: 'wf-123',
+                amount: undefined,
               }),
             }),
           ],

@@ -489,15 +489,20 @@ describe('PerpsTPSLView', () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        '3150.00',
+        '2850.00',
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('calls onConfirm with undefined when values are empty', async () => {
@@ -510,15 +515,20 @@ describe('PerpsTPSLView', () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('dismisses keypad before confirming when input is focused', async () => {

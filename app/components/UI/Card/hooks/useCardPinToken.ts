@@ -34,7 +34,11 @@ const useCardPinToken = (): UseCardPinTokenResult => {
     [theme.themeAppearance],
   );
 
-  const { mutateAsync, isPending, error, data, reset } = useMutation({
+  const { mutateAsync, isPending, error, data, reset } = useMutation<
+    CardPinTokenResponse,
+    Error,
+    { customCss: typeof customCss }
+  >({
     mutationKey: cardQueries.pin.keys.token(),
     mutationFn: cardQueries.pin.tokenMutationFn(sdk),
   });

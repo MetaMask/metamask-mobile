@@ -114,6 +114,7 @@ describe('CollectibleModal', () => {
       state: mockInitialState,
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- false positive: '#6904' is the NFT token ID text, not a color literal
     expect(await findAllByText('#6904')).toBeDefined();
     expect(await findAllByText('Leopard')).toBeDefined();
   });

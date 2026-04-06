@@ -109,6 +109,19 @@ export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   },
 });
 
+/**
+ * Disables the full-screen Predict / Polymarket GTM onboarding shown after reaching wallet home.
+ * Production remote-flag defaults enable this; `selectPredictGtmOnboardingModalEnabledFlag` prefers
+ * the remote value over `MM_PREDICT_GTM_MODAL_ENABLED`, so E2E tests should merge this into
+ * {@link setupRemoteFeatureFlagsMock} when the modal would block flows.
+ */
+export const remoteFeaturePredictGtmOnboardingModalDisabled = () => ({
+  predictGtmOnboardingModalEnabled: {
+    enabled: false,
+    minimumVersion: '7.60.0',
+  },
+});
+
 export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   predictEnabled: enabled,
   predictTradingEnabled: {

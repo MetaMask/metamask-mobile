@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { brandColor } from '@metamask/design-tokens';
 
 // External dependencies
 import { ThemeContext } from '../../../util/theme';
@@ -7,7 +8,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 // Internal dependencies
 import ThemeProvider from './ThemeProvider';
-import { brandColor } from '@metamask/design-tokens';
 
 describe('ThemeProvider', () => {
   it('renders children correctly', () => {

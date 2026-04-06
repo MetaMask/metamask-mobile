@@ -21,7 +21,9 @@ import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import {
   PERPS_CONSTANTS,
+  parseCommaSeparatedString,
   type PerpsPlatformDependencies,
+  type PerpsControllerConfig,
   type PerpsMetrics,
   type PerpsTraceName,
   type PerpsTraceValue,
@@ -151,6 +153,44 @@ function createCacheInvalidatorAdapter() {
     },
     invalidateAll(): void {
       PerpsCacheInvalidator.invalidateAll();
+    },
+  };
+}
+
+/**
+ * Creates mobile-specific client config from environment variables.
+ * Centralizes all process.env reads so the Engine init file stays pure wiring.
+ */
+export function createMobileClientConfig(): PerpsControllerConfig {
+  return {
+    fallbackBlockedRegions: parseCommaSeparatedString(
+      process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
+    ),
+    fallbackHip3Enabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
+    fallbackHip3AllowlistMarkets: parseCommaSeparatedString(
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? '',
+    ),
+    fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
+    ),
+    providerCredentials: {
+      hyperliquid: {
+        builderAddressTestnet:
+          process.env.MM_PERPS_HL_BUILDER_ADDRESS_TESTNET ?? '',
+        builderAddressMainnet:
+          process.env.MM_PERPS_HL_BUILDER_ADDRESS_MAINNET ?? '',
+      },
+      myx: {
+        enabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
+        appIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
+        apiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
+        brokerAddressTestnet:
+          process.env.MM_PERPS_MYX_BROKER_ADDRESS_TESTNET ?? '',
+        appIdMainnet: process.env.MM_PERPS_MYX_APP_ID_MAINNET ?? '',
+        apiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
+        brokerAddressMainnet:
+          process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
+      },
     },
   };
 }

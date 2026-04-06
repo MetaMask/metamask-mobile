@@ -58,6 +58,7 @@ import {
   CashbackWithdrawRequest,
   CashbackWithdrawResponse,
   CashbackWithdrawEstimationResponse,
+  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
@@ -98,20 +99,9 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[cardNetworkInfos.linea.caipChainId]
-        ?.enabled || false
-    );
-  }
-
   getSupportedTokensByChainId(
     caipChainId: CaipChainId = 'eip155:59144',
   ): SupportedToken[] {
-    if (!this.isCardEnabled) {
-      return [];
-    }
-
     const tokens = this.cardFeatureFlag.chains?.[caipChainId]?.tokens;
 
     if (!tokens) {
@@ -360,8 +350,8 @@ export class CardSDK {
   isCardHolder = async (
     accounts: `${string}:${string}:${string}`[],
   ): Promise<`${string}:${string}:${string}`[]> => {
-    // Early return for invalid input or disabled feature
-    if (!this.isCardEnabled || !accounts?.length) {
+    // Early return for invalid input
+    if (!accounts?.length) {
       return [];
     }
 
@@ -475,10 +465,6 @@ export class CardSDK {
       globalAllowance: ethers.BigNumber;
     }[]
   > => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     const supportedTokensAddresses = this.getSupportedTokensByChainId()
       .map((token) => token.address)
       // Ensure all addresses are valid Ethereum addresses
@@ -536,10 +522,6 @@ export class CardSDK {
     address: string,
     nonZeroBalanceTokens: string[],
   ): Promise<CardToken | null> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
       this.logDebugInfo('getPriorityToken (Simple Case 1)', {
@@ -1235,6 +1217,10 @@ export class CardSDK {
             delegationSettings,
           );
 
+        if (!tokenDetails) {
+          return null;
+        }
+
         const caipChainId = (() => {
           if (networkLower === 'solana') {
             return cardNetworkInfos.solana.caipChainId;
@@ -1461,10 +1447,6 @@ export class CardSDK {
   updateWalletPriority = async (
     wallets: { id: number; priority: number }[],
   ): Promise<void> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     this.logDebugInfo('updateWalletPriority', { wallets });
 
     const requestBody = { wallets };
@@ -1538,66 +1520,81 @@ export class CardSDK {
   };
 
   /**
-   * Complete EVM wallet delegation for spending limit increase
-   * This is Step 3 of the delegation process (after user completes blockchain transaction)
+   * Complete wallet delegation for spending limit increase.
+   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
+   * Routes to the EVM or Solana endpoint based on params.network.
    */
-  completeEVMDelegation = async (params: {
-    address: string;
-    network: CardNetwork;
-    currency: string;
-    amount: string;
-    txHash: string;
-    sigHash: string;
-    sigMessage: string;
-    token: string;
-  }): Promise<{ success: boolean }> => {
-    // Validate address format (must be valid Ethereum address)
-    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!addressRegex.test(params.address)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Ethereum address format',
-      );
+  completeDelegation = async (
+    params: DelegationPostApprovalParams,
+  ): Promise<{ success: boolean }> => {
+    const isSolana = params.network === 'solana';
+
+    if (isSolana) {
+      // Validate Solana address format (Base58, 32-44 characters)
+      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+      if (!solanaAddressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana address format',
+        );
+      }
+
+      // Validate Solana transaction signature format (Base58, 87-88 characters)
+      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+      if (!solanaTxHashRegex.test(params.txHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana transaction signature format',
+        );
+      }
+    } else {
+      // Validate EVM address format
+      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!addressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Ethereum address format',
+        );
+      }
+
+      // Validate EVM signature format
+      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
+      if (!sigHashRegex.test(params.sigHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid signature format',
+        );
+      }
+
+      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
+        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
+      }
     }
 
-    // Validate signature format (must be valid EVM signature)
-    const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-    if (!sigHashRegex.test(params.sigHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid signature format',
-      );
-    }
+    const endpointSuffix = isSolana ? 'solana' : 'evm';
+    const endpoint = `delegation/${endpointSuffix}/post-approval`;
 
-    // Validate network
-    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-    }
-
-    const response = await this.makeRequest(
-      '/v1/delegation/evm/post-approval',
-      {
-        fetchOptions: {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-        authenticated: true,
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify(params),
       },
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
         CardErrorType.SERVER_ERROR,
         'Failed to complete delegation. Please try again.',
-        'completeEVMDelegation',
-        'delegation/evm/post-approval',
+        'completeDelegation',
+        endpoint,
         response.status,
         { network: params.network, currency: params.currency },
       );
     }
 
     const result = await response.json();
-    this.logDebugInfo('completeEVMDelegation', result);
+    this.logDebugInfo('completeDelegation', result);
 
     return result;
   };
@@ -2427,15 +2424,10 @@ export class CardSDK {
    * Google Wallet provisioning flow:
    * 1. Card provider returns opaquePaymentCard (OPC)
    *
-   * @param params - The Google Wallet provisioning request parameters
-   * @returns Promise resolving to the provisioning response with encrypted opaque payment card
+   * @returns Promise resolving to the opaque payment card string
    * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
    */
   createGoogleWalletProvisioningRequest = async (): Promise<{
-    cardNetwork: string;
-    lastFourDigits: string;
-    cardholderName: string;
-    cardDescription?: string;
     opaquePaymentCard: string;
   }> => {
     const endpoint = 'card/wallet/provision/google';
@@ -2468,12 +2460,6 @@ export class CardSDK {
     const responseData = (await response.json()) as {
       success: boolean;
       data?: {
-        cardNetwork?: string;
-        lastFourDigits?: string;
-        panLast4?: string;
-        cardholderName?: string;
-        holderName?: string;
-        cardDescription?: string;
         opaquePaymentCard?: string;
       };
     };
@@ -2487,14 +2473,8 @@ export class CardSDK {
       );
     }
 
-    const data = responseData.data;
-
     return {
-      cardNetwork: data.cardNetwork || 'MASTERCARD',
-      lastFourDigits: data.lastFourDigits || data.panLast4 || '',
-      cardholderName: data.cardholderName || data.holderName || '',
-      cardDescription: data.cardDescription,
-      opaquePaymentCard: data.opaquePaymentCard as string,
+      opaquePaymentCard: responseData.data.opaquePaymentCard,
     };
   };
 

@@ -25,6 +25,7 @@ const mockRefetch = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn().mockReturnValue({
     data: undefined,
+    isFetching: false,
     isLoading: false,
     error: null,
     refetch: jest.fn(),
@@ -63,6 +64,7 @@ describe('useCardDetails', () => {
 
     (useQuery as jest.Mock).mockReturnValue({
       data: undefined,
+      isFetching: false,
       isLoading: false,
       error: null,
       refetch: mockRefetch,
@@ -90,6 +92,7 @@ describe('useCardDetails', () => {
       };
       (useQuery as jest.Mock).mockReturnValue({
         data: cardDetailsResult,
+        isFetching: false,
         isLoading: false,
         error: null,
         refetch: mockRefetch,
@@ -106,6 +109,7 @@ describe('useCardDetails', () => {
     it('returns loading state from useQuery', () => {
       (useQuery as jest.Mock).mockReturnValue({
         data: undefined,
+        isFetching: true,
         isLoading: true,
         error: null,
         refetch: mockRefetch,
@@ -141,6 +145,7 @@ describe('useCardDetails', () => {
       const mockError = new Error('Test error');
       (useQuery as jest.Mock).mockReturnValue({
         data: undefined,
+        isFetching: false,
         isLoading: false,
         error: mockError,
         refetch: mockRefetch,
