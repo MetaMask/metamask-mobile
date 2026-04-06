@@ -2795,6 +2795,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  googleLoginIosUnsupportedBlockingEnabled: {
+    name: 'googleLoginIosUnsupportedBlockingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   homepageRedesignV1: {
     name: 'homepageRedesignV1',
     type: FeatureFlagType.Remote,
@@ -2822,14 +2830,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
-  googleLoginIosUnsupportedBlockingEnabled: {
-    name: 'googleLoginIosUnsupportedBlockingEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
