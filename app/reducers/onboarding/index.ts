@@ -10,6 +10,7 @@ import {
   SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
+  SET_IOS_GOOGLE_WARNING_SHEET_PROMPTED,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -28,12 +29,17 @@ export interface OnboardingState {
     clientId: string;
     authConnection: AuthConnection;
   };
+
+  iosGoogleWarningSheetPrompted: boolean;
 }
 
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
   pendingSocialLoginMarketingConsentBackfill: null,
+
+  // used to track if the iOS Google warning sheet has been prompted
+  iosGoogleWarningSheetPrompted: false,
 };
 
 /**
@@ -90,6 +96,11 @@ const onboardingReducer = (
       return {
         ...state,
         seedlessOnboarding: undefined,
+      };
+    case SET_IOS_GOOGLE_WARNING_SHEET_PROMPTED:
+      return {
+        ...state,
+        iosGoogleWarningSheetPrompted: action.iosGoogleWarningSheetPrompted,
       };
     default:
       return state;

@@ -18,3 +18,8 @@ export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
   (onboardingState) =>
     onboardingState?.pendingSocialLoginMarketingConsentBackfill ?? null,
 );
+
+export const selectOnboardingIosGoogleWarningSheetPrompted = createSelector(
+  selectOnboarding,
+  (onboardingState) => onboardingState.iosGoogleWarningSheetPrompted,
+);
