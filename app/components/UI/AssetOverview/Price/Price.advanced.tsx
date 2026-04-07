@@ -207,14 +207,24 @@ const PriceAdvanced = ({
     ohlcvData,
     isLoading: chartLoading,
     error: chartError,
-    fetchMoreHistory,
     hasMore,
+    nextCursor,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
     interval: config.interval,
     vsCurrency: currentCurrency,
   });
+
+  const ohlcvPagination = useMemo(
+    () => ({
+      nextCursor,
+      hasMore,
+      assetId,
+      vsCurrency: currentCurrency,
+    }),
+    [nextCursor, hasMore, assetId, currentCurrency],
+  );
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -335,8 +345,7 @@ const PriceAdvanced = ({
               indicators={EMPTY_INDICATORS}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
-              ohlcvHasMoreHistory={hasMore}
-              onRequestMoreHistory={fetchMoreHistory}
+              ohlcvPagination={ohlcvPagination}
               onCrosshairMove={handleCrosshairMove}
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}
