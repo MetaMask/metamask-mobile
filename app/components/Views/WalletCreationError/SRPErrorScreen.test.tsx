@@ -167,6 +167,7 @@ describe('SRPErrorScreen', () => {
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
+          name: 'Wallet Creation Error Support Clicked',
           properties: expect.objectContaining({
             flow_type: 'srp',
           }),

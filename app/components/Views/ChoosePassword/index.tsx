@@ -244,7 +244,7 @@ const ChoosePassword = () => {
     const canSubmit = isSocialLogin
       ? passwordsMatch
       : passwordsMatch && isSelected;
-    const walletSetupType = isSocialLogin ? AccountType.Social : 'new';
+    const walletSetupType = isSocialLogin ? 'social' : 'new';
 
     if (loading) return { valid: false, shouldTrack: false };
 
