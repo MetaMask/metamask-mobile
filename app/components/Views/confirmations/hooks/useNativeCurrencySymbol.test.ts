@@ -17,10 +17,11 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const renderWithMock = ({
   chainId,
   mockGetAllMultichainNetworkConfigurations = {
-    'eip155:1': { nativeCurrency: 'FOO' },
-    'eip155:2': { nativeCurrency: 'BAR' },
-    'eip155:4217': { nativeCurrency: 'USD' },
-    'eip155:42431': { nativeCurrency: 'USD' },
+    '0x1': { nativeCurrency: 'FOO' },
+    '0x2': { nativeCurrency: 'BAR' },
+    '0x1079': { nativeCurrency: 'USD' }, // Tempo Mainnet
+    '0xa5bf': { nativeCurrency: 'USD' }, // Tempo Testnet Moderato
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { nativeCurrency: 'MEME' },
   },
 }: {
   chainId?: Hex | CaipChainId;
@@ -57,14 +58,11 @@ describe('useNativeCurrencySymbol', () => {
     expect(result.current).toEqual({ nativeCurrencySymbol: 'ETH' });
   });
 
-  it('returns FOO when network is found in map using CAIP chainId', () => {
-    const { result } = renderWithMock({ chainId: 'eip155:1' });
-    expect(result.current).toEqual({ nativeCurrencySymbol: 'FOO' });
-  });
-
-  it('returns BAR when network is found in map using CAIP chainId', () => {
-    const { result } = renderWithMock({ chainId: 'eip155:2' });
-    expect(result.current).toEqual({ nativeCurrencySymbol: 'BAR' });
+  it('returns MEME when network is found in map using CAIP chainId', () => {
+    const { result } = renderWithMock({
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
+    expect(result.current).toEqual({ nativeCurrencySymbol: 'MEME' });
   });
 
   it('returns ETH when network is missing from map using CAIP chainId', () => {
@@ -75,16 +73,6 @@ describe('useNativeCurrencySymbol', () => {
   it('returns ETH when chainId is undefined', () => {
     const { result } = renderWithMock({ chainId: undefined });
     expect(result.current).toEqual({ nativeCurrencySymbol: 'ETH' });
-  });
-
-  it('returns pathUSD when chainId is CAIP Tempo Mainnet chainId', () => {
-    const { result } = renderWithMock({ chainId: 'eip155:4217' });
-    expect(result.current).toEqual({ nativeCurrencySymbol: 'pathUSD' });
-  });
-
-  it('returns pathUSD when chainId is CAIP Tempo Testnet chainId', () => {
-    const { result } = renderWithMock({ chainId: 'eip155:42431' });
-    expect(result.current).toEqual({ nativeCurrencySymbol: 'pathUSD' });
   });
 
   it('returns pathUSD when chainId is Hex Tempo Mainnet chainId', () => {

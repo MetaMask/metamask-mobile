@@ -17,7 +17,9 @@ const currencySymbolOverrides: {
  * - "Multichain" compatibility (non-EVM included).
  * - Allowing overrides so we display a given native token regardless of user local config.
  *
- * @param chainId - chainId, either in Hex format (0x1079) or Caip format (slip155:4217).
+ * @param chainId - chainId, either in Hex format (0x1079) or Caip format (solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp).
+ * Note that Caip is always used for "non-EVM" chains and EVM will be called with the Hex version.
+ * Overrides are stored as CAIP to ensure agnosticity of the format.
  * @returns the native symbol to be displayed to the user for that chain.
  */
 export const useNativeCurrencySymbol = (chainId?: Hex | CaipChainId) => {
@@ -33,7 +35,7 @@ export const useNativeCurrencySymbol = (chainId?: Hex | CaipChainId) => {
     ) as CaipChainId;
     const nativeCurrencySymbol =
       currencySymbolOverrides[caipChainId] ??
-      networkConfigurations[caipChainId]?.nativeCurrency ??
+      networkConfigurations[chainId]?.nativeCurrency ??
       'ETH';
     return { nativeCurrencySymbol };
   }, [chainId, networkConfigurations]);
