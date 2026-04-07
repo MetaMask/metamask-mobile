@@ -29,7 +29,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64@sha256:ca68374c816e093262687a92ac08933b803b75461400030b5ab8c3e6f4af69f3-lg # Optimized for lg runner (48GB) with conservative memory settings
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg # Optimized for lg runner (48GB) with conservative memory settings
     timeout-minutes: 40
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
@@ -64,7 +64,7 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
-
+          
       - name: Restore .metamask folder
         id: restore-metamask
         uses: actions/cache@v4
