@@ -1,5 +1,5 @@
 import type { EventEmitter } from 'events';
-import type I18n from 'react-native-i18n';
+import type I18nType from 'react-native-i18n';
 import type en from './languages/en.json';
 
 type TranslationPrimitive = string | number | boolean | null | undefined;
@@ -44,4 +44,5 @@ export function strings<TKey extends TranslationKey>(
 ): string;
 export function strings(name: string, params?: TranslationParams): string;
 
+declare const I18n: typeof I18nType;
 export default I18n;
