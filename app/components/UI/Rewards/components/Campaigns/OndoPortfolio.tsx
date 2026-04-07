@@ -154,6 +154,7 @@ interface OndoPortfolioProps {
   refetch: () => Promise<void>;
   campaignId: string;
   onOpenAccountPicker: (config: AccountPickerConfig) => void;
+  isCampaignComplete?: boolean;
 }
 
 const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
@@ -397,50 +398,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
   return (
     <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.CONTAINER}>
-      {/* Section header */}
-      <TouchableOpacity
-        onPress={
-          grouped.length > 0
-            ? () => {
-                navigation.navigate(
-                  Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
-                  { mode: 'open_position', campaignId },
-                );
-              }
-            : undefined
-        }
-        activeOpacity={grouped.length > 0 ? 0.7 : 1}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 gap-2"
-        >
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_portfolio.title')}
-          </Text>
-          {grouped.length > 0 && (
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
-            />
-          )}
-          {portfolio.computedAt && portfolio.positions.length > 0 && (
-            <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {strings('rewards.ondo_campaign_portfolio.updated_at', {
-                  time: formatComputedAt(portfolio.computedAt),
-                })}
-              </Text>
-            </Box>
-          )}
-        </Box>
-      </TouchableOpacity>
-
       {/* Positions */}
       <Box twClassName="gap-3">
         {grouped.map((row) => {

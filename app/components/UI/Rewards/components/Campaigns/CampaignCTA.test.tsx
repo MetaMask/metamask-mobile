@@ -56,7 +56,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
       'rewards.campaign_details.open_position': 'Open Position',
-      'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
+
       'rewards.campaign_details.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.entries_closed_description':
         'You missed the opt-in window',
@@ -254,7 +254,7 @@ describe('CampaignCTA', () => {
   });
 
   describe('opted in, with portfolio positions', () => {
-    it('renders the "Swap Ondo Assets" button', () => {
+    it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
         <CampaignCTA
           campaign={buildCampaign()}
@@ -265,10 +265,10 @@ describe('CampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Swap Ondo Assets')).toBeOnTheScreen();
+      expect(getByText('Open Position')).toBeOnTheScreen();
     });
 
-    it('navigates to RWA tokens view when pressed', () => {
+    it('navigates to RWA asset selector in swap mode when pressed', () => {
       const { getByTestId } = render(
         <CampaignCTA
           campaign={buildCampaign()}
@@ -280,7 +280,8 @@ describe('CampaignCTA', () => {
 
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+        Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+        { mode: 'swap', campaignId: 'campaign-1' },
       );
     });
   });

@@ -602,17 +602,6 @@ describe('OndoPortfolio', () => {
       );
       expect(queryByText('—')).toBeNull();
     });
-
-    it('navigates to RWA selector when section header is pressed with positions', () => {
-      const { getByText } = render(
-        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} hasFetched />,
-      );
-      fireEvent.press(getByText('rewards.ondo_campaign_portfolio.title'));
-      // Navigation called without throwing — the title is still on screen
-      expect(
-        getByText('rewards.ondo_campaign_portfolio.title'),
-      ).toBeOnTheScreen();
-    });
   });
 
   describe('empty state CTA', () => {

@@ -56,8 +56,11 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
     });
   }, [navigation, campaignId]);
   const onSwapAssets = useCallback(() => {
-    navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never);
-  }, [navigation]);
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
+      mode: 'swap',
+      campaignId,
+    });
+  }, [navigation, campaignId]);
 
   const isActive =
     !participantStatus?.isLoading &&
@@ -136,7 +139,7 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
           onPress={onSwapAssets}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.swap_ondo_assets')}
+          {strings('rewards.campaign_details.open_position')}
         </Button>
       </Box>
     );

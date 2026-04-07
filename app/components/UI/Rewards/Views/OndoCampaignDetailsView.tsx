@@ -380,6 +380,27 @@ const OndoCampaignDetailsView: React.FC = () => {
                           )}
                         </Text>
                         <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                        {portfolioData?.computedAt &&
+                          portfolioData.positions.length > 0 && (
+                            <Box
+                              twClassName="flex-1"
+                              alignItems={BoxAlignItems.End}
+                            >
+                              <Text
+                                variant={TextVariant.BodyXs}
+                                color={TextColor.TextAlternative}
+                              >
+                                {strings(
+                                  'rewards.ondo_campaign_portfolio.updated_at',
+                                  {
+                                    time: formatComputedAt(
+                                      portfolioData.computedAt,
+                                    ),
+                                  },
+                                )}
+                              </Text>
+                            </Box>
+                          )}
                       </Box>
                     </Pressable>
                     <OndoPortfolio
