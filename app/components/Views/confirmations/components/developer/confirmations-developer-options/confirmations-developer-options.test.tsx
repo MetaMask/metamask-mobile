@@ -243,7 +243,7 @@ describe('ConfirmationsDeveloperOptions', () => {
           },
           {
             params: {
-              to: MOCK_POLYGON_USDCE,
+              to: MOCK_PROXY_ADDRESS,
               data: MOCK_TRANSFER_DATA,
             },
             type: TransactionType.moneyAccountDeposit,
@@ -316,7 +316,7 @@ describe('ConfirmationsDeveloperOptions', () => {
           },
           {
             params: {
-              to: MOCK_POLYGON_USDCE,
+              to: MOCK_PROXY_ADDRESS,
               data: MOCK_TRANSFER_DATA,
             },
             type: TransactionType.moneyAccountWithdraw,

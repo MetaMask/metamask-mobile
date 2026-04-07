@@ -301,6 +301,8 @@ const SELECTED_PAYMENT_METHOD = {
   id: '/payments/debit-credit-card',
   name: 'Debit/Credit Card',
   isManualBankTransfer: false,
+  paymentType: 'debit-credit-card',
+  icons: [] as const,
 };
 
 const USER_REGION = {

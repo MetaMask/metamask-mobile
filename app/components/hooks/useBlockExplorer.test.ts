@@ -295,6 +295,15 @@ describe('useBlockExplorer', () => {
       const url = getBlockExplorerUrl(address, hexChainId);
       expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
     });
+
+    it('resolves Polygon from decimal eip155 CAIP (same as getHexEvmChainId)', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      const url = getBlockExplorerUrl(address, 'eip155:137');
+      expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
+    });
   });
 
   describe('Built-in block explorer coverage', () => {
