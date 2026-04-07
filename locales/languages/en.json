@@ -8054,7 +8054,17 @@
       "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
       "empty_cta": "Open a position",
       "position_units": "{{units}} shares",
-      "positions_title": "Positions"
+      "positions_title": "Positions",
+      "switch_account_title": "Switch account",
+      "switch_account_sheet_prefix": "Accounts with",
+      "switch_account_sheet_description": "Choose which balance to swap"
+    },
+    "ondo_rwa_asset_selector": {
+      "title_swap": "Swap {{symbol}}",
+      "title_swap_prefix": "Swap",
+      "title_open_position": "Open Position",
+      "search_placeholder": "Search assets",
+      "no_results": "No assets found"
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",

@@ -56,7 +56,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
       'rewards.campaign_details.open_position': 'Open Position',
-      'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
+
       'rewards.campaign_details.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.entries_closed_description':
         'You missed the opt-in window',
@@ -82,6 +82,7 @@ function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
 
 const defaultProps = {
   hasPositions: false,
+  campaignId: 'campaign-1',
 };
 
 describe('CampaignCTA', () => {
@@ -219,6 +220,44 @@ describe('CampaignCTA', () => {
     });
   });
 
+  describe('opted in, past deposit cutoff, no positions', () => {
+    it('renders nothing when deposit cutoff has passed and user has no positions', () => {
+      const { queryByTestId } = render(
+        <CampaignCTA
+          campaign={buildCampaign({
+            details: {
+              howItWorks: { title: 'How', description: 'Desc', steps: [] },
+              depositCutoffDate: '2025-08-01T00:00:00.000Z',
+            },
+          })}
+          participantStatus={optedIn}
+          {...defaultProps}
+          hasPositions={false}
+        />,
+      );
+
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+    });
+
+    it('still renders swap button when deposit cutoff passed but user has positions', () => {
+      const { getByTestId } = render(
+        <CampaignCTA
+          campaign={buildCampaign({
+            details: {
+              howItWorks: { title: 'How', description: 'Desc', steps: [] },
+              depositCutoffDate: '2025-08-01T00:00:00.000Z',
+            },
+          })}
+          participantStatus={optedIn}
+          {...defaultProps}
+          hasPositions
+        />,
+      );
+
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
   describe('opted in, no portfolio positions', () => {
     it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
@@ -234,7 +273,7 @@ describe('CampaignCTA', () => {
       expect(getByText('Open Position')).toBeOnTheScreen();
     });
 
-    it('navigates to RWA tokens view when pressed', () => {
+    it('navigates to RWA asset selector view when pressed', () => {
       const { getByTestId } = render(
         <CampaignCTA
           campaign={buildCampaign()}
@@ -246,13 +285,14 @@ describe('CampaignCTA', () => {
 
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+        Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+        { mode: 'open_position', campaignId: 'campaign-1' },
       );
     });
   });
 
   describe('opted in, with portfolio positions', () => {
-    it('renders the "Swap Ondo Assets" button', () => {
+    it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
         <CampaignCTA
           campaign={buildCampaign()}
@@ -263,10 +303,10 @@ describe('CampaignCTA', () => {
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Swap Ondo Assets')).toBeOnTheScreen();
+      expect(getByText('Open Position')).toBeOnTheScreen();
     });
 
-    it('navigates to RWA tokens view when pressed', () => {
+    it('navigates to RWA asset selector in swap mode when pressed', () => {
       const { getByTestId } = render(
         <CampaignCTA
           campaign={buildCampaign()}
@@ -278,7 +318,8 @@ describe('CampaignCTA', () => {
 
       fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+        Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+        { mode: 'swap', campaignId: 'campaign-1' },
       );
     });
   });
