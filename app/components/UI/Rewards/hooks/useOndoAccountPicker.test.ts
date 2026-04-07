@@ -162,4 +162,54 @@ describe('useOndoAccountPicker', () => {
     const { result } = renderHook(() => useOndoAccountPicker(CAMPAIGN_ID));
     expect(result.current.sheetRef.current).toBeNull();
   });
+
+  describe('handleGroupSelect navigation', () => {
+    it('navigates and clears pendingPicker immediately when sheetRef is null', () => {
+      const { result } = renderHook(() => useOndoAccountPicker(CAMPAIGN_ID));
+
+      act(() => {
+        result.current.setPendingPicker(MOCK_PICKER);
+      });
+      act(() => {
+        result.current.handleGroupSelect(MOCK_GROUP);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RewardsOndoRwaAssetSelector',
+        expect.objectContaining({
+          mode: 'swap',
+          srcTokenAsset: MOCK_PICKER.row.tokenAsset,
+          srcTokenSymbol: MOCK_PICKER.row.tokenSymbol,
+          srcTokenName: MOCK_PICKER.row.tokenName,
+          srcTokenDecimals: MOCK_PICKER.tokenDecimals,
+          campaignId: CAMPAIGN_ID,
+        }),
+      );
+      expect(result.current.pendingPicker).toBeNull();
+    });
+
+    it('defers navigation via onCloseBottomSheet when sheetRef is set', () => {
+      const { result } = renderHook(() => useOndoAccountPicker(CAMPAIGN_ID));
+
+      const mockOnCloseBottomSheet = jest.fn((cb: () => void) => cb());
+      act(() => {
+        result.current.sheetRef.current = {
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        } as never;
+      });
+      act(() => {
+        result.current.setPendingPicker(MOCK_PICKER);
+      });
+      act(() => {
+        result.current.handleGroupSelect(MOCK_GROUP);
+      });
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RewardsOndoRwaAssetSelector',
+        expect.objectContaining({ mode: 'swap', campaignId: CAMPAIGN_ID }),
+      );
+      expect(result.current.pendingPicker).toBeNull();
+    });
+  });
 });

@@ -41,8 +41,8 @@ export const useOndoAccountPicker = (campaignId: string) => {
           })
           .build(),
       );
-      sheetRef.current?.onCloseBottomSheet(() => {
-        const { row, tokenDecimals } = pendingPicker;
+      const { row, tokenDecimals } = pendingPicker;
+      const afterClose = () => {
         setPendingPicker(null);
         navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
           mode: 'swap',
@@ -52,7 +52,12 @@ export const useOndoAccountPicker = (campaignId: string) => {
           srcTokenDecimals: tokenDecimals,
           campaignId,
         });
-      });
+      };
+      if (sheetRef.current) {
+        sheetRef.current.onCloseBottomSheet(afterClose);
+      } else {
+        afterClose();
+      }
     },
     [
       pendingPicker,
