@@ -39,15 +39,14 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-jest.mock('../../../../core/redux/slices/card', () => ({
-  ...jest.requireActual('../../../../core/redux/slices/card'),
-  selectIsAuthenticatedCard: jest.fn(),
+jest.mock('../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: jest.fn(),
 }));
 
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 
 const mockSelectAllTokenBalances =
   selectAllTokenBalances as jest.MockedFunction<typeof selectAllTokenBalances>;
@@ -56,8 +55,8 @@ const mockSelectSelectedInternalAccountByScope =
     typeof selectSelectedInternalAccountByScope
   >;
 const mockSelectIsAuthenticatedCard =
-  selectIsAuthenticatedCard as jest.MockedFunction<
-    typeof selectIsAuthenticatedCard
+  selectIsCardAuthenticated as jest.MockedFunction<
+    typeof selectIsCardAuthenticated
   >;
 
 jest.mock('../../../../util/Logger', () => ({
@@ -185,7 +184,7 @@ describe('useGetPriorityCardToken', () => {
       if (selector === selectSelectedInternalAccountByScope) {
         return mockAccountSelector;
       }
-      if (selector === selectIsAuthenticatedCard) {
+      if (selector === selectIsCardAuthenticated) {
         return false;
       }
 
@@ -296,7 +295,7 @@ describe('useGetPriorityCardToken', () => {
       if (selector === selectSelectedInternalAccountByScope) {
         return noAddressSelector;
       }
-      if (selector === selectIsAuthenticatedCard) {
+      if (selector === selectIsCardAuthenticated) {
         return false;
       }
 
@@ -583,7 +582,7 @@ describe('useGetPriorityCardToken', () => {
             return undefined;
           };
         }
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return false;
         }
 
@@ -675,7 +674,7 @@ describe('useGetPriorityCardToken', () => {
             return undefined;
           };
         }
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return false;
         }
 
@@ -777,7 +776,7 @@ describe('useGetPriorityCardToken', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return true;
         }
 
@@ -1164,7 +1163,7 @@ describe('useGetPriorityCardToken', () => {
         if (selector === selectSelectedInternalAccountByScope) {
           return mockAccountSelector;
         }
-        if (selector === selectIsAuthenticatedCard) {
+        if (selector === selectIsCardAuthenticated) {
           return false;
         }
 

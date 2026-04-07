@@ -65,7 +65,7 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
-export const MINIMUM_BET = 1; // $1 minimum bet
+import { MINIMUM_BET } from '../../constants/transactions';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();

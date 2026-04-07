@@ -240,7 +240,6 @@
     "import_wallet_button": "Sync or import wallet",
     "new_to_crypto": "New to crypto?",
     "start_exploring_now": "Create a new wallet",
-    "unlock": "Unlock",
     "new_to_metamask": "New to MetaMask?",
     "already_have_wallet": "Already have a wallet?",
     "optin_back_title": "Heads up!",
@@ -1191,7 +1190,15 @@
       "provider_fee": "Provider fee",
       "you_will_receive": "You receive",
       "continue": "Continue",
-      "funds_received": "{{amount}} {{symbol}} received"
+      "funds_received": "{{amount}} {{symbol}} received",
+      "toast_pending_title": "Withdrawal in progress",
+      "toast_pending_subtitle": "Available in about 1 minute",
+      "toast_completed_title": "Withdrawal complete",
+      "toast_completed_subtitle_generic": "Funds moved to your wallet",
+      "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
+      "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
+      "toast_error_title": "Something went wrong",
+      "toast_error_description": "Failed to proceed with withdrawal"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -2323,11 +2330,15 @@
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
+      "prediction_in_progress": "Prediction in progress",
+      "prediction_in_progress_description": "Your prediction will be placed shortly",
       "prediction_failed": "Failed to place prediction",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
       "no_funds_enough": "Not enough funds.",
+      "prediction_insufficient_funds_try_token": "Not enough funds. You can use up to {{amount}}, or try a different token.",
+      "no_funds_enough_try_token": "Not enough funds. Try a different token.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Please try again.",
@@ -2339,7 +2350,8 @@
       "try_again": "Try again",
       "view": "View",
       "yes_buy": "Yes, buy",
-      "yes_sell": "Yes, sell"
+      "yes_sell": "Yes, sell",
+      "predict_balance_first": "Your Predict balance will be used first"
     },
     "withdraw": {
       "withdrawing": "Withdrawal in progress",
@@ -3562,6 +3574,7 @@
     "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
+      "1h": "Past hour",
       "7d": "Past 7 days",
       "1w": "Past week",
       "1m": "Past month",
@@ -6520,7 +6533,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_deposit": "Add funds"
+      "money_account_deposit": "Add funds",
+      "money_account_withdraw": "Withdraw funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7175,7 +7189,9 @@
         "country_label": "Country of residence",
         "country_placeholder": "Select your country",
         "invalid_email": "Invalid email address",
-        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces."
+        "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
+        "join_waitlist": "Join waitlist",
+        "country_not_available": "Card sign-up isn't available in your country yet."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -7321,6 +7337,12 @@
       "confirm_button": "Confirm",
       "retry_button": "Try again",
       "close_button": "Got it",
+      "waitlist_form": {
+        "title": "Join waitlist",
+        "load_error": "Something went wrong loading the form. Please try again.",
+        "try_again": "Try again",
+        "success_toast": "You're on the waitlist! We'll let you know when the card is available in your country."
+      },
       "region_selector": {
         "title": "Select your Region"
       },
@@ -8293,7 +8315,6 @@
   "homepage": {
     "sections": {
       "cash": "Cash",
-
       "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
       "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",

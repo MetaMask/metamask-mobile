@@ -25,6 +25,14 @@ jest.mock('./useInsufficientPredictBalanceAlert', () => ({
   ],
 }));
 
+jest.mock('./useInsufficientPerpsBalanceAlert', () => ({
+  useInsufficientPerpsBalanceAlert: () => [
+    {
+      id: 'alert-5',
+    },
+  ],
+}));
+
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>
@@ -37,6 +45,7 @@ describe('usePendingAmountAlerts', () => {
         id: 'alert-3',
       },
       { id: 'alert-4' },
+      { id: 'alert-5' },
     ]);
   });
 });
