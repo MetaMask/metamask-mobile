@@ -119,6 +119,13 @@ const FoxLoader = ({
             'FoxLoader: forcing app reveal after timeout',
           );
         }
+        // Ensure the native splash is hidden even if onLoad never fired on the static fox image.
+        hideAsync().catch((error) =>
+          Logger.error(
+            error as Error,
+            'Failed to hide splash screen in timeout fallback',
+          ),
+        );
         // eslint-disable-next-line react-compiler/react-compiler
         animationComplete = true;
         isCompleteRef.current = true;
@@ -176,6 +183,13 @@ const FoxLoader = ({
             onError={() => {
               // Only bail out if Rive never started — runtime errors during playback are non-fatal
               if (!isCompleteRef.current && !isPlayingRef.current) {
+                // onLoad may not have fired if Rive errored before the image rendered
+                hideAsync().catch((error) =>
+                  Logger.error(
+                    error as Error,
+                    'Failed to hide splash screen on Rive error',
+                  ),
+                );
                 // eslint-disable-next-line react-compiler/react-compiler
                 animationComplete = true;
                 isCompleteRef.current = true;
