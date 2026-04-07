@@ -97,6 +97,13 @@ import { getSocialAccountType } from '../../../constants/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
+<<<<<<< HEAD
+=======
+import {
+  getSocialAccountType,
+  LoginType,
+} from '../../../constants/onboarding';
+>>>>>>> 9b9dd62ba0 (refactor(analytics): share onboarding login type values)
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -619,7 +626,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
         account_type: accountType,
-        login_type: 'global_password_update',
+        login_type: LoginType.GlobalPasswordUpdate,
         biometrics: biometryChoice,
       });
 
@@ -653,7 +660,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: accountType,
-        login_type: 'global_password_update',
+        login_type: LoginType.GlobalPasswordUpdate,
         biometrics: biometryChoice,
       });
 
@@ -695,7 +702,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {
-      login_type: 'seedless_rehydration',
+      login_type: LoginType.SeedlessRehydration,
     });
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
