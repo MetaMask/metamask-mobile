@@ -48,6 +48,9 @@ import {
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
 import NavigationService from '../NavigationService';
+import { MetaMetricsEvents } from '../Analytics';
+import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -478,6 +481,16 @@ export class WC2Manager {
             console.warn(
               `WC2::session_proposal lock timeout for id=${proposal.id}`,
             );
+            analytics.trackEvent(
+              AnalyticsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+              )
+                .addProperties({
+                  transport_type: 'walletconnect',
+                  failure_reason: 'proposal_lock_timeout',
+                })
+                .build(),
+            );
             resolve();
           }, PROPOSAL_LOCK_TIMEOUT_MS),
         ),
@@ -496,6 +509,16 @@ export class WC2Manager {
       return;
     }
     this.handledProposalIds.add(proposal.id);
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.REMOTE_CONNECT_REQUEST_RECEIVED,
+      )
+        .addProperties({
+          transport_type: 'walletconnect',
+        })
+        .build(),
+    );
 
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
@@ -564,6 +587,16 @@ export class WC2Manager {
     // Validate new session proposal URL without normalizing - reject if invalid.
     if (!isValidUrl(url)) {
       console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+        )
+          .addProperties({
+            transport_type: 'walletconnect',
+            failure_reason: 'invalid_url',
+          })
+          .build(),
+      );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -575,6 +608,16 @@ export class WC2Manager {
     // This is an external connection (WalletConnect), so block any internal origin
     if (INTERNAL_ORIGINS.includes(url)) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+        )
+          .addProperties({
+            transport_type: 'walletconnect',
+            failure_reason: 'internal_origin',
+          })
+          .build(),
+      );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -654,6 +697,16 @@ export class WC2Manager {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
         err,
       });
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+        )
+          .addProperties({
+            transport_type: 'walletconnect',
+            failure_reason: 'permission_request_failed',
+          })
+          .build(),
+      );
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -906,6 +959,16 @@ export class WC2Manager {
       console.warn(`Invalid wallet connect uri`, wcUri);
     } catch (err) {
       console.error(`Failed to connect uri=${wcUri}`, err);
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+        )
+          .addProperties({
+            transport_type: 'walletconnect',
+            failure_reason: 'pairing_failed',
+          })
+          .build(),
+      );
     }
   }
 }
