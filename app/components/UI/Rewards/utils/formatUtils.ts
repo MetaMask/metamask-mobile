@@ -116,49 +116,67 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
-export const formatDateRemaining = (endDate: Date | string): string | null => {
-  const start = new Date();
+/**
+ * Formats remaining time until `endDate` as `y` / `m` / `d` / `h` segments (UTC, calendar months).
+ * For long lists, pass one `now` (e.g. `Date.now()`) from the parent per render so each row does not allocate its own clock.
+ */
+export const formatDateRemaining = (
+  endDate: Date | string,
+  now?: Date | number,
+): string | null => {
+  const start = now !== undefined ? new Date(now) : new Date();
   const end = new Date(endDate);
 
   if (end <= start) return null;
 
-  const startY = start.getUTCFullYear();
-  const startM = start.getUTCMonth();
-  const startD = start.getUTCDate();
-  const startH = start.getUTCHours();
+  const getDaysInUtcMonth = (year: number, monthIndex: number): number =>
+    new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
 
-  let endY = end.getUTCFullYear();
-  let endM = end.getUTCMonth();
-  const endD = end.getUTCDate();
-  const endH = end.getUTCHours();
+  // Adds calendar months while clamping day to the target month length.
+  // Example: Jan 31 + 1 month => Feb 28/29.
+  const addUtcMonths = (date: Date, monthsToAdd: number): Date => {
+    const currentYear = date.getUTCFullYear();
+    const currentMonth = date.getUTCMonth();
+    const totalMonth = currentMonth + monthsToAdd;
+    const targetYear = currentYear + Math.floor(totalMonth / 12);
+    const targetMonth = ((totalMonth % 12) + 12) % 12;
+    const targetDay = Math.min(
+      date.getUTCDate(),
+      getDaysInUtcMonth(targetYear, targetMonth),
+    );
 
-  let year = endY - startY;
-  let month = endM - startM;
-  let day = endD - startD;
-  let hour = endH - startH;
+    return new Date(
+      Date.UTC(
+        targetYear,
+        targetMonth,
+        targetDay,
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds(),
+      ),
+    );
+  };
 
-  if (hour < 0) {
-    hour += 24;
-    day -= 1;
+  let cursor = new Date(start.getTime());
+  let year = 0;
+  let month = 0;
+
+  while (addUtcMonths(cursor, 12) <= end) {
+    cursor = addUtcMonths(cursor, 12);
+    year += 1;
   }
 
-  while (day < 0) {
-    endM -= 1;
-    if (endM < 0) {
-      endM = 11;
-      endY -= 1;
-    }
-    const daysInBorrowedMonth = new Date(
-      Date.UTC(endY, endM + 1, 0),
-    ).getUTCDate();
-    day += daysInBorrowedMonth;
-    month -= 1;
+  while (addUtcMonths(cursor, 1) <= end) {
+    cursor = addUtcMonths(cursor, 1);
+    month += 1;
   }
 
-  if (month < 0) {
-    month += 12;
-    year -= 1;
-  }
+  const remainingMs = end.getTime() - cursor.getTime();
+  const msInHour = 60 * 60 * 1000;
+  const msInDay = 24 * msInHour;
+  const day = Math.floor(remainingMs / msInDay);
+  const hour = Math.floor((remainingMs % msInDay) / msInHour);
 
   const yearTxt = year > 0 ? `${year}y` : '';
   const monthTxt = month > 0 ? `${month}m` : '';

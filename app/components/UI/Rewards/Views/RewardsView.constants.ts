@@ -69,6 +69,8 @@ export const REWARDS_VIEW_SELECTORS = {
   LIST_BENEFIT_VIEW: 'rewards-view-list-benefit-view',
   DETAIL_BENEFIT_VIEW: 'rewards-view-detail-benefit-view',
   DETAIL_BENEFIT_ACTION: 'rewards-view-detail-benefit-action',
+  BENEFIT_EMPTY_LIGHT_ICON: 'rewards-view-benefit-empty-light-icon',
+  BENEFIT_EMPTY_DARK_ICON: 'rewards-view-benefit-empty-dark-icon',
   // Earn rewards section
   EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
   EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',

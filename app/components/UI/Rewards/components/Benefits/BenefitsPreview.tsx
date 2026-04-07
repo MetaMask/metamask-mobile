@@ -70,6 +70,7 @@ const BenefitsPreview = () => {
   }, [hasBenefits, handleNavigateToBenefitsFullView]);
 
   const displayContent = useMemo(() => {
+    const now = Date.now();
     if (isLoading) {
       return <Skeleton style={tw.style('h-[154px] rounded-xl')} />;
     }
@@ -82,7 +83,7 @@ const BenefitsPreview = () => {
         testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
       >
         {topBenefits.map((benefit, i) => (
-          <BenefitCard key={i} benefit={benefit} />
+          <BenefitCard key={i} benefit={benefit} now={now} />
         ))}
       </Box>
     );

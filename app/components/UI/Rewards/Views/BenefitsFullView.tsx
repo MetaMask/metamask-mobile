@@ -1,5 +1,5 @@
 import { Text, TextVariant } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { useSelector } from 'react-redux';
@@ -36,9 +36,10 @@ const BenefitsFullView = () => {
   }, [getAllBenefits]);
 
   const hasBenefits = useMemo(() => benefits.length > 0, [benefits.length]);
+  const nowRef = useRef(Date.now());
 
   const renderBenefitItem: ListRenderItem<SubscriptionBenefitDto> = useCallback(
-    ({ item }) => <BenefitCard benefit={item} />,
+    ({ item }) => <BenefitCard benefit={item} now={nowRef.current} />,
     [],
   );
 

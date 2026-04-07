@@ -251,7 +251,7 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   subscriptionBenefits: {
-    includeInStateLogs: true,
+    includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
