@@ -61,9 +61,7 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
-import AccountSelector, {
-  AccountSelectorSkeleton,
-} from '../../AccountSelector';
+import AccountSelector from '../../AccountSelector';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
@@ -306,7 +304,6 @@ export function CustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </Box>
       <Box>
-        <AccountSelectorSkeleton />
         <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
       </Box>
