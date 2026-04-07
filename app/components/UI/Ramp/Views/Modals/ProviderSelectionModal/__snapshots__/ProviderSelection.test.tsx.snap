@@ -470,9 +470,8 @@ exports[`ProviderSelection filters out custom-action quotes when displaying prov
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -595,7 +594,6 @@ exports[`ProviderSelection filters out custom-action quotes when displaying prov
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             },
@@ -642,7 +640,6 @@ exports[`ProviderSelection filters out custom-action quotes when displaying prov
                                                 "color": "#66676a",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 14,
-                                                "fontWeight": 400,
                                                 "letterSpacing": 0,
                                                 "lineHeight": 22,
                                               },
@@ -1159,9 +1156,8 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1284,7 +1280,6 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             },
@@ -1800,9 +1795,8 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3094,9 +3088,8 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3176,7 +3169,6 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                       "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     },
@@ -3294,7 +3286,6 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             },
@@ -3810,9 +3801,8 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -3935,7 +3925,6 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
-                                              "fontWeight": 400,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             },

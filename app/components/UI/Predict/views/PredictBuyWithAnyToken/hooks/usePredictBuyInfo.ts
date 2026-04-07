@@ -1,7 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
@@ -23,7 +22,6 @@ export const usePredictBuyInfo = ({
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
-  const { data: predictBalance = 0 } = usePredictBalance();
 
   const [insufficientPayTokenBalanceAlert] =
     useInsufficientPayTokenBalanceAlert();
@@ -93,25 +91,11 @@ export const usePredictBuyInfo = ({
     ],
   );
 
-  const depositAmount = useMemo(() => {
-    const remainingAmount = new BigNumber(totalPayForPredictBalance)
-      .minus(predictBalance)
-      .decimalPlaces(2, BigNumber.ROUND_UP)
-      .toNumber();
-    if (remainingAmount <= 0) {
-      return new BigNumber(totalPayForPredictBalance)
-        .decimalPlaces(2, BigNumber.ROUND_UP)
-        .toNumber();
-    }
-    return remainingAmount;
-  }, [predictBalance, totalPayForPredictBalance]);
-
   return {
     toWin,
     metamaskFee,
     providerFee,
     depositFee,
-    depositAmount,
     total,
     rewardsFeeAmount,
     totalPayForPredictBalance,

@@ -467,7 +467,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1086,7 +1086,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
