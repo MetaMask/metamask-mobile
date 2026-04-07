@@ -34,6 +34,12 @@ describe('getTransactionTypeValue', () => {
     expect(getTransactionTypeValue(TransactionType.stakingUnstake)).toBe(
       'staking_unstake',
     );
+    expect(getTransactionTypeValue(TransactionType.perpsAcrossDeposit)).toBe(
+      'perps_across_deposit',
+    );
+    expect(getTransactionTypeValue(TransactionType.predictAcrossDeposit)).toBe(
+      'predict_across_deposit',
+    );
     expect(getTransactionTypeValue(TransactionType.swapAndSend)).toBe(
       'swap_and_send',
     );

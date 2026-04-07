@@ -22,8 +22,10 @@ import {
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-
-const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
+export {
+  getTokenAddress,
+  getTokenTransferData,
+} from '../../../../util/transactions/transaction-pay-token-transfer';
 
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
@@ -37,55 +39,6 @@ export function getRequiredBalance(
   }
 
   return undefined;
-}
-
-export function getTokenTransferData(
-  transactionMeta: TransactionMeta | undefined,
-):
-  | {
-      data: Hex;
-      to: Hex;
-      index?: number;
-    }
-  | undefined {
-  const { nestedTransactions, txParams } = transactionMeta ?? {};
-  const { data: singleData } = txParams ?? {};
-  const singleTo = txParams?.to as Hex | undefined;
-
-  if (singleData?.startsWith(FOUR_BYTE_TOKEN_TRANSFER) && singleTo) {
-    return { data: singleData as Hex, to: singleTo, index: undefined };
-  }
-
-  const nestedCallIndex = nestedTransactions?.findIndex((call) =>
-    call.data?.startsWith(FOUR_BYTE_TOKEN_TRANSFER),
-  );
-
-  const nestedCall =
-    nestedCallIndex !== undefined
-      ? nestedTransactions?.[nestedCallIndex]
-      : undefined;
-
-  if (nestedCall?.data && nestedCall.to) {
-    return {
-      data: nestedCall.data,
-      to: nestedCall.to,
-      index: nestedCallIndex,
-    };
-  }
-
-  return undefined;
-}
-
-export function getTokenAddress(
-  transactionMeta: TransactionMeta | undefined,
-): Hex {
-  const nestedCall = transactionMeta && getTokenTransferData(transactionMeta);
-
-  if (nestedCall) {
-    return nestedCall.to;
-  }
-
-  return transactionMeta?.txParams?.to as Hex;
 }
 
 export function getAvailableTokens({

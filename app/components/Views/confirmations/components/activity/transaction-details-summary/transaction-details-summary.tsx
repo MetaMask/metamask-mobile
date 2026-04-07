@@ -16,7 +16,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
-import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
+import { MM_PAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
 import { DepositSummaryLine } from './deposit-summary-line';
@@ -99,7 +99,7 @@ function SummaryLine({
   parentTransaction: TransactionMeta;
 }) {
   // Relay deposit types render as send lines
-  if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
+  if (hasTransactionType(transactionMeta, MM_PAY_DEPOSIT_TYPES)) {
     return (
       <DepositSummaryLine
         transactionMeta={transactionMeta}

@@ -58,10 +58,7 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  hasGasFeeTokenSelected,
-  hasTransactionType,
-} from '../../Views/confirmations/utils/transaction';
+import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   TRANSACTION_DETAIL_EVENTS,
@@ -157,7 +154,6 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
-  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -448,14 +444,13 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const withdrawChainId = hasTransactionType(this.props.tx, [
+    const predictWithdrawChainId = hasTransactionType(this.props.tx, [
       TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
     ])
       ? this.props.tx.metamaskPay?.chainId
       : undefined;
 
-    const chainId = perpsDepositChainId ?? withdrawChainId ?? txChainId;
+    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
 
     return (
       <BadgeWrapper
@@ -521,8 +516,7 @@ class TransactionElement extends PureComponent {
           !isQRHardwareAccount &&
           !isLedgerAccount)) &&
       !isSmartTransaction &&
-      !isBridgeTransaction &&
-      !hasGasFeeTokenSelected(tx);
+      !isBridgeTransaction;
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =

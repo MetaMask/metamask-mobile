@@ -14,23 +14,13 @@ import { store } from '../store';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 
 import Logger from '../util/Logger';
-import {
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
 import { hasTransactionType } from '../components/Views/confirmations/utils/transaction';
+import { MM_PAY_DETAIL_TRANSACTION_TYPES } from '../util/transactions/metamask-pay';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
-  TransactionType.musdClaim,
-  TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
-  TransactionType.perpsWithdraw,
-  TransactionType.predictDeposit,
-  TransactionType.predictDepositAndOrder,
-  TransactionType.predictClaim,
-  TransactionType.predictWithdraw,
+  ...MM_PAY_DETAIL_TRANSACTION_TYPES,
 ];
 
 export const IN_PROGRESS_SKIP_STATUS = [

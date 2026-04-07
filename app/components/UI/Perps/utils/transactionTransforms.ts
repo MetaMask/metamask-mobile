@@ -22,6 +22,7 @@ import { getTokenTransferData } from '../../../Views/confirmations/utils/transac
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
+import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 
 /**
  * Determines the close direction category for aggregation purposes.
@@ -667,55 +668,57 @@ const WALLET_STATUS_TO_DEPOSIT_STATUS: Record<
 export function transformWalletPerpsDepositsToTransactions(
   transactions: TransactionMeta[],
 ): PerpsTransaction[] {
-  return transactions.map((tx) => {
-    const tokenData = getTokenTransferData(tx);
-    const decoded = tokenData?.data
-      ? parseStandardTokenTransactionData(tokenData.data)
-      : undefined;
-    const amountWei = decoded?.args?._value?.toString?.();
-    const amountBN =
-      amountWei !== undefined
-        ? new BigNumber(
-            calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
-          )
-        : new BigNumber(0);
+  return transactions
+    .filter((tx) => hasPerpsDepositTransactionType(tx))
+    .map((tx) => {
+      const tokenData = getTokenTransferData(tx);
+      const decoded = tokenData?.data
+        ? parseStandardTokenTransactionData(tokenData.data)
+        : undefined;
+      const amountWei = decoded?.args?._value?.toString?.();
+      const amountBN =
+        amountWei !== undefined
+          ? new BigNumber(
+              calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
+            )
+          : new BigNumber(0);
 
-    const displayAmount = `+$${amountBN.toFixed(2)}`;
-    const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
-    const statusText =
-      status === 'completed'
-        ? strings('perps.transactions.activity.status_completed')
-        : status === 'failed'
-          ? strings('perps.transactions.activity.status_failed')
-          : strings('perps.transactions.activity.status_pending');
+      const displayAmount = `+$${amountBN.toFixed(2)}`;
+      const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
+      const statusText =
+        status === 'completed'
+          ? strings('perps.transactions.activity.status_completed')
+          : status === 'failed'
+            ? strings('perps.transactions.activity.status_failed')
+            : strings('perps.transactions.activity.status_pending');
 
-    const title =
-      amountBN.isZero() || !amountWei
-        ? strings('perps.transactions.activity.deposit_title')
-        : strings('perps.transactions.activity.deposited_amount', {
-            amount: amountBN.toFixed(2),
-            symbol: ARBITRUM_USDC.symbol,
-          });
+      const title =
+        amountBN.isZero() || !amountWei
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount: amountBN.toFixed(2),
+              symbol: ARBITRUM_USDC.symbol,
+            });
 
-    return {
-      id: `wallet-deposit-${tx.id}`,
-      type: 'deposit' as const,
-      category: 'deposit' as const,
-      title,
-      subtitle: statusText,
-      timestamp: tx.time ?? 0,
-      asset: ARBITRUM_USDC.symbol,
-      depositWithdrawal: {
-        amount: displayAmount,
-        amountNumber: amountBN.toNumber(),
-        isPositive: true,
-        asset: ARBITRUM_USDC.symbol,
-        txHash: tx.hash ?? '',
-        status,
+      return {
+        id: `wallet-deposit-${tx.id}`,
         type: 'deposit' as const,
-      },
-    };
-  });
+        category: 'deposit' as const,
+        title,
+        subtitle: statusText,
+        timestamp: tx.time ?? 0,
+        asset: ARBITRUM_USDC.symbol,
+        depositWithdrawal: {
+          amount: displayAmount,
+          amountNumber: amountBN.toNumber(),
+          isPositive: true,
+          asset: ARBITRUM_USDC.symbol,
+          txHash: tx.hash ?? '',
+          status,
+          type: 'deposit' as const,
+        },
+      };
+    });
 }
 
 /**

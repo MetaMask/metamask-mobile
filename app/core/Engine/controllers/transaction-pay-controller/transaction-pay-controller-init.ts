@@ -3,11 +3,15 @@ import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
-  TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
+import {
+  getTransactionPayRouteContext,
+  normalizeMetaMaskPayRoutingFlags,
+  resolveMetaMaskPayStrategies,
+} from '../../../../util/transactions/transaction-pay-routing';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -20,7 +24,8 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getStrategy,
+      getStrategies: (transaction) =>
+        getTransactionPayStrategies(transaction, controllerMessenger),
       messenger: controllerMessenger,
       state: persistedState.TransactionPayController,
     });
@@ -35,6 +40,22 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   }
 };
 
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
-  return TransactionPayStrategy.Relay;
+function getTransactionPayStrategies(
+  transaction: TransactionMeta,
+  messenger: TransactionPayControllerMessenger,
+) {
+  const featureFlagState = messenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+  const featureFlags = {
+    ...(featureFlagState?.remoteFeatureFlags ?? {}),
+    ...(featureFlagState?.localOverrides ?? {}),
+  };
+
+  const routeContext = getTransactionPayRouteContext(transaction);
+  const routingFlags = normalizeMetaMaskPayRoutingFlags(
+    featureFlags.confirmations_pay,
+  );
+
+  return resolveMetaMaskPayStrategies(routeContext, routingFlags);
 }

@@ -117,8 +117,12 @@ export function getTransactionTypeValue(
       return 'perps_deposit_and_order';
     case TransactionType.musdRelayDeposit:
       return 'musd_relay_deposit';
+    case TransactionType.perpsAcrossDeposit:
+      return 'perps_across_deposit';
     case TransactionType.perpsRelayDeposit:
       return 'perps_relay_deposit';
+    case TransactionType.predictAcrossDeposit:
+      return 'predict_across_deposit';
     case TransactionType.predictRelayDeposit:
       return 'predict_relay_deposit';
     case TransactionType.signTypedData:

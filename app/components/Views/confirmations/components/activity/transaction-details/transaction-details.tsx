@@ -24,6 +24,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { ScrollView } from 'react-native';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
+import { getMetaMaskPayUseCase } from '../../../../../../util/transactions/metamask-pay';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -82,11 +83,17 @@ function getTitle(transactionMeta: TransactionMeta) {
     return strings('transaction_details.title.predict_claim');
   }
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+  const payUseCase = getMetaMaskPayUseCase(transactionMeta);
+
+  if (payUseCase === 'perps_deposit') {
+    return strings('transaction_details.title.perps_deposit');
+  }
+
+  if (payUseCase === 'predict_deposit') {
     return strings('transaction_details.title.predict_deposit');
   }
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+  if (payUseCase === 'predict_withdraw') {
     return strings('transaction_details.title.predict_withdraw');
   }
 
@@ -99,8 +106,6 @@ function getTitle(transactionMeta: TransactionMeta) {
       return strings('transaction_details.title.musd_conversion');
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
-    case TransactionType.perpsDeposit:
-      return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
   }

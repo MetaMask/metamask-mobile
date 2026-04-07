@@ -30,15 +30,13 @@ import {
 } from '../../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import { MM_PAY_DETAIL_TRANSACTION_TYPES } from '../../../../../../util/transactions/metamask-pay';
 
-const SUPPORTED_TYPES = [
-  TransactionType.musdClaim,
-  TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
+// Exclude `predictClaim` because this hero falls back to decoded transfer data,
+// which can show a misleading amount for claim transactions.
+const SUPPORTED_TYPES = MM_PAY_DETAIL_TRANSACTION_TYPES.filter(
+  (type) => type !== TransactionType.predictClaim,
+);
 
 export function TransactionDetailsHero() {
   const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });

@@ -17,9 +17,12 @@ export function getMonetizedPrimitive(
       return MonetizedPrimitive.Swaps;
     case TransactionType.perpsDeposit:
     case TransactionType.perpsDepositAndOrder:
-    case TransactionType.perpsWithdraw:
+    case TransactionType.perpsAcrossDeposit:
+    case TransactionType.perpsRelayDeposit:
       return MonetizedPrimitive.Perps;
     case TransactionType.predictDeposit:
+    case TransactionType.predictAcrossDeposit:
+    case TransactionType.predictRelayDeposit:
     case TransactionType.predictWithdraw:
     case TransactionType.predictClaim:
       return MonetizedPrimitive.Predict;

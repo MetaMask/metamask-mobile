@@ -4,6 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../../util/analytics/analytics.types';
+import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
@@ -15,37 +16,44 @@ import { RootState } from '../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-import { BigNumber } from 'bignumber.js';
+import {
+  getMetaMaskPayUseCase,
+  hasMetaMaskPayDepositChildTransactionType,
+} from '../../../../../util/transactions/metamask-pay';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
-const PAY_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
-
-const USE_CASE_MAP: [TransactionType[], string][] = [
-  [[TransactionType.predictWithdraw], 'predict_withdraw'],
-  [[TransactionType.predictDeposit], 'predict_deposit'],
-  [[TransactionType.perpsDeposit], 'perps_deposit'],
-  [[TransactionType.perpsWithdraw], 'perps_withdraw'],
-];
+const COPY_METRICS = [
+  'mm_pay',
+  'mm_pay_execution_latency',
+  'mm_pay_strategy',
+  'mm_pay_use_case',
+  'mm_pay_transaction_step_total',
+  'mm_pay_sending_value_usd',
+  'mm_pay_receiving_value_usd',
+  'mm_pay_metamask_fee_usd',
+] as const;
 
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   eventType,
   transactionMeta,
   allTransactions,
+  getUIMetrics,
   getState,
 }) => {
   const properties: JsonMap = {};
   const sensitiveProperties: JsonMap = {};
-  const { id: transactionId, type } = transactionMeta;
-  const isPayType = hasTransactionType(transactionMeta, PAY_TYPES);
+  const { batchId, id: transactionId, type } = transactionMeta;
+  const executionLatency = getExecutionLatency(transactionMeta);
 
-  const parentTransaction = allTransactions.find((tx) =>
-    tx.requiredTransactionIds?.includes(transactionId),
+  if (executionLatency !== undefined) {
+    properties.mm_pay_execution_latency = executionLatency;
+  }
+
+  const parentTransaction = allTransactions.find(
+    (tx) =>
+      tx.requiredTransactionIds?.includes(transactionId) ||
+      (batchId && isMetaMaskPayParentTransaction(tx) && tx.batchId === batchId),
   );
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
@@ -54,16 +62,11 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
   }
 
-  if (isPayType || !parentTransaction) {
-    addPayTypeProperties(properties, transactionMeta, getState());
+  if (isMetaMaskPayParentTransaction(transactionMeta) || !parentTransaction) {
+    addFallbackProperties(properties, transactionMeta, getState());
 
-    if (isPayType || properties.mm_pay) {
-      addTimeToComplete(
-        properties,
-        eventType,
-        transactionMeta,
-        allTransactions,
-      );
+    if (isMetaMaskPayParentTransaction(transactionMeta) || properties.mm_pay) {
+      addTimeToComplete(properties, eventType, transactionMeta.submittedTime);
     }
 
     return {
@@ -72,9 +75,26 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     };
   }
 
-  addPayTypeProperties(properties, parentTransaction, getState());
+  const parentMetrics = getUIMetrics(parentTransaction.id);
 
-  const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
+  for (const key of COPY_METRICS) {
+    if (parentMetrics?.properties?.[key] !== undefined) {
+      properties[key] = parentMetrics.properties[key];
+    }
+  }
+
+  const batchTransactionIds = parentTransaction.batchId
+    ? orderBy(
+        allTransactions.filter(
+          (tx) => tx.batchId === parentTransaction.batchId,
+        ),
+        (t) => parseInt(t.txParams.nonce ?? '0x0', 16),
+        'asc',
+      ).map((t) => t.id)
+    : undefined;
+
+  const relatedTransactionIds =
+    parentTransaction.requiredTransactionIds ?? batchTransactionIds ?? [];
 
   properties.mm_pay_transaction_step =
     relatedTransactionIds.indexOf(transactionId) + 1;
@@ -113,10 +133,16 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
     }
 
+    if (quote?.strategy === TransactionPayStrategy.Across) {
+      properties.mm_pay_strategy = 'across';
+    }
+
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
-      properties.mm_pay_dust_usd = quote.dust.usd;
+      properties.mm_pay_dust_usd = parentMetrics?.properties?.mm_pay_dust_usd;
     }
   }
+
+  addTimeToComplete(properties, eventType, parentTransaction.submittedTime);
 
   return {
     properties,
@@ -124,35 +150,15 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   };
 };
 
-function getLatestChildSubmittedTime(
-  transactionMeta: TransactionMeta,
-  allTransactions: TransactionMeta[],
-): number | undefined {
-  const { requiredTransactionIds } = transactionMeta;
-
-  const submittedTimes = allTransactions
-    .filter((tx) => requiredTransactionIds?.includes(tx.id))
-    .map((tx) => tx.submittedTime)
-    .filter((t): t is number => typeof t === 'number');
-
-  return submittedTimes.length > 0 ? Math.max(...submittedTimes) : undefined;
-}
-
 function addTimeToComplete(
   properties: JsonMap,
   eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'],
-  transactionMeta: TransactionMeta,
-  allTransactions: TransactionMeta[],
+  submittedTime: number | undefined,
 ) {
-  if (eventType !== TRANSACTION_EVENTS.TRANSACTION_FINALIZED) {
-    return;
-  }
-
-  const submittedTime =
-    getLatestChildSubmittedTime(transactionMeta, allTransactions) ??
-    transactionMeta.submittedTime;
-
-  if (typeof submittedTime !== 'number') {
+  if (
+    eventType !== TRANSACTION_EVENTS.TRANSACTION_FINALIZED ||
+    typeof submittedTime !== 'number'
+  ) {
     return;
   }
 
@@ -160,17 +166,12 @@ function addTimeToComplete(
     Math.round(Date.now() - submittedTime) / 1000;
 }
 
-/**
- * Derives mm_pay_* properties from controller state for PAY_TYPE transactions.
- * Uses transactionMeta.metamaskPay and TransactionPayController.transactionData
- * as the single source of truth, independent of UI hook lifecycle.
- */
-function addPayTypeProperties(
+function addFallbackProperties(
   properties: JsonMap,
   transaction: TransactionMeta,
   state: RootState,
 ) {
-  const { metamaskPay, id: transactionId } = transaction;
+  const { metamaskPay } = transaction;
 
   if (
     !metamaskPay?.chainId ||
@@ -181,62 +182,20 @@ function addPayTypeProperties(
   }
 
   const { chainId, tokenAddress } = metamaskPay;
+  const payUseCase = getMetaMaskPayUseCase(transaction);
 
   properties.mm_pay = true;
   properties.mm_pay_chain_selected = chainId;
 
-  const txPayData =
-    state.engine.backgroundState.TransactionPayController?.transactionData?.[
-      transactionId
-    ];
-
-  properties.mm_pay_token_selected =
-    txPayData?.paymentToken?.symbol ??
-    getTokenSymbol(state, chainId, tokenAddress);
-
-  for (const [types, useCase] of USE_CASE_MAP) {
-    if (hasTransactionType(transaction, types)) {
-      properties.mm_pay_use_case = useCase;
-      break;
-    }
+  if (payUseCase) {
+    properties.mm_pay_use_case = payUseCase;
   }
 
-  if (!txPayData) {
-    return;
-  }
-
-  const { quotes, totals, tokens } = txPayData;
-  const primaryRequiredToken = tokens?.find(
-    (t: { skipIfBalance: boolean }) => !t.skipIfBalance,
+  properties.mm_pay_token_selected = getTokenSymbol(
+    state,
+    chainId,
+    tokenAddress,
   );
-
-  if (primaryRequiredToken) {
-    properties.mm_pay_sending_value_usd = Number(
-      primaryRequiredToken.amountUsd ?? '0',
-    );
-  }
-
-  if (totals) {
-    properties.mm_pay_receiving_value_usd = Number(totals.targetAmount.usd);
-    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
-    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
-    properties.mm_pay_network_fee_usd = new BigNumber(
-      totals.fees.sourceNetwork.estimate.usd,
-    )
-      .plus(totals.fees.targetNetwork.usd)
-      .toString(10);
-  }
-
-  const strategy = quotes?.[0]?.strategy;
-
-  if (strategy === TransactionPayStrategy.Bridge) {
-    properties.mm_pay_strategy = 'mm_swaps_bridge';
-  } else if (strategy === TransactionPayStrategy.Relay) {
-    properties.mm_pay_strategy = 'relay';
-  }
-
-  properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
-  properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
 }
 
 function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
@@ -247,4 +206,24 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   );
 
   return token?.symbol;
+}
+
+function isMetaMaskPayParentTransaction(transaction: TransactionMeta): boolean {
+  return (
+    getMetaMaskPayUseCase(transaction) !== undefined &&
+    !hasMetaMaskPayDepositChildTransactionType(transaction)
+  );
+}
+
+type MetaMaskPayMetadataWithLatency = TransactionMeta['metamaskPay'] & {
+  executionLatencyMs?: number;
+};
+
+function getExecutionLatency(
+  transactionMeta: TransactionMeta,
+): number | undefined {
+  const metadata = transactionMeta.metamaskPay as
+    | MetaMaskPayMetadataWithLatency
+    | undefined;
+  return metadata?.executionLatencyMs;
 }

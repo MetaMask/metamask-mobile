@@ -75,6 +75,11 @@ import {
   isValidSwapsContractAddress,
   getSwapsContractAddress,
 } from '@metamask/bridge-controller';
+import {
+  hasPerpsDepositTransactionType,
+  hasPredictDepositTransactionType,
+  hasPredictWithdrawTransactionType,
+} from './metamask-pay';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -593,7 +598,11 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TRANSFER_FROM_ACTION_KEY;
   }
 
-  if (hasTransactionType(transaction, [TransactionType.predictDeposit])) {
+  if (hasPerpsDepositTransactionType(transaction)) {
+    return TransactionType.perpsDeposit;
+  }
+
+  if (hasPredictDepositTransactionType(transaction)) {
     return TransactionType.predictDeposit;
   }
 
@@ -601,7 +610,7 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TransactionType.predictClaim;
   }
 
-  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+  if (hasPredictWithdrawTransactionType(transaction)) {
     return TransactionType.predictWithdraw;
   }
 

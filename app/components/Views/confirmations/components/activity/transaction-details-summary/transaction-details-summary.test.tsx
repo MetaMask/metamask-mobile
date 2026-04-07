@@ -128,6 +128,34 @@ describe('TransactionDetailsSummary', () => {
     expect(getByText('ReceiveSummaryLine')).toBeDefined();
   });
 
+  it('routes predict deposit transactions to ReceiveSummaryLine', () => {
+    const { getByText } = render({
+      transactions: [
+        {
+          id: transactionIdMock,
+          chainId: '0x1',
+          type: TransactionType.predictDeposit,
+        },
+      ],
+    });
+
+    expect(getByText('ReceiveSummaryLine')).toBeDefined();
+  });
+
+  it('routes perpsAcrossDeposit transactions to DepositSummaryLine', () => {
+    const { getByText } = render({
+      transactions: [
+        {
+          id: transactionIdMock,
+          chainId: '0x1',
+          type: TransactionType.perpsAcrossDeposit,
+        },
+      ],
+    });
+
+    expect(getByText('DepositSummaryLine')).toBeDefined();
+  });
+
   it('routes unsupported types to DefaultSummaryLine', () => {
     const { getByText } = render({
       transactions: [

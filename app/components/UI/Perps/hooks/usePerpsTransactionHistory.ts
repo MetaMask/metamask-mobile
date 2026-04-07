@@ -46,6 +46,7 @@ import {
   walletPerpsWithdrawalsToRequests,
   mergeOrderFills,
 } from '../utils/transactionTransforms';
+import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 
 function deduplicateById(transactions: PerpsTransaction[]): PerpsTransaction[] {
   const seen = new Set<string>();
@@ -139,12 +140,7 @@ export const usePerpsTransactionHistory = ({
         if (!areAddressesEqual(tx.txParams?.from ?? '', selectedAddress)) {
           continue;
         }
-        if (
-          hasTransactionType(tx, [
-            TransactionType.perpsDeposit,
-            TransactionType.perpsDepositAndOrder,
-          ])
-        ) {
+        if (hasPerpsDepositTransactionType(tx)) {
           deposits.push(tx);
         } else if (hasTransactionType(tx, [TransactionType.perpsWithdraw])) {
           withdrawals.push(tx);

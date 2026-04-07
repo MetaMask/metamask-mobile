@@ -386,12 +386,20 @@ describe('Transaction Element Utils', () => {
         strings('transactions.tx_review_predict_deposit'),
       ],
       [
+        TransactionType.predictAcrossDeposit,
+        strings('transactions.tx_review_predict_deposit'),
+      ],
+      [
         TransactionType.predictWithdraw,
         strings('transactions.tx_review_predict_withdraw'),
       ],
       [
         TransactionType.musdConversion,
         strings('transactions.tx_review_musd_conversion'),
+      ],
+      [
+        TransactionType.perpsAcrossDeposit,
+        strings('transactions.tx_review_perps_deposit'),
       ],
     ])('if %s', async (transactionType, title) => {
       const args = {

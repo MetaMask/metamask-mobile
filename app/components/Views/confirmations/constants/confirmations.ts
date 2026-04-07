@@ -104,3 +104,9 @@ export const RELAY_DEPOSIT_TYPES = [
   TransactionType.perpsRelayDeposit,
   TransactionType.predictRelayDeposit,
 ];
+
+export const MM_PAY_DEPOSIT_TYPES = [
+  ...RELAY_DEPOSIT_TYPES,
+  TransactionType.perpsAcrossDeposit,
+  TransactionType.predictAcrossDeposit,
+];

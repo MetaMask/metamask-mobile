@@ -17,7 +17,7 @@ import {
 
 import {
   REDESIGNED_TRANSACTION_TYPES,
-  RELAY_DEPOSIT_TYPES,
+  MM_PAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
 import {
   getSmartTransactionsFeatureFlagsForChain,
@@ -452,7 +452,7 @@ function beforeSign(
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
-  if (hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)) {
+  if (hasTransactionType(transaction, MM_PAY_DEPOSIT_TYPES)) {
     return false;
   }
 
