@@ -17,6 +17,8 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+// eslint-disable-next-line import-x/no-namespace
+import * as TokenDetailsActionsModule from './TokenDetailsActions';
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
@@ -119,6 +121,15 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn((cb: () => void) => cb()),
   };
 });
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
 
 function createState(isEligible: boolean) {
   return {
@@ -795,5 +806,60 @@ describe('AssetOverviewContent', () => {
         queryByText(strings('security_trust.malicious_token_title')),
       ).toBeNull();
     });
+  });
+
+  describe('TokenDetailsActions hasBalance prop', () => {
+    let tokenDetailsActionsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'test-event' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        accountState: null,
+        isLoading: false,
+      });
+      tokenDetailsActionsSpy = jest.spyOn(
+        TokenDetailsActionsModule,
+        'TokenDetailsActions',
+      );
+    });
+
+    afterEach(() => {
+      tokenDetailsActionsSpy.mockRestore();
+    });
+
+    it.each([
+      [false, undefined],
+      [false, ''],
+      [false, '0'],
+      [true, '1,000.50'],
+      [true, '1.000,50'],
+    ])(
+      'passes hasBalance %s when balance is %s',
+      (expectedHasBalance, balance) => {
+        renderWithProvider(
+          <AssetOverviewContent {...defaultProps} balance={balance} />,
+          { state: createState(true) },
+        );
+
+        expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ hasBalance: expectedHasBalance }),
+          expect.anything(),
+        );
+      },
+    );
   });
 });
