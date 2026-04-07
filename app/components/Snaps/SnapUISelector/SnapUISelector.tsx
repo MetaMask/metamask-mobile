@@ -13,7 +13,7 @@ import { Box } from '../../UI/Box/Box';
 import { FlexDirection } from '../../UI/Box/box.types';
 import { useStyles } from '../../hooks/useStyles';
 import stylesheet from './SnapUISelector.styles';
-import { View, ScrollView, ViewStyle } from 'react-native';
+import { ScrollView, ViewStyle } from 'react-native';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import { State } from '@metamask/snaps-sdk';
@@ -55,23 +55,20 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
     onSelect(value);
   };
 
-  const buttonContent = (
-    <>
-      {children}
-      {selected && <Box style={styles.selectedPill} />}
-    </>
-  );
-
   return (
-    <ButtonBase
-      isFullWidth
-      onPress={handlePress}
-      style={styles.modalButton}
-      isDisabled={disabled}
-      testID="snap-ui-renderer__selector-item"
-    >
-      {buttonContent}
-    </ButtonBase>
+    <Box>
+      <ButtonBase
+        isFullWidth
+        twClassName="justify-start"
+        onPress={handlePress}
+        style={styles.modalButton}
+        isDisabled={disabled}
+        testID="snap-ui-renderer__selector-item"
+      >
+        {children}
+      </ButtonBase>
+      {selected && <Box style={styles.selectedPill} />}
+    </Box>
   );
 };
 
@@ -144,6 +141,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
         {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
         <ButtonBase
           isFullWidth
+          twClassName="justify-between"
           isDisabled={disabled}
           endIconName={IconName.ArrowDown}
           onPress={handleModalOpen}
@@ -163,7 +161,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
         onCancel={handleModalClose}
         avoidKeyboard
       >
-        <View style={styles.modal}>
+        <Box style={styles.modal}>
           <BottomSheetHeader onBack={handleModalClose}>
             {title}
           </BottomSheetHeader>
@@ -186,7 +184,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
               ))}
             </Box>
           </ScrollView>
-        </View>
+        </Box>
       </ApprovalModal>
     </>
   );
