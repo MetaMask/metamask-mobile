@@ -527,6 +527,26 @@ describe('Ledger core', () => {
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
       ).rejects.toThrow('Unspecified error when connect Ledger Hardware,');
     });
+
+    it('throws disconnect error for DisconnectedDevice', async () => {
+      const disconnectError = new Error('Disconnected during operation');
+      disconnectError.name = 'DisconnectedDevice';
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(disconnectError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+      ).rejects.toThrow('Your device got disconnected');
+    });
+
+    it('throws disconnect error for DisconnectedDeviceDuringOperation', async () => {
+      const disconnectError = new Error('Lost connection');
+      disconnectError.name = 'DisconnectedDeviceDuringOperation';
+      ledgerKeyring.getNextPage.mockRejectedValueOnce(disconnectError);
+
+      await expect(
+        getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
+      ).rejects.toThrow('Your device got disconnected');
+    });
   });
 
   describe('ledgerSignTypedMessage', () => {

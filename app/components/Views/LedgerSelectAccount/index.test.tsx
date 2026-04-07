@@ -803,5 +803,71 @@ describe('LedgerSelectAccount', () => {
         expect(queryByText('Network error')).toBeOnTheScreen();
       });
     });
+
+    it('calls ensureDeviceReady before nextPage pagination', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockClear();
+      mockGetLedgerAccountsByOperation.mockClear();
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledWith('test-device-id');
+      });
+    });
+
+    it('calls ensureDeviceReady before prevPage pagination', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockClear();
+      mockGetLedgerAccountsByOperation.mockClear();
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledWith('test-device-id');
+      });
+    });
+
+    it('skips pagination when ensureDeviceReady returns false on nextPage', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      mockGetLedgerAccountsByOperation.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(mockGetLedgerAccountsByOperation).not.toHaveBeenCalled();
+    });
+
+    it('skips pagination when ensureDeviceReady returns false on prevPage', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      mockGetLedgerAccountsByOperation.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(mockGetLedgerAccountsByOperation).not.toHaveBeenCalled();
+    });
   });
 });

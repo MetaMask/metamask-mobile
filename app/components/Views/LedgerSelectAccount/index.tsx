@@ -222,8 +222,11 @@ const LedgerSelectAccount = () => {
   }, [selectedOption]);
 
   const nextPage = useCallback(async () => {
-    showLoadingModal();
     try {
+      const isReady = await ensureDeviceReady(deviceId);
+      if (!isReady) return;
+
+      showLoadingModal();
       const _accounts = await getLedgerAccountsByOperation(
         PAGINATION_OPERATIONS.GET_NEXT_PAGE,
       );
@@ -233,11 +236,14 @@ const LedgerSelectAccount = () => {
     } finally {
       setBlockingModalVisible(false);
     }
-  }, []);
+  }, [ensureDeviceReady, deviceId]);
 
   const prevPage = useCallback(async () => {
-    showLoadingModal();
     try {
+      const isReady = await ensureDeviceReady(deviceId);
+      if (!isReady) return;
+
+      showLoadingModal();
       const _accounts = await getLedgerAccountsByOperation(
         PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
       );
@@ -247,7 +253,7 @@ const LedgerSelectAccount = () => {
     } finally {
       setBlockingModalVisible(false);
     }
-  }, []);
+  }, [ensureDeviceReady, deviceId]);
 
   const updateNewLegacyAccountsLabel = useCallback(async () => {
     if (LEDGER_LEGACY_PATH === (await getHDPath())) {
