@@ -59,7 +59,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -103,7 +103,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -203,7 +203,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -269,7 +269,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             {
               "color": "#131416",
-              "fontFamily": "Geist-Bold",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
             }
@@ -445,7 +445,7 @@ exports[`ContactForm renders correctly 1`] = `
                     },
                     [
                       {
-                        "fontFamily": "Geist-Bold",
+                        "fontFamily": "Geist-SemiBold",
                         "fontSize": 14,
                         "textAlign": "center",
                       },

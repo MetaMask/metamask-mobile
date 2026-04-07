@@ -471,7 +471,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -1758,7 +1758,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -2603,7 +2603,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -3279,7 +3279,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -3993,7 +3993,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -4705,7 +4705,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -5417,7 +5417,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -6129,7 +6129,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -6841,7 +6841,7 @@ exports[`Settings renders correctly 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
@@ -7553,7 +7553,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
                                       "letterSpacing": 0,
