@@ -662,7 +662,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 py-2 pr-[8px] pl-4"
+            twClassName="gap-4 py-2 pl-4 pr-[16px]"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -679,64 +679,72 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <AssetLogo asset={token} />
             </BadgeWrapper>
 
-            <Box twClassName="flex-1">
+            <Box twClassName="min-w-0 flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-1.5"
+                twClassName="max-w-full min-w-0 gap-1.5 self-stretch"
               >
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  color={TextColor.TextDefault}
-                  numberOfLines={1}
-                >
-                  {token.name || token.symbol}
-                </Text>
+                <Box twClassName="min-w-0 shrink grow-0">
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                  >
+                    {token.name || token.symbol}
+                  </Text>
+                </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <TouchableOpacity
-                    onPress={handleSecurityBadgePress}
-                    testID="security-badge-verified"
-                  >
-                    <Icon
-                      name={securityBadge.icon}
-                      size={IconSize.Md}
-                      color={securityBadge.iconColor}
-                    />
-                  </TouchableOpacity>
-                )}
-                {securityBadge && securityBadge.label !== null && (
-                  <TouchableOpacity
-                    onPress={handleSecurityBadgePress}
-                    testID={
-                      securityData?.resultType === 'Malicious'
-                        ? 'security-badge-malicious'
-                        : 'security-badge-warning'
-                    }
-                  >
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
+                  <Box twClassName="shrink-0">
+                    <TouchableOpacity
+                      onPress={handleSecurityBadgePress}
+                      testID="security-badge-verified"
                     >
                       <Icon
                         name={securityBadge.icon}
-                        size={IconSize.Sm}
+                        size={IconSize.Md}
                         color={securityBadge.iconColor}
                       />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={securityBadge.textColor}
-                        fontWeight={FontWeight.Medium}
-                        numberOfLines={1}
-                        twClassName="overflow-hidden text-center"
+                    </TouchableOpacity>
+                  </Box>
+                )}
+                {securityBadge && securityBadge.label !== null && (
+                  <Box twClassName="shrink-0">
+                    <TouchableOpacity
+                      onPress={handleSecurityBadgePress}
+                      testID={
+                        securityData?.resultType === 'Malicious'
+                          ? 'security-badge-malicious'
+                          : 'security-badge-warning'
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
                       >
-                        {securityBadge.label}
-                      </Text>
-                    </Box>
-                  </TouchableOpacity>
+                        <Icon
+                          name={securityBadge.icon}
+                          size={IconSize.Sm}
+                          color={securityBadge.iconColor}
+                        />
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={securityBadge.textColor}
+                          fontWeight={FontWeight.Medium}
+                          numberOfLines={1}
+                          twClassName="overflow-hidden text-center"
+                        >
+                          {securityBadge.label}
+                        </Text>
+                      </Box>
+                    </TouchableOpacity>
+                  </Box>
                 )}
                 {!token.name && isStockToken(token as BridgeToken) && (
-                  <StockBadge token={token as BridgeToken} />
+                  <Box twClassName="shrink-0">
+                    <StockBadge token={token as BridgeToken} />
+                  </Box>
                 )}
               </Box>
               {token.name ? (
