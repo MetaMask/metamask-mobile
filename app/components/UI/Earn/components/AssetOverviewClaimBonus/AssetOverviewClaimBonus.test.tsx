@@ -375,7 +375,10 @@ describe('AssetOverviewClaimBonus', () => {
 
     it('does not call claimRewards when CTA is disabled (State B)', () => {
       mockUseMerklBonusClaim.mockReturnValue(
-        createMockMerklClaimData({ claimableReward: null }),
+        createMockMerklClaimData({
+          claimableReward: null,
+          claimRewards: mockClaimRewards,
+        }),
       );
 
       const { getByTestId } = renderWithProvider(
