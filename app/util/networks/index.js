@@ -8,6 +8,7 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
+  NO_RPC_BLOCK_EXPLORER,
   MEGAETH_TESTNET,
   MEGAETH_TESTNET_V2,
   MONAD_TESTNET,
@@ -426,6 +427,87 @@ export function findBlockExplorerForNonEvmChainId(chainId) {
   const blockExplorerUrls =
     MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
   return blockExplorerUrls?.url;
+}
+
+/**
+ * Returns the hex EVM chain id for lookups in `networkConfigurations` (when the
+ * input is hex or CAIP-2 `eip155:*`). Returns `undefined` for non-EVM CAIP chains.
+ *
+ * @param {string} chainId
+ * @returns {string|undefined}
+ */
+export function getHexEvmChainId(chainId) {
+  if (!chainId || typeof chainId !== 'string') {
+    return undefined;
+  }
+  if (isNonEvmChainId(chainId)) {
+    return undefined;
+  }
+  if (isCaipChainId(chainId)) {
+    const { namespace, reference } = parseCaipChainId(chainId);
+    if (namespace !== KnownCaipNamespace.Eip155) {
+      return undefined;
+    }
+    return toHex(reference);
+  }
+  if (chainId.startsWith('0x')) {
+    return chainId;
+  }
+  return undefined;
+}
+
+/**
+ * Resolves the block explorer base URL for a chain, independent of the globally
+ * selected network (e.g. token details on Linea while Solana is selected).
+ *
+ * @param {string} chainId - Hex, CAIP-2, or non-EVM CAIP chain id
+ * @param {object} networkConfigurations - from `selectNetworkConfigurations`
+ * @returns {string|undefined}
+ */
+export function findBlockExplorerUrlForChain(chainId, networkConfigurations) {
+  if (!chainId) {
+    return undefined;
+  }
+  if (isNonEvmChainId(chainId)) {
+    return findBlockExplorerForNonEvmChainId(chainId);
+  }
+
+  const hexChainId = getHexEvmChainId(chainId);
+  if (!hexChainId) {
+    return undefined;
+  }
+
+  const networkConfig = networkConfigurations?.[hexChainId];
+  let blockExplorer =
+    networkConfig?.blockExplorerUrls?.[
+      networkConfig?.defaultBlockExplorerUrlIndex ?? 0
+    ];
+
+  if (isMainNet(hexChainId)) {
+    blockExplorer = MAINNET_BLOCK_EXPLORER;
+  } else if (isLineaMainnetChainId(hexChainId)) {
+    blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
+  } else if (hexChainId === CHAIN_IDS.LINEA_SEPOLIA) {
+    blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
+  } else if (hexChainId === CHAIN_IDS.SEPOLIA) {
+    blockExplorer = SEPOLIA_BLOCK_EXPLORER;
+  } else if (hexChainId === CHAIN_IDS.BASE) {
+    blockExplorer = BASE_MAINNET_BLOCK_EXPLORER;
+  }
+
+  if (!blockExplorer || blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+    const popularNetwork = PopularList.find(
+      (network) => network.chainId === hexChainId,
+    );
+    if (popularNetwork?.rpcPrefs?.blockExplorerUrl) {
+      blockExplorer = popularNetwork.rpcPrefs.blockExplorerUrl;
+    }
+  }
+
+  if (!blockExplorer || blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+    return undefined;
+  }
+  return blockExplorer;
 }
 
 /**

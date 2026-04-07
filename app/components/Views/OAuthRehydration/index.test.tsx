@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform, SafeAreaView, StatusBar } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
@@ -75,6 +75,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
     isOptedIn: jest.fn().mockResolvedValue(true),
   },
 }));
+
+jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
 jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
@@ -405,16 +407,19 @@ describe('OAuthRehydration', () => {
 
     it('clears password field after login attempt', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      const { getByTestId, queryByDisplayValue } = renderWithProvider(
+        <OAuthRehydration />,
+      );
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
       fireEvent.changeText(passwordInput, 'wrongPassword');
+
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
       await waitFor(() => {
-        expect(passwordInput.props.value).toBe('');
+        expect(queryByDisplayValue('wrongPassword')).toBeNull();
       });
     });
   });
@@ -759,6 +764,52 @@ describe('OAuthRehydration', () => {
       });
 
       expect(mockUnlockWallet).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Platform configuration', () => {
+    let originalPlatform: string;
+    let originalStatusBarHeight: number | undefined;
+
+    beforeEach(() => {
+      originalPlatform = Platform.OS;
+      originalStatusBarHeight = StatusBar.currentHeight;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+      StatusBar.currentHeight = originalStatusBarHeight;
+    });
+
+    it('applies Android-specific layout spacing and status bar padding', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      StatusBar.currentHeight = 42;
+
+      const { UNSAFE_root } = renderWithProvider(<OAuthRehydration />);
+      const safeAreaView = UNSAFE_root.findByType(SafeAreaView);
+      const keyboardAwareScrollView = UNSAFE_root.findByProps({
+        extraScrollHeight: -200,
+      });
+      const ctaWrapper = UNSAFE_root.findByProps({
+        twClassName: 'w-full mt-4 gap-4',
+      });
+
+      expect(safeAreaView.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            backgroundColor: expect.any(String),
+          }),
+          { paddingTop: 42 },
+        ]),
+      );
+      expect(keyboardAwareScrollView.props.extraScrollHeight).toBe(-200);
+      expect(ctaWrapper).toBeDefined();
     });
   });
 
