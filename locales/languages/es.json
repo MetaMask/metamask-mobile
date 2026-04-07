@@ -1190,7 +1190,15 @@
       "provider_fee": "Tarifa del proveedor",
       "you_will_receive": "Tú recibes",
       "continue": "Continuar",
-      "funds_received": "{{amount}} {{symbol}} recibidos"
+      "funds_received": "{{amount}} {{symbol}} recibidos",
+      "toast_pending_title": "Retiro en curso",
+      "toast_pending_subtitle": "Disponible en alrededor de 1 minuto",
+      "toast_completed_title": "Retiro completado",
+      "toast_completed_subtitle_generic": "Fondos transferidos a tu billetera",
+      "toast_completed_subtitle": "{{amount}} USDC transferidos a tu billetera",
+      "toast_completed_any_token_subtitle": "{{amount}} {{token}} transferidos a tu billetera",
+      "toast_error_title": "Algo salió mal",
+      "toast_error_description": "No se pudo completar el retiro"
     },
     "quote": {
       "network_fee": "Tarifa de red",
@@ -2100,7 +2108,13 @@
     "title": "Perspectivas del mercado",
     "a_closer_look": "Un vistazo más de cerca",
     "whats_being_said": "Qué se dice",
+    "card_footer_disclaimer": "Generado por IA",
     "footer_disclaimer": "Resumen generado por IA solo con fines informativos",
+    "disclaimer_modal": {
+      "title": "Contenido generado por IA",
+      "body": "Este resumen es generado por IA por un tercero y puede no ser preciso ni personalizado. No lo utilices para tomar decisiones de trading, inversión, legales o fiscales. El rendimiento pasado no predice resultados futuros.",
+      "got_it": "Entendido"
+    },
     "swap_button": "Canjear",
     "buy_button": "Comprar",
     "sources_count": "+{{count}} fuentes",
@@ -2316,11 +2330,15 @@
       "cashing_out_subtitle": "Estimación de {{time}} segundos",
       "placing_prediction": "Realizar una predicción",
       "prediction_placed": "Predicción colocada",
-      "prediction_failed": "Failed to place prediction",
+      "prediction_in_progress": "Predicción en curso",
+      "prediction_in_progress_description": "Tu predicción se realizará en breve",
+      "prediction_failed": "Error al realizar la predicción",
       "order_failed": "Orden fallida",
       "payments_made_in_usdc": "Todos los pagos se realizan en USDC",
       "prediction_insufficient_funds": "Fondos insuficientes. Puedes usar hasta {{amount}}.",
       "no_funds_enough": "No hay fondos suficientes.",
+      "prediction_insufficient_funds_try_token": "Fondos insuficientes. Puedes usar hasta {{amount}} o probar con otro token.",
+      "no_funds_enough_try_token": "Fondos insuficientes. Prueba con otro token.",
       "prediction_minimum_bet": "El monto mínimo es {{amount}}",
       "to_win": "Para ganar",
       "order_failed_generic": "La transacción falló. Inténtalo de nuevo.",
@@ -2332,7 +2350,8 @@
       "try_again": "Inténtalo de nuevo",
       "view": "Ver",
       "yes_buy": "Sí, compra",
-      "yes_sell": "Sí, vende"
+      "yes_sell": "Sí, vende",
+      "predict_balance_first": "Tu saldo de Predict se usará primero"
     },
     "withdraw": {
       "withdrawing": "Retiro en curso",
@@ -2390,6 +2409,7 @@
     },
     "game_details_footer": {
       "pick_a_winner": "Elige un ganador",
+      "make_your_prediction": "Haz tu predicción",
       "volume_display": "Vol de ${{volume}}",
       "read_terms": "Lee los términos y condiciones completos del contrato"
     },
@@ -3554,6 +3574,7 @@
     "predict_description": "Opera según eventos del mundo real",
     "chart_time_period": {
       "1d": "Hoy",
+      "1h": "Última hora",
       "7d": "Últimos 7 días",
       "1w": "Semana pasada",
       "1m": "Mes pasado",
@@ -6512,7 +6533,8 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_deposit": "Add funds"
+      "money_account_deposit": "Agregar fondos",
+      "money_account_withdraw": "Retirar fondos"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
@@ -6533,6 +6555,9 @@
       },
       "predict_deposit": {
         "transaction_fee": "Canjearemos tus tokens por USDC en Polygon, la red que usa Predicciones. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
+      },
+      "perps_withdraw": {
+        "transaction_fee": "MetaMask realizará el canje por el token que desees. No se aplica ninguna tarifa de MetaMask al canjear a mUSD."
       },
       "predict_withdraw": {
         "transaction_fee": "MetaMask realizará el canje por el token que desees. No se aplica ninguna tarifa de MetaMask al canjear a mUSD."
@@ -6735,6 +6760,15 @@
     "slippage_info_title": "Deslizamiento",
     "slippage_info_description": "El % de cambio en el precio que estás dispuesto a permitir antes de que se cancele tu transacción.",
     "blockaid_error_title": "Esta transacción se revertirá",
+    "quote_stream_complete_retry": "No se puede obtener una cotización en este momento. Inténtalo de nuevo.",
+    "quote_stream_complete_amount_too_high": "No hay cotizaciones disponibles. Prueba con un monto más pequeño.",
+    "quote_stream_complete_amount_too_low": "No hay cotizaciones disponibles. Prueba con un monto más grande.",
+    "quote_stream_complete_slippage_too_high": "El deslizamiento es demasiado alto. Intenta reducir tu configuración de deslizamiento.",
+    "quote_stream_complete_slippage_too_low": "El deslizamiento es demasiado bajo. Intenta aumentar tu configuración de deslizamiento.",
+    "quote_stream_complete_token_not_supported": "Este token no es compatible. Intenta usar otro token.",
+    "quote_stream_complete_rwa_geo_restricted": "Este intercambio no está disponible en tu región.",
+    "quote_stream_complete_rwa_native_token_unsupported": "Los intercambios entre este token y activos del mundo real aún no son compatibles. Intenta usar otro token.",
+    "quote_stream_complete_rwa_market_unavailable": "El mercado de este activo no está disponible actualmente. Inténtalo de nuevo más tarde.",
     "max": "Máx.",
     "approval_needed": "Aprueba el token para el canje.",
     "approval_tooltip_title": "Conceder acceso exacto",
@@ -6765,7 +6799,11 @@
     "got_it": "Entendido",
     "price_impact_warning_title": "Alto impacto en el precio",
     "price_impact_error_title": "Impacto muy alto en el precio",
-    "price_impact_error_description": "Perderás aproximadamente {{priceImpact}} del precio de mercado de tu token en este canje. Prueba con una operación más pequeña o una ruta con mayor liquidez para mejorar tu tasa."
+    "price_impact_error_description": "Perderás aproximadamente {{priceImpact}} del precio de mercado de tu token en este canje. Prueba con una operación más pequeña o una ruta con mayor liquidez para mejorar tu tasa.",
+    "token_warning_suspicious_banner": "{{token}} es un token sospechoso.",
+    "token_warning_malicious_banner": "{{token}} es un token malicioso. Ten cuidado al interactuar con este token.",
+    "token_warning_modal_suspicious_title": "Token sospechoso",
+    "token_warning_modal_malicious_title": "Token malicioso"
   },
   "quote_expired_modal": {
     "title": "Hay nuevas cotizaciones disponibles",
@@ -7151,7 +7189,9 @@
         "country_label": "País de residencia",
         "country_placeholder": "Selecciona tu país",
         "invalid_email": "Dirección de correo electrónico no válida",
-        "invalid_password": "La contraseña debe tener más de 15 caracteres. No puede contener caracteres no imprimibles ni espacios consecutivos."
+        "invalid_password": "La contraseña debe tener más de 15 caracteres. No puede contener caracteres no imprimibles ni espacios consecutivos.",
+        "join_waitlist": "Únete a la lista de espera",
+        "country_not_available": "El registro de la tarjeta aún no está disponible en tu país."
       },
       "confirm_email": {
         "title": "Confirma tu correo electrónico",
@@ -7297,6 +7337,12 @@
       "confirm_button": "Confirmar",
       "retry_button": "Vuelve a intentarlo",
       "close_button": "Entendido",
+      "waitlist_form": {
+        "title": "Únete a la lista de espera",
+        "load_error": "Algo salió mal al cargar el formulario. Inténtalo de nuevo.",
+        "try_again": "Inténtalo de nuevo",
+        "success_toast": "¡Ya estás en la lista de espera! Te avisaremos cuando la tarjeta esté disponible en tu país."
+      },
       "region_selector": {
         "title": "Selecciona tu región"
       },

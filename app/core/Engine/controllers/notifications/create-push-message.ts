@@ -4,6 +4,7 @@ import {
 } from '@metamask/notification-services-controller/push-services';
 import type { INotification } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
+import type { TranslationParams } from '../../../../../locales/i18n';
 import type Translations from '../../../../../locales/languages/en.json';
 
 type NotificationTranslations = (typeof Translations)['notifications'];
@@ -16,7 +17,7 @@ type FlattenToString<TObj> = {
 type NotificationStrings =
   `notifications.${FlattenToString<NotificationTranslations>}`;
 
-const t = (name: NotificationStrings, params?: object) =>
+const t = (name: NotificationStrings, params?: TranslationParams) =>
   strings(name, params) ?? '';
 
 const walletTranslations: TranslationKeys = {
