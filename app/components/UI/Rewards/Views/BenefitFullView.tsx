@@ -63,12 +63,13 @@ const BenefitFullView = () => {
     }
   }, [benefit, navigation]);
 
+  const now = Date.now();
   const remainingTime = useMemo(() => {
-    if (benefit.actionDate == null) {
+    if (benefit.validTo == null) {
       return null;
     }
-    return formatDateRemaining(benefit.actionDate);
-  }, [benefit]);
+    return formatDateRemaining(benefit.validTo, now);
+  }, [benefit.validTo, now]);
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">

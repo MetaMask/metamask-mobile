@@ -14,24 +14,25 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image, TouchableOpacity } from 'react-native';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
-import React, {useMemo} from 'react';
+import React, { memo, useMemo } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
 import { formatDateRemaining } from '../../utils/formatUtils.ts';
 
 interface Props {
   benefit: SubscriptionBenefitDto;
+  now?: number;
 }
 
-const BenefitCard = ({ benefit }: Props) => {
+const BenefitCard = ({ benefit, now }: Props) => {
   const tw = useTailwind();
 
   const remainingTime = useMemo(() => {
-    if (benefit.actionDate == null) {
+    if (benefit.validTo == null) {
       return null;
     }
-    return formatDateRemaining(benefit.actionDate);
-  }, [benefit]);
+    return formatDateRemaining(benefit.validTo, now);
+  }, [benefit.validTo, now]);
 
   return (
     <TouchableOpacity
@@ -96,4 +97,4 @@ const BenefitCard = ({ benefit }: Props) => {
   );
 };
 
-export default BenefitCard;
+export default memo(BenefitCard);
