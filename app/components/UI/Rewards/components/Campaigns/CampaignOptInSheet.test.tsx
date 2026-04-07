@@ -29,7 +29,18 @@ const setupSelectorMock = () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -78,24 +89,6 @@ jest.mock('../../hooks/useRewardsToast', () => ({
     },
   }),
 }));
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        testID,
-      }: {
-        children?: React.ReactNode;
-        testID?: string;
-      }) => ReactActual.createElement(View, { testID }, children),
-    };
-  },
-);
 
 jest.mock('../RewardsInfoBanner', () => {
   const ReactActual = jest.requireActual('react');

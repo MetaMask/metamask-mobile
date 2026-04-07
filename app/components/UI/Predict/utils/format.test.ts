@@ -1032,7 +1032,12 @@ describe('format utils', () => {
 
     it('returns NONE when first series has no recurrence', () => {
       const series: PredictSeries[] = [
-        { recurrence: undefined as unknown as string },
+        {
+          id: '1',
+          slug: 'test',
+          title: 'Test',
+          recurrence: undefined as unknown as string,
+        },
       ];
 
       const result = getRecurrence(series);
@@ -1041,7 +1046,9 @@ describe('format utils', () => {
     });
 
     it('returns DAILY for daily recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'daily' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'daily' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1049,7 +1056,9 @@ describe('format utils', () => {
     });
 
     it('returns WEEKLY for weekly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'weekly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'weekly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1057,7 +1066,9 @@ describe('format utils', () => {
     });
 
     it('returns MONTHLY for monthly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'monthly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'monthly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1065,7 +1076,9 @@ describe('format utils', () => {
     });
 
     it('returns YEARLY for yearly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'yearly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'yearly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1073,7 +1086,9 @@ describe('format utils', () => {
     });
 
     it('returns YEARLY for annually recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'annually' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'annually' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1081,7 +1096,9 @@ describe('format utils', () => {
     });
 
     it('returns QUARTERLY for quarterly recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'quarterly' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'quarterly' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1089,7 +1106,9 @@ describe('format utils', () => {
     });
 
     it('returns NONE for unknown recurrence', () => {
-      const series: PredictSeries[] = [{ recurrence: 'unknown' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'unknown' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1097,7 +1116,9 @@ describe('format utils', () => {
     });
 
     it('handles uppercase recurrence values', () => {
-      const series: PredictSeries[] = [{ recurrence: 'DAILY' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'DAILY' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1105,7 +1126,9 @@ describe('format utils', () => {
     });
 
     it('handles mixed case recurrence values', () => {
-      const series: PredictSeries[] = [{ recurrence: 'WeEkLy' }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence: 'WeEkLy' },
+      ];
 
       const result = getRecurrence(series);
 
@@ -1122,7 +1145,9 @@ describe('format utils', () => {
       ['', Recurrence.NONE],
       ['invalid', Recurrence.NONE],
     ])('maps recurrence %s to %s', (recurrence, expected) => {
-      const series: PredictSeries[] = [{ recurrence }];
+      const series: PredictSeries[] = [
+        { id: '1', slug: 'test', title: 'Test', recurrence },
+      ];
 
       expect(getRecurrence(series)).toBe(expected);
     });
@@ -2044,6 +2069,13 @@ describe('format utils', () => {
 
         // Assert
         expect(result).toBe('€0.0₅614');
+      });
+
+      it('caps digits after the subscript when maxDigitsAfterSubscript is set', () => {
+        const result = formatPriceWithSubscriptNotation(0.00003415, 'USD', {
+          maxDigitsAfterSubscript: 2,
+        });
+        expect(result).toBe('$0.0₄34');
       });
 
       it('formats subscript value with GBP (not in symbol map, uses suffix)', () => {
