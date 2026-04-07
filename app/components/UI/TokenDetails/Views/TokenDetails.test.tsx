@@ -10,6 +10,7 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
@@ -221,6 +222,10 @@ jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampSupported: jest.fn(() => true),
 }));
 
+jest.mock('../../../Views/Asset/utils', () => ({
+  getIsSwapsAssetAllowed: jest.fn(() => true),
+}));
+
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
@@ -243,6 +248,8 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
+
+const mockGetIsSwapsAssetAllowed = jest.mocked(getIsSwapsAssetAllowed);
 
 describe('TokenDetails', () => {
   beforeEach(() => {
@@ -283,6 +290,7 @@ describe('TokenDetails', () => {
       fiatBalance: '$150.00',
       tokenFormattedBalance: '1.5 ETH',
     });
+    mockGetIsSwapsAssetAllowed.mockReturnValue(true);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectNetworkConfigurationByChainId)
@@ -380,6 +388,15 @@ describe('TokenDetails', () => {
         hasEligibleSwapTokens: false,
         networkModal: null,
       });
+
+      const { getByText, queryByText } = render(<TokenDetails />);
+
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Swap')).toBeNull();
+    });
+
+    it('hides Swap when token is swaps-unsupported, even with eligible tokens', () => {
+      mockGetIsSwapsAssetAllowed.mockReturnValue(false);
 
       const { getByText, queryByText } = render(<TokenDetails />);
 

@@ -15,6 +15,7 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
+import AppConstants from '../../../../core/AppConstants';
 import type { BridgeToken } from '../../Bridge/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
@@ -25,6 +26,7 @@ interface TokenStickyFooterProps {
   onBuy: () => void;
   onSwap: () => void;
   hasEligibleSwapTokens: boolean;
+  isSwapsAssetAllowed: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -33,6 +35,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onBuy,
   onSwap,
   hasEligibleSwapTokens,
+  isSwapsAssetAllowed,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -41,8 +44,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen } = useRWAToken();
 
-  const showSwapButton = hasEligibleSwapTokens;
-  const showBuyButton = isBuyable || !hasEligibleSwapTokens;
+  const showSwapButton =
+    AppConstants.SWAPS.ACTIVE && isSwapsAssetAllowed && hasEligibleSwapTokens;
+  const showBuyButton =
+    isBuyable || !hasEligibleSwapTokens || !isSwapsAssetAllowed;
+  const shouldRenderFooterButtons = showSwapButton || showBuyButton;
 
   const handleFooterAction = useCallback(
     (action: () => void, source: string) => {
@@ -127,7 +133,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   return (
     <>
-      {isTokenTradingOpen(token as BridgeToken) && (
+      {isTokenTradingOpen(token as BridgeToken) &&
+        shouldRenderFooterButtons && (
         <BottomSheetFooter
           style={footerStyle}
           buttonPropsArray={[

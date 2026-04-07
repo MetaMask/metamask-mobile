@@ -39,6 +39,7 @@ import {
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
+import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -61,6 +62,14 @@ const SecurityTrustScreen: React.FC = () => {
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
   const networkName = useNetworkName(params?.chainId as Hex);
+  const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+    asset: {
+      isETH: params?.isETH ?? false,
+      isNative: params?.isNative ?? false,
+      address: params?.address ?? '',
+      chainId: params?.chainId ?? '',
+    },
+  });
 
   // Get action handlers from hook (single source of truth)
   const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
@@ -621,6 +630,7 @@ const SecurityTrustScreen: React.FC = () => {
         onBuy={onBuy}
         onSwap={handleStickySwapPress}
         hasEligibleSwapTokens={hasEligibleSwapTokens}
+        isSwapsAssetAllowed={isSwapsAssetAllowed}
       />
     </View>
   );
