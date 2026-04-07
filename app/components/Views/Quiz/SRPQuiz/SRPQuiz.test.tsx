@@ -14,11 +14,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { Linking } from 'react-native';
 
-let mockRouteParams: {
-  keyringId?: string;
-  dismissModalStackOnDone?: boolean;
-  popToTopOnDone?: boolean;
-} = {};
+let mockRouteParams: { keyringId?: string } = {};
 
 const mockNavigate = jest.fn();
 
@@ -41,11 +37,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const renderSRPQuiz = (
-  routeParams: {
-    keyringId?: string;
-    dismissModalStackOnDone?: boolean;
-    popToTopOnDone?: boolean;
-  } = {},
+  routeParams: { keyringId?: string } = {},
   completeQuiz: boolean = true,
   hasVault: boolean = false,
 ) => {
@@ -105,7 +97,6 @@ const renderSRPQuiz = (
 describe('SRPQuiz', () => {
   beforeEach(() => {
     mockRouteParams = {};
-    mockNavigate.mockClear();
   });
 
   it('passes the keyringId to the SRPQuiz', async () => {
@@ -120,42 +111,6 @@ describe('SRPQuiz', () => {
           shouldUpdateNav: true,
           keyringId,
           skipQuiz: true,
-        },
-      );
-    });
-  });
-
-  it('forwards dismissModalStackOnDone to RevealPrivateCredential when set', async () => {
-    const keyringId = '123';
-
-    renderSRPQuiz({ keyringId, dismissModalStackOnDone: true }, true);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-        {
-          shouldUpdateNav: true,
-          keyringId,
-          skipQuiz: true,
-          dismissModalStackOnDone: true,
-        },
-      );
-    });
-  });
-
-  it('forwards popToTopOnDone to RevealPrivateCredential when set', async () => {
-    const keyringId = '123';
-
-    renderSRPQuiz({ keyringId, popToTopOnDone: true }, true);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-        {
-          shouldUpdateNav: true,
-          keyringId,
-          skipQuiz: true,
-          popToTopOnDone: true,
         },
       );
     });

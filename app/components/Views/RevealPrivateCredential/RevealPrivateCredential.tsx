@@ -145,35 +145,27 @@ const RevealPrivateCredential = ({
     }
   }, []);
 
-  const navigateBack = useCallback(
-    (options?: { forDone?: boolean }) => {
-      if (!hasNavigation) {
-        cancel?.();
-        return;
-      }
-      if (route?.params?.popToTopOnDone) {
-        navigation.dispatch(StackActions.popToTop());
-        return;
-      }
-      if (options?.forDone && route?.params?.dismissModalStackOnDone) {
-        navigation.dispatch(StackActions.pop(2));
-        return;
-      }
-      if (shouldUpdateNav) {
-        navigation.dispatch(StackActions.pop());
-        return;
-      }
+  const navigateBack = useCallback(() => {
+    if (!hasNavigation) {
+      cancel?.();
+      return;
+    }
+    if (route?.params?.popToTopOnDone) {
+      navigation.dispatch(StackActions.popToTop());
+      return;
+    }
+    if (shouldUpdateNav) {
       navigation.dispatch(StackActions.pop());
-    },
-    [
-      hasNavigation,
-      shouldUpdateNav,
-      navigation,
-      cancel,
-      route?.params?.popToTopOnDone,
-      route?.params?.dismissModalStackOnDone,
-    ],
-  );
+      return;
+    }
+    navigation.dispatch(StackActions.pop());
+  }, [
+    hasNavigation,
+    shouldUpdateNav,
+    navigation,
+    cancel,
+    route?.params?.popToTopOnDone,
+  ]);
 
   const cancelReveal = useCallback(() => {
     if (!unlocked)
@@ -194,7 +186,7 @@ const RevealPrivateCredential = ({
 
   const done = useCallback(() => {
     trackEvent(createEventBuilder(MetaMetricsEvents.SRP_DONE_CTA).build());
-    navigateBack({ forDone: true });
+    navigateBack();
   }, [trackEvent, createEventBuilder, navigateBack]);
 
   const handleLearnMoreClick = useCallback(() => {

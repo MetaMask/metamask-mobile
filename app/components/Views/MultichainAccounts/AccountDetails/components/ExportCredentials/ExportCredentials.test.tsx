@@ -171,10 +171,7 @@ describe('ExportCredentials', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      params: {
-        keyringId: mockKeyringId,
-        dismissModalStackOnDone: true,
-      },
+      keyringId: mockKeyringId,
     });
   });
 

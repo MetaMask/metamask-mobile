@@ -16,10 +16,7 @@ const SelectSRP = ({
   const onKeyringSelect = (keyringId: string) => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      params: {
-        keyringId,
-        dismissModalStackOnDone: true,
-      },
+      keyringId,
     });
   };
 

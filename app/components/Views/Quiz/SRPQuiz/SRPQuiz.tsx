@@ -36,16 +36,12 @@ const introductionImg = require('../../../../images/reveal_srp.png');
 
 interface SRPQuizRouteParams {
   keyringId?: string;
-  /** Forwarded to RevealPrivateCredential when quiz completes (root modal + reveal). */
-  dismissModalStackOnDone?: boolean;
-  /** Forwarded to RevealPrivateCredential — Done uses `popToTop` (e.g. Account Actions → quiz → reveal). */
-  popToTopOnDone?: boolean;
 }
 
 const SRPQuiz = () => {
   const route = useRoute<RouteProp<{ params: SRPQuizRouteParams }, 'params'>>();
   const {
-    params: { keyringId, dismissModalStackOnDone, popToTopOnDone },
+    params: { keyringId },
   } = route;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
@@ -109,17 +105,8 @@ const SRPQuiz = () => {
       shouldUpdateNav: true,
       keyringId,
       skipQuiz: true,
-      ...(dismissModalStackOnDone && { dismissModalStackOnDone: true }),
-      ...(popToTopOnDone && { popToTopOnDone: true }),
     });
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    keyringId,
-    dismissModalStackOnDone,
-    popToTopOnDone,
-  ]);
+  }, [navigation, trackEvent, createEventBuilder, keyringId]);
 
   const introduction = useCallback(() => {
     trackEvent(
