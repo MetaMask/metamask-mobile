@@ -334,4 +334,53 @@ describe('isConnectionRequest', () => {
     (req.metadata.sdk as Record<string, unknown>).platform = 'p'.repeat(65);
     expect(isConnectionRequest(req)).toBe(false);
   });
+
+  // ──────────────────────────────────────────
+  // metadata.analytics (optional)
+  // ──────────────────────────────────────────
+  it('accepts a request without metadata.analytics', () => {
+    const req = validRequest();
+    delete (req.metadata as Record<string, unknown>).analytics;
+    expect(isConnectionRequest(req)).toBe(true);
+  });
+
+  it('accepts a valid metadata.analytics.anon_id (UUID)', () => {
+    const req = validRequest();
+    (req.metadata as Record<string, unknown>).analytics = {
+      anon_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+    };
+    expect(isConnectionRequest(req)).toBe(true);
+  });
+
+  it('returns false when analytics is not an object', () => {
+    const req = validRequest();
+    (req.metadata as Record<string, unknown>).analytics = 'bad';
+    expect(isConnectionRequest(req)).toBe(false);
+  });
+
+  it('returns false when analytics is null', () => {
+    const req = validRequest();
+    (req.metadata as Record<string, unknown>).analytics = null;
+    expect(isConnectionRequest(req)).toBe(false);
+  });
+
+  it('returns false when analytics.anon_id is missing', () => {
+    const req = validRequest();
+    (req.metadata as Record<string, unknown>).analytics = {};
+    expect(isConnectionRequest(req)).toBe(false);
+  });
+
+  it('returns false when analytics.anon_id is not a string', () => {
+    const req = validRequest();
+    (req.metadata as Record<string, unknown>).analytics = { anon_id: 42 };
+    expect(isConnectionRequest(req)).toBe(false);
+  });
+
+  it('returns false when analytics.anon_id is not a valid UUID', () => {
+    const req = validRequest();
+    (req.metadata as Record<string, unknown>).analytics = {
+      anon_id: 'not-a-uuid',
+    };
+    expect(isConnectionRequest(req)).toBe(false);
+  });
 });

@@ -106,6 +106,7 @@ import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/g
 import { isSnapId } from '@metamask/snaps-utils';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -160,6 +161,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
+
+  const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -413,6 +417,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: chainIds,
             referrer: channelIdOrHostname,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { anon_id: anonId } : {}),
           })
           .build(),
       );
@@ -420,6 +425,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       accountsLength,
       channelIdOrHostname,
+      anonId,
       trackEvent,
       createEventBuilder,
       eventSource,
@@ -522,6 +528,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             chain_id_list: selectedChainIds,
             referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
+            ...(anonId ? { anon_id: anonId } : {}),
           })
           .build(),
       );
@@ -545,6 +552,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
+    anonId,
     eventSource,
     selectedAddresses,
     hostInfo,

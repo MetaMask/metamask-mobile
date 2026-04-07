@@ -11,4 +11,7 @@ export interface Metadata {
     version: string;
     platform: string;
   };
+  analytics?: {
+    anon_id: string;
+  };
 }

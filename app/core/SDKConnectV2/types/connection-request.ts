@@ -148,5 +148,16 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
+  if (metadata.analytics !== undefined) {
+    if (
+      typeof metadata.analytics !== 'object' ||
+      metadata.analytics === null ||
+      typeof metadata.analytics.anon_id !== 'string' ||
+      !isUUID(metadata.analytics.anon_id)
+    ) {
+      return false;
+    }
+  }
+
   return true;
 }
