@@ -288,6 +288,8 @@ jest.mock(
               await mockAnalytics.optIn();
             }
           },
+          identify: (traits: Record<string, unknown>) =>
+            mockAnalytics.identify(traits as never),
           createEventBuilder: mockCreateEventBuilder,
         }}
       />
