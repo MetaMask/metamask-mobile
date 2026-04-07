@@ -1,6 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
@@ -106,10 +110,22 @@ const createMockStore = (
     },
   });
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
 const wrapper =
   (store: ReturnType<typeof createMockStore>) =>
   ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store } as never, children);
+    React.createElement(
+      Provider,
+      { store } as never,
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      ),
+    );
 
 describe('useRampsProviders', () => {
   beforeEach(() => {
@@ -273,7 +289,7 @@ describe('useRampsProviders', () => {
         autoSelected: false,
       });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
@@ -291,13 +307,13 @@ describe('useRampsProviders', () => {
         autoSelected: false,
       });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[1].id, { autoSelected: false });
+      ).toHaveBeenCalledWith(mockProviders[1], { autoSelected: false });
     });
 
     it('does not call setSelectedProvider when determinePreferredProvider returns null', () => {
@@ -305,7 +321,7 @@ describe('useRampsProviders', () => {
       mockGetOrders.mockReturnValue(emptyOrders);
       mockDeterminePreferredProvider.mockReturnValue(null);
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 

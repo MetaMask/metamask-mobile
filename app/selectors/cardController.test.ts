@@ -4,8 +4,25 @@ import {
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
   selectCardholderAccounts,
+  selectHasCardholderAccounts,
+  selectIsCardholder,
+  selectCardUserLocation,
 } from './cardController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
+import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
+import { isEthAccount } from '../core/Multichain/utils';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+
+jest.mock('./multichainAccounts/accounts');
+jest.mock('../core/Multichain/utils');
+
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
+  >;
+const mockIsEthAccount = isEthAccount as jest.MockedFunction<
+  typeof isEthAccount
+>;
 
 const createMockRootState = (
   overrides: Partial<CardControllerState> = {},
@@ -103,5 +120,139 @@ describe('CardController selectors', () => {
     it('returns empty array for cardholderAccounts', () => {
       expect(selectCardholderAccounts(state)).toStrictEqual([]);
     });
+  });
+});
+
+describe('selectHasCardholderAccounts', () => {
+  it('returns false when cardholderAccounts is empty', () => {
+    const state = createMockRootState({ cardholderAccounts: [] });
+    expect(selectHasCardholderAccounts(state)).toBe(false);
+  });
+
+  it('returns true when there is at least one cardholder account', () => {
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectHasCardholderAccounts(state)).toBe(true);
+  });
+});
+
+describe('selectIsCardholder', () => {
+  const mockEvmAccount = {
+    address: '0xabc',
+    type: 'eip155:eoa',
+    scopes: ['eip155:0'],
+  } as unknown as InternalAccount;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+  });
+
+  it('returns true when selected account address matches a cardholder CAIP-10 ID', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(mockEvmAccount),
+    );
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardholder(state)).toBe(true);
+  });
+
+  it('returns false when selected account address does not match any cardholder', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(mockEvmAccount),
+    );
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:0:0xdifferent'],
+    });
+    expect(selectIsCardholder(state)).toBe(false);
+  });
+
+  it('returns false when cardholderAccounts is empty', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(mockEvmAccount),
+    );
+    const state = createMockRootState({ cardholderAccounts: [] });
+    expect(selectIsCardholder(state)).toBe(false);
+  });
+
+  it('returns false when no selected account', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardholder(state)).toBe(false);
+  });
+
+  it('returns false when selected account is not an EVM account', () => {
+    mockIsEthAccount.mockReturnValue(false);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(mockEvmAccount),
+    );
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardholder(state)).toBe(false);
+  });
+
+  it('is case-insensitive when comparing addresses', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({ ...mockEvmAccount, address: '0xABC' }),
+    );
+    const state = createMockRootState({
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardholder(state)).toBe(true);
+  });
+
+  it('returns false for invalid CAIP-10 IDs in cardholderAccounts', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(mockEvmAccount),
+    );
+    const state = createMockRootState({
+      cardholderAccounts: ['not-a-caip-id'],
+    });
+    expect(selectIsCardholder(state)).toBe(false);
+  });
+});
+
+describe('selectCardUserLocation', () => {
+  it('returns null by default when providerData is empty', () => {
+    const state = createMockRootState({ providerData: {} });
+    expect(selectCardUserLocation(state)).toBeNull();
+  });
+
+  it('returns the location from providerData for the active provider', () => {
+    const state = createMockRootState({
+      activeProviderId: 'baanx',
+      providerData: { baanx: { location: 'us' } },
+    });
+    expect(selectCardUserLocation(state)).toBe('us');
+  });
+
+  it('returns null when providerData has no location field', () => {
+    const state = createMockRootState({
+      activeProviderId: 'baanx',
+      providerData: { baanx: {} },
+    });
+    expect(selectCardUserLocation(state)).toBeNull();
+  });
+
+  it('falls back to baanx provider when activeProviderId is null', () => {
+    const state = createMockRootState({
+      activeProviderId: null,
+      providerData: { baanx: { location: 'us' } },
+    });
+    expect(selectCardUserLocation(state)).toBe('us');
+  });
+
+  it('returns null when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardUserLocation(state)).toBeNull();
   });
 });
