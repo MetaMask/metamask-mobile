@@ -6,6 +6,7 @@ import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
+import { getStxMetricsProperties } from '../metrics_properties/stx';
 import {
   handleTransactionAddedEventForMetrics,
   handleTransactionApprovedEventForMetrics,
@@ -14,10 +15,7 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from './metrics';
 import { TransactionEventHandlerRequest } from '../types';
-import {
-  disabledSmartTransactionsState,
-  enabledSmartTransactionsState,
-} from '../data-helpers';
+import { enabledSmartTransactionsState } from '../data-helpers';
 import { selectIsPna25FlagEnabled } from '../../../../../selectors/featureFlagController/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 
@@ -57,6 +55,13 @@ jest.mock('../../../Engine', () => ({
   context: {},
 }));
 
+jest.mock('../metrics_properties/stx', () => ({
+  getStxMetricsProperties: jest.fn().mockResolvedValue({
+    properties: {},
+    sensitiveProperties: {},
+  }),
+}));
+
 jest.mock('../metrics_properties/metamask-pay', () => ({
   getMetaMaskPayProperties: jest.fn().mockReturnValue({
     properties: {
@@ -69,8 +74,8 @@ jest.mock('../metrics_properties/metamask-pay', () => ({
 }));
 
 const mockSmartTransactionMetricsProperties = {
-  smart_transaction_timed_out: false,
-  smart_transaction_proxied: false,
+  is_smart_transactions_user_opt_in: true,
+  is_smart_transactions_available: true,
   is_smart_transaction: true,
 };
 
@@ -86,6 +91,7 @@ describe('Transaction Metric Event Handlers', () => {
   const mockGetSmartTransactionMetricsProperties = jest.mocked(
     getSmartTransactionMetricsProperties,
   );
+  const mockGetStxMetricsProperties = jest.mocked(getStxMetricsProperties);
   const mockSelectIsPna25FlagEnabled = jest.mocked(selectIsPna25FlagEnabled);
   const mockSelectIsPna25Acknowledged = jest.mocked(selectIsPna25Acknowledged);
 
@@ -383,14 +389,13 @@ describe('Transaction Metric Event Handlers', () => {
 
   describe('handleTransactionFinalized', () => {
     it('adds STX metrics properties if smart transactions are enabled', async () => {
-      // Force the selector to return true
-      mockSelectShouldUseSmartTransaction.mockReturnValue(true);
-
-      // Force the mock to return the expected properties
-      mockGetSmartTransactionMetricsProperties.mockResolvedValue({
-        is_smart_transactions_user_opt_in: true,
-        is_smart_transactions_available: true,
-        is_smart_transaction: true,
+      mockGetStxMetricsProperties.mockResolvedValue({
+        properties: {
+          is_smart_transactions_user_opt_in: true,
+          is_smart_transactions_available: true,
+          is_smart_transaction: true,
+        },
+        sensitiveProperties: {},
       });
 
       await handleTransactionFinalizedEventForMetrics(
@@ -398,35 +403,26 @@ describe('Transaction Metric Event Handlers', () => {
         mockTransactionMetricRequest,
       );
 
-      // Check if the mock was called
-      expect(mockGetSmartTransactionMetricsProperties).toHaveBeenCalled();
+      expect(mockGetStxMetricsProperties).toHaveBeenCalled();
 
-      // Check if addProperties was called with the STX properties
       expect(mockMetricsEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          smart_transaction_timed_out: false,
-          smart_transaction_proxied: false,
+          is_smart_transactions_user_opt_in: true,
+          is_smart_transactions_available: true,
           is_smart_transaction: true,
         }),
       );
     });
 
     it('does not add STX metrics properties if smart transactions are not enabled', async () => {
-      // Force the selector to return false for this test
-      mockSelectShouldUseSmartTransaction.mockReturnValue(false);
-
-      mockGetState.mockReturnValue(
-        merge({}, disabledSmartTransactionsState, {
-          confirmationMetrics: {
-            metricsById: {
-              [mockTransactionMeta.id]: {
-                properties: { test_property: 'test_value' },
-                sensitiveProperties: { sensitive_property: 'sensitive_value' },
-              },
-            },
-          },
-        }),
-      );
+      mockGetStxMetricsProperties.mockResolvedValue({
+        properties: {
+          is_smart_transactions_user_opt_in: false,
+          is_smart_transactions_available: false,
+          is_smart_transaction: false,
+        },
+        sensitiveProperties: {},
+      });
 
       await handleTransactionFinalizedEventForMetrics(
         mockTransactionMeta,
