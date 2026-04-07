@@ -194,6 +194,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "LoggingController": {
         "logs": {},
       },
+      "MoneyAccountController": {
+        "moneyAccounts": {},
+      },
       "MultichainAssetsController": {
         "accountsAssets": {},
         "allIgnoredAssets": {},
@@ -683,6 +686,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "campaignParticipantStatus": {},
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
+        "ondoCampaignActivity": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},
@@ -1016,6 +1020,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "LoggingController": {
         "logs": {},
       },
+      "MoneyAccountController": {
+        "moneyAccounts": {},
+      },
       "MultichainAssetsController": {
         "accountsAssets": {},
         "allIgnoredAssets": {},
@@ -1505,6 +1512,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "campaignParticipantStatus": {},
         "campaigns": {},
         "offDeviceSubscriptionAccounts": {},
+        "ondoCampaignActivity": {},
         "ondoCampaignLeaderboard": {},
         "ondoCampaignLeaderboardPositions": {},
         "ondoCampaignPortfolio": {},

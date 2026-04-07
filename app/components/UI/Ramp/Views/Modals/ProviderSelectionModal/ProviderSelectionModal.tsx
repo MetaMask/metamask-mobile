@@ -19,6 +19,7 @@ import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
+import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -82,12 +83,17 @@ function ProviderSelectionModal() {
     '';
   const assetId = paramAssetId ?? selectedToken?.assetId ?? '';
 
+  /**
+   * Only list (and quote) providers that support the effective asset. Uses the
+   * same id as `getQuotes` (`paramAssetId ?? selectedToken?.assetId`), so flows
+   * without route `assetId` still filter when `selectedToken` is set.
+   */
   const displayProviders = useMemo(() => {
-    if (!paramAssetId) return providers;
-    return providers.filter(
-      (p) => p.supportedCryptoCurrencies?.[paramAssetId] === true,
-    );
-  }, [providers, paramAssetId]);
+    if (!assetId) {
+      return providers;
+    }
+    return providers.filter((p) => providerSupportsAsset(p, assetId));
+  }, [providers, assetId]);
 
   const providerIds = useMemo(
     () => displayProviders.map((p) => p.id),
@@ -107,7 +113,6 @@ function ProviderSelectionModal() {
             assetId,
             providers: providerIds,
             paymentMethods: [selectedPaymentMethod.id],
-            forceRefresh: true,
           }
         : null,
     [

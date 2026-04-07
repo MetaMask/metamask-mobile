@@ -492,7 +492,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

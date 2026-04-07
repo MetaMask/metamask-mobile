@@ -1,6 +1,7 @@
 import {
   selectPredictEnabledFlag,
   selectPredictFakOrdersEnabledFlag,
+  selectPredictFeatureFlags,
   selectPredictFeeCollectionFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
@@ -949,6 +950,53 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictWithAnyTokenEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+
+    it('returns the memoized feature flag result when only cacheTimestamp changes', () => {
+      const remoteFeatureFlags = {
+        predictFeeCollection: {
+          enabled: true,
+          collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+          metamaskFee: 0.03,
+          providerFee: 0.01,
+          waiveList: ['middle-east'],
+          executors: ['0x1234'],
+          permit2Enabled: true,
+        },
+      };
+      const localOverrides = {
+        predictWithAnyToken: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      };
+      const stateA = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              localOverrides,
+              cacheTimestamp: 1,
+            },
+          },
+        },
+      };
+      const stateB = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              localOverrides,
+              cacheTimestamp: 2,
+            },
+          },
+        },
+      };
+
+      const resultA = selectPredictFeatureFlags(stateA);
+      const resultB = selectPredictFeatureFlags(stateB);
+
+      expect(resultB).toBe(resultA);
     });
   });
 

@@ -1,10 +1,13 @@
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-import { KeyringControllerState } from '@metamask/keyring-controller';
+import {
+  KeyringControllerState,
+  KeyringObject,
+} from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
 /**
- *
+ * Selects the KeyringController state from the root Redux state.
  * @param state - Root Redux state
  * @returns - KeyringController state
  */
@@ -28,6 +31,16 @@ export const selectKeyrings = createDeepEqualSelector(
 export const selectHDKeyrings = createDeepEqualSelector(
   selectKeyrings,
   (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
+);
+
+/**
+ * Selects the primary (first) HD keyring from the state
+ * @param state - The Redux state
+ * @returns The primary HD keyring, or undefined if none exist
+ */
+export const selectPrimaryHDKeyring = createDeepEqualSelector(
+  selectHDKeyrings,
+  (keyrings): KeyringObject | undefined => keyrings[0],
 );
 
 /**

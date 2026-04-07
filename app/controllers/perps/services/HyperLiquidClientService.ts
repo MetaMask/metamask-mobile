@@ -7,6 +7,7 @@ import {
   WebSocketTransport,
 } from '@nktkas/hyperliquid';
 
+import { getPerpsConnectionAttemptContext } from '../../../util/perpsConnectionAttemptContext';
 import { CandlePeriod, calculateCandleCount } from '../constants/chartConfig';
 import { HYPERLIQUID_TRANSPORT_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -120,6 +121,9 @@ export class HyperLiquidClientService {
    * @param wallet - The wallet parameters for signing typed data.
    */
   public async initialize(wallet: HyperLiquidWalletParams): Promise<void> {
+    const network = this.#isTestnet ? 'testnet' : 'mainnet';
+    const attemptContext = getPerpsConnectionAttemptContext();
+
     try {
       this.#updateConnectionState(WebSocketConnectionState.Connecting);
       this.#createTransports();
@@ -184,21 +188,32 @@ export class HyperLiquidClientService {
       );
       this.#updateConnectionState(WebSocketConnectionState.Disconnected);
 
-      // Log to Sentry: initialization failure blocks all Perps functionality
-      this.#deps.logger.error(errorInstance, {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          service: 'HyperLiquidClientService',
-          network: this.#isTestnet ? 'testnet' : 'mainnet',
-        },
-        context: {
-          name: 'sdk_initialization',
-          data: {
-            operation: 'initialize',
-            isTestnet: this.#isTestnet,
+      if (attemptContext?.suppressError) {
+        this.#deps.debugLogger.log(
+          'HyperLiquid initialize failed during suppressed startup attempt',
+          {
+            error: errorInstance.message,
+            network,
+            source: attemptContext.source,
           },
-        },
-      });
+        );
+      } else {
+        this.#deps.logger.error(errorInstance, {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            service: 'HyperLiquidClientService',
+            network,
+          },
+          context: {
+            name: 'sdk_initialization',
+            data: {
+              operation: 'initialize',
+              isTestnet: this.#isTestnet,
+              source: attemptContext?.source ?? 'unspecified',
+            },
+          },
+        });
+      }
 
       throw error;
     }

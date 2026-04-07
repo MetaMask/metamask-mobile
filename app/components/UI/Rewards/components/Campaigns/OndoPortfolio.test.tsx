@@ -52,37 +52,6 @@ jest.mock('../RewardsErrorBanner', () => {
   };
 });
 
-jest.mock('../RewardsInfoBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      onConfirm,
-      confirmButtonLabel,
-      testID,
-    }: {
-      title: string;
-      description: string;
-      onConfirm?: () => void;
-      confirmButtonLabel?: string;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID },
-        ReactActual.createElement(Text, null, title),
-        confirmButtonLabel &&
-          ReactActual.createElement(
-            Pressable,
-            { onPress: onConfirm },
-            ReactActual.createElement(Text, null, confirmButtonLabel),
-          ),
-      ),
-  };
-});
-
 jest.mock('../../../../../util/formatFiat', () => ({
   __esModule: true,
   default: (amount: { toFixed: (dp: number) => string }) =>
@@ -95,7 +64,6 @@ jest.mock('../../../../../util/formatFiat', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
-      'rewards.ondo_campaign_portfolio.title': 'Your Positions',
       'rewards.ondo_campaign_portfolio.empty': 'No positions yet',
       'rewards.ondo_campaign_portfolio.empty_description':
         'Start investing to see your positions',
@@ -132,8 +100,20 @@ jest.mock('../../../../../util/ondoGeoRestrictions', () => ({
   isGeoRestricted: jest.fn(() => false),
 }));
 
+jest.mock(
+  '../../../../../images/rewards/rewards-no-positions.svg',
+  () => 'NoPositionsImage',
+);
+
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
+
 jest.mock('./OndoLeaderboard.utils', () => ({
-  formatComputedAt: jest.fn(() => '1 hour ago'),
+  formatComputedAt: jest.fn(),
 }));
 
 const mockRefetch = jest.fn();
@@ -300,12 +280,6 @@ describe('OndoPortfolio', () => {
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
     });
 
-    it('renders the positions heading', () => {
-      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-
-      expect(getByText('Your Positions')).toBeDefined();
-    });
-
     it('renders the token name', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
 
@@ -319,13 +293,6 @@ describe('OndoPortfolio', () => {
       portfolio: MOCK_PORTFOLIO,
       hasFetched: true,
     };
-
-    it('shows arrow icon in section header when there are positions', () => {
-      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-      fireEvent.press(getByText('Your Positions'));
-      // Component handles the press without throwing
-      expect(getByText('Your Positions')).toBeDefined();
-    });
 
     it('pressing a position row does not throw', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
@@ -357,11 +324,6 @@ describe('OndoPortfolio', () => {
     it('renders the units text', () => {
       const { getByText } = render(<OndoPortfolio {...loadedProps} />);
       expect(getByText('45.2 units')).toBeDefined();
-    });
-
-    it('renders the updated at text', () => {
-      const { getByText } = render(<OndoPortfolio {...loadedProps} />);
-      expect(getByText('Updated: 1 hour ago')).toBeDefined();
     });
 
     it('renders positive PnL percent in green', () => {
