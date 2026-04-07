@@ -90,7 +90,7 @@
         },
         "press-set-tpsl": {
           "action": "press",
-          "test_id": "bottomsheetfooter-button",
+          "test_id": "perps-tpsl-set-button",
           "next": "wait-tpsl-created"
         },
         "wait-tpsl-created": {
