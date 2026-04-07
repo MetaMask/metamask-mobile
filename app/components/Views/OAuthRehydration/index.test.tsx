@@ -946,6 +946,23 @@ describe('OAuthRehydration', () => {
       expect(rehydrationFailedCalls).toHaveLength(0);
     });
 
+    it('does not track REHYDRATION_PASSWORD_FAILED when Android keychain reports user cancel', async () => {
+      mockUnlockWallet.mockRejectedValue(
+        new Error('code: 10, msg: Fingerprint operation canceled by user'),
+      );
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
+    });
+
     it('sets biometryChoice to false on biometric cancellation', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Cancel'));
       const { getByTestId, queryByTestId } = renderWithProvider(

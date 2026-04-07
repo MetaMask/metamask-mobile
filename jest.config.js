@@ -60,7 +60,7 @@ const config = {
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
-  maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
+  maxWorkers: process.env.CI ? '50%' : '20%',
   moduleNameMapper: {
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
@@ -89,8 +89,10 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
   },
-  // Disable jest cache
-  cache: false,
+  cache: true,
+  ...(process.env.JEST_CACHE_DIRECTORY && {
+    cacheDirectory: process.env.JEST_CACHE_DIRECTORY,
+  }),
 };
 
 // eslint-disable-next-line import-x/no-commonjs
