@@ -2,12 +2,7 @@
 
 exports[`FoxLoader renders correctly and matches snapshot 1`] = `
 <View
-  style={
-    [
-      {},
-      false,
-    ]
-  }
+  style={{}}
   testID="fox-loader-container"
 >
   <View

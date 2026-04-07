@@ -13,6 +13,13 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+const mockIsE2E = false;
+jest.mock('../../../util/test/utils', () => ({
+  get isE2E() {
+    return mockIsE2E;
+  },
+}));
+
 // Capture onAnimationComplete directly so tests can trigger it without hiding
 // the real prop signature behind a native event like onLayout.
 let capturedOnAnimationComplete: (() => void) | undefined;

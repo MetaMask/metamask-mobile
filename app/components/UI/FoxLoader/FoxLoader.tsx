@@ -10,7 +10,6 @@ import Rive, {
 } from 'rive-react-native';
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
-import { isE2E } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
 import styleSheet from './FoxLoader.styles';
 
@@ -20,6 +19,9 @@ const splashRiveFile = require('../../../animations/splash_screen.riv');
 const SPLASH_STATE_MACHINE = 'Splash_animation';
 const STYLE_PARAMS = {};
 const SPLASH_IDLE_STATE = 'Blink and look around (Shorter)';
+// Maximum time to wait for the animation to complete before forcing the app to show.
+// Guards against silent failures: corrupted .riv file, stuck state machine, unsupported renderer.
+const ANIMATION_TIMEOUT_MS = 5_000;
 
 // Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
@@ -53,7 +55,6 @@ const FoxLoader = ({
   const riveRef = useRef<RiveRef>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
   const exitTriggered = useRef(false);
   const isCompleteRef = useRef(animationComplete);
   const isPlayingRef = useRef(false);
@@ -63,7 +64,7 @@ const FoxLoader = ({
   const riveOpacity = useRef(new Animated.Value(0)).current;
 
   const startAnimation = useCallback(() => {
-    if (isE2E || animationStarted) return;
+    if (animationStarted) return;
     try {
       // eslint-disable-next-line react-compiler/react-compiler
       animationStarted = true;
@@ -97,11 +98,30 @@ const FoxLoader = ({
     }
   }, [isPlaying, startAnimation, staticFoxOpacity, riveOpacity]);
 
-  // If the animation already completed this session (remount), skip it immediately
+  // Skip animation if it already completed this session (remount)
   useEffect(() => {
     if (animationComplete) {
       onAnimationCompleteRef.current?.();
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fallback: if the animation hasn't completed within the timeout, force the app to show.
+  // Covers silent failures: corrupted .riv file, stuck state machine, unsupported renderer.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!isCompleteRef.current) {
+        Logger.error(
+          new Error('Splash animation timed out'),
+          'FoxLoader: forcing app reveal after timeout',
+        );
+        // eslint-disable-next-line react-compiler/react-compiler
+        animationComplete = true;
+        isCompleteRef.current = true;
+        onAnimationCompleteRef.current?.();
+      }
+    }, ANIMATION_TIMEOUT_MS);
+
+    return () => clearTimeout(timeout);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Once both the app is ready and the fox is in its idle loop, fire the exit animation
@@ -112,10 +132,7 @@ const FoxLoader = ({
   }, [appServicesReady, isIdle, stopAnimation]);
 
   return (
-    <View
-      testID="fox-loader-container"
-      style={[styles.container, isComplete && styles.hidden]}
-    >
+    <View testID="fox-loader-container" style={styles.container}>
       <View
         testID="fox-loader-animation-wrapper"
         style={styles.animationWrapper}
@@ -167,7 +184,6 @@ const FoxLoader = ({
                 // eslint-disable-next-line react-compiler/react-compiler
                 animationComplete = true;
                 isCompleteRef.current = true;
-                setIsComplete(true);
                 onAnimationCompleteRef.current?.();
               }
             }}

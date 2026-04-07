@@ -28,7 +28,7 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
   }, [loaderOpacity]);
 
   const handleAnimationComplete = useCallback(() => {
-    setTimeout(fadeOutLoader, 350);
+    setTimeout(fadeOutLoader, 250);
   }, [fadeOutLoader]);
 
   return (

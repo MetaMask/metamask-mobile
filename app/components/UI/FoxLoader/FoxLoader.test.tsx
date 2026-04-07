@@ -173,19 +173,6 @@ describe('FoxLoader', () => {
     expect(onAnimationComplete).not.toHaveBeenCalled();
   });
 
-  it('does not fire the Start trigger in E2E mode', () => {
-    mockIsE2E = true;
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
-
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-
-    expect(mockFireState).not.toHaveBeenCalledWith('Splash_animation', 'Start');
-  });
-
   it('fires the Start trigger only once even when the component remounts', () => {
     const onAnimationComplete = jest.fn();
     const { unmount } = render(
@@ -250,5 +237,29 @@ describe('FoxLoader', () => {
       />,
     );
     expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('forces onAnimationComplete via timeout if animation never completes', () => {
+    jest.useFakeTimers();
+    const onAnimationComplete = jest.fn();
+    render(
+      <FoxLoader
+        appServicesReady={false}
+        onAnimationComplete={onAnimationComplete}
+      />,
+    );
+
+    // Animation starts but state machine gets stuck — ExitState never fires
+    act(() => {
+      mockRiveCallbacks.onPlay?.();
+    });
+    expect(onAnimationComplete).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(5_000);
+    });
+
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
   });
 });
