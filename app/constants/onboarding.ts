@@ -25,6 +25,12 @@ export enum AccountType {
   ImportedApple = 'imported_apple',
 }
 
+export enum WalletSetupType {
+  New = 'new',
+  Import = 'import',
+  Social = 'social',
+}
+
 const socialAccountTypeMap: Record<
   string,
   { new: AccountType; existing: AccountType }

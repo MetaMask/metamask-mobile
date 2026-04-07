@@ -33,6 +33,7 @@ import {
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import { WalletSetupType } from '../../../constants/onboarding';
 import {
   passwordSet as passwordSetAction,
   passwordUnset as passwordUnsetAction,
@@ -244,7 +245,9 @@ const ChoosePassword = () => {
     const canSubmit = isSocialLogin
       ? passwordsMatch
       : passwordsMatch && isSelected;
-    const walletSetupType = isSocialLogin ? 'social' : 'new';
+    const walletSetupType = isSocialLogin
+      ? WalletSetupType.Social
+      : WalletSetupType.New;
 
     if (loading) return { valid: false, shouldTrack: false };
 
@@ -395,7 +398,7 @@ const ChoosePassword = () => {
       setLoading(false);
 
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'new',
+        wallet_setup_type: WalletSetupType.New,
         error_type: caughtError.toString(),
       });
 
@@ -482,7 +485,7 @@ const ChoosePassword = () => {
         account_type: accountType,
       });
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-        wallet_setup_type: 'new',
+        wallet_setup_type: WalletSetupType.New,
         new_wallet: true,
         account_type: accountType,
       });
