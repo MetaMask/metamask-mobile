@@ -16,19 +16,20 @@ jest.mock('@react-navigation/native', () => {
 describe('KeyValueRow', () => {
   describe('Prebuilt Component', () => {
     describe('KeyValueRow', () => {
-      it('should render when there is only text', () => {
-        const { toJSON } = render(
+      it('renders field and value labels', () => {
+        const { getByText } = render(
           <KeyValueRow
             field={{ label: { text: 'Sample Key Text' } }}
             value={{ label: { text: 'Sample Value Text' } }}
           />,
         );
 
-        expect(toJSON()).toBeDefined();
+        expect(getByText('Sample Key Text')).toBeOnTheScreen();
+        expect(getByText('Sample Value Text')).toBeOnTheScreen();
       });
 
-      it('should render text with tooltips', () => {
-        const { toJSON } = render(
+      it('renders field and value labels with tooltips', () => {
+        const { getByText } = render(
           <KeyValueRow
             field={{
               label: { text: 'Key Text' },
@@ -47,11 +48,12 @@ describe('KeyValueRow', () => {
           />,
         );
 
-        expect(toJSON()).toBeDefined();
+        expect(getByText('Key Text')).toBeOnTheScreen();
+        expect(getByText('Value Text')).toBeOnTheScreen();
       });
 
-      it('should render text with icons', () => {
-        const { toJSON } = render(
+      it('renders field and value labels with icons', () => {
+        const { getByText } = render(
           <KeyValueRow
             field={{
               label: { text: 'Key Text' },
@@ -68,11 +70,12 @@ describe('KeyValueRow', () => {
           />,
         );
 
-        expect(toJSON()).toBeDefined();
+        expect(getByText('Key Text')).toBeOnTheScreen();
+        expect(getByText('Value Text')).toBeOnTheScreen();
       });
 
-      it('should render text with icons and tooltips', () => {
-        const { toJSON } = render(
+      it('renders field and value labels with icons and tooltips', () => {
+        const { getByText } = render(
           <KeyValueRow
             field={{
               label: { text: 'Key Text' },
@@ -97,7 +100,8 @@ describe('KeyValueRow', () => {
           />,
         );
 
-        expect(toJSON()).toBeDefined();
+        expect(getByText('Key Text')).toBeOnTheScreen();
+        expect(getByText('Value Text')).toBeOnTheScreen();
       });
     });
   });

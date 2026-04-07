@@ -22,8 +22,8 @@ describe('AggregatedPercentage', () => {
   afterEach(() => {
     (useSelector as jest.Mock).mockClear();
   });
-  it('should render correctly', () => {
-    const { toJSON } = render(
+  it('renders percentage and value price elements', () => {
+    const { getByTestId } = render(
       <AggregatedPercentage
         ethFiat={100}
         tokenFiat={100}
@@ -31,7 +31,8 @@ describe('AggregatedPercentage', () => {
         ethFiat1dAgo={90}
       />,
     );
-    expect(toJSON()).toBeDefined();
+    expect(getByTestId(FORMATTED_PERCENTAGE_TEST_ID)).toBeOnTheScreen();
+    expect(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders positive percentage change correctly', () => {
@@ -44,8 +45,8 @@ describe('AggregatedPercentage', () => {
       />,
     );
 
-    expect(getByText('(+25.00%)')).toBeTruthy();
-    expect(getByText('+100 USD')).toBeTruthy();
+    expect(getByText('(+25.00%)')).toBeOnTheScreen();
+    expect(getByText('+100 USD')).toBeOnTheScreen();
 
     expect(getByText('(+25.00%)').props.style).toMatchObject({
       color: mockTheme.colors.success.default,
@@ -62,8 +63,8 @@ describe('AggregatedPercentage', () => {
       />,
     );
 
-    expect(getByText('(-30.00%)')).toBeTruthy();
-    expect(getByText('-150 USD')).toBeTruthy();
+    expect(getByText('(-30.00%)')).toBeOnTheScreen();
+    expect(getByText('-150 USD')).toBeOnTheScreen();
 
     expect(getByText('(-30.00%)').props.style).toMatchObject({
       color: mockTheme.colors.error.default,

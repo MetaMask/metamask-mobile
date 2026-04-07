@@ -26,17 +26,20 @@ describe('Component ContractBoxBase', () => {
 
   const renderComponent = () => shallow(<ContractBoxBase {...props} />);
 
-  it('should render correctly', () => {
+  it('renders with all props', () => {
     const component = renderComponent();
-    expect(component).toBeDefined();
+
+    expect(component.exists()).toBe(true);
   });
 
-  it('should render correctly when contract petname is not provided', () => {
+  it('renders the no-pet-name element when contractPetName is undefined', () => {
     props.contractPetName = undefined;
+
     const component = renderComponent();
     const contractPetName = component.findWhere(
       (node) => node.prop('testID') === CONTRACT_BOX_NO_PET_NAME_TEST_ID,
     );
+
     expect(contractPetName.exists()).toBe(true);
   });
 });

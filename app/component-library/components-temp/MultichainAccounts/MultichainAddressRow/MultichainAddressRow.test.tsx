@@ -25,10 +25,10 @@ jest.mock('../../../../util/networks', () => ({
 
 describe('MultichainAddressRow', () => {
   it('renders MultichainAddressRow correctly', () => {
-    const wrapper = render(
+    const { getByTestId } = render(
       <MultichainAddressRow {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS} />,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(getByTestId(MULTICHAIN_ADDRESS_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders the network name', () => {

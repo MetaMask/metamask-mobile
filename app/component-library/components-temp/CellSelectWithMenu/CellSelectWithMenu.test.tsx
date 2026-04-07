@@ -9,10 +9,10 @@ import { SAMPLE_CELLSELECT_WITH_BUTTON_PROPS } from './CellSelectWithMenu.consta
 
 describe('CellSelectWithMenu', () => {
   it('should render with default settings correctly', () => {
-    const wrapper = render(
+    const { queryByTestId } = render(
       <CellSelectWithMenu {...SAMPLE_CELLSELECT_WITH_BUTTON_PROPS} />,
     );
-    expect(wrapper.toJSON()).toBeDefined();
+    expect(queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).not.toBeNull();
   });
 
   it('should render CellSelectWithMenu', () => {

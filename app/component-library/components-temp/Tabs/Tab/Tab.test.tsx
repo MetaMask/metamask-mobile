@@ -17,73 +17,66 @@ describe('Tab', () => {
   });
 
   describe('Rendering', () => {
-    it('renders correctly', () => {
-      const { toJSON } = render(<Tab {...defaultProps} />);
-      expect(toJSON()).toBeDefined();
+    it('renders with testID', () => {
+      const { getByTestId } = render(<Tab {...defaultProps} testID="tab" />);
+
+      expect(getByTestId('tab')).toBeOnTheScreen();
     });
 
     it('displays the label text', () => {
       const { getAllByText } = render(<Tab {...defaultProps} label="My Tab" />);
+
       expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
     });
 
-    it('renders with correct testID', () => {
-      const { getByTestId } = render(
-        <Tab {...defaultProps} testID="custom-tab" />,
-      );
-      expect(getByTestId('custom-tab')).toBeOnTheScreen();
-    });
+    it('renders long labels without truncating the element', () => {
+      const longLabel =
+        'This is a very long tab label that should be truncated';
 
-    it('truncates long labels with numberOfLines=1', () => {
       const { getAllByText } = render(
-        <Tab
-          {...defaultProps}
-          label="This is a very long tab label that should be truncated"
-        />,
+        <Tab {...defaultProps} label={longLabel} />,
       );
-      expect(
-        getAllByText(
-          'This is a very long tab label that should be truncated',
-        )[0],
-      ).toBeOnTheScreen();
+
+      expect(getAllByText(longLabel)[0]).toBeOnTheScreen();
     });
   });
 
   describe('Active State', () => {
-    it('applies active styling when isActive is true', () => {
-      const { toJSON } = render(<Tab {...defaultProps} isActive />);
-      expect(toJSON()).toBeDefined();
-    });
-
-    it('applies inactive styling when isActive is false', () => {
-      const { toJSON } = render(<Tab {...defaultProps} isActive={false} />);
-      expect(toJSON()).toBeDefined();
-    });
-
-    it('shows bold font weight when active', () => {
-      const { getAllByText } = render(<Tab {...defaultProps} isActive />);
-      const text = getAllByText('Test Tab')[0];
-      // Note: Testing font weight through snapshots is more reliable
-      expect(text).toBeOnTheScreen();
-    });
-
-    it('shows regular font weight when inactive', () => {
-      const { getAllByText } = render(
-        <Tab {...defaultProps} isActive={false} />,
+    it('renders enabled when isActive is true', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} isActive testID="active-tab" />,
       );
-      const text = getAllByText('Test Tab')[0];
-      expect(text).toBeOnTheScreen();
+
+      expect(
+        getByTestId('active-tab').props.accessibilityState?.disabled,
+      ).toBeFalsy();
+    });
+
+    it('renders enabled when isActive is false', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} isActive={false} testID="inactive-tab" />,
+      );
+
+      expect(
+        getByTestId('inactive-tab').props.accessibilityState?.disabled,
+      ).toBeFalsy();
     });
   });
 
   describe('Disabled State', () => {
-    it('applies disabled styling when isDisabled is true', () => {
-      const { toJSON } = render(<Tab {...defaultProps} isDisabled />);
-      expect(toJSON()).toBeDefined();
+    it('sets disabled accessibility state when isDisabled is true', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} isDisabled testID="disabled-tab-style" />,
+      );
+
+      expect(
+        getByTestId('disabled-tab-style').props.accessibilityState?.disabled,
+      ).toBe(true);
     });
 
-    it('does not call onPress when disabled and pressed', () => {
+    it('does not call onPress when disabled', () => {
       const mockOnPress = jest.fn();
+
       const { getAllByText } = render(
         <Tab {...defaultProps} onPress={mockOnPress} isDisabled />,
       );
@@ -93,31 +86,41 @@ describe('Tab', () => {
       expect(mockOnPress).not.toHaveBeenCalled();
     });
 
-    it('shows muted text color when disabled and inactive', () => {
-      const { toJSON } = render(
-        <Tab {...defaultProps} isDisabled isActive={false} />,
-      );
-      expect(toJSON()).toBeDefined();
-    });
-
-    it('shows disabled styling even when marked as active', () => {
-      const { toJSON } = render(<Tab {...defaultProps} isDisabled isActive />);
-      expect(toJSON()).toBeDefined();
-    });
-
-    it('does not show pressed feedback when disabled', () => {
+    it('sets disabled state when isDisabled is true and isActive is false', () => {
       const { getByTestId } = render(
-        <Tab {...defaultProps} isDisabled testID="disabled-tab" />,
+        <Tab
+          {...defaultProps}
+          isDisabled
+          isActive={false}
+          testID="disabled-inactive-tab"
+        />,
       );
 
-      const tab = getByTestId('disabled-tab');
-      expect(tab).toBeOnTheScreen();
+      expect(
+        getByTestId('disabled-inactive-tab').props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('sets disabled state even when isActive is true', () => {
+      const { getByTestId } = render(
+        <Tab
+          {...defaultProps}
+          isDisabled
+          isActive
+          testID="disabled-active-tab"
+        />,
+      );
+
+      expect(
+        getByTestId('disabled-active-tab').props.accessibilityState?.disabled,
+      ).toBe(true);
     });
   });
 
   describe('Interaction', () => {
     it('calls onPress when pressed and not disabled', () => {
       const mockOnPress = jest.fn();
+
       const { getAllByText } = render(
         <Tab {...defaultProps} onPress={mockOnPress} />,
       );
@@ -127,55 +130,53 @@ describe('Tab', () => {
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 
-    it('shows pressed feedback when not disabled', () => {
+    it('is not disabled when enabled', () => {
       const { getByTestId } = render(
         <Tab {...defaultProps} testID="enabled-tab" />,
       );
 
-      const tab = getByTestId('enabled-tab');
-      expect(tab.props.disabled).toBeFalsy();
+      expect(getByTestId('enabled-tab').props.disabled).toBeFalsy();
     });
   });
 
   describe('Layout and Callbacks', () => {
     it('calls onLayout callback when layout changes', () => {
       const mockOnLayout = jest.fn();
+      const layoutEvent = {
+        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 40 } },
+      };
+
       const { getByTestId } = render(
         <Tab {...defaultProps} onLayout={mockOnLayout} testID="layout-tab" />,
       );
 
-      const tab = getByTestId('layout-tab');
-      const layoutEvent = {
-        nativeEvent: {
-          layout: { x: 0, y: 0, width: 100, height: 40 },
-        },
-      };
-
-      fireEvent(tab, 'onLayout', layoutEvent);
+      fireEvent(getByTestId('layout-tab'), 'onLayout', layoutEvent);
 
       expect(mockOnLayout).toHaveBeenCalledWith(layoutEvent);
     });
 
-    it('does not call onLayout when callback is not provided', () => {
+    it('does not throw when onLayout is not provided', () => {
       const { getByTestId } = render(
         <Tab {...defaultProps} testID="no-layout-tab" />,
       );
-
-      const tab = getByTestId('no-layout-tab');
       const layoutEvent = {
-        nativeEvent: {
-          layout: { x: 0, y: 0, width: 100, height: 40 },
-        },
+        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 40 } },
       };
 
-      // Should not throw error when onLayout is not provided
       expect(() => {
-        fireEvent(tab, 'onLayout', layoutEvent);
+        fireEvent(getByTestId('no-layout-tab'), 'onLayout', layoutEvent);
       }).not.toThrow();
     });
 
-    it('handles multiple layout events correctly', () => {
+    it('fires onLayout for each layout event', () => {
       const mockOnLayout = jest.fn();
+      const layoutEvent1 = {
+        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 40 } },
+      };
+      const layoutEvent2 = {
+        nativeEvent: { layout: { x: 10, y: 0, width: 120, height: 40 } },
+      };
+
       const { getByTestId } = render(
         <Tab
           {...defaultProps}
@@ -183,23 +184,9 @@ describe('Tab', () => {
           testID="multi-layout-tab"
         />,
       );
-
       const tab = getByTestId('multi-layout-tab');
 
-      // First layout event
-      const layoutEvent1 = {
-        nativeEvent: {
-          layout: { x: 0, y: 0, width: 100, height: 40 },
-        },
-      };
       fireEvent(tab, 'onLayout', layoutEvent1);
-
-      // Second layout event
-      const layoutEvent2 = {
-        nativeEvent: {
-          layout: { x: 10, y: 0, width: 120, height: 40 },
-        },
-      };
       fireEvent(tab, 'onLayout', layoutEvent2);
 
       expect(mockOnLayout).toHaveBeenCalledTimes(2);
@@ -209,9 +196,10 @@ describe('Tab', () => {
   });
 
   describe('Pressable Props', () => {
-    it('forwards additional pressable props', () => {
+    it('fires onPressIn and onPressOut callbacks', () => {
       const mockOnPressIn = jest.fn();
       const mockOnPressOut = jest.fn();
+
       const { getByTestId } = render(
         <Tab
           {...defaultProps}
@@ -220,7 +208,6 @@ describe('Tab', () => {
           testID="pressable-tab"
         />,
       );
-
       const tab = getByTestId('pressable-tab');
 
       fireEvent(tab, 'onPressIn');
@@ -230,7 +217,7 @@ describe('Tab', () => {
       expect(mockOnPressOut).toHaveBeenCalledTimes(1);
     });
 
-    it('handles accessibility props correctly', () => {
+    it('passes through accessibilityLabel and accessibilityHint', () => {
       const { getByTestId } = render(
         <Tab
           {...defaultProps}
@@ -241,53 +228,28 @@ describe('Tab', () => {
       );
 
       const tab = getByTestId('accessible-tab');
-      expect(tab).toBeOnTheScreen();
       expect(tab.props.accessibilityLabel).toBe('Custom accessibility label');
       expect(tab.props.accessibilityHint).toBe('Custom accessibility hint');
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles empty label gracefully', () => {
+    it('renders with empty label', () => {
       const { getByTestId } = render(
         <Tab {...defaultProps} label="" testID="empty-label-tab" />,
       );
-      const tab = getByTestId('empty-label-tab');
-      expect(tab).toBeOnTheScreen();
+
+      expect(getByTestId('empty-label-tab')).toBeOnTheScreen();
     });
 
-    it('handles onPress callback correctly', () => {
-      const mockOnPress = jest.fn();
-      const { getAllByText } = render(
-        <Tab {...defaultProps} onPress={mockOnPress} />,
-      );
-
-      const tab = getAllByText('Test Tab')[0];
-      fireEvent.press(tab);
-
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles special characters in label', () => {
+    it('renders label with special characters and emoji', () => {
       const specialLabel = 'Tab with 🚀 emoji & special chars!@#$%';
+
       const { getAllByText } = render(
         <Tab {...defaultProps} label={specialLabel} />,
       );
+
       expect(getAllByText(specialLabel)[0]).toBeOnTheScreen();
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('is accessible when enabled', () => {
-      const { getAllByText } = render(<Tab {...defaultProps} />);
-      const tab = getAllByText('Test Tab')[0];
-      expect(tab).toBeOnTheScreen();
-    });
-
-    it('is accessible when disabled', () => {
-      const { getAllByText } = render(<Tab {...defaultProps} isDisabled />);
-      const tab = getAllByText('Test Tab')[0];
-      expect(tab).toBeOnTheScreen();
     });
   });
 });
