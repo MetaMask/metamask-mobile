@@ -89,6 +89,10 @@ function getTitle(transactionMeta: TransactionMeta) {
     return strings('transaction_details.title.predict_withdraw');
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    return strings('transaction_details.title.perps_withdraw');
+  }
+
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
       return strings('transaction_details.title.musd_conversion');

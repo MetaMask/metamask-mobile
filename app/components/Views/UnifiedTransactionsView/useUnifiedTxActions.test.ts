@@ -43,6 +43,7 @@ jest.mock('../../../util/number', () => ({
 
 jest.mock('../../../util/transaction-controller', () => ({
   speedUpTransaction: jest.fn(),
+  getPreviousGasFromController: jest.fn(() => undefined),
 }));
 
 jest.mock('../../../util/transactions', () => ({
@@ -83,6 +84,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     TransactionController: {
       stopTransaction: jest.fn(),
+      getTransactions: jest.fn(() => []),
     },
     ApprovalController: {
       acceptRequest: jest.fn(),
@@ -97,7 +99,10 @@ jest.mock('../../../core/Engine', () => ({
 
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
-import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
+import {
+  speedUpTransaction as speedUpTx,
+  getPreviousGasFromController,
+} from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { isHardwareAccount } from '../../../util/address';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
@@ -108,7 +113,10 @@ describe('useUnifiedTxActions', () => {
   >;
 
   interface EngineContextMock {
-    TransactionController: { stopTransaction: jest.Mock };
+    TransactionController: {
+      stopTransaction: jest.Mock;
+      getTransactions: jest.Mock;
+    };
     ApprovalController: { acceptRequest: jest.Mock; rejectRequest: jest.Mock };
   }
 
@@ -117,6 +125,7 @@ describe('useUnifiedTxActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    engineContext.TransactionController.getTransactions = jest.fn(() => []);
 
     (createQRSigningTransactionModalNavDetails as jest.Mock).mockReturnValue([
       'QRSigningModal',
@@ -360,6 +369,31 @@ describe('useUnifiedTxActions', () => {
       // Restore default selector for subsequent tests
       mockUseSelector.mockImplementation(defaultSelectorImpl);
     });
+
+    it('clamps EIP-1559 priority fee up to previousGas × rate when below minimum', async () => {
+      const { result } = renderHook(() => useUnifiedTxActions());
+      const tx = { id: 'clamp-speedup' } as unknown as TransactionMeta;
+
+      (getPreviousGasFromController as jest.Mock).mockImplementation(
+        (txId: string) =>
+          txId === 'clamp-speedup'
+            ? { maxFeePerGas: '0x64', maxPriorityFeePerGas: '0x64' }
+            : undefined,
+      );
+
+      act(() => result.current.onSpeedUpAction(true, tx));
+      await act(async () => {
+        await result.current.speedUpTransaction({
+          maxFeePerGas: '0x3e8', // 1000 (above min 110)
+          maxPriorityFeePerGas: '0x5', // 5 (below min 110)
+        });
+      });
+
+      expect(speedUpTx).toHaveBeenCalledWith('clamp-speedup', {
+        maxFeePerGas: '0x3e8',
+        maxPriorityFeePerGas: '0x6e', // ceil(100 * 1.1) = 110 = 0x6e
+      });
+    });
   });
 
   describe('cancelTransaction', () => {
@@ -421,6 +455,33 @@ describe('useUnifiedTxActions', () => {
       // Tx IDs and existingTx preserved so Retry can reopen the same action
       expect(result.current.cancelTxId).toBe('11');
       expect(result.current.existingTx).toBe(tx);
+    });
+
+    it('clamps EIP-1559 priority fee up to previousGas × rate when below minimum', async () => {
+      const { result } = renderHook(() => useUnifiedTxActions());
+      const tx = { id: 'clamp-cancel' } as unknown as TransactionMeta;
+
+      (getPreviousGasFromController as jest.Mock).mockImplementation(
+        (txId: string) =>
+          txId === 'clamp-cancel'
+            ? { maxFeePerGas: '0x64', maxPriorityFeePerGas: '0x64' }
+            : undefined,
+      );
+
+      act(() => result.current.onCancelAction(true, tx));
+      await act(async () => {
+        await result.current.cancelTransaction({
+          maxFeePerGas: '0x3e8', // 1000 (above min 110)
+          maxPriorityFeePerGas: '0x5', // 5 (below min 110)
+        });
+      });
+
+      expect(
+        engineContext.TransactionController.stopTransaction,
+      ).toHaveBeenCalledWith('clamp-cancel', {
+        maxFeePerGas: '0x3e8',
+        maxPriorityFeePerGas: '0x6e', // ceil(100 * 1.1) = 110
+      });
     });
   });
 

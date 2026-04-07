@@ -1,7 +1,8 @@
 import React, { PropsWithChildren, useContext, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -17,13 +18,17 @@ import type { PredictMarket as PredictMarketType } from '../../UI/Predict/types'
 import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectExploreSectionsOrder } from '../../../selectors/featureFlagController/exploreSectionsOrder';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import {
   PerpsConnectionContext,
   PerpsConnectionProvider,
 } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
-import { IconName as DSIconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SiteRowItemWrapper from '../../UI/Sites/components/SiteRowItemWrapper/SiteRowItemWrapper';
@@ -38,6 +43,9 @@ import type { TrendingFilterContext } from '../../UI/Trending/components/Trendin
 import PredictMarketRowItem from '../../UI/Predict/components/PredictMarketRowItem';
 import SectionCard from './components/Sections/SectionTypes/SectionCard';
 import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
+import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
+import PredictMarket from '../../UI/Predict/components/PredictMarket';
+import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
@@ -54,18 +62,18 @@ export interface SectionConfig {
   id: SectionId;
   title: string;
   icon: SectionIcon;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  viewAllAction: (navigation: AppNavigationProp) => void;
   /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
   getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<{
     item: unknown;
     index: number;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: AppNavigationProp;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
     index?: number;
-    navigation: NavigationProp<ParamListBase>;
+    navigation: AppNavigationProp;
   }>;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;
@@ -311,15 +319,21 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
     RowItem: ({ item, index: _index }) => (
-      <PredictMarketRowItem market={item as PredictMarketType} />
+      <Box twClassName="py-2">
+        <PredictMarket
+          market={item as PredictMarketType}
+          isCarousel
+          testID={`predict-market-row-item-${(item as PredictMarketType).id}`}
+        />
+      </Box>
     ),
     OverrideRowItemSearch: ({ item }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
-    Skeleton: SiteSkeleton,
+    Skeleton: () => <PredictMarketSkeleton isCarousel />,
     // Using sites skeleton cause PredictMarketSkeleton has too much spacing
     OverrideSkeletonSearch: SiteSkeleton,
-    Section: SectionCard,
+    Section: SectionCarrousel,
     useSectionData: (searchQuery) => {
       const { marketData, isFetching, refetch } = usePredictMarketData({
         category: 'trending',
@@ -355,45 +369,76 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   },
 };
 
-// Sorted by order on the main screen
-const HOME_SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.stocks,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
+const DEFAULT_HOME_ORDER: SectionId[] = [
+  SECTIONS_CONFIG.predictions.id,
+  SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.perps.id,
+  SECTIONS_CONFIG.stocks.id,
+  SECTIONS_CONFIG.sites.id,
+];
+const DEFAULT_QUICK_ACTIONS_ORDER: SectionId[] = [
+  SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.perps.id,
+  SECTIONS_CONFIG.stocks.id,
+  SECTIONS_CONFIG.predictions.id,
+  SECTIONS_CONFIG.sites.id,
+];
+const DEFAULT_SEARCH_ORDER: SectionId[] = [
+  SECTIONS_CONFIG.tokens.id,
+  SECTIONS_CONFIG.perps.id,
+  SECTIONS_CONFIG.stocks.id,
+  SECTIONS_CONFIG.predictions.id,
+  SECTIONS_CONFIG.sites.id,
 ];
 
-// Sorted by order on the QuickAction buttons and SearchResults
-const SECTIONS_ARRAY: (SectionConfig & { id: SectionId })[] = [
-  SECTIONS_CONFIG.tokens,
-  SECTIONS_CONFIG.stocks,
-  SECTIONS_CONFIG.perps,
-  SECTIONS_CONFIG.predictions,
-  SECTIONS_CONFIG.sites,
-];
+const buildSections = (
+  order: SectionId[],
+  isPerpsEnabled: boolean,
+): (SectionConfig & { id: SectionId })[] =>
+  order
+    .filter((id) => isPerpsEnabled || id !== 'perps')
+    .map((id) => SECTIONS_CONFIG[id]);
 
 export const useHomeSections = (): (SectionConfig & { id: SectionId })[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const orderConfig = useSelector(selectExploreSectionsOrder);
 
   return useMemo(
     () =>
-      isPerpsEnabled
-        ? HOME_SECTIONS_ARRAY
-        : HOME_SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
+      buildSections(orderConfig?.home ?? DEFAULT_HOME_ORDER, isPerpsEnabled),
+    [isPerpsEnabled, orderConfig],
   );
 };
 
-export const useSectionsArray = (): (SectionConfig & { id: SectionId })[] => {
+export const useQuickActionsSectionsArray = (): (SectionConfig & {
+  id: SectionId;
+})[] => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const orderConfig = useSelector(selectExploreSectionsOrder);
 
   return useMemo(
     () =>
-      isPerpsEnabled
-        ? SECTIONS_ARRAY
-        : SECTIONS_ARRAY.filter((section) => section.id !== 'perps'),
-    [isPerpsEnabled],
+      buildSections(
+        orderConfig?.quickActions ?? DEFAULT_QUICK_ACTIONS_ORDER,
+        isPerpsEnabled,
+      ),
+    [isPerpsEnabled, orderConfig],
+  );
+};
+
+export const useSearchSectionsArray = (): (SectionConfig & {
+  id: SectionId;
+})[] => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const orderConfig = useSelector(selectExploreSectionsOrder);
+
+  return useMemo(
+    () =>
+      buildSections(
+        orderConfig?.search ?? DEFAULT_SEARCH_ORDER,
+        isPerpsEnabled,
+      ),
+    [isPerpsEnabled, orderConfig],
   );
 };
 

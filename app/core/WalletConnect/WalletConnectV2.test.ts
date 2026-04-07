@@ -19,6 +19,7 @@ import * as waitUtil from '../SDKConnect/utils/wait.util';
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
     PROJECT_ID: 'test-project-id',
+    LIMIT_SESSIONS: 20,
     METADATA: {
       name: 'Test Wallet',
       description: 'Test Wallet Description',
@@ -880,6 +881,17 @@ describe('WC2Manager', () => {
         AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
         JSON.stringify({}),
       );
+    });
+
+    it('revokes permissions for each active session', async () => {
+      const revokeAllPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'revokeAllPermissions',
+      );
+
+      await manager.removeAll();
+
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-pairing');
     });
 
     it('calls removeListeners on each WalletConnect2Session before clearing local sessions', async () => {
@@ -2023,6 +2035,200 @@ describe('WC2Manager', () => {
         validation: 'UNKNOWN',
         verifiedOrigin: 'https://example.com',
       });
+    });
+  });
+
+  describe('session limit enforcement', () => {
+    it('removes the oldest session when the session limit is exceeded', async () => {
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      const mockDisconnectSession = jest.spyOn(web3Wallet, 'disconnectSession');
+
+      const now = Math.floor(Date.now() / 1000);
+
+      // Pre-populate 20 active sessions
+      const existingSessions: Record<string, SessionTypes.Struct> = {};
+      for (let i = 0; i < 20; i++) {
+        const topic = `topic-${i}`;
+        existingSessions[topic] = {
+          topic,
+          pairingTopic: `pairing-${topic}`,
+          expiry: now + i * 100,
+          relay: { protocol: 'irn' },
+          acknowledged: true,
+          controller: 'controller',
+          namespaces: {},
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+          self: { publicKey: 'self-key', metadata: {} as any },
+          peer: {
+            publicKey: 'peer-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              description: '',
+              icons: [],
+            },
+          },
+        } as SessionTypes.Struct;
+      }
+
+      // Make getActiveSessions return all 20 existing sessions plus the new one
+      // so enforceSessionLimit fires.
+      const newSessionTopic = 'new-session-topic';
+      (web3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
+        ...existingSessions,
+        [newSessionTopic]: {
+          topic: newSessionTopic,
+          pairingTopic: 'new-pairing',
+          expiry: now + 9999,
+          relay: { protocol: 'irn' },
+          acknowledged: true,
+          controller: 'controller',
+          namespaces: {},
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+          self: { publicKey: 'self-key', metadata: {} as any },
+          peer: {
+            publicKey: 'peer-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'New App',
+              description: '',
+              icons: [],
+            },
+          },
+        } as SessionTypes.Struct,
+      });
+
+      mockApproveSession.mockResolvedValue({
+        topic: newSessionTopic,
+        pairingTopic: 'new-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'New App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = {
+        id: 9001,
+        params: {
+          id: 9001,
+          pairingTopic: 'new-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'New App',
+              description: 'New App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await manager.onSessionProposal(proposal as any);
+
+      expect(mockDisconnectSession).toHaveBeenCalledWith(
+        expect.objectContaining({ topic: 'topic-0' }),
+      );
+    });
+
+    it('does not remove any session when the session count is at or below the limit', async () => {
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      const mockDisconnectSession = jest.spyOn(web3Wallet, 'disconnectSession');
+
+      const now = Math.floor(Date.now() / 1000);
+
+      // Exactly 20 active sessions (at the limit, not over it).
+      const sessionsAtLimit: Record<string, SessionTypes.Struct> = {};
+      for (let i = 0; i < 20; i++) {
+        const topic = `at-limit-topic-${i}`;
+        sessionsAtLimit[topic] = {
+          topic,
+          pairingTopic: `pairing-${topic}`,
+          expiry: now + i * 100,
+          relay: { protocol: 'irn' },
+          acknowledged: true,
+          controller: 'controller',
+          namespaces: {},
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+          self: { publicKey: 'self-key', metadata: {} as any },
+          peer: {
+            publicKey: 'peer-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              description: '',
+              icons: [],
+            },
+          },
+        } as SessionTypes.Struct;
+      }
+
+      (web3Wallet.getActiveSessions as jest.Mock).mockReturnValue(
+        sessionsAtLimit,
+      );
+
+      mockApproveSession.mockResolvedValue({
+        topic: 'within-limit-topic',
+        pairingTopic: 'within-limit-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = {
+        id: 9002,
+        params: {
+          id: 9002,
+          pairingTopic: 'within-limit-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await manager.onSessionProposal(proposal as any);
+
+      expect(mockDisconnectSession).not.toHaveBeenCalled();
     });
   });
 });

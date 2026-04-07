@@ -5,8 +5,20 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import NFTsSection from './NFTsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 const mockOnRefresh = jest.fn().mockResolvedValue(undefined);
 const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
 const mockAbortDetection = jest.fn();
@@ -91,6 +103,12 @@ const stateWithNftPreferences = {
 describe('NFTsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     // Reset mock return values to defaults to ensure test isolation
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
     jest
@@ -132,6 +150,15 @@ describe('NFTsSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
       assetType: 'collectible',
     });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Wallet View',
+        properties: expect.objectContaining({
+          action: 'Wallet View',
+          name: 'Add Collectibles',
+        }),
+      }),
+    );
   });
 
   it('renders section title when user has NFTs', () => {

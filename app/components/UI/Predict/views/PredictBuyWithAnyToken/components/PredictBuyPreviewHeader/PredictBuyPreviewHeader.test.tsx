@@ -10,6 +10,7 @@ import {
   Recurrence,
   type PredictMarket,
   type PredictOutcome,
+  type PredictOutcomeToken,
   type OrderPreview,
 } from '../../../../types';
 
@@ -100,6 +101,15 @@ describe('PredictBuyPreviewHeader', () => {
     ...overrides,
   });
 
+  const createMockOutcomeToken = (
+    overrides?: Partial<PredictOutcomeToken>,
+  ): PredictOutcomeToken => ({
+    id: 'token-1',
+    title: 'Yes',
+    price: 0.65,
+    ...overrides,
+  });
+
   const createMockOrderPreview = (
     overrides?: Partial<OrderPreview>,
   ): OrderPreview => ({
@@ -124,7 +134,11 @@ describe('PredictBuyPreviewHeader', () => {
       const outcome = createMockOutcome();
 
       renderWithProvider(
-        <PredictBuyPreviewHeader market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeader
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.getByTestId('back-button')).toBeOnTheScreen();
@@ -135,7 +149,11 @@ describe('PredictBuyPreviewHeader', () => {
       const outcome = createMockOutcome();
 
       renderWithProvider(
-        <PredictBuyPreviewHeader market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeader
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.getByText(/Will Bitcoin reach \$100k\?/)).toBeOnTheScreen();
@@ -150,6 +168,7 @@ describe('PredictBuyPreviewHeader', () => {
         <PredictBuyPreviewHeader
           market={market}
           outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
           onBack={mockOnBack}
         />,
       );
@@ -167,7 +186,11 @@ describe('PredictBuyPreviewHeader', () => {
       const outcome = createMockOutcome();
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.getByText(/Will Bitcoin reach \$100k\?/)).toBeOnTheScreen();
@@ -178,7 +201,11 @@ describe('PredictBuyPreviewHeader', () => {
       const outcome = createMockOutcome();
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
@@ -191,7 +218,11 @@ describe('PredictBuyPreviewHeader', () => {
       });
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.getByText(/Q1 2024/)).toBeOnTheScreen();
@@ -204,7 +235,11 @@ describe('PredictBuyPreviewHeader', () => {
       });
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.queryByText(/Q1 2024/)).not.toBeOnTheScreen();
@@ -227,6 +262,11 @@ describe('PredictBuyPreviewHeader', () => {
         <PredictBuyPreviewHeaderTitle
           market={market}
           outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-1',
+            title: 'Yes',
+            price: 0.65,
+          })}
           preview={preview}
         />,
       );
@@ -234,7 +274,7 @@ describe('PredictBuyPreviewHeader', () => {
       expect(screen.getByText(/Yes \(alt\) at 0\.6¢/)).toBeOnTheScreen();
     });
 
-    it('falls back to first token when outcomeTokenId not found', () => {
+    it('falls back to outcomeToken prop when outcomeTokenId not found in outcome tokens', () => {
       const market = createMockMarket();
       const outcome = createMockOutcome({
         tokens: [
@@ -251,11 +291,16 @@ describe('PredictBuyPreviewHeader', () => {
         <PredictBuyPreviewHeaderTitle
           market={market}
           outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-2',
+            title: 'Yes (alt)',
+            price: 0.6,
+          })}
           preview={preview}
         />,
       );
 
-      expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
+      expect(screen.getByText(/Yes \(alt\) at 0\.65¢/)).toBeOnTheScreen();
     });
 
     it('uses preview sharePrice when provided', () => {
@@ -272,6 +317,7 @@ describe('PredictBuyPreviewHeader', () => {
         <PredictBuyPreviewHeaderTitle
           market={market}
           outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
           preview={preview}
         />,
       );
@@ -286,7 +332,11 @@ describe('PredictBuyPreviewHeader', () => {
       });
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       const outcomeText = screen.getByText(/Yes at 0\.65¢/);
@@ -301,7 +351,15 @@ describe('PredictBuyPreviewHeader', () => {
       });
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-2',
+            title: 'No',
+            price: 0.35,
+          })}
+        />,
       );
 
       const outcomeText = screen.getByText(/No at 0\.35¢/);
@@ -351,7 +409,11 @@ describe('PredictBuyPreviewHeader', () => {
       });
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(screen.getByText(/Will Bitcoin reach \$100k\?/)).toBeOnTheScreen();
@@ -365,7 +427,11 @@ describe('PredictBuyPreviewHeader', () => {
       const outcome = createMockOutcome();
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken()}
+        />,
       );
 
       expect(
@@ -380,13 +446,17 @@ describe('PredictBuyPreviewHeader', () => {
       });
 
       renderWithProvider(
-        <PredictBuyPreviewHeaderTitle market={market} outcome={outcome} />,
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken({ title: 'Yes (50%+)' })}
+        />,
       );
 
       expect(screen.getByText(/Yes \(50%\+\) at 0\.65¢/)).toBeOnTheScreen();
     });
 
-    it('handles null preview', () => {
+    it('handles null preview by using outcomeToken prop', () => {
       const market = createMockMarket();
       const outcome = createMockOutcome();
 
@@ -394,14 +464,19 @@ describe('PredictBuyPreviewHeader', () => {
         <PredictBuyPreviewHeaderTitle
           market={market}
           outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-2',
+            title: 'No',
+            price: 0.35,
+          })}
           preview={null}
         />,
       );
 
-      expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
+      expect(screen.getByText(/No at 0\.35¢/)).toBeOnTheScreen();
     });
 
-    it('handles undefined preview', () => {
+    it('handles undefined preview by using outcomeToken prop', () => {
       const market = createMockMarket();
       const outcome = createMockOutcome();
 
@@ -409,11 +484,16 @@ describe('PredictBuyPreviewHeader', () => {
         <PredictBuyPreviewHeaderTitle
           market={market}
           outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-2',
+            title: 'No',
+            price: 0.35,
+          })}
           preview={undefined}
         />,
       );
 
-      expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
+      expect(screen.getByText(/No at 0\.35¢/)).toBeOnTheScreen();
     });
   });
 });

@@ -25,9 +25,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useNetworkName } from '../../../Views/confirmations/hooks/useNetworkName';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
+import { resolveNetworkDisplayName } from '../../NetworkMultiSelector/NetworkMultiSelectorUtils';
 import type { TokenDetailsRouteParams } from '../../TokenDetails/constants/constants';
 import {
   getFeatureTags,
@@ -60,7 +62,23 @@ const SecurityTrustScreen: React.FC = () => {
   const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
-  const networkName = useNetworkName(params?.chainId as Hex);
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
+  const networkName = React.useMemo(() => {
+    const chainId = params?.chainId;
+    if (!chainId) {
+      return undefined;
+    }
+    return resolveNetworkDisplayName({
+      chainId,
+      evmNetworkConfigurations,
+      nonEvmNetworkConfigurations,
+    });
+  }, [params?.chainId, evmNetworkConfigurations, nonEvmNetworkConfigurations]);
 
   // Get action handlers from hook (single source of truth)
   const { onBuy, handleStickySwapPress, hasEligibleSwapTokens, networkModal } =
@@ -265,7 +283,10 @@ const SecurityTrustScreen: React.FC = () => {
                   : 'bg-[rgba(133,139,154,0.77)]'
               }`}
             >
-              <Box twClassName="h-full bg-[#6B7FFF]" style={barFillStyle} />
+              <Box
+                twClassName="h-full bg-primary-default"
+                style={barFillStyle}
+              />
             </Box>
           </Box>
         )}
@@ -282,7 +303,7 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
+              <Box twClassName="w-3 h-3 rounded-full bg-primary-default" />
               <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {strings('security_trust.top_10_holders')}
               </Text>

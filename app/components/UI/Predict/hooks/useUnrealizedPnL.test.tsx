@@ -66,7 +66,7 @@ describe('useUnrealizedPnL', () => {
     });
 
     expect(result.current.data).toBeUndefined();
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isFetching).toBe(false);
     expect(result.current.error).toBeNull();
     expect(mockGetUnrealizedPnL).not.toHaveBeenCalled();
   });

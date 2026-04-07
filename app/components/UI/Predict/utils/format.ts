@@ -1,6 +1,9 @@
 import { Dimensions } from 'react-native';
 import { PredictSeries, Recurrence } from '../types';
-import { formatSubscriptNotation } from '../../../../util/number/subscriptNotation';
+import {
+  formatSubscriptNotation,
+  type FormatSubscriptNotationOptions,
+} from '../../../../util/number/subscriptNotation';
 import currencySymbols from '../../../../util/currency-symbols.json';
 
 /**
@@ -65,6 +68,22 @@ export const formatPercentage = (
 };
 
 /**
+ * Builds `amount` / `percent` for `strings('predict.unrealized_pnl_value', …)`.
+ * Same rules as PredictPositionsHeader: signed cash, signed % via `formatPercentage`.
+ */
+export function formatPredictUnrealizedPnLStringParts(data: {
+  cashUpnl: number;
+  percentUpnl: number;
+}): { amount: string; percent: string } {
+  const { cashUpnl, percentUpnl } = data;
+  const amountSign = cashUpnl >= 0 ? '+' : '-';
+  const amount = `${amountSign}$${Math.abs(cashUpnl).toFixed(2)}`;
+  const percentSign = percentUpnl >= 0 ? '+' : '';
+  const percent = `${percentSign}${formatPercentage(percentUpnl)}`;
+  return { amount, percent };
+}
+
+/**
  * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
  * @param options - Optional formatting options
@@ -118,6 +137,7 @@ export const formatPrice = (
  * - Values < 1: up to 4 decimal places (e.g. $0.1446)
  * @param price - The price value to format (string or number)
  * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
+ * @param options - Optional; set `maxDigitsAfterSubscript` to shorten the digit tail after `0.0ₙ` (e.g. compact OHLC rows).
  * @returns Formatted price string with currency symbol or "—" for zero
  * @example formatPriceWithSubscriptNotation(2285.013) => "$2,285.01"
  * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
@@ -125,10 +145,15 @@ export const formatPrice = (
  * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₅614"
  * @example formatPriceWithSubscriptNotation(0) => "—"
  * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.23"
+ * @example formatPriceWithSubscriptNotation(0.00003415, 'USD', { maxDigitsAfterSubscript: 2 }) => "$0.0₄34"
  */
+export type FormatPriceWithSubscriptNotationOptions =
+  FormatSubscriptNotationOptions;
+
 export const formatPriceWithSubscriptNotation = (
   price: string | number,
   currencyCode = 'USD',
+  options?: FormatPriceWithSubscriptNotationOptions,
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
 
@@ -147,7 +172,7 @@ export const formatPriceWithSubscriptNotation = (
   const addSymbol = (n: string) =>
     symbol ? `${symbol}${n}` : `${n} ${currencyCode.toUpperCase()}`;
 
-  const subscript = formatSubscriptNotation(num);
+  const subscript = formatSubscriptNotation(num, options);
   if (subscript) return addSymbol(subscript);
 
   const formattedNumber = new Intl.NumberFormat('en-US', {
