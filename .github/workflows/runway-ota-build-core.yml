@@ -32,11 +32,6 @@ on:
         required: false
         type: string
         default: main-rc
-      upload_testflight:
-        description: 'If true and platform is ios, upload IPA to TestFlight after trigger-build'
-        required: false
-        type: boolean
-        default: false
       create_production_ota_tag:
         description: 'If true, create OTA release tag after production trigger-ota (callers: *production* only)'
         required: false
@@ -191,7 +186,7 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [decide, trigger-build]
-    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
+    if: ${{ inputs.platform == 'ios' }}
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}

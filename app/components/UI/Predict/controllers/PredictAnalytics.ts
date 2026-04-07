@@ -24,6 +24,7 @@ export interface TrackPredictOrderEventArgs {
   sharePrice?: number;
   pnl?: number;
   orderType?: PredictOrderType;
+  paymentTokenAddress?: string;
 }
 
 export interface MarketDetailsOpenedArgs {
@@ -73,6 +74,7 @@ export class PredictAnalytics {
     sharePrice,
     pnl,
     orderType,
+    paymentTokenAddress,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -127,6 +129,9 @@ export class PredictAnalytics {
       }),
       ...(orderType && {
         [PredictEventProperties.ORDER_TYPE]: orderType,
+      }),
+      ...(paymentTokenAddress && {
+        [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
       }),
     };
 
