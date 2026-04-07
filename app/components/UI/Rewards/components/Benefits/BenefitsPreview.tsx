@@ -32,7 +32,7 @@ const BenefitsPreview = () => {
   const navigation = useNavigation();
   useBenefits();
 
-  const handleNavigateToCampaigns = useCallback(() => {
+  const handleNavigateToBenefitsFullView = useCallback(() => {
     navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
   }, [navigation]);
 
@@ -42,7 +42,7 @@ const BenefitsPreview = () => {
   const displayHeader = useMemo(() => {
     if (hasBenefits) {
       return (
-        <Pressable onPress={handleNavigateToCampaigns}>
+        <Pressable onPress={handleNavigateToBenefitsFullView}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -67,7 +67,7 @@ const BenefitsPreview = () => {
         </Text>
       </Box>
     );
-  }, [hasBenefits, handleNavigateToCampaigns]);
+  }, [hasBenefits, handleNavigateToBenefitsFullView]);
 
   const displayContent = useMemo(() => {
     if (isLoading) {
