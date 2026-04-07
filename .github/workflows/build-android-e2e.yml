@@ -53,6 +53,7 @@ jobs:
           retry_wait_seconds: 30
           command: |
             echo "📱 Installing Android system images for AVD..."
+            rm -rf "$ANDROID_SDK_ROOT"/.temp "$ANDROID_SDK_ROOT"/system-images
             "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
 
       - name: Setup Android Build Environment
