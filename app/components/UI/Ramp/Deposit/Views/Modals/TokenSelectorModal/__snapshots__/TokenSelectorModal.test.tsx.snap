@@ -882,7 +882,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={-1}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

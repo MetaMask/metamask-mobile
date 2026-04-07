@@ -204,12 +204,12 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
       jestAnimatedStyle={
         {
           "value": {
-            "height": 5.662040816326531,
-            "opacity": 0.018873469387755103,
+            "height": 6.000000000000001,
+            "opacity": 0.020000000000000004,
             "overflow": "hidden",
             "transform": [
               {
-                "translateY": 19.622530612244898,
+                "translateY": 19.6,
               },
             ],
           },

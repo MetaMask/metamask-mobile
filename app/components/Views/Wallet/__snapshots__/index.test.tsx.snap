@@ -206,7 +206,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             },
                           ]
                         }
-                        nativeID="36"
+                        nativeID="68"
                         style={
                           [
                             {
@@ -315,7 +315,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                         },
                       ]
                     }
-                    nativeID="37"
+                    nativeID="69"
                     style={
                       [
                         {
@@ -440,7 +440,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             },
                           ]
                         }
-                        nativeID="38"
+                        nativeID="70"
                         style={
                           [
                             {
@@ -563,7 +563,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                         },
                       ]
                     }
-                    nativeID="39"
+                    nativeID="71"
                     style={
                       [
                         {
@@ -751,7 +751,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={36}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1042,7 +1042,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={19}
+                              handlerTag={35}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1439,7 +1439,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             },
                           ]
                         }
-                        nativeID="40"
+                        nativeID="72"
                         style={
                           [
                             {
@@ -1548,7 +1548,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                         },
                       ]
                     }
-                    nativeID="41"
+                    nativeID="73"
                     style={
                       [
                         {
@@ -1673,7 +1673,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             },
                           ]
                         }
-                        nativeID="42"
+                        nativeID="74"
                         style={
                           [
                             {
@@ -1796,7 +1796,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                         },
                       ]
                     }
-                    nativeID="43"
+                    nativeID="75"
                     style={
                       [
                         {
@@ -1984,7 +1984,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={38}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2275,7 +2275,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={21}
+                              handlerTag={37}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -3905,7 +3905,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             },
                           ]
                         }
-                        nativeID="24"
+                        nativeID="28"
                         style={
                           [
                             {
@@ -4014,7 +4014,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         },
                       ]
                     }
-                    nativeID="25"
+                    nativeID="29"
                     style={
                       [
                         {
@@ -4139,7 +4139,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             },
                           ]
                         }
-                        nativeID="26"
+                        nativeID="30"
                         style={
                           [
                             {
@@ -4262,7 +4262,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         },
                       ]
                     }
-                    nativeID="27"
+                    nativeID="31"
                     style={
                       [
                         {
@@ -4450,7 +4450,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4741,7 +4741,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={13}
+                              handlerTag={15}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}

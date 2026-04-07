@@ -426,7 +426,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                           "value": {
                             "transform": [
                               {
-                                "rotate": "0.36deg",
+                                "rotate": "0.72deg",
                               },
                             ],
                           },
