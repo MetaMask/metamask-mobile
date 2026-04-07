@@ -90,10 +90,10 @@ import {
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
+  selectIsCardAuthenticated,
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+  selectCardUserLocation,
+} from '../../../../../selectors/cardController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -376,9 +376,6 @@ jest.mock('../../util/cardTokenVault', () => ({
 }));
 
 // Mock Redux card actions
-const mockResetAuthenticatedData = jest.fn(() => ({
-  type: 'card/resetAuthenticatedData',
-}));
 const mockClearAllCache = jest.fn(() => ({
   type: 'card/clearAllCache',
 }));
@@ -388,7 +385,6 @@ jest.mock('../../../../../core/redux/slices/card', () => {
   );
   return {
     ...actualModule,
-    resetAuthenticatedData: () => mockResetAuthenticatedData(),
     clearAllCache: () => mockClearAllCache(),
   };
 });
@@ -421,6 +417,9 @@ jest.mock('../../../../../core/Engine', () => ({
       AccountsController: {
         getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
         setSelectedAccount: jest.fn(),
+      },
+      CardController: {
+        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
       },
     },
   },
@@ -601,8 +600,8 @@ function setupMockSelectors(
     if (selector === selectDepositMinimumVersionFlag)
       return config.depositMinVersion;
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
-    if (selector === selectIsAuthenticatedCard) return config.isAuthenticated;
-    if (selector === selectUserCardLocation) return config.userLocation;
+    if (selector === selectIsCardAuthenticated) return config.isAuthenticated;
+    if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
 
@@ -725,7 +724,6 @@ describe('CardHome Component', () => {
     mockIsAuthenticationError.mockReturnValue(false); // Default to no auth error
     mockRemoveCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockResolvedValue(undefined);
-    mockResetAuthenticatedData.mockClear();
     mockClearAllCache.mockClear();
     mockNavigationDispatch.mockClear();
 
@@ -2619,9 +2617,6 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
@@ -2652,7 +2647,6 @@ describe('CardHome Component', () => {
 
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
@@ -2673,7 +2667,6 @@ describe('CardHome Component', () => {
 
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockRemoveQueries).not.toHaveBeenCalled();
     });
 
@@ -2691,7 +2684,6 @@ describe('CardHome Component', () => {
 
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
-      expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
       expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
@@ -2750,9 +2742,6 @@ describe('CardHome Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
       });
     });
@@ -2857,9 +2846,6 @@ describe('CardHome Component', () => {
       // Then: should clear auth state and navigate to welcome
       await waitFor(() => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
@@ -2875,13 +2861,6 @@ describe('CardHome Component', () => {
 
       mockRemoveCardBaanxToken.mockImplementation(async () => {
         callOrder.push('removeToken');
-      });
-
-      mockDispatch.mockImplementation((action) => {
-        if (action.type === 'card/resetAuthenticatedData') {
-          callOrder.push('resetAuth');
-        }
-        return action;
       });
 
       mockRemoveQueries.mockImplementation(() => {
@@ -2902,12 +2881,7 @@ describe('CardHome Component', () => {
 
       // Then: operations should execute in correct order
       await waitFor(() => {
-        expect(callOrder).toEqual([
-          'removeToken',
-          'resetAuth',
-          'removeQueries',
-          'navigate',
-        ]);
+        expect(callOrder).toEqual(['removeToken', 'removeQueries', 'navigate']);
       });
     });
 
@@ -2930,11 +2904,8 @@ describe('CardHome Component', () => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       });
 
-      // 2. Dispatch Redux actions and clear query cache
+      // 2. Clear query cache
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
-        );
         expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
