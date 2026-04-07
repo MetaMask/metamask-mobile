@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
 } from './OndoCampaignDetailsView';
-import { CAMPAIGN_JOIN_CTA_TEST_IDS } from '../components/Campaigns/CampaignJoinCTA';
+import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignCTA';
 import {
   type CampaignDto,
   CampaignType,
@@ -178,6 +178,18 @@ jest.mock('../components/RewardsInfoBanner', () => {
   };
 });
 
+jest.mock('../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: jest.fn(),
+    RewardsToastOptions: {
+      success: jest.fn(),
+      error: jest.fn(),
+      entriesClosed: jest.fn(() => ({ variant: 'icon' })),
+    },
+  }),
+}));
+
 jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -257,6 +269,11 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaigns_view.error_description': 'Please try again.',
       'rewards.campaigns_view.retry_button': 'Retry',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
+      'rewards.campaign_details.open_position': 'Open Position',
+      'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
+      'rewards.campaign_details.entries_closed_title': 'Entries closed',
+      'rewards.campaign_details.entries_closed_description':
+        'You missed the opt-in window',
       'rewards.campaign_details.competition_closed_title':
         'Competition no longer open',
       'rewards.campaign_details.competition_closed_description':
@@ -539,7 +556,7 @@ describe('OndoCampaignDetailsView', () => {
       });
       // status null → participantStatus?.optedIn !== true
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
     it('renders the join CTA when participant is not opted in', () => {
@@ -554,10 +571,10 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
-    it('does not render the CTA when participant is already opted in', () => {
+    it('renders "Open Position" CTA when participant is opted in with no positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -568,8 +585,32 @@ describe('OndoCampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      expect(getByText('Open Position')).toBeDefined();
+    });
+
+    it('renders "Swap Ondo Assets" CTA when participant is opted in with positions', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+      const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      expect(getByText('Swap Ondo Assets')).toBeDefined();
     });
 
     it('hides the CTA while participant status is loading', () => {
@@ -584,12 +625,12 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('does not render CTA when no campaign is loaded', () => {
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('opens the opt-in sheet when CTA is pressed', () => {
@@ -598,7 +639,7 @@ describe('OndoCampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      fireEvent.press(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON));
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
       expect(getByTestId('campaign-opt-in-sheet')).toBeDefined();
     });
 
@@ -621,7 +662,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
     });
 
-    it('does not render the CTA when entries are closed (past deposit cutoff)', () => {
+    it('renders disabled CTA button when entries are closed (past deposit cutoff)', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -633,8 +674,9 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      expect(getByText('Entries closed')).toBeDefined();
     });
 
     it('does not render the CTA when campaign is complete', () => {
@@ -653,7 +695,7 @@ describe('OndoCampaignDetailsView', () => {
         ],
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
   });
 

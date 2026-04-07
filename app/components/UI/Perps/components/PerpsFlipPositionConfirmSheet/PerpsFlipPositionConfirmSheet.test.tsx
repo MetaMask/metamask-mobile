@@ -233,13 +233,18 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: () => null,
-  IconName: { Arrow2Right: 'Arrow2Right' },
-  IconSize: { Md: 'Md' },
-  IconColor: { Default: 'Default' },
-}));
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ name }: { name: string }) =>
+      ReactModule.createElement(View, { accessibilityLabel: name }),
+    IconName: { ArrowRight: 'ArrowRight' },
+    IconSize: { Md: 'Md' },
+    IconColor: { Default: 'Default' },
+  };
+});
 
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   ButtonSize: { Lg: 'Lg' },
@@ -372,6 +377,12 @@ describe('PerpsFlipPositionConfirmSheet', () => {
 
     // Math.abs(-2.5) = 2.5
     expect(screen.getByText('2.5 ETH')).toBeOnTheScreen();
+  });
+
+  it('uses ArrowRight (not Arrow2Right) for direction transition indicator', () => {
+    render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+    expect(screen.getByLabelText('ArrowRight')).toBeOnTheScreen();
   });
 
   it('passes 2x position notional to usePerpsOrderFees for accurate fee estimate', () => {
