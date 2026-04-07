@@ -76,13 +76,13 @@ describe('handleSendMessage', () => {
       } as OriginatorInfo;
     });
 
-    it('should track SDK RPC Request Approved when msg has no error', async () => {
+    it('should track Remote Connection RPC Request Approved when msg has no error', async () => {
       const msg = { data: { id: '123' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'SDK RPC Request Approved',
+          name: 'Remote Connection RPC Request Approved',
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
@@ -94,13 +94,13 @@ describe('handleSendMessage', () => {
       );
     });
 
-    it('should track SDK RPC Request Rejected when msg has an error', async () => {
+    it('should track Remote Connection RPC Request Rejected when msg has an error', async () => {
       const msg = { data: { id: '123', error: 'User rejected' } };
       await handleSendMessage({ msg, connection: mockConnection });
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'SDK RPC Request Rejected',
+          name: 'Remote Connection RPC Request Rejected',
           sensitiveProperties: expect.objectContaining({
             anon_id: 'test-anon-id',
           }),

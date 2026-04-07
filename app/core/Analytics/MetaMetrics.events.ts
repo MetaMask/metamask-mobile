@@ -70,10 +70,10 @@ enum EVENT_NAME {
   WALLET_CONNECTION_USER_APPROVED = 'wallet_connection_user_approved',
   WALLET_CONNECTION_USER_REJECTED = 'wallet_connection_user_rejected',
 
-  // SDK RPC events (SDKv1 socket relay only)
-  SDK_RPC_REQUEST_RECEIVED = 'SDK RPC Request Received',
-  SDK_RPC_REQUEST_APPROVED = 'SDK RPC Request Approved',
-  SDK_RPC_REQUEST_REJECTED = 'SDK RPC Request Rejected',
+  // Remote connection RPC events (all remote transports)
+  REMOTE_CONNECTION_RPC_REQUEST_RECEIVED = 'Remote Connection RPC Request Received',
+  REMOTE_CONNECTION_RPC_REQUEST_APPROVED = 'Remote Connection RPC Request Approved',
+  REMOTE_CONNECTION_RPC_REQUEST_REJECTED = 'Remote Connection RPC Request Rejected',
 
   // Phishing
   PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
@@ -795,10 +795,16 @@ const events = {
     EVENT_NAME.WALLET_CONNECTION_USER_REJECTED,
   ),
 
-  // SDK RPC events (SDKv1 socket relay only)
-  SDK_RPC_REQUEST_RECEIVED: generateOpt(EVENT_NAME.SDK_RPC_REQUEST_RECEIVED),
-  SDK_RPC_REQUEST_APPROVED: generateOpt(EVENT_NAME.SDK_RPC_REQUEST_APPROVED),
-  SDK_RPC_REQUEST_REJECTED: generateOpt(EVENT_NAME.SDK_RPC_REQUEST_REJECTED),
+  // Remote connection RPC events (all remote transports)
+  REMOTE_CONNECTION_RPC_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_RPC_REQUEST_RECEIVED,
+  ),
+  REMOTE_CONNECTION_RPC_REQUEST_APPROVED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_RPC_REQUEST_APPROVED,
+  ),
+  REMOTE_CONNECTION_RPC_REQUEST_REJECTED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_RPC_REQUEST_REJECTED,
+  ),
 
   // Phishing events
   PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),

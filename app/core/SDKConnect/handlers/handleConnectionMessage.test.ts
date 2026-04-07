@@ -150,7 +150,7 @@ describe('handleConnectionMessage', () => {
     mockHandleSendMessage.mockResolvedValue();
   });
 
-  describe('Analytics tracking for SDK RPC Request Received', () => {
+  describe('Analytics tracking for Remote Connection RPC Request Received', () => {
     beforeEach(() => {
       (analytics.trackEvent as jest.Mock).mockClear();
 
@@ -171,12 +171,12 @@ describe('handleConnectionMessage', () => {
       message.type = MessageType.JSONRPC;
     });
 
-    it('should track SDK RPC Request Received when anonId is present and method is tracked', async () => {
+    it('should track Remote Connection RPC Request Received when anonId is present and method is tracked', async () => {
       await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'SDK RPC Request Received',
+          name: 'Remote Connection RPC Request Received',
           properties: expect.objectContaining({
             transport_type: 'socket_relay',
             rpc_method: 'eth_sendTransaction',
@@ -189,7 +189,7 @@ describe('handleConnectionMessage', () => {
       expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('should not track SDK RPC Request Received if anonId is missing', async () => {
+    it('should not track Remote Connection RPC Request Received if anonId is missing', async () => {
       if (connection.originatorInfo) {
         connection.originatorInfo.anonId = undefined;
       }
@@ -199,7 +199,7 @@ describe('handleConnectionMessage', () => {
       expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
-    it('should not track SDK RPC Request Received if method is not analytics tracked', async () => {
+    it('should not track Remote Connection RPC Request Received if method is not analytics tracked', async () => {
       message.method = 'eth_chainId';
 
       await handleConnectionMessage({ message, engine: Engine, connection });
@@ -207,7 +207,7 @@ describe('handleConnectionMessage', () => {
       expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
-    it('should not track SDK RPC Request Received if message.method is undefined', async () => {
+    it('should not track Remote Connection RPC Request Received if message.method is undefined', async () => {
       // Create a new message object for this specific test case to avoid type issues
       const messageWithUndefinedMethod: CommunicationLayerMessage = {
         // Explicitly define all required fields of CommunicationLayerMessage

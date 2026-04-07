@@ -35,8 +35,8 @@ export const handleSendMessage = async ({
       anonId
     ) {
       const event = msg?.data?.error
-        ? MetaMetricsEvents.SDK_RPC_REQUEST_REJECTED
-        : MetaMetricsEvents.SDK_RPC_REQUEST_APPROVED;
+        ? MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_REJECTED
+        : MetaMetricsEvents.REMOTE_CONNECTION_RPC_REQUEST_APPROVED;
 
       DevLogger.log(
         `[MM SDK Analytics] event=${event.category} anonId=${anonId}`,
