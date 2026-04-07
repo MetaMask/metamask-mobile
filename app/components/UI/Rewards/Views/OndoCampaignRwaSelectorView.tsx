@@ -53,7 +53,8 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../Bridge/types';
-import { TrendingTokenPriceChangeBottomSheet ,
+import {
+  TrendingTokenPriceChangeBottomSheet,
   PriceChangeOption,
   SortDirection,
 } from '../../Trending/components/TrendingTokensBottomSheet/TrendingTokenPriceChangeBottomSheet';
@@ -194,12 +195,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       return;
     }
     setIsFiltering(true);
-  }, [
-    searchQuery,
-    selectedPriceChangeOption,
-    priceChangeSortDirection,
-    selectedTimeOption,
-  ]);
+  }, [searchQuery, selectedPriceChangeOption, priceChangeSortDirection]);
 
   useEffect(() => {
     setIsFiltering(false);

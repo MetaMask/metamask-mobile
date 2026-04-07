@@ -58,7 +58,6 @@ import { VerticalAlignment } from '../../../../../component-library/components/L
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../../core/Engine';
-import useRewardsToast from '../../hooks/useRewardsToast';
 
 const styles = StyleSheet.create({
   skeletonLg: { height: 128, borderRadius: 12 },
@@ -162,18 +161,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   onOpenAccountPicker,
 }) => {
   const navigation = useNavigation();
-  const { showToast, RewardsToastOptions } = useRewardsToast();
-
-  const showMarketClosedToast = useCallback(() => {
-    showToast(
-      RewardsToastOptions.error(
-        strings('rewards.ondo_campaign_market.market_closed'),
-        strings(
-          'rewards.ondo_campaign_portfolio.market_closed_toast_description',
-        ),
-      ),
-    );
-  }, [showToast, RewardsToastOptions]);
 
   const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
   const allTokenBalances = useSelector(selectAllTokenBalances);
@@ -312,10 +299,9 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
       }
 
       // Multiple groups hold this token — delegate picker to parent
-      const groups = getGroupsWithBalance(row);
       onOpenAccountPicker({
         row,
-        entries: groups.map((group) => ({
+        entries: groupsForRow.map((group) => ({
           group,
           balance: getGroupBalance(group, row),
         })),
