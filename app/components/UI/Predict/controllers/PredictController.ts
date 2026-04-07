@@ -1577,12 +1577,8 @@ export class PredictController extends BaseController<
   }
 
   public selectPaymentToken(token: AssetType | null): void {
-    if (!token) {
-      return;
-    }
-
     const isBalanceToken =
-      token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
+      !token || token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
 
     this.setSelectedPaymentToken(
       isBalanceToken

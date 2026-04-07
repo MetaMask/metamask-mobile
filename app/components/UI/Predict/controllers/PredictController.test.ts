@@ -4097,7 +4097,7 @@ describe('PredictController', () => {
         ...overrides,
       }) as any;
 
-    it('does nothing when token is null', () => {
+    it('treats null as balance token and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const existingToken = {
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -4108,7 +4108,22 @@ describe('PredictController', () => {
 
         controller.selectPaymentToken(null);
 
-        expect(controller.state.selectedPaymentToken).toEqual(existingToken);
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('transitions PAY_WITH_ANY_TOKEN to PREVIEW when token is null', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.selectPaymentToken(null);
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
