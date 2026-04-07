@@ -983,6 +983,32 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
     });
+
+    it('includes Benefits full view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.REWARD_BENEFITS_FULL_VIEW,
+      );
+
+      expect(screen).toBeDefined();
+    });
+
+    it('includes Benefit detail full view route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) => s?.name === Routes.REWARD_BENEFIT_FULL_VIEW,
+      );
+
+      expect(screen).toBeDefined();
+    });
   });
 
   it('includes TopTradersView screen when Social Leaderboard remote flag is enabled', () => {

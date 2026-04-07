@@ -358,12 +358,12 @@ describe('formatUtils', () => {
       expect(result).toBe('1m 3d');
     });
 
-    it('handles leap-year February correctly during borrow', () => {
+    it('handles leap-year February correctly with calendar month stepping', () => {
       jest.useFakeTimers().setSystemTime(new Date('2024-01-31T00:00:00Z'));
 
       const result = formatDateRemaining('2024-03-03T00:00:00Z');
 
-      expect(result).toBe('1m 1d');
+      expect(result).toBe('1m 3d');
     });
 
     it('returns null for past dates', () => {
@@ -372,6 +372,14 @@ describe('formatUtils', () => {
       const result = formatDateRemaining('2025-03-02T00:00:00Z');
 
       expect(result).toBeNull();
+    });
+
+    it('uses explicit now when provided (no reliance on system time)', () => {
+      const now = new Date('2025-01-31T00:00:00Z');
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z', now);
+
+      expect(result).toBe('1m 3d');
     });
   });
 
