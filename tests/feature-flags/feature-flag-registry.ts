@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-03-25
+ * Production defaults last synced: 2026-04-07
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -85,7 +85,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   aiSocialLeaderboardEnabled: {
     name: 'aiSocialLeaderboardEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '7.72.0',
@@ -98,8 +98,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '7.66.0',
+      enabled: true,
+      minimumVersion: '7.70.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -107,10 +107,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   aiSocialMarketInsightsPerpsEnabled: {
     name: 'aiSocialMarketInsightsPerpsEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '7.70.0',
+      enabled: true,
+      minimumVersion: '7.71.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -121,6 +121,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+      minimumVersion: '7.71.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -188,9 +189,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      featureVersion: null,
-      minimumVersion: null,
-      enabled: false,
+      versions: {
+        '7.60.0': {
+          enabled: false,
+          featureVersion: null,
+          minimumVersion: null,
+        },
+      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -257,95 +262,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      chainRanking: [
-        {
-          chainId: 'eip155:1',
-          name: 'Ethereum',
-        },
-        {
-          chainId: 'eip155:56',
-          name: 'BNB',
-        },
-        {
-          name: 'BTC',
-          chainId: 'bip122:000000000019d6689c085ae165831e93',
-        },
-        {
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          name: 'Solana',
-        },
-        {
-          name: 'Tron',
-          chainId: 'tron:728126428',
-        },
-        {
-          name: 'Base',
-          chainId: 'eip155:8453',
-        },
-        {
-          chainId: 'eip155:42161',
-          name: 'Arbitrum',
-        },
-        {
-          name: 'Linea',
-          chainId: 'eip155:59144',
-        },
-        {
-          chainId: 'eip155:137',
-          name: 'Polygon',
-        },
-        {
-          chainId: 'eip155:43114',
-          name: 'Avalanche',
-        },
-        {
-          chainId: 'eip155:10',
-          name: 'Optimism',
-        },
-        {
-          chainId: 'eip155:143',
-          name: 'Monad',
-        },
-        {
-          chainId: 'eip155:1329',
-          name: 'Sei',
-        },
-        {
-          chainId: 'eip155:324',
-          name: 'zkSync',
-        },
-      ],
-      bip44DefaultPairs: {
-        tron: {
-          other: {},
-          standard: {
-            'tron:72812642/slip44:195':
-              'tron:72812642/token:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-          },
-        },
-        bip122: {
-          other: {},
-          standard: {
-            'bip122:000000000019d6689c085ae165831e93/slip44:0':
-              'eip155:1/slip44:60',
-          },
-        },
-        eip155: {
-          other: {},
-          standard: {
-            'eip155:1/slip44:60':
-              'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          },
-        },
-        solana: {
-          standard: {
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501':
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          },
-          other: {},
+      quoteRequestOverrides: {
+        perps: {
+          noFee: true,
         },
       },
-      minimumVersion: '7.46.0',
       chains: {
         '1': {
           topAssets: [
@@ -359,15 +280,15 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           noFeeAssets: [],
         },
         '10': {
+          isActiveSrc: true,
           isUnifiedUIEnabled: true,
           isActiveDest: true,
-          isActiveSrc: true,
         },
         '56': {
+          isActiveDest: true,
           isActiveSrc: true,
           isGaslessSwapEnabled: true,
           isUnifiedUIEnabled: true,
-          isActiveDest: true,
         },
         '137': {
           isActiveDest: true,
@@ -375,14 +296,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           isUnifiedUIEnabled: true,
         },
         '143': {
-          isActiveSrc: true,
           isUnifiedUIEnabled: true,
           isActiveDest: true,
+          isActiveSrc: true,
         },
         '324': {
+          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '1329': {
           isUnifiedUIEnabled: true,
@@ -395,36 +316,39 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           isUnifiedUIEnabled: true,
         },
         '42161': {
-          isActiveSrc: true,
           isUnifiedUIEnabled: true,
           isActiveDest: true,
+          isActiveSrc: true,
         },
         '43114': {
+          isActiveDest: true,
           isActiveSrc: true,
           isUnifiedUIEnabled: true,
-          isActiveDest: true,
         },
         '59144': {
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
           noFeeAssets: [],
           topAssets: [
             '0xaca92e438df0b2401ff60da7e4337b687a2435da',
             '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
           ],
           isActiveDest: true,
-          isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '728126428': {
-          isActiveSrc: true,
           isUnifiedUIEnabled: true,
           isActiveDest: true,
+          isActiveSrc: true,
         },
         '20000000000001': {
+          isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
-          isUnifiedUIEnabled: true,
         },
         '1151111081099710': {
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+          refreshRate: 10000,
           topAssets: [
             'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',
@@ -438,27 +362,116 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
           ],
           isActiveDest: true,
-          isActiveSrc: true,
-          isUnifiedUIEnabled: true,
-          refreshRate: 10000,
         },
       },
+      minimumVersion: '7.46.0',
+      chainRanking: [
+        {
+          chainId: 'eip155:1',
+          name: 'Ethereum',
+        },
+        {
+          name: 'BNB',
+          chainId: 'eip155:56',
+        },
+        {
+          chainId: 'bip122:000000000019d6689c085ae165831e93',
+          name: 'BTC',
+        },
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          name: 'Solana',
+        },
+        {
+          chainId: 'tron:728126428',
+          name: 'Tron',
+        },
+        {
+          chainId: 'eip155:8453',
+          name: 'Base',
+        },
+        {
+          name: 'Arbitrum',
+          chainId: 'eip155:42161',
+        },
+        {
+          chainId: 'eip155:59144',
+          name: 'Linea',
+        },
+        {
+          name: 'Polygon',
+          chainId: 'eip155:137',
+        },
+        {
+          chainId: 'eip155:43114',
+          name: 'Avalanche',
+        },
+        {
+          chainId: 'eip155:10',
+          name: 'Optimism',
+        },
+        {
+          name: 'Monad',
+          chainId: 'eip155:143',
+        },
+        {
+          chainId: 'eip155:1329',
+          name: 'Sei',
+        },
+        {
+          chainId: 'eip155:4326',
+          name: 'MegaETH',
+        },
+        {
+          chainId: 'eip155:999',
+          name: 'HyperEVM',
+        },
+        {
+          chainId: 'eip155:324',
+          name: 'zkSync',
+        },
+      ],
       priceImpactThreshold: {
         gasless: 0.2,
         normal: 0.05,
       },
-      quoteRequestOverrides: {
-        perps: {
-          noFee: true,
+      refreshRate: 30000,
+      support: true,
+      bip44DefaultPairs: {
+        solana: {
+          other: {},
+          standard: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501':
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          },
+        },
+        tron: {
+          standard: {
+            'tron:72812642/slip44:195':
+              'tron:72812642/token:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+          },
+          other: {},
+        },
+        bip122: {
+          standard: {
+            'bip122:000000000019d6689c085ae165831e93/slip44:0':
+              'eip155:1/slip44:60',
+          },
+          other: {},
+        },
+        eip155: {
+          other: {},
+          standard: {
+            'eip155:1/slip44:60':
+              'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          },
         },
       },
       maxRefreshCount: 5,
-      support: true,
       sse: {
-        enabled: true,
         minimumVersion: '7.59.0',
+        enabled: true,
       },
-      refreshRate: 30000,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -469,19 +482,84 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       chains: {
-        'eip155:8453': {
+        'eip155:59144': {
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+          },
+          tokens: [
+            {
+              name: 'USD Coin',
+              symbol: 'USDC',
+              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+              decimals: 6,
+              enabled: true,
+            },
+            {
+              enabled: true,
+              name: 'Tether USD',
+              symbol: 'USDT',
+              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+              decimals: 6,
+            },
+            {
+              decimals: 18,
+              enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
+              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
+            },
+            {
+              symbol: 'EURe',
+              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
+              decimals: 18,
+              enabled: true,
+              name: 'EURe',
+            },
+            {
+              enabled: true,
+              name: 'GBPe',
+              symbol: 'GBPe',
+              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
+              decimals: 18,
+            },
+            {
+              name: 'Aave USDC',
+              symbol: 'aUSDC',
+              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+              decimals: 6,
+              enabled: true,
+            },
+            {
+              decimals: 6,
+              enabled: true,
+              name: 'MetaMask USD',
+              symbol: 'mUSD',
+              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+            },
+            {
+              symbol: 'amUSD',
+              address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
+              decimals: 6,
+              enabled: true,
+              name: 'Aave Linea mUSD',
+            },
+          ],
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
           enabled: true,
+        },
+        'eip155:8453': {
           foxConnectAddresses: {
             global: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
             us: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
           },
           tokens: [
             {
+              name: 'USD Coin',
               symbol: 'USDC',
               address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
               decimals: 6,
               enabled: true,
-              name: 'USD Coin',
             },
             {
               decimals: 6,
@@ -491,20 +569,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
             },
             {
-              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
-              decimals: 6,
               enabled: true,
               name: 'Aave Base USDC',
               symbol: 'aUSDC',
+              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
+              decimals: 6,
             },
             {
-              name: 'Wrapped Ether',
-              symbol: 'WETH',
               address: '0x4200000000000000000000000000000000000006',
               decimals: 18,
               enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
             },
           ],
+          enabled: true,
         },
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
           enabled: true,
@@ -517,79 +596,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             },
             {
-              address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-              decimals: 6,
               enabled: true,
               name: 'USDT',
               symbol: 'USDT',
+              address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+              decimals: 6,
             },
           ],
         },
-        'eip155:59144': {
-          tokens: [
-            {
-              name: 'USD Coin',
-              symbol: 'USDC',
-              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              name: 'Tether USD',
-              symbol: 'USDT',
-              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              symbol: 'WETH',
-              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
-              decimals: 18,
-              enabled: true,
-              name: 'Wrapped Ether',
-            },
-            {
-              enabled: true,
-              name: 'EURe',
-              symbol: 'EURe',
-              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
-              decimals: 18,
-            },
-            {
-              name: 'GBPe',
-              symbol: 'GBPe',
-              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
-              decimals: 18,
-              enabled: true,
-            },
-            {
-              symbol: 'aUSDC',
-              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
-              decimals: 6,
-              enabled: true,
-              name: 'Aave USDC',
-            },
-            {
-              decimals: 6,
-              enabled: true,
-              name: 'MetaMask USD',
-              symbol: 'mUSD',
-              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-            },
-            {
-              decimals: 6,
-              enabled: true,
-              name: 'Aave Linea mUSD',
-              symbol: 'amUSD',
-              address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
-            },
-          ],
-          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+        'eip155:143': {
           enabled: true,
           foxConnectAddresses: {
-            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
-            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+            us: '0x144c1cE815Bd1Eb71678978fE8641cC4e3fd59e6',
+            global: '0x40A695A16C213afEf1c87Fd471Fb73157b948f3f',
           },
+          tokens: [
+            {
+              enabled: true,
+              name: 'USD Coin',
+              symbol: 'USDC',
+              address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              decimals: 6,
+            },
+          ],
         },
       },
       constants: {
@@ -738,15 +767,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'complianceEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  config_registry_api_enabled: {
-    name: 'config_registry_api_enabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -770,273 +793,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      contracts: {
-        '0x13882': [
-          {
-            name: 'Polygon Amoy Testnet',
-            signature:
-              '0x472bb78ebb6686ddf0bb2e75265e1f4266cd050f8b498e88f97e9380afd8bfbd169c4d3221ec8845cb81ba7e9ddb7de9b819a15617803e20aee2aaa07664b6c81b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x14a34': [
-          {
-            signature:
-              '0xaed94ac035e745629423c547200eb2411fd7194d832a6b4cf459d3e3d34a6b62124e88640a0bf623146bdef63b0ce1c8797bd2a6c8357fab86c8be466744f55d1c',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Base Sepolia',
-          },
-        ],
-        '0xa4b1': [
-          {
-            name: 'Arbitrum One',
-            signature:
-              '0xc3be82057efec197d92b0cbb7cef9d50dba0345646524687a3ae7235a8fcb1706ba79f197d45fcf4c6cfb5808ef70258c5f6bb29b7e3553a4b9660692eb5e81d1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0xaa36a7': [
-          {
-            name: 'Sepolia - Official',
-            signature:
-              '0x1aba1c0dafadab6663efdd6086764a9b9fa5ab5c002e88ebae85edea162fbc425c398b2b93afdc036503f12361c05a7ff0b409ee523d5277e0b4d0a840679e591c',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-          {
-            address: '0xCd8D6C5554e209Fbb0deC797C6293cf7eAE13454',
-            name: 'Sepolia - Testing',
-            signature:
-              '0x016cf109489c415ba28e695eb3cb06ac46689c5c49e2aba101d7ec2f68c890282563b324f5c8df5e0536994451825aa235438b7346e8c18b4e64161d990781891c',
-          },
-        ],
-        '0x530': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Sei Testnet',
-            signature:
-              '0x91135fcd7bfb9e2456c227ff12905128c3854db36775278d47b96c3c669f730c4063e3a62d94884617769bbad2868f35d725cb3b611d9bd1231bceb5967724711c',
-          },
-        ],
-        '0xaa044c': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Celo Sepolia',
-            signature:
-              '0x1590458cdfa10225e4fe734ed44deec95ac1887c877e63deb5ad35b41025c9ef2f33666cdd2c189b1999a78072ab9f8f122d93a52eaf12687fb2ff5b74d8de9f1c',
-          },
-        ],
-        '0x8f': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Monad',
-            signature:
-              '0x12d31e58c92cdc29dac8af0405883b3b0ee44156d7fdf5c3c2ffa4138f2461cc20e7f8625431dbd24bb784407d1a1d9bdb75b191a6cf127eac68b67d13bd11e41c',
-          },
-        ],
-        '0x13fb': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Citrea Testnet',
-            signature:
-              '0xf9e4aa35fc098468212352c2b9662022f9565bd713ca66e634c804f9820b5e0c266d710afba58aed00e5b7e24134dd9b52e2e331076de745137531a6d245a7521b',
-          },
-        ],
-        '0x88bb0': [
-          {
-            signature:
-              '0x23de8eb645a65b08721e5d2194063acead5f5f818474b7884ae767c7aaf9bb9b22233ab92684bc41087f8509e945d96083124ae1919a9357f2ae65267df4f0e21b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Hoodi Testnet',
-          },
-        ],
-        '0xaa37dc': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Optimism Sepolia',
-            signature:
-              '0xa60cab833af6a8aa2dcc80d5e12d9e1566edb6cdf51c38e7cf43d441dac561007f05643e73e6b00107e18dbf15de98aae14192306276e92d654f62bd7c3023241c',
-          },
-        ],
-        '0x3909': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Sonic Testnet',
-            signature:
-              '0xc092cc0bcf804f95eb659d281c00586bc72018a242d66fefacdc33a990faf99478c368612277cbbf72aee4a10b7ace6d8666f2c8c4fece9daada40cb360190631b',
-          },
-        ],
-        '0x89': [
-          {
-            name: 'Polygon',
-            signature:
-              '0x302aa2d59940e88f35d2fa140fe6a1e9dc682218a444a7fb2d88f007fbe7792b2b8d615f5ae1e4f184533a02c47d8ac0f6ba3f591679295dff93c65095c0f03d1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x92': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Sonic Mainnet',
-            signature:
-              '0x9f2a94332f2b71bff8a772053f47dbb65e26e5286341be0a3c55270d5549351f1dddb7566be0619b0150d42d540b0847cb0acbd0ab118ff608a40a18400834711b',
-          },
-        ],
-        '0xa4ba': [
-          {
-            signature:
-              '0x818898e7f90f2f1f47dc7bec74dd683dfcc11efc7025d81f57644d366a3d9e442edb789731045ccb5ba89ee0d84bb517194bb9a097b152922bbd39ffd022ff421c',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Arbitrum Nova',
-          },
-        ],
-        '0x82': [
-          {
-            signature:
-              '0x54c423b1af4abbd1fb226e260dddba757acbcd8881e6b55b842c6b839874fa3f0e2f77685389ad5c28e096f12ef22557cebf6a77f6064baa071453a445a4c7d51c',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Unichain Mainnet',
-          },
-        ],
-        '0x531': [
-          {
-            signature:
-              '0xde089fc9af662bc4b0f873e4dc79760f6c3539f6f1cf32d9bc46baccf86ebae070a9062436f29ee86d04cc55699b27579f657922a2292ec2f1c5170d587917401b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Sei Mainnet',
-          },
-        ],
-        '0x61': [
-          {
-            name: 'BNB Testnet',
-            signature:
-              '0x80aaf42c70b0b9efdf26e38ced69fce70f6b4f5496e7e59888819c14fb16290301ad049299d99e3650fa1a616a87bb80eb52ae9f02ddd8b53dd6b983275d0eb61b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x38': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'BNB',
-            signature:
-              '0x28ae371904b3ba71344e426c8de0e2cee0b8529a9510c059b412671655881ad646b8cf544342a5f8e0753eda83221e14e3c9dae5435417401f5fee8ee1d63dce1b',
-          },
-        ],
-        '0x152': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Cronos Testnet',
-            signature:
-              '0x8fec0190a311f6ba5dc9df8d76fef3673e6c4081c087f779bca7e3247bb40a5070d393d29c6b268deb3fa231a138b7914b25395cd6dec0fdf4b2b7701975e78b1c',
-          },
-        ],
-        '0xa4ec': [
-          {
-            name: 'Celo Mainnet',
-            signature:
-              '0x1421ea4d014170a4fc5d0559f267974f4aa095a6e6047b107eff1807afa425774775f796a52a90b767810eade3b5919087bb361651a7b8f4f9679f1f46adb60e1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x279f': [
-          {
-            name: 'Monad Testnet',
-            signature:
-              '0x85ec60e9dbac6404b66803b5abace8517ce1325bb6391b7d1ff8ec4433bbe62f4363031873a11ed79364290e196a47830fc36346a9aaf2e44518c1101496983c1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x66eee': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Arbitrum Sepolia',
-            signature:
-              '0x6fdb53ecf8f575b85ff9895277b1f8e11349970fbb42225fe41587a072bbcef43e8d54303c4e1aa38d44cae9ba2c8bf825e9e138176d6b09a729cd82a14356cf1b',
-          },
-        ],
-        '0xa': [
-          {
-            signature:
-              '0x60e12ffc04e098bd26a897ed2a974e4e255fc6db3b052fe3a2647372bfbac76f096bf5236510ddc217e12b802e08617cc27292d69ca51b0467ba91c6df74cd7b1c',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Optimism',
-          },
-        ],
-        '0x18c6': [
-          {
-            signature:
-              '0x6743135a8dfc8f58133d827b4997bc5316c8eb92883d2704a30b1d8a7bf494ce226b523e5f85a681eb5de8349c9564e62d389876d0e5fe5cc06fb9412d9d1cb61b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'MegaEth Testnet',
-          },
-        ],
-        '0x1': [
-          {
-            signature:
-              '0xffb37facfedf12f1e98b56203de1c855391b791a20ee361234c546f4b50eb11853283cfc311419049f0325ad0a806ec232cc519073e3b5d4ad59ff331964d2e71b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Mainnet',
-          },
-        ],
-        '0x27d8': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Chiado',
-            signature:
-              '0x0ff531d6afcc191c3b3bdffc1596d9ce8d1d52fa500ea2097c0823820a66f97963b88b646d4d4edbc0f781127d7985b87132d89c62c3cb4ad42848ce289645fa1b',
-          },
-        ],
-        '0x64': [
-          {
-            signature:
-              '0xd0cfc2959c866e5218faf675f852e0c7021a454064e509d40256c5bec395e300381c19dcbec2e921b2f6d7d9a925a39dee8ea2e8dd8f595633b8dc333d91f1af1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Gnosis',
-          },
-        ],
-        '0x19': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Cronos',
-            signature:
-              '0xa1856ef8c948b0a5204da687d53231848de2a585def9faac05c23c47412615dc476db943010164356b1d2ca8a8a66a8b0ae2d30c11b6b2aaf1cca116f0a333761c',
-          },
-        ],
-        '0x138de': [
-          {
-            name: 'Berachain',
-            signature:
-              '0x2c2037ddedcdfb9b7d8ea7c546259eef371a86b0e3610192eb15ece0114c59d86134791cd9e9df4208bbbdc83776d80b30b1fea6bf1a05bb072575217492497a1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x515': [
-          {
-            name: 'Unichain Sepolia',
-            signature:
-              '0x64487330691a05700a2321ee1db4092adce9590e7aded6e489df024838ecec734c935d182f74883818cb7659d5c784163573afdf8221252fa68d960cbe1c312f1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x138c5': [
-          {
-            name: 'Berachain Testnet',
-            signature:
-              '0x66940bcb2c4b95ec2c1c1024fee1e3a8e51c8f072a52a9f0252a793604c8a6ba58ac3153d4dd041873d33eec349450c4a9acd51ddaed117bee448ed7a388208c1b',
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-          },
-        ],
-        '0x2105': [
-          {
-            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
-            name: 'Base',
-            signature:
-              '0xbdddd2e925cf2cc7e148d3c11b02c917995fba8f3a3dc0b73c0059d029feca88014e723b8a32b2310a60c5b1cc17dfb3ae180b5a39f1d3264f985314b9168e0a1c',
-          },
-        ],
-      },
-      name: 'main',
       supportedChains: [
         '0x1',
+        '0x1012',
+        '0x1079',
         '0x13882',
         '0x138c5',
         '0x138de',
@@ -1065,10 +825,300 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0xa4b1',
         '0xa4ba',
         '0xa4ec',
+        '0xa5bf',
         '0xaa044c',
         '0xaa36a7',
         '0xaa37dc',
       ],
+      contracts: {
+        '0x152': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Cronos Testnet',
+            signature:
+              '0x8fec0190a311f6ba5dc9df8d76fef3673e6c4081c087f779bca7e3247bb40a5070d393d29c6b268deb3fa231a138b7914b25395cd6dec0fdf4b2b7701975e78b1c',
+          },
+        ],
+        '0x13fb': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Citrea Testnet',
+            signature:
+              '0xf9e4aa35fc098468212352c2b9662022f9565bd713ca66e634c804f9820b5e0c266d710afba58aed00e5b7e24134dd9b52e2e331076de745137531a6d245a7521b',
+          },
+        ],
+        '0xa4ec': [
+          {
+            name: 'Celo Mainnet',
+            signature:
+              '0x1421ea4d014170a4fc5d0559f267974f4aa095a6e6047b107eff1807afa425774775f796a52a90b767810eade3b5919087bb361651a7b8f4f9679f1f46adb60e1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x138c5': [
+          {
+            signature:
+              '0x66940bcb2c4b95ec2c1c1024fee1e3a8e51c8f072a52a9f0252a793604c8a6ba58ac3153d4dd041873d33eec349450c4a9acd51ddaed117bee448ed7a388208c1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Berachain Testnet',
+          },
+        ],
+        '0x88bb0': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Hoodi Testnet',
+            signature:
+              '0x23de8eb645a65b08721e5d2194063acead5f5f818474b7884ae767c7aaf9bb9b22233ab92684bc41087f8509e945d96083124ae1919a9357f2ae65267df4f0e21b',
+          },
+        ],
+        '0x13882': [
+          {
+            name: 'Polygon Amoy Testnet',
+            signature:
+              '0x472bb78ebb6686ddf0bb2e75265e1f4266cd050f8b498e88f97e9380afd8bfbd169c4d3221ec8845cb81ba7e9ddb7de9b819a15617803e20aee2aaa07664b6c81b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0xaa37dc': [
+          {
+            name: 'Optimism Sepolia',
+            signature:
+              '0xa60cab833af6a8aa2dcc80d5e12d9e1566edb6cdf51c38e7cf43d441dac561007f05643e73e6b00107e18dbf15de98aae14192306276e92d654f62bd7c3023241c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x61': [
+          {
+            name: 'BNB Testnet',
+            signature:
+              '0x80aaf42c70b0b9efdf26e38ced69fce70f6b4f5496e7e59888819c14fb16290301ad049299d99e3650fa1a616a87bb80eb52ae9f02ddd8b53dd6b983275d0eb61b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x8f': [
+          {
+            name: 'Monad',
+            signature:
+              '0x12d31e58c92cdc29dac8af0405883b3b0ee44156d7fdf5c3c2ffa4138f2461cc20e7f8625431dbd24bb784407d1a1d9bdb75b191a6cf127eac68b67d13bd11e41c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x515': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Unichain Sepolia',
+            signature:
+              '0x64487330691a05700a2321ee1db4092adce9590e7aded6e489df024838ecec734c935d182f74883818cb7659d5c784163573afdf8221252fa68d960cbe1c312f1b',
+          },
+        ],
+        '0x531': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Sei Mainnet',
+            signature:
+              '0xde089fc9af662bc4b0f873e4dc79760f6c3539f6f1cf32d9bc46baccf86ebae070a9062436f29ee86d04cc55699b27579f657922a2292ec2f1c5170d587917401b',
+          },
+        ],
+        '0x279f': [
+          {
+            name: 'Monad Testnet',
+            signature:
+              '0x85ec60e9dbac6404b66803b5abace8517ce1325bb6391b7d1ff8ec4433bbe62f4363031873a11ed79364290e196a47830fc36346a9aaf2e44518c1101496983c1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x27d8': [
+          {
+            name: 'Chiado',
+            signature:
+              '0x0ff531d6afcc191c3b3bdffc1596d9ce8d1d52fa500ea2097c0823820a66f97963b88b646d4d4edbc0f781127d7985b87132d89c62c3cb4ad42848ce289645fa1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x18c6': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'MegaEth Testnet',
+            signature:
+              '0x6743135a8dfc8f58133d827b4997bc5316c8eb92883d2704a30b1d8a7bf494ce226b523e5f85a681eb5de8349c9564e62d389876d0e5fe5cc06fb9412d9d1cb61b',
+          },
+        ],
+        '0xa4ba': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Arbitrum Nova',
+            signature:
+              '0x818898e7f90f2f1f47dc7bec74dd683dfcc11efc7025d81f57644d366a3d9e442edb789731045ccb5ba89ee0d84bb517194bb9a097b152922bbd39ffd022ff421c',
+          },
+        ],
+        '0x66eee': [
+          {
+            name: 'Arbitrum Sepolia',
+            signature:
+              '0x6fdb53ecf8f575b85ff9895277b1f8e11349970fbb42225fe41587a072bbcef43e8d54303c4e1aa38d44cae9ba2c8bf825e9e138176d6b09a729cd82a14356cf1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x19': [
+          {
+            signature:
+              '0xa1856ef8c948b0a5204da687d53231848de2a585def9faac05c23c47412615dc476db943010164356b1d2ca8a8a66a8b0ae2d30c11b6b2aaf1cca116f0a333761c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Cronos',
+          },
+        ],
+        '0x1079': [
+          {
+            name: 'Tempo',
+            signature:
+              '0x810496170fb570d0d976c58273ad4a423252bac1f2e10c8a63adbbbfc4e79d2c5d894bae20c28e90a577338e68506138ac6dea142a1e80a31c0c2dd2999efa651b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x89': [
+          {
+            signature:
+              '0x302aa2d59940e88f35d2fa140fe6a1e9dc682218a444a7fb2d88f007fbe7792b2b8d615f5ae1e4f184533a02c47d8ac0f6ba3f591679295dff93c65095c0f03d1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Polygon',
+          },
+        ],
+        '0xaa36a7': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Sepolia - Official',
+            signature:
+              '0x1aba1c0dafadab6663efdd6086764a9b9fa5ab5c002e88ebae85edea162fbc425c398b2b93afdc036503f12361c05a7ff0b409ee523d5277e0b4d0a840679e591c',
+          },
+          {
+            name: 'Sepolia - Testing',
+            signature:
+              '0x016cf109489c415ba28e695eb3cb06ac46689c5c49e2aba101d7ec2f68c890282563b324f5c8df5e0536994451825aa235438b7346e8c18b4e64161d990781891c',
+            address: '0xCd8D6C5554e209Fbb0deC797C6293cf7eAE13454',
+          },
+        ],
+        '0x92': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Sonic Mainnet',
+            signature:
+              '0x9f2a94332f2b71bff8a772053f47dbb65e26e5286341be0a3c55270d5549351f1dddb7566be0619b0150d42d540b0847cb0acbd0ab118ff608a40a18400834711b',
+          },
+        ],
+        '0x3909': [
+          {
+            signature:
+              '0xc092cc0bcf804f95eb659d281c00586bc72018a242d66fefacdc33a990faf99478c368612277cbbf72aee4a10b7ace6d8666f2c8c4fece9daada40cb360190631b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Sonic Testnet',
+          },
+        ],
+        '0x530': [
+          {
+            name: 'Sei Testnet',
+            signature:
+              '0x91135fcd7bfb9e2456c227ff12905128c3854db36775278d47b96c3c669f730c4063e3a62d94884617769bbad2868f35d725cb3b611d9bd1231bceb5967724711c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x38': [
+          {
+            name: 'BNB',
+            signature:
+              '0x28ae371904b3ba71344e426c8de0e2cee0b8529a9510c059b412671655881ad646b8cf544342a5f8e0753eda83221e14e3c9dae5435417401f5fee8ee1d63dce1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0xaa044c': [
+          {
+            signature:
+              '0x1590458cdfa10225e4fe734ed44deec95ac1887c877e63deb5ad35b41025c9ef2f33666cdd2c189b1999a78072ab9f8f122d93a52eaf12687fb2ff5b74d8de9f1c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Celo Sepolia',
+          },
+        ],
+        '0x2105': [
+          {
+            signature:
+              '0xbdddd2e925cf2cc7e148d3c11b02c917995fba8f3a3dc0b73c0059d029feca88014e723b8a32b2310a60c5b1cc17dfb3ae180b5a39f1d3264f985314b9168e0a1c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Base',
+          },
+        ],
+        '0xa': [
+          {
+            signature:
+              '0x60e12ffc04e098bd26a897ed2a974e4e255fc6db3b052fe3a2647372bfbac76f096bf5236510ddc217e12b802e08617cc27292d69ca51b0467ba91c6df74cd7b1c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Optimism',
+          },
+        ],
+        '0x138de': [
+          {
+            signature:
+              '0x2c2037ddedcdfb9b7d8ea7c546259eef371a86b0e3610192eb15ece0114c59d86134791cd9e9df4208bbbdc83776d80b30b1fea6bf1a05bb072575217492497a1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Berachain',
+          },
+        ],
+        '0x82': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Unichain Mainnet',
+            signature:
+              '0x54c423b1af4abbd1fb226e260dddba757acbcd8881e6b55b842c6b839874fa3f0e2f77685389ad5c28e096f12ef22557cebf6a77f6064baa071453a445a4c7d51c',
+          },
+        ],
+        '0xa5bf': [
+          {
+            signature:
+              '0x2413338e5c47c56853195d1870988d721ec502c78e54fe5b98468a401538b942237a2769461ffbfa8269936bf309243d5b0d69f7114938653469c4d8225715ee1c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Tempo Testnet',
+          },
+        ],
+        '0x1': [
+          {
+            signature:
+              '0xffb37facfedf12f1e98b56203de1c855391b791a20ee361234c546f4b50eb11853283cfc311419049f0325ad0a806ec232cc519073e3b5d4ad59ff331964d2e71b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Mainnet',
+          },
+        ],
+        '0x64': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Gnosis',
+            signature:
+              '0xd0cfc2959c866e5218faf675f852e0c7021a454064e509d40256c5bec395e300381c19dcbec2e921b2f6d7d9a925a39dee8ea2e8dd8f595633b8dc333d91f1af1b',
+          },
+        ],
+        '0x1012': [
+          {
+            name: 'Citrea',
+            signature:
+              '0x6818c8c50d25e23dd3810758f3fc45d41c5444bec8fe0983660387414fab00366f6d8a0462b2e8985c16cdff5898d6bf9787e255b1a668d083728b448a5c3f641c',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+        '0x14a34': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Base Sepolia',
+            signature:
+              '0xaed94ac035e745629423c547200eb2411fd7194d832a6b4cf459d3e3d34a6b62124e88640a0bf623146bdef63b0ce1c8797bd2a6c8357fab86c8be466744f55d1c',
+          },
+        ],
+        '0xa4b1': [
+          {
+            name: 'Arbitrum One',
+            signature:
+              '0xc3be82057efec197d92b0cbb7cef9d50dba0345646524687a3ae7235a8fcb1706ba79f197d45fcf4c6cfb5808ef70258c5f6bb29b7e3553a4b9660692eb5e81d1b',
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+          },
+        ],
+      },
+      name: 'main',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -1394,56 +1444,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      perpsWithdrawAnyToken: false,
-      slippageTokens: {
-        '0x89': {
-          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359': 0.005,
-          '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619': 0.005,
-          '0xc2132D05D31c914a87C6611C10748AEb04B58e8F': 0.005,
-          '0x0000000000000000000000000000000000001010': 0.005,
-          '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174': 0.005,
-        },
-        '0xa4b1': {
-          '0x0000000000000000000000000000000000000000': 0.005,
-          '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1': 0.005,
-          '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9': 0.005,
-          '0xaf88d065e77c8cC2239327C5EDb3A432268e5831': 0.005,
-        },
-        '0xe708': {
-          '0xacA92E438df0B2401fF60dA7E4337B687a2435DA': 0.005,
-          '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f': 0.005,
-          '0x0000000000000000000000000000000000000000': 0.005,
-          '0x176211869cA2b568f2A7D4EE941E073a821EE1ff': 0.005,
-          '0xA219439258ca9da29E9Cc4cE5596924745e12B93': 0.005,
-        },
-        '0x1': {
-          '0xdAC17F958D2ee523a2206206994597C13D831ec7': 0.005,
-          '0x0000000000000000000000000000000000000000': 0.005,
-          '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599': 0.005,
-          '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 0.005,
-          '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2': 0.005,
-          '0xacA92E438df0B2401fF60dA7E4337B687a2435DA': 0.005,
-        },
-        '0x2105': {
-          '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2': 0.005,
-          '0x0000000000000000000000000000000000000000': 0.005,
-          '0x4200000000000000000000000000000000000006': 0.005,
-          '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913': 0.005,
-        },
-        '0x38': {
-          '0x0000000000000000000000000000000000000000': 0.005,
-          '0x0555E30da8f98308EdB960aa94C0Db47230d2B9c': 0.005,
-          '0x2170Ed0880ac9A755fd29B2688956BD959F933F8': 0.005,
-          '0x55d398326f99059fF775485246999027B3197955': 0.005,
-          '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d': 0.005,
-        },
-      },
-      predictWithdrawAnyToken: true,
-      slippage: 0.02,
-      bufferInitial: 0.015,
-      attemptsMax: 4,
-      bufferStep: 0.015,
-      relayDisabledGasStationChains: [],
       allowedPredictWithdrawTokens: {
         '0x89': [
           '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -1459,12 +1459,62 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
         ],
       },
+      relayQuoteUrl: 'https://bridge.api.cx.metamask.io/relay/quote/v2',
+      bufferInitial: 0.015,
+      relayDisabledGasStationChains: [],
+      predictWithdrawAnyToken: true,
+      slippage: 0.02,
       relayFallbackGas: {
         estimate: '900001',
         max: '1500001',
       },
-      relayQuoteUrl: 'https://bridge.dev-api.cx.metamask.io/relay/quote',
       bufferSubsequent: 0.05,
+      attemptsMax: 4,
+      slippageTokens: {
+        '0xe708': {
+          '0x176211869cA2b568f2A7D4EE941E073a821EE1ff': 0.005,
+          '0xA219439258ca9da29E9Cc4cE5596924745e12B93': 0.005,
+          '0xacA92E438df0B2401fF60dA7E4337B687a2435DA': 0.005,
+          '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f': 0.005,
+          '0x0000000000000000000000000000000000000000': 0.005,
+        },
+        '0x1': {
+          '0x0000000000000000000000000000000000000000': 0.005,
+          '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599': 0.005,
+          '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 0.005,
+          '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2': 0.005,
+          '0xacA92E438df0B2401fF60dA7E4337B687a2435DA': 0.005,
+          '0xdAC17F958D2ee523a2206206994597C13D831ec7': 0.005,
+        },
+        '0x2105': {
+          '0x0000000000000000000000000000000000000000': 0.005,
+          '0x4200000000000000000000000000000000000006': 0.005,
+          '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913': 0.005,
+          '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2': 0.005,
+        },
+        '0x38': {
+          '0x55d398326f99059fF775485246999027B3197955': 0.005,
+          '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d': 0.005,
+          '0x0000000000000000000000000000000000000000': 0.005,
+          '0x0555E30da8f98308EdB960aa94C0Db47230d2B9c': 0.005,
+          '0x2170Ed0880ac9A755fd29B2688956BD959F933F8': 0.005,
+        },
+        '0x89': {
+          '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174': 0.005,
+          '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359': 0.005,
+          '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619': 0.005,
+          '0xc2132D05D31c914a87C6611C10748AEb04B58e8F': 0.005,
+          '0x0000000000000000000000000000000000001010': 0.005,
+        },
+        '0xa4b1': {
+          '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1': 0.005,
+          '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9': 0.005,
+          '0xaf88d065e77c8cC2239327C5EDb3A432268e5831': 0.005,
+          '0x0000000000000000000000000000000000000000': 0.005,
+        },
+      },
+      bufferStep: 0.015,
+      perpsWithdrawAnyToken: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -1475,14 +1525,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '7.67.0': {
+        '7.70.0': {
+          default: {
+            enabled: false,
+            tokens: {},
+          },
           overrides: {
             perpsWithdraw: {
               enabled: false,
             },
             predictWithdraw: {
-              enabled: false,
+              enabled: true,
               tokens: {
+                '0x89': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+                  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+                ],
+                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
+                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
                 '0x1': [
                   '0x0000000000000000000000000000000000000000',
                   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1498,20 +1560,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x55d398326f99059fF775485246999027B3197955',
                   '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
                 ],
-                '0x89': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
-                  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-                ],
-                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
-                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
               },
             },
-          },
-          default: {
-            enabled: false,
-            tokens: {},
           },
         },
       },
@@ -1524,7 +1574,190 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      blockedTokens: {
+        default: {
+          tokens: [
+            {
+              chainId: '0x1',
+              address: '0x66a3c2fa3e467aa586e90912f977e648589cabaf',
+            },
+          ],
+          chainIds: [],
+        },
+        overrides: {
+          perpsDeposit: {
+            chainIds: [],
+            tokens: [
+              {
+                chainId: '0x38',
+                address: '0x33A3d962955A3862C8093D1273344719f03cA17C',
+              },
+              {
+                address: '0x66a3c2fa3e467aa586e90912f977e648589cabaf',
+                chainId: '0x1',
+              },
+            ],
+          },
+          predictDeposit: {
+            chainIds: [],
+            tokens: [
+              {
+                address: '0x66a3c2fa3e467aa586e90912f977e648589cabaf',
+                chainId: '0x1',
+              },
+            ],
+          },
+        },
+      },
+      minimumRequiredTokenBalance: 10,
+      preferredTokens: {
+        default: [],
+        overrides: {
+          predictWithdraw: [
+            {
+              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+              chainId: '0x1',
+              name: 'mUSD',
+            },
+          ],
+          perpsDeposit: [
+            {
+              name: 'ETH',
+              successRate: 93.89,
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+            },
+            {
+              chainId: '0x1',
+              name: 'USDC',
+              successRate: 93.17,
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
+            },
+            {
+              chainId: '0xa4b1',
+              name: 'USDC',
+              successRate: 90.73,
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+            },
+            {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              name: 'USDT',
+              successRate: 90.4,
+            },
+            {
+              address: '0x55d398326f99059fF775485246999027B3197955',
+              chainId: '0x38',
+              name: 'USDT',
+              successRate: 91.4,
+            },
+            {
+              successRate: 96.55,
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0xa4b1',
+              name: 'ETH',
+            },
+            {
+              name: 'ETH',
+              successRate: 91.15,
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x2105',
+            },
+            {
+              successRate: 97.5,
+              address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+              chainId: '0xa4b1',
+              name: 'USDT',
+            },
+            {
+              chainId: '0x38',
+              name: 'USDC',
+              successRate: 96.38,
+              address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+            },
+            {
+              chainId: '0x38',
+              name: 'BNB',
+              successRate: 89.94,
+              address: '0x0000000000000000000000000000000000000000',
+            },
+            {
+              name: 'POL',
+              successRate: 89.65,
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x89',
+            },
+            {
+              chainId: '0x1',
+              name: 'MUSD',
+              successRate: 96.66,
+              address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
+            },
+          ],
+          predictDeposit: [
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              name: 'ETH',
+              successRate: 88.47,
+            },
+            {
+              name: 'USDC',
+              successRate: 87.55,
+              address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+              chainId: '0x89',
+            },
+            {
+              address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              chainId: '0x89',
+              name: 'USDC.e',
+              successRate: 90.04,
+            },
+            {
+              name: 'USDC',
+              successRate: 88.36,
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
+              chainId: '0x1',
+            },
+            {
+              chainId: '0x38',
+              name: 'BNB',
+              successRate: 92.22,
+              address: '0x0000000000000000000000000000000000000000',
+            },
+            {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              name: 'USDT',
+              successRate: 88.5,
+            },
+            {
+              successRate: 94.08,
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x89',
+              name: 'POL',
+            },
+            {
+              successRate: 89.34,
+              address: '0x55d398326f99059fF775485246999027B3197955',
+              chainId: '0x38',
+              name: 'USDT',
+            },
+            {
+              chainId: '0x1',
+              name: 'MUSD',
+              successRate: 93.61,
+              address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
+            },
+            {
+              address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+              chainId: '0x89',
+              name: 'WETH',
+              successRate: 90,
+            },
+          ],
+        },
+      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2664,7 +2897,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      chainIds: ['0x1', '0xe708'],
+      chainIds: [],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2740,12 +2973,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   exploreSectionsOrder: {
     name: 'exploreSectionsOrder',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
+    inProd: true,
+    productionDefault: {},
     status: FeatureFlagStatus.Active,
   },
 
@@ -2802,7 +3031,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       '0x38': false,
       '0x531': false,
-      '0x8f': false,
+      '0x8f': true,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2823,8 +3052,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      minimumVersion: '7.70.0',
+      enabled: true,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2833,7 +3062,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -2882,8 +3111,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      minimumVersion: '7.68.0',
+      enabled: true,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2891,10 +3120,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   moneyAccount: {
     name: 'moneyAccount',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      moneyAccountDepositEnabled: false,
       moneyAccountWithdrawEnabled: false,
+      moneyAccountDepositEnabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2902,10 +3131,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
       minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2913,10 +3142,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   moneyHomeScreenEnabled: {
     name: 'moneyHomeScreenEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
       minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -2927,6 +3156,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: [
       'https://aerodrome.finance',
+      'https://www.aerodrome.finance',
       'https://app.bio.xyz',
       'https://app.ethena.fi',
       'https://app.euler.finance',
@@ -2943,6 +3173,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       'https://fluid.io',
       'https://flyingtulip.com',
       'https://jumper.exchange',
+      'https://jumper.xyz',
       'https://linea.build',
       'https://pancakeswap.finance',
       'https://privacypools.com',
@@ -2962,6 +3193,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       'https://yearn.fi',
       'https://app.teller.org',
       'https://kalshi.com',
+      'https://app.carbondefi.xyz',
+      'https://celo.carbondefi.xyz',
+      'https://sei.carbondefi.xyz',
+      'https://matcha.xyz',
+      'https://app.trysweep.finance',
     ],
     status: FeatureFlagStatus.Active,
   },
@@ -3039,6 +3275,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      minimumVersion: '7.70.0',
       enabled: false,
     },
     status: FeatureFlagStatus.Active,
@@ -3049,7 +3286,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
+      minimumVersion: '7.68.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3150,8 +3388,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '7.68.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3161,11 +3399,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      waiveList: ['middle-east'],
+      metamaskFee: 0.03,
+      permit2Enabled: true,
+      providerFee: 0.01,
+      waiveList: [],
       collector: '0xe19b9720890539ac74AC32290626d2BA00E2e5a8',
       enabled: true,
-      metamaskFee: 0.02,
-      providerFee: 0.02,
+      executors: [
+        '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+        '0xf272fc093c35357fb7ce131c410fd43ed28e8e57',
+        '0xf4d1a2a32c0fd75c0dde90c11980763d477c1d6e',
+        '0xf013f2788203ce23a05aea279ea19f8e7d062dc8',
+        '0x228f39a22d48b8410c6e7bdc426f6260a17ab70a',
+      ],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3209,8 +3455,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      leagues: ['nfl'],
+      versions: {
+        '7.67.0': {
+          enabled: true,
+          leagues: ['nfl'],
+        },
+        '7.70.0': {
+          enabled: true,
+          leagues: ['nfl', 'nba'],
+        },
+      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3230,7 +3484,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   predictTabFeaturedCarousel: {
     name: 'predictTabFeaturedCarousel',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       minimumVersion: '0.0.0',
       enabled: false,
@@ -3285,7 +3539,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '7.61.0',
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3413,67 +3667,74 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      '0x2105': {
+        mobileActiveAndroid: true,
+        mobileActiveIOS: true,
+        sentinelUrl: 'https://tx-sentinel-base-mainnet.api.cx.metamask.io',
+        gaslessBridgeWith7702Enabled: true,
+        mobileActive: true,
+      },
+      '0x89': {
+        gaslessBridgeWith7702Enabled: true,
+        mobileActive: true,
+        mobileActiveAndroid: true,
+        mobileActiveIOS: true,
+        sentinelUrl: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
+      },
+      '0xa86a': {
+        sentinelUrl: 'https://tx-sentinel-avalanche-mainnet.api.cx.metamask.io',
+      },
+      '0x531': {
+        sentinelUrl: 'https://tx-sentinel-sei-mainnet.api.cx.metamask.io',
+      },
+      '0xa': {
+        sentinelUrl: 'https://tx-sentinel-optimism-mainnet.api.cx.metamask.io',
+      },
+      '0xa4b1': {
+        sentinelUrl: 'https://tx-sentinel-arbitrum-mainnet.api.cx.metamask.io',
+        gaslessBridgeWith7702Enabled: true,
+        mobileActive: true,
+        mobileActiveAndroid: true,
+        mobileActiveIOS: true,
+      },
+      '0x1': {
+        mobileActiveAndroid: true,
+        mobileActiveIOS: true,
+        sentinelUrl: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
+        expectedDeadline: 45,
+        gaslessBridgeWith7702Enabled: false,
+        maxDeadline: 160,
+        mobileActive: true,
+      },
+      '0xe708': {
+        mobileActiveAndroid: true,
+        mobileActiveIOS: true,
+        sentinelUrl: 'https://tx-sentinel-linea-mainnet.api.cx.metamask.io',
+        gaslessBridgeWith7702Enabled: false,
+        mobileActive: true,
+      },
+      '0x8f': {
+        sentinelUrl: 'https://tx-sentinel-monad-mainnet.api.cx.metamask.io',
+      },
+      '0x144': {
+        sentinelUrl: 'https://tx-sentinel-zksync-mainnet.api.cx.metamask.io',
+      },
       default: {
+        expectedDeadline: 45,
+        gaslessBridgeWith7702Enabled: false,
         maxDeadline: 150,
         mobileActive: false,
         mobileActiveAndroid: false,
         mobileActiveIOS: false,
         mobileReturnTxHashAsap: true,
         batchStatusPollingInterval: 1000,
-        expectedDeadline: 45,
-      },
-      '0xe708': {
-        sentinelUrl: 'https://tx-sentinel-linea-mainnet.api.cx.metamask.io',
-        mobileActive: true,
-        mobileActiveAndroid: true,
-        mobileActiveIOS: true,
-      },
-      '0x89': {
-        mobileActiveIOS: true,
-        sentinelUrl: 'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io',
-        mobileActive: true,
-        mobileActiveAndroid: true,
-      },
-      '0x144': {
-        sentinelUrl: 'https://tx-sentinel-zksync-mainnet.api.cx.metamask.io',
-      },
-      '0x8f': {
-        sentinelUrl: 'https://tx-sentinel-monad-mainnet.api.cx.metamask.io',
-      },
-      '0xa4b1': {
-        mobileActiveAndroid: true,
-        mobileActiveIOS: true,
-        sentinelUrl: 'https://tx-sentinel-arbitrum-mainnet.api.cx.metamask.io',
-        mobileActive: true,
-      },
-      '0xa': {
-        sentinelUrl: 'https://tx-sentinel-optimism-mainnet.api.cx.metamask.io',
-      },
-      '0x1': {
-        mobileActive: true,
-        mobileActiveAndroid: true,
-        mobileActiveIOS: true,
-        sentinelUrl: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
-        expectedDeadline: 45,
-        maxDeadline: 160,
       },
       '0x38': {
+        mobileActive: true,
         mobileActiveAndroid: true,
         mobileActiveIOS: true,
         sentinelUrl: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
-        mobileActive: true,
-      },
-      '0xa86a': {
-        sentinelUrl: 'https://tx-sentinel-avalanche-mainnet.api.cx.metamask.io',
-      },
-      '0x2105': {
-        mobileActive: true,
-        mobileActiveAndroid: true,
-        mobileActiveIOS: true,
-        sentinelUrl: 'https://tx-sentinel-base-mainnet.api.cx.metamask.io',
-      },
-      '0x531': {
-        sentinelUrl: 'https://tx-sentinel-sei-mainnet.api.cx.metamask.io',
+        gaslessBridgeWith7702Enabled: false,
       },
     },
     status: FeatureFlagStatus.Active,
@@ -3499,7 +3760,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -3507,7 +3783,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsTrendingTokens',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: true,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3525,7 +3801,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '7.73',
+      minimumVersion: '7.74.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3544,25 +3820,25 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: [
       {
-        name: 'Control is ON',
+        name: 'Control is OFF',
         scope: {
-          value: 0.9,
+          value: 0.5,
           type: 'threshold',
         },
         value: {
-          minimumVersion: '7.67.0',
-          variant: 'control',
+          minimumVersion: '7.69.0',
+          variant: 'treatment',
         },
       },
       {
-        name: 'Control is OFF',
+        name: 'Control is ON',
         scope: {
           type: 'threshold',
-          value: 0.1,
+          value: 1,
         },
         value: {
-          minimumVersion: '7.67.0',
-          variant: 'treatment',
+          minimumVersion: '7.69.0',
+          variant: 'control',
         },
       },
     ],
@@ -3686,6 +3962,172 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+  cardExperimentalSwitch2: {
+    name: 'cardExperimentalSwitch2',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.58.1',
+      enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardCARD338AbtestAttentionBadge: {
+    name: 'cardCARD338AbtestAttentionBadge',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'withBadge',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  configRegistryApiEnabled: {
+    name: 'configRegistryApiEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  confirmations_pay_fiat: {
+    name: 'confirmations_pay_fiat',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '7.68.0': {
+          enabled: false,
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  displayCardButton: {
+    name: 'displayCardButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.64.1',
+      enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  googleLoginIosUnsupportedBlockingEnabled: {
+    name: 'googleLoginIosUnsupportedBlockingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  importSrpWordSuggestion: {
+    name: 'importSrpWordSuggestion',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.61.0',
+      enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  mobileUxAccountMenu: {
+    name: 'mobileUxAccountMenu',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableMoneyTab: {
+    name: 'moneyEnableMoneyTab',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsDefaultPayTokenWhenNoBalanceEnabled: {
+    name: 'perpsDefaultPayTokenWhenNoBalanceEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  rewardsMissingEnrolledAccounts: {
+    name: 'rewardsMissingEnrolledAccounts',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS4242AbtestTokenSelectorBalanceLayout: {
+    name: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  tempoConfig: {
+    name: 'tempoConfig',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  tokenListItemV2AbtestVersioned: {
+    name: 'tokenListItemV2AbtestVersioned',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '7.67.0',
+      enabled: true,
+    },
     status: FeatureFlagStatus.Active,
   },
 };
