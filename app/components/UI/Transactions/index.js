@@ -22,6 +22,7 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionError } from '../../../core/Transaction/TransactionError';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -43,8 +44,10 @@ import Logger from '../../../util/Logger';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
+  getHexEvmChainId,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import {
@@ -231,6 +234,27 @@ class Transactions extends PureComponent {
     return isNonEvmChainId(this.props.chainId);
   }
 
+  /**
+   * Chain used for the "View full history" footer and explorer link.
+   * On token / asset details, only the asset chain is used — never the globally
+   * selected network from Redux.
+   */
+  get explorerContextChainId() {
+    const { tokenChainId, chainId, location } = this.props;
+    if (location === TransactionDetailLocation.AssetDetails) {
+      return tokenChainId;
+    }
+    return tokenChainId ?? chainId;
+  }
+
+  get isAssetDetailsExplorer() {
+    return this.props.location === TransactionDetailLocation.AssetDetails;
+  }
+
+  get isExplorerContextNonEvm() {
+    return isNonEvmChainId(this.explorerContextChainId);
+  }
+
   get isTokenNonEvmChain() {
     return isNonEvmChainId(this.props.tokenChainId);
   }
@@ -255,16 +279,27 @@ class Transactions extends PureComponent {
     const {
       providerConfig: { type, rpcUrl },
       networkConfigurations,
-      chainId,
+      tokenChainId,
     } = this.props;
+    const explorerChainId = this.explorerContextChainId;
     let blockExplorer;
-    if (type === RPC) {
+
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(tokenChainId);
+
+    if (!explorerChainId && useAssetOnlyExplorer) {
+      blockExplorer = undefined;
+    } else if (this.isExplorerContextNonEvm) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(explorerChainId);
+    } else if (useAssetOnlyExplorer) {
+      blockExplorer = findBlockExplorerUrlForChain(
+        explorerChainId,
+        networkConfigurations,
+      );
+    } else if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
-    } else if (this.isNonEvmChain) {
-      // TODO: [SOLANA] - block explorer needs to be implemented
-      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -386,13 +421,29 @@ class Transactions extends PureComponent {
       providerConfig: { type },
       selectedAddress,
       close,
-      chainId,
+      networkConfigurations,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(this.props.tokenChainId);
+
     try {
       let url, title;
 
-      if (this.isNonEvmChain && rpcBlockExplorer) {
+      if (useAssetOnlyExplorer) {
+        const base =
+          rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER
+            ? rpcBlockExplorer
+            : findBlockExplorerUrlForChain(
+                this.explorerContextChainId,
+                networkConfigurations,
+              );
+        if (!base) {
+          throw new Error('Missing block explorer for asset chain');
+        }
+        url = `${base}/address/${selectedAddress}`;
+        title = getBlockExplorerName(base);
+      } else if (this.isExplorerContextNonEvm && rpcBlockExplorer) {
         url = `${rpcBlockExplorer}/address/${selectedAddress}`;
         title = getBlockExplorerName(rpcBlockExplorer);
       } else {
@@ -690,14 +741,24 @@ class Transactions extends PureComponent {
     const {
       chainId,
       providerConfig: { type },
+      tokenChainId,
     } = this.props;
+
+    const useAssetOnlyExplorer =
+      this.isAssetDetailsExplorer || Boolean(tokenChainId);
+
+    const footerChainId = useAssetOnlyExplorer
+      ? (getHexEvmChainId(this.explorerContextChainId) ??
+        this.explorerContextChainId)
+      : chainId;
 
     return (
       <TransactionsFooter
-        chainId={chainId}
+        chainId={footerChainId}
         providerType={type}
         rpcBlockExplorer={this.state.rpcBlockExplorer}
-        isNonEvmChain={this.isNonEvmChain}
+        isNonEvmChain={this.isExplorerContextNonEvm}
+        omitGlobalProviderExplorerFallback={this.isAssetDetailsExplorer}
         onViewBlockExplorer={this.viewOnBlockExplore}
         showDisclaimer
       />

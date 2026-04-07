@@ -215,10 +215,10 @@ const TokenDetails: React.FC<{
     comparePrice,
     prices,
     isLoading,
+    currentCurrency,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
-    currentCurrency,
   } = useTokenPrice({ token });
 
   const {
