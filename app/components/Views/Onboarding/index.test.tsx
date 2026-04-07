@@ -236,6 +236,7 @@ interface MetricsProps {
     isEnabled: () => boolean;
     trackEvent: (...args: unknown[]) => void;
     enable: (enable?: boolean) => Promise<void>;
+    identify: (traits: Record<string, unknown>) => void;
     createEventBuilder: () => EventBuilder;
   };
 }
@@ -256,6 +257,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
         await mockAnalytics.optIn();
       }
     },
+    identify: mockAnalytics.identify,
     addTraitsToUser: mockAnalytics.identify,
     createDataDeletionTask: jest.fn(),
     checkDataDeleteStatus: jest.fn(),
