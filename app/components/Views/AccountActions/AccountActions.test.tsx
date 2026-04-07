@@ -615,8 +615,8 @@ describe('AccountActions', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         {
-          shouldUpdateNav: true,
           keyringId: 'hd-keyring-entropy-id',
+          popToTopOnDone: true,
         },
       );
     });
