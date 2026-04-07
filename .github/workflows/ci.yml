@@ -283,12 +283,12 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Archive prepared workspace
-        run: tar czf /tmp/unit-test-deps.tar.gz node_modules .yarn app/util/termsOfUse/termsOfUseContent.ts
+        run: tar cf - node_modules .yarn app/util/termsOfUse/termsOfUseContent.ts | zstd -T0 -1 -o /tmp/unit-test-deps.tar.zst
       - name: Upload prepared workspace
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-deps
-          path: /tmp/unit-test-deps.tar.gz
+          path: /tmp/unit-test-deps.tar.zst
           retention-days: 1
           compression-level: 0
           if-no-files-found: error
@@ -315,7 +315,7 @@ jobs:
           name: unit-test-deps
           path: /tmp
       - name: Extract prepared workspace
-        run: tar xzf /tmp/unit-test-deps.tar.gz
+        run: zstd -d /tmp/unit-test-deps.tar.zst --stdout | tar xf -
       - name: Restore Jest transform cache
         uses: actions/cache@v4
         with:
@@ -371,7 +371,7 @@ jobs:
           name: unit-test-deps
           path: /tmp
       - name: Extract prepared workspace
-        run: tar xzf /tmp/unit-test-deps.tar.gz
+        run: zstd -d /tmp/unit-test-deps.tar.zst --stdout | tar xf -
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -481,7 +481,7 @@ jobs:
           name: unit-test-deps
           path: /tmp
       - name: Extract prepared workspace
-        run: tar xzf /tmp/unit-test-deps.tar.gz
+        run: zstd -d /tmp/unit-test-deps.tar.zst --stdout | tar xf -
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
