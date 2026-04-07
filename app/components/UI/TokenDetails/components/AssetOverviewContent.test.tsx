@@ -122,6 +122,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: (action: () => Promise<unknown>) => action(),
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 function createState(isEligible: boolean) {
   return {
     engine: {
