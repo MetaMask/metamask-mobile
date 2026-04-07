@@ -232,8 +232,8 @@ const CardAuthentication = () => {
   }, [confirmCode, performLogin, latestValueSubmitted, isOtpStep]);
 
   const isLoginDisabled = useMemo(
-    () => !!error || email.length === 0 || password.length === 0,
-    [error, email, password],
+    () => !!error || email.length === 0 || password.length === 0 || !location,
+    [error, email, password, location],
   );
 
   const handleResendOtp = useCallback(() => {

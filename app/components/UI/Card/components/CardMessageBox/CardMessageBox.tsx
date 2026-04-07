@@ -29,7 +29,7 @@ interface CardMessageBoxProps {
 interface MessageConfig {
   variant: CardMessageBoxVariant;
   title: string;
-  description: string;
+  description?: string;
   confirmButtonLabel?: string;
 }
 
@@ -65,6 +65,13 @@ const CardMessageBox = ({
           'card.card_home.messages.card_provisioning.description',
         ),
       },
+      [CardMessageBoxType.LoginRequired]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.card_home.messages.login_required.title'),
+        confirmButtonLabel: strings(
+          'card.card_home.messages.login_required.confirm_button_label',
+        ),
+      },
     }),
     [],
   );
@@ -95,7 +102,9 @@ const CardMessageBox = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
             {config.title}
           </Text>
-          <Text variant={TextVariant.BodyMd}>{config.description}</Text>
+          {config.description ? (
+            <Text variant={TextVariant.BodyMd}>{config.description}</Text>
+          ) : null}
         </View>
 
         <View

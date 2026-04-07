@@ -1,7 +1,11 @@
 import { createSelector } from 'reselect';
 import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 import { RootState } from '../reducers';
-import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
+import type {
+  CardControllerState,
+  CardHomeDataStatus,
+} from '../core/Engine/controllers/card-controller/types';
+import type { CardHomeData } from '../core/Engine/controllers/card-controller/provider-types';
 import type { CardLocation } from '../components/UI/Card/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
@@ -67,4 +71,16 @@ export const selectCardUserLocation = createSelector(
       | undefined;
     return (provData?.location as CardLocation) ?? null;
   },
+);
+
+export const selectCardHomeData = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeData | null =>
+    (cardState?.cardHomeData as unknown as CardHomeData | null) ?? null,
+);
+
+export const selectCardHomeDataStatus = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeDataStatus =>
+    cardState?.cardHomeDataStatus ?? 'idle',
 );
