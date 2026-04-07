@@ -245,7 +245,7 @@ export const formatComputedAt = (isoString: string | null): string => {
  * Parses a CAIP-19 asset identifier into its components.
  * Returns `null` for invalid or unparseable identifiers.
  */
-const parseCaip19 = (
+export const parseCaip19 = (
   caip19: string,
 ): {
   namespace: string;
@@ -283,6 +283,17 @@ export const getChainHex = (caip19: string): Hex | undefined => {
 export const getAssetReference = (caip19: string): string => {
   const parsed = parseCaip19(caip19);
   return parsed?.assetReference ?? caip19;
+};
+
+/**
+ * Converts a CAIP chain ID (e.g. "eip155:1") to a hex chain ID (e.g. "0x1").
+ * For non-EVM chains the CAIP chain ID is returned as-is cast to Hex.
+ */
+export const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+  return namespace === 'eip155'
+    ? (`0x${Number(reference).toString(16)}` as Hex)
+    : (caipChainId as Hex);
 };
 
 /**
