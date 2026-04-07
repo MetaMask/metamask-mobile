@@ -129,6 +129,11 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
     );
   }
 
+  // Deposit window closed — can swap existing positions but cannot open new ones
+  if (!optinAllowed && !hasPositions) {
+    return null;
+  }
+
   if (hasPositions) {
     return (
       <Box twClassName="px-4 pt-2">

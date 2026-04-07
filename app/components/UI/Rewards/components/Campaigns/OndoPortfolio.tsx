@@ -165,6 +165,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   refetch,
   campaignId,
   onOpenAccountPicker,
+  isCampaignComplete = false,
 }) => {
   const navigation = useNavigation();
 
@@ -378,15 +379,17 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           description={strings(
             'rewards.ondo_campaign_portfolio.empty_description',
           )}
-          onConfirm={() => {
-            navigation.navigate(
-              Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
-              { mode: 'open_position', campaignId },
-            );
-          }}
-          confirmButtonLabel={strings(
-            'rewards.ondo_campaign_portfolio.empty_cta',
-          )}
+          {...(!isCampaignComplete && {
+            onConfirm: () => {
+              navigation.navigate(
+                Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR,
+                { mode: 'open_position', campaignId },
+              );
+            },
+            confirmButtonLabel: strings(
+              'rewards.ondo_campaign_portfolio.empty_cta',
+            ),
+          })}
         />
       </Box>
     );
@@ -409,10 +412,10 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           return (
             <TouchableOpacity
               key={row.tokenAsset}
-              onPress={() => {
-                handleRowPress(row);
-              }}
-              activeOpacity={0.7}
+              onPress={
+                isCampaignComplete ? undefined : () => handleRowPress(row)
+              }
+              activeOpacity={isCampaignComplete ? 1 : 0.7}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}

@@ -612,6 +612,34 @@ describe('OndoPortfolio', () => {
       fireEvent.press(getByTestId('info-banner-confirm'));
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeOnTheScreen();
     });
+
+    it('does not render CTA button when campaign is complete', () => {
+      const { queryByTestId } = render(
+        <OndoPortfolio {...baseProps} hasFetched isCampaignComplete />,
+      );
+      expect(queryByTestId('info-banner-confirm')).toBeNull();
+    });
+  });
+
+  describe('campaign complete state', () => {
+    const loadedProps = {
+      ...baseProps,
+      portfolio: MOCK_PORTFOLIO,
+      hasFetched: true,
+      isCampaignComplete: true,
+    };
+
+    it('renders position rows without triggering navigation on press', () => {
+      const onOpenAccountPicker = jest.fn();
+      const { getByText } = render(
+        <OndoPortfolio
+          {...loadedProps}
+          onOpenAccountPicker={onOpenAccountPicker}
+        />,
+      );
+      fireEvent.press(getByText('Apple Inc.'));
+      expect(onOpenAccountPicker).not.toHaveBeenCalled();
+    });
   });
 
   describe('AccountGroupSelectRow', () => {

@@ -411,6 +411,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                       refetch={refetchPortfolio}
                       campaignId={campaignId}
                       onOpenAccountPicker={setPendingPicker}
+                      isCampaignComplete={
+                        getCampaignStatus(campaign) === 'complete'
+                      }
                     />
                   </Box>
                 </>

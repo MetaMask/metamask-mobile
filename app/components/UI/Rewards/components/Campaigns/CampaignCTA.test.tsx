@@ -220,6 +220,44 @@ describe('CampaignCTA', () => {
     });
   });
 
+  describe('opted in, past deposit cutoff, no positions', () => {
+    it('renders nothing when deposit cutoff has passed and user has no positions', () => {
+      const { queryByTestId } = render(
+        <CampaignCTA
+          campaign={buildCampaign({
+            details: {
+              howItWorks: { title: 'How', description: 'Desc', steps: [] },
+              depositCutoffDate: '2025-08-01T00:00:00.000Z',
+            },
+          })}
+          participantStatus={optedIn}
+          {...defaultProps}
+          hasPositions={false}
+        />,
+      );
+
+      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+    });
+
+    it('still renders swap button when deposit cutoff passed but user has positions', () => {
+      const { getByTestId } = render(
+        <CampaignCTA
+          campaign={buildCampaign({
+            details: {
+              howItWorks: { title: 'How', description: 'Desc', steps: [] },
+              depositCutoffDate: '2025-08-01T00:00:00.000Z',
+            },
+          })}
+          participantStatus={optedIn}
+          {...defaultProps}
+          hasPositions
+        />,
+      );
+
+      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
   describe('opted in, no portfolio positions', () => {
     it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
