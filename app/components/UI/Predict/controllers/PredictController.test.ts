@@ -18,6 +18,7 @@ import {
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
+import { endTrace, trace } from '../../../../util/trace';
 import {
   addTransaction,
   addTransactionBatch,
@@ -51,6 +52,13 @@ jest.mock('../providers/polymarket/PolymarketProvider');
 jest.mock('../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
   addTransactionBatch: jest.fn(),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  __esModule: true,
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 // Default mock values for messenger actions
@@ -4089,7 +4097,7 @@ describe('PredictController', () => {
         ...overrides,
       }) as any;
 
-    it('does nothing when token is null', () => {
+    it('treats null as balance token and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const existingToken = {
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -4100,7 +4108,22 @@ describe('PredictController', () => {
 
         controller.selectPaymentToken(null);
 
-        expect(controller.state.selectedPaymentToken).toEqual(existingToken);
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('transitions PAY_WITH_ANY_TOKEN to PREVIEW when token is null', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.selectPaymentToken(null);
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
@@ -7116,6 +7139,9 @@ describe('PredictController', () => {
   });
 
   describe('getBalance - caching behavior', () => {
+    const mockTrace = jest.mocked(trace);
+    const mockEndTrace = jest.mocked(endTrace);
+
     beforeEach(() => {
       jest.useFakeTimers();
     });
@@ -7136,6 +7162,38 @@ describe('PredictController', () => {
           // Assert
           expect(result).toBe(1500);
           expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
+        },
+        {
+          state: {
+            balances: {
+              '0x1234567890123456789012345678901234567890':
+                createMockPredictBalance({
+                  balance: 1500,
+                  validUntil: now + 500,
+                }),
+            },
+          },
+        },
+      );
+    });
+
+    it('ends trace with cached balance metadata when cache entry is still valid', async () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      await withController(
+        async ({ controller }) => {
+          const result = await controller.getBalance({});
+
+          expect(result).toBe(1500);
+          expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
+          expect(mockTrace).toHaveBeenCalledTimes(1);
+          expect(mockEndTrace).toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: `getBalance-${now}`,
+              data: { success: true, cached: true },
+            }),
+          );
         },
         {
           state: {
@@ -7495,6 +7553,36 @@ describe('PredictController', () => {
       });
     });
 
+    it('includes predict_token_address in analytics properties when paymentTokenAddress is provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+          paymentTokenAddress: '0xtoken',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              predict_token_address: '0xtoken',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits predict_token_address from analytics properties when not provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('predict_token_address');
+      });
+    });
+
     it('calls analytics.trackEvent for trackMarketDetailsOpened', () => {
       withController(({ controller }) => {
         controller.trackMarketDetailsOpened({
@@ -7670,6 +7758,97 @@ describe('PredictController', () => {
               marketId: 'market-1',
             }),
           );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('fires SUBMITTED event with predict_token_address when placeOrder transitions to DEPOSITING', async () => {
+      await withController(
+        async ({ controller }) => {
+          controller.setSelectedPaymentToken({
+            address: '0xtoken',
+            chainId: '0x89',
+            symbol: 'MATIC',
+          });
+
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            transactionId: 'tx-200',
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-200',
+          });
+
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            ActiveOrderState.DEPOSITING,
+          );
+
+          expect(analytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                status: 'submitted',
+                predict_token_address: '0xtoken',
+              }),
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not include predict_token_address in SUBMITTED event for balance flow', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          mockPolymarketProvider.placeOrder.mockResolvedValue({
+            success: true,
+            response: {
+              id: 'order-1',
+              spentAmount: '100',
+              receivedAmount: '200',
+            },
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+          });
+
+          const calls = (analytics.trackEvent as jest.Mock).mock.calls;
+          const submittedCall = calls.find(
+            (call: unknown[]) =>
+              (call[0] as { properties: { status: string } }).properties
+                .status === 'submitted',
+          );
+
+          expect(submittedCall).toBeDefined();
+          expect(
+            (submittedCall[0] as { properties: Record<string, unknown> })
+              .properties,
+          ).not.toHaveProperty('predict_token_address');
         },
         {
           mocks: {
@@ -9135,6 +9314,59 @@ describe('PredictController', () => {
           success: false,
           error: 'Failed to get batch ID from transaction submission',
         });
+      });
+    });
+  });
+
+  describe('getMarketSeries', () => {
+    it('delegates the params to the provider', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue([]);
+
+        await controller.getMarketSeries(params);
+
+        expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('returns the provider result', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      };
+      const mockMarkets = [
+        {
+          id: 'series-market-1',
+          title: 'BTC Up or Down 5m',
+          series: {
+            id: '10684',
+            slug: 'btc-up-or-down-5m',
+            title: 'BTC Up or Down 5m',
+            recurrence: '5m',
+          },
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue(mockMarkets);
+
+        const result = await controller.getMarketSeries(params);
+
+        expect(result).toEqual(mockMarkets);
       });
     });
   });
