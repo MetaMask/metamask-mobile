@@ -169,6 +169,23 @@ export type OndoCampaignStepState = {
   iconName: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourActionsState = {
+  next?: boolean;
+  skip?: boolean;
+};
+
+/**
+ * Serializable version of OndoCampaignTourStepDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourStepDtoState = {
+  title: string;
+  description: string;
+  image: ThemeImageState | null;
+  actions: OndoCampaignTourActionsState | null;
+};
+
 /**
  * Serializable version of OndoCampaignHowItWorks for state storage.
  */
@@ -178,6 +195,7 @@ export type OndoCampaignHowItWorksState = {
   description: string;
   steps: OndoCampaignStepState[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDtoState[];
 };
 
 /**
@@ -660,11 +678,24 @@ export interface OndoCampaignStep {
   iconName: string;
 }
 
+export interface OndoCampaignTourActions {
+  next?: boolean;
+  skip?: boolean;
+}
+
+export interface OndoCampaignTourStepDto {
+  title: string;
+  description: string;
+  image: ThemeImage | null;
+  actions: OndoCampaignTourActions | null;
+}
+
 export interface OndoCampaignHowItWorks {
   title: string;
   description: string;
   steps: OndoCampaignStep[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDto[];
 }
 
 export interface OndoHoldingDetails {
