@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -26,7 +32,7 @@ import { strings } from '../../../../../locales/i18n';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CampaignTourStepRouteParams = {
-  CampaignTourStep: {
+  RewardsCampaignTourStep: {
     campaignId: string;
   };
 };
@@ -35,7 +41,9 @@ const CampaignTourStepView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route =
-    useRoute<RouteProp<CampaignTourStepRouteParams, 'CampaignTourStep'>>();
+    useRoute<
+      RouteProp<CampaignTourStepRouteParams, 'RewardsCampaignTourStep'>
+    >();
   const { campaignId } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -77,8 +85,13 @@ const CampaignTourStepView: React.FC = () => {
 
   const renderTabBar = useCallback(() => <View />, []);
 
+  useEffect(() => {
+    if (!tour?.length) {
+      navigateToDetails();
+    }
+  }, [tour, navigateToDetails]);
+
   if (!tour?.length) {
-    navigateToDetails();
     return null;
   }
 
