@@ -6,24 +6,19 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { predictQueries } from '../queries';
 import { predictMarketKeys } from '../queries/market';
 import type { GetSeriesParams } from '../types';
-import Engine from '../../../../core/Engine';
 
 export const usePredictSeries = (params: GetSeriesParams) => {
   const queryClient = useQueryClient();
 
-  const query = useQuery({
-    ...predictQueries.series.options(params),
-    queryFn: async () => {
-      const controller = Engine.context.PredictController;
-      const events = await controller.getMarketSeries(params);
+  const query = useQuery(predictQueries.series.options(params));
 
-      events.forEach((event) => {
-        queryClient.setQueryData(predictMarketKeys.detail(event.id), event);
-      });
+  useEffect(() => {
+    if (!query.data) return;
 
-      return events;
-    },
-  });
+    query.data.forEach((event) => {
+      queryClient.setQueryData(predictMarketKeys.detail(event.id), event);
+    });
+  }, [query.data, queryClient]);
 
   useEffect(() => {
     if (!query.error) return;
