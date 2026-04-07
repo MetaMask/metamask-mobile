@@ -8,6 +8,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { UserActionType } from '../../actions/user';
 import OAuthService from '../../core/OAuthService/OAuthService';
 import Logger from '../../util/Logger';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
@@ -45,6 +46,7 @@ jest.mock('../../core/OAuthService/OAuthService', () => ({
 const loginAction = { type: UserActionType.LOGIN };
 
 describe('backfillSocialLoginMarketingConsent', () => {
+  const mockedIdentify = jest.mocked(analytics.identify);
   const mockedTrackEvent = jest.mocked(analytics.trackEvent);
   const mockedGetMarketingOptInStatus = jest.mocked(
     OAuthService.getMarketingOptInStatus,
@@ -62,6 +64,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .dispatch(loginAction)
       .run();
 
+    expect(mockedIdentify).not.toHaveBeenCalled();
     expect(mockedTrackEvent).not.toHaveBeenCalled();
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
     expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
@@ -88,6 +91,9 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .run();
 
     expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
+    expect(mockedIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+    });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         saveDataRecording: true,
@@ -124,6 +130,9 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .run();
 
     expect(mockedGetMarketingOptInStatus).toHaveBeenCalled();
+    expect(mockedIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
+    });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         saveDataRecording: true,
@@ -162,6 +171,9 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .run();
 
     expect(mockedGetMarketingOptInStatus).toHaveBeenCalled();
+    expect(mockedIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+    });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
@@ -198,6 +210,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
       expect.any(Error),
       'Failed to backfill social login marketing consent analytics',
     );
+    expect(mockedIdentify).not.toHaveBeenCalled();
     expect(mockedTrackEvent).not.toHaveBeenCalled();
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
@@ -225,6 +238,9 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
+    expect(mockedIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+    });
     expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
 });

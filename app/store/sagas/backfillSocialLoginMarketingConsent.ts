@@ -36,7 +36,7 @@ export function* backfillSocialLoginMarketingConsentSaga() {
       marketingConsent = marketingOptIn.is_opt_in;
     }
 
-    analytics.identify({
+    yield call([analytics, analytics.identify], {
       [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingConsent
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
