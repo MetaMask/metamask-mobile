@@ -17,6 +17,9 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import useTronAssetOverviewSection from './useTronAssetOverviewSection';
+import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
+import { TronStakingCtaTestIds } from '../../Earn/components/Tron/TronStakingCta/TronStakingCta.testIds';
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
@@ -28,6 +31,22 @@ const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
 const mockUsePerpsPositionForAsset = jest.fn();
+const mockUseTronAssetOverviewSection =
+  useTronAssetOverviewSection as jest.MockedFunction<
+    typeof useTronAssetOverviewSection
+  >;
+const mockTronErrorsBanner = jest.fn(({ messages }: { messages: string[] }) => (
+  <MockView
+    testID="tron-errors-banner"
+    accessibilityLabel={messages.join('|')}
+  />
+));
+const mockTronStakingCta = jest.fn(({ aprText }: { aprText?: string }) => (
+  <MockView
+    testID={TronStakingCtaTestIds.CONTAINER}
+    accessibilityLabel={aprText}
+  />
+));
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -99,6 +118,34 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 }));
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
+
+jest.mock('./useTronAssetOverviewSection', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    aprText: undefined,
+    claimableRewardsRowProps: {
+      title: 'Total claimable rewards',
+      subtitle: '$0.00 · 0 TRX',
+      hideBalances: false,
+    },
+    estimatedAnnualRewardsRowProps: null,
+    errorMessages: [],
+  })),
+}));
+
+jest.mock(
+  '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner',
+  () => ({
+    __esModule: true,
+    default: (props: { messages: string[] }) => mockTronErrorsBanner(props),
+  }),
+  { virtual: true },
+);
+
+jest.mock('../../Earn/components/Tron/TronStakingCta/TronStakingCta', () => ({
+  __esModule: true,
+  default: (props: { aprText?: string }) => mockTronStakingCta(props),
+}));
 
 jest.mock(
   '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard',
@@ -210,7 +257,6 @@ const createMockSecurityData = (
 
 const defaultMarketInsightsResult = {
   report: {
-    digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
     asset: 'eth',
     generatedAt: '2026-02-17T11:55:00.000Z',
     headline: 'ETH outlook stays positive',
@@ -242,6 +288,9 @@ describe('AssetOverviewContent', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        errorMessages: [],
+      });
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -361,8 +410,6 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
-        asset_symbol: 'eth',
-        digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({
         category: 'market-insights-opened',
@@ -442,6 +489,139 @@ describe('AssetOverviewContent', () => {
       expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith({
         isDisplayed: false,
         severity: undefined,
+      });
+    });
+  });
+
+  describe('Tron rewards boundary', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        errorMessages: [],
+      });
+    });
+
+    it('disables the Tron asset overview section for non-Tron assets', () => {
+      renderWithProvider(<AssetOverviewContent {...defaultProps} />, {
+        state: createState(true),
+      });
+
+      expect(mockUseTronAssetOverviewSection).not.toHaveBeenCalled();
+    });
+
+    it('passes APR text into the unstaked Tron CTA when available', () => {
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        aprText: '4.5%',
+        errorMessages: [],
+      });
+
+      const tronToken: TokenI = {
+        ...defaultToken,
+        address: 'tron:token',
+        chainId: 'tron:0x2b6653dc',
+        symbol: 'TRX',
+        name: 'TRON',
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          token={tronToken}
+          stakedTrxAsset={undefined}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId(TronStakingCtaTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(mockUseTronAssetOverviewSection).toHaveBeenCalledWith({
+        enabled: true,
+        tokenAddress: tronToken.address,
+        tokenChainId: tronToken.chainId,
+      });
+      expect(mockTronStakingCta).toHaveBeenCalledWith(
+        expect.objectContaining({
+          asset: tronToken,
+          aprText: '4.5%',
+        }),
+      );
+    });
+
+    it('does not fabricate an unavailable rewards banner when the hook omits it', () => {
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        claimableRewardsRowProps: {
+          title: 'Total claimable rewards',
+          subtitle: '$0.00 · 0 TRX',
+          hideBalances: false,
+        },
+        estimatedAnnualRewardsRowProps: undefined,
+        errorMessages: [],
+      });
+
+      const tronToken: TokenI = {
+        ...defaultToken,
+        address: 'tron:token',
+        chainId: 'tron:0x2b6653dc',
+        symbol: 'TRX',
+        name: 'TRON',
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          token={tronToken}
+          stakedTrxAsset={tronToken}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByTestId('tron-staking-rewards-estimated-unavailable-banner'),
+      ).toBeNull();
+    });
+
+    it('renders exactly one errors banner with the normalized message payload from the hook', () => {
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        claimableRewardsRowProps: {
+          title: 'Total claimable rewards',
+          subtitle: '- · 0 TRX',
+          hideBalances: false,
+        },
+        estimatedAnnualRewardsRowProps: undefined,
+        errorMessages: ['Fiat unavailable', 'APR unavailable'],
+      });
+
+      const tronToken: TokenI = {
+        ...defaultToken,
+        address: 'tron:token',
+        chainId: 'tron:0x2b6653dc',
+        symbol: 'TRX',
+        name: 'TRON',
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          token={tronToken}
+          stakedTrxAsset={tronToken}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId('tron-errors-banner')).toHaveProp(
+        'accessibilityLabel',
+        'Fiat unavailable|APR unavailable',
+      );
+      expect(mockTronErrorsBanner).toHaveBeenCalledTimes(1);
+      expect(mockTronErrorsBanner).toHaveBeenCalledWith({
+        messages: ['Fiat unavailable', 'APR unavailable'],
       });
     });
   });

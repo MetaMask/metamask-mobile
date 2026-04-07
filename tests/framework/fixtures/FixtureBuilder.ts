@@ -1882,6 +1882,35 @@ class FixtureBuilder {
     return this;
   }
 
+  withTronFeatureFlags(enabled = true) {
+    merge(
+      this.fixture.state.engine.backgroundState.RemoteFeatureFlagController,
+      {
+        remoteFeatureFlags: {
+          tronAccounts: { enabled, minimumVersion: '0.0.0' },
+        },
+      },
+    );
+    return this;
+  }
+
+  withTronAccount() {
+    this.withTronFeatureFlags();
+    this.withSnapController({
+      snaps: {
+        'npm:@metamask/tron-wallet-snap': {
+          blocked: false,
+          enabled: true,
+          id: 'npm:@metamask/tron-wallet-snap',
+          initialPermissions: {},
+          version: '1.24.0',
+          status: 'running',
+        },
+      },
+    } as Partial<SnapControllerState>);
+    return this;
+  }
+
   withSnapControllerOnStartLifecycleSnap() {
     return this.withPermissionController({
       subjects: {

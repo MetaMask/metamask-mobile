@@ -59,6 +59,12 @@ const mockUseTronStakeApy = jest.fn();
 jest.mock('../../../hooks/useTronStakeApy', () => ({
   __esModule: true,
   default: () => mockUseTronStakeApy(),
+  FetchStatus: {
+    Initial: 'initial',
+    Fetching: 'fetching',
+    Fetched: 'fetched',
+    Error: 'error',
+  },
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -100,7 +106,7 @@ describe('TronStakingLearnMoreModal', () => {
     jest.clearAllMocks();
     mockUseTronStakeApy.mockReturnValue({
       apyPercent: '4.5%',
-      isLoading: false,
+      fetchStatus: 'fetched',
       apyDecimal: '4.5',
       errorMessage: null,
       refetch: jest.fn(),
@@ -124,7 +130,7 @@ describe('TronStakingLearnMoreModal', () => {
     it('does not display APY when apyPercent is null', () => {
       mockUseTronStakeApy.mockReturnValue({
         apyPercent: null,
-        isLoading: false,
+        fetchStatus: 'fetched',
         apyDecimal: null,
         errorMessage: null,
         refetch: jest.fn(),
@@ -227,7 +233,7 @@ describe('TronStakingLearnMoreModal', () => {
     it('does not call endTrace for EarnFaqApys when still loading', () => {
       mockUseTronStakeApy.mockReturnValue({
         apyPercent: null,
-        isLoading: true,
+        fetchStatus: 'fetching',
         apyDecimal: null,
         errorMessage: null,
         refetch: jest.fn(),
