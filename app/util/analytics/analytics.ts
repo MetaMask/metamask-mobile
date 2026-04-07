@@ -54,10 +54,16 @@ const queueManager = createAnalyticsQueueManager({
  * @param event - AnalyticsTrackingEvent to track
  */
 const trackEvent = (event: AnalyticsTrackingEvent): void => {
-  const enrichedEvent = enrichWithABTests(
-    event,
-    getRemoteFeatureFlagsFromState(store.getState()),
-  );
+  let enrichedEvent: AnalyticsTrackingEvent;
+
+  try {
+    enrichedEvent = enrichWithABTests(
+      event,
+      getRemoteFeatureFlagsFromState(store.getState()),
+    );
+  } catch {
+    enrichedEvent = event;
+  }
 
   queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
     Logger.log('Analytics: Unhandled error in trackEvent', error);
