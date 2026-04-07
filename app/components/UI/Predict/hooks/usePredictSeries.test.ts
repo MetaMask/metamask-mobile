@@ -123,12 +123,19 @@ describe('usePredictSeries', () => {
 
     await waitFor(() => {
       expect(
-        queryClient.getQueryData(predictSeriesKeys.detail(params.seriesId)),
+        queryClient.getQueryData(predictSeriesKeys.detail(params)),
       ).toEqual(seriesEvents);
     });
 
     expect(
-      queryClient.getQueryData(['predict', 'series', params.seriesId]),
+      queryClient.getQueryData([
+        'predict',
+        'series',
+        params.seriesId,
+        params.endDateMin,
+        params.endDateMax,
+        params.limit,
+      ]),
     ).toEqual(seriesEvents);
   });
 });

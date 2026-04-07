@@ -14,7 +14,7 @@ const RECURRENCE_MAP: Record<string, number> = {
 };
 
 export function parseRecurrenceToSeconds(recurrence: string): number {
-  return RECURRENCE_MAP[recurrence] ?? 0;
+  return RECURRENCE_MAP[recurrence.toLowerCase()] ?? 0;
 }
 
 export const SERIES_PAST_WINDOW_MS = 30 * 60 * 60 * 1000;

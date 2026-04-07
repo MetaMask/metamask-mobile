@@ -15,6 +15,9 @@ describe('series utilities', () => {
       ['hourly', 3600],
       ['daily', 86400],
       ['weekly', 604800],
+      ['Daily', 86400],
+      ['WEEKLY', 604800],
+      ['Hourly', 3600],
       ['', 0],
       ['unknown', 0],
     ])('converts %s to %d seconds', (input, expected) => {
