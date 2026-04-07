@@ -110,7 +110,7 @@ import {
 } from '../../../util/analytics/loginFailureAnalytics';
 
 const EmptyRecordConstant = {};
-const SEEDLESS_CONTROLLER_PREFIX = /^SeedlessOnboardingController - /;
+const SEEDLESS_CONTROLLER_PREFIX = /^SeedlessOnboardingController\s*-\s*/;
 
 interface OAuthRehydrationRouteParams {
   locked: boolean;
@@ -432,6 +432,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleSeedlessControllerError = useCallback(
     (seedlessError: SeedlessOnboardingControllerError): boolean => {
+      if (
+        seedlessError.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        trackRehydrationFailure({
+          error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+            seedlessError.code,
+          ),
+          error_origin: ErrorOrigin.SeedlessController,
+          seedless_error_type: getSeedlessOnboardingControllerErrorTypeName(
+            seedlessError.code,
+          ),
+        });
+        setError(strings('login.seedless_password_outdated'));
+        return true;
+      }
+
       if (!isComingFromOauthOnboarding) {
         return false;
       }
@@ -445,14 +462,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           seedlessError.code,
         ),
       });
-
-      if (
-        seedlessError.code ===
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-      ) {
-        setError(strings('login.seedless_password_outdated'));
-        return true;
-      }
 
       setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
       captureOrThrowOauthRehydrationError(seedlessError);
@@ -519,6 +528,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         seedlessError instanceof SeedlessOnboardingControllerRecoveryError &&
         handleRecoveryError(seedlessError)
       ) {
+        return;
+      }
+
+      if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+        handleUnknownOauthSeedlessFailure(seedlessError);
         return;
       }
 

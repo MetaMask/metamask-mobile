@@ -573,7 +573,7 @@ describe('OAuthRehydration', () => {
 
     it('sanitizes seedless error message by removing controller prefix', async () => {
       const seedlessError = new Error(
-        'SeedlessOnboardingController - Something went wrong',
+        'SeedlessOnboardingController- Something went wrong',
       );
       mockUnlockWallet.mockRejectedValue(seedlessError);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
@@ -640,6 +640,46 @@ describe('OAuthRehydration', () => {
           tags: expect.objectContaining({ view: 'Re-login' }),
         }),
       );
+    });
+
+    it('shows password outdated message for non-oauth PasswordRecentlyUpdated errors', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+      const seedlessError = new SeedlessOnboardingControllerError(
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement.props.children).toContain(
+          strings('login.seedless_password_outdated'),
+        );
+      });
+      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
+    });
+
+    it('shows unrecognized recovery errors instead of prompting relogin in non-oauth flows', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'Unexpected recovery failure',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement.props.children).toBe('Unexpected recovery failure');
+      });
+      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
     });
 
     it('captures Sentry exception for non-oauth seedless failure when metrics enabled', async () => {
