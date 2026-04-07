@@ -1,7 +1,4 @@
-// TODO: Replace this temporary dependency once Telegram auth flow is finalized.
-// eslint-disable-next-line import-x/no-extraneous-dependencies
-import { openAuthSessionAsync } from 'expo-web-browser';
-import { Alert, Linking } from 'react-native';
+import { AuthRequest, ResponseType } from 'expo-auth-session';
 import {
   AuthConnection,
   AuthRequestParams,
@@ -9,34 +6,14 @@ import {
   HandleFlowParams,
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
-import {
-  BaseHandlerOptions,
-  BaseLoginHandler,
-  getAuthTokens,
-} from '../baseHandler';
+import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import {
-  TelegramAuthServerInitiatePath,
   TelegramAuthServerUrl,
+  TelegramAuthServerInitiatePath,
   TelegramAuthServerVerifyPath,
-  TelegramMintPath,
 } from '../constants';
 import Logger from '../../../../util/Logger';
-
-interface TelegramInitiateResponse {
-  authorization_url: string;
-  state: string;
-}
-
-interface TelegramVerifyResponse {
-  token: string;
-  expires_in: number;
-  profile: {
-    id: string;
-    identifier_id: string;
-    identifier_type: string;
-  };
-}
 
 export interface TelegramLoginHandlerParams extends BaseHandlerOptions {
   appRedirectUri: string;
@@ -56,7 +33,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   get authServerPath() {
-    return 'api/v1/oauth/mint';
+    return TelegramAuthServerVerifyPath.replace(/^\//, '');
   }
 
   constructor(params: TelegramLoginHandlerParams) {
@@ -64,263 +41,127 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     this.redirectUri = params.appRedirectUri;
   }
 
+  /**
+   * Opens the Telegram login flow via a Chrome Custom Tab / Safari View Controller.
+   *
+   * The backend-mediated flow:
+   * 1. Browser opens GET /api/v2/telegram/login/initiate?code_challenge=<...>&app_redirect_uri=<...>
+   * 2. Backend 302s to Telegram, user authenticates
+   * 3. Backend exchanges Telegram code, stores tokens keyed by code_challenge
+   * 4. Backend 302s to app_redirect_uri?code_challenge=<challenge>
+   * 5. App intercepts deep link — promptAsync resolves with success
+   *
+   * @returns LoginHandlerCodeResult with codeVerifier for the verify step
+   */
   async login(): Promise<LoginHandlerCodeResult> {
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
-    const authServerUrl = TelegramAuthServerUrl || this.options.authServerUrl;
 
-    const initiateResponse = await fetch(
-      `${authServerUrl}${TelegramAuthServerInitiatePath}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code_challenge: challenge,
-          app_redirect_uri: this.redirectUri,
-        }),
-      },
-    );
-
-    if (!initiateResponse.ok) {
-      throw new OAuthError(
-        `Telegram initiate failed with status ${initiateResponse.status}: ${await initiateResponse.text()}`,
-        OAuthErrorType.TelegramLoginError,
-      );
-    }
-
-    const initiateData =
-      (await initiateResponse.json()) satisfies TelegramInitiateResponse;
-
-    const authorizationUrl = initiateData.authorization_url;
-    const expectedState = initiateData.state;
-
-    if (!authorizationUrl || !expectedState) {
-      throw new OAuthError(
-        'Telegram initiate response is missing authorization_url or state',
-        OAuthErrorType.TelegramLoginError,
-      );
-    }
-
-    const parsedAuthorizationUrl = new URL(authorizationUrl);
-    this.clientId =
-      parsedAuthorizationUrl.searchParams.get('client_id') || this.clientId;
-
-    Logger.log(
-      '[TelegramLogin] opening auth session:',
-      JSON.stringify({
-        authorizationUrl,
-        redirectUri: this.redirectUri,
-        expectedState,
-      }),
-    );
-
-    const initialUrl = await Linking.getInitialURL();
-    Logger.log('[TelegramLogin] current initial url before auth:', initialUrl);
-    const callbackUrl = await this.loginWithAuthSession(authorizationUrl);
-
-    Logger.log('[TelegramLogin] expected redirect uri:', this.redirectUri);
-    const callbackParams = Object.fromEntries(
-      new URL(callbackUrl).searchParams.entries(),
-    );
-
-    Logger.log('[TelegramLogin] auth session callback url:', callbackUrl);
-    Logger.log(
-      '[TelegramLogin] auth session callback params:',
-      JSON.stringify(callbackParams),
-    );
-    Alert.alert(
-      'Telegram Callback',
-      `URL:\n${callbackUrl}\n\nParams:\n${JSON.stringify(
-        callbackParams,
-        null,
-        2,
-      )}`,
-    );
-
-    const returnedState = callbackParams.state;
-    if (returnedState !== expectedState) {
-      throw new OAuthError(
-        `Telegram OAuth state mismatch. Expected ${expectedState}, received ${returnedState}`,
-        OAuthErrorType.InvalidOauthStateError,
-      );
-    }
-
-    const code = callbackParams.code;
-    if (!code) {
-      throw new OAuthError(
-        'Telegram callback did not include an authorization code. Check the console log payload from the callback.',
-        OAuthErrorType.TelegramLoginError,
-      );
-    }
-
-    return {
-      authConnection: this.authConnection,
-      code,
-      state: returnedState,
+    const authRequest = new AuthRequest({
       clientId: this.clientId,
       redirectUri: this.redirectUri,
-      codeVerifier,
-    };
-  }
-
-  async loginWithAuthSession(authorizationUrl: string): Promise<string> {
-    const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
-      Logger.log('[TelegramLogin] raw incoming app url:', url);
+      scopes: this.#scope,
+      responseType: ResponseType.Code,
+      usePKCE: false,
+      state: this.nonce,
+      extraParams: {
+        code_challenge: challenge,
+        app_redirect_uri: this.redirectUri,
+      },
     });
 
-    const result = await openAuthSessionAsync(
-      authorizationUrl,
-      this.redirectUri,
-      {
-        createTask: true,
-        showInRecents: true,
-      },
-    );
+    const result = await authRequest.promptAsync({
+      authorizationEndpoint: `${TelegramAuthServerUrl || this.options.authServerUrl}${TelegramAuthServerInitiatePath}`,
+    });
 
-    linkingSubscription.remove();
-
-    Logger.log(
-      '[TelegramLogin] raw auth session result:',
-      JSON.stringify(result),
-    );
-    Logger.log('[TelegramLogin] raw auth session result type:', result.type);
+    Logger.log('TelegramLoginHandler: result', result);
 
     if (result.type === 'success') {
-      return result.url;
+      Logger.log('TelegramLoginHandler: success');
+      return {
+        authConnection: this.authConnection,
+        code: challenge,
+        clientId: this.clientId,
+        redirectUri: this.redirectUri,
+        codeVerifier,
+      };
     }
 
     if (result.type === 'cancel') {
+      Logger.log('TelegramLoginHandler: cancel');
       throw new OAuthError(
-        'Telegram login: User cancelled the login process',
+        'TelegramLoginHandler: User cancelled the login process',
         OAuthErrorType.UserCancelled,
       );
     }
 
     if (result.type === 'dismiss') {
+      Logger.log('TelegramLoginHandler: dismiss');
       throw new OAuthError(
-        'Telegram login: User dismissed the login process',
+        'TelegramLoginHandler: User dismissed the login process',
         OAuthErrorType.UserDismissed,
       );
     }
 
+    Logger.log('TelegramLoginHandler: unknown error');
     throw new OAuthError(
-      `Telegram login returned unsupported result type: ${result.type}`,
+      'TelegramLoginHandler: Unknown error',
       OAuthErrorType.TelegramLoginError,
     );
   }
 
+  /**
+   * Exchanges the PKCE code_verifier for auth tokens via the verify endpoint.
+   *
+   * The backend recomputes sha256(code_verifier) == code_challenge, consumes
+   * the stored one-time login record, and returns the full auth response.
+   * This is single-use and expires 5 minutes after the callback redirect.
+   */
   async getAuthTokens(
     params: HandleFlowParams,
     authServerUrl: string,
   ): Promise<AuthResponse> {
-    if (!('code' in params) || !params.state || !params.codeVerifier) {
+    if (!('codeVerifier' in params) || !params.codeVerifier) {
+      Logger.log('TelegramLoginHandler: Missing code_verifier');
+      Logger.log('TelegramLoginHandler: params', params);
       throw new OAuthError(
-        'Telegram login: Invalid params',
+        'TelegramLoginHandler: Missing code_verifier',
         OAuthErrorType.InvalidGetAuthTokenParams,
       );
     }
 
-    const telegramAuthServerUrl =
-      TelegramAuthServerUrl || this.options.authServerUrl;
-    const verifyUrl = `${telegramAuthServerUrl}${TelegramAuthServerVerifyPath}`;
-    const verifyRequestBody = {
-      code: params.code,
-      state: params.state,
-      code_verifier: params.codeVerifier,
-    };
+    const verifyUrl = `${TelegramAuthServerUrl || authServerUrl}${TelegramAuthServerVerifyPath}`;
 
-    Logger.log(
-      '[TelegramLogin] verify request:',
-      JSON.stringify({
-        url: verifyUrl,
-        body: verifyRequestBody,
-      }),
-    );
+    Logger.log('[TelegramLogin] verify request:', verifyUrl);
 
     const verifyResponse = await fetch(verifyUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(verifyRequestBody),
+      body: JSON.stringify({
+        code_verifier: params.codeVerifier,
+      }),
     });
 
     if (!verifyResponse.ok) {
       const errorText = await verifyResponse.text();
-      Logger.log(
-        '[TelegramLogin] verify error:',
-        JSON.stringify({
-          url: verifyUrl,
-          status: verifyResponse.status,
-          body: verifyRequestBody,
-          response: errorText,
-        }),
-      );
+      Logger.log('[TelegramLogin] verify error:', errorText);
       throw new OAuthError(
         `Telegram verify failed with status ${verifyResponse.status}: ${errorText}`,
         OAuthErrorType.AuthServerError,
       );
     }
 
-    const verifyData =
-      (await verifyResponse.json()) satisfies TelegramVerifyResponse;
-
-    Logger.log(
-      '[TelegramLogin] verify success:',
-      JSON.stringify({
-        url: verifyUrl,
-        status: verifyResponse.status,
-      }),
-    );
-
-    if (!verifyData.token) {
-      throw new OAuthError(
-        'Telegram verify response did not include a token',
-        OAuthErrorType.TelegramLoginError,
-      );
-    }
-
-    Logger.log(
-      '[TelegramLogin] mint request:',
-      JSON.stringify({
-        url: `${authServerUrl}/${TelegramMintPath}`,
-      }),
-    );
-
-    try {
-      const mintResponse = await getAuthTokens(
-        {
-          id_token: verifyData.token,
-        },
-        TelegramMintPath,
-        authServerUrl,
-      );
-
-      Logger.log(
-        '[TelegramLogin] mint success:',
-        JSON.stringify({
-          url: `${authServerUrl}/${TelegramMintPath}`,
-        }),
-      );
-
-      return mintResponse;
-    } catch (error) {
-      Logger.log(
-        '[TelegramLogin] mint error:',
-        JSON.stringify({
-          url: `${authServerUrl}/${TelegramMintPath}`,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-      throw error;
-    }
+    const authResponse = (await verifyResponse.json()) as AuthResponse;
+    Logger.log('TelegramLoginHandler: authResponse', authResponse);
+    Logger.log('[TelegramLogin] verify success');
+    return authResponse;
   }
 
   getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
     if (!('code' in params)) {
       throw new OAuthError(
-        'Telegram login: Invalid params',
+        'TelegramLoginHandler: Invalid params',
         OAuthErrorType.InvalidGetAuthTokenParams,
       );
     }
