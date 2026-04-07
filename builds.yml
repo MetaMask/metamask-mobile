@@ -216,6 +216,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
@@ -240,6 +241,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
