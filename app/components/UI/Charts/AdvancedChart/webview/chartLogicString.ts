@@ -3031,8 +3031,9 @@ function fetchOlderBars(pending) {
         return;
       }
 
-      window.ohlcvPagination.nextCursor = result.nextCursor || null;
-      window.ohlcvPagination.hasMore = !!result.hasNext;
+      if (!result || !Array.isArray(result.data)) {
+        throw new Error('OHLCV API response: invalid payload');
+      }
 
       var newBars = [];
       for (var i = 0; i < result.data.length; i++) {
@@ -3046,6 +3047,9 @@ function fetchOlderBars(pending) {
           volume: c.volume,
         });
       }
+
+      window.ohlcvPagination.nextCursor = result.nextCursor || null;
+      window.ohlcvPagination.hasMore = !!result.hasNext;
 
       if (newBars.length > 0) {
         window.ohlcvData = newBars.concat(window.ohlcvData);
