@@ -35,3 +35,12 @@ jobs:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
     secrets: inherit
+
+  slack-notification:
+    name: Slack RC Notification
+    needs: runway-rc
+    if: success()
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+    secrets: inherit

@@ -145,16 +145,15 @@ jobs:
           IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
           ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      - name: Post Slack notification
-        run: |
-          if node ./scripts/slack-rc-notification.mjs; then
-            echo "Slack notification sent successfully"
-          else
-            echo "Slack notification failed, continuing (non-critical)"
-          fi
-        env:
-          SEMVER: ${{ needs.validate-and-check-label.outputs.semver }}
-          IOS_BUILD_NUMBER: ${{ steps.build-meta.outputs.ios_version_code }}
-          ANDROID_BUILD_NUMBER: ${{ steps.build-meta.outputs.android_version_code }}
-          BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+  slack-notification:
+    name: Slack RC Notification
+    needs:
+      - validate-and-check-label
+      - trigger-ios-rc-build
+      - trigger-android-rc-build
+    if: always() && needs.trigger-android-rc-build.result == 'success'
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ needs.validate-and-check-label.outputs.branch-name }}
+    secrets: inherit
