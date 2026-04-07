@@ -52,9 +52,8 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
-  DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -92,7 +91,7 @@ import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { useAuthentication } from '../../../core/Authentication';
+import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -500,11 +499,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setBiometryChoice(false);
@@ -569,14 +564,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
 
       // run syncMarketingOptInAfterUnlock in the background
       syncMarketingOptInAfterUnlock();
-
-      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -636,11 +633,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
-
-      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.

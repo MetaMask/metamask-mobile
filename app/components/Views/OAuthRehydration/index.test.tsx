@@ -211,7 +211,13 @@ describe('OAuthRehydration', () => {
     mockEngine.context.KeyringController.submitPassword.mockResolvedValue(
       undefined,
     );
-    mockUnlockWallet.mockResolvedValue(undefined);
+    mockUnlockWallet.mockImplementation(
+      async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+        if (options.onBeforeNavigate) {
+          await options.onBeforeNavigate();
+        }
+      },
+    );
     mockGetAuthType.mockResolvedValue({
       currentAuthType: 'password',
       availableBiometryType: null,
@@ -236,9 +242,14 @@ describe('OAuthRehydration', () => {
 
   describe('Successful login flow', () => {
     it('navigates to home after successful password login', async () => {
-      mockUnlockWallet.mockImplementationOnce(async () => {
-        mockReplace(Routes.ONBOARDING.HOME_NAV);
-      });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -921,6 +932,23 @@ describe('OAuthRehydration', () => {
     it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
       mockUnlockWallet.mockRejectedValue(
         new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+      );
+      mockTrackOnboarding.mockClear();
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
+        (call) =>
+          call[0]?.properties?.name ===
+          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+      );
+      expect(rehydrationFailedCalls).toHaveLength(0);
+    });
+
+    it('does not track REHYDRATION_PASSWORD_FAILED when Android keychain reports user cancel', async () => {
+      mockUnlockWallet.mockRejectedValue(
+        new Error('code: 10, msg: Fingerprint operation canceled by user'),
       );
       mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);

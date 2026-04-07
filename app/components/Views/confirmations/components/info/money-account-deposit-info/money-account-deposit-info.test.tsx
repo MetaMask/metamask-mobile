@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import {
   MoneyAccountDepositInfo,
   MONEY_ACCOUNT_CURRENCY,
@@ -11,9 +11,20 @@ jest.mock('../../../hooks/ui/useNavbar', () => ({
 }));
 
 jest.mock('../custom-amount-info', () => ({
-  CustomAmountInfo: ({ currency }: { currency: string }) => {
-    const { Text } = jest.requireActual('react-native');
-    return <Text testID="custom-amount-info">{currency}</Text>;
+  CustomAmountInfo: ({
+    currency,
+    children,
+  }: {
+    currency: string;
+    children?: React.ReactNode;
+  }) => {
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View>
+        <Text testID="custom-amount-info">{currency}</Text>
+        {children}
+      </View>
+    );
   },
 }));
 
@@ -22,6 +33,10 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 describe('MoneyAccountDepositInfo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders CustomAmountInfo with usd currency', () => {
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 

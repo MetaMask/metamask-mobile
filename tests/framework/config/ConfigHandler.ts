@@ -5,7 +5,11 @@ import {
   PlaywrightTestConfig,
   ReporterDescription,
 } from '@playwright/test';
-import { WebDriverConfig } from '../types.ts';
+import { WebDriverConfig } from '../types';
+import {
+  DEFAULT_ACTION_TIMEOUT_MS,
+  DEFAULT_IMPLICIT_WAIT_MS,
+} from '../Constants';
 
 const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
 
@@ -37,8 +41,8 @@ export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
     globalSetup: [resolveGlobalSetup()],
     reporter: [...reporterConfig],
     use: {
-      actionTimeout: 20_000,
-      expectTimeout: 20_000,
+      actionTimeout: DEFAULT_ACTION_TIMEOUT_MS,
+      expectTimeout: DEFAULT_IMPLICIT_WAIT_MS,
       ...config.use,
     },
   });
