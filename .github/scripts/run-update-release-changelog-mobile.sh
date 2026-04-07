@@ -49,8 +49,27 @@ if [[ ${#PATCH} -eq 2 ]]; then
   echo "OTA hotfix detected: Runway ${RUNWAY_VERSION} → SemVer ${SEMVER_VERSION}"
 
   # Pass real branch (arg 1) for git ops, valid SemVer (arg 6) for auto-changelog.
-  # Changelog branch (arg 5) uses the SemVer version so auto-changelog can find it on re-runs.
+  # Changelog branch (arg 5) left empty so the tool auto-derives it from the SemVer version.
   "$SCRIPT" "$RELEASE_BRANCH" "$PLATFORM" "$REPO_URL" "$PREV_REF" "" "$SEMVER_VERSION"
+
+  # Fix comparison URLs on the changelog branch.
+  # auto-changelog generates tag refs like "v7.76.0-ota.1" but the actual git tag
+  # is "v7.76.01" (Runway format). Only URL tag refs carry the "v" prefix, so this
+  # sed does not touch version headers (which are bare "7.76.0-ota.1" without "v").
+  CL_BRANCH="release-changelog/${SEMVER_VERSION}"
+  git fetch origin "$CL_BRANCH" 2>/dev/null || true
+  if git rev-parse "origin/${CL_BRANCH}" >/dev/null 2>&1; then
+    git checkout "$CL_BRANCH"
+    if grep -q "v${SEMVER_VERSION}" CHANGELOG.md 2>/dev/null; then
+      sed -i "s|v${SEMVER_VERSION}|v${RUNWAY_VERSION}|g" CHANGELOG.md
+      if ! git diff --quiet CHANGELOG.md; then
+        git add CHANGELOG.md
+        git commit -m "fix: use Runway tag v${RUNWAY_VERSION} in changelog comparison URLs"
+        git push origin "$CL_BRANCH"
+        echo "Fixed changelog comparison URLs: v${SEMVER_VERSION} → v${RUNWAY_VERSION}"
+      fi
+    fi
+  fi
 else
   # Regular release or single-digit hotfix: pass through unchanged
   exec "$SCRIPT" "$RELEASE_BRANCH" "$PLATFORM" "$REPO_URL" "$PREV_REF"
