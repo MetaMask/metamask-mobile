@@ -20,6 +20,8 @@ import {
   type Funding,
   type UpdatePositionTPSLParams,
   type PerpsControllerState,
+  type GetMarketsParams,
+  type MarketInfo,
   WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
@@ -40,6 +42,18 @@ type AddTransactionMessengerResult =
   | undefined;
 
 const PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
+/** Size decimals aligned with typical HyperLiquid main-DEX markets (used by order form). */
+const E2E_MARKET_SZ_DECIMALS: Record<string, number> = {
+  BTC: 3,
+  ETH: 4,
+  SOL: 2,
+};
+
+function parseMockMaxLeverageFormatted(maxLeverage: string): number {
+  const match = /^(\d+)/.exec(maxLeverage.trim());
+  return match ? Number.parseInt(match[1], 10) : 40;
+}
 
 /**
  * E2E Controller Method Overrides
@@ -161,6 +175,29 @@ export class E2EControllerOverrides {
     );
 
     return { result: Promise.resolve(resolvedTxId) };
+  }
+
+  /**
+   * Return MarketInfo for mock markets so usePerpsMarketData finds the asset by symbol
+   * (MarketInfo.name is the universe / ticker, e.g. ETH). Without this, default HyperLiquid
+   * HTTP mocks return empty meta and the order form shows "Invalid asset" before placing a trade.
+   */
+  async getMarkets(params?: GetMarketsParams): Promise<MarketInfo[]> {
+    const mockMarkets = this.mockService.getMockMarkets();
+    const marketInfos: MarketInfo[] = mockMarkets.map((m) => ({
+      name: m.symbol,
+      szDecimals: E2E_MARKET_SZ_DECIMALS[m.symbol] ?? 4,
+      maxLeverage: parseMockMaxLeverageFormatted(m.maxLeverage),
+      marginTableId: 1,
+    }));
+
+    const symbols = params?.symbols;
+    if (symbols?.length) {
+      const wanted = new Set(symbols.map((s) => s.toUpperCase()));
+      return marketInfos.filter((mi) => wanted.has(mi.name.toUpperCase()));
+    }
+
+    return marketInfos;
   }
 
   // Mock one-click trade deposit initialization used by navigateToOrder()
@@ -380,6 +417,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     'cancelOrder',
     'getAccountState',
     'getPositions',
+    'getMarkets',
     'closePosition',
     'updatePositionTPSL',
     'calculateLiquidationPrice',
@@ -441,6 +479,9 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     ).bind(overrides);
     providerRecord.getFunding = (
       overrides.getFunding as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.getMarkets = (
+      overrides.getMarkets as (...args: unknown[]) => unknown
     ).bind(overrides);
     providerRecord.getUserHistory = () => {
       const service = PerpsE2EMockService.getInstance();
