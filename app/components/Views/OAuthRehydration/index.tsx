@@ -102,15 +102,9 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import { analytics } from '../../../util/analytics/analytics';
 import { getSocialAccountType } from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 
 const EmptyRecordConstant = {};
-
-interface OAuthRehydrationRouteParams {
-  locked: boolean;
-  oauthLoginSuccess: boolean;
-  onboardingTraceCtx?: TraceContext;
-  isSeedlessPasswordOutdated?: boolean;
-}
 
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
