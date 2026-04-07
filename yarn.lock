@@ -10718,22 +10718,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/messenger-docs@npm:@metamask-previews/messenger-docs@0.0.0-preview-0866a6f":
-  version: 0.0.0-preview-0866a6f
-  resolution: "@metamask-previews/messenger-docs@npm:0.0.0-preview-0866a6f"
+"@metamask/messenger-cli@npm:@metamask-previews/messenger-cli@0.1.0-preview-b6a517f5e":
+  version: 0.1.0-preview-b6a517f5e
+  resolution: "@metamask-previews/messenger-cli@npm:0.1.0-preview-b6a517f5e"
   dependencies:
     "@docusaurus/core": "npm:^3.9.0"
     "@docusaurus/preset-classic": "npm:^3.9.0"
     "@docusaurus/theme-common": "npm:^3.9.0"
     "@easyops-cn/docusaurus-search-local": "npm:^0.55.0"
     "@mdx-js/react": "npm:^3.0.0"
+    "@metamask/utils": "npm:^11.9.0"
+    execa: "npm:^5.0.0"
     prism-react-renderer: "npm:^2.4.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
-    typescript: "npm:~5.3.3"
+    yargs: "npm:^17.7.2"
+  peerDependencies:
+    eslint: ">=8"
+    typescript: ">=5.0.0"
+  peerDependenciesMeta:
+    eslint:
+      optional: true
   bin:
-    messenger-docs: ./dist/cli.mjs
-  checksum: 10/3215be45c97d91f069f9d5490c08ce18e400f6c1f2a531214e3884a3623b791db363670676ef587fe84b827305466ef4e7061c9f9e1a86849427247e742d233d
+    messenger-action-types: ./dist/cli.mjs
+    messenger-docs: ./dist/docs/cli.mjs
+  checksum: 10/6465f728e349ca1347d5ed464ef67325b80e869eb8c9f7c646d9e7cc24ca3a537f3f2b9050e8455f288f1b8ab0b0caa7b24c82de082d4f5b45e75cd296c4cdc0
   languageName: node
   linkType: hard
 
@@ -39750,7 +39759,7 @@ __metadata:
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^1.1.0"
-    "@metamask/messenger-docs": "npm:@metamask-previews/messenger-docs@0.0.0-preview-0866a6f"
+    "@metamask/messenger-cli": "npm:@metamask-previews/messenger-cli@0.1.0-preview-b6a517f5e"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
@@ -51993,16 +52002,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.3.3":
-  version: 5.3.3
-  resolution: "typescript@npm:5.3.3"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/6e4e6a14a50c222b3d14d4ea2f729e79f972fa536ac1522b91202a9a65af3605c2928c4a790a4a50aa13694d461c479ba92cedaeb1e7b190aadaa4e4b96b8e18
-  languageName: node
-  linkType: hard
-
 "typescript@npm:~5.4.5":
   version: 5.4.5
   resolution: "typescript@npm:5.4.5"
@@ -52020,16 +52019,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/b9b1e73dabac5dc730c041325dbd9c99467c1b0d239f1b74ec3b90d831384af3e2ba973946232df670519147eb51a2c20f6f96163cea2b359f03de1e2091cc4f
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A~5.3.3#optional!builtin<compat/typescript>":
-  version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/c93786fcc9a70718ba1e3819bab56064ead5817004d1b8186f8ca66165f3a2d0100fee91fa64c840dcd45f994ca5d615d8e1f566d39a7470fc1e014dbb4cf15d
   languageName: node
   linkType: hard
 
