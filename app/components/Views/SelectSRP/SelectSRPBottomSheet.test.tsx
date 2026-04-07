@@ -1,8 +1,21 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { SafeAreaProvider, type Metrics } from 'react-native-safe-area-context';
 
 import { SelectSRPBottomSheet } from './SelectSRPBottomSheet';
+import { SelectSRPBottomSheetTestIds } from './SelectSRPBottomSheet.testIds';
+import { goBackIfFocused } from './SelectSRPBottomSheet.utils';
 import { strings } from '../../../../locales/i18n';
+
+const initialMetrics: Metrics = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
+const renderWithProviders = (ui: React.ReactElement) =>
+  render(
+    <SafeAreaProvider initialMetrics={initialMetrics}>{ui}</SafeAreaProvider>,
+  );
 
 const mockGoBack = jest.fn();
 const mockIsFocused = jest.fn();
@@ -29,64 +42,15 @@ jest.mock('./SelectSRP', () => {
   };
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactLib = jest.requireActual('react');
-  const {
-    View: MockView,
-    Text: MockText,
-    TouchableOpacity,
-  } = jest.requireActual('react-native');
-
-  return {
-    BottomSheet: ReactLib.forwardRef(
-      (
-        {
-          children,
-          goBack,
-        }: {
-          children: React.ReactNode;
-          goBack?: () => void;
-        },
-        _ref: React.Ref<unknown>,
-      ) => (
-        <MockView testID="mock-bottom-sheet">
-          <TouchableOpacity
-            testID="bottom-sheet-invoke-go-back"
-            onPress={goBack}
-          >
-            <MockText>invoke sheet goBack</MockText>
-          </TouchableOpacity>
-          {children}
-        </MockView>
-      ),
-    ),
-    BottomSheetHeader: ({
-      children,
-      onBack,
-    }: {
-      children: React.ReactNode;
-      onBack?: () => void;
-    }) => (
-      <MockView testID="mock-bottom-sheet-header">
-        <TouchableOpacity testID="header-back" onPress={onBack}>
-          <MockText>header back</MockText>
-        </TouchableOpacity>
-        <MockText>{children}</MockText>
-      </MockView>
-    ),
-    Box: ({ children }: { children: React.ReactNode }) => (
-      <MockView testID="mock-box">{children}</MockView>
-    ),
-  };
-});
-
 describe('SelectSRPBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the SRP list title and list placeholder', () => {
-    const { getByText, getByTestId } = render(<SelectSRPBottomSheet />);
+    const { getByText, getByTestId } = renderWithProviders(
+      <SelectSRPBottomSheet />,
+    );
 
     expect(
       getByText(strings('secure_your_wallet.srp_list_selection')),
@@ -94,25 +58,51 @@ describe('SelectSRPBottomSheet', () => {
     expect(getByTestId('mock-select-srp')).toBeOnTheScreen();
   });
 
-  it('calls navigation.goBack when goBack runs and the screen is focused', () => {
+  it('calls navigation.goBack when the header back button is pressed and the screen is focused', () => {
     mockIsFocused.mockReturnValue(true);
 
-    const { getByTestId } = render(<SelectSRPBottomSheet />);
+    const { getByTestId } = renderWithProviders(<SelectSRPBottomSheet />);
 
-    fireEvent.press(getByTestId('header-back'));
+    fireEvent.press(
+      getByTestId(SelectSRPBottomSheetTestIds.HEADER_BACK_BUTTON),
+    );
 
     expect(mockIsFocused).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call navigation.goBack when goBack runs but the screen is not focused', () => {
+  it('does not call navigation.goBack when the header back button is pressed and the screen is not focused', () => {
     mockIsFocused.mockReturnValue(false);
 
-    const { getByTestId } = render(<SelectSRPBottomSheet />);
+    const { getByTestId } = renderWithProviders(<SelectSRPBottomSheet />);
 
-    fireEvent.press(getByTestId('bottom-sheet-invoke-go-back'));
+    fireEvent.press(
+      getByTestId(SelectSRPBottomSheetTestIds.HEADER_BACK_BUTTON),
+    );
 
     expect(mockIsFocused).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+});
+
+describe('goBackIfFocused', () => {
+  it('calls goBack when the screen is focused', () => {
+    const goBack = jest.fn();
+    const isFocused = jest.fn().mockReturnValue(true);
+
+    goBackIfFocused({ isFocused, goBack });
+
+    expect(isFocused).toHaveBeenCalled();
+    expect(goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call goBack when the screen is not focused', () => {
+    const goBack = jest.fn();
+    const isFocused = jest.fn().mockReturnValue(false);
+
+    goBackIfFocused({ isFocused, goBack });
+
+    expect(isFocused).toHaveBeenCalled();
+    expect(goBack).not.toHaveBeenCalled();
   });
 });
