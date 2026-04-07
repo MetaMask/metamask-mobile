@@ -45,17 +45,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Android System Images
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "📱 Installing Android system images for AVD..."
-            "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
-            echo "✅ System images installed"
-
       - name: Setup Android Build Environment
         timeout-minutes: 15
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
@@ -63,8 +52,9 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
+          android-api-level: 36
           target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
-          
+
       - name: Restore .metamask folder
         id: restore-metamask
         uses: actions/cache@v4
