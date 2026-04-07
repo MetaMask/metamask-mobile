@@ -34,6 +34,28 @@ jobs:
     permissions:
       pull-requests: read
     steps:
+      - name: Log workflow metadata
+        run: |
+          echo "=== Workflow Metadata ==="
+          echo "Workflow:         ${{ github.workflow }}"
+          echo "Workflow ref:     ${{ github.workflow_ref }}"
+          echo "Workflow SHA:     ${{ github.workflow_sha }}"
+          echo "Run ID:           ${{ github.run_id }}"
+          echo "Run number:       ${{ github.run_number }}"
+          echo "Run attempt:      ${{ github.run_attempt }}"
+          echo "Actor:            ${{ github.actor }}"
+          echo "Triggering actor: ${{ github.triggering_actor }}"
+          echo "Event name:       ${{ github.event_name }}"
+          echo "Ref:              ${{ github.ref }}"
+          echo "Ref name:         ${{ github.ref_name }}"
+          echo "Ref type:         ${{ github.ref_type }}"
+          echo "SHA:              ${{ github.sha }}"
+          echo "Repository:       ${{ github.repository }}"
+          echo "Server URL:       ${{ github.server_url }}"
+          echo "Job:              ${{ github.job }}"
+          echo "Runner OS:        ${{ runner.os }}"
+          echo "========================="
+
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
