@@ -32,15 +32,10 @@ jobs:
 
       - name: Setup iOS Environment
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
+        uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
           setup-simulator: false
-
-      - name: Select Xcode 26.3
-        run: |
-          sudo xcodes select 26.3
-          xcodebuild -version
 
       - name: Install dependencies
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
