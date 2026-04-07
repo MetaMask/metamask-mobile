@@ -80,13 +80,12 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
 
   const onExportMnemonic = useCallback(() => {
     const keyringId = account.options.entropySource;
-    if (!keyringId) {
-      return;
+    if (keyringId) {
+      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+        shouldUpdateNav: true,
+        keyringId,
+      });
     }
-    navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      shouldUpdateNav: true,
-      keyringId,
-    });
   }, [navigate, account.options.entropySource]);
 
   const onExportPrivateKey = useCallback(() => {
