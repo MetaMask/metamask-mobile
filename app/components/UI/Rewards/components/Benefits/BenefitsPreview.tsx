@@ -82,8 +82,8 @@ const BenefitsPreview = () => {
         twClassName={`gap-3`}
         testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
       >
-        {topBenefits.map((benefit, i) => (
-          <BenefitCard key={i} benefit={benefit} now={now} />
+        {topBenefits.map((benefit) => (
+          <BenefitCard key={benefit.id} benefit={benefit} now={now} />
         ))}
       </Box>
     );
