@@ -94,7 +94,6 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
 
@@ -420,7 +419,6 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <CardVerification />
         <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
@@ -511,21 +509,24 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => (
-  <Stack.Navigator
-    initialRouteName={'Main'}
-    mode={'modal'}
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name={'Main'} component={ConnectedMain} />
-    <Stack.Screen
-      name={'ReviewModal'}
-      component={ReviewModal}
-      options={{ animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
+const MainFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      initialRouteName={'Main'}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name={'Main'} component={ConnectedMain} />
+      <Stack.Screen
+        name={'ReviewModal'}
+        component={ReviewModal}
+        options={{ animationEnabled: false, presentation: 'modal' }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default MainFlow;

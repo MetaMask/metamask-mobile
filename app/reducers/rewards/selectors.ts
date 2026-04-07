@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
-import {SubscriptionBenefitDto} from "../../core/Engine/controllers/rewards-controller/types.ts";
+import { SubscriptionBenefitDto } from '../../core/Engine/controllers/rewards-controller/types.ts';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -274,6 +274,15 @@ export const selectOndoCampaignPortfolioById =
   (state: RootState) =>
     subscriptionId && campaignId && state.rewards.ondoCampaignPortfolio
       ? (state.rewards.ondoCampaignPortfolio[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+export const selectOndoCampaignActivityById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignActivity
+      ? (state.rewards.ondoCampaignActivity[
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;

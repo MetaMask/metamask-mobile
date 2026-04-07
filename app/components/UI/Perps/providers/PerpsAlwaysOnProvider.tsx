@@ -3,8 +3,9 @@ import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 import { selectPerpsEnabledFlag } from '../index';
-import Logger from '../../../../util/Logger';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 
 /**
@@ -32,15 +33,46 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!isPerpsEnabled) return;
 
-    PerpsConnectionManager.connect().catch((err) => {
-      Logger.error(ensureError(err, 'PerpsAlwaysOnProvider.connect'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
-        context: { name: 'PerpsAlwaysOnProvider.connect', data: {} },
-      });
-    });
-
+    let isActive = true;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let lastAppState = AppState.currentState;
+
+    const scheduleSilentEnsureConnected = (source: string, delayMs: number) => {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+
+      reconnectTimer = setTimeout(() => {
+        PerpsConnectionManager.resumeFromForeground({
+          source,
+          suppressError: true,
+        }).catch((err) => {
+          DevLogger.log(
+            'PerpsAlwaysOnProvider: silent connection attempt failed',
+            {
+              error: ensureError(err, 'PerpsAlwaysOnProvider.silentConnect')
+                .message,
+              source,
+            },
+          );
+        });
+        reconnectTimer = undefined;
+      }, delayMs);
+    };
+
+    PerpsConnectionManager.resumeFromForeground({
+      source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+      suppressError: true,
+    }).catch((err) => {
+      if (!isActive) return;
+      DevLogger.log('PerpsAlwaysOnProvider: initial always-on connect failed', {
+        error: ensureError(err, 'PerpsAlwaysOnProvider.connect').message,
+      });
+      scheduleSilentEnsureConnected(
+        PERPS_CONNECTION_SOURCE.WALLET_ROOT_RETRY,
+        PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
+    });
 
     const subscription = AppState.addEventListener('change', (nextState) => {
       const prevState = lastAppState;
@@ -57,22 +89,15 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         PerpsConnectionManager.disconnect();
       } else if (nextState === 'active') {
         // Small delay to allow system to stabilize after background
-        reconnectTimer = setTimeout(() => {
-          PerpsConnectionManager.ensureConnected().catch((err) => {
-            Logger.error(ensureError(err, 'PerpsAlwaysOnProvider.reconnect'), {
-              tags: { feature: PERPS_CONSTANTS.FeatureName },
-              context: {
-                name: 'PerpsAlwaysOnProvider.reconnect',
-                data: {},
-              },
-            });
-          });
-          reconnectTimer = undefined;
-        }, PERPS_CONSTANTS.ReconnectionDelayAndroidMs);
+        scheduleSilentEnsureConnected(
+          PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+          PERPS_CONSTANTS.ReconnectionDelayAndroidMs,
+        );
       }
     });
 
     return () => {
+      isActive = false;
       subscription.remove();
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);

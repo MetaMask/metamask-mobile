@@ -2,10 +2,13 @@ import React from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
+} from '@metamask/design-system-react-native';
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
@@ -128,7 +131,7 @@ const ProtectYourWallet = ({
             title={strings('app_settings.seedphrase_backed_up')}
             description={
               hintText ? (
-                <Button
+                <OldButton
                   variant={ButtonVariants.Link}
                   style={styles.viewHint}
                   onPress={toggleHint}
@@ -150,23 +153,25 @@ const ProtectYourWallet = ({
       {!oauthFlow &&
         (!srpBackedup ? (
           <Button
-            label={strings('app_settings.back_up_now')}
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
+            isFullWidth
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={goToBackup}
             style={styles.accessory}
-          />
+          >
+            {strings('app_settings.back_up_now')}
+          </Button>
         ) : (
           <Button
-            label={strings('reveal_credential.seed_phrase_title')}
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
+            isFullWidth
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={onRevealPressed}
             style={styles.accessory}
             testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
-          />
+          >
+            {strings('reveal_credential.seed_phrase_title')}
+          </Button>
         ))}
       {oauthFlow && authConnection && (
         <Banner
@@ -180,14 +185,15 @@ const ProtectYourWallet = ({
       )}
       {oauthFlow && (
         <Button
-          label={strings('app_settings.manage_recovery_method')}
-          width={ButtonWidthTypes.Full}
-          variant={ButtonVariants.Primary}
+          isFullWidth
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onProtectYourWalletPressed}
           style={styles.accessory}
           testID={SecurityPrivacyViewSelectorsIDs.PROTECT_YOUR_WALLET}
-        />
+        >
+          {strings('app_settings.manage_recovery_method')}
+        </Button>
       )}
     </View>
   );

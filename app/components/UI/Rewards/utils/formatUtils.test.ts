@@ -13,6 +13,12 @@ import {
   formatRewardsMusdDepositPayloadDate,
   resolveTemplate,
   validateEmail,
+  formatPercentChange,
+  isPercentChangeNonNegative,
+  formatComputedAt,
+  getChainHex,
+  getAssetReference,
+  shortenAddress,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -1228,6 +1234,121 @@ describe('formatUtils', () => {
       const result = validateEmail(email);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('formatPercentChange', () => {
+    it('formats a positive number as signed percent', () => {
+      expect(formatPercentChange(0.15)).toBe('+15.00%');
+    });
+
+    it('formats a negative number', () => {
+      expect(formatPercentChange(-0.05)).toBe('-5.00%');
+    });
+
+    it('formats zero with plus sign', () => {
+      expect(formatPercentChange(0)).toBe('+0.00%');
+    });
+
+    it('formats a positive string', () => {
+      expect(formatPercentChange('0.0775')).toBe('+7.75%');
+    });
+
+    it('formats a negative string', () => {
+      expect(formatPercentChange('-0.05')).toBe('-5.00%');
+    });
+
+    it('returns empty string for non-numeric string', () => {
+      expect(formatPercentChange('—')).toBe('');
+    });
+  });
+
+  describe('isPercentChangeNonNegative', () => {
+    it('returns true for positive number', () => {
+      expect(isPercentChangeNonNegative(0.15)).toBe(true);
+    });
+
+    it('returns true for zero', () => {
+      expect(isPercentChangeNonNegative(0)).toBe(true);
+    });
+
+    it('returns false for negative number', () => {
+      expect(isPercentChangeNonNegative(-0.05)).toBe(false);
+    });
+
+    it('returns true for positive string', () => {
+      expect(isPercentChangeNonNegative('0.1')).toBe(true);
+    });
+
+    it('returns false for non-numeric string', () => {
+      expect(isPercentChangeNonNegative('—')).toBe(false);
+    });
+  });
+
+  describe('formatComputedAt', () => {
+    it('returns empty string for null', () => {
+      expect(formatComputedAt(null)).toBe('');
+    });
+
+    it('returns empty string for empty string', () => {
+      expect(formatComputedAt('')).toBe('');
+    });
+
+    it('returns HH:MM:SS for a valid ISO timestamp', () => {
+      const result = formatComputedAt('2026-03-28T14:30:45.000Z');
+      expect(result).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+    });
+
+    it('returns empty string for unparseable value', () => {
+      expect(formatComputedAt('not-a-date')).toBe('');
+    });
+  });
+
+  describe('getChainHex', () => {
+    it('extracts hex chain ID from EIP-155 CAIP-19', () => {
+      expect(getChainHex('eip155:1/erc20:0xabc')).toBe('0x1');
+    });
+
+    it('converts decimal chain ID to hex', () => {
+      expect(getChainHex('eip155:59144/erc20:0xdef')).toBe('0xe708');
+    });
+
+    it('returns undefined for non-EIP-155 identifier', () => {
+      expect(getChainHex('solana:mainnet/token:abc')).toBeUndefined();
+    });
+
+    it('returns undefined for invalid CAIP-19', () => {
+      expect(getChainHex('not-a-caip')).toBeUndefined();
+    });
+  });
+
+  describe('getAssetReference', () => {
+    it('extracts asset reference from valid CAIP-19', () => {
+      expect(
+        getAssetReference(
+          'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+        ),
+      ).toBe('0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c');
+    });
+
+    it('returns raw string for invalid CAIP-19', () => {
+      expect(getAssetReference('not-a-caip')).toBe('not-a-caip');
+    });
+  });
+
+  describe('shortenAddress', () => {
+    it('shortens a long address', () => {
+      expect(shortenAddress('0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c')).toBe(
+        '0x14c3...2d4c',
+      );
+    });
+
+    it('returns short strings unchanged', () => {
+      expect(shortenAddress('0x1234')).toBe('0x1234');
+    });
+
+    it('returns strings of length 10 unchanged', () => {
+      expect(shortenAddress('0x12345678')).toBe('0x12345678');
     });
   });
 });

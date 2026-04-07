@@ -195,7 +195,6 @@ exports[`V2OrderProcessing matches snapshot when order is pending 1`] = `
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",

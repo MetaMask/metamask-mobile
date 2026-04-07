@@ -23,6 +23,7 @@ import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
+import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -81,6 +82,7 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../../reducers/fiatOrders';
+import { selectProviderAutoSelected } from '../../../../../selectors/rampsController';
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
@@ -171,7 +173,9 @@ function BuildQuote() {
 
   const {
     userRegion,
+    providers,
     selectedProvider,
+    setSelectedProvider,
     selectedToken,
     paymentMethods,
     getBuyWidgetData,
@@ -184,6 +188,7 @@ function BuildQuote() {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const providerAutoSelected = useSelector(selectProviderAutoSelected);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -208,7 +213,7 @@ function BuildQuote() {
       return false;
     }
 
-    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
+    if (!providerSupportsAsset(selectedProvider, effectiveAssetId)) {
       return true;
     }
 
@@ -257,14 +262,51 @@ function BuildQuote() {
     }, []),
   );
 
-  // Show "Token Not Available" modal when the selected token is unavailable
-  // for the current provider. Debounced to let the query settle — prevents
-  // the modal from flashing when isTokenUnavailable is briefly true due to
-  // stale cached data before the fresh response arrives.
+  // When no provider is selected (e.g. first-time user in a region without
+  // Transak), pick the first provider that supports the selected token.
+  useEffect(() => {
+    if (
+      !isOnBuildQuoteScreen ||
+      selectedProvider ||
+      !effectiveAssetId ||
+      providers.length === 0
+    ) {
+      return;
+    }
+    const supportingProvider = providers.find((p) =>
+      providerSupportsAsset(p, effectiveAssetId),
+    );
+    if (supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [
+    isOnBuildQuoteScreen,
+    selectedProvider,
+    effectiveAssetId,
+    providers,
+    setSelectedProvider,
+  ]);
+
+  // When the selected token is unavailable for the current provider:
+  // - If the provider was auto-selected (soft), silently switch to the best
+  //   provider that supports the token.
+  // - Otherwise, show the "Token Not Available" modal so the user can decide.
   useEffect(() => {
     if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
       lastShownUnavailableKeyRef.current = '';
       return;
+    }
+
+    if (providerAutoSelected && effectiveAssetId) {
+      const supportingProvider = providers.find(
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          providerSupportsAsset(p, effectiveAssetId),
+      );
+      if (supportingProvider) {
+        setSelectedProvider(supportingProvider, { autoSelected: true });
+        return;
+      }
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -289,6 +331,9 @@ function BuildQuote() {
     navigation,
     selectedProvider?.id,
     focusTrigger,
+    providerAutoSelected,
+    providers,
+    setSelectedProvider,
   ]);
 
   const {
@@ -387,7 +432,6 @@ function BuildQuote() {
             redirectUrl: getRampCallbackBaseUrl(),
             paymentMethods: [selectedPaymentMethod.id],
             providers: [selectedProvider.id],
-            forceRefresh: true,
           }
         : null,
     [
@@ -879,6 +923,7 @@ function BuildQuote() {
                     selectedPaymentMethod?.name ||
                     strings('fiat_on_ramp.select_payment_method')
                   }
+                  paymentMethod={selectedPaymentMethod}
                   isLoading={paymentMethodsLoading}
                   onPress={
                     isTokenUnavailable ? undefined : handlePaymentPillPress

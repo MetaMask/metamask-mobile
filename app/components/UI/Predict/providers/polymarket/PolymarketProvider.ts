@@ -82,6 +82,7 @@ import {
   OrderData,
   OrderType,
   PolymarketApiActivity,
+  PolymarketApiEvent,
   PolymarketApiTeam,
   PolymarketPosition,
   SignatureType,
@@ -92,6 +93,7 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchCarouselFromPolymarketApi,
   generateSalt,
   getBalance,
   getContractConfig,
@@ -185,6 +187,27 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   /**
+   * Ensure all sport teams referenced by the given events are loaded into
+   * the cache. No-op when live sports is disabled (empty supportedLeagues).
+   */
+  async #ensureTeamsLoadedForEvents(
+    events: PolymarketApiEvent[],
+    supportedLeagues: PredictSportsLeague[],
+  ): Promise<void> {
+    if (supportedLeagues.length === 0) {
+      return;
+    }
+
+    const neededTeams = extractNeededTeamsFromEvents(events, supportedLeagues);
+
+    await Promise.all(
+      [...neededTeams.entries()].map(([league, abbreviations]) =>
+        TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
+      ),
+    );
+  }
+
+  /**
    * Generate standard error context for Logger.error calls with searchable tags and context.
    * Enables Sentry dashboard filtering by feature and provider.
    * @param method - The method name where the error occurred
@@ -257,15 +280,7 @@ export class PolymarketProvider implements PredictProvider {
         liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
 
       if (isSportsEvent) {
-        const neededTeams = extractNeededTeamsFromEvents(
-          [event],
-          supportedLeagues,
-        );
-        await Promise.all(
-          [...neededTeams.entries()].map(([league, abbreviations]) =>
-            TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
-          ),
-        );
+        await this.#ensureTeamsLoadedForEvents([event], supportedLeagues);
       }
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
@@ -279,9 +294,11 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return isSportsEvent
+      const result = isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
+
+      return result;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
@@ -369,18 +386,7 @@ export class PolymarketProvider implements PredictProvider {
         await fetchEventsFromPolymarketApi(params);
 
       // Step 2: If live sports enabled, extract needed teams and fetch only those
-      if (liveSportsEnabled) {
-        const neededTeams = extractNeededTeamsFromEvents(
-          events,
-          supportedLeagues,
-        );
-
-        await Promise.all(
-          [...neededTeams.entries()].map(([league, abbreviations]) =>
-            TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
-          ),
-        );
-      }
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
 
       // Step 3: Create team lookup and parse events
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
@@ -409,6 +415,39 @@ export class PolymarketProvider implements PredictProvider {
           sortBy: params?.sortBy,
           hasSearchQuery: !!params?.q,
         }),
+      );
+
+      return [];
+    }
+  }
+
+  public async getCarouselMarkets(): Promise<PredictMarket[]> {
+    try {
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+
+      const items = await fetchCarouselFromPolymarketApi();
+      const events = items.map((item) => item.event);
+
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      const parsedMarkets = parsePolymarketEvents(events, {
+        category: 'trending',
+        sortMarketsBy: 'price',
+        teamLookup,
+      }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(parsedMarkets)
+        : parsedMarkets;
+    } catch (error) {
+      DevLogger.log('Error fetching carousel markets:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCarouselMarkets', {}),
       );
 
       return [];
@@ -749,6 +788,64 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   /**
+   * Create an optimistic position from a preview before the order is placed.
+   * Used during the deposit phase of the pay-with-any-token flow so the
+   * position appears immediately while the deposit confirms.
+   *
+   * On order success the provider's own placeOrder() will overwrite this
+   * entry with real amounts (same outcomeTokenId key).
+   */
+  async createOptimisticPositionFromPreview({
+    address,
+    preview,
+  }: {
+    address: string;
+    preview: OrderPreview;
+  }): Promise<void> {
+    const { outcomeTokenId, outcomeId } = preview;
+
+    let existingPosition: PredictPosition | undefined;
+    try {
+      const positions = await this.getPositions({
+        address,
+        outcomeId,
+        limit: 5,
+      });
+      existingPosition = positions.find(
+        (p) => p.outcomeTokenId === outcomeTokenId && !p.claimable,
+      );
+    } catch {
+      // Position lookup failure is non-critical; treat as new position
+    }
+
+    await this.createOrUpdateOptimisticPosition({
+      address,
+      type: existingPosition
+        ? OptimisticUpdateType.UPDATE
+        : OptimisticUpdateType.CREATE,
+      marketId: preview.marketId,
+      outcomeId,
+      outcomeTokenId,
+      spentAmount: preview.maxAmountSpent,
+      receivedAmount: preview.minAmountReceived,
+      existingPosition,
+      preview,
+    });
+  }
+
+  /**
+   * Remove a previously created optimistic position entry.
+   * Used to immediately clean up preview-based optimistic positions
+   * when a deposit or order fails.
+   */
+  clearOptimisticPosition(address: string, outcomeTokenId: string): void {
+    const addressMap = this.#optimisticPositionUpdatesByAddress.get(address);
+    if (addressMap) {
+      addressMap.delete(outcomeTokenId);
+    }
+  }
+
+  /**
    * Check if an API position has been updated to match our expected size
    * Simple comparison: if API size matches expected size, we're done
    */
@@ -937,8 +1034,13 @@ export class PolymarketProvider implements PredictProvider {
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
 
+    const teamLookup = this.#createTeamLookup(
+      this.#getSupportedLeagues().length > 0,
+    );
+
     const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
+      teamLookup,
     });
 
     // Apply optimistic updates (unified for BUY/SELL/CLAIM)

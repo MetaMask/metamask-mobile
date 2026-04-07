@@ -214,7 +214,7 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 53
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 54
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
@@ -259,15 +259,14 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  unit-tests:
-    name: Unit tests (${{ matrix.shard }})
+  # === Unit Test Performance ===
+  # See docs/ci-unit-test-performance.md for full rationale, applied optimizations, and future proposals.
+  prepare-unit-test-deps:
+    name: Prepare unit test dependencies
     runs-on: ubuntu-latest
     if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
     needs:
       - check-skip-merge-queue
-    strategy:
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -283,6 +282,46 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      - name: Cache prepared workspace
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
+          key: unit-test-deps-${{ github.sha }}
+
+  unit-tests:
+    name: Unit tests (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
+    needs:
+      - check-skip-merge-queue
+      - prepare-unit-test-deps
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - name: Restore prepared workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
+          key: unit-test-deps-${{ github.sha }}
+          fail-on-cache-miss: true
+      - name: Restore Jest transform cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/jest_rs
+          key: jest-transform-${{ hashFiles('yarn.lock', 'babel.config.tests.js') }}-${{ matrix.shard }}
+          restore-keys: |
+            jest-transform-${{ hashFiles('yarn.lock', 'babel.config.tests.js') }}-
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
@@ -290,6 +329,7 @@ jobs:
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+          JEST_CACHE_DIRECTORY: /tmp/jest_rs
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -317,23 +357,22 @@ jobs:
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
-    needs: [unit-tests, component-view-tests]
+    needs: [unit-tests, component-view-tests, prepare-unit-test-deps]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      - name: Restore prepared workspace
+        uses: actions/cache/restore@v4
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          path: |
+            node_modules
+            .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
+          key: unit-test-deps-${{ github.sha }}
+          fail-on-cache-miss: true
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -428,6 +467,7 @@ jobs:
     if: github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true'
     needs:
       - check-skip-merge-queue
+      - prepare-unit-test-deps
     strategy:
       matrix:
         shard: [1, 2]
@@ -436,16 +476,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      - name: Restore prepared workspace
+        uses: actions/cache/restore@v4
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          path: |
+            node_modules
+            .yarn
+            app/util/termsOfUse/termsOfUseContent.ts
+          key: unit-test-deps-${{ github.sha }}
+          fail-on-cache-miss: true
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
