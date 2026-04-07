@@ -35,6 +35,7 @@ import type {
 // View params from source files
 import type { TooltipModalRouteParams } from '../../components/Views/TooltipModal/ToolTipModal.types';
 import type { ChoosePasswordRouteParams } from '../../components/Views/ChoosePassword/ChoosePassword.types';
+import type { TraceContext } from '../../util/trace';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
@@ -386,16 +387,14 @@ export interface RootStackParamList extends ParamListBase {
     | {
         previous_screen?: string;
         oauthLoginSuccess?: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onboardingTraceCtx?: any;
+        onboardingTraceCtx?: TraceContext;
       }
     | undefined;
   Rehydrate:
     | {
         previous_screen?: string;
         oauthLoginSuccess?: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onboardingTraceCtx?: any;
+        onboardingTraceCtx?: TraceContext;
         isSeedlessPasswordOutdated?: boolean;
         locked?: boolean;
       }
