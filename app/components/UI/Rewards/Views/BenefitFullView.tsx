@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxBorderRadius,
   BoxAlignItems,
   BoxFlexDirection,
   Button,
@@ -50,7 +51,7 @@ const BenefitFullView = () => {
       .catch();
   }, [benefit, subscriptionId]);
 
-  const handleClaim = () => {
+  const handleClaim = useCallback(() => {
     if (benefit.url) {
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -60,7 +61,7 @@ const BenefitFullView = () => {
         },
       });
     }
-  };
+  }, [benefit, navigation]);
 
   const remainingTime = useMemo(() => {
     if (benefit.actionDate == null) {
@@ -87,7 +88,9 @@ const BenefitFullView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('px-4 gap-6')}
         >
-          <Box twClassName="w-full rounded-lg overflow-hidden">
+          <Box
+            borderRadius={BoxBorderRadius.Lg}
+            twClassName="w-full overflow-hidden">
             <Image
               source={{ uri: benefit.thumbnail }}
               style={tw.style('w-full h-[248px]')}
@@ -105,7 +108,9 @@ const BenefitFullView = () => {
             </Text>
             {remainingTime && (
               <Box
-                twClassName="gap-1 mt-1 mb-2"
+                marginTop={1}
+                marginBottom={2}
+                gap={1}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
               >
@@ -130,7 +135,7 @@ const BenefitFullView = () => {
             </Text>
           </Box>
         </ScrollView>
-        <Box twClassName="px-4 pt-4">
+        <Box paddingTop={4} paddingHorizontal={4}>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

@@ -46,7 +46,7 @@ const BenefitCard = ({ benefit }: Props) => {
       }
       activeOpacity={0.7}
     >
-      <Box twClassName="flex-row items-start gap-4">
+      <Box gap={4} twClassName="flex-row items-start">
         <Box twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
           <Image
             source={{ uri: benefit.thumbnail }}
@@ -73,7 +73,7 @@ const BenefitCard = ({ benefit }: Props) => {
           </Text>
           {remainingTime && (
             <Box
-              twClassName="gap-1"
+              gap={1}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
             >
