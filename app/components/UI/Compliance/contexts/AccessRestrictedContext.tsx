@@ -6,6 +6,7 @@ import React, {
   useMemo,
   ReactNode,
 } from 'react';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -32,6 +33,7 @@ export const AccessRestrictedProvider = ({
   const navigation = useNavigation();
 
   const showAccessRestrictedModal = useCallback(() => {
+    notificationAsync(NotificationFeedbackType.Warning);
     setIsVisible(true);
   }, []);
 

@@ -230,7 +230,7 @@
     "@metamask/bridge-controller": "^70.0.0",
     "@metamask/bridge-status-controller": "^70.0.4",
     "@metamask/chain-agnostic-permission": "^1.3.0",
-    "@metamask/compliance-controller": "^1.0.1",
+    "@metamask/compliance-controller": "2.0.0",
     "@metamask/connectivity-controller": "^0.1.0",
     "@metamask/controller-utils": "^11.18.0",
     "@metamask/core-backend": "^6.2.0",
