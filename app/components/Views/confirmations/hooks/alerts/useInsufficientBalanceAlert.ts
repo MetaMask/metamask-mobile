@@ -15,8 +15,6 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
-import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
-import { useNativeCurrencySymbol } from '../useNativeCurrencySymbol';
 
 const IGNORE_TYPES = [
   TransactionType.perpsWithdraw,
