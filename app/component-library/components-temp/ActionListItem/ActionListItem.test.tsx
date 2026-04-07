@@ -20,6 +20,8 @@ import {
   SAMPLE_ACTIONLISTITEM_PROPS,
 } from './ActionListItem.constants';
 
+const DESCRIPTION_TEXT = 'Test Description';
+
 describe('ActionListItem', () => {
   const mockOnPress = jest.fn();
 
@@ -52,12 +54,12 @@ describe('ActionListItem', () => {
       const { getByText } = render(
         <ActionListItem
           label="Test Label"
-          description="Test Description"
+          description={DESCRIPTION_TEXT}
           onPress={mockOnPress}
         />,
       );
 
-      expect(getByText('Test Description')).toBeOnTheScreen();
+      expect(getByText(DESCRIPTION_TEXT)).toBeOnTheScreen();
     });
 
     it('renders ReactNode label', () => {
@@ -89,12 +91,12 @@ describe('ActionListItem', () => {
     });
 
     it('renders label without description when description is not provided', () => {
-      const { getByText, queryByTestId } = render(
+      const { getByText, queryByText } = render(
         <ActionListItem label="Test Label" onPress={mockOnPress} />,
       );
 
       expect(getByText('Test Label')).toBeOnTheScreen();
-      expect(queryByTestId('description')).toBeNull();
+      expect(queryByText(DESCRIPTION_TEXT)).toBeNull();
     });
 
     it('renders icon when iconName is provided', () => {
@@ -152,6 +154,7 @@ describe('ActionListItem', () => {
           label="Test Label"
           iconName={IconName.Setting}
           startAccessory={testAccessory}
+          iconProps={{ testID: 'icon-from-iconName' }}
           onPress={mockOnPress}
         />,
       );
