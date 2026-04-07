@@ -3574,6 +3574,7 @@
     "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
+      "1h": "Past hour",
       "7d": "Past 7 days",
       "1w": "Past week",
       "1m": "Past month",
@@ -8019,6 +8020,8 @@
       "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
+      "open_position": "Open Position",
+      "swap_ondo_assets": "Swap Ondo Assets",
       "how_it_works": "How it works"
     },
     "ondo_campaign_leaderboard_position": {
@@ -8035,7 +8038,6 @@
       "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
-      "title": "My Positions",
       "total_value": "Total value",
       "portfolio_pnl": "P&L",
       "portfolio_pnl_percent": "P&L (%)",
@@ -8048,10 +8050,11 @@
       "error_loading_description": "There was an error loading your positions. Please try again.",
       "retry": "Retry",
       "loading": "Loading positions...",
-      "empty": "No positions found yet.",
+      "empty": "You don't have any positions",
       "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
       "empty_cta": "Open a position",
-      "position_units": "{{units}} shares"
+      "position_units": "{{units}} shares",
+      "positions_title": "Positions"
     },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
@@ -8066,6 +8069,18 @@
       "no_data": "No leaderboard data available",
       "no_entries_in_tier": "No participants in this tier yet",
       "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
+    },
+    "ondo_campaign_activity": {
+      "title": "All activity",
+      "type_deposit": "Deposit",
+      "type_withdraw": "Withdraw",
+      "type_rebalance": "Rebalance",
+      "type_external_outflow": "Transfer Out",
+      "error_title": "Failed to load activity",
+      "error_description": "Something went wrong while loading the activity. Please try again.",
+      "retry_button": "Retry",
+      "empty_title": "No activity yet",
+      "empty_description": "Your campaign activity will appear here once you have transactions."
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -8090,6 +8105,11 @@
       "error_description": "We couldn't load the campaigns. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
+    },
+    "campaign_status": {
+      "deposit_window": "Deposit Window",
+      "deposit_closes": "Closes {{date}}",
+      "deposit_closed_on": "Closed on {{date}}"
     }
   },
   "time": {
@@ -8331,6 +8351,9 @@
       },
       "defi": "DeFi",
       "nfts": "NFTs",
+      "trending_tokens": "Trending tokens",
+      "trending_perpetuals": "Trending perpetuals",
+      "trending_predictions": "Trending predictions",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",

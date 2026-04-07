@@ -1,71 +1,153 @@
 import React from 'react';
-import { render, userEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import { render } from '@testing-library/react-native';
 import Price from './Price';
-import {
-  TimePeriod,
-  TokenPrice,
-} from '../../../../components/hooks/useTokenHistoricalPrices';
-import PriceChart from '../PriceChart/PriceChart';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import type { TokenI } from '../../Tokens/types';
+import { PriceChartProvider } from '../PriceChart/PriceChart.context';
+import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 
-jest.mock('../PriceChart/PriceChart', () => ({
-  ...jest.requireActual('../PriceChart/PriceChart'),
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => null),
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: () => false,
+    isTokenTradingOpen: () => true,
+  }),
 }));
 
-const mockPrices: TokenPrice[] = [
-  ['1736761237983', 100],
-  ['1736761237986', 105],
-];
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useSelector: jest.fn(),
+  };
+});
 
-const mockProps: {
-  prices: TokenPrice[];
-  priceDiff: number;
-  currentPrice: number;
-  currentCurrency: string;
-  comparePrice: number;
-  isLoading: boolean;
-  timePeriod: TimePeriod;
-} = {
-  prices: mockPrices,
+jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-advanced-chart" />,
+  };
+});
+
+const mockUseOHLCVChart = jest.fn().mockReturnValue({
+  ohlcvData: [
+    { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+    { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+  ],
+  isLoading: false,
+  error: undefined,
+  fetchMoreHistory: jest.fn(),
+  hasMore: false,
+});
+
+jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
+  useOHLCVChart: (...args: unknown[]) => mockUseOHLCVChart(...args),
+}));
+
+jest.mock('../PriceChart/PriceChart', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-legacy-price-chart" />,
+  };
+});
+
+const mockUseSelector = jest.mocked(useSelector);
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<PriceChartProvider>{ui}</PriceChartProvider>);
+}
+
+const mockAsset: TokenI = {
+  address: '0x1234567890123456789012345678901234567890',
+  chainId: '0x1',
+  name: 'Test Token',
+  symbol: 'TST',
+  ticker: 'TST',
+  decimals: 18,
+  image: '',
+  balance: '0',
+  logo: undefined,
+  isETH: false,
+};
+
+const unifiedProps = {
+  asset: mockAsset,
+  prices: [
+    ['1736761237983', 100] as [string, number],
+    ['1736761237986', 105] as [string, number],
+  ],
+  timePeriod: '1d' as const,
   priceDiff: 5,
   currentPrice: 105,
   currentCurrency: 'USD',
   comparePrice: 100,
   isLoading: false,
-  timePeriod: '1d',
 };
 
 describe('Price Component', () => {
-  it('shows loading state when isLoading is true', () => {
-    const { getByTestId } = render(
-      <Price {...{ ...mockProps, isLoading: true }} />,
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenOverviewAdvancedChartEnabled) {
+        return false;
+      }
+      return undefined;
+    });
+  });
+
+  it('shows loading state when isLoading prop is true (advanced)', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenOverviewAdvancedChartEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+    const { getByTestId } = renderWithProviders(
+      <Price {...unifiedProps} isLoading />,
     );
 
     expect(getByTestId('loading-price-diff')).toBeTruthy();
   });
 
-  it('renders price at selected date', async () => {
-    jest.mocked(PriceChart).mockImplementation(({ onChartIndexChange }) => (
-      <Button
-        testID="mock-price-chart"
-        variant={ButtonVariant.Primary}
-        onPress={() => onChartIndexChange(1)}
-      >
-        TEST BUTTON
-      </Button>
-    ));
+  it('does not show header skeletons when only chart is loading (advanced)', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenOverviewAdvancedChartEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [],
+      isLoading: true,
+      error: undefined,
+      fetchMoreHistory: jest.fn(),
+      hasMore: false,
+    });
+    const { queryByTestId } = renderWithProviders(
+      <Price {...unifiedProps} isLoading={false} />,
+    );
 
-    const { getByTestId } = render(<Price {...{ ...mockProps }} />);
+    expect(queryByTestId('loading-price-diff')).toBeNull();
+  });
 
-    // No item selected - assert label
-    expect(getByTestId('price-label')).toHaveTextContent('Today');
+  it('renders the advanced chart when token overview advanced chart flag is enabled', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTokenOverviewAdvancedChartEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+    const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
 
-    // Act - click mock button to change chart index
-    await userEvent.press(getByTestId('mock-price-chart'));
+    expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+  });
 
-    // A date has been selected, show correct mock date
-    expect(getByTestId('price-label')).toHaveTextContent('Jan 13 at 4:40 am');
+  it('renders the legacy chart when token overview advanced chart flag is disabled', () => {
+    const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+
+    expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
   });
 });
