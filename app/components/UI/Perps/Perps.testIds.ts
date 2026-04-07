@@ -677,8 +677,8 @@ export const getPerpsHeroCardViewSelector = {
 // ========================================
 
 export const PerpsGeneralSelectorsIDs = {
-  // TPSL bottom sheet primary action button ("Set" / "Updating")
-  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-bottomsheet',
+  // TPSL screen primary action ("Set" / "Updating"); same id as PerpsTPSLViewSelectorsIDs.SET_BUTTON
+  BOTTOM_SHEET_FOOTER_BUTTON: 'bottomsheetfooter-button',
   // Order success toast dismiss button on PerpsOrderView
   ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
     'perps-order-success-toast-dismiss-button',

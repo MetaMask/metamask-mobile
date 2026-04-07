@@ -261,7 +261,7 @@ class PerpsOrderView {
     });
 
     const setButton = Matchers.getElementByID(
-      PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET,
+      PerpsTPSLViewSelectorsIDs.SET_BUTTON,
     ) as DetoxElement;
     await Gestures.waitAndTap(setButton, {
       elemDescription: 'Confirm TP/SL (Set)',
@@ -308,7 +308,7 @@ class PerpsOrderView {
     });
 
     const setButton = Matchers.getElementByID(
-      PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET,
+      PerpsTPSLViewSelectorsIDs.SET_BUTTON,
     ) as DetoxElement;
     await Gestures.waitAndTap(setButton, {
       elemDescription: 'Confirm TP/SL (Set)',
