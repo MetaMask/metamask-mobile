@@ -27,11 +27,14 @@ import SensitiveText, {
 import AccountNetworkIndicator from '../../UI/AccountNetworkIndicator';
 import { useStyles } from '../../hooks/useStyles';
 import { stylesheet } from './SnapUIAccountSelector.styles';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../selectors/settings';
+import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectBalanceByAccountGroup } from '../../../selectors/assets/balances';
+import { formatWithThreshold } from '../../../util/assets';
 
 export interface SnapUIAccountSelectorElementProps {
-  account: Account;
+  account: Account & { groupId: string };
   ensName?: string;
   privacyMode: boolean;
   avatarType: AvatarAccountType;
@@ -50,14 +53,31 @@ export interface SnapUIAccountSelectorElementProps {
 export const SnapUIAccountSelectorElement: FunctionComponent<
   SnapUIAccountSelectorElementProps
 > = ({ account, ensName, privacyMode, avatarType }) => {
-  const { name, address, assets, scopes } = account;
+  const { name, address, scopes } = account;
 
   const accountName = isDefaultAccountName(name) && ensName ? ensName : name;
   const shortAddress = formatAddress(address, 'short');
 
-  const fiatBalance = assets?.fiatBalance.split('\n')[0] || '';
+  const selectBalanceForGroup = useMemo(
+    () => selectBalanceByAccountGroup(account.groupId),
+    [account.groupId],
+  );
+  const groupBalance = useSelector(selectBalanceForGroup);
+  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
+  const userCurrency = groupBalance?.userCurrency;
+
+  const fiatBalance = useMemo(() => {
+    if (totalBalance == null || !userCurrency) {
+      return undefined;
+    }
+    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
+      style: 'currency',
+      currency: userCurrency.toUpperCase(),
+    });
+  }, [totalBalance, userCurrency]);
 
   const { styles } = useStyles(stylesheet, {});
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -139,10 +159,13 @@ export const SnapUIAccountSelector: FunctionComponent<
   ...props
 }) => {
   const { snapId } = useSnapInterfaceContext();
-  const { accounts: internalAccounts, ensByAccountAddress } = useAccounts();
+  const { accounts: internalAccounts, ensByAccountAddress } = useAccounts({
+    fetchENS: false,
+  });
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const privacyMode = useSelector(selectPrivacyMode);
+  const accountGroups = useSelector(selectAccountGroups);
 
   const accounts = useMemo(() => {
     // Filter out the accounts that are not owned by the snap
@@ -159,8 +182,22 @@ export const SnapUIAccountSelector: FunctionComponent<
       return filteredChainIds.length > 0;
     });
 
-    return filteredAccounts;
-  }, [internalAccounts, chainIds, hideExternalAccounts, snapId]);
+    // Get the name from the account group if it exists, otherwise use the account name
+    // This is necessary because the account name is empty now and the group name is used instead,
+    // but we still want to show the account name if the group name is not available.
+    return filteredAccounts.map((account) => {
+      const group = accountGroups.find(({ accounts: accountGroup }) =>
+        accountGroup.includes(account.id),
+      );
+      const name = group?.metadata.name ?? account.name;
+
+      return {
+        ...account,
+        name,
+        groupId: group?.id ?? '',
+      };
+    });
+  }, [internalAccounts, chainIds, hideExternalAccounts, snapId, accountGroups]);
 
   const options = accounts.map((account) => ({
     key: 'accountId',
