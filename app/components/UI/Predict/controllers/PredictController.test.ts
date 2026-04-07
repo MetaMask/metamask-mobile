@@ -4097,7 +4097,7 @@ describe('PredictController', () => {
         ...overrides,
       }) as any;
 
-    it('does nothing when token is null', () => {
+    it('treats null as balance token and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const existingToken = {
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -4108,7 +4108,22 @@ describe('PredictController', () => {
 
         controller.selectPaymentToken(null);
 
-        expect(controller.state.selectedPaymentToken).toEqual(existingToken);
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('transitions PAY_WITH_ANY_TOKEN to PREVIEW when token is null', () => {
+      withController(({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.selectPaymentToken(null);
+
+        expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
@@ -7538,6 +7553,36 @@ describe('PredictController', () => {
       });
     });
 
+    it('includes predict_token_address in analytics properties when paymentTokenAddress is provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+          paymentTokenAddress: '0xtoken',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              predict_token_address: '0xtoken',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits predict_token_address from analytics properties when not provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('predict_token_address');
+      });
+    });
+
     it('calls analytics.trackEvent for trackMarketDetailsOpened', () => {
       withController(({ controller }) => {
         controller.trackMarketDetailsOpened({
@@ -7713,6 +7758,97 @@ describe('PredictController', () => {
               marketId: 'market-1',
             }),
           );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('fires SUBMITTED event with predict_token_address when placeOrder transitions to DEPOSITING', async () => {
+      await withController(
+        async ({ controller }) => {
+          controller.setSelectedPaymentToken({
+            address: '0xtoken',
+            chainId: '0x89',
+            symbol: 'MATIC',
+          });
+
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            transactionId: 'tx-200',
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+            transactionId: 'tx-200',
+          });
+
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]?.state).toBe(
+            ActiveOrderState.DEPOSITING,
+          );
+
+          expect(analytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                status: 'submitted',
+                predict_token_address: '0xtoken',
+              }),
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not include predict_token_address in SUBMITTED event for balance flow', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          mockPolymarketProvider.placeOrder.mockResolvedValue({
+            success: true,
+            response: {
+              id: 'order-1',
+              spentAmount: '100',
+              receivedAmount: '200',
+            },
+          });
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: { marketId: 'market-1' },
+            preview,
+          });
+
+          const calls = (analytics.trackEvent as jest.Mock).mock.calls;
+          const submittedCall = calls.find(
+            (call: unknown[]) =>
+              (call[0] as { properties: { status: string } }).properties
+                .status === 'submitted',
+          );
+
+          expect(submittedCall).toBeDefined();
+          expect(
+            (submittedCall[0] as { properties: Record<string, unknown> })
+              .properties,
+          ).not.toHaveProperty('predict_token_address');
         },
         {
           mocks: {

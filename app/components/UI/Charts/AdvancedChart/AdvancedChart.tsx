@@ -28,6 +28,7 @@ import {
   type AdvancedChartRef,
   type IndicatorType,
   type OHLCVBar,
+  type OHLCVPaginationConfig,
   type RNToWebViewMessage,
 } from './AdvancedChart.types';
 
@@ -75,8 +76,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ohlcvSeriesKey,
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
-      onRequestMoreHistory,
-      ohlcvHasMoreHistory,
+      ohlcvPagination,
       indicators = [],
       positionLines,
       chartType,
@@ -176,11 +176,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [clearLayoutSettleTimeout],
     );
 
+    const paginationRef = useRef<OHLCVPaginationConfig | undefined>(
+      ohlcvPagination,
+    );
+    paginationRef.current = ohlcvPagination;
+
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
         postMessage({
           type: 'SET_OHLCV_DATA',
-          payload: { data },
+          payload: { data, pagination: paginationRef.current },
         });
       },
       [postMessage],
@@ -301,14 +306,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
           }
 
-          case 'NEED_MORE_HISTORY':
-            if (ohlcvHasMoreHistory === false) {
-              postMessage({ type: 'RESOLVE_DEFERRED_GET_BARS' });
-            } else {
-              onRequestMoreHistory?.(message.payload);
-            }
-            break;
-
           case 'ERROR':
             if (!isChartReady) {
               setWebViewError(message.payload.message);
@@ -336,9 +333,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onCrosshairMove,
         onChartInteracted,
         handleTradingViewOpen,
-        onRequestMoreHistory,
-        ohlcvHasMoreHistory,
-        postMessage,
       ],
     );
 
