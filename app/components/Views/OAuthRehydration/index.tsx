@@ -432,6 +432,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleSeedlessControllerError = useCallback(
     (seedlessError: SeedlessOnboardingControllerError): boolean => {
+      if (!isComingFromOauthOnboarding) {
+        return false;
+      }
+
       trackRehydrationFailure({
         error_type: getRehydrationErrorTypeForSeedlessControllerCode(
           seedlessError.code,
@@ -454,7 +458,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       captureOrThrowOauthRehydrationError(seedlessError);
       return true;
     },
-    [captureOrThrowOauthRehydrationError, trackRehydrationFailure],
+    [
+      captureOrThrowOauthRehydrationError,
+      isComingFromOauthOnboarding,
+      trackRehydrationFailure,
+    ],
   );
 
   const handleNonOauthSeedlessFailure = useCallback(
