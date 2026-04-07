@@ -14,7 +14,6 @@ import Engine from '../../core/Engine';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
 import {
-  checkIsValidTempoTransaction,
   getTempoEvmTransactionOptions,
   getTempoTransactionBatchArgs,
   isTempoChain,
@@ -80,8 +79,6 @@ async function addTempoTransaction(
   } else if (!isEip7702SupportedByAccount) {
     throw new Error('Wallet not supported for Tempo Transactions.');
   }
-
-  checkIsValidTempoTransaction(transaction);
 
   const result = await TransactionController.addTransactionBatch(
     getTempoTransactionBatchArgs({

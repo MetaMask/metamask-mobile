@@ -210,6 +210,7 @@ describe('Transaction Controller Util', () => {
 
   describe('addTransaction when transacton is from Tempo chain', () => {
     beforeEach(() => {
+      (accountSupports7702 as jest.Mock).mockResolvedValue(true);
       jest
         .mocked(
           Engine.context.NetworkController
@@ -223,6 +224,22 @@ describe('Transaction Controller Util', () => {
           nativeCurrency: 'USD',
           rpcEndpoints: [],
         });
+    });
+
+    afterEach(() => {
+      (accountSupports7702 as jest.Mock).mockReset();
+      jest
+        .mocked(
+          Engine.context.NetworkController
+            .getNetworkConfigurationByNetworkClientId,
+        )
+        .mockReset();
+      (
+        Engine.context.TransactionController.addTransactionBatch as jest.Mock
+      ).mockReset();
+      (
+        Engine.context.TransactionController.getTransactions as jest.Mock
+      ).mockReset();
     });
 
     it('calls regular addTransaction with extra params when transaction is NOT type 0x76', async () => {
@@ -290,16 +307,18 @@ describe('Transaction Controller Util', () => {
       });
     });
 
-    it('does not call addTransactionBatch if type 0x76 and checkIsValidTempoTransaction throws', async () => {
-      (checkIsValidTempoTransaction as jest.Mock).mockImplementation(() => {
+    it('does not call addTransactionBatch if type 0x76 and addTransactionBatch throws', async () => {
+      (
+        Engine.context.TransactionController.addTransactionBatch as jest.Mock
+      ).mockImplementationOnce(() => {
         throw new Error('Tempo Transaction: Mock error');
       });
       await expect(
         addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
-      ).rejects.toThrow();
+      ).rejects.toThrow('Tempo Transaction: Mock error');
       expect(
         Engine.context.TransactionController.addTransactionBatch,
-      ).not.toHaveBeenCalled();
+      ).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.TransactionController.getTransactions,
       ).not.toHaveBeenCalled();
