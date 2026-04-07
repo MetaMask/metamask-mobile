@@ -2134,6 +2134,13 @@ describe('Onboarding', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.optIn).toHaveBeenCalled();
+        expect(mockAnalytics.identify).toHaveBeenCalledWith({
+          login_method: 'social',
+          social_provider: 'google',
+        });
+        expect(
+          mockAnalytics.optIn.mock.invocationCallOrder[0],
+        ).toBeLessThan(mockAnalytics.identify.mock.invocationCallOrder[0]);
         expect(
           mockCreateEventBuilder.mock.calls.some(
             (call) =>
