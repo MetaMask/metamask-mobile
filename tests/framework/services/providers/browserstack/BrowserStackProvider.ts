@@ -1,14 +1,26 @@
 import { remote, type Browser } from 'webdriverio';
+// eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports
+const { Local } = require('browserstack-local');
 import { BaseServiceProvider } from '../../common/base/BaseServiceProvider.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { BrowserStackAPI } from './BrowserStackAPI.ts';
 import { BrowserStackConfigBuilder } from './BrowserStackConfigBuilder.ts';
+
+interface BrowserStackLocalTunnel {
+  start(
+    opts: Record<string, string | boolean>,
+    cb: (err?: Error) => void,
+  ): void;
+  stop(cb: (err?: Error) => void): void;
+  isRunning(): boolean;
+}
 
 /**
  * Service provider for BrowserStack cloud testing
  */
 export class BrowserStackProvider extends BaseServiceProvider {
   private api: BrowserStackAPI;
+  private static localTunnel: BrowserStackLocalTunnel | null = null;
 
   constructor(project: ProjectConfig) {
     super(project, 'BrowserStackProvider');
@@ -16,11 +28,76 @@ export class BrowserStackProvider extends BaseServiceProvider {
   }
 
   /**
-   * Global setup - validate BrowserStack configuration
+   * Global setup - validate BrowserStack configuration and start Local tunnel
    */
   async globalSetup(): Promise<void> {
     await super.globalSetup?.();
+
+    if (
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true' &&
+      !BrowserStackProvider.localTunnel
+    ) {
+      await this.startLocalTunnel();
+    }
+
     this.logger.info('BrowserStack global setup complete');
+  }
+
+  /**
+   * Start BrowserStack Local tunnel using the browserstack-local npm package
+   */
+  private async startLocalTunnel(): Promise<void> {
+    const tunnel: BrowserStackLocalTunnel = new Local();
+    const opts: Record<string, string | boolean> = {
+      key: process.env.BROWSERSTACK_ACCESS_KEY ?? '',
+    };
+
+    if (process.env.BROWSERSTACK_LOCAL_IDENTIFIER) {
+      opts.localIdentifier = process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+    }
+
+    this.logger.info('Starting BrowserStack Local tunnel...');
+
+    await new Promise<void>((resolve, reject) => {
+      tunnel.start(opts, (err?: Error) => {
+        if (err) {
+          reject(
+            new Error(
+              `BrowserStack Local tunnel failed to start: ${err.message}`,
+            ),
+          );
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    BrowserStackProvider.localTunnel = tunnel;
+    this.logger.info(
+      `BrowserStack Local tunnel started (isRunning: ${tunnel.isRunning()})`,
+    );
+  }
+
+  /**
+   * Stop the BrowserStack Local tunnel. Called from globalTeardown.
+   */
+  static async stopLocalTunnel(): Promise<void> {
+    const tunnel = BrowserStackProvider.localTunnel;
+    if (!tunnel?.isRunning()) return;
+
+    await new Promise<void>((resolve) => {
+      tunnel.stop((err?: Error) => {
+        if (err) {
+          console.error(
+            'Failed to stop BrowserStack Local tunnel:',
+            err.message,
+          );
+        }
+        resolve();
+      });
+    });
+
+    BrowserStackProvider.localTunnel = null;
   }
 
   /**
@@ -32,18 +109,11 @@ export class BrowserStackProvider extends BaseServiceProvider {
     const configBuilder = new BrowserStackConfigBuilder(this.project);
     const config = configBuilder.build();
 
-    this.logger.info(
-      `Requesting session with capabilities:\n${JSON.stringify(config.capabilities, null, 2)}`,
-    );
-
     const browser = await remote(config);
     this.sessionId = browser.sessionId;
 
     this.logger.info(
       `Driver created for BrowserStack with session: ${this.sessionId}`,
-    );
-    this.logger.info(
-      `Session capabilities returned:\n${JSON.stringify(browser.capabilities, null, 2)}`,
     );
     return browser;
   }

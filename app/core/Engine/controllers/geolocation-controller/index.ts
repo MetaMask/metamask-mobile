@@ -20,7 +20,14 @@ export const geolocationControllerInit: ControllerInitFunction<
 > = ({ controllerMessenger, persistedState }) => {
   const geolocationControllerState =
     persistedState.GeolocationController ??
-    getDefaultGeolocationControllerState();
+    (process.env.IS_TEST_BUILD === 'true'
+      ? {
+          location: 'ES',
+          status: 'complete' as const,
+          lastFetchedAt: Date.now(),
+          error: null,
+        }
+      : getDefaultGeolocationControllerState());
 
   const controller = new GeolocationController({
     messenger: controllerMessenger,

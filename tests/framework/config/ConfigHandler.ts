@@ -12,11 +12,13 @@ import {
 } from '../Constants';
 
 const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
+const resolveGlobalTeardown = () => path.join(__dirname, 'global.teardown.ts');
 
 const isCI = process.env.CI === 'true';
 
 const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   globalSetup: resolveGlobalSetup(),
+  globalTeardown: resolveGlobalTeardown(),
   testDir: './tests',
   // This is turned off so that a persistent device fixture can be
   // used across tests in a file where they run sequentially
@@ -39,6 +41,7 @@ export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
     ...defaultConfig,
     ...config,
     globalSetup: [resolveGlobalSetup()],
+    globalTeardown: resolveGlobalTeardown(),
     reporter: [...reporterConfig],
     use: {
       actionTimeout: DEFAULT_ACTION_TIMEOUT_MS,

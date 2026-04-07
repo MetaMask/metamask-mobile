@@ -25,8 +25,7 @@ export default defineConfig({
     {
       // Browserstack does not support appium 3 just yet.
       name: 'browserstack-android',
-      testMatch:
-        'tests/performance/onboarding/launch-times/cold-start-after-wallet-import.spec.ts',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -41,7 +40,7 @@ export default defineConfig({
         buildPath: 'bs://5364725fb11933b9b5da1ad0baf9ccaf782027a8', // Path to Browserstack url
         testContext: {
           testType: 'performance-test',
-          srpProfile: SrpProfile.ONBOARDING,
+          srpProfile: SrpProfile.PERFORMANCE,
         },
       },
     },

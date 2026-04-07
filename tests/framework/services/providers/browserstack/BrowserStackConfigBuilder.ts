@@ -1,6 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import type { BrowserStackConfig } from '../../../types';
+import { Platform, type BrowserStackConfig } from '../../../types';
 import type { ProjectConfig } from '../../common/types';
 import { createLogger, LogLevel } from '../../../logger';
 
@@ -98,12 +98,8 @@ export class BrowserStackConfigBuilder {
           appProfiling: true,
           selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
-          geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
+          // geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
           enableCameraImageInjection: device.enableCameraImageInjection,
-          localIdentifier: 'my-test',
-          // ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-          //   ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
-          //   : {}),
           ...(process.env.BROWSERSTACK_RN_PLAYGROUND_URL
             ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
             : {}),
@@ -112,7 +108,8 @@ export class BrowserStackConfigBuilder {
         // Appium capabilities
         'appium:deviceName': device.name,
         'appium:platformVersion': device.osVersion,
-        'appium:automationName': 'UiAutomator2',
+        'appium:automationName':
+          platformName === Platform.ANDROID ? 'UiAutomator2' : 'XCUITest',
         'appium:app': appBsUrl,
         ...(platformName === 'android'
           ? {

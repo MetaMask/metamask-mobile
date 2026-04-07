@@ -608,6 +608,7 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base64-js": "^1.5.1",
+    "browserstack-local": "^1.5.12",
     "chalk": "^4.1.2",
     "chromedriver": "^123.0.1",
     "depcheck": "^1.4.7",
