@@ -977,6 +977,18 @@ export class PredictController extends BaseController<
         );
       }
 
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUBMITTED,
+        amountUsd: params.preview?.maxAmountSpent,
+        analyticsProperties: params.analyticsProperties,
+        sharePrice: params.preview?.sharePrice,
+        orderType: params.preview.orderType,
+        paymentTokenAddress:
+          params.preview.side === Side.BUY
+            ? this.state.selectedPaymentToken?.address
+            : undefined,
+      });
+
       this.messenger.publish('PredictController:transactionStatusChanged', {
         type: 'order',
         status: 'depositing',

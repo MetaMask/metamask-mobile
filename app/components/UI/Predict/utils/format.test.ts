@@ -2071,6 +2071,13 @@ describe('format utils', () => {
         expect(result).toBe('€0.0₅614');
       });
 
+      it('caps digits after the subscript when maxDigitsAfterSubscript is set', () => {
+        const result = formatPriceWithSubscriptNotation(0.00003415, 'USD', {
+          maxDigitsAfterSubscript: 2,
+        });
+        expect(result).toBe('$0.0₄34');
+      });
+
       it('formats subscript value with GBP (not in symbol map, uses suffix)', () => {
         // Arrange & Act
         const result = formatPriceWithSubscriptNotation(0.00001, 'GBP');
