@@ -828,7 +828,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
-              hasBalance={balance != null && Number(balance) > 0}
+              hasBalance={Boolean(balance) && balance !== '0'}
               isBuyable={isBuyable}
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
