@@ -282,18 +282,16 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      - name: Archive prepared workspace
+        run: tar cf /tmp/unit-test-deps.tar node_modules .yarn app/util/termsOfUse/termsOfUseContent.ts
       - name: Upload prepared workspace
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-deps
-          path: |
-            node_modules
-            .yarn
-            app/util/termsOfUse/termsOfUseContent.ts
+          path: /tmp/unit-test-deps.tar
           retention-days: 1
-          compression-level: 1
+          compression-level: 0
           if-no-files-found: error
-          include-hidden-files: true
           overwrite: true
 
   unit-tests:
@@ -315,7 +313,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-deps
-          path: .
+          path: /tmp
+      - name: Extract prepared workspace
+        run: tar xf /tmp/unit-test-deps.tar
       - name: Restore Jest transform cache
         uses: actions/cache@v4
         with:
@@ -369,7 +369,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-deps
-          path: .
+          path: /tmp
+      - name: Extract prepared workspace
+        run: tar xf /tmp/unit-test-deps.tar
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -477,7 +479,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-deps
-          path: .
+          path: /tmp
+      - name: Extract prepared workspace
+        run: tar xf /tmp/unit-test-deps.tar
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
