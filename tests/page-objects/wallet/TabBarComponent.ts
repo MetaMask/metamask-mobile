@@ -30,6 +30,22 @@ class TabBarComponent {
     });
   }
 
+  get tabBarBrowserButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TabBarSelectorIDs.BROWSER),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(TabBarSelectorIDs.BROWSER, {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            TabBarSelectorIDs.BROWSER,
+          ),
+      },
+    });
+  }
+
   get tabBarWalletButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByID(TabBarSelectorIDs.WALLET),
@@ -148,6 +164,12 @@ class TabBarComponent {
         description: 'Tap Wallet Button with Validation',
       },
     );
+  }
+
+  async tapBrowser(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.tabBarBrowserButton, {
+      description: 'Tab Bar - Browser Button',
+    });
   }
 
   async tapActions(): Promise<void> {

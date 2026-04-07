@@ -39,3 +39,32 @@ buildscript {
     }
 	}
 }
+
+// Braze Android SDK 41.x transitively pulls Kotlin 2.1-era stdlib and kotlinx-serialization
+// artifacts whose metadata the project's Kotlin 1.9.x compiler cannot read.
+// We force compatible versions on:
+//   - Braze modules  : so the Braze bridge itself compiles against 1.9 metadata.
+//   - :app           : because Braze declares its SDK dependency with `api` scope, Gradle's
+//                       "highest version wins" strategy promotes kotlin-stdlib 2.1 into :app's
+//                       compile classpath, breaking every .kt file in the app module.
+// Other subprojects (react-native, expo, firebase, etc.) are left untouched.
+def brazeKotlinStdlibVersion = "1.9.25"
+def brazeKotlinxSerializationVersion = "1.6.3"
+subprojects { subproject ->
+	subproject.afterEvaluate {
+		def name = subproject.name.toLowerCase()
+		if (name != 'app' && !name.contains('braze')) return
+
+		subproject.configurations.configureEach { configuration ->
+			configuration.resolutionStrategy {
+				force "org.jetbrains.kotlin:kotlin-stdlib:${brazeKotlinStdlibVersion}"
+				force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${brazeKotlinStdlibVersion}"
+				force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${brazeKotlinStdlibVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-serialization-core:${brazeKotlinxSerializationVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${brazeKotlinxSerializationVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-serialization-json:${brazeKotlinxSerializationVersion}"
+				force "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${brazeKotlinxSerializationVersion}"
+			}
+		}
+	}
+}

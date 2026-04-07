@@ -1,7 +1,6 @@
-import TestHelpers from '../../helpers';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
-import Assertions from '../../framework/Assertions';
+import { Assertions } from '../../framework';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
@@ -58,6 +57,7 @@ export async function checkSwapActivity(
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.title);
+
   await Assertions.expectElementToBeVisible(
     ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
   );
@@ -76,7 +76,4 @@ export async function checkSwapActivity(
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
     );
   }
-
-  // Wait for tx toast to clear
-  await TestHelpers.delay(5000);
 }

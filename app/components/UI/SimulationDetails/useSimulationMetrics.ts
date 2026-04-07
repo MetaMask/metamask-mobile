@@ -5,7 +5,7 @@ import {
   SimulationErrorCode,
 } from '@metamask/transaction-controller';
 
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
 import {
@@ -117,7 +117,7 @@ function useIncompleteAssetEvent(
   balanceChanges: BalanceChange[],
   displayNamesByAddress: { [address: string]: UseDisplayNameResponse },
 ) {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [processedAssets, setProcessedAssets] = useState<string[]>([]);
 
   for (const change of balanceChanges) {

@@ -20,6 +20,12 @@
       "update": "Update"
     }
   },
+  "access_restricted": {
+    "title": "Access restricted",
+    "description_line1": "This wallet address has been flagged during compliance screening. As a result, some MetaMask services are unavailable.",
+    "description_line2": "If you believe this is an error, contact support to request a review.",
+    "contact_support": "Contact support"
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
@@ -6144,6 +6150,57 @@
     },
     "your_stablecoins": "Your stablecoins"
   },
+  "money": {
+    "title": "Money",
+    "apy_label": "{{percentage}}% APY",
+    "action": {
+      "add": "Add",
+      "transfer": "Transfer",
+      "card": "Card"
+    },
+    "your_position": {
+      "title": "Your position",
+      "current_rate": "Current rate",
+      "lifetime_earnings": "Lifetime earnings",
+      "available_balance": "Avail. balance"
+    },
+    "how_it_works": {
+      "title": "How it works",
+      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
+      "musd_name": "MetaMask USD",
+      "musd_symbol": "mUSD",
+      "add": "Add"
+    },
+    "potential_earnings": {
+      "title": "Potential earnings",
+      "amount": "+$26,800",
+      "description": "See how your money can grow over time by converting your crypto to mUSD.",
+      "convert": "Convert",
+      "no_fee": "No fee",
+      "see_earnings": "See potential earnings"
+    },
+    "metamask_card": {
+      "title": "MetaMask Card",
+      "subtitle": "Spend your money anywhere.",
+      "virtual_card": "Virtual card",
+      "metal_card": "Metal card",
+      "cashback": "{{percentage}}% cashback",
+      "get_now": "Get now"
+    },
+    "why_metamask_money": {
+      "title": "Why MetaMask Money?",
+      "benefit_auto_earn": "Auto-earn ",
+      "benefit_dollar_backed": "Your money is held in mUSD, a 1:1 dollar-backed stablecoin",
+      "benefit_liquidity": "Full liquidity with no lockups, so you can trade or withdraw anytime",
+      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
+      "benefit_spend_cashback": "1-3% cashback",
+      "benefit_global": "Send and receive money globally with no middle man",
+      "learn_more": "Learn more"
+    },
+    "footer": {
+      "add_money": "Add money"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
@@ -6441,7 +6498,8 @@
       "approve": "Approve request",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add Prediction funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "Withdraw",
+      "perps_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -6567,6 +6625,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available balance: ",
+    "available_perps_balance": "Available Perps balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
@@ -7272,7 +7331,8 @@
         "close_spending_limit": {
           "title": "You're close to your spending limit",
           "description": "Update to avoid declines",
-          "confirm_button_label": "Set new limit"
+          "confirm_button_label": "Set new limit",
+          "dismiss_button_label": "Dismiss"
         },
         "need_delegation": {
           "title": "You need to enable your card",
@@ -7372,12 +7432,13 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea"
+      "on_linea": "on Linea",
+      "account_label": "Account",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -7414,9 +7475,7 @@
       "limited": "Limited",
       "not_enabled": "Not enabled",
       "update_success": "Spend priority updated successfully",
-      "update_error": "Failed to update spend priority",
-      "solana_not_supported_button_title": "Others tokens on Solana",
-      "solana_not_supported_button_description": "Enable on card.metamask.io"
+      "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
       "title": "Log in to your card account",
@@ -7513,6 +7572,11 @@
     "optin_error": {
       "title": "Opt-in failed",
       "description": "Check your connection and try again."
+    },
+    "version_guard": {
+      "title": "Update required",
+      "description": "A newer version of MetaMask is required to use Rewards. Please update to continue.",
+      "update_button": "Update MetaMask"
     },
     "season_error": {
       "error_fetching_title": "Season couldn’t be loaded",
@@ -7816,6 +7880,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -7824,6 +7889,7 @@
       "daily_bonus": "Daily claimable bonus",
       "annualized_bonus": "Annualized bonus",
       "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "disclaimer_brief": "The bonus is an estimate and may change.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
@@ -7862,7 +7928,8 @@
     "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
-      "pill_up_next": "Up next",
+      "ended_date": "Ended {{date}}",
+      "pill_up_next": "Coming soon",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
@@ -7872,7 +7939,9 @@
       "opt_in_sheet_title": "Join the campaign",
       "opt_in_sheet_description_pre_link": "By clicking 'Opt in' you agree to the MetaMask Rewards",
       "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
-      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically."
+      "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
+      "geo_restriction_banner_title": "Not available in your region",
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -7889,10 +7958,65 @@
       "swap": "Swap",
       "how_it_works": "How it works"
     },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Your Position",
+      "rank": "My Rank",
+      "tier": "My Tier",
+      "rate_of_return": "Return",
+      "total_deposited": "Total Deposited",
+      "current_value": "Current Value",
+      "not_found": "Not on the leaderboard yet. Please check back later.",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load your position",
+      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
+      "retry": "Retry"
+    },
+    "ondo_campaign_portfolio": {
+      "title": "Positions",
+      "total_value": "Total value",
+      "portfolio_pnl": "P&L",
+      "portfolio_pnl_percent": "P&L (%)",
+      "summary_cost_basis": "Cost basis",
+      "summary_net_deposit": "Net deposit",
+      "positions_heading": "Positions",
+      "position_current_value": "Value",
+      "position_unrealized_pnl": "P&L",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load positions.",
+      "error_loading_description": "There was an error loading your positions. Please try again.",
+      "retry": "Retry",
+      "loading": "Loading positions...",
+      "empty": "No positions found yet.",
+      "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
+      "empty_cta": "Open a position",
+      "position_units": "{{units}} shares"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Leaderboard",
+      "your_position": "Your position",
+      "of_total": "of {{total}} participants",
+      "total_participants": "{{count}} participants",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load leaderboard",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "error_loading_position": "Failed to load your position",
+      "retry": "Retry",
+      "no_data": "No leaderboard data available",
+      "no_entries_in_tier": "No participants in this tier yet",
+      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
+    },
     "campaigns_preview": {
       "title": "Campaigns",
       "coming_soon": "Coming soon",
       "notify_me": "Notify me"
+    },
+    "earn_rewards": {
+      "title": "Earn rewards",
+      "musd_title": "Up to 3% bonus on stables",
+      "musd_subtitle": "Calculate your mUSD bonus",
+      "card_title": "Up to 3% cash back",
+      "card_subtitle": "Get your MetaMask Card now",
+      "card_subtitle_cardholder": "Access your MetaMask Card benefits"
     },
     "campaigns_view": {
       "title": "Campaigns",
@@ -8014,6 +8138,7 @@
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
+    "view_all": "View all",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -8131,6 +8256,15 @@
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
+      "whats_happening": "What's happening",
+      "whats_happening_categories": {
+        "geopolitical": "Geopolitical",
+        "macro": "Macro",
+        "regulatory": "Regulatory",
+        "technical": "Technical",
+        "social": "Social",
+        "other": "Other"
+      },
       "defi": "DeFi",
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",

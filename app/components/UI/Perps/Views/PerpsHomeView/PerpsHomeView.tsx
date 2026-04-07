@@ -34,6 +34,7 @@ import {
   usePerpsHomeSectionTracking,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
+import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
@@ -85,6 +86,16 @@ const PerpsHomeView = () => {
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  // Ensure Arbitrum network exists when user lands on the main perps screen (not on button click)
+  useFocusEffect(
+    useCallback(() => {
+      ensureArbitrumNetworkExists().catch(() => {
+        // Error already logged in usePerpsNetworkManagement
+      });
+    }, [ensureArbitrumNetworkExists]),
+  );
 
   // Bottom sheet state and refs
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);

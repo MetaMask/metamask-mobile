@@ -7,7 +7,6 @@ import Engine from '../../../Engine';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
-  selectCardGeoLocation,
   setAlwaysShowCardButton,
 } from '../../../redux/slices/card';
 import {
@@ -16,6 +15,7 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 /**
  * Card home deeplink handler
@@ -49,7 +49,7 @@ export const handleCardHome = () => {
     const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsAuthenticatedCard(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
-    const cardGeoLocation = selectCardGeoLocation(state);
+    const geolocationLocation = selectGeolocationLocation(state);
     const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
     const displayCardButtonFeatureFlag =
       selectDisplayCardButtonFeatureFlag(state);
@@ -58,7 +58,7 @@ export const handleCardHome = () => {
     ) as Record<string, boolean>;
     const shouldCardBeEnabled =
       isCardExperimentalSwitchEnabled ||
-      (cardSupportedCountries?.[cardGeoLocation as string] === true &&
+      (cardSupportedCountries?.[geolocationLocation as string] === true &&
         displayCardButtonFeatureFlag);
 
     if (!shouldCardBeEnabled) {

@@ -197,6 +197,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
+import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
 /**
  * Flattened param list for React Navigation compatibility.
@@ -296,6 +297,12 @@ export interface RootStackParamList extends ParamListBase {
   TrendingFeed: undefined;
   SitesFullView: undefined;
   ExploreSearch: undefined;
+  ExploreSectionResultsFullView: {
+    sectionId: SectionId;
+    title: string;
+    searchQuery: string;
+    data: unknown[];
+  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   RewardsOnboarding1: undefined;

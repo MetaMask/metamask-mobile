@@ -22,12 +22,12 @@ import {
 } from '../../../reducers/collectibles';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import NftGridItem from './NftGridItem';
-import ActionSheet from '@metamask/react-native-actionsheet';
-import NftGridItemActionSheet from './NftGridItemActionSheet';
+import NftGridItemBottomSheet from './NftGridItemBottomSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import {
@@ -90,7 +90,7 @@ const NftGridContent = ({
 const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
   ({ isFullView = false }, ref) => {
     const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
     const [longPressedCollectible, setLongPressedCollectible] =
       useState<Nft | null>(null);
@@ -105,8 +105,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
     const isHomepageRedesignV1Enabled = useSelector(
       selectHomepageRedesignV1Enabled,
     );
-
-    const actionSheetRef = useRef<typeof ActionSheet>();
 
     const nftSource = isFullView ? 'mobile-nft-list-page' : 'mobile-nft-list';
 
@@ -229,17 +227,13 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       }, [isFullView, detectNfts, abortDetection]),
     );
 
-    useEffect(() => {
-      if (longPressedCollectible) {
-        actionSheetRef.current.show();
-      }
-    }, [longPressedCollectible]);
-
     const goToAddCollectible = useCallback(() => {
       setIsAddNFTEnabled(false);
       navigation.navigate('AddAsset', { assetType: 'collectible' });
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
+          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
+          .build(),
       );
       setIsAddNFTEnabled(true);
     }, [navigation, trackEvent, createEventBuilder]);
@@ -340,9 +334,10 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
             </Button>
           </Box>
         )}
-        <NftGridItemActionSheet
-          actionSheetRef={actionSheetRef}
-          longPressedCollectible={longPressedCollectible}
+        <NftGridItemBottomSheet
+          isVisible={longPressedCollectible !== null}
+          onClose={() => setLongPressedCollectible(null)}
+          nft={longPressedCollectible}
         />
       </>
     );

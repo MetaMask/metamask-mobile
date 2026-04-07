@@ -2670,6 +2670,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMusdTokenRegistrationChainIds: {
+    name: 'earnMusdTokenRegistrationChainIds',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      chainIds: ['0x1', '0xe708'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnPooledStakingEnabled: {
     name: 'earnPooledStakingEnabled',
     type: FeatureFlagType.Remote,
@@ -2889,6 +2899,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'mobileUxNetworkManagement',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyHomeScreenEnabled: {
+    name: 'moneyHomeScreenEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
@@ -3538,17 +3559,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenListItemV2AbtestVersioned: {
-    name: 'tokenListItemV2AbtestVersioned',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.67.0',
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 

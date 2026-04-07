@@ -50,18 +50,21 @@ export WATCHER_PORT="${WATCHER_PORT:-8081}"
 SD="scripts/perps/agentic"
 
 # ── Args ──────────────────────────────────────────────────────────────
-RECIPE="" DRY=false SKIP_MANUAL=false SINGLE=""
+RECIPE="" DRY=false SKIP_MANUAL=false SINGLE="" OVERRIDE_ACCOUNT="" OVERRIDE_TESTNET=false HUD_ENABLED=true
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)     DRY=true; shift ;;
     --skip-manual) SKIP_MANUAL=true; shift ;;
+    --no-hud)      HUD_ENABLED=false; shift ;;
     --step)        SINGLE="$2"; shift 2 ;;
+    --account)     OVERRIDE_ACCOUNT="$2"; shift 2 ;;
+    --testnet)     OVERRIDE_TESTNET=true; shift ;;
     -*)            echo "Unknown flag: $1"; exit 1 ;;
     *)             RECIPE="$1"; shift ;;
   esac
 done
 
-[ -z "$RECIPE" ] && { echo "Usage: validate-recipe.sh <recipe-folder-or-json> [--dry-run] [--step <id>] [--skip-manual]"; exit 1; }
+[ -z "$RECIPE" ] && { echo "Usage: validate-recipe.sh <recipe-folder-or-json> [--dry-run] [--step <id>] [--skip-manual] [--account <addr>] [--testnet]"; exit 1; }
 
 # Resolve folder → recipe.json; track RECIPE_DIR for artifact output
 RECIPE_DIR=""
@@ -85,6 +88,27 @@ jfile() { node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')
 # Read a field from a JSON string passed as arg
 jstr()  { node -p "JSON.parse(process.argv[1])[process.argv[2]]||''" "$1" "$2"; }
 
+# ── Apply {{param|default}} substitution on the recipe itself ─────────
+# Pass 1: apply defaults declared in the "inputs" block (single source of truth).
+# Pass 2: fallback — replace remaining {{key|default}} with inline defaults (backward compat).
+_RECIPE_SUBST=$(mktemp /tmp/perps-recipe-XXXXXXXXXXXX).json
+_FLOW_TEMPS=()
+trap 'rm -f "$_RECIPE_SUBST" "${_FLOW_TEMPS[@]}"' EXIT
+node -e "
+  var fs=require('fs');
+  var src=fs.readFileSync(process.argv[1],'utf8');
+  var doc; try{doc=JSON.parse(src);}catch(e){doc={};}
+  var inputs=doc.inputs||{};
+  for(var k in inputs){
+    if(inputs[k].default!=null){
+      src=src.replace(new RegExp('\\\\{\\\\{'+k+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(inputs[k].default));
+    }
+  }
+  src=src.replace(/\{\{[^|}]+\|([^}]+)\}\}/g,'\$1');
+  fs.writeFileSync(process.argv[2],src);
+" "$RECIPE" "$_RECIPE_SUBST"
+RECIPE="$_RECIPE_SUBST"
+
 # ── Recipe metadata ───────────────────────────────────────────────────
 TITLE=$(node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).title||'Untitled'" "$RECIPE")
 PR=$(node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).pr||'?'" "$RECIPE")
@@ -94,6 +118,74 @@ echo "Running recipe: $TITLE (PR #$PR)"
 echo "Pre-conditions: $PRECOND"
 echo ""
 
+# ── Initial conditions ────────────────────────────────────────────────
+IC_ACCOUNT=$(node -p "const c=(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).initial_conditions||{});c.account||''" "$RECIPE")
+IC_TESTNET=$(node -p "const c=(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).initial_conditions||{});c.testnet!==undefined?String(c.testnet):''" "$RECIPE")
+IC_PROVIDER=$(node -p "const c=(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).initial_conditions||{});c.provider||''" "$RECIPE")
+
+# CLI overrides
+[ -n "$OVERRIDE_ACCOUNT" ]       && IC_ACCOUNT="$OVERRIDE_ACCOUNT"
+[ "$OVERRIDE_TESTNET" = true ]   && IC_TESTNET="true"
+
+if [ "$DRY" = false ]; then
+  if [ -n "$IC_ACCOUNT" ]; then
+    echo "[setup] switch-account $IC_ACCOUNT"
+    bash "$SD/app-state.sh" switch-account "$IC_ACCOUNT" >/dev/null 2>&1
+  fi
+  if [ -n "$IC_TESTNET" ]; then
+    CURR_TESTNET=$(node "$SD/cdp-bridge.js" eval "Engine.context.PerpsController.state.isTestnet" 2>/dev/null)
+    if [ "$CURR_TESTNET" != "$IC_TESTNET" ]; then
+      echo "[setup] toggle_testnet (current: $CURR_TESTNET → desired: $IC_TESTNET)"
+      node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.toggleTestnet().then(function(r){return JSON.stringify(r)})" >/dev/null 2>&1
+    fi
+  fi
+  if [ -n "$IC_PROVIDER" ]; then
+    echo "[setup] switch_provider $IC_PROVIDER"
+    node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.switchProvider('$IC_PROVIDER').then(function(r){return JSON.stringify(r)})" >/dev/null 2>&1
+  fi
+fi
+
+# ── Pre-condition checks ──────────────────────────────────────────────
+# Expand pre-condition shorthand: "name(k=v)" → { name, k: v }
+PC_JSON=$(node -p "
+  var d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+  var pcs=((d.validate||{}).runtime||{}).pre_conditions||[];
+  var expanded=pcs.map(function(spec){
+    if(typeof spec!=='string')return spec;
+    var m=spec.match(/^([^(]+)\((.+)\)$/);
+    if(!m)return spec;
+    var r={name:m[1]};
+    m[2].split(',').forEach(function(pair){
+      var eq=pair.indexOf('=');
+      if(eq>0)r[pair.slice(0,eq).trim()]=pair.slice(eq+1).trim();
+    });
+    return r;
+  });
+  JSON.stringify(expanded);
+" "$RECIPE")
+if [ "$PC_JSON" != "[]" ] && [ "$DRY" = false ]; then
+  echo "[pre-conditions] Checking: $PC_JSON"
+  PC_RESULT=$(node "$SD/cdp-bridge.js" check-pre-conditions "$PC_JSON" 2>&1)
+  PC_OK=$(node -p "JSON.parse(process.argv[1]).ok" "$PC_RESULT" 2>/dev/null || echo "false")
+  if [ "$PC_OK" != "true" ]; then
+    echo ""
+    echo "PRE-CONDITIONS FAILED ❌"
+    node -e "
+      var r=JSON.parse(process.argv[1]);
+      (r.failures||[]).forEach(function(f){
+        console.log('  • '+f.name+(f.description?' — '+f.description:''));
+        if(f.error)  console.log('    error: '+f.error);
+        if(f.got)    console.log('    got:   '+f.got);
+        if(f.hint)   console.log('    hint:  '+f.hint);
+      });
+    " "$PC_RESULT"
+    echo ""
+    exit 1
+  fi
+  echo "[pre-conditions] ✅ All passed"
+  echo ""
+fi
+
 # ── Counters ──────────────────────────────────────────────────────────
 TOTAL=0 PASSED=0 FAILED=0 SKIPPED=0
 
@@ -102,32 +194,21 @@ fail_recipe() {
   echo ""
   echo "────────────────────────────────────────"
   echo "Results: $PASSED/$TOTAL passed, $FAILED failed"
+  if [ "$HUD_ENABLED" = true ]; then
+    node "$SD/cdp-bridge.js" hide-step 2>/dev/null || true
+  fi
   echo "Recipe: FAIL ❌"
   exit 1
 }
 
 # ── Assertion evaluator ───────────────────────────────────────────────
 # Usage: check_assert <result-json> <assert-json>
-# Output: "PASS" or "FAIL: <reason>"
+# Output: "PASS" or "FAIL"
 check_assert() {
   node -e "
-const raw=process.argv[1],spec=JSON.parse(process.argv[2]);
-let val;try{val=JSON.parse(raw);}catch(e){val=raw;}
-if(typeof val==='string'){try{val=JSON.parse(val);}catch(e){}}
-const f=spec.field||'';
-if(f){for(const p of f.split('.')){if(val&&typeof val==='object')val=Array.isArray(val)&&/^\d+$/.test(p)?val[+p]:val[p];else{val=undefined;break;}}}
-const op=spec.operator||'',exp=spec.value;
-let pass=false,reason='';
-if(op==='not_null'){pass=val!=null;reason='expected not null, got null';}
-else if(op==='eq'){pass=val===exp;reason='expected '+JSON.stringify(exp)+', got '+JSON.stringify(val);}
-else if(op==='gt'){pass=val>exp;reason='expected > '+exp+', got '+val;}
-else if(op==='length_eq'){const n=val!=null?val.length:null;pass=n===exp;reason='expected length=='+exp+', got '+n;}
-else if(op==='length_gt'){const n=val!=null?val.length:null;pass=n!=null&&n>exp;reason='expected length>'+exp+', got '+n;}
-else if(op==='contains'){const t=String(exp);pass=typeof val==='string'?val.includes(t):Array.isArray(val)&&val.map(String).includes(t);reason=JSON.stringify(val)+' does not contain '+t;}
-else if(op==='not_contains'){const t=String(exp);pass=typeof val==='string'?!val.includes(t):Array.isArray(val)&&!val.map(String).includes(t);reason=JSON.stringify(val)+' contains '+t;}
-else{reason='unknown operator: '+op;}
-console.log(pass?'PASS':'FAIL: '+reason);
-" "$1" "$2"
+const { checkAssert } = require(require('path').resolve(process.argv[3], 'lib/assert'));
+console.log(checkAssert(process.argv[1], JSON.parse(process.argv[2])) ? 'PASS' : 'FAIL');
+" "$1" "$2" "$SD"
 }
 
 # ── Log scanner ───────────────────────────────────────────────────────
@@ -148,7 +229,22 @@ console.log(JSON.stringify(r));
 # ── Main loop ─────────────────────────────────────────────────────────
 while IFS= read -r sj; do
   SID=$(node -p  "JSON.parse(process.argv[1]).id||'?'"          "$sj")
-  SDESC=$(node -p "JSON.parse(process.argv[1]).description||''" "$sj")
+  SDESC=$(node -p "
+    var s = JSON.parse(process.argv[1]);
+    s.description || (function() {
+      var a = s.action || '';
+      if (a === 'press')          return 'press ' + s.test_id;
+      if (a === 'wait_for')       return 'wait for ' + (s.test_id || s.route || s.not_route || 'condition');
+      if (a === 'navigate')       return 'navigate to ' + s.target;
+      if (a === 'set_input')      return 'set ' + s.test_id + '=' + s.value;
+      if (a === 'flow_ref')       return 'flow: ' + s.ref;
+      if (a === 'eval_ref')       return 'eval ref: ' + s.ref;
+      if (a === 'eval_sync' || a === 'eval_async') return a;
+      if (a === 'type_keypad')    return 'type ' + s.value;
+      if (a === 'toggle_testnet') return 'toggle testnet=' + (s.enabled !== undefined ? s.enabled : 'true');
+      return a;
+    }())
+  " "$sj")
   ACT=$(node -p  "JSON.parse(process.argv[1]).action||''"       "$sj")
   HAS_A=$(node -p "'assert' in JSON.parse(process.argv[1])"     "$sj")
   A_JSON=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).assert||{})" "$sj")
@@ -156,6 +252,10 @@ while IFS= read -r sj; do
   [ -n "$SINGLE" ] && [ "$SID" != "$SINGLE" ] && continue
   TOTAL=$((TOTAL + 1))
   echo "[$SID] $SDESC"
+
+  if [ "$HUD_ENABLED" = true ] && [ "$DRY" = false ]; then
+    node "$SD/cdp-bridge.js" show-step "$SID" "$TITLE — $SDESC" 2>/dev/null || true
+  fi
 
   RESULT=""
   case "$ACT" in
@@ -180,10 +280,10 @@ while IFS= read -r sj; do
       echo "  -> eval-async \"${EXPR:0:80}\"..."
       [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-async "$EXPR" 2>/dev/null)
       ;;
-    recipe_ref)
+    eval_ref)
       REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
-      echo "  -> recipe perps/$REF"
-      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" recipe "perps/$REF" 2>/dev/null)
+      echo "  -> eval-ref perps/$REF"
+      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-ref "perps/$REF" 2>/dev/null)
       ;;
     log_watch)
       WS=$(node -p "JSON.parse(process.argv[1]).window_seconds||10" "$sj")
@@ -274,6 +374,170 @@ while IFS= read -r sj; do
         fi
       fi
       ;;
+    flow_ref)
+      FL_REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
+      FL_PARAMS=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).params||{})" "$sj")
+      # Resolve flow path: "team/name" → teams/team/flows/name.json
+      if [[ "$FL_REF" == */* ]]; then
+        FL_TEAM="${FL_REF%%/*}"
+        FL_NAME="${FL_REF#*/}"
+        FLOW_FILE="$SD/teams/${FL_TEAM}/flows/${FL_NAME}.json"
+      else
+        FLOW_FILE="$SD/teams/perps/flows/${FL_REF}.json"
+      fi
+      if [ ! -f "$FLOW_FILE" ]; then
+        echo "  ❌ FAIL: flow not found: ${FLOW_FILE#$SD/}"; fail_recipe
+      fi
+      echo "  -> flow: $FL_REF (params: ${FL_PARAMS:0:80})"
+      SUBST_FLOW=$(mktemp /tmp/perps-flow-XXXXXXXXXXXX).json
+      _FLOW_TEMPS+=("$SUBST_FLOW")
+      node -e "
+        var fs=require('fs');
+        var src=fs.readFileSync(process.argv[1],'utf8');
+        var doc; try{doc=JSON.parse(src);}catch(e){doc={};}
+        var p=JSON.parse(process.argv[2]);
+        var inputs=doc.inputs||{};
+        // Pass 1: replace {{key}} and {{key|default}} with provided param values
+        for(var k in p){src=src.replace(new RegExp('\\\\{\\\\{'+k+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(p[k]));}
+        // Pass 2: apply defaults from the referenced flow's inputs block
+        for(var ik in inputs){
+          if(inputs[ik].default!=null && !p.hasOwnProperty(ik)){
+            src=src.replace(new RegExp('\\\\{\\\\{'+ik+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(inputs[ik].default));
+          }
+        }
+        // Pass 3: fallback — replace remaining {{key|default}} with inline defaults
+        src=src.replace(/\{\{[^|}]+\|([^}]+)\}\}/g,'\$1');
+        fs.writeFileSync(process.argv[3],src);
+      " "$FLOW_FILE" "$FL_PARAMS" "$SUBST_FLOW"
+      FLOW_FLAGS=()
+      [ "$DRY" = true ]         && FLOW_FLAGS+=(--dry-run)
+      [ "$SKIP_MANUAL" = true ] && FLOW_FLAGS+=(--skip-manual)
+      [ "$HUD_ENABLED" = false ] && FLOW_FLAGS+=(--no-hud)
+      if bash "$SD/validate-recipe.sh" "$SUBST_FLOW" "${FLOW_FLAGS[@]}"; then
+        RESULT='{"ok":true}'
+      else
+        echo "  ❌ FAIL: flow failed: $FL_REF"; fail_recipe
+      fi
+      ;;
+    select_account)
+      ADDR=$(node -p "JSON.parse(process.argv[1]).address||''" "$sj")
+      echo "  -> switch-account $ADDR"
+      [ "$DRY" = false ] && RESULT=$(bash "$SD/app-state.sh" switch-account "$ADDR" 2>&1)
+      ;;
+    toggle_testnet)
+      DESIRED=$(node -p "var s=JSON.parse(process.argv[1]);s.enabled!==undefined?String(s.enabled):'true'" "$sj")
+      echo "  -> toggle_testnet (desired: $DESIRED)"
+      if [ "$DRY" = false ]; then
+        CURR=$(node "$SD/cdp-bridge.js" eval "Engine.context.PerpsController.state.isTestnet" 2>/dev/null)
+        if [ "$CURR" != "$DESIRED" ]; then
+          RESULT=$(node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.toggleTestnet().then(function(r){return JSON.stringify(r)})" 2>/dev/null)
+        else
+          RESULT='{"ok":true,"already":true}'
+        fi
+      fi
+      ;;
+    switch_provider)
+      PROV=$(node -p "JSON.parse(process.argv[1]).provider||''" "$sj")
+      echo "  -> switch_provider $PROV"
+      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.switchProvider('$PROV').then(function(r){return JSON.stringify(r)})" 2>/dev/null)
+      ;;
+    type_keypad)
+      TK_VAL=$(node -p "JSON.parse(process.argv[1]).value||''" "$sj")
+      echo "  -> type_keypad \"$TK_VAL\""
+      if [ "$DRY" = false ]; then
+        KEYS=$(node -p "
+          var v=String(process.argv[1]),keys=[];
+          for(var i=0;i<v.length;i++){
+            var c=v[i];
+            if(c>='0'&&c<='9') keys.push('keypad-key-'+c);
+            else if(c==='.') keys.push('keypad-key-dot');
+          }
+          keys.join('\n')
+        " "$TK_VAL")
+        while IFS= read -r key; do
+          [ -n "$key" ] && node "$SD/cdp-bridge.js" press-test-id "$key" 2>/dev/null || true
+        done <<< "$KEYS"
+        RESULT="{\"ok\":true,\"value\":\"$TK_VAL\"}"
+      fi
+      ;;
+    clear_keypad)
+      CK_COUNT=$(node -p "JSON.parse(process.argv[1]).count||8" "$sj")
+      echo "  -> clear_keypad x${CK_COUNT}"
+      if [ "$DRY" = false ]; then
+        for ((i=0; i<CK_COUNT; i++)); do
+          node "$SD/cdp-bridge.js" press-test-id "keypad-delete-button" 2>/dev/null || true
+        done
+        RESULT="{\"ok\":true,\"deleted\":$CK_COUNT}"
+      fi
+      ;;
+    wait_for)
+      WF_EXPR=$(node -p "JSON.parse(process.argv[1]).expression||''" "$sj")
+      WF_ROUTE=$(node -p "JSON.parse(process.argv[1]).route||''" "$sj")
+      WF_NROUTE=$(node -p "JSON.parse(process.argv[1]).not_route||''" "$sj")
+      WF_TID=$(node -p "JSON.parse(process.argv[1]).test_id||''" "$sj")
+      WF_TIMEOUT=$(node -p "JSON.parse(process.argv[1]).timeout_ms||10000" "$sj")
+      WF_POLL=$(node -p "JSON.parse(process.argv[1]).poll_ms||500" "$sj")
+
+      # Resolve expression + assertion from sugar (priority: route > not_route > test_id > expression)
+      if [ -n "$WF_ROUTE" ]; then
+        WF_EXPR="JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})"
+        A_JSON=$(printf '{"operator":"eq","field":"route","value":"%s"}' "$WF_ROUTE")
+        HAS_A=true
+        echo "  -> wait_for route=$WF_ROUTE (timeout=${WF_TIMEOUT}ms)"
+      elif [ -n "$WF_NROUTE" ]; then
+        WF_EXPR="JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})"
+        A_JSON=$(printf '{"operator":"neq","field":"route","value":"%s"}' "$WF_NROUTE")
+        HAS_A=true
+        echo "  -> wait_for not_route=$WF_NROUTE (timeout=${WF_TIMEOUT}ms)"
+      elif [ -n "$WF_TID" ]; then
+        WF_VISIBLE=$(node -p "JSON.parse(process.argv[1]).visible!==false" "$sj")
+        WF_EXPR="JSON.stringify({visible:globalThis.__AGENTIC__.findFiberByTestId('$WF_TID')})"
+        if [ "$WF_VISIBLE" = "true" ]; then
+          A_JSON='{"operator":"eq","field":"visible","value":true}'
+          echo "  -> wait_for testID=$WF_TID visible=true (timeout=${WF_TIMEOUT}ms)"
+        else
+          A_JSON='{"operator":"eq","field":"visible","value":false}'
+          echo "  -> wait_for testID=$WF_TID visible=false (timeout=${WF_TIMEOUT}ms)"
+        fi
+        HAS_A=true
+      else
+        echo "  -> wait_for expression (timeout=${WF_TIMEOUT}ms, poll=${WF_POLL}ms)"
+      fi
+
+      if [ "$DRY" = true ]; then
+        SKIPPED=$((SKIPPED + 1)); echo "  [DRY RUN - not executed]"; echo ""; continue
+      fi
+
+      # Determine eval mode: async if expression contains .then(
+      WF_EVAL_MODE="eval"
+      case "$WF_EXPR" in *".then("*) WF_EVAL_MODE="eval-async" ;; esac
+
+      # Poll loop (use perl for ms timestamps — avoids spawning node per iteration)
+      _ms_now() { perl -MTime::HiRes=time -e 'printf "%d\n", time*1000'; }
+      WF_DEADLINE=$(( $(_ms_now) + WF_TIMEOUT ))
+      WF_SLEEP=$(awk "BEGIN{printf \"%.2f\", $WF_POLL/1000}")
+      WF_PASSED=false
+      while true; do
+        RESULT=$(node "$SD/cdp-bridge.js" "$WF_EVAL_MODE" "$WF_EXPR" 2>/dev/null) || RESULT=""
+        if [ -n "$RESULT" ] && [ "$HAS_A" = "true" ]; then
+          AR=$(check_assert "$RESULT" "$A_JSON")
+          if [[ "$AR" == PASS* ]]; then
+            WF_PASSED=true
+            break
+          fi
+        fi
+        [ "$(_ms_now)" -ge "$WF_DEADLINE" ] && break
+        sleep "$WF_SLEEP"
+      done
+
+      [ -n "$RESULT" ] && echo "  -> Result: ${RESULT:0:200}"
+      if [ "$WF_PASSED" = true ]; then
+        echo "  ✅ PASS"; PASSED=$((PASSED + 1))
+      else
+        echo "  ❌ FAIL: wait_for timed out after ${WF_TIMEOUT}ms"; fail_recipe
+      fi
+      echo ""; continue
+      ;;
     *)
       echo "  ❌ FAIL: unknown action '$ACT'"
       FAILED=$((FAILED + 1)); echo ""; continue
@@ -311,6 +575,9 @@ if [ "$DRY" = true ]; then
   echo "Recipe: DRY RUN"
 else
   echo "Results: $PASSED/$TOTAL passed"
+  if [ "$HUD_ENABLED" = true ]; then
+    node "$SD/cdp-bridge.js" hide-step 2>/dev/null || true
+  fi
   [ "$FAILED" -gt 0 ] && { echo "Recipe: FAIL ❌"; exit 1; }
   echo "Recipe: PASS ✅"
 fi

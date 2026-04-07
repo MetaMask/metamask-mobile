@@ -55,6 +55,7 @@ import {
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response.ts';
 import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock.ts';
 import { POLYMARKET_GEOBLOCK_ELIGIBLE } from '../defaults/polymarket-apis.ts';
+import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -824,6 +825,23 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
     currentUSDCBalance = customBalance;
   }
 
+  // Token API single-token metadata (Polygon bridged USDC). Activity and other flows
+  // call GET .../token/137?address=0x2791...&includeRwaData=true — must be mocked for
+  // live-request validation in E2E.
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/token\.api\.cx\.metamask\.io\/token\/137\?.*address=0x2791bca1f2de4661ed88a30c99a7a9449aa84174/i,
+    responseCode: 200,
+    response: {
+      address: USDC_CONTRACT_ADDRESS.toLowerCase(),
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+      iconUrl:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x2791bca1f2de4661ed88a30c99a7a9449aa84174.png',
+    },
+  });
+
   // The app makes balance calls through the proxy, not direct Infura calls
   // Our existing proxy mock below will handle these calls
 
@@ -959,10 +977,22 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
         // Return a reasonable gas estimate
         result = '0xa49f3'; // ~675,683 gas
       } else if (body?.method === 'eth_getTransactionReceipt') {
-        // Return a mock transaction receipt indicating the transaction is confirmed
-        // This is critical for TransactionController to mark transactions as confirmed
-        // TransactionController polls for receipts to determine transaction status
-        result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT;
+        // Return a mock receipt so submitted txs confirm. Use the requested hash so it
+        // matches eth_sendRawTransaction / eth_sendTransaction responses.
+        const requestedHash =
+          body?.params?.[0] ??
+          MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT.transactionHash;
+        result = {
+          ...MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT,
+          transactionHash: requestedHash,
+        };
+      } else if (
+        body?.method === 'eth_sendRawTransaction' ||
+        body?.method === 'eth_sendTransaction'
+      ) {
+        // A valid 32-byte tx hash is required; returning `0x` breaks submission and the
+        // activity list never shows Predict withdraw (or any) transactions.
+        result = MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT.transactionHash;
       } else if (body?.method === 'eth_getBlockByNumber') {
         // Return block details to enable EIP-1559 transactions
         result = {
@@ -1068,11 +1098,71 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     }));
 };
 
+/** UUID returned for `eth_sendRelayTransaction` on Polygon sentinel (EIP-7702 predict withdraw). */
+const POLYGON_RELAY_TX_E2E_UUID = 'predict-e2e-withdraw-relay-uuid';
+
 /**
- * Mocks transaction sentinel for Polygon transactions
- * Mocks the infura_simulateTransactions method for transaction simulation
+ * Overrides TX Sentinel `/networks` so Polygon (137) advertises transaction relay.
+ * Required for Delegation7702PublishHook: default mocks set relayTransactions=false for 137,
+ * so submitRelayTransaction cannot run and predict withdraw confirmation fails.
+ *
+ * Keep sendBundle false: if sendBundle is true while smart transactions are enabled,
+ * publishHook skips Delegation7702 and uses submitSmartTransactionHook instead
+ * (see transaction-controller-init.ts), so eth_sendRelayTransaction mocks would never run.
+ */
+export const POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  const withPolygonRelay = {
+    ...TX_SENTINEL_NETWORKS_MAP,
+    '137': {
+      ...TX_SENTINEL_NETWORKS_MAP['137'],
+      relayTransactions: true,
+      sendBundle: false,
+    },
+  };
+
+  await mockServer
+    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
+    .asPriority(PRIORITY.HOMEPAGE_POSITIONS_OVERRIDE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: withPolygonRelay,
+    }));
+};
+
+/**
+ * GET `smart-transactions/{uuid}` while waitForRelayResult polls after EIP-7702 relay submit.
+ * Use only with predict withdraw (together with POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS).
+ */
+export const POLYMARKET_POLYGON_RELAY_POLLING_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await mockServer
+    .forGet(
+      `https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/smart-transactions/${POLYGON_RELAY_TX_E2E_UUID}`,
+    )
+    .asPriority(PRIORITY.BASE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        transactions: [
+          {
+            hash: MOCK_RPC_RESPONSES.TRANSACTION_RECEIPT_RESULT.transactionHash,
+            // RelayStatus.Success — must match app/util/transactions/transaction-relay.ts
+            status: 'VALIDATED',
+          },
+        ],
+      },
+    }));
+};
+
+/**
+ * Mocks Polygon TX Sentinel JSON-RPC POST (simulation + optional relay submit).
+ * Relay `eth_sendRelayTransaction` branch is only exercised when the app uses Delegation7702
+ * relay on Polygon; other flows only hit the simulation response.
+ *
  * @param mockServer - The mockttp server instance
- * @param fromAddress - Optional address to use in the response (defaults to USER_WALLET_ADDRESS)
  */
 export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
   mockServer: Mockttp,
@@ -1084,6 +1174,18 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
       try {
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : {};
+
+        if (body?.method === 'eth_sendRelayTransaction') {
+          return {
+            statusCode: 200,
+            json: {
+              jsonrpc: '2.0',
+              id: body.id ?? 1,
+              result: { uuid: POLYGON_RELAY_TX_E2E_UUID },
+            },
+          };
+        }
+
         const transactions = body?.params?.[0]?.transactions || [];
         const firstTx = transactions[0] || {};
         const fromAddress =

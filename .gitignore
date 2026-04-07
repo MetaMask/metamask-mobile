@@ -1,6 +1,9 @@
 # typescript incremental build cache
 .tsbuildinfo
 
+# task working directory (agent-local, not shipped)
+.task/
+
 # osx
 .DS_Store
 # don't save asdf tools-version config as nvm is prioritized.

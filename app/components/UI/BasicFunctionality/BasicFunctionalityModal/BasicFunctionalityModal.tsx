@@ -29,7 +29,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
@@ -43,7 +43,7 @@ interface Props {
 }
 
 const BasicFunctionalityModal = ({ route }: Props) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);

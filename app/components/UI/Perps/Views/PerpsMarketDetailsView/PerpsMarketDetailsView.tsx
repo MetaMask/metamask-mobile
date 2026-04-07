@@ -65,6 +65,7 @@ import {
   PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
+  PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
 import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated';
 import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
@@ -446,8 +447,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setIsEligibilityModalVisible(true);
       return;
     }
-    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
     try {
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
       await depositWithConfirmation();
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
@@ -1031,6 +1032,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!market?.symbol) return;
     track(MetaMetricsEvents.MARKET_INSIGHTS_OPENED, {
       perps_market: market.symbol,
+      ...(perpsInsightsReport && {
+        asset_symbol: perpsInsightsReport.asset,
+        digest_id: perpsInsightsReport.digestId,
+      }),
     });
     trace({
       name: TraceName.MarketInsightsViewLoad,
@@ -1042,7 +1047,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       isPerps: true,
       hasPerpsPosition: !!existingPosition,
     });
-  }, [market?.symbol, navigation, track, existingPosition]);
+  }, [
+    market?.symbol,
+    navigation,
+    track,
+    perpsInsightsReport,
+    existingPosition,
+  ]);
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
@@ -1167,7 +1178,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {
             iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
             onPress: handleWatchlistPress,
-            testID: PerpsMarketHeaderSelectorsIDs.MORE_BUTTON,
+            testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
           },
         ]}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
@@ -1327,12 +1338,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
-              {displayOrders.map((order) => (
+              {displayOrders.map((order, index) => (
                 <PerpsCompactOrderRow
                   key={order.orderId}
                   order={order}
                   onPress={() => handleOrderSelect(order)}
-                  testID={`compact-order-${order.orderId}`}
+                  testID={
+                    index === 0
+                      ? PerpsCompactOrderRowSelectorsIDs.FIRST_ROW
+                      : `compact-order-${order.orderId}`
+                  }
                 />
               ))}
             </View>

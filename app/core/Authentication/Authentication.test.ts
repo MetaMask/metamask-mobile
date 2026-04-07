@@ -40,6 +40,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
@@ -252,6 +253,7 @@ jest.mock('../BackupVault/backupVault', () => ({
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
+    trackEvent: jest.fn(),
   },
 }));
 
@@ -2126,6 +2128,54 @@ describe('Authentication', () => {
         name: TraceName.OnboardingFetchSrpsError,
       });
     });
+
+    it('wraps a non-Error string from fetchAllSecretData into a proper Error instance', async () => {
+      // Simulate an SDK rejecting with a plain string (not an Error instance).
+      // null cannot be used here because containsErrorMessage calls .toString() on the value
+      // before ensureError runs, which would itself throw for null.
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce('sdk fetch failure');
+
+      const thrown = await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      }).catch((e) => e);
+
+      // ensureError in fetchSRPs converts the string to a proper Error so callers
+      // always receive an Error instance with a non-empty message.
+      expect(thrown).toBeInstanceOf(Error);
+      expect(thrown.message).toBe('sdk fetch failure');
+    });
+
+    it('wraps a non-Error thrown after fetchSRPs into a proper Error with Rehydrate seed phrase failed context', async () => {
+      // fetchAllSecretData resolves normally so fetchSRPs succeeds.
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        { data: mockSeedPhrase1, type: SecretType.Mnemonic },
+      ]);
+
+      // newWalletVaultAndRestore (called after fetchSRPs) rejects with null.
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockRejectedValueOnce(null);
+
+      const thrown = await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      }).catch((e) => e);
+
+      // ensureError in the outer rehydrateSeedPhrase catch must wrap the null into an Error
+      // with the 'Rehydrate seed phrase failed' context.
+      expect(thrown).toBeInstanceOf(Error);
+      expect(thrown.message).toBe(
+        'Unknown error (no details provided) [Rehydrate seed phrase failed]',
+      );
+    });
   });
 
   describe('submitLatestGlobalSeedlessPassword', () => {
@@ -2582,7 +2632,10 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated(true);
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      });
 
       expect(result).toBe(mockIsOutdated);
       expect(
@@ -2625,6 +2678,49 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith({ skipCache: true });
     });
 
+    it('calls Logger.error when captureSentryError is true and the controller throws', async () => {
+      mockIsOutdated = true;
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+              socialBackupsMetadata: [],
+              passwordOutdatedCache: {
+                isExpiredPwd: mockIsOutdated,
+                timestamp: Date.now(),
+              },
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      const err = new Error('controller failed');
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        checkIsPasswordOutdated: jest.fn().mockRejectedValue(err),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      jest.clearAllMocks();
+
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: true,
+      });
+
+      expect(result).toBe(false);
+      expect(Logger.error).toHaveBeenCalledWith(
+        err,
+        'Error in checkIsSeedlessPasswordOutdated',
+      );
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
     it('return false when seedless controller checkAuthenticationMethod throw error', async () => {
       mockIsOutdated = true;
       const mockState: RecursivePartial<RootState> = {
@@ -2652,12 +2748,16 @@ describe('Authentication', () => {
         checkIsPasswordOutdated: jest.fn().mockRejectedValue(mockIsOutdated),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
+      jest.clearAllMocks();
+
       const result = await Authentication.checkIsSeedlessPasswordOutdated();
 
       expect(result).toBe(false);
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
       ).toHaveBeenCalledWith({ skipCache: true });
+      expect(Logger.log).toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
@@ -2917,7 +3017,10 @@ describe('Authentication', () => {
         await Authentication.importAccountFromPrivateKey(mockPrivateKey);
 
       // Assert
-      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith({
+        skipCache: true,
+        captureSentryError: true,
+      });
       expect(result).toBe(false);
       expect(
         Engine.context.KeyringController.importAccountWithStrategy,
@@ -3717,6 +3820,9 @@ describe('Authentication', () => {
         setCompletedOnboarding(false),
       );
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        clearSeedlessOnboarding(),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -4294,6 +4400,7 @@ describe('Authentication', () => {
       // Assert
       expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('returns early when checkIsSeedlessPasswordOutdated returns false', async () => {
@@ -4319,8 +4426,12 @@ describe('Authentication', () => {
       await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('navigates to modal when password is outdated', async () => {
@@ -4346,7 +4457,17 @@ describe('Authentication', () => {
       await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
+      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Password Outdated Modal Viewed',
+          properties: expect.objectContaining({ category: 'App' }),
+        }),
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
@@ -4755,6 +4876,28 @@ describe('Authentication', () => {
       expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
         'Unlock Wallet Error',
         'Failed to rehydrate seed phrase',
+      );
+    });
+
+    it('wraps a non-Error rejection into a proper Error instance via ensureError', async () => {
+      // Simulate a third-party SDK or native module rejecting with null instead of an Error.
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(null);
+
+      const thrown = await Authentication.unlockWallet({
+        password: passwordToUse,
+        authPreference: {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        },
+      }).catch((e) => e);
+
+      // ensureError must convert the null rejection to a proper Error so callers always
+      // receive an Error instance whose message includes the context passed to ensureError.
+      expect(thrown).toBeInstanceOf(Error);
+      expect(thrown.message).toBe(
+        'Unknown error (no details provided) [Unlock wallet failed]',
       );
     });
 

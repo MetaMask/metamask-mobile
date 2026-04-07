@@ -118,7 +118,6 @@ import {
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import { getSwapsControllerMessenger } from './swaps-controller-messenger';
 import {
   getDelegationControllerInitMessenger,
   getDelegationControllerMessenger,
@@ -371,10 +370,6 @@ export const CONTROLLER_MESSENGERS = {
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
-  },
-  SwapsController: {
-    getMessenger: getSwapsControllerMessenger,
-    getInitMessenger: noop,
   },
   NetworkEnablementController: {
     getMessenger: getNetworkEnablementControllerMessenger,

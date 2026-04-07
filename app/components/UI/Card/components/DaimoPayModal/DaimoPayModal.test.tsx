@@ -120,11 +120,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
-    const { mockTheme } = jest.requireActual('../../../../../util/theme');
-    return {
-      style: jest.fn(() => ({})),
-      color: jest.fn(() => mockTheme.colors.text.default),
-    };
+    const tw = () => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
   },
 }));
 

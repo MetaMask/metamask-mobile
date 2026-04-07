@@ -8,13 +8,11 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -295,14 +293,15 @@ const ReviewOrder = () => {
             </Text>
           )}
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('card.review_order.pay')}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handlePay}
-            width={ButtonWidthTypes.Full}
-            loading={isCreatingPayment}
+            isFullWidth
+            isLoading={isCreatingPayment}
             testID={ReviewOrderSelectors.PAY_BUTTON}
-          />
+          >
+            {strings('card.review_order.pay')}
+          </Button>
         </Box>
       </Box>
     </SafeAreaView>

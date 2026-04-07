@@ -19,6 +19,7 @@ import {
 import {
   setCompletedOnboarding,
   clearAccountType,
+  clearSeedlessOnboarding,
 } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -62,9 +63,11 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
+import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import {
@@ -86,6 +89,7 @@ import {
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
+import { ensureError } from '../../util/errorUtils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -94,6 +98,13 @@ export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
   oauth2Login?: boolean;
+}
+
+export interface CheckIsSeedlessPasswordOutdatedOptions {
+  /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
+  skipCache?: boolean;
+  /** When true, failed controller checks are reported to Sentry via {@link Logger.error}. Default: false */
+  captureSentryError?: boolean;
 }
 
 class AuthenticationService {
@@ -169,9 +180,8 @@ class AuthenticationService {
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
 
-      // renew refresh token
-      renewSeedlessControllerRefreshTokens(password).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
+      revokePendingSeedlessRefreshTokens().catch((err) => {
+        Logger.error(err, 'Failed to revoke pending seedless OAuth tokens');
       });
     }
     password = this.wipeSensitiveData();
@@ -747,7 +757,12 @@ class AuthenticationService {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
             fallbackToPassword = true;
-          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+          } else if (
+            await this.checkIsSeedlessPasswordOutdated({
+              skipCache: false,
+              captureSentryError: true,
+            })
+          ) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
@@ -838,7 +853,7 @@ class AuthenticationService {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
       }
-      throw error;
+      throw ensureError(error, 'Unlock wallet failed');
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
@@ -873,7 +888,10 @@ class AuthenticationService {
 
     // async check seedless password outdated skip cache when app lock
     // the function swallowed the error
-    this.checkIsSeedlessPasswordOutdated(true);
+    this.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    });
 
     // Reset authentication preference.
     // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
@@ -1112,7 +1130,10 @@ class AuthenticationService {
       shouldSelectAccount: true,
     },
   ): Promise<boolean> => {
-    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: true,
+    });
     if (isPasswordOutdated) {
       return false;
     }
@@ -1175,27 +1196,26 @@ class AuthenticationService {
           await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+        const err = ensureError(error, 'Fetch SRPs failed');
 
         // trace only if error is not an incorrect password error
         if (
           !containsErrorMessage(
-            error as Error,
+            err,
             SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
           )
         ) {
           trace({
             name: TraceName.OnboardingFetchSrpsError,
             op: TraceOperation.OnboardingError,
-            tags: { errorMessage },
+            tags: { errorMessage: err.message },
           });
           endTrace({
             name: TraceName.OnboardingFetchSrpsError,
           });
         }
 
-        throw error;
+        throw err;
       } finally {
         endTrace({
           name: TraceName.OnboardingFetchSrps,
@@ -1254,7 +1274,7 @@ class AuthenticationService {
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
-      throw error;
+      throw ensureError(error, 'Rehydrate seed phrase failed');
     }
   };
 
@@ -1364,12 +1384,15 @@ class AuthenticationService {
   /**
    * Checks if the seedless password is outdated.
    *
-   * @param {boolean} skipCache - whether to skip the cache
-   * @returns {Promise<boolean>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   * @param options.skipCache - whether to skip the cache (default: true)
+   * @param options.captureSentryError - when true, failed checks are reported to Sentry via {@link Logger.error} (default: false)
+   * @returns true if the password is outdated, false otherwise (or when not in seedless flow)
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache: boolean = true,
+    options: CheckIsSeedlessPasswordOutdatedOptions = {},
   ): Promise<boolean> => {
+    const skipCache = options.skipCache ?? true;
+    const captureSentryError = options.captureSentryError ?? false;
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
@@ -1381,7 +1404,14 @@ class AuthenticationService {
         });
       return isSeedlessPasswordOutdated;
     } catch (error) {
-      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      if (captureSentryError) {
+        Logger.error(
+          error as Error,
+          'Error in checkIsSeedlessPasswordOutdated',
+        );
+      } else {
+        Logger.log('checkIsSeedlessPasswordOutdated', error);
+      }
       return false;
     }
   };
@@ -1402,10 +1432,21 @@ class AuthenticationService {
 
     // Check for latest seedless password outdated state
     // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false);
+    const isOutdated = await this.checkIsSeedlessPasswordOutdated({
+      skipCache: false,
+      captureSentryError: true,
+    });
     if (!isOutdated) {
       return;
     }
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_OUTDATED_MODAL_VIEWED,
+      )
+        .addProperties({ category: 'App' })
+        .build(),
+    );
 
     // show seedless password outdated modal and force user to lock app
     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1456,6 +1497,7 @@ class AuthenticationService {
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
     ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearSeedlessOnboarding());
   };
 
   /**

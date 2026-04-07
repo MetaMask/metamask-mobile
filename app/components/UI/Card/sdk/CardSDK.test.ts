@@ -1625,6 +1625,30 @@ describe('CardSDK', () => {
   });
 
   describe('getCardExternalWalletDetails', () => {
+    // Helper to create delegation settings that match external wallet networks
+    const createDelegationSettings = (
+      network = 'linea',
+      tokens: string[] = ['USDC', 'USDT'],
+    ): DelegationSettingsNetwork[] => [
+      {
+        network,
+        environment: 'production',
+        chainId: network === 'solana' ? '1' : '59144',
+        delegationContract: '0xDelegationContract',
+        tokens: tokens.reduce(
+          (acc, symbol) => ({
+            ...acc,
+            [symbol.toLowerCase()]: {
+              symbol,
+              decimals: 6,
+              address: `0x${symbol}Address`,
+            },
+          }),
+          {},
+        ),
+      },
+    ];
+
     const createMockWalletData = (
       externalWallets: {
         address: string;
@@ -1717,7 +1741,9 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -1865,7 +1891,9 @@ describe('CardSDK', () => {
         });
       });
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       // Should be sorted by priority ascending (1 comes before 5)
       expect(result[0].priority).toBe(1);
@@ -1925,7 +1953,9 @@ describe('CardSDK', () => {
           },
         ]);
 
-        const result = await cardSDK.getCardExternalWalletDetails([]);
+        const result = await cardSDK.getCardExternalWalletDetails(
+          createDelegationSettings('linea', ['USDC', 'USDT']),
+        );
 
         expect(result).toHaveLength(1);
         expect(result[0].currency).toBe('USDT');
@@ -1947,7 +1977,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].currency).toBe('USDC');
@@ -1973,7 +2005,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['WETH', 'USDC', 'DAI']),
+      );
 
       expect(result).toHaveLength(3);
       expect(result[0].currency).toBe('WETH');
@@ -2008,7 +2042,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT', 'DAI', 'WETH']),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('WETH');
@@ -2029,7 +2065,9 @@ describe('CardSDK', () => {
         },
       ]);
 
-      const result = await cardSDK.getCardExternalWalletDetails([]);
+      const result = await cardSDK.getCardExternalWalletDetails(
+        createDelegationSettings('linea', ['USDC', 'USDT']),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].currency).toBe('USDT');
@@ -4015,6 +4053,225 @@ describe('CardSDK', () => {
             Authorization: 'Bearer test-access-token',
           }),
         }),
+      );
+    });
+  });
+
+  describe('completeDelegation', () => {
+    const validSolanaAddress = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
+    const validTxSignature =
+      '5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW';
+    const validEVMAddress = '0x1234567890123456789012345678901234567890';
+    const validEVMSigHash = `0x${'a'.repeat(130)}`;
+
+    const validSolanaParams = {
+      address: validSolanaAddress,
+      network: 'solana' as const,
+      currency: 'usdc',
+      amount: '1000000',
+      txHash: validTxSignature,
+      sigHash: 'mock-sig-hash',
+      sigMessage: 'mock-sig-message',
+      token: 'mock-delegation-token',
+    };
+
+    const validEVMParams = {
+      address: validEVMAddress,
+      network: 'linea' as const,
+      currency: 'usdc',
+      amount: '1000000',
+      txHash: '0xabcdef1234',
+      sigHash: validEVMSigHash,
+      sigMessage: 'mock-sig-message',
+      token: 'mock-delegation-token',
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'test-access-token' },
+      });
+    });
+
+    it('completes Solana delegation successfully', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      // When: completeDelegation is called with Solana params
+      const result = await cardSDK.completeDelegation(validSolanaParams);
+
+      // Then: Returns success response and calls Solana endpoint
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/solana/post-approval'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(validSolanaParams),
+        }),
+      );
+    });
+
+    it('completes EVM delegation successfully', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      // When: completeDelegation is called with EVM params
+      const result = await cardSDK.completeDelegation(validEVMParams);
+
+      // Then: Returns success response and calls EVM endpoint
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/evm/post-approval'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(validEVMParams),
+        }),
+      );
+    });
+
+    it('throws VALIDATION_ERROR for invalid Solana address format', async () => {
+      // Given: Invalid Solana address (contains invalid characters)
+      const invalidParams = {
+        ...validSolanaParams,
+        address: '0x1234567890123456789012345678901234567890', // EVM address, not Solana
+      };
+
+      // When/Then: Throws VALIDATION_ERROR
+      await expect(
+        cardSDK.completeDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid Solana address format',
+      });
+    });
+
+    it('throws VALIDATION_ERROR for short Solana address', async () => {
+      // Given: Too short address
+      const invalidParams = {
+        ...validSolanaParams,
+        address: 'HN7cABqLq46Es1jh92dQQ', // Too short (< 32 chars)
+      };
+
+      // When/Then: Throws VALIDATION_ERROR
+      await expect(
+        cardSDK.completeDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid Solana address format',
+      });
+    });
+
+    it('throws VALIDATION_ERROR for invalid Solana transaction signature format', async () => {
+      // Given: Invalid transaction signature (too short)
+      const invalidParams = {
+        ...validSolanaParams,
+        txHash: 'invalid-short-signature',
+      };
+
+      // When/Then: Throws VALIDATION_ERROR
+      await expect(
+        cardSDK.completeDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid Solana transaction signature format',
+      });
+    });
+
+    it('throws VALIDATION_ERROR for invalid Ethereum address format', async () => {
+      // Given: Invalid EVM address
+      const invalidParams = {
+        ...validEVMParams,
+        address: 'not-an-evm-address',
+      };
+
+      // When/Then: Throws VALIDATION_ERROR
+      await expect(
+        cardSDK.completeDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid Ethereum address format',
+      });
+    });
+
+    it('throws VALIDATION_ERROR for invalid EVM signature format', async () => {
+      // Given: Invalid EVM signature (not 0x-prefixed hex of correct length)
+      const invalidParams = {
+        ...validEVMParams,
+        sigHash: 'not-a-valid-signature',
+      };
+
+      // When/Then: Throws VALIDATION_ERROR
+      await expect(
+        cardSDK.completeDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid signature format',
+      });
+    });
+
+    it('throws SERVER_ERROR when API returns error', async () => {
+      // Given: API returns 500 error
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+
+      // When/Then: Throws SERVER_ERROR
+      await expect(
+        cardSDK.completeDelegation(validSolanaParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+        message: 'Failed to complete delegation. Please try again.',
+      });
+    });
+
+    it('sends authenticated request with bearer token', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      // When: completeDelegation is called
+      await cardSDK.completeDelegation(validSolanaParams);
+
+      // Then: Request includes authorization header
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-access-token',
+          }),
+        }),
+      );
+    });
+
+    it('logs debug info on successful completion when enableLogs is true', async () => {
+      // Given: SDK with enableLogs enabled
+      const sdkWithLogs = new CardSDK({
+        cardFeatureFlag: mockCardFeatureFlag,
+        enableLogs: true,
+      });
+
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      // When: completeDelegation is called
+      await sdkWithLogs.completeDelegation(validSolanaParams);
+
+      // Then: Debug info is logged
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining('completeDelegation'),
+        expect.any(String),
       );
     });
   });

@@ -601,13 +601,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               }
                             }
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={25}
-                              handlerType="NativeViewGestureHandler"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                            >
+                            <RCTScrollView>
                               <View>
                                 <Text
                                   accessibilityRole="text"
@@ -1366,13 +1360,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               }
                             }
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={27}
-                              handlerType="NativeViewGestureHandler"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                            >
+                            <RCTScrollView>
                               <View>
                                 <Text
                                   accessibilityRole="text"
@@ -2131,13 +2119,7 @@ exports[`Wallet should render correctly 1`] = `
                               }
                             }
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={1}
-                              handlerType="NativeViewGestureHandler"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                            >
+                            <RCTScrollView>
                               <View>
                                 <Text
                                   accessibilityRole="text"
@@ -2896,13 +2878,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               }
                             }
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={9}
-                              handlerType="NativeViewGestureHandler"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                            >
+                            <RCTScrollView>
                               <View>
                                 <Text
                                   accessibilityRole="text"
@@ -3661,13 +3637,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               }
                             }
                           >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={3}
-                              handlerType="NativeViewGestureHandler"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                            >
+                            <RCTScrollView>
                               <View>
                                 <Text
                                   accessibilityRole="text"

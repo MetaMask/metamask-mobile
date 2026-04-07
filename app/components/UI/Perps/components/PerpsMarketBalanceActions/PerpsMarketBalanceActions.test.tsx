@@ -27,7 +27,6 @@ interface MockComponentProps {
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
-const mockEnsureArbitrumNetworkExists = jest.fn();
 const mockStartPulseAnimation = jest.fn();
 const mockGetAnimatedStyle = jest.fn(() => ({}));
 const mockStopAnimation = jest.fn();
@@ -350,16 +349,13 @@ describe('PerpsMarketBalanceActions', () => {
       depositWithConfirmation: mockDepositWithConfirmation,
     });
 
-    mockUsePerpsNetworkManagement.mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
-    });
+    mockUsePerpsNetworkManagement.mockReturnValue({});
 
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     });
 
     mockDepositWithConfirmation.mockResolvedValue({});
-    mockEnsureArbitrumNetworkExists.mockResolvedValue({});
   });
 
   describe('Rendering', () => {

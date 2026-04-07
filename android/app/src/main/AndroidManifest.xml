@@ -12,12 +12,19 @@
   <!-- Android < 12 -->
   <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <!-- BLE location: single uses-permission (maxSdk 30). Play rejects duplicates when deps add the same permission differently (e.g. react-native-ble-plx uses-permission, rxandroidble uses-permission-sdk-23). -->
+  <uses-permission
+    android:name="android.permission.ACCESS_FINE_LOCATION"
+    android:maxSdkVersion="30"
+    tools:replace="android:maxSdkVersion" />
+  <uses-permission-sdk-23
+    android:name="android.permission.ACCESS_FINE_LOCATION"
+    tools:node="remove" />
   <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
   <!-- Bluetooth permissions: Android API >= 31 (Android 12)-->
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/>
 
 	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
 
@@ -191,6 +198,14 @@
 		tools:replace="android:resource"/>
 		<meta-data  android:name="com.google.firebase.messaging.default_notification_icon"
 		android:resource="@mipmap/ic_notification_small"/>
+
+		<!-- Braze push: primary FCM handler, forwards non-Braze messages via fallback in braze.xml -->
+		<service android:name="com.braze.push.BrazeFirebaseMessagingService"
+			android:exported="false">
+			<intent-filter>
+				<action android:name="com.google.firebase.MESSAGING_EVENT" />
+			</intent-filter>
+		</service>
 
 		<provider
 			android:name="androidx.core.content.FileProvider"

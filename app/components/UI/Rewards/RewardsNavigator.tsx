@@ -6,20 +6,28 @@ import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignsView from './Views/CampaignsView';
-import CampaignDetailsView from './Views/CampaignDetailsView';
+import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
+import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
-import PreviousSeasonView from './Views/PreviousSeasonView';
+import MusdCalculatorView from './Views/MusdCalculatorView';
+import OndoLeaderboardView from './Views/OndoLeaderboardView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation } from '@react-navigation/native';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
+import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
 const Stack = createStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation();
+
+  useRewardsVersionGuard();
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
@@ -42,12 +50,19 @@ const RewardsNavigator: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isVersionBlocked) {
+      return;
+    }
     if (subscriptionId) {
       navigation.navigate(Routes.REWARDS_DASHBOARD);
     } else {
       navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
     }
-  }, [navigation, subscriptionId]);
+  }, [navigation, subscriptionId, isVersionBlocked]);
+
+  if (isVersionBlocked) {
+    return <RewardsUpdateRequired />;
+  }
 
   return (
     <Stack.Navigator initialRouteName={getInitialRoute()}>
@@ -74,23 +89,33 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGNS_VIEW}
+            name={Routes.REWARDS_CAMPAIGNS_VIEW}
             component={CampaignsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.PREVIOUS_SEASON_VIEW}
-            component={PreviousSeasonView}
+            name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
+            component={OndoCampaignDetailsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGN_DETAILS}
-            component={CampaignDetailsView}
+            name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
+            component={SeasonOneCampaignDetailsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGN_MECHANICS}
+            name={Routes.REWARDS_CAMPAIGN_MECHANICS}
             component={CampaignMechanicsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
+            component={MusdCalculatorView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
+            component={OndoLeaderboardView}
             options={{ headerShown: false }}
           />
         </>

@@ -16,6 +16,11 @@ describe('deeplinks utils', () => {
         isMetaMaskUniversalLink('https://metamask.test-app.link/home'),
       ).toBe(true);
       expect(
+        isMetaMaskUniversalLink(
+          'https://metamask-alternate.test-app.link/swap',
+        ),
+      ).toBe(true);
+      expect(
         isMetaMaskUniversalLink('https://link-test.metamask.io/send'),
       ).toBe(true);
     });
@@ -80,6 +85,9 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('https://metamask.test-app.link/home')).toBe(
         true,
       );
+      expect(
+        isInternalDeepLink('https://metamask-alternate.test-app.link/dapp/x'),
+      ).toBe(true);
     });
 
     it('does not identify external URLs as internal', () => {

@@ -596,21 +596,35 @@ export type PerpsControllerConfig = {
   fallbackHip3BlocklistMarkets?: string[];
 
   /**
-   * MYX provider credentials.
+   * Per-provider credentials and configuration.
+   * Nested by provider name so each provider's settings are self-contained
+   * and new protocols can be added without polluting the top-level config.
    * Passed from the init file where `process.env.X` is babel-transformed at build time.
    */
-  myxAppIdTestnet?: string;
-  myxApiSecretTestnet?: string;
-  myxBrokerAddressTestnet?: string;
-  myxAppIdMainnet?: string;
-  myxApiSecretMainnet?: string;
-  myxBrokerAddressMainnet?: string;
+  providerCredentials?: PerpsProviderCredentials;
+};
 
-  /**
-   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
-   * Must match the UI selector logic so the controller and UI agree on MYX availability.
-   */
-  myxProviderEnabled?: boolean;
+export type HyperLiquidCredentials = {
+  /** Builder fee wallet address for testnet. Empty/omitted = uses BUILDER_FEE_CONFIG default. */
+  builderAddressTestnet?: string;
+  /** Builder fee wallet address for mainnet. Empty/omitted = uses BUILDER_FEE_CONFIG default. */
+  builderAddressMainnet?: string;
+};
+
+export type MYXCredentials = {
+  /** Whether MYX provider is enabled via local env var. */
+  enabled?: boolean;
+  appIdTestnet?: string;
+  apiSecretTestnet?: string;
+  brokerAddressTestnet?: string;
+  appIdMainnet?: string;
+  apiSecretMainnet?: string;
+  brokerAddressMainnet?: string;
+};
+
+export type PerpsProviderCredentials = {
+  hyperliquid?: HyperLiquidCredentials;
+  myx?: MYXCredentials;
 };
 
 export type PriceUpdate = {

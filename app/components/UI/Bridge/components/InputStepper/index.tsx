@@ -4,6 +4,7 @@ import Input from '../../../../../component-library/components/Form/TextField/fo
 import {
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   IconColor,
   IconName,
   Text,
@@ -42,7 +43,7 @@ export const InputStepper = ({
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Minus}
-          isFloating
+          variant={ButtonIconVariant.Floating}
           style={tw.style(minusPressed ? 'bg-muted-pressed' : 'bg-muted')}
           iconProps={{ color: IconColor.IconDefault }}
           onPressIn={() => setMinusPressed(true)}
@@ -72,7 +73,7 @@ export const InputStepper = ({
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Add}
-          isFloating
+          variant={ButtonIconVariant.Floating}
           style={tw.style(plusPressed ? 'bg-muted-pressed' : 'bg-muted')}
           iconProps={{ color: IconColor.IconDefault }}
           onPressIn={() => setPlusPressed(true)}

@@ -154,6 +154,9 @@ exports[`Login renders matching snapshot 1`] = `
                   "lineHeight": 24,
                 },
                 {
+                  "lineHeight": 0,
+                },
+                {
                   "textAlignVertical": "center",
                 },
               ]

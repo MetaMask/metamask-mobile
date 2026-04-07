@@ -76,7 +76,7 @@ jobs:
       build_name: main-exp
       platform: both
       skip_version_bump: true
-      ref: ${{ needs.bump-version-exp.outputs.commit-hash }}
+      source_branch: ${{ needs.bump-version-exp.outputs.commit-hash }}
     secrets: inherit
 
   build-rc:
@@ -87,7 +87,7 @@ jobs:
       build_name: main-rc
       platform: both
       skip_version_bump: true
-      ref: ${{ needs.bump-version-rc.outputs.commit-hash }}
+      source_branch: ${{ needs.bump-version-rc.outputs.commit-hash }}
     secrets: inherit
 
   upload-exp-testflight:
@@ -108,10 +108,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-exp
+          name: ios-ipa-main-exp
 
       - name: Find IPA path
         id: ipa
@@ -141,8 +141,7 @@ jobs:
             "github_actions_main-exp" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates" \
-            "false"
+            "MetaMask BETA & Release Candidates"
 
       - name: Cleanup API Key
         if: always()
@@ -168,10 +167,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-rc
+          name: ios-ipa-main-rc
 
       - name: Find IPA path
         id: ipa
@@ -203,8 +202,7 @@ jobs:
             "github_actions_main-rc" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "MetaMask BETA & Release Candidates" \
-            "false"
+            "MetaMask BETA & Release Candidates"
 
       - name: Cleanup API Key
         if: always()

@@ -52,6 +52,7 @@ import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
+import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -96,6 +97,8 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
+import { MoneyScreenStack } from '../../UI/Money/routes';
+import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -928,6 +931,10 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
+  // Get feature flag state for conditional Money home screen registration
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1082,6 +1089,13 @@ const MainNavigator = () => {
         component={EarnModalStack}
         options={clearStackNavigatorOptions}
       />
+      {isMoneyHomeScreenEnabled && (
+        <Stack.Screen
+          name={Routes.MONEY.ROOT}
+          component={MoneyScreenStack}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
@@ -1166,6 +1180,11 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+        <Stack.Screen
+          name={Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW}
+          component={ExploreSectionResultsFullView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen

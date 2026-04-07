@@ -89,10 +89,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-${{ inputs.environment || 'rc' }}
+          name: ios-ipa-main-${{ inputs.environment || 'rc' }}
 
       - name: Find IPA path
         id: ipa

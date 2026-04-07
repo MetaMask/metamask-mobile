@@ -58,7 +58,10 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  hasTransactionType,
+} from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   TRANSACTION_DETAIL_EVENTS,
@@ -516,7 +519,8 @@ class TransactionElement extends PureComponent {
           !isQRHardwareAccount &&
           !isLedgerAccount)) &&
       !isSmartTransaction &&
-      !isBridgeTransaction;
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(tx);
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =

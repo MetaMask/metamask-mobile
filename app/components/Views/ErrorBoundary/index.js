@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   DevSettings,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
@@ -18,7 +19,6 @@ import {
 } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
-import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -478,7 +478,7 @@ class ErrorBoundary extends Component {
   };
 
   renderWithSafeArea = (children) => {
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.context?.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     return <SafeAreaView style={styles.container}>{children}</SafeAreaView>;

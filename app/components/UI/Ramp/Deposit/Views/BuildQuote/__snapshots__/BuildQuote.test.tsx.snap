@@ -1079,6 +1079,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1131,6 +1132,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1183,6 +1185,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1249,6 +1252,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1301,6 +1305,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1353,6 +1358,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1419,6 +1425,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1471,6 +1478,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1523,6 +1531,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1591,6 +1600,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -1641,6 +1651,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -2863,6 +2874,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -2915,6 +2927,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -2967,6 +2980,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3033,6 +3047,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3085,6 +3100,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3137,6 +3153,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3203,6 +3220,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3255,6 +3273,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3307,6 +3326,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3375,6 +3395,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -3425,6 +3446,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4647,6 +4669,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4699,6 +4722,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4751,6 +4775,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4817,6 +4842,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4869,6 +4895,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4921,6 +4948,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -4987,6 +5015,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -5039,6 +5068,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -5091,6 +5121,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -5159,6 +5190,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -5209,6 +5241,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6370,6 +6403,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6422,6 +6456,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6474,6 +6509,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6540,6 +6576,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6592,6 +6629,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6644,6 +6682,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6710,6 +6749,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6762,6 +6802,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6814,6 +6855,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6882,6 +6924,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -6932,6 +6975,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8093,6 +8137,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8145,6 +8190,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8197,6 +8243,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8263,6 +8310,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8315,6 +8363,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8367,6 +8416,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8433,6 +8483,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8485,6 +8536,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8537,6 +8589,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8605,6 +8658,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -8655,6 +8709,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -9815,6 +9870,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -9867,6 +9923,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -9919,6 +9976,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -9985,6 +10043,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10037,6 +10096,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10089,6 +10149,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10155,6 +10216,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10207,6 +10269,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10259,6 +10322,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10327,6 +10391,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -10377,6 +10442,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11631,6 +11697,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11683,6 +11750,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11735,6 +11803,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11801,6 +11870,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11853,6 +11923,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11905,6 +11976,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -11971,6 +12043,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -12023,6 +12096,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -12075,6 +12149,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -12143,6 +12218,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -12193,6 +12269,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13309,6 +13386,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13361,6 +13439,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13413,6 +13492,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13479,6 +13559,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13531,6 +13612,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13583,6 +13665,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13649,6 +13732,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13701,6 +13785,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13753,6 +13838,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13821,6 +13907,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -13871,6 +13958,7 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15032,6 +15120,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15084,6 +15173,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15136,6 +15226,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15202,6 +15293,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15254,6 +15346,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15306,6 +15399,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15372,6 +15466,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15424,6 +15519,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15476,6 +15572,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15544,6 +15641,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -15594,6 +15692,7 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -16755,6 +16854,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -16807,6 +16907,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -16859,6 +16960,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -16925,6 +17027,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -16977,6 +17080,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -17029,6 +17133,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -17095,6 +17200,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -17147,6 +17253,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -17199,6 +17306,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -17267,6 +17375,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -17317,6 +17426,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18478,6 +18588,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18530,6 +18641,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18582,6 +18694,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18648,6 +18761,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18700,6 +18814,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18752,6 +18867,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18818,6 +18934,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18870,6 +18987,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18922,6 +19040,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -18990,6 +19109,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -19040,6 +19160,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20201,6 +20322,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20253,6 +20375,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20305,6 +20428,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20371,6 +20495,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20423,6 +20548,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20475,6 +20601,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20541,6 +20668,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20593,6 +20721,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20645,6 +20774,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20713,6 +20843,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -20763,6 +20894,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22017,6 +22149,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22069,6 +22202,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22121,6 +22255,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22187,6 +22322,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22239,6 +22375,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22291,6 +22428,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22357,6 +22495,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22409,6 +22548,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22461,6 +22601,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22529,6 +22670,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -22579,6 +22721,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -23738,6 +23881,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -23790,6 +23934,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -23842,6 +23987,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -23908,6 +24054,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -23960,6 +24107,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -24012,6 +24160,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -24078,6 +24227,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -24130,6 +24280,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -24182,6 +24333,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -24250,6 +24402,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -24300,6 +24453,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25552,6 +25706,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25604,6 +25759,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25656,6 +25812,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25722,6 +25879,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25774,6 +25932,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25826,6 +25985,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25892,6 +26052,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25944,6 +26105,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -25996,6 +26158,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -26064,6 +26227,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -26114,6 +26278,7 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27368,6 +27533,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27420,6 +27586,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27472,6 +27639,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27538,6 +27706,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27590,6 +27759,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27642,6 +27812,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27708,6 +27879,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27760,6 +27932,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27812,6 +27985,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27880,6 +28054,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -27930,6 +28105,7 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29091,6 +29267,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-1"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29143,6 +29320,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-2"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29195,6 +29373,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-3"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29261,6 +29440,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-4"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29313,6 +29493,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-5"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29365,6 +29546,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-6"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29431,6 +29613,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-7"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29483,6 +29666,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-8"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29535,6 +29719,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-9"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29603,6 +29788,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         },
                                       ]
                                     }
+                                    testID="keypad-key-dot"
                                   >
                                     <Text
                                       accessibilityRole="none"
@@ -29653,6 +29839,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="keypad-key-0"
                                   >
                                     <Text
                                       accessibilityRole="none"

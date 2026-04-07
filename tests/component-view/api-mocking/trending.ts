@@ -1,6 +1,11 @@
 /**
  * Trending tokens API mock for component view tests.
- * Intercepts GET https://token.api.cx.metamask.io/v3/tokens/trending via nock.
+ * Intercepts:
+ * - GET https://token.api.cx.metamask.io/v3/tokens/trending (trending list)
+ * - GET https://token.api.cx.metamask.io/tokens/search (token search from useSearchRequest)
+ *
+ * Search must be mocked when net connect is disabled; otherwise searchTokens can stall
+ * until fetch timeout while useTrendingSearch stays loading, and short waitFor timeouts flake.
  *
  * Use in beforeEach/afterEach of TrendingView.view.test.tsx (or any view that
  * loads trending data). See tests/component-view/api-mocking/ and references/navigation-mocking.md for adding other API mocks.
@@ -82,6 +87,7 @@ export const mockBnbChainToken: MockTrendingToken[] = [
 
 const TRENDING_ORIGIN = 'https://token.api.cx.metamask.io';
 const TRENDING_PATH = '/v3/tokens/trending';
+const TOKEN_SEARCH_PATH = '/tokens/search';
 
 /**
  * Sets up the nock mock for the trending tokens API.
@@ -105,6 +111,12 @@ export function setupTrendingApiFetchMock(
     .get(TRENDING_PATH)
     .query(true)
     .reply(200, (uri: string) => replyBody(uri))
+    .persist();
+
+  nock(TRENDING_ORIGIN)
+    .get(TOKEN_SEARCH_PATH)
+    .query(true)
+    .reply(200, { count: 0, data: [] })
     .persist();
 }
 

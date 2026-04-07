@@ -10,29 +10,60 @@ import { useParams } from '../../../util/navigation/navUtils';
 
 const mockOnCloseBottomSheet = jest.fn();
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = () => ({});
+    return tw;
+  },
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const {
+    View: ReactNativeView,
+    Text: ReactNativeText,
+    Pressable: ReactNativePressable,
+  } = jest.requireActual('react-native');
+
+  return {
+    Box: ReactNativeView,
+    Text: ReactNativeText,
+    TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+    TextColor: { TextAlternative: 'TextAlternative' },
+    ButtonSize: { Lg: 'Lg' },
+    BottomSheetFooter: ({
+      primaryButtonProps,
+    }: {
+      primaryButtonProps?: {
+        children: React.ReactNode;
+        onPress: () => void;
+      };
+    }) =>
+      primaryButtonProps
+        ? ReactActual.createElement(
+            ReactNativeView,
+            { testID: 'bottom-sheet-footer' },
+            ReactActual.createElement(
+              ReactNativePressable,
+              {
+                testID: 'footer-primary-button',
+                onPress: primaryButtonProps.onPress,
+              },
+              ReactActual.createElement(
+                ReactNativeText,
+                {},
+                primaryButtonProps.children,
+              ),
+            ),
+          )
+        : null,
+  };
+});
+
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
-
-jest.mock('../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      content: {},
-      footerContainer: {},
-      footerTextContainer: {},
-    },
-  }),
-}));
-
-jest.mock('../../../component-library/components/Texts/Text', () => {
-  const { Text: ReactNativeText } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ReactNativeText,
-    TextVariant: {},
-    TextColor: {},
-  };
-});
 
 jest.mock(
   '../../../component-library/components-temp/HeaderCompactStandard',
@@ -77,43 +108,6 @@ jest.mock(
         );
       },
     );
-  },
-);
-
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const {
-      View: ReactNativeView,
-      Text: ReactNativeText,
-      Pressable: ReactNativePressable,
-    } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ({
-        buttonPropsArray,
-      }: {
-        buttonPropsArray: { label: string; onPress: () => void }[];
-      }) =>
-        ReactActual.createElement(
-          ReactNativeView,
-          { testID: 'bottom-sheet-footer' },
-          ...buttonPropsArray.map((buttonProps) =>
-            ReactActual.createElement(
-              ReactNativePressable,
-              {
-                key: buttonProps.label,
-                onPress: buttonProps.onPress,
-                testID: `footer-button-${buttonProps.label}`,
-              },
-              ReactActual.createElement(ReactNativeText, {}, buttonProps.label),
-            ),
-          ),
-        ),
-      ButtonsAlignment: { Horizontal: 'Horizontal' },
-    };
   },
 );
 

@@ -299,7 +299,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
         async () => {
           const isSeedlessPasswordOutdated =
-            await checkIsSeedlessPasswordOutdated(false);
+            await checkIsSeedlessPasswordOutdated({
+              skipCache: false,
+              captureSentryError: true,
+            });
           await unlockWallet({ password });
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();

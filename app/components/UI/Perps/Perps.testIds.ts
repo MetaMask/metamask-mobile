@@ -193,6 +193,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
   AMOUNT_LABEL: 'perps-amount-display-amount',
   MAX_LABEL: 'perps-amount-display-max',
+  TOUCHABLE: 'perps-amount-display-touchable',
 };
 
 // ========================================
@@ -261,6 +262,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
+  TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
+  STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -374,6 +377,7 @@ export const PerpsMarketHeaderSelectorsIDs = {
   PRICE_TITLE_SECTION: 'perps-market-header-price-title-section',
   PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
+  FAVORITE_BUTTON: 'perps-market-header-favorite-button',
 };
 
 // ========================================
@@ -412,6 +416,15 @@ export const PerpsTransactionSelectorsIDs = {
   // Transaction Views
   FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
   ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
+
+  // FlashList
+  FLASH_LIST: 'perps-transactions-flash-list',
+
+  // Fill tags
+  FILL_TAG_TAKE_PROFIT: 'perps-fill-tag-take-profit',
+  FILL_TAG_STOP_LOSS: 'perps-fill-tag-stop-loss',
+  FILL_TAG_LIQUIDATED: 'perps-fill-tag-liquidated',
+  FILL_TAG_ADL: 'perps-fill-tag-adl',
 
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
@@ -517,10 +530,27 @@ export const PerpsOrderViewSelectorsIDs = {
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
-  TAKE_PROFIT_BUTTON: 'perps-order-view-stop-loss-button',
+  TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
   KEYPAD: 'perps-order-view-keypad',
+  // Keypad action buttons
+  KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
+  KEYPAD_50_PCT: 'perps-order-view-keypad-50pct',
+  KEYPAD_MAX: 'perps-order-view-keypad-max',
+  KEYPAD_DONE: 'perps-order-view-keypad-done',
+  // Row touchables that open bottom sheets
+  LEVERAGE_ROW: 'perps-order-view-leverage-row',
+  LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+};
+
+// ========================================
+// PERPS LIMIT PRICE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsLimitPriceBottomSheetSelectorsIDs = {
+  PRICE_DISPLAY: 'perps-limit-price-display',
+  CONFIRM_BUTTON: 'perps-limit-price-confirm-button',
 };
 
 // ========================================
@@ -549,6 +579,21 @@ export const PerpsClosePositionViewSelectorsIDs = {
 // ========================================
 // PERPS MARKET TABS SELECTORS
 // ========================================
+
+export const PerpsOrderTypeBottomSheetSelectorsIDs = {
+  MARKET_OPTION: 'perps-order-type-market',
+  LIMIT_OPTION: 'perps-order-type-limit',
+} as const;
+
+export const PerpsAdjustMarginActionSheetSelectorsIDs = {
+  ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
+  REDUCE_MARGIN_OPTION: 'perps-adjust-margin-reduce-btn',
+} as const;
+
+export const PerpsAdjustMarginViewSelectorsIDs = {
+  CONFIRM_BUTTON: 'perps-adjust-margin-confirm-button',
+  DONE_BUTTON: 'perps-adjust-margin-done-button',
+} as const;
 
 export const PerpsMarketTabsSelectorsIDs = {
   // Container
@@ -686,4 +731,27 @@ export const PerpsOrderBookDepthChartSelectorsIDs = {
 export const PerpsWebSocketHealthToastSelectorsIDs = {
   TOAST: 'perps-websocket-health-toast',
   RETRY_BUTTON: 'perps-websocket-health-toast-retry-button',
+} as const;
+
+// ========================================
+// PERPS ORDER DETAILS VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderDetailsViewSelectorsIDs = {
+  CANCEL_BUTTON: 'perps-order-details-cancel-button',
+} as const;
+
+// ========================================
+// PERPS COMPACT ORDER ROW SELECTORS
+// ========================================
+
+export const PerpsCompactOrderRowSelectorsIDs = {
+  FIRST_ROW: 'perps-compact-order-row-first',
+} as const;
+
+export const PerpsTransactionsViewSelectorsIDs = {
+  TAB_TRADES: 'perps-transactions-tab-trades',
+  TAB_ORDERS: 'perps-transactions-tab-orders',
+  TAB_FUNDING: 'perps-transactions-tab-funding',
+  TAB_DEPOSITS: 'perps-transactions-tab-deposits',
 } as const;

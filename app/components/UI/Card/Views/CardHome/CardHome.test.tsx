@@ -1805,7 +1805,7 @@ describe('CardHome Component', () => {
       );
       expect(addFundsButton).toBeTruthy();
       // Button should have disabled styling applied
-      expect(addFundsButton.props.disabled).toBe(true);
+      expect(addFundsButton).toBeDisabled();
     });
 
     it('enables add funds button when swap is enabled for priority token', () => {
@@ -1820,7 +1820,7 @@ describe('CardHome Component', () => {
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
       expect(addFundsButton).toBeTruthy();
-      expect(addFundsButton.props.disabled).toBe(false);
+      expect(addFundsButton).toBeEnabled();
     });
 
     it('applies disabled styling when swap is not enabled', () => {
@@ -1837,7 +1837,7 @@ describe('CardHome Component', () => {
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
       expect(addFundsButton).toBeTruthy();
-      expect(addFundsButton.props.disabled).toBe(true);
+      expect(addFundsButton).toBeDisabled();
     });
 
     it('does not disable button when swap is enabled for priority token', async () => {
@@ -1851,7 +1851,7 @@ describe('CardHome Component', () => {
       const addFundsButton = screen.getByTestId(
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
-      expect(addFundsButton.props.disabled).toBe(false);
+      expect(addFundsButton).toBeEnabled();
 
       mockTrackEvent.mockClear();
       fireEvent.press(addFundsButton);
@@ -2276,31 +2276,6 @@ describe('CardHome Component', () => {
 
       // Then: should not display spending limit progress bar
       expect(screen.queryByText('Spending Limit')).not.toBeOnTheScreen();
-    });
-
-    it('hides manage spending limit button for Solana chain', () => {
-      // Given: authenticated with Solana chain
-      setupMockSelectors({ isAuthenticated: true });
-      mockIsSolanaChainId.mockReturnValue(true);
-      const solanaToken = {
-        ...mockPriorityToken,
-        caipChainId: 'solana:mainnet',
-        allowanceState: AllowanceState.Limited,
-      };
-      setupLoadCardDataMock({
-        priorityToken: solanaToken,
-        allTokens: [solanaToken],
-        isAuthenticated: true,
-        warning: null,
-      });
-
-      // When: component renders
-      render();
-
-      // Then: should not display manage spending limit button
-      expect(
-        screen.queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
-      ).not.toBeOnTheScreen();
     });
 
     it('hides close spending limit warning for Solana chain', () => {

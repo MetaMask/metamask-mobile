@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -249,7 +249,10 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    // Use push so we always open a new Asset screen for the tapped token.
+    // This prevents issues such as dismissing screens like Bridge instead
+    // of navigating forward to the new token.
+    navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
     assetParams,
     caipChainId,

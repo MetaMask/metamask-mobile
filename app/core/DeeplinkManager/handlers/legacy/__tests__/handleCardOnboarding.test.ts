@@ -8,7 +8,6 @@ import Logger from '../../../../../util/Logger';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
-  selectCardGeoLocation,
   setAlwaysShowCardButton,
 } from '../../../../redux/slices/card';
 import {
@@ -16,7 +15,9 @@ import {
   selectCardSupportedCountries,
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 
+jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
   default: {
@@ -59,7 +60,7 @@ describe('handleCardOnboarding', () => {
     // Default mocks - onboarding disabled
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
     (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
-    (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('US');
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
     (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
       false,
     );
@@ -94,7 +95,7 @@ describe('handleCardOnboarding', () => {
       });
 
       it('enables onboarding regardless of geo location', () => {
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue(
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
           'UNSUPPORTED_COUNTRY',
         );
 
@@ -130,7 +131,9 @@ describe('handleCardOnboarding', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'GB',
+        );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
           GB: true,
           DE: true,
@@ -164,7 +167,7 @@ describe('handleCardOnboarding', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue(
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
           'UNSUPPORTED',
         );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
@@ -202,7 +205,9 @@ describe('handleCardOnboarding', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(false);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'GB',
+        );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
           GB: true,
         });
@@ -224,7 +229,9 @@ describe('handleCardOnboarding', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('XX');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'XX',
+        );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
           XX: false,
           GB: true,
@@ -273,7 +280,9 @@ describe('handleCardOnboarding', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'GB',
+        );
       });
 
       it('does not enable onboarding when cardSupportedCountries is undefined', () => {

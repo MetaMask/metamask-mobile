@@ -545,6 +545,16 @@ jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
 );
 
+// ESM-only package; Jest must not load node_modules source (transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
+  },
+}));
+
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
   default: (source) => {
