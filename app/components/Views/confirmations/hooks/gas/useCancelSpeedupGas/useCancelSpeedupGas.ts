@@ -3,6 +3,7 @@ import {
   GasFeeEstimateLevel,
   isEIP1559Transaction,
   SPEED_UP_RATE,
+  TransactionStatus,
   UserFeeLevel,
   type FeeMarketEIP1559Values,
   type GasPriceValue,
@@ -31,6 +32,11 @@ import type {
 } from './types';
 
 const HEX_ZERO = '0x0';
+
+const MODIFIABLE_STATUSES = new Set([
+  TransactionStatus.unapproved,
+  TransactionStatus.submitted,
+]);
 
 /** Stub passed to useFeeCalculations when tx is null so the hook is always called unconditionally. */
 const STUB_TX = {
@@ -207,6 +213,10 @@ export function useCancelSpeedupGas({
 
   const isInitialGasReady = Boolean(tx?.previousGas);
 
+  const isTransactionModifiable = Boolean(
+    tx?.status && MODIFIABLE_STATUSES.has(tx.status),
+  );
+
   return useMemo((): UseCancelSpeedupGasResult => {
     const empty: UseCancelSpeedupGasResult = {
       paramsForController: undefined,
@@ -215,6 +225,7 @@ export function useCancelSpeedupGas({
       networkFeeFiat: null,
       nativeTokenSymbol,
       isInitialGasReady,
+      isTransactionModifiable,
     };
 
     if (!tx?.txParams || !paramsForController) {
@@ -230,6 +241,7 @@ export function useCancelSpeedupGas({
       networkFeeFiat: feeCalculations.estimatedFeeFiat,
       nativeTokenSymbol,
       isInitialGasReady,
+      isTransactionModifiable,
     };
   }, [
     tx,
@@ -238,5 +250,6 @@ export function useCancelSpeedupGas({
     feeCalculations.estimatedFeeFiat,
     nativeTokenSymbol,
     isInitialGasReady,
+    isTransactionModifiable,
   ]);
 }

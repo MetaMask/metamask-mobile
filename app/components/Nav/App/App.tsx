@@ -184,7 +184,7 @@ const OnboardingSuccessFlow = () => {
     <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess as ScreenComponent}
+        component={OnboardingSuccess}
         options={{
           headerShown: false,
         }}
@@ -245,7 +245,7 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess as ScreenComponent}
+        component={OnboardingSuccess}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -280,13 +280,13 @@ const OnboardingNav = () => {
       />
       <Stack.Screen
         name="AccountAlreadyExists"
-        component={AccountStatus as ScreenComponent}
+        component={AccountStatus}
         initialParams={{ type: 'found' }}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="AccountNotFound"
-        component={AccountStatus as ScreenComponent}
+        component={AccountStatus}
         initialParams={{ type: 'not_exist' }}
         options={{ headerShown: false }}
       />
@@ -433,7 +433,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet as ScreenComponent}
+      component={OnboardingSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -1035,7 +1035,7 @@ const AppFlow = () => {
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential as ScreenComponent}
+        component={RevealPrivateCredential}
         options={{
           headerShown: false,
           animationEnabled: true,
