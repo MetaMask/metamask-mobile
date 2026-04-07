@@ -15,6 +15,7 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
@@ -426,7 +427,7 @@ export class PolymarketProvider implements PredictProvider {
     params: GetSeriesParams,
   ): Promise<PredictMarket[]> {
     const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-    const limit = params.limit ?? 50;
+    const limit = params.limit ?? SERIES_MAX_EVENTS;
 
     try {
       const queryParams = new URLSearchParams({
