@@ -3574,6 +3574,7 @@
     "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
+      "1h": "Past hour",
       "7d": "Past 7 days",
       "1w": "Past week",
       "1m": "Past month",
