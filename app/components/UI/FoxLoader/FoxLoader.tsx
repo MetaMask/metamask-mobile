@@ -110,10 +110,15 @@ const FoxLoader = ({
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!isCompleteRef.current) {
-        Logger.error(
-          new Error('Splash animation timed out'),
-          'FoxLoader: forcing app reveal after timeout',
-        );
+        // Only log an error if the animation genuinely got stuck globally.
+        // If animationComplete is true, the primary instance finished successfully —
+        // this is a secondary instance (LockScreen, AppFlow) that mounted mid-animation.
+        if (!animationComplete) {
+          Logger.error(
+            new Error('Splash animation timed out'),
+            'FoxLoader: forcing app reveal after timeout',
+          );
+        }
         // eslint-disable-next-line react-compiler/react-compiler
         animationComplete = true;
         isCompleteRef.current = true;

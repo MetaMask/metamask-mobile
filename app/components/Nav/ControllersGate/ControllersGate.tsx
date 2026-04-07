@@ -32,8 +32,10 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
   // This prevents a blank screen when Rive fails or times out before services finish.
   useEffect(() => {
     if (animationDone && appServicesReady) {
-      setTimeout(fadeOutLoader, 250);
+      const timer = setTimeout(fadeOutLoader, 250);
+      return () => clearTimeout(timer);
     }
+    return undefined;
   }, [animationDone, appServicesReady, fadeOutLoader]);
 
   const handleAnimationComplete = useCallback(() => {
