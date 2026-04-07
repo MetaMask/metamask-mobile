@@ -222,11 +222,13 @@ const LedgerSelectAccount = () => {
   }, [selectedOption]);
 
   const nextPage = useCallback(async () => {
+    let modalShown = false;
     try {
       const isReady = await ensureDeviceReady(deviceId);
       if (!isReady) return;
 
       showLoadingModal();
+      modalShown = true;
       const _accounts = await getLedgerAccountsByOperation(
         PAGINATION_OPERATIONS.GET_NEXT_PAGE,
       );
@@ -234,16 +236,20 @@ const LedgerSelectAccount = () => {
     } catch (e) {
       setErrorMsg((e as Error).message);
     } finally {
-      setBlockingModalVisible(false);
+      if (modalShown) {
+        setBlockingModalVisible(false);
+      }
     }
   }, [ensureDeviceReady, deviceId]);
 
   const prevPage = useCallback(async () => {
+    let modalShown = false;
     try {
       const isReady = await ensureDeviceReady(deviceId);
       if (!isReady) return;
 
       showLoadingModal();
+      modalShown = true;
       const _accounts = await getLedgerAccountsByOperation(
         PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
       );
@@ -251,7 +257,9 @@ const LedgerSelectAccount = () => {
     } catch (e) {
       setErrorMsg((e as Error).message);
     } finally {
-      setBlockingModalVisible(false);
+      if (modalShown) {
+        setBlockingModalVisible(false);
+      }
     }
   }, [ensureDeviceReady, deviceId]);
 

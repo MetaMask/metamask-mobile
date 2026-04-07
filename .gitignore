@@ -185,6 +185,7 @@ github-tools/
 temp/
 /temp/
 .agent/
+.cursor/hooks/state/
 
 # Reassure performance testing
 .reassure/
