@@ -54,7 +54,6 @@ jobs:
           command: |
             echo "📱 Installing Android system images for AVD..."
             "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis;x86_64"
-            echo "✅ System images installed"
 
       - name: Setup Android Build Environment
         timeout-minutes: 15
