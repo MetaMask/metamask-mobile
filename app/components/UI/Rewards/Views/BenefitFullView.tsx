@@ -4,7 +4,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxBorderRadius,
   BoxAlignItems,
   BoxFlexDirection,
   Button,
@@ -90,8 +89,7 @@ const BenefitFullView = () => {
           contentContainerStyle={tw.style('px-4 gap-6')}
         >
           <Box
-            borderRadius={BoxBorderRadius.Lg}
-            twClassName="w-full overflow-hidden">
+            twClassName="w-full rounded-lg overflow-hidden">
             <Image
               source={{ uri: benefit.thumbnail }}
               style={tw.style('w-full h-[248px]')}
@@ -107,7 +105,7 @@ const BenefitFullView = () => {
             >
               {benefit.longTitle}
             </Text>
-            {remainingTime && (
+            {remainingTime != null && (
               <Box
                 marginTop={1}
                 marginBottom={2}

@@ -72,7 +72,7 @@ const BenefitCard = ({ benefit, now }: Props) => {
           >
             {benefit.shortDescription}
           </Text>
-          {remainingTime && (
+          {remainingTime != null && (
             <Box
               gap={1}
               flexDirection={BoxFlexDirection.Row}
