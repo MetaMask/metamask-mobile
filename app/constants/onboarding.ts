@@ -17,11 +17,8 @@ export const SEED_PHRASE = 'seed_phrase';
 export const CONFIRM_PASSWORD = 'confirm_password';
 
 export enum AccountType {
-  Social = 'social',
   Metamask = 'metamask',
   Imported = 'imported',
-  SrpImport = 'srp_import',
-  SocialImport = 'social_import',
   MetamaskGoogle = 'metamask_google',
   ImportedGoogle = 'imported_google',
   MetamaskApple = 'metamask_apple',

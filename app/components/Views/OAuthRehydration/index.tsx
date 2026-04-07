@@ -98,10 +98,7 @@ import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import {
-  AccountType,
-  getSocialAccountType,
-} from '../../../constants/onboarding';
+import { getSocialAccountType } from '../../../constants/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
@@ -124,8 +121,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
-  const accountType =
-    useSelector(selectOnboardingAccountType) ?? AccountType.Social;
+  const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
   const dispatch = useDispatch();
 
   const authConnection =

@@ -427,9 +427,7 @@ const ImportFromSecretRecoveryPhrase = ({
           parentContext: onboardingTraceCtx,
           tags: {
             is_social_login: oauthLoginSuccess,
-            account_type: oauthLoginSuccess
-              ? AccountType.SocialImport
-              : AccountType.SrpImport,
+            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
             biometrics_enabled: Boolean(biometryType),
           },
         });
