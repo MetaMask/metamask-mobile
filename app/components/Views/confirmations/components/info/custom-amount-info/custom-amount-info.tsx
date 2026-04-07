@@ -231,6 +231,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box gap={16}>
           {!overrideContent && (
             <>
+              {isMoneyAccountDeposit && !hasTokens && (
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Error}
+                  style={styles.noFundsText}
+                >
+                  {strings('confirm.no_funds_use_different_account')}
+                </Text>
+              )}
               {isMoneyAccountDeposit && (
                 <AccountSelector
                   label={strings('confirm.label.from')}

@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "ट्रांसेक्शन {{index}}",
     "transaction": "ट्रांसेक्शन",
     "available_balance": "उपलब्ध बैलेंस: ",
-    "available_perps_balance": "उपलब्ध पर्प्स बैलेंस: ",
     "edit_amount_done": "जारी रखें",
     "deposit_edit_amount_done": "फंड जोड़ें",
     "deposit_edit_amount_predict_withdraw": "निकालें",
