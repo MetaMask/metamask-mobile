@@ -282,14 +282,17 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - name: Cache prepared workspace
-        uses: actions/cache/save@v4
+      - name: Archive prepared workspace
+        run: tar czf /tmp/unit-test-deps.tar.gz node_modules .yarn app/util/termsOfUse/termsOfUseContent.ts
+      - name: Upload prepared workspace
+        uses: actions/upload-artifact@v4
         with:
-          path: |
-            node_modules
-            .yarn
-            app/util/termsOfUse/termsOfUseContent.ts
-          key: unit-test-deps-${{ github.sha }}
+          name: unit-test-deps
+          path: /tmp/unit-test-deps.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          overwrite: true
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
@@ -306,15 +309,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Restore prepared workspace
-        uses: actions/cache/restore@v4
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            node_modules
-            .yarn
-            app/util/termsOfUse/termsOfUseContent.ts
-          key: unit-test-deps-${{ github.sha }}
-          fail-on-cache-miss: true
+          name: unit-test-deps
+          path: /tmp
+      - name: Extract prepared workspace
+        run: tar xzf /tmp/unit-test-deps.tar.gz
       - name: Restore Jest transform cache
         uses: actions/cache@v4
         with:
@@ -358,21 +359,19 @@ jobs:
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
     needs: [unit-tests, component-view-tests, prepare-unit-test-deps]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && needs.prepare-unit-test-deps.result == 'success' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Restore prepared workspace
-        uses: actions/cache/restore@v4
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            node_modules
-            .yarn
-            app/util/termsOfUse/termsOfUseContent.ts
-          key: unit-test-deps-${{ github.sha }}
-          fail-on-cache-miss: true
+          name: unit-test-deps
+          path: /tmp
+      - name: Extract prepared workspace
+        run: tar xzf /tmp/unit-test-deps.tar.gz
       - uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
@@ -476,15 +475,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Restore prepared workspace
-        uses: actions/cache/restore@v4
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            node_modules
-            .yarn
-            app/util/termsOfUse/termsOfUseContent.ts
-          key: unit-test-deps-${{ github.sha }}
-          fail-on-cache-miss: true
+          name: unit-test-deps
+          path: /tmp
+      - name: Extract prepared workspace
+        run: tar xzf /tmp/unit-test-deps.tar.gz
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
