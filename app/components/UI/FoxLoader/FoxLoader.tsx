@@ -18,16 +18,26 @@ import styleSheet from './FoxLoader.styles';
 const splashRiveFile = require('../../../animations/splash_screen.riv');
 
 const SPLASH_STATE_MACHINE = 'Splash_animation';
+const STYLE_PARAMS = {};
+const SPLASH_IDLE_STATE = 'Blink and look around (Shorter)';
 
-// Persists across remounts so the animation only plays once per app session
+// Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
+let animationComplete = false;
 
 // Use Canvas renderer on Android — the default Rive SurfaceView causes geometry distortion
 if (Platform.OS === 'android') {
-  RiveRenderer.defaultRenderer(
-    RiveRendererIOS.Rive,
-    RiveRendererAndroid.Canvas,
-  );
+  try {
+    RiveRenderer.defaultRenderer(
+      RiveRendererIOS.Rive,
+      RiveRendererAndroid.Canvas,
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to set Rive Canvas renderer on Android',
+    );
+  }
 }
 
 interface FoxLoaderProps {
@@ -39,19 +49,23 @@ const FoxLoader = ({
   appServicesReady,
   onAnimationComplete,
 }: FoxLoaderProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, STYLE_PARAMS);
   const riveRef = useRef<RiveRef>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const exitTriggered = useRef(false);
-  const isCompleteRef = useRef(false);
+  const isCompleteRef = useRef(animationComplete);
+  const isPlayingRef = useRef(false);
+  const onAnimationCompleteRef = useRef(onAnimationComplete);
+  onAnimationCompleteRef.current = onAnimationComplete;
   const staticFoxOpacity = useRef(new Animated.Value(1)).current;
   const riveOpacity = useRef(new Animated.Value(0)).current;
 
   const startAnimation = useCallback(() => {
     if (isE2E || animationStarted) return;
     try {
+      // eslint-disable-next-line react-compiler/react-compiler
       animationStarted = true;
       riveRef.current?.fireState(SPLASH_STATE_MACHINE, 'Start');
     } catch (error) {
@@ -83,6 +97,13 @@ const FoxLoader = ({
     }
   }, [isPlaying, startAnimation, staticFoxOpacity, riveOpacity]);
 
+  // If the animation already completed this session (remount), skip it immediately
+  useEffect(() => {
+    if (animationComplete) {
+      onAnimationCompleteRef.current?.();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Once both the app is ready and the fox is in its idle loop, fire the exit animation
   useEffect(() => {
     if (appServicesReady && isIdle) {
@@ -91,16 +112,33 @@ const FoxLoader = ({
   }, [appServicesReady, isIdle, stopAnimation]);
 
   return (
-    <View style={[styles.container, isComplete && styles.hidden]}>
-      <View style={styles.animationWrapper}>
+    <View
+      testID="fox-loader-container"
+      style={[styles.container, isComplete && styles.hidden]}
+    >
+      <View
+        testID="fox-loader-animation-wrapper"
+        style={styles.animationWrapper}
+      >
         <Animated.Image
+          testID="fox-loader-static-fox"
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           source={require('../../../images/branding/fox.png')}
           style={[styles.staticFox, { opacity: staticFoxOpacity }]}
           resizeMode="contain"
-          onLoad={() => hideAsync()}
+          onLoad={() => {
+            // Hide native splash once static fox is rendered — the static fox
+            // (opacity 1) bridges the gap until Rive begins playing, so there
+            // is no visible white flash between the two.
+            hideAsync().catch((error) =>
+              Logger.error(error as Error, 'Failed to hide splash screen'),
+            );
+          }}
         />
-        <Animated.View style={[styles.riveAnimation, { opacity: riveOpacity }]}>
+        <Animated.View
+          testID="fox-loader-rive-wrapper"
+          style={[styles.riveAnimation, { opacity: riveOpacity }]}
+        >
           <Rive
             ref={riveRef}
             source={splashRiveFile}
@@ -109,14 +147,28 @@ const FoxLoader = ({
             fit={Fit.Contain}
             alignment={Alignment.Center}
             stateMachineName={SPLASH_STATE_MACHINE}
-            onPlay={() => setIsPlaying(true)}
+            onPlay={() => {
+              isPlayingRef.current = true;
+              setIsPlaying(true);
+            }}
+            onError={() => {
+              // Only bail out if Rive never started — runtime errors during playback are non-fatal
+              if (!isCompleteRef.current && !isPlayingRef.current) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                animationComplete = true;
+                isCompleteRef.current = true;
+                onAnimationCompleteRef.current?.();
+              }
+            }}
             onStateChanged={(_machineName, stateName) => {
               if (isCompleteRef.current) return;
-              setIsIdle(stateName === 'Blink and look around (Shorter)');
+              setIsIdle(stateName === SPLASH_IDLE_STATE);
               if (exitTriggered.current && stateName === 'ExitState') {
+                // eslint-disable-next-line react-compiler/react-compiler
+                animationComplete = true;
                 isCompleteRef.current = true;
                 setIsComplete(true);
-                onAnimationComplete();
+                onAnimationCompleteRef.current?.();
               }
             }}
           />
@@ -127,3 +179,9 @@ const FoxLoader = ({
 };
 
 export default FoxLoader;
+
+/** @internal Reset animation session flags between test runs. Do not call in production code. */
+export const _resetAnimationStateForTesting = () => {
+  animationStarted = false;
+  animationComplete = false;
+};

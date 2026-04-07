@@ -4,63 +4,38 @@ exports[`FoxLoader renders correctly and matches snapshot 1`] = `
 <View
   style={
     [
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "flex": 1,
-        "justifyContent": "center",
-      },
+      {},
       false,
     ]
   }
+  testID="fox-loader-container"
 >
   <View
-    style={
-      {
-        "alignItems": "center",
-        "height": 145,
-        "width": 145,
-      }
-    }
+    style={{}}
+    testID="fox-loader-animation-wrapper"
   >
     <Image
       collapsable={false}
+      onLoad={[Function]}
       resizeMode="contain"
       source={1}
       style={
         {
-          "height": 98,
-          "marginTop": -50,
-          "opacity": 0,
-          "position": "absolute",
-          "top": "50%",
-          "width": 98,
+          "opacity": 1,
         }
       }
+      testID="fox-loader-static-fox"
     />
     <View
       collapsable={false}
       style={
         {
-          "height": 145,
-          "opacity": 1,
-          "width": 145,
+          "opacity": 0,
         }
       }
+      testID="fox-loader-rive-wrapper"
     >
       <View
-        alignment="center"
-        autoplay={true}
-        fit="contain"
-        onStateChanged={[Function]}
-        source="splash_screen.riv"
-        stateMachineName="Splash_animation"
-        style={
-          {
-            "height": 145,
-            "width": 145,
-          }
-        }
         testID="mock-rive-animation"
       />
     </View>

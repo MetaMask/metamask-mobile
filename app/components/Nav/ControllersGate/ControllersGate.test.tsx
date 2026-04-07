@@ -13,6 +13,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Capture onAnimationComplete directly so tests can trigger it without hiding
+// the real prop signature behind a native event like onLayout.
+let capturedOnAnimationComplete: (() => void) | undefined;
+
 jest.mock(
   '../../UI/FoxLoader',
   () =>
@@ -22,11 +26,8 @@ jest.mock(
       appServicesReady: boolean;
       onAnimationComplete: () => void;
     }) {
-      return (
-        <MockView testID={MOCK_FOX_LOADER_ID} onLayout={onAnimationComplete}>
-          Fox Loader
-        </MockView>
-      );
+      capturedOnAnimationComplete = onAnimationComplete;
+      return <MockView testID={MOCK_FOX_LOADER_ID}>Fox Loader</MockView>;
     },
 );
 
@@ -34,6 +35,10 @@ describe('ControllersGate', () => {
   const mockChildren = (
     <MockView testID={MOCK_CHILDREN_ID}>Test Children</MockView>
   );
+
+  beforeEach(() => {
+    capturedOnAnimationComplete = undefined;
+  });
 
   it('renders FoxLoader when appServicesReady is false', () => {
     (useSelector as jest.Mock).mockReturnValue(false);
@@ -76,7 +81,7 @@ describe('ControllersGate', () => {
     );
 
     act(() => {
-      getByTestId(MOCK_FOX_LOADER_ID).props.onLayout();
+      capturedOnAnimationComplete?.();
       jest.runAllTimers();
     });
 
