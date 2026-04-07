@@ -1,5 +1,5 @@
 import { Text, TextVariant } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { useSelector } from 'react-redux';
@@ -42,6 +42,19 @@ const BenefitsFullView = () => {
     [],
   );
 
+  const renderListFooter = useMemo(() => {
+    if (hasBenefits) return <TheMiracleFooter />;
+  }, [hasBenefits]);
+
+  const renderListHeader = useMemo(() => {
+    if (hasBenefits)
+      return (
+        <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
+          {strings('rewards.benefits.list_header')}
+        </Text>
+      );
+  }, [hasBenefits]);
+
   return (
     <ErrorBoundary navigation={navigation} view="BenefitsFullView">
       <SafeAreaView
@@ -55,28 +68,20 @@ const BenefitsFullView = () => {
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
-        {!hasBenefits ? (
-          <BenefitEmptyList />
-        ) : (
-          <FlatList
-            data={benefits}
-            renderItem={renderBenefitItem}
-            keyExtractor={(item) => item.id.toString()}
-            ListFooterComponent={<TheMiracleFooter />}
-            ListEmptyComponent={<BenefitEmptyList />}
-            ListHeaderComponent={
-              <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
-                {strings('rewards.benefits.list_header')}
-              </Text>
-            }
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3 pb-4')}
-            style={tw.style('flex-1')}
-          />
-        )}
+        <FlatList
+          data={benefits}
+          renderItem={renderBenefitItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListFooterComponent={renderListFooter}
+          ListEmptyComponent={<BenefitEmptyList />}
+          ListHeaderComponent={renderListHeader}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3 pb-4')}
+          style={tw.style('flex-1')}
+        />
       </SafeAreaView>
     </ErrorBoundary>
   );

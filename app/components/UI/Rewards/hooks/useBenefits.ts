@@ -7,9 +7,7 @@ import {
   setBenefitsLoading,
 } from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
-import type {
-  SubscriptionBenefitsState,
-} from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { SubscriptionBenefitsState } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
@@ -64,9 +62,8 @@ export const useBenefits = (): {
     }, [getAllBenefits]),
   );
 
-  // Listen for events that should trigger a refetch of referral details
   useInvalidateByRewardEvents(
-    ['RewardsController:accountLinked', 'RewardsController:benefitClaimed'],
+    ['RewardsController:accountLinked'],
     getAllBenefits,
   );
 

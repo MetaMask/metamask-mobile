@@ -38,7 +38,7 @@ const BenefitFullView = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   useEffect(() => {
-    if (!subscriptionId) return
+    if (!subscriptionId) return;
     Engine.controllerMessenger
       .call(
         'RewardsController:postBenefitImpression',
@@ -46,7 +46,8 @@ const BenefitFullView = () => {
         benefit.id,
         benefit.type.id,
       )
-      .then();
+      .then()
+      .catch();
   }, [benefit, subscriptionId]);
 
   const handleClaim = () => {
@@ -72,7 +73,7 @@ const BenefitFullView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">
       <SafeAreaView
-        edges={{ bottom: 'additive'}}
+        edges={{ bottom: 'additive' }}
         style={tw.style('flex-1')}
         testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_VIEW}
       >
