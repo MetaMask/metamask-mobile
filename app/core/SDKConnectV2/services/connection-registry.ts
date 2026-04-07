@@ -263,7 +263,6 @@ export class ConnectionRegistry {
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
 
-      trackWalletEvent('wallet_connection_user_approved', baseProps);
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
@@ -271,9 +270,9 @@ export class ConnectionRegistry {
       if (conn) await this.disconnect(conn.id);
 
       // This catch only handles connection-setup failures (parse, network,
-      // protocol). User rejections of wallet_createSession are asynchronous
-      // and tracked separately as wallet_connection_user_rejected in
-      // Connection's response handler — no double-fire occurs.
+      // protocol). User rejections of wallet_createSession are tracked by
+      // the existing CONNECT_REQUEST_CANCELLED MetaMetrics event (with
+      // source: 'sdk_connect_v2') — no double-fire occurs.
       trackWalletEvent('wallet_connection_request_failed', {
         anon_id: connReq?.sessionRequest?.id ?? 'unknown',
         platform: 'mobile',
