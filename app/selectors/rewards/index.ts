@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../reducers';
+import { RewardsAccountState } from '../../core/Engine/controllers/rewards-controller/types';
 
 /**
  *
@@ -61,4 +62,21 @@ export const selectRewardsActiveAccountAddress = createSelector(
     const parts = account.split(':');
     return parts[parts.length - 1];
   },
+);
+
+export const selectCurrentSubscription = createSelector(
+  [selectRewardsSubscriptionId, selectRewardsControllerState],
+  (subscriptionId, rewardsState) =>
+    subscriptionId
+      ? (rewardsState.subscriptions[subscriptionId] ?? null)
+      : null,
+);
+
+export const selectCurrentSubscriptionAccounts = createSelector(
+  [selectRewardsControllerState, selectCurrentSubscription],
+  (rewardsState, subscription) =>
+    Object.values(rewardsState.accounts).filter(
+      (account: RewardsAccountState) =>
+        account.subscriptionId === subscription?.id,
+    ),
 );
