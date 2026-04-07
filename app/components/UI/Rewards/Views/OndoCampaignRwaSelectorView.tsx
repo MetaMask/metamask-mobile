@@ -76,7 +76,6 @@ type OndoCampaignRwaSelectorRouteParams = {
     srcTokenSymbol?: string;
     srcTokenName?: string;
     srcTokenDecimals?: number;
-    srcTokenUnits?: string;
     campaignId: string;
   };
 };
@@ -104,7 +103,6 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     srcTokenSymbol,
     srcTokenName,
     srcTokenDecimals,
-    srcTokenUnits = '1',
   } = route.params;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -234,9 +232,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         rwaData: asset.rwaData as BridgeToken['rwaData'],
       };
 
-      goToSwaps(undefined, destToken, undefined, undefined, srcTokenUnits);
+      goToSwaps(undefined, destToken);
     },
-    [goToSwaps, srcTokenUnits],
+    [goToSwaps],
   );
 
   const title =

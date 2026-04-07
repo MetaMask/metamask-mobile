@@ -1296,45 +1296,4 @@ describe('useSwapBridgeNavigation', () => {
       }),
     });
   });
-
-  it('includes sourceAmount in bridge params when provided', () => {
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: SwapBridgeNavigationLocation.TokenView,
-          sourcePage: mockSourcePage,
-          sourceToken: mockSourceToken,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps(undefined, undefined, undefined, undefined, '100');
-
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: expect.objectContaining({
-        sourceToken: mockSourceToken,
-        sourcePage: mockSourcePage,
-        location: 'Token View',
-        sourceAmount: '100',
-      }),
-    });
-  });
-
-  it('omits sourceAmount from bridge params when not provided', () => {
-    const { result } = renderHookWithProvider(
-      () =>
-        useSwapBridgeNavigation({
-          location: SwapBridgeNavigationLocation.TokenView,
-          sourcePage: mockSourcePage,
-          sourceToken: mockSourceToken,
-        }),
-      { state: initialState },
-    );
-
-    result.current.goToSwaps();
-
-    const navigateCall = mockNavigate.mock.calls[0];
-    expect(navigateCall[1].params).not.toHaveProperty('sourceAmount');
-  });
 });

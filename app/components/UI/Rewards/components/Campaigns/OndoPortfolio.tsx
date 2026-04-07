@@ -261,7 +261,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   );
 
   const navigateToSwap = useCallback(
-    (row: OndoGmPortfolioPositionDto, srcTokenUnits: string) => {
+    (row: OndoGmPortfolioPositionDto) => {
       navigation.navigate(
         Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR as never,
         {
@@ -269,7 +269,6 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           srcTokenAsset: row.tokenAsset,
           srcTokenSymbol: row.tokenSymbol,
           srcTokenName: row.tokenName,
-          srcTokenUnits,
           campaignId,
         },
       );
@@ -283,7 +282,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
 
       if (groupsForRow.length === 0) {
         // No group has balance — proceed directly; bridge will show correct state
-        navigateToSwap(row, row.units);
+        navigateToSwap(row);
         return;
       }
       if (groupsForRow.length === 1) {
@@ -293,8 +292,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
             group.id,
           );
         }
-        const groupBalance = getGroupBalance(group, row);
-        navigateToSwap(row, groupBalance);
+        navigateToSwap(row);
         return;
       }
 

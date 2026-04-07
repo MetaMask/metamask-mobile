@@ -12,7 +12,6 @@ jest.mock('@react-navigation/native', () => ({
     params: {
       mode: 'open_position',
       campaignId: 'campaign-1',
-      srcTokenUnits: '1',
     },
   }),
 }));

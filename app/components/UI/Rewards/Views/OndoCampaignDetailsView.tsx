@@ -115,7 +115,7 @@ const OndoCampaignDetailsView: React.FC = () => {
   }, [navigation]);
 
   const handleGroupSelect = useCallback(
-    (group: AccountGroupObject, balance: string) => {
+    (group: AccountGroupObject) => {
       if (!pendingPicker) return;
       Engine.context.AccountTreeController.setSelectedAccountGroup(group.id);
       sheetRef.current?.onCloseBottomSheet(() => {
@@ -128,7 +128,6 @@ const OndoCampaignDetailsView: React.FC = () => {
             srcTokenAsset: row.tokenAsset,
             srcTokenSymbol: row.tokenSymbol,
             srcTokenName: row.tokenName,
-            srcTokenUnits: balance,
             campaignId,
           },
         );
@@ -582,7 +581,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                 balance={balance}
                 tokenSymbol={pendingPicker.row.tokenSymbol}
                 isSelected={group.id === selectedGroup?.id}
-                onPress={() => handleGroupSelect(group, balance)}
+                onPress={() => handleGroupSelect(group)}
               />
             ))}
           </BottomSheet>
