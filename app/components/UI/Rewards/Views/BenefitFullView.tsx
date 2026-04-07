@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -62,13 +62,13 @@ const BenefitFullView = () => {
     }
   }, [benefit, navigation]);
 
-  const now = Date.now();
+  const nowRef = useRef(Date.now());
   const remainingTime = useMemo(() => {
     if (benefit.validTo == null) {
       return null;
     }
-    return formatDateRemaining(benefit.validTo, now);
-  }, [benefit.validTo, now]);
+    return formatDateRemaining(benefit.validTo, nowRef.current);
+  }, [benefit.validTo]);
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">

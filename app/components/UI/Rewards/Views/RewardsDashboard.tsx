@@ -28,7 +28,7 @@ import { selectSelectedAccountGroup } from '../../../../selectors/multichainAcco
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import {ScrollView} from "react-native";
+import { ScrollView } from 'react-native';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -197,12 +197,13 @@ const RewardsDashboard: React.FC = () => {
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
         >
-        <Box twClassName="flex-1 gap-4">
-          <CampaignsPreview />
-          <EarnRewardsPreview />
-          <BenefitsPreview/>
-        </Box>
+          <Box twClassName="gap-4">
+            <CampaignsPreview />
+            <EarnRewardsPreview />
+            <BenefitsPreview />
+          </Box>
         </ScrollView>
       </SafeAreaView>
       <Toast ref={toastRef} />
