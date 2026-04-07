@@ -124,6 +124,12 @@ jobs:
           android-avd-name: emulator
           configure-keystores: false
 
+      - name: Select Xcode 26.3 (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
+
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |

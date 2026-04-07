@@ -104,6 +104,11 @@ jobs:
           platform: ios
           setup-simulator: false
 
+      - name: Select Xcode 26.3
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
+
       - name: Print iOS tool versions
         run: |
           echo "🔧 Node.js Version:"

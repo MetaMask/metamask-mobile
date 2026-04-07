@@ -225,6 +225,11 @@ jobs:
           setup-simulator: true
           configure-keystores: false
 
+      - name: Select Xcode 26.3
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
+
       - name: Build Detox framework cache
         run: |
           yarn detox clean-framework-cache
