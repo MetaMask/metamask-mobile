@@ -7992,17 +7992,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/compliance-controller@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@metamask/compliance-controller@npm:1.0.1"
+"@metamask/compliance-controller@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/compliance-controller@npm:2.0.0"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/base-controller": "npm:^9.0.1"
+    "@metamask/controller-utils": "npm:^11.20.0"
+    "@metamask/messenger": "npm:^1.1.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
     reselect: "npm:^5.1.1"
-  checksum: 10/5847e60715cf6896d7dc496d9cd6a68b0b0e6a9515e732a682b4dbb8741a8d864bd78754f7ca00e040d220612177206afafd77d477986046be002867961516fe
+  checksum: 10/a5052dac7860eb4cdd247ebccdb6d091092ea8564a3e8d986f0d38e0a3107ee35844c45eb2873ea7f388129603ad2a0bd9f788adc0b96a14d0987e8bedfa80bf
   languageName: node
   linkType: hard
 
@@ -8138,15 +8138,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.4.0"
+"@metamask/design-system-twrnc-preset@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "@metamask/design-system-twrnc-preset@npm:0.4.1"
   dependencies:
     twrnc: "npm:^4.5.1"
   peerDependencies:
     "@metamask/design-tokens": ^8.0.0
     react: ^18.2.0
-  checksum: 10/a95257c4dd8ac62edc117857458677d33cf4d9b058ac007241a4a116aa6883e71b4deb455d626fea1f1991e9a1e8b02f539af739ea0eac47057fbafdb792500e
+  checksum: 10/03efe62d594abf8ae1752e4833c7249af38047bd912b908b41530fa6ac1e4a115854dd0a1493cbb224cf87fe5612213463f1f052dff78dfb958f5d1edc9f3726
   languageName: node
   linkType: hard
 
@@ -20699,10 +20699,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.8.10, @xmldom/xmldom@npm:^0.8.8, @xmldom/xmldom@npm:^0.x":
-  version: 0.8.11
-  resolution: "@xmldom/xmldom@npm:0.8.11"
-  checksum: 10/f6d6ffdf71cf19d9b3c10e978fad40d2f85453bf5b2aa05be8aa0c5ad13f84690c3153316729213cc652d06ec12c605ddb0aa03886f1d73d51b974b4105d31e3
+"@xmldom/xmldom@npm:^0.8.12, @xmldom/xmldom@npm:^0.8.8, @xmldom/xmldom@npm:^0.x":
+  version: 0.8.12
+  resolution: "@xmldom/xmldom@npm:0.8.12"
+  checksum: 10/0fc20bc72a057a939ed17afc3fb35d6be2eb19e42aa9ba3c78aa8bdf471da0b4b17c2710581ce6a2cd68ce3995c2ee7d689593a70a26df1273c0c9c29dfca257
   languageName: node
   linkType: hard
 
@@ -34723,6 +34723,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"liveline@npm:0.0.7":
+  version: 0.0.7
+  resolution: "liveline@npm:0.0.7"
+  peerDependencies:
+    react: ">=18"
+  checksum: 10/295bb9913e9af40282a549a4dbbb2c7a8188deb1cf76db3ae3562a55dd32be93811276d6874f460849a4810027ec15368c0aa748e43f0f8081830fdaf688e774
+  languageName: node
+  linkType: hard
+
 "loader-runner@npm:^4.2.0":
   version: 4.3.0
   resolution: "loader-runner@npm:4.3.0"
@@ -35456,14 +35465,14 @@ __metadata:
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.3.0"
-    "@metamask/compliance-controller": "npm:^1.0.1"
+    "@metamask/compliance-controller": "npm:2.0.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.13.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.4.0"
+    "@metamask/design-system-twrnc-preset": "npm:^0.4.1"
     "@metamask/design-tokens": "npm:^8.3.0"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
@@ -35653,7 +35662,7 @@ __metadata:
     "@walletconnect/utils": "npm:^2.23.0"
     "@wdio/protocols": "npm:^9.27.0"
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
-    "@xmldom/xmldom": "npm:^0.8.10"
+    "@xmldom/xmldom": "npm:^0.8.12"
     appium: "npm:^2.12.1"
     appium-adb: "npm:^9.11.4"
     appium-chromium-driver: "npm:^2.0.2"
@@ -35750,6 +35759,7 @@ __metadata:
     koa: "npm:^2.14.2"
     lint-staged: "npm:10.5.4"
     listr2: "npm:^8.0.2"
+    liveline: "npm:0.0.7"
     lodash: "npm:4.18.1"
     lottie-react-native: "npm:6.7.2"
     luxon: "npm:^3.5.0"

@@ -42,6 +42,7 @@ import { useQRHardwareContext } from '../../context/qr-hardware-context';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.perpsWithdraw,
