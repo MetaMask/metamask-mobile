@@ -1239,7 +1239,7 @@ export type SubscriptionBenefitDto = {
   validFrom: string;
   validTo: string;
   url: string;
-  actionDate: string;
+  actionDate: string | null;
   chain: string;
   type: { id: number; name: string };
 };
