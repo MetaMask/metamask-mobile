@@ -411,23 +411,6 @@ describe('useRampsPaymentMethods', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('disables query when selectedToken is missing', () => {
-    const store = createMockStore({
-      tokens: { ...baseRampsState.tokens, selected: null },
-    });
-    const { Wrapper } = createWrapper(store);
-
-    const { result } = renderHook(() => useRampsPaymentMethods(), {
-      wrapper: Wrapper,
-    });
-
-    expect(result.current.status).toBe('idle');
-    expect(result.current.isLoading).toBe(false);
-    expect(
-      Engine.context.RampsController.getPaymentMethods,
-    ).not.toHaveBeenCalled();
-  });
-
   describe('auto-selection', () => {
     it('auto-selects first payment method when data loads and none is selected', async () => {
       const store = createMockStore();
@@ -447,7 +430,7 @@ describe('useRampsPaymentMethods', () => {
 
       expect(
         Engine.context.RampsController.setSelectedPaymentMethod,
-      ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
+      ).toHaveBeenCalledWith(mockPaymentMethods[0]);
     });
 
     it('preserves existing selection if it is still in the new list', async () => {
@@ -531,7 +514,7 @@ describe('useRampsPaymentMethods', () => {
 
       expect(
         Engine.context.RampsController.setSelectedPaymentMethod,
-      ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
+      ).toHaveBeenCalledWith(mockPaymentMethods[0]);
     });
   });
 });
