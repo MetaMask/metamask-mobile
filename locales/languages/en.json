@@ -3574,6 +3574,7 @@
     "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
+      "1h": "Past hour",
       "7d": "Past 7 days",
       "1w": "Past week",
       "1m": "Past month",
@@ -6532,7 +6533,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_deposit": "Add funds"
+      "money_account_deposit": "Add funds",
+      "money_account_withdraw": "Withdraw funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",

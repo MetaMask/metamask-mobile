@@ -89,7 +89,7 @@ export class CardSDK {
     enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
-    userCardLocation?: CardLocation;
+    userCardLocation?: CardLocation | null;
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
