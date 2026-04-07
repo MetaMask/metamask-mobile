@@ -11,7 +11,7 @@ import { Theme } from '../../../util/theme/models';
 // Pixel 4: 140 works perfectly for the animation
 // Pixel 8: 140 works perfectly for the animation
 // iPhone 17 Pro: works perfectly for the animation
-const FOX_SIZE = Platform.OS === 'ios' ? 145 : 140;
+const FOX_SIZE = Platform.OS === 'ios' ? 142 : 142;
 
 /**
  * Style sheet function for FoxLoader component.
@@ -44,7 +44,7 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 98,
       position: 'absolute',
       top: '50%',
-      marginTop: -(100 / 2),
+      marginTop: -(98 / 2),
     },
     hidden: {
       opacity: 0,

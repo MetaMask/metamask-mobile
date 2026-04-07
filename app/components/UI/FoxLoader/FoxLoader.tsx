@@ -8,6 +8,7 @@ import Rive, {
   RiveRendererIOS,
   RiveRendererAndroid,
 } from 'rive-react-native';
+import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import { isE2E } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
@@ -97,6 +98,7 @@ const FoxLoader = ({
           source={require('../../../images/branding/fox.png')}
           style={[styles.staticFox, { opacity: staticFoxOpacity }]}
           resizeMode="contain"
+          onLoad={() => hideAsync()}
         />
         <Animated.View style={[styles.riveAnimation, { opacity: riveOpacity }]}>
           <Rive
