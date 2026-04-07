@@ -9,13 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.72.0]
 
-### Uncategorized
-
-- chore(release): sync stable to main for version 7.70.1 (#27913)
-- Added a checkbox to upload sourcemap on build mobile workflow (#27750)
-- chore: consolidate source_branch and ref in build.yml (#27768)
-- chore(release): sync stable to main for version 7.72.0 (#27809)
-
 ### Added
 
 - Card Spending limit screen analytics include Linea mUSD fiat balance, top card-supported asset by fiat, and top wallet-wide asset by fiat when the screen is viewed (#27981)
