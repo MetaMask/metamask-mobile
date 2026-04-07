@@ -648,6 +648,19 @@ export type RewardsControllerInvalidateReferralDetailsCacheAction = {
   handler: RewardsController['invalidateReferralDetailsCache'];
 };
 
+export interface RewardsControllerGetBenefitsAction {
+  type: 'RewardsController:getBenefits';
+  handler: RewardsController['getBenefits'];
+}
+
+/**
+ * Action for getting benefits of an existing subscription
+ */
+export interface RewardsControllerPostBenefitImpressionAction {
+  type: 'RewardsController:postBenefitImpression';
+  handler: RewardsController['postBenefitImpression'];
+}
+
 /**
  * Invalidate cached data for a subscription
  *
@@ -719,6 +732,8 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetActivityLastUpdatedAction
   | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
+  | RewardsControllerGetBenefitsAction
+  | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
