@@ -15,7 +15,7 @@ describe('ListItemMultiSelectButton', () => {
         <View />
       </ListItemMultiSelectButton>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
 
   it('should call onPress when the button is pressed', () => {

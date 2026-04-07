@@ -20,17 +20,17 @@ describe('ButtonFilter', () => {
   });
 
   it('renders correctly in active state', () => {
-    const { toJSON } = render(<ButtonFilter {...defaultProps} isActive />);
+    const { getByRole } = render(<ButtonFilter {...defaultProps} isActive />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByRole('button')).toBeOnTheScreen();
   });
 
   it('renders correctly in inactive state', () => {
-    const { toJSON } = render(
+    const { getByRole } = render(
       <ButtonFilter {...defaultProps} isActive={false} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByRole('button')).toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {

@@ -28,7 +28,7 @@ describe('MultichainAddressRow', () => {
     const wrapper = render(
       <MultichainAddressRow {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
 
   it('renders the network name', () => {

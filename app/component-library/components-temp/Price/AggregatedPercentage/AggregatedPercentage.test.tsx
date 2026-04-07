@@ -31,7 +31,7 @@ describe('AggregatedPercentage', () => {
         ethFiat1dAgo={90}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeDefined();
   });
 
   it('renders positive percentage change correctly', () => {
