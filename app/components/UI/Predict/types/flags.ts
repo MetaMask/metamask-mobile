@@ -24,6 +24,7 @@ export interface PredictFeatureFlags {
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
+  predictUpDownEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

@@ -55,6 +55,7 @@ import {
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { usePredictFeedItems } from '../../hooks/usePredictFeedItems';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
@@ -259,6 +260,8 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     isFetchingMore,
   } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
 
+  const feedItems = usePredictFeedItems(marketData);
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const contentInsetTop = headerHeight + tabBarHeight;
@@ -361,7 +364,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     );
   }
 
-  if (!marketData || marketData.length === 0) {
+  if (!feedItems || feedItems.length === 0) {
     return (
       <Box
         testID={getPredictFeedSelector.emptyState(category)}
@@ -379,7 +382,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     <AnimatedFlashList
       ref={listRef}
       testID={getPredictFeedSelector.marketList(category)}
-      data={marketData}
+      data={feedItems}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       onEndReached={handleEndReached}
