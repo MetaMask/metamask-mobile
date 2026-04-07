@@ -99,20 +99,6 @@ class TransactionPayConfirmation {
     });
   }
 
-  get payWithBalance(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_BALANCE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TransactionPayComponentIDs.PAY_WITH_BALANCE,
-          {
-            exact: true,
-          },
-        ),
-    });
-  }
-
   get keyboardContinueButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
