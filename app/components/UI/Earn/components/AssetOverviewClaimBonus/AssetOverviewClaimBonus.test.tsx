@@ -94,6 +94,10 @@ describe('AssetOverviewClaimBonus', () => {
       balance: '1000',
       fiatBalance: '$1000',
       tokenFormattedBalance: '1000 mUSD',
+      isTronNative: false,
+      stakedTrxAsset: undefined,
+      inLockPeriodBalance: undefined,
+      readyForWithdrawalBalance: undefined,
     });
 
     mockUseMerklBonusClaim.mockReturnValue(
@@ -185,6 +189,10 @@ describe('AssetOverviewClaimBonus', () => {
         balance: '500',
         fiatBalance: '$500',
         tokenFormattedBalance: '500 mUSD',
+        isTronNative: false,
+        stakedTrxAsset: undefined,
+        inLockPeriodBalance: undefined,
+        readyForWithdrawalBalance: undefined,
       });
       mockUseMerklBonusClaim.mockReturnValue(
         createMockMerklClaimData({
@@ -219,6 +227,10 @@ describe('AssetOverviewClaimBonus', () => {
         balance: '0',
         fiatBalance: '$0',
         tokenFormattedBalance: '0 mUSD',
+        isTronNative: false,
+        stakedTrxAsset: undefined,
+        inLockPeriodBalance: undefined,
+        readyForWithdrawalBalance: undefined,
       });
       mockUseMerklBonusClaim.mockReturnValue(
         createMockMerklClaimData({
@@ -254,6 +266,10 @@ describe('AssetOverviewClaimBonus', () => {
         balance: '0',
         fiatBalance: '$0',
         tokenFormattedBalance: '0 mUSD',
+        isTronNative: false,
+        stakedTrxAsset: undefined,
+        inLockPeriodBalance: undefined,
+        readyForWithdrawalBalance: undefined,
       });
       mockUseMerklBonusClaim.mockReturnValue(
         createMockMerklClaimData({
