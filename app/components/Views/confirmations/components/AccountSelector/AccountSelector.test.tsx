@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../util/theme';
-import MoneyAccountSelector, {
-  MONEY_ACCOUNT_SELECTOR_TEST_IDS,
-} from './MoneyAccountSelector';
+import AccountSelector, { ACCOUNT_SELECTOR_TEST_IDS } from './AccountSelector';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -197,7 +195,7 @@ jest.mock(
   },
 );
 
-describe('MoneyAccountSelector', () => {
+describe('AccountSelector', () => {
   const mockOnAccountSelected = jest.fn();
 
   beforeEach(() => {
@@ -206,16 +204,16 @@ describe('MoneyAccountSelector', () => {
 
   it('renders pill with placeholder when no account selected', () => {
     const { getByTestId, getByText } = render(
-      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
+      <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
-    expect(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL)).toBeOnTheScreen();
+    expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL)).toBeOnTheScreen();
     expect(getByText('transaction.recipient_address')).toBeOnTheScreen();
   });
 
   it('renders avatar and account name when selectedAddress is provided', () => {
     const { getByText } = render(
-      <MoneyAccountSelector
+      <AccountSelector
         selectedAddress="0xAccount1Address"
         onAccountSelected={mockOnAccountSelected}
       />,
@@ -226,22 +224,20 @@ describe('MoneyAccountSelector', () => {
 
   it('opens modal when pill is pressed', () => {
     const { getByTestId } = render(
-      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
+      <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
-    fireEvent.press(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL));
+    fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
 
-    expect(
-      getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.MODAL),
-    ).toBeOnTheScreen();
+    expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.MODAL)).toBeOnTheScreen();
   });
 
   it('calls onAccountSelected with correct address when account is selected', () => {
     const { getByTestId } = render(
-      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
+      <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
-    fireEvent.press(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL));
+    fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
     fireEvent.press(getByTestId('account-group-group-1'));
 
     expect(mockOnAccountSelected).toHaveBeenCalledWith('0xAccount1Address');
@@ -249,12 +245,12 @@ describe('MoneyAccountSelector', () => {
 
   it('closes modal after selecting an account', () => {
     const { getByTestId, queryByTestId } = render(
-      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
+      <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
-    fireEvent.press(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL));
+    fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
     fireEvent.press(getByTestId('account-group-group-1'));
 
-    expect(queryByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.MODAL)).toBeNull();
+    expect(queryByTestId(ACCOUNT_SELECTOR_TEST_IDS.MODAL)).toBeNull();
   });
 });
