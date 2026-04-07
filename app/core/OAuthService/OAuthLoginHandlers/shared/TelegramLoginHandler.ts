@@ -6,9 +6,14 @@ import {
   HandleFlowParams,
   LoginHandlerCodeResult,
 } from '../../OAuthInterface';
-import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
+import {
+  BaseHandlerOptions,
+  BaseLoginHandler,
+  getAuthTokens as requestAuthTokens,
+} from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import {
+  TelegramMintPath,
   TelegramAuthServerUrl,
   TelegramAuthServerInitiatePath,
   TelegramAuthServerVerifyPath,
@@ -17,6 +22,18 @@ import Logger from '../../../../util/Logger';
 
 export interface TelegramLoginHandlerParams extends BaseHandlerOptions {
   appRedirectUri: string;
+}
+
+interface TelegramVerifyResponse {
+  expires_in: number;
+  profile: {
+    created_at: string;
+    identifier_id: string;
+    identifier_type: string;
+    paired_identifier_ids?: unknown[];
+    profile_id: string;
+  };
+  token: string;
 }
 
 export class TelegramLoginHandler extends BaseLoginHandler {
@@ -33,7 +50,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   get authServerPath() {
-    return TelegramAuthServerVerifyPath.replace(/^\//, '');
+    return TelegramMintPath.replace(/^\//, '');
   }
 
   constructor(params: TelegramLoginHandlerParams) {
@@ -110,7 +127,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   /**
-   * Exchanges the PKCE code_verifier for auth tokens via the verify endpoint.
+   * Exchanges the PKCE code_verifier for the Telegram OIDC token via the verify endpoint,
+   * then mints the standard auth-service token set used by seedless onboarding.
    *
    * The backend recomputes sha256(code_verifier) == code_challenge, consumes
    * the stored one-time login record, and returns the full auth response.
@@ -152,10 +170,27 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
-    const authResponse = (await verifyResponse.json()) as AuthResponse;
-    Logger.log('TelegramLoginHandler: authResponse', authResponse);
+    const verifyData = (await verifyResponse.json()) as TelegramVerifyResponse;
+    Logger.log('TelegramLoginHandler: authResponse', verifyData);
     Logger.log('[TelegramLogin] verify success');
-    return authResponse;
+
+    if (!verifyData.token) {
+      throw new OAuthError(
+        'Telegram verify response did not include a token',
+        OAuthErrorType.LoginError,
+      );
+    }
+
+    const mintResponse = await requestAuthTokens(
+      {
+        id_token: verifyData.token,
+      },
+      this.authServerPath,
+      authServerUrl,
+    );
+
+    Logger.log('[TelegramLogin] mint success');
+    return mintResponse;
   }
 
   getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
