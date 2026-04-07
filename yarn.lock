@@ -34712,6 +34712,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"liveline@npm:0.0.7":
+  version: 0.0.7
+  resolution: "liveline@npm:0.0.7"
+  peerDependencies:
+    react: ">=18"
+  checksum: 10/295bb9913e9af40282a549a4dbbb2c7a8188deb1cf76db3ae3562a55dd32be93811276d6874f460849a4810027ec15368c0aa748e43f0f8081830fdaf688e774
+  languageName: node
+  linkType: hard
+
 "loader-runner@npm:^4.2.0":
   version: 4.3.0
   resolution: "loader-runner@npm:4.3.0"
@@ -35738,6 +35747,7 @@ __metadata:
     koa: "npm:^2.14.2"
     lint-staged: "npm:10.5.4"
     listr2: "npm:^8.0.2"
+    liveline: "npm:0.0.7"
     lodash: "npm:4.18.1"
     lottie-react-native: "npm:6.7.2"
     luxon: "npm:^3.5.0"
