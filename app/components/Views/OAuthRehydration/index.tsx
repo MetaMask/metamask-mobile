@@ -45,9 +45,8 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
-  DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -497,11 +496,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setBiometryChoice(false);
