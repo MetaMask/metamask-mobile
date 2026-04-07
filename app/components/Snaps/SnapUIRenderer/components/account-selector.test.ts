@@ -47,7 +47,6 @@ jest.mock('../../../hooks/useAccounts', () => {
       },
     ],
     evmAccounts: [],
-    ensByAccountAddress: {},
   }));
   return {
     useAccounts: useAccountsMock,
@@ -76,12 +75,6 @@ describe('SnapUIAccountSelector', () => {
     CurrencyRateController: {
       currentCurrency: 'usd',
     },
-    TokenBalancesController: {
-      tokenBalances: {},
-    },
-    TokenRatesController: {
-      marketData: {},
-    },
     MultichainAssetsRatesController: {
       conversionRates: {},
     },
@@ -89,7 +82,7 @@ describe('SnapUIAccountSelector', () => {
       balances: {},
     },
     MultichainAssetsController: {
-      accountAssets: {},
+      accountsAssets: {},
     },
   };
 

@@ -19,7 +19,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { formatAddress } from '../../../util/address';
 import SensitiveText, {
   SensitiveTextLength,
@@ -36,7 +35,6 @@ import { formatWithThreshold } from '../../../util/assets';
 
 export interface SnapUIAccountSelectorElementProps {
   account: Account & { fiatBalance: string };
-  ensName?: string;
   privacyMode: boolean;
   avatarType: AvatarAccountType;
 }
@@ -46,17 +44,15 @@ export interface SnapUIAccountSelectorElementProps {
  *
  * @param props - The component props.
  * @param props.account - The account to display.
- * @param props.ensName - The ENS name of the account.
  * @param props.privacyMode - Whether the client is in privacy mode.
  * @param props.avatarType - The type of avatar to display.
  * @returns The AccountSelector element.
  */
 export const SnapUIAccountSelectorElement: FunctionComponent<
   SnapUIAccountSelectorElementProps
-> = ({ account, ensName, privacyMode, avatarType }) => {
-  const { name, address, scopes } = account;
+> = ({ account, privacyMode, avatarType }) => {
+  const { name, address, scopes, fiatBalance } = account;
 
-  const accountName = isDefaultAccountName(name) && ensName ? ensName : name;
   const shortAddress = formatAddress(address, 'short');
 
   const { styles } = useStyles(stylesheet, {});
@@ -79,7 +75,7 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {accountName}
+          {name}
         </Text>
         <Text
           variant={TextVariant.BodySM}
@@ -99,7 +95,7 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
           isHidden={privacyMode}
           variant={TextVariant.BodySMMedium}
         >
-          {account.fiatBalance}
+          {fiatBalance}
         </SensitiveText>
         <AccountNetworkIndicator partialAccount={{ address, scopes }} />
       </Box>
@@ -142,7 +138,7 @@ export const SnapUIAccountSelector: FunctionComponent<
   ...props
 }) => {
   const { snapId } = useSnapInterfaceContext();
-  const { accounts: internalAccounts, ensByAccountAddress } = useAccounts({
+  const { accounts: internalAccounts } = useAccounts({
     fetchENS: false,
   });
 
@@ -217,7 +213,6 @@ export const SnapUIAccountSelector: FunctionComponent<
     <SnapUIAccountSelectorElement
       key={index}
       account={account}
-      ensName={ensByAccountAddress[account.address]}
       privacyMode={privacyMode}
       avatarType={avatarAccountType}
     />
