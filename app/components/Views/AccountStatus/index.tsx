@@ -11,6 +11,7 @@ import {
 import {
   StackActions,
   useNavigation,
+  useRoute,
   RouteProp,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
@@ -52,15 +53,18 @@ interface AccountStatusRouteParams {
 }
 
 interface AccountStatusProps {
-  route: RouteProp<
-    AccountStatusRouteParams,
-    'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
-  >;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
-const AccountStatus = ({ route, saveOnboardingEvent }: AccountStatusProps) => {
+const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const navigation = useNavigation();
+  const route =
+    useRoute<
+      RouteProp<
+        AccountStatusRouteParams,
+        'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
+      >
+    >();
 
   const {
     type = 'not_exist',

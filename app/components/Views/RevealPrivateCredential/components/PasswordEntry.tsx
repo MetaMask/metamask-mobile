@@ -4,7 +4,6 @@ import {
   IconName,
   TextVariant,
   Text,
-  TextFieldSize,
   FontWeight,
   ButtonIcon,
   TextColor,
@@ -55,7 +54,6 @@ const PasswordEntry = ({
             onPress={onToggleShowPassword}
           />
         }
-        size={TextFieldSize.Lg}
       />
       <Text
         twClassName="mt-2"

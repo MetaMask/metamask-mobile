@@ -504,9 +504,8 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -1516,9 +1515,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -2528,9 +2526,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -3540,9 +3537,8 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
