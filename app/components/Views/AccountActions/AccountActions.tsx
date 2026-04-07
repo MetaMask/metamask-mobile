@@ -172,7 +172,7 @@ const AccountActions = () => {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
         params: {
           keyringId,
-          dismissModalStackOnDone: true,
+          popToTopOnDone: true,
         },
       });
     });

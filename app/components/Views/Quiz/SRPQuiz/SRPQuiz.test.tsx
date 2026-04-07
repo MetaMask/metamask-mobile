@@ -17,6 +17,7 @@ import { Linking } from 'react-native';
 let mockRouteParams: {
   keyringId?: string;
   dismissModalStackOnDone?: boolean;
+  popToTopOnDone?: boolean;
 } = {};
 
 const mockNavigate = jest.fn();
@@ -43,6 +44,7 @@ const renderSRPQuiz = (
   routeParams: {
     keyringId?: string;
     dismissModalStackOnDone?: boolean;
+    popToTopOnDone?: boolean;
   } = {},
   completeQuiz: boolean = true,
   hasVault: boolean = false,
@@ -136,6 +138,24 @@ describe('SRPQuiz', () => {
           keyringId,
           skipQuiz: true,
           dismissModalStackOnDone: true,
+        },
+      );
+    });
+  });
+
+  it('forwards popToTopOnDone to RevealPrivateCredential when set', async () => {
+    const keyringId = '123';
+
+    renderSRPQuiz({ keyringId, popToTopOnDone: true }, true);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        {
+          shouldUpdateNav: true,
+          keyringId,
+          skipQuiz: true,
+          popToTopOnDone: true,
         },
       );
     });

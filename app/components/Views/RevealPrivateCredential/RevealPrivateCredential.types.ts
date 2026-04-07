@@ -32,4 +32,9 @@ export interface RevealSRPCredentialParams {
 /** SRP reveal quiz parameters */
 export interface SRPRevealQuizParams {
   onQuizComplete?: () => void;
+  keyringId?: string;
+  /** Forwarded to RevealPrivateCredential after quiz — Done uses `pop(2)` for modal stack. */
+  dismissModalStackOnDone?: boolean;
+  /** Forwarded to RevealPrivateCredential — Done uses `popToTop`. */
+  popToTopOnDone?: boolean;
 }

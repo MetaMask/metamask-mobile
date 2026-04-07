@@ -38,12 +38,14 @@ interface SRPQuizRouteParams {
   keyringId?: string;
   /** Forwarded to RevealPrivateCredential when quiz completes (root modal + reveal). */
   dismissModalStackOnDone?: boolean;
+  /** Forwarded to RevealPrivateCredential — Done uses `popToTop` (e.g. Account Actions → quiz → reveal). */
+  popToTopOnDone?: boolean;
 }
 
 const SRPQuiz = () => {
   const route = useRoute<RouteProp<{ params: SRPQuizRouteParams }, 'params'>>();
   const {
-    params: { keyringId, dismissModalStackOnDone },
+    params: { keyringId, dismissModalStackOnDone, popToTopOnDone },
   } = route;
   const modalRef = useRef<BottomSheetRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
@@ -108,6 +110,7 @@ const SRPQuiz = () => {
       keyringId,
       skipQuiz: true,
       ...(dismissModalStackOnDone && { dismissModalStackOnDone: true }),
+      ...(popToTopOnDone && { popToTopOnDone: true }),
     });
   }, [
     navigation,
@@ -115,6 +118,7 @@ const SRPQuiz = () => {
     createEventBuilder,
     keyringId,
     dismissModalStackOnDone,
+    popToTopOnDone,
   ]);
 
   const introduction = useCallback(() => {
