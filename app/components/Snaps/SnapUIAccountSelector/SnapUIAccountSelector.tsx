@@ -30,11 +30,12 @@ import { stylesheet } from './SnapUIAccountSelector.styles';
 import I18n, { strings } from '../../../../locales/i18n';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectBalanceByAccountGroup } from '../../../selectors/assets/balances';
+import { selectMultichainNetworkAggregatedBalanceForAllAccounts } from '../../../selectors/multichain/multichain';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { formatWithThreshold } from '../../../util/assets';
 
 export interface SnapUIAccountSelectorElementProps {
-  account: Account & { groupId: string };
+  account: Account & { fiatBalance: string };
   ensName?: string;
   privacyMode: boolean;
   avatarType: AvatarAccountType;
@@ -57,24 +58,6 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
 
   const accountName = isDefaultAccountName(name) && ensName ? ensName : name;
   const shortAddress = formatAddress(address, 'short');
-
-  const selectBalanceForGroup = useMemo(
-    () => selectBalanceByAccountGroup(account.groupId),
-    [account.groupId],
-  );
-  const groupBalance = useSelector(selectBalanceForGroup);
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
-  const userCurrency = groupBalance?.userCurrency;
-
-  const fiatBalance = useMemo(() => {
-    if (totalBalance == null || !userCurrency) {
-      return undefined;
-    }
-    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: userCurrency.toUpperCase(),
-    });
-  }, [totalBalance, userCurrency]);
 
   const { styles } = useStyles(stylesheet, {});
 
@@ -116,7 +99,7 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
           isHidden={privacyMode}
           variant={TextVariant.BodySMMedium}
         >
-          {fiatBalance}
+          {account.fiatBalance}
         </SensitiveText>
         <AccountNetworkIndicator partialAccount={{ address, scopes }} />
       </Box>
@@ -166,6 +149,10 @@ export const SnapUIAccountSelector: FunctionComponent<
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const privacyMode = useSelector(selectPrivacyMode);
   const accountGroups = useSelector(selectAccountGroups);
+  const multichainBalances = useSelector(
+    selectMultichainNetworkAggregatedBalanceForAllAccounts,
+  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const accounts = useMemo(() => {
     // Filter out the accounts that are not owned by the snap
@@ -191,13 +178,28 @@ export const SnapUIAccountSelector: FunctionComponent<
       );
       const name = group?.metadata.name ?? account.name;
 
+      const amount = multichainBalances[account.id]?.totalBalanceFiat ?? 0;
+
+      const fiatBalance = formatWithThreshold(amount, 0.01, I18n.locale, {
+        style: 'currency',
+        currency: currentCurrency.toUpperCase(),
+      });
+
       return {
         ...account,
         name,
-        groupId: group?.id ?? '',
+        fiatBalance,
       };
     });
-  }, [internalAccounts, chainIds, hideExternalAccounts, snapId, accountGroups]);
+  }, [
+    internalAccounts,
+    chainIds,
+    hideExternalAccounts,
+    snapId,
+    accountGroups,
+    currentCurrency,
+    multichainBalances,
+  ]);
 
   const options = accounts.map((account) => ({
     key: 'accountId',

@@ -73,6 +73,9 @@ describe('SnapUIAccountSelector', () => {
     AccountTreeController: {
       accountTree: [],
     },
+    CurrencyRateController: {
+      currentCurrency: 'usd',
+    },
     TokenBalancesController: {
       tokenBalances: {},
     },
