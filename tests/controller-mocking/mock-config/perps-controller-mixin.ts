@@ -89,58 +89,66 @@ export class E2EControllerOverrides {
     let resolvedTxId = fallbackTxId;
 
     if (messenger) {
-      const selectedAccounts = messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ) as { address?: string }[];
-      const fromAddress = selectedAccounts?.[0]?.address;
-      const networkClientId = messenger.call(
-        'NetworkController:findNetworkClientIdByChainId',
-        '0xa4b1',
-      ) as string | undefined;
+      try {
+        const selectedAccounts = messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ) as { address?: string }[];
+        const fromAddress = selectedAccounts?.[0]?.address;
+        const networkClientId = messenger.call(
+          'NetworkController:findNetworkClientIdByChainId',
+          '0xa4b1',
+        ) as string | undefined;
 
-      if (fromAddress && networkClientId) {
-        const recipientPadded = fromAddress
-          .toLowerCase()
-          .replace('0x', '')
-          .padStart(64, '0');
-        const amountPadded = '0'.padStart(64, '0');
-        const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
+        if (fromAddress && networkClientId) {
+          const recipientPadded = fromAddress
+            .toLowerCase()
+            .replace('0x', '')
+            .padStart(64, '0');
+          const amountPadded = '0'.padStart(64, '0');
+          const transferData = `0xa9059cbb${recipientPadded}${amountPadded}`;
 
-        const addTransactionCall = Promise.resolve(
-          messenger.call(
-            'TransactionController:addTransaction',
-            {
-              from: fromAddress,
-              to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-              value: '0x0',
-              data: transferData,
-              gas: '0x493e0',
-            },
-            {
-              networkClientId,
-              origin: 'metamask',
-              skipInitialGasEstimate: true,
-              type: transactionType,
-            },
-          ),
-        ) as Promise<AddTransactionMessengerResult>;
+          const addTransactionCall = Promise.resolve(
+            messenger.call(
+              'TransactionController:addTransaction',
+              {
+                from: fromAddress,
+                to: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                value: '0x0',
+                data: transferData,
+                gas: '0x493e0',
+              },
+              {
+                networkClientId,
+                origin: 'metamask',
+                skipInitialGasEstimate: true,
+                type: transactionType,
+              },
+            ),
+          ) as Promise<AddTransactionMessengerResult>;
 
-        const timeout = new Promise<undefined>((resolve) =>
-          setTimeout(
-            () => resolve(undefined),
-            PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS,
-          ),
-        );
-        const maybeAddResult = await Promise.race([
-          addTransactionCall,
-          timeout,
-        ]);
+          const addTransactionSafe = addTransactionCall.catch(
+            (): AddTransactionMessengerResult => undefined,
+          );
 
-        resolvedTxId =
-          maybeAddResult?.transactionMeta?.id ??
-          maybeAddResult?.transactionMetaId ??
-          maybeAddResult?.id ??
-          fallbackTxId;
+          const timeout = new Promise<undefined>((resolve) =>
+            setTimeout(
+              () => resolve(undefined),
+              PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS,
+            ),
+          );
+          const maybeAddResult = await Promise.race([
+            addTransactionSafe,
+            timeout,
+          ]);
+
+          resolvedTxId =
+            maybeAddResult?.transactionMeta?.id ??
+            maybeAddResult?.transactionMetaId ??
+            maybeAddResult?.id ??
+            fallbackTxId;
+        }
+      } catch {
+        resolvedTxId = fallbackTxId;
       }
     }
 

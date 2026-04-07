@@ -730,7 +730,8 @@ export class PerpsE2EMockService {
     if (dt.includes('Take Profit')) {
       return true;
     }
-    return dt.includes('Stop') && !dt.includes('Take Profit');
+    // Stop loss and other stop-style reduce-only triggers (Take Profit handled above).
+    return dt.includes('Stop');
   }
 
   /**
