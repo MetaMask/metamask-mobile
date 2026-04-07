@@ -350,7 +350,7 @@ describe('HostApplicationAdapter', () => {
       expect(setSdkV2Connections).toHaveBeenCalledWith(expectedSessions);
     });
 
-    it('should include anonId in originatorInfo when analytics.anon_id is present', () => {
+    it('includes anonId in originatorInfo when analytics.anon_id is present', () => {
       const connInfoWithAnon: ConnectionInfo = {
         ...createMockConnectionInfo('conn-anon', 'AnonTest'),
         metadata: {

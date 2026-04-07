@@ -340,13 +340,13 @@ describe('isConnectionRequest', () => {
   // ──────────────────────────────────────────
   it('accepts a request without metadata.analytics', () => {
     const req = validRequest();
-    delete (req.metadata as Record<string, unknown>).analytics;
+    delete (req.metadata as unknown as Record<string, unknown>).analytics;
     expect(isConnectionRequest(req)).toBe(true);
   });
 
   it('accepts a valid metadata.analytics.anon_id (UUID)', () => {
     const req = validRequest();
-    (req.metadata as Record<string, unknown>).analytics = {
+    (req.metadata as unknown as Record<string, unknown>).analytics = {
       anon_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
     };
     expect(isConnectionRequest(req)).toBe(true);
@@ -354,31 +354,33 @@ describe('isConnectionRequest', () => {
 
   it('returns false when analytics is not an object', () => {
     const req = validRequest();
-    (req.metadata as Record<string, unknown>).analytics = 'bad';
+    (req.metadata as unknown as Record<string, unknown>).analytics = 'bad';
     expect(isConnectionRequest(req)).toBe(false);
   });
 
   it('returns false when analytics is null', () => {
     const req = validRequest();
-    (req.metadata as Record<string, unknown>).analytics = null;
+    (req.metadata as unknown as Record<string, unknown>).analytics = null;
     expect(isConnectionRequest(req)).toBe(false);
   });
 
   it('returns false when analytics.anon_id is missing', () => {
     const req = validRequest();
-    (req.metadata as Record<string, unknown>).analytics = {};
+    (req.metadata as unknown as Record<string, unknown>).analytics = {};
     expect(isConnectionRequest(req)).toBe(false);
   });
 
   it('returns false when analytics.anon_id is not a string', () => {
     const req = validRequest();
-    (req.metadata as Record<string, unknown>).analytics = { anon_id: 42 };
+    (req.metadata as unknown as Record<string, unknown>).analytics = {
+      anon_id: 42,
+    };
     expect(isConnectionRequest(req)).toBe(false);
   });
 
   it('returns false when analytics.anon_id is not a valid UUID', () => {
     const req = validRequest();
-    (req.metadata as Record<string, unknown>).analytics = {
+    (req.metadata as unknown as Record<string, unknown>).analytics = {
       anon_id: 'not-a-uuid',
     };
     expect(isConnectionRequest(req)).toBe(false);
