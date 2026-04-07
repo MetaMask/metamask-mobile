@@ -134,9 +134,16 @@ export const formatDateRemaining = (endDate: Date | string): string | null => {
     day -= 1;
   }
 
-  if (day < 0) {
-    const prevMonth = new Date(endY, endM, 0);
-    day += prevMonth.getDate();
+  while (day < 0) {
+    endM -= 1;
+    if (endM < 0) {
+      endM = 11;
+      endY -= 1;
+    }
+    const daysInBorrowedMonth = new Date(
+      Date.UTC(endY, endM + 1, 0),
+    ).getUTCDate();
+    day += daysInBorrowedMonth;
     month -= 1;
   }
 

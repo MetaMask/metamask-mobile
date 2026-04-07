@@ -3,6 +3,7 @@
  */
 
 import {
+  formatDateRemaining,
   formatRewardsDate,
   formatTimeRemaining,
   formatNumber,
@@ -335,6 +336,36 @@ describe('formatUtils', () => {
 
       // Then: should return days and hours format without trailing space
       expect(result).toBe('2d 3h');
+    });
+  });
+
+  describe('formatDateRemaining', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('handles multi-month day borrowing when previous month is shorter', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-03T00:00:00Z');
+
+      expect(result).toBe('1m 3d');
+    });
+
+    it('handles leap-year February correctly during borrow', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2024-01-31T00:00:00Z'));
+
+      const result = formatDateRemaining('2024-03-03T00:00:00Z');
+
+      expect(result).toBe('1m 1d');
+    });
+
+    it('returns null for past dates', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-03-03T00:00:00Z'));
+
+      const result = formatDateRemaining('2025-03-02T00:00:00Z');
+
+      expect(result).toBeNull();
     });
   });
 
