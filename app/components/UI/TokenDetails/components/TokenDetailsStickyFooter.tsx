@@ -18,6 +18,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import type { BridgeToken } from '../../Bridge/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import { getIsSwapsAssetAllowed } from '../../../Views/Asset/utils';
 
 interface TokenStickyFooterProps {
   token: TokenDetailsRouteParams;
@@ -26,7 +27,6 @@ interface TokenStickyFooterProps {
   onBuy: () => void;
   onSwap: () => void;
   hasEligibleSwapTokens: boolean;
-  isSwapsAssetAllowed: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -35,7 +35,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onBuy,
   onSwap,
   hasEligibleSwapTokens,
-  isSwapsAssetAllowed,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -44,10 +43,19 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen } = useRWAToken();
 
-  const showSwapButton =
+  const isSwapsAssetAllowed = getIsSwapsAssetAllowed({
+    asset: {
+      isETH: token.isETH ?? false,
+      isNative: token.isNative ?? false,
+      address: token.address ?? '',
+      chainId: token.chainId ?? '',
+    },
+  });
+  const hasSwapRoute =
     AppConstants.SWAPS.ACTIVE && isSwapsAssetAllowed && hasEligibleSwapTokens;
-  const showBuyButton =
-    isBuyable || !hasEligibleSwapTokens || !isSwapsAssetAllowed;
+  const showSwapButton = hasSwapRoute;
+  const showBuyFallback = !hasEligibleSwapTokens || !isSwapsAssetAllowed;
+  const showBuyButton = isBuyable || showBuyFallback;
   const shouldRenderFooterButtons = showSwapButton || showBuyButton;
 
   const handleFooterAction = useCallback(

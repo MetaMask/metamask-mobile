@@ -390,7 +390,6 @@ const TokenDetails: React.FC<{
           onBuy={onBuy}
           onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
-          isSwapsAssetAllowed={isSwapsAssetAllowed}
         />
       )}
       {isInsightsDisclaimerVisible && (
