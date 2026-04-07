@@ -128,7 +128,7 @@ jest.mock('./components/PopularTokensSkeleton', () => {
   };
 });
 
-// Mock TokenListItem and TokenListItemV2 to avoid complex import chains
+// Mock TokenListItem to avoid complex import chains
 const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
@@ -166,55 +166,6 @@ jest.mock(
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
     }) => MockTokenListItem(props),
-  }),
-);
-
-const MockTokenListItemV2 = ({
-  assetKey,
-  showRemoveMenu,
-}: {
-  assetKey: { address: string; chainId?: string };
-  showRemoveMenu?: (token: unknown) => void;
-}) => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
-  return ReactActual.createElement(
-    TouchableOpacity,
-    {
-      testID: `token-item-v2-${assetKey.address}`,
-      onLongPress: () =>
-        showRemoveMenu?.({
-          address: assetKey.address,
-          chainId: assetKey.chainId,
-          name: `Token ${assetKey.address}`,
-          symbol: 'TKN',
-          decimals: 18,
-          image: '',
-          balance: '0',
-          logo: undefined,
-          isETH: false,
-        }),
-    },
-    ReactActual.createElement(Text, null, `TokenV2 ${assetKey.address}`),
-  );
-};
-
-jest.mock(
-  '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2',
-  () => ({
-    TokenListItemV2: (props: {
-      assetKey: { address: string; chainId?: string };
-      showRemoveMenu?: (token: unknown) => void;
-    }) => MockTokenListItemV2(props),
-  }),
-);
-
-const mockSelectTokenListLayoutV2Enabled = jest.fn().mockReturnValue(false);
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: () => mockSelectTokenListLayoutV2Enabled(),
   }),
 );
 
@@ -350,7 +301,6 @@ describe('TokensSection', () => {
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
     mockAccountGroupBalance.mockReturnValue(null);
-    mockSelectTokenListLayoutV2Enabled.mockReturnValue(false);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
       isInitialLoading: false,
@@ -491,11 +441,7 @@ describe('TokensSection', () => {
     );
 
     expect(screen.queryByTestId(`token-item-${MUSD_ADDRESS}`)).toBeNull();
-    expect(screen.queryByTestId(`token-item-v2-${MUSD_ADDRESS}`)).toBeNull();
-    const otherToken =
-      screen.queryByTestId('token-item-0xtoken1') ??
-      screen.queryByTestId('token-item-v2-0xtoken1');
-    expect(otherToken).toBeOnTheScreen();
+    expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
   });
 
   it('navigates to tokens full view on title press', () => {

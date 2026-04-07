@@ -3,6 +3,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import mockSafeAreaContext from 'react-native-safe-area-context/jest/mock';
 
 // External dependencies.
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -10,7 +11,8 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/
 import { RampType } from '../../../reducers/fiatOrders/types';
 
 // Internal dependencies.
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
@@ -19,48 +21,15 @@ import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
-// Mock BottomSheet component
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-
-    const MockBottomSheet = forwardRef(
-      (props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
-        useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn((callback?: () => void) => {
-            if (callback) callback();
-          }),
-        }));
-
-        return (
-          <View testID="bottom-sheet" {...props}>
-            {props.children}
-          </View>
-        );
-      },
-    );
-
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
+jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 // Mock dependencies
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   connect: jest.fn(() => (component: React.ComponentType) => component),
 }));
-jest.mock('../../hooks/useMetrics');
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
@@ -95,7 +64,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
   typeof useRampNetwork
 >;
@@ -132,6 +101,7 @@ describe('FundActionMenu', () => {
     // Setup default mocks
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      goBack: jest.fn(),
     } as never);
 
     mockUseRoute.mockReturnValue({
@@ -155,10 +125,12 @@ describe('FundActionMenu', () => {
       build: mockBuild,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as never);
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
@@ -177,7 +149,7 @@ describe('FundActionMenu', () => {
   describe('Component Rendering', () => {
     it('renders correctly with default props', () => {
       const { getByTestId } = render(<FundActionMenu />);
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('fund-action-menu-bottom-sheet')).toBeOnTheScreen();
     });
 
     it('renders deposit button when deposit is enabled', () => {
@@ -662,7 +634,7 @@ describe('FundActionMenu', () => {
     it('properly integrates with BottomSheet ref methods', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('fund-action-menu-bottom-sheet')).toBeOnTheScreen();
     });
 
     it('displays correct strings from i18n', () => {

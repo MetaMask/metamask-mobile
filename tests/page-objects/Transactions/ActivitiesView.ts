@@ -68,6 +68,12 @@ class ActivitiesView {
     );
   }
 
+  get predictWithdraw(): DetoxElement {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
+    );
+  }
+
   transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
@@ -143,6 +149,7 @@ class ActivitiesView {
     });
     await Gestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab in Activity View',
+      timeout: 3500,
     });
   }
 

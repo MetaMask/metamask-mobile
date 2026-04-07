@@ -7,10 +7,12 @@ import { useHomepageScrollContext } from '../context/HomepageScrollContext';
 export const HomeSectionNames = {
   CASH: 'cash',
   TOKENS: 'tokens',
+  WHATS_HAPPENING: 'whats_happening',
   PERPS: 'perps',
   DEFI: 'defi',
   PREDICT: 'predict',
   NFTS: 'nfts',
+  TOP_TRADERS: 'top_traders',
 } as const;
 
 export type HomeSectionName =

@@ -33,7 +33,7 @@ import Button, {
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -46,7 +46,7 @@ const DeleteWalletModal: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
-  const { isEnabled } = useMetrics();
+  const { isEnabled } = useAnalytics();
   const styles = createStyles(colors);
 
   const isResetWalletFromParams =

@@ -20,10 +20,9 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button, {
-  ButtonSize,
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
+  ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -31,7 +30,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
@@ -53,9 +52,8 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
-  DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -82,6 +80,9 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Label,
   FontWeight,
   TextColor as DSTextColor,
@@ -90,10 +91,16 @@ import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { useAuthentication } from '../../../core/Authentication';
+import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
+import { setDataCollectionForMarketing } from '../../../actions/security';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { analytics } from '../../../util/analytics/analytics';
+import { getSocialAccountType } from '../../../constants/onboarding';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 const EmptyRecordConstant = {};
 
@@ -112,6 +119,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
+  const dispatch = useDispatch();
+
+  const authConnection =
+    useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -149,8 +160,69 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { unlockWallet, getAuthType, requestBiometricsAccessControlForIOS } =
-    useAuthentication();
+  const {
+    unlockWallet,
+    getAuthType,
+    requestBiometricsAccessControlForIOS,
+    updateAuthPreference,
+  } = useAuthentication();
+
+  /**
+   * After a successful password unlock, offer device auth / biometrics for keychain storage.
+   */
+  const upgradeKeychainAuthAfterSuccessfulUnlock = useCallback(async () => {
+    try {
+      const upgradeAuthType = await requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+      if (upgradeAuthType !== AUTHENTICATION_TYPE.PASSWORD) {
+        await updateAuthPreference({
+          authType: upgradeAuthType,
+          password,
+          fallbackToPassword: true,
+        });
+      }
+    } catch (postUnlockAuthErr) {
+      Logger.error(
+        ensureError(
+          postUnlockAuthErr,
+          'Post-unlock auth preference update failed',
+        ),
+        'OAuthRehydration: post-unlock biometric preference',
+      );
+    }
+  }, [password, requestBiometricsAccessControlForIOS, updateAuthPreference]);
+
+  const syncMarketingOptInAfterUnlock = useCallback(async () => {
+    try {
+      const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
+      dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
+      analytics.identify({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]:
+          marketingOptInStatus.is_opt_in
+            ? UserProfileProperty.ON
+            : UserProfileProperty.OFF,
+      });
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+        )
+          .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+              marketingOptInStatus.is_opt_in,
+            updated_after_onboarding: true,
+            location: 'oauth_rehydration',
+            account_type: getSocialAccountType(authConnection, true),
+          })
+          .build(),
+      );
+    } catch (err) {
+      Logger.error(
+        ensureError(err, 'Marketing opt-in sync failed'),
+        'OAuthRehydration',
+      );
+    }
+  }, [dispatch, authConnection]);
 
   const track = useCallback(
     (
@@ -170,7 +242,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [biometryChoice, setBiometryChoice] = useState(true);
 
   const promptBiometricFailedAlert = useCallback(async () => {
-    const authData = await getAuthType();
+    let authData: AuthData;
+    try {
+      authData = await getAuthType();
+    } catch (err) {
+      throw ensureError(err, 'Get auth type failed');
+    }
     if (
       authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
       authData.availableBiometryType
@@ -378,9 +455,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   }, []);
 
+  // Handles login/unlock errors from onRehydrateLogin and newGlobalPasswordLogin.
+  // Call chain: onRehydrateLogin/newGlobalPasswordLogin → unlockWallet() →
+  // Authentication wraps rethrown errors via ensureError, so loginError is always
+  // an Error instance. We still guard against an empty .message with .trim() fallback.
   const handleLoginError = useCallback(
     async (loginError: Error) => {
-      const loginErrorMessage = loginError.message || loginError.toString();
+      const loginErrorMessage =
+        loginError.message?.trim() ||
+        loginError.name?.trim() ||
+        String(loginError);
 
       if (route.params?.onboardingTraceCtx) {
         trace({
@@ -402,25 +486,20 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      if (isWrongPasswordError && isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'incorrect_password',
-        });
-      }
-
       if (isWrongPasswordError) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: 'social',
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
         handlePasswordError(loginErrorMessage);
         return;
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setBiometryChoice(false);
@@ -473,14 +552,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // Ask user to allow biometrics access control
-      const authType = await requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
-      // Only set oauth2Login for normal rehydration, not when password is outdated
+      // Password first: do not prompt biometrics until unlock succeeds
       const authData: AuthData = {
-        currentAuthType: authType,
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         oauth2Login: true,
       };
 
@@ -490,13 +564,24 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
-
-          // TODO: This should probably derive auth capabilities from getAuthCapabilities
-          // prompt biometric failed alert if biometric failed
-          await promptBiometricFailedAlert();
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
+
+      // run syncMarketingOptInAfterUnlock in the background
+      syncMarketingOptInAfterUnlock();
+
+      // Best-effort post-unlock UX: show biometric cancelled alert if needed.
+      // Failure here must not be treated as a login error — unlock already succeeded.
+      try {
+        await promptBiometricFailedAlert();
+      } catch (alertErr) {
+        Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
+      }
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: 'social',
@@ -514,7 +599,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      await handleLoginError(loginErr as Error);
+      await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
     }
   }, [
     password,
@@ -526,7 +611,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track,
     promptBiometricFailedAlert,
     unlockWallet,
-    requestBiometricsAccessControlForIOS,
+    upgradeKeychainAuthAfterSuccessfulUnlock,
+    syncMarketingOptInAfterUnlock,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -535,14 +621,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // Ask user to allow biometrics access control
-      const authType = await requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
-      // Only set oauth2Login for normal rehydration, not when password is outdated
+      // biometrics/passcode preference is applied only after sync succeeds
       const authData: AuthData = {
-        currentAuthType: authType,
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         oauth2Login: false,
       };
 
@@ -552,18 +633,28 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
-
-          // TODO: This should probably derive auth capabilities from getAuthCapabilities
-          // prompt biometric failed alert if biometric failed
-          await promptBiometricFailedAlert();
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
+
+      // Best-effort post-unlock UX: show biometric cancelled alert if needed.
+      // Failure here must not be treated as a login error — unlock already succeeded.
+      try {
+        await promptBiometricFailedAlert();
+      } catch (alertErr) {
+        Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
+      }
 
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      await handleLoginError(loginErr as Error);
+      await handleLoginError(
+        ensureError(loginErr, 'Global password login failed'),
+      );
     }
   }, [
     password,
@@ -571,7 +662,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     promptBiometricFailedAlert,
     unlockWallet,
-    requestBiometricsAccessControlForIOS,
+    upgradeKeychainAuthAfterSuccessfulUnlock,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -743,28 +834,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
                   size={ButtonSize.Lg}
                   onPress={handleLogin}
-                  label={strings('login.unlock_button')}
                   isDisabled={
                     password.length === 0 || disabledInput || finalLoading
                   }
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={finalLoading}
-                />
+                  isLoading={finalLoading}
+                >
+                  {strings('login.unlock_button')}
+                </Button>
               </View>
 
               {isSeedlessPasswordOutdated ? (
-                <Button
+                <OldButton
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
                   isDisabled={loading}
-                  size={ButtonSize.Lg}
+                  size={OldButtonSize.Lg}
                 />
               ) : (
                 <View style={styles.footer}>

@@ -7,7 +7,10 @@
  * apply production code standards (strict types, full error handling,
  * abstraction layers) here; keep it pragmatic and easy to change.
  */
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
@@ -133,6 +136,9 @@ interface AgenticBridge {
     error?: string;
     accounts?: { address: string; name: string }[];
   }>;
+  showStep: (step: { id: string; description: string }) => void;
+  hideStep: () => void;
+  findFiberByTestId: (testId: string) => boolean;
 }
 
 declare global {
@@ -244,6 +250,17 @@ function tryScroll(
   return false;
 }
 
+// ─── Step HUD callback registry ─────────────────────────────────────────────
+
+type StepHudCallback =
+  | ((step: { id: string; description: string } | null) => void)
+  | null;
+let _stepHudCallback: StepHudCallback = null;
+
+export function registerStepHudCallback(fn: StepHudCallback) {
+  _stepHudCallback = fn;
+}
+
 // ─── AgenticService ─────────────────────────────────────────────────────────
 
 /**
@@ -263,15 +280,22 @@ const AgenticService = {
    * @param navRef  - Raw (unwrapped) navigation container ref
    * @param deferredNav - The requestAnimationFrame-deferred proxy
    */
-  install(navRef: NavigationContainerRef, deferredNav: NavigationContainerRef) {
+  install(
+    navRef: NavigationContainerRef<ParamListBase>,
+    deferredNav: NavigationContainerRef<ParamListBase>,
+  ) {
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
       platform: Platform.OS,
       navigate: (name: string, params?: object) =>
-        deferredNav.navigate(name as never, params as never),
+        (
+          deferredNav as unknown as {
+            navigate: (name: string, params?: object) => void;
+          }
+        ).navigate(name, params),
       getRoute: () => navRef.getCurrentRoute(),
-      getState: () => navRef.dangerouslyGetState(),
+      getState: () => navRef.getState(),
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>
@@ -382,6 +406,23 @@ const AgenticService = {
         }
         Engine.setSelectedAddress(target.address);
         return { switched: true, ...toAccountSummary(target) };
+      },
+      showStep: (step: { id: string; description: string }) => {
+        _stepHudCallback?.(step);
+      },
+      hideStep: () => {
+        _stepHudCallback?.(null);
+      },
+      findFiberByTestId: (testId: string): boolean => {
+        let found = false;
+        walkFiberRoots((rootFiber) => {
+          if (findFiberByTestId(rootFiber, testId)) {
+            found = true;
+            return true;
+          }
+          return false;
+        });
+        return found;
       },
       setupWallet: async (fixture) => {
         try {

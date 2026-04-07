@@ -1,45 +1,50 @@
-import { useMemo } from 'react';
-import { MINIMUM_BET } from '../../../constants/transactions';
-import { ActiveOrderState, OrderPreview } from '../../../types';
-import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { useEffect, useMemo } from 'react';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
-  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { MINIMUM_BET } from '../../../constants/transactions';
+import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { OrderPreview } from '../../../types';
+import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
   preview?: OrderPreview | null;
   isPreviewCalculating: boolean;
-  isPlaceOrderLoading: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
+  totalPayForPredictBalance: number;
+  isInputFocused: boolean;
 }
 
 export const usePredictBuyConditions = ({
   preview,
   currentValue,
   isPreviewCalculating,
-  isPlaceOrderLoading,
   isUserInputChange,
   isConfirming,
+  totalPayForPredictBalance,
+  isInputFocused,
 }: UsePredictBuyConditionsParams) => {
-  const { isBalanceLoading } = usePredictBuyAvailableBalance();
-  const { activeOrder } = usePredictActiveOrder();
-  const payTotals = useTransactionPayTotals();
+  const { isBalanceLoading, availableBalance } =
+    usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
-  const quotes = useTransactionPayQuotes();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const { isPredictBalanceSelected, selectedPaymentToken } =
-    usePredictPaymentToken();
   const { isDepositPending } = usePredictDeposit();
+  const payTotals = useTransactionPayTotals();
+  const quotes = useTransactionPayQuotes();
+  const { isPredictBalanceSelected, resetSelectedPaymentToken } =
+    usePredictPaymentToken();
+  const { data: predictBalance = 0 } = usePredictBalance();
+
+  const [insufficientPayTokenBalanceAlert] =
+    useInsufficientPayTokenBalanceAlert();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
 
@@ -53,80 +58,42 @@ export const usePredictBuyConditions = ({
     [currentValue],
   );
 
-  const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
-
-  const isDepositing = useMemo(
-    () => activeOrder?.state === ActiveOrderState.DEPOSITING,
-    [activeOrder],
-  );
-
-  const isPlacingOrder = useMemo(
-    () =>
-      activeOrder?.state === ActiveOrderState.PLACING_ORDER ||
-      isPlaceOrderLoading ||
-      isDepositing,
-    [activeOrder?.state, isPlaceOrderLoading, isDepositing],
-  );
-
-  const isRedirecting = useMemo(
-    () => activeOrder?.state === ActiveOrderState.REDIRECTING,
-    [activeOrder],
-  );
-
-  // Workaround: TransactionPayController sets paymentToken and isLoading in
-  // separate state updates, causing a render with stale totals + loading=false.
-  // Compare quote source token with selected token to bridge the gap.
-  const isQuotesStale = useMemo(() => {
-    if (
-      !shouldWaitForPayFees ||
-      isPredictBalanceSelected ||
-      !selectedPaymentToken
-    ) {
-      return false;
-    }
-    if (!quotes && !payTotals) {
-      return false;
-    }
-    if (!quotes?.length) {
-      const isPaymentTokenRequired = requiredTokens?.some(
-        (token) =>
-          token.address.toLowerCase() ===
-            selectedPaymentToken.address?.toLowerCase() &&
-          token.chainId.toLowerCase() ===
-            selectedPaymentToken.chainId?.toLowerCase(),
-      );
-      return !isPaymentTokenRequired;
-    }
-    const request = quotes[0]?.request;
-    if (!request) {
-      return false;
-    }
-    return (
-      request.sourceTokenAddress?.toLowerCase() !==
-        selectedPaymentToken.address?.toLowerCase() ||
-      request.sourceChainId?.toLowerCase() !==
-        selectedPaymentToken.chainId?.toLowerCase()
+  const maxBetAmount = useMemo(() => {
+    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
+    return Math.max(
+      0,
+      Math.floor((availableBalance / (1 + feeRate)) * 100) / 100,
     );
-  }, [
-    shouldWaitForPayFees,
-    isPredictBalanceSelected,
-    selectedPaymentToken,
-    quotes,
-    payTotals,
-    requiredTokens,
-  ]);
+  }, [availableBalance, preview?.fees?.totalFeePercentage]);
+
+  const isInsufficientBalance = useMemo(
+    () =>
+      isPredictBalanceSelected &&
+      !isConfirming &&
+      currentValue > 0 &&
+      currentValue > maxBetAmount,
+    [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
+  );
+
+  const isInsufficientPayTokenBalance = useMemo(
+    () => !isPredictBalanceSelected && !!insufficientPayTokenBalanceAlert,
+    [isPredictBalanceSelected, insufficientPayTokenBalanceAlert],
+  );
+
+  const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
   const isPayFeesLoading = useMemo(
     () =>
-      isRedirecting ||
-      (shouldWaitForPayFees &&
-        (isPayTotalsLoading || isPayQuoteLoading || isQuotesStale)),
+      shouldWaitForPayFees &&
+      (isPayTotalsLoading ||
+        isPayQuoteLoading ||
+        (quotes?.length === 0 && !payTotals)),
     [
-      isRedirecting,
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
-      isQuotesStale,
+      payTotals,
+      quotes?.length,
     ],
   );
 
@@ -134,21 +101,21 @@ export const usePredictBuyConditions = ({
     () =>
       !isConfirming &&
       !isBelowMinimum &&
+      !isInsufficientBalance &&
       !!preview &&
-      !isPlaceOrderLoading &&
       !isRateLimited &&
       !isBalanceLoading &&
-      !isRedirecting &&
-      !isPayFeesLoading,
+      !isPayFeesLoading &&
+      !isInsufficientPayTokenBalance,
     [
       isConfirming,
       isBelowMinimum,
+      isInsufficientBalance,
       preview,
-      isPlaceOrderLoading,
       isRateLimited,
       isBalanceLoading,
-      isRedirecting,
       isPayFeesLoading,
+      isInsufficientPayTokenBalance,
     ],
   );
 
@@ -157,10 +124,28 @@ export const usePredictBuyConditions = ({
     [isPreviewCalculating, isUserInputChange],
   );
 
+  useEffect(() => {
+    if (
+      !isPredictBalanceSelected &&
+      !isInputFocused &&
+      totalPayForPredictBalance > 0 &&
+      predictBalance >= totalPayForPredictBalance
+    ) {
+      resetSelectedPaymentToken();
+    }
+  }, [
+    isInputFocused,
+    isPredictBalanceSelected,
+    predictBalance,
+    resetSelectedPaymentToken,
+    totalPayForPredictBalance,
+  ]);
+
   return {
     isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
     isRateLimited,
-    isPlacingOrder,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,

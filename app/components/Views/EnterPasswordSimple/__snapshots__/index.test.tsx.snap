@@ -138,7 +138,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
                     null,
                     [
                       {
-                        "fontFamily": "Geist-Bold",
+                        "fontFamily": "Geist-SemiBold",
                         "fontSize": 14,
                         "textAlign": "center",
                       },

@@ -6,7 +6,7 @@ on:
     types: [opened,closed,synchronize]
   merge_group:
     types: [checks_requested]
-    
+
 jobs:
   CLABot:
     if: github.event_name == 'pull_request_target' || contains(github.event.comment.html_url, '/pull/')
@@ -24,6 +24,6 @@ jobs:
           url-to-cladocument: 'https://metamask.io/cla.html'
           # This branch can't have protections, commits are made directly to the specified branch.
           branch: 'cla-signatures'
-          allowlist: 'dependabot[bot],metamaskbot,crowdin-bot,runway-github[bot],cursorbot,cursoragent'
+          allowlist: 'dependabot[bot],metamaskbot,metamaskbotv2[bot],crowdin-bot,runway-github[bot],cursorbot,cursoragent,Copilot'
           allow-organization-members: true
           blockchain-storage-flag: false

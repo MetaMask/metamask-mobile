@@ -1,6 +1,6 @@
 import { RegressionWalletPlatform } from '../../../tags';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import SettingsView from '../../../page-objects/Settings/SettingsView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
 import { loginToApp } from '../../../flows/wallet.flow';
@@ -134,8 +134,8 @@ describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
         await AddContactView.typeInName('Ibrahim');
@@ -160,8 +160,8 @@ describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
 
         await AddContactView.tapEditContactCTA();
         if (device.getPlatform() === 'android') {
-          await TabBarComponent.tapSettings();
-          await SettingsView.tapContacts();
+          await TabBarComponent.tapAccountsMenu();
+          await AccountMenu.tapContacts();
         }
         await Assertions.expectTextDisplayed('Ibrahim edited', {
           timeout: 20000,

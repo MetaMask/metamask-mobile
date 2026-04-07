@@ -96,8 +96,46 @@ jest.mock('@metamask/design-system-react-native', () => {
         },
         children,
       ),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(
+          Text,
+          { testID: 'button-label' },
+          children || label,
+        ),
+      );
+    },
     TextVariant: {
       BodyLg: 'BodyLg',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });

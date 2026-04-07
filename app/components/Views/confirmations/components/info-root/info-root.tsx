@@ -24,8 +24,11 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
 import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
+import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
+import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
@@ -124,6 +127,24 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountDeposit,
+    ])
+  ) {
+    return <MoneyAccountDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountWithdraw,
+    ])
+  ) {
+    return <MoneyAccountWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
     return <PredictClaimInfo />;
@@ -134,6 +155,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
   ) {
     return <PredictWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.perpsWithdraw])
+  ) {
+    return <PerpsWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

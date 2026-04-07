@@ -1,4 +1,5 @@
 import React from 'react';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import SettingsModal from './SettingsModal';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -120,8 +121,8 @@ const mockInAppBrowser = InAppBrowser as jest.Mocked<typeof InAppBrowser>;
 let mockSelectedProvider: Provider | null = createMockProvider();
 const mockSetSelectedProvider = jest.fn();
 
-jest.mock('../../../hooks/useRampsController', () => ({
-  useRampsController: () => ({
+jest.mock('../../../hooks/useRampsProviders', () => ({
+  useRampsProviders: () => ({
     selectedProvider: mockSelectedProvider,
     setSelectedProvider: mockSetSelectedProvider,
   }),
@@ -291,7 +292,7 @@ describe('SettingsModal', () => {
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
         iconName: 'CheckBold',
-        iconColor: 'Success',
+        iconColor: IconColor.Success,
         hasNoTimeout: false,
       });
     });
@@ -315,7 +316,7 @@ describe('SettingsModal', () => {
         variant: 'Icon',
         labelOptions: [{ label: 'Error logging out' }],
         iconName: 'CircleX',
-        iconColor: 'Error',
+        iconColor: IconColor.Error,
         hasNoTimeout: false,
       });
     });

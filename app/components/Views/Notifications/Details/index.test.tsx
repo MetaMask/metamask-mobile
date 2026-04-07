@@ -39,9 +39,6 @@ jest.mock('../../../../actions/alert', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };

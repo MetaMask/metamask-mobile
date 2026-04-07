@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   FlatList,
   TouchableOpacity,
-  ImageBackground,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,14 +29,10 @@ import {
   IconSize,
   IconColor,
   TextField,
-  TextFieldSize,
   Button,
   ButtonVariant,
   ButtonSize,
-  TextButton,
-  TextButtonSize,
   BoxAlignItems,
-  BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -58,8 +53,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
+import SeedPhraseConcealer from '../RevealPrivateCredential/components/SeedPhraseConcealer';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { AppThemeKey } from '../../../util/theme/models';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   createTrackFunction,
@@ -67,9 +62,6 @@ import {
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
 import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
-import darkBlurImage from '../../../images/dark-blur.png';
-import lightBlurImage from '../../../images/blur.png';
-
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -88,7 +80,7 @@ const ManualBackupStep1 = () => {
   );
 
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-  const [password, setPassword] = useState<string | undefined>(undefined);
+  const [password, setPassword] = useState('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
     string | undefined
   >(undefined);
@@ -298,50 +290,10 @@ const ManualBackupStep1 = () => {
   };
 
   const renderSeedPhraseConcealer = () => (
-    <Box twClassName="flex-1 rounded-lg">
-      <TouchableOpacity
-        onPress={revealSeedPhrase}
-        style={tw.style(
-          'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1',
-        )}
-        testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
-      >
-        <ImageBackground
-          source={
-            themeAppearance === AppThemeKey.dark
-              ? darkBlurImage
-              : lightBlurImage
-          }
-          style={tw.style(
-            'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1 opacity-50',
-          )}
-          resizeMode="cover"
-        />
-        <Box
-          alignItems={BoxAlignItems.Center}
-          flexDirection={BoxFlexDirection.Column}
-          justifyContent={BoxJustifyContent.Center}
-          paddingHorizontal={6}
-          twClassName="rounded-lg py-[45px] gap-y-4 h-full flex-1"
-        >
-          <Icon
-            name={IconName.EyeSlash}
-            size={IconSize.Xl}
-            color={IconColor.IconDefault}
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-          >
-            {strings('manual_backup_step_1.reveal')}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-            {strings('manual_backup_step_1.watching')}
-          </Text>
-        </Box>
-      </TouchableOpacity>
-    </Box>
+    <SeedPhraseConcealer
+      onReveal={revealSeedPhrase}
+      testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
+    />
   );
 
   const renderConfirmPassword = () => (
@@ -379,7 +331,6 @@ const ManualBackupStep1 = () => {
                 keyboardAppearance={themeAppearance}
                 autoCapitalize="none"
                 autoFocus
-                size={TextFieldSize.Lg}
               />
               {warningIncorrectPassword && (
                 <Text
@@ -497,13 +448,15 @@ const ManualBackupStep1 = () => {
           {strings('manual_backup_step_1.continue')}
         </Button>
         {!hasFunds && !backupFlow && !settingsBackup && (
-          <TextButton
+          <Button
+            variant={ButtonVariant.Tertiary}
             onPress={showRemindLater}
-            size={TextButtonSize.BodyMd}
+            size={ButtonSize.Lg}
+            isFullWidth
             testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
           >
             {strings('account_backup_step_1.remind_me_later')}
-          </TextButton>
+          </Button>
         )}
       </Box>
     </Box>

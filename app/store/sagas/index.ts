@@ -52,7 +52,12 @@ function appStateListenerChannel() {
  * Checks seedless password status and performs the correct auth flow.
  */
 async function tryBiometricUnlock(): Promise<void> {
-  if (await Authentication.checkIsSeedlessPasswordOutdated()) {
+  if (
+    await Authentication.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    })
+  ) {
     NavigationService.navigation?.reset({
       routes: [
         {

@@ -20,6 +20,12 @@
       "update": "Güncelle"
     }
   },
+  "access_restricted": {
+    "title": "Erişim kısıtlandı",
+    "description_line1": "Bu cüzdan adresi uygunluk taraması sırasında işaretlendi. Sonuç olarak bazı MetaMask hizmetleri kullanılamıyor.",
+    "description_line2": "Bunun bir hata olduğuna inanıyorsanız inceleme talep etmek için destek bölümü ile iletişime geçin.",
+    "contact_support": "Destek ile iletişime geç"
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Uyarı",
@@ -120,8 +126,8 @@
       "title": "Varlıklar yakım adresine gönderiliyor"
     },
     "token_contract_warning": {
-      "title": "Token contract warning",
-      "message": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer."
+      "title": "Token sözleşmesi uyarısı",
+      "message": "Alıcı adresi doğrudan token transferlerini desteklemiyor olabilir ve bu durum para kaybına neden olabilir. Yalnızca transferinizin bu sözleşmeye ulaşabileceğinden eminseniz devam edin."
     },
     "gas_sponsorship_reserve_balance": {
       "message": "Gaz sponsorluğu bu işlem için kullanılamıyor. Hesabınızda en az %{minBalance} %{nativeTokenSymbol} tutmanız gerekecek.",
@@ -234,7 +240,6 @@
     "import_wallet_button": "Cüzdanı senkronize et veya içe aktar",
     "new_to_crypto": "Kriptoda yeni misiniz?",
     "start_exploring_now": "Yeni bir cüzdan oluştur",
-    "unlock": "Kilidini Aç",
     "new_to_metamask": "MetaMask'te yeni misiniz?",
     "already_have_wallet": "Zaten bir cüzdanınız var mı?",
     "optin_back_title": "Dikkat!",
@@ -470,7 +475,10 @@
     "biometric_authentication_cancelled": "Biyometrik doğrulama iptal edildi",
     "biometric_authentication_cancelled_title": "Biyometrik Kurulum Başarısız Oldu",
     "biometric_authentication_cancelled_description": "Lütfen ayarlar bölümünden biyometrik doğrulama kurulumunu tekrar yapın.",
-    "biometric_authentication_cancelled_button": "Onayla"
+    "biometric_authentication_cancelled_button": "Onayla",
+    "biometric_changed": "Biyometri Değiştirildi",
+    "biometric_changed_alert_desc": "Biyometriniz değiştirildi. Lütfen ayarlar bölümünden biyometriyi tekrar etkinleştirin.",
+    "biometric_changed_alert_confirm": "Onayla"
   },
   "connect_hardware": {
     "title_select_hardware": "Bir donanım cüzdanı bağlayın",
@@ -694,8 +702,8 @@
     "could_not_resolve_name": "Adı çözümlenemedi",
     "invalid_address": "Geçersiz adres",
     "contractAddressError": "Token'in sözleşme adresine token gönderiyorsunuz. Bu durum, bu token'lerin kaybedilmesine neden olabilir.",
-    "smart_contract_address": "Smart contract address",
-    "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "smart_contract_address": "Akıllı sözleşme adresi",
+    "smart_contract_address_warning": "Alıcı adresi doğrudan token transferlerini desteklemiyor olabilir ve bu durum para kaybına neden olabilir. Yalnızca transferinizin bu sözleşmeye ulaşabileceğinden eminseniz devam edin.",
     "i_understand": "Anlıyorum",
     "cancel": "İptal"
   },
@@ -1000,6 +1008,11 @@
       "try_again": "Tekrar dene",
       "error_details_title": "Hata bilgileri",
       "see_more": "Daha fazlasını gör"
+    }
+  },
+  "social_leaderboard": {
+    "top_traders_view": {
+      "title": "Top Traders"
     }
   },
   "perps": {
@@ -1471,6 +1484,8 @@
       "stop_loss_invalid_price": "Zararda durdur emri {{direction}} yönünde {{priceType}} fiyatında olmalıdır",
       "stop_loss_beyond_liquidation_error": "Zararda durdur emri {{direction}} yönünde likidasyon fiyatında olmalıdır",
       "stop_loss_order_view_warning": "Zararda durdur emri {{direction}} yönünde likidasyon fiyatında",
+      "take_profit_wrong_side_warning": "Kazancı al fiyatı {{direction}} {{priceType}} olmalıdır. Emir vermek için güncelleyin veya temizleyin.",
+      "stop_loss_wrong_side_warning": "Zararı durdur fiyatı {{direction}} {{priceType}} olmalıdır. Emir vermek için güncelleyin veya temizleyin.",
       "above": "üzerinde",
       "below": "altında",
       "done": "Bitti",
@@ -2086,14 +2101,15 @@
     "a_closer_look": "Daha yakın bir görünüm",
     "whats_being_said": "Neler söyleniyor",
     "footer_disclaimer": "Yapay zeka özeti yalnızca bilgi amaçlıdır",
-    "trade_button": "İşlem Yap",
+    "swap_button": "Takas",
+    "buy_button": "Al",
     "sources_count": "+{{count}} kaynak",
     "sources_title": "Haber kaynakları",
     "feedback_submitted": "Geri bildirim gönderildi",
     "helpful_prompt": "Bu faydalı oldu mu?",
     "feedback": {
       "title": "Geri Bildirim",
-      "description": "Yapay zeka ile oluşturulmuş piyasa içgörülerimizi iyileştirmemize yardımcı olun.",
+      "description": "Cevabınız yapay zeka özetlerimizi iyileştirmemize yardımcı olur.",
       "not_relevant": "İlgili değil",
       "not_accurate": "Doğru değil",
       "hard_to_understand": "Anlaşılması zor",
@@ -2162,7 +2178,7 @@
     "sell_position": "Sat pozisyonu",
     "cash_out": "Paraya çevir",
     "cash_out_info": "Fonlar kullanılabilir bakiyenize eklenecek",
-    "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
+    "buy_preview_outcome_at_price": "{{price}} için {{outcome}}",
     "at_price_per_share": "{{size}} hisse {{price}} fiyatından satılıyor",
     "cashout_info": "{{amount}} {{outcome}} için {{initialPrice}} fiyatıyla",
     "cashout_info_multiple": "{{amount}} {{outcomeGroupTitle}} • {{outcome}} için {{initialPrice}} fiyatıyla",
@@ -2206,7 +2222,7 @@
     "available_balance": "Kullanılabilir bakiye",
     "claim_amount_text": "{{amount}}$ al",
     "claim_winnings_text": "Kazançları al",
-    "claiming_text": "Claiming...",
+    "claiming_text": "Alınıyor...",
     "unrealized_pnl_label": "Gerçekleşmemiş K&Z",
     "unrealized_pnl_value": "({{percent}}) {{amount}}",
     "unrealized_pnl_error": "Yüklenemiyor",
@@ -2287,7 +2303,7 @@
           "try_again": "Tekrar dene"
         },
         "in_progress": {
-          "title": "Claim already in progress"
+          "title": "Alım zaten sürüyor"
         }
       }
     },
@@ -2300,6 +2316,7 @@
       "cashing_out_subtitle": "Tahmini {{time}} saniye",
       "placing_prediction": "Tahmin yapılıyor",
       "prediction_placed": "Tahmin yapıldı",
+      "prediction_failed": "Failed to place prediction",
       "order_failed": "Emir başarısız oldu",
       "payments_made_in_usdc": "Tüm ödemeler USDC cinsinden yapılır",
       "prediction_insufficient_funds": "Yeterli fon yok. En fazla {{amount}} kullanabilirsiniz.",
@@ -2313,6 +2330,7 @@
       "order_failed_title": "Emir başarısız oldu",
       "order_failed_body": "Bu fiyatta yeterli likidite yoktu. Tekrar denemek ister misiniz?",
       "try_again": "Tekrar dene",
+      "view": "Görüntüle",
       "yes_buy": "Evet, al",
       "yes_sell": "Evet, sat"
     },
@@ -2347,9 +2365,9 @@
       "exchange_fee_description": "Borsaya veya piyasaya ödenen ücret",
       "total_incl_fees": "ücretler dahil",
       "close": "Kapat",
-      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
-      "deposit_fee": "Deposit fee",
-      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
+      "fak_partial_fill_note": "Gösterilen fiyatlar emrinizin tamamen gerçekleştiği varsayılarak hesaplanmıştır. Emrin sadece kısmen gerçekleşmesi durumunda gerçek tutarlar değişiklik gösterebilir.",
+      "deposit_fee": "Para yatırma ücreti",
+      "deposit_fee_description": "Tahmin bakiyenize para yatırma işlemi için alınan ücret"
     },
     "error": {
       "title": "Tahminlere bağlanılamıyor",
@@ -2367,7 +2385,8 @@
       "unknown_error": "Bilinmeyen bir hata oluştu",
       "order_not_fully_filled": "Emriniz gerçekleştirilemedi",
       "buy_order_not_fully_filled": "Şu anda emrinizi vermek için piyasa fiyatında yeterli hisse yok.",
-      "sell_order_not_fully_filled": "Şu anda piyasa fiyatında nakde çevirmek için yeterli talep yok."
+      "sell_order_not_fully_filled": "Şu anda piyasa fiyatında nakde çevirmek için yeterli talep yok.",
+      "preview_not_available": "No preview available"
     },
     "game_details_footer": {
       "pick_a_winner": "Bir kazanan seç",
@@ -3059,6 +3078,7 @@
     "networks_no_results": "Ağ bulunamadı",
     "network_name_label": "Ağ adı",
     "network_name_placeholder": "Ağ adı (isteğe bağlı)",
+    "required": "Gerekli",
     "network_rpc_url_label": "RPC URL adresi",
     "network_rpc_name_label": "RPC adı",
     "network_rpc_placeholder": "Yeni RPC ağı",
@@ -3298,6 +3318,8 @@
     "blockaid_desc": "Bu özellik, işlem ve imza taleplerini aktif bir şekilde inceleyerek kötü amaçlı aktivite konusunda sizi uyarır.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
+    "smart_account_dapp_requests_heading": "Dapp'lerden akıllı hesap talepleri",
+    "smart_account_dapp_requests_desc": "Dapp'lerin standart hesaplar için akıllı hesap özellikleri talep etmesine izin verin. Bu durum, halihazırda akıllı hesap olan hesapları etkilemez.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
     "smart_transactions_opt_in_desc_supported_networks": "Desteklenen ağlarda daha güvenilir ve güvenli işlemler için Akıllı İşlemleri açın.",
     "smart_transactions_learn_more": "Daha fazla bilgi edin",
@@ -3565,6 +3587,53 @@
     },
     "activity": "{{symbol}} aktivitesi",
     "disclaimer": "Piyasa verileri CoinGecko gibi üçüncü taraf kaynaklar tarafından sağlanır. Veriler yalnızca bilgi amaçlıdır. Verilerin doğruluğundan MetaMask sorumlu değildir."
+  },
+  "security_trust": {
+    "title": "Güvenlik ve güven",
+    "malicious": "Kötü amaçlı",
+    "risky": "Riskli",
+    "malicious_token_title": "Kötü amaçlı tokenlar",
+    "malicious_token_description": "{{symbol}} kötü amaçlı bir token. Bununla etkileşimde bulunmaktan veya işlem yapmaktan kaçının.",
+    "verified_token_title": "Doğrulanmış tokenlar",
+    "verified_token_description": "{{symbol}} aktif olarak işlem görmekte olup yaygın olarak tanınmaktadır. Doğrulama, MetaMask tarafından onaylandığı anlamına gelmez.",
+    "risky_token_title": "Riskli token",
+    "risky_token_description": "{{symbol}} üzerinde uyarı sinyalleri tespit edildi. Bu token ile işlem yapmadan önce dikkatli bir şekilde araştırın.",
+    "malicious_token_sheet_description": "{{symbol}} üzerinde ciddi risk sinyalleri tespit edildi. Bu token ile işlem yapmamanızı tavsiye ederiz.",
+    "got_it": "Anladım",
+    "proceed": "Devam et",
+    "cancel": "İptal et",
+    "data_unavailable": "Güvenlik verileri mevcut değil",
+    "subtitle_known": "Risk sinyali algılanmadı. Varlıklarla işlem yapmadan önce her zaman araştırma yapın.",
+    "subtitle_no_issues": "Risk sinyali algılanmadı. Varlıklarla işlem yapmadan önce her zaman araştırma yapın.",
+    "subtitle_suspicious": "Uyarı sinyalleri tespit edildi. Bu varlıkla işlem yapmadan önce işaretli sorunları dikkatli bir şekilde inceleyin.",
+    "subtitle_malicious": "Ciddi risk sinyalleri algılandı. Bu varlıktan kaçınmanızı tavsiye ederiz.",
+    "subtitle_unavailable": "Bu token için güvenlik analizi yüklenemedi.",
+    "token_distribution": "Token dağılımı",
+    "total_supply": "Toplam arz",
+    "top_10_holders": "En büyük 10 hissedar",
+    "other": "Diğer",
+    "no_hidden_fees_detected": "Gizli ücret algılanmadı",
+    "buy_sell_tax": "Alış/Satış Vergisi",
+    "buy_tax": "Alış vergisi",
+    "sell_tax": "Satış vergisi",
+    "transfer": "Transfer Et",
+    "token_info": "Token Bilgileri",
+    "created": "Oluşturuldu",
+    "token_age": "Token yaşı",
+    "network": "Ağ",
+    "type": "Bu snap'i kaldırmak istediğinizi onaylamak için",
+    "official_links": "Resmi Bağlantılar",
+    "website": "Web Sitesi",
+    "twitter_x": "Twitter",
+    "telegram": "Telegram",
+    "etherscan": "Etherscan",
+    "na": "Yok",
+    "verified": "Doğrulandı",
+    "no_issues": "Sorun yok",
+    "suspicious": "Şüpheli",
+    "malicious_label": "Kötü amaçlı",
+    "more": "daha fazla",
+    "evaluation_disclaimer": "Bu güvenlik incelemesi yalnızca değerlendirme amaçlıdır ve onay veya işlem tavsiyesi teşkil etmez."
   },
   "account_details": {
     "title": "Hesap bilgileri",
@@ -3934,6 +4003,7 @@
     "tx_review_predict_deposit": "Fonlanmış tahminler",
     "tx_review_predict_claim": "Alınan kazançlar",
     "tx_review_predict_withdraw": "Tahmin bakiyesini çek",
+    "tx_review_perps_withdraw": "Perps çek",
     "tx_review_musd_conversion": "mUSD dönüştürme",
     "claim": "Al",
     "sent_ether": "ETH gönder",
@@ -5933,7 +6003,12 @@
     "percentage_bonus": "%{{percentage}} bonus",
     "claimable_bonus": "Alınabilir bonus",
     "claim_bonus": "Bonusu al",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus, {{networkName}} üzerinde ödenecektir.",
+    "percentage_bonus_on_linea": "Linea üzerinde %{{percentage}} bonus",
+    "claim": "Al",
+    "sounds_good": "Kulağa hoş geliyor",
+    "claimable_bonus_tooltip_with_percentage": "mUSD tuttuğunuz için kazandığınız %{{percentage}} yıllıklandırılmış bonus. Bonusunuzu Linea üzerinde günlük olarak alabilirsiniz.",
     "empty_state_cta": {
       "heading": "{{tokenSymbol}} borç verin ve kazanın",
       "body": "{{protocol}} ile {{tokenSymbol}} token'ınızı borç verin ve",
@@ -6087,6 +6162,57 @@
     },
     "your_stablecoins": "Stabil kripto paralarınız"
   },
+  "money": {
+    "title": "Para",
+    "apy_label": "%{{percentage}} Yıllık Bileşik Getiri",
+    "action": {
+      "add": "Ekle",
+      "transfer": "Transfer Et",
+      "card": "Kart"
+    },
+    "your_position": {
+      "title": "Pozisyonunuz",
+      "current_rate": "Güncel kur",
+      "lifetime_earnings": "Toplam kazançlar",
+      "available_balance": "Kull. bakiye"
+    },
+    "how_it_works": {
+      "title": "Nasıl çalışır?",
+      "description": "Bir Para Hesabında mUSD tutun ve otomatik olarak kazanın. Dolar desteklidir, her zaman likittir; dilediğiniz zaman harcamaya, işleme ve gönderime hazırdır.",
+      "musd_name": "MetaMask USD",
+      "musd_symbol": "mUSD",
+      "add": "Ekle"
+    },
+    "potential_earnings": {
+      "title": "Potansiyel kazançlar",
+      "amount": "+26.800$",
+      "description": "Kriptonuzu mUSD'ye dönüştürerek paranızın zaman içinde nasıl artabileceğini görün.",
+      "convert": "Dönüştür",
+      "no_fee": "Ücret yok",
+      "see_earnings": "Potansiyel kazançları görün"
+    },
+    "metamask_card": {
+      "title": "MetaMask Kartı",
+      "subtitle": "Paranızı dilediğiniz yerde harcayın.",
+      "virtual_card": "Sanal kart",
+      "metal_card": "Metal kart",
+      "cashback": "%{{percentage}} para iadesi",
+      "get_now": "Hemen alın"
+    },
+    "why_metamask_money": {
+      "title": "Neden MetaMask Para?",
+      "benefit_auto_earn": "Otomatik kazanın ",
+      "benefit_dollar_backed": "Paranız 1:1 dolar destekli bir stabil kripto para olan mUSD'de tutulur",
+      "benefit_liquidity": "Kilitleme olmadan tam likidite sayesinde dilediğiniz zaman işlem yapabilir veya para çekebilirsiniz",
+      "benefit_spend_prefix": "MetaMask Card ile 150 milyondana fazla satıcıda harcama yapın ve şunu kazanın ",
+      "benefit_spend_cashback": "%1-3 para iadesi",
+      "benefit_global": "Aracı olmadan dünya çapında para gönderin ve alın",
+      "learn_more": "Daha fazla bilgi edin"
+    },
+    "footer": {
+      "add_money": "Para ekle"
+    }
+  },
   "stake": {
     "stake": "Pay",
     "earn": "Kazan",
@@ -6108,8 +6234,16 @@
       "errors": {
         "insufficient_balance": "Bu eylemi gerçekleştirmek için yeterli kaynak bakiyeniz yok."
       },
-      "trx_unstaking_in_progress": "{{amount}} TRX unstake işlemi devam ediyor. Unstake işlemi 14 gün sürer.",
-      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
+      "unstaking_banner": {
+        "title": "{{amount}} TRX unstake işlemi sürüyor",
+        "description": "Unstake işlemi 14 gün sürecek"
+      },
+      "unstaked_banner": {
+        "title": "{{amount}} TRX unstake işlemi tamamlandı",
+        "description": "Unstake edilen TRX'iniz şu anda çekilebilir",
+        "button": "Çek",
+        "error": "Para çekme işlemi başarısız"
+      }
     },
     "stake_eth": "ETH Stake Et",
     "unstake_eth": "ETH Unstake Et",
@@ -6375,8 +6509,10 @@
       "switch_account_type": "Hesap güncellemesi",
       "approve": "Talebi onayla",
       "perps_deposit": "Fon ekle",
+      "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
-      "predict_withdraw": "Çek"
+      "predict_withdraw": "Çek",
+      "money_account_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
@@ -6502,6 +6638,7 @@
     "nested_transaction_heading": "{{index}} işlemi",
     "transaction": "İşlem",
     "available_balance": "Kullanılabilir bakiye: ",
+    "available_perps_balance": "Kullanılabilir Perps bakiyesi: ",
     "edit_amount_done": "Devam et",
     "deposit_edit_amount_done": "Fon ekle",
     "deposit_edit_amount_predict_withdraw": "Çek",
@@ -6588,9 +6725,9 @@
     "hardware_wallet_not_supported": "Donanım cüzdanları henüz desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
     "hardware_wallet_not_supported_solana": "Donanım cüzdanları henüz Solana için desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
     "price_impact_info_title": "Piyasa etkisi",
-    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
+    "price_impact_info_description": "Bu, işleminizin bir tokenın piyasa fiyatını nasıl değiştirdiğini ifade eder. Bu durum; işlem boyutuna, mevcut likiditeye ve sağlayıcı ücretlerine bağlıdır. MetaMask fiyat etkisini kontrol etmez.",
     "price_impact_info_gasless_description": "Fiyat etkisi, takas emrinizin varlığın piyasa fiyatını nasıl etkilediğini yansıtır. Gaz için yeterli fon tutmazsanız kaynak token'inizin bir kısmı otomatik olarak ücretleri karşılamak üzere ayrılır, bu nedenle fiyat etkisi artar. MetaMask fiyat etkisini etkilemez veya kontrol etmez.",
-    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_warning_description": "İşleminizin büyüklüğü ve kullanılabilir likiditeden dolayı piyasa fiyatından yaklaşık {{priceImpact}} daha az alacaksınız. Bu zaten fiyat teklifinize dahil edilmiştir.",
     "price_impact_high": "Yüksek fiyat etkisi",
     "price_impact_execution_description": "Bu takas işleminde tokenınızın değerinden yaklaşık {{priceImpact}} kaybedeceksiniz. Miktarı düşürmeyi veya daha likit bir rota seçmeyi deneyin.",
     "proceed": "Devam et",
@@ -6627,8 +6764,8 @@
     "total_cost": "Toplam Maliyet",
     "got_it": "Anladım",
     "price_impact_warning_title": "Yüksek fiyat etkisi",
-    "price_impact_error_title": "Very high price impact",
-    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
+    "price_impact_error_title": "Çok yüksek fiyat etkisi",
+    "price_impact_error_description": "Bu takas işleminde tokenınızın piyasa fiyatından yaklaşık {{priceImpact}} kaybedeceksiniz. Oranınızı iyileştirmek için daha küçük bir işlem veya daha likit bir rota deneyin."
   },
   "quote_expired_modal": {
     "title": "Yeni teklifler mevcut",
@@ -6686,7 +6823,13 @@
     "oauth_error_button": "Tekrar dene",
     "no_internet_connection_title": "Bağlanılamıyor",
     "no_internet_connection_description": "İnternet bağlantınız kararlı değil. Bağlantınızı kontrol edip tekrar deneyin.",
-    "no_internet_connection_button": "Tekrar dene"
+    "no_internet_connection_button": "Tekrar dene",
+    "ios_need_update_title": "iOS güncellemesi gerekli",
+    "ios_need_update_description": "MetaMask Google ile Giriş için yakında şu gerekli olacak: ",
+    "ios_need_update_description_version": "iOS 17.4 veya üzeri",
+    "ios_need_update_description_end": ". Şimdilik bu cihazda Google ile Giriş özelliğini kullanmaya devam edebilirsiniz ancak yaklaşan bir güncellemede artık desteklenmez olacak.",
+    "ios_need_update_description2": "Desteklenen bir cihazda veya MetaMask uzantısında aynı Google hesabını kullanarak cüzdanınıza erişim sağlamaya devam edebilirsiniz. Kesintisiz erişim sağlamak için Gizli Kurtarma İfadenizi yedeklemenizi şiddetle tavsiye ederiz.",
+    "ios_need_update_button": "Devam et"
   },
   "password_hint": {
     "title": "Şifre ipucu",
@@ -6940,7 +7083,7 @@
       "upgrade_title": "Metale Yükselt",
       "continue_button": "Devam et",
       "virtual_card": {
-        "name": "Virtual Card",
+        "name": "Sanal Kart",
         "price": "Ücretsiz",
         "feature_1": "Apple Pay ve Google Pay için sanal kart",
         "feature_2": "Kripto ile öde (USDC, USDT, WETH ve daha fazlası)",
@@ -6949,13 +7092,13 @@
       "metal_card": {
         "name": "Metal Kart",
         "price": "199$/yıl",
-        "everything_in_virtual": "Everything in virtual, plus:",
-        "feature_1": "Premium engraved metal card",
-        "feature_2": "3% cashback on first $10,000/year",
+        "everything_in_virtual": "Her şey sanal ortamdadır, ayrıca:",
+        "feature_1": "Premium gravürlü metal kart",
+        "feature_2": "İlk 10.000$/yıl için %3 para iadesi",
         "feature_3": "Yabancı işlem ücretleri yok"
       },
-      "earn_up_to_badge": "Earn up to $300 in cashback annually",
-      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
+      "earn_up_to_badge": "Yılda 300$'a kadar para iadesi kazanın",
+      "upgrade_to_metal_label": "Veya 3 katı ödül için Metal karta yükseltin"
     },
     "review_order": {
       "title": "Emrinizi inceleyin",
@@ -7104,7 +7247,7 @@
         "ssn_description": "Kart düzenleyicisi tarafından talep edilir. Kredi notu sorgulaması yapılmayacaktır.",
         "invalid_ssn": "Geçersiz Sosyal Güvenlik Numarası (SSN)",
         "invalid_date_of_birth": "Doğum tarihi geçersiz. En az 18 yaşında olmalısınız",
-        "name_mismatch_error": "First and last name must match your verified identity"
+        "name_mismatch_error": "Adı ve soyadı, doğrulanmış kimliğinizle uyumlu olmalıdır"
       },
       "physical_address": {
         "title": "Adresinizi ekleyin",
@@ -7201,7 +7344,8 @@
         "close_spending_limit": {
           "title": "Harcama limitinize yakınsınız",
           "description": "Reddedilmeleri önlemek için güncelle",
-          "confirm_button_label": "Yeni limit ayarla"
+          "confirm_button_label": "Yeni limit ayarla",
+          "dismiss_button_label": "Yok say"
         },
         "need_delegation": {
           "title": "Kartınızı etkinleştirmeniz gerekiyor",
@@ -7301,12 +7445,13 @@
       "dismiss": "Yok say",
       "update_success": "Harcama limiti başarılı bir şekilde güncellendi",
       "update_error": "Harcama limiti güncellenemedi",
-      "solana_not_supported": "card.metamask.io adresinde Solana token'larını etkinleştir",
       "select_token": "Token seç",
       "loading": "Kullanılabilir tokenler yükleniyor...",
       "load_error": "Tokenler yüklenemedi. Lütfen tekrar deneyin.",
       "retry": "Tekrar dene",
-      "on_linea": "Linea üzerinde"
+      "on_linea": "Linea üzerinde",
+      "account_label": "Hesap",
+      "token_label": "tokenlar"
     },
     "cashback_screen": {
       "title": "Para iadesi",
@@ -7343,9 +7488,7 @@
       "limited": "Sınırlı",
       "not_enabled": "Etkinleştirilmedi",
       "update_success": "Harcama önceliği başarılı bir şekilde güncellendi",
-      "update_error": "Harcama önceliği güncellenemedi",
-      "solana_not_supported_button_title": "Solana üzerindeki diğer token'lar",
-      "solana_not_supported_button_description": "card.metamask.io adresinde etkinleştir"
+      "update_error": "Harcama önceliği güncellenemedi"
     },
     "card_authentication": {
       "title": "Kart hesabınızda oturum açın",
@@ -7443,6 +7586,11 @@
       "title": "Katılım başarısız oldu",
       "description": "Bağlantınızı kontrol edin ve tekrar deneyin."
     },
+    "version_guard": {
+      "title": "Güncelleme gerekli",
+      "description": "Ödüller programının kullanılabilmesi için MetaMask'in daha yeni bir sürümü gereklidir. Devam etmek için lütfen güncelleyin.",
+      "update_button": "MetaMask'i güncelle"
+    },
     "season_error": {
       "error_fetching_title": "Sezon yüklenemedi",
       "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",
@@ -7525,7 +7673,6 @@
     "main_title": "Ödüller",
     "referral_title": "Referanslar",
     "tab_overview_title": "Genel Bakış",
-    "tab_snapshots_title": "Anlık görüntüler",
     "tab_activity_title": "Aktivite",
     "referral_stats_earned_from_referrals": "Referanslardan kazanılan",
     "referral_stats_referrals": "Referanslar",
@@ -7579,6 +7726,9 @@
       "points_earned": "puan kazanıldı",
       "no_end_of_season_rewards": "Bu sezon ödül kazanmadınız ancak her zaman bir sonraki sezon vardır.",
       "verifying_rewards": "Ödüllerinizi almadan önce her şeyin doğru olduğunu teyit ediyoruz."
+    },
+    "previous_season_view": {
+      "title": "Önceki Sezon"
     },
     "season_status": {
       "points_earned": "Puan kazanıldı"
@@ -7743,16 +7893,18 @@
     "active_boosts_title": "Aktif yükseltmeler",
     "season_1": "Sezon 1",
     "musd": {
-      "title": "mUSD bonus calculator",
-      "description": "See how much you could earn by converting your stablecoins to mUSD.",
-      "amount_label": "Amount converted",
-      "estimated_bonus": "Estimated annualized bonus: up to 3%",
-      "initial_amount": "Initial amount",
-      "daily_bonus": "Daily claimable bonus",
-      "annualized_bonus": "Annualized bonus",
-      "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "page_title": "mUSD",
+      "title": "mUSD bonus hesaplayıcı",
+      "description": "Stabil kripto paralarınızı mUSD'ye dönüştürerek ne kadar kazanabileceğinize bakın.",
+      "amount_label": "Dönüştürülen miktar",
+      "estimated_bonus": "Tahmini yıllıklandırılmış bonus: %3'e kadar",
+      "initial_amount": "Başlangıç miktarı",
+      "daily_bonus": "Günlük alınabilir bonus",
+      "annualized_bonus": "Yıllıklandırılmış bonus",
+      "disclaimer": "Bu yalnızca bir tahmindir. Bonus değişikliğe tabidir.",
+      "disclaimer_brief": "Bonus tahminidir ve değişebilir.",
       "buy_button": "mUSD al",
-      "swap_button": "Swap to mUSD"
+      "swap_button": "mUSD'ye takas et"
     },
     "upcoming_rewards": {
       "title": "Kilitli ödüller",
@@ -7786,30 +7938,111 @@
     "animation": {
       "could_not_load": "Yüklenemedi"
     },
-    "snapshot": {
+    "campaign": {
       "starts_date": "Başlangıç tarihi {{date}}",
       "ends_date": "Bitiş tarihi {{date}}",
-      "results_coming_soon": "Sonuçlar çok yakında",
-      "tokens_on_the_way": "Tokenlar yolda",
-      "pill_up_next": "Sırada",
-      "pill_live_now": "Şimdi canlı",
-      "pill_calculating": "Hesaplanıyor",
-      "pill_results_ready": "Sonuçlar Hazır",
-      "pill_complete": "Tamamlandı"
+      "ended_date": "Bitiş tarihi {{date}}",
+      "pill_up_next": "Çok yakında",
+      "pill_active": "Canlı",
+      "pill_complete": "Tamamlandı",
+      "enter_now": "Şimdi giriş yapın",
+      "entered": "Giriş yapıldı",
+      "participant_count": "#{{count}}",
+      "opt_in_cta": "Katıl",
+      "opt_in_sheet_title": "Kampanyaya katıl",
+      "opt_in_sheet_description_pre_link": "'Katıl' düğmesine tıklayarak şunları kabul edersiniz: MetaMask Ödüller",
+      "opt_in_sheet_link_text": "Ek Kullanım Şartları ve Gizlilik Bildirimi",
+      "opt_in_sheet_description_post_link": "Sizi otomatik olarak ödüllendirmek için zincir üzeri etkinliğinizi takip edeceğiz.",
+      "geo_restriction_banner_title": "Bölgenizde kullanılamıyor",
+      "geo_restriction_banner_description": "Bu kampanya yerel düzenlemelerden dolayı bölgenizde kullanılamıyor.",
+      "opt_in_success_toast": "Hazırsınız!"
     },
-    "snapshots_section": {
-      "title": "Anlık görüntüler",
-      "error_title": "Anlık görüntüler yüklenemiyor",
-      "error_description": "Anlık görüntüleri yükleyemedik. Lütfen tekrar deneyin.",
-      "retry_button": "Tekrar Dene"
+    "campaign_mechanics": {
+      "title": "İşleyiş"
     },
-    "snapshots_tab": {
+    "campaign_details": {
+      "start_date": "Başlangıç: {{date}}",
+      "end_date": "Bitiş: {{date}}",
+      "opt_in": "Katıl",
+      "opting_in": "Katılım sağlanıyor...",
+      "opted_in": "Bu kampanyaya katıldınız",
+      "opt_in_error": "Katılım sağlanamadı. Lütfen tekrar deneyin.",
+      "join_campaign": "Kampanyaya katıl",
+      "entries_closed_title": "Girişler kapatıldı",
+      "entries_closed_description": "Katılım penceresini kaçırdınız",
+      "competition_closed_title": "Competition no longer open",
+      "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
+      "checking_opt_in_status": "Katılım durumu kontrol ediliyor",
+      "swap": "Takas",
+      "how_it_works": "Nasıl çalışır?"
+    },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Pozisyonunuz",
+      "rank": "Sıralamam",
+      "tier": "Aşamam",
+      "rate_of_return": "Getiri",
+      "total_deposited": "Toplam Yatırılan",
+      "current_value": "Güncel Değer",
+      "not_found": "Henüz liderlik tablosunda değilsiniz. Lütfen daha sonra tekrar kontrol edin.",
+      "updated_at": "Son güncelleme: {{time}}",
+      "error_loading": "Pozisyonunuz yüklenemedi",
+      "error_loading_description": "Liderlik tablosundaki pozisyonunuz yüklenirken bir hata oldu. Lütfen tekrar deneyin.",
+      "retry": "Tekrar Dene"
+    },
+    "ondo_campaign_portfolio": {
+      "title": "My Positions",
+      "total_value": "Toplam değer",
+      "portfolio_pnl": "K&Z",
+      "portfolio_pnl_percent": "K&Z (%)",
+      "summary_cost_basis": "Maliyet temeli",
+      "summary_net_deposit": "Net yatırılan tutar",
+      "position_current_value": "Değer",
+      "position_unrealized_pnl": "K&Z",
+      "updated_at": "Son güncelleme: {{time}}",
+      "error_loading": "Pozisyonlar yüklenemedi.",
+      "error_loading_description": "Pozisyonlarınız yüklenirken bir hata oldu. Lütfen tekrar deneyin.",
+      "retry": "Tekrar Dene",
+      "loading": "Pozisyonlar yükleniyor...",
+      "empty": "Henüz pozisyon bulunamadı.",
+      "empty_description": "Tokenlaştırılmış gerçek dünya varlıklarında bir pozisyon açarak ödül kazanmaya başlayın.",
+      "empty_cta": "Bir pozisyon açın",
+      "position_units": "{{units}} pay"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Liderlik Tablosu",
+      "your_position": "Pozisyonunuz",
+      "of_total": "/ {{total}} katılımcı",
+      "total_participants": "{{count}} katılımcı",
+      "updated_at": "Son güncelleme: {{time}}",
+      "error_loading": "Liderlik tablosu yüklenemedi",
+      "error_loading_description": "Liderlik tablosu yüklenirken bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "error_loading_position": "Pozisyonunuz yüklenemedi",
+      "retry": "Tekrar Dene",
+      "no_data": "Liderlik tablosu verisi mevcut değil",
+      "no_entries_in_tier": "Bu aşamada henüz katılımcı yok",
+      "not_yet_computed": "Liderlik tablosu henüz hesaplanmadı. Kısa bir süre sonra tekrar kontrol edin."
+    },
+    "campaigns_preview": {
+      "title": "Kampanyalar",
+      "coming_soon": "Çok yakında",
+      "notify_me": "Bana bildir"
+    },
+    "earn_rewards": {
+      "title": "Ödül kazan",
+      "musd_title": "Stabil kripto paralarda %3'e kadar bonus",
+      "musd_subtitle": "mUSD bonusunuzu hesaplayın",
+      "card_title": "%3'e kadar para iadesi",
+      "card_subtitle": "MetaMask Card'ınızı hemen alın",
+      "card_subtitle_cardholder": "MetaMask Card faydalarınıza erişim sağlayın"
+    },
+    "campaigns_view": {
+      "title": "Kampanyalar",
       "active_title": "Aktif",
       "upcoming_title": "Yaklaşan",
       "previous_title": "Önceki",
-      "empty_state": "Anlık görüntüler kullanılamıyor",
-      "error_title": "Anlık görüntüler yüklenemiyor",
-      "error_description": "Anlık görüntüleri yükleyemedik. Lütfen tekrar deneyin.",
+      "empty_state": "Kampanya mevcut değil",
+      "error_title": "Kampanyalar yüklenemiyor",
+      "error_description": "Kampanyaları yükleyemedik. Lütfen tekrar deneyin.",
       "retry_button": "Tekrar Dene",
       "refreshing": "Yenileniyor..."
     }
@@ -7823,6 +8056,7 @@
       "musd_conversion": "mUSD'ye dönüştürüldü",
       "musd_claim": "mUSD alındı",
       "perps_deposit": "Fonlanmış sürekli vadeli işlem sözleşmeleri hesabı",
+      "perps_withdraw": "Çekme işlemi",
       "predict_claim": "Kazançlar alındı",
       "predict_deposit": "Fonlanmış Predict hesabı",
       "predict_withdraw": "Çekme işlemi",
@@ -7850,6 +8084,7 @@
       "musd_convert_send": "{{sourceChain}} alanından {{sourceSymbol}} gönderildi",
       "musd_claim": "mUSD al",
       "perps_deposit": "Fon ekle",
+      "perps_withdraw": "Çekme işlemi",
       "predict_deposit": "Fon ekle",
       "swap": "Token swap işlemi yapın",
       "swap_approval": "Token'leri onayla"
@@ -7922,6 +8157,7 @@
     "sites": "Siteler",
     "popular_sites": "Popüler siteler",
     "search_sites": "Siteleri ara",
+    "view_all": "Tümünü görüntüle",
     "enable_basic_functionality": "Temel işlevselliği etkinleştir",
     "basic_functionality_disabled_title": "Keşfet özelliği kullanılamıyor",
     "basic_functionality_disabled_description": "Temel işlevsellik devre dışıyken gerekli meta verileri getiremiyoruz.",
@@ -7953,13 +8189,12 @@
       "continue": "Devam et"
     },
     "connecting": {
-      "title": "{{device}} cihazını bağla",
+      "title": "{{device}} cihazınız bağlanıyor...",
       "searching": "{{device}} aranıyor...",
-      "tips_header": "Devam etmek için şunlardan emin olun:",
+      "tips_header": "Şunlardan emin olun:",
       "tip_unlock": "{{device}} kilidi açık olmalı",
       "tip_open_app": "Ethereum uygulaması açık olmalı",
       "tip_enable_bluetooth": "Bluetooth açık olmalı",
-      "tip_dnd_off": "Rahatsız Etme modu kapalı olmalı",
       "tip_bluetooth_permission": "Konum ve Bluetooth izni verilmiş olmalı",
       "tip_bluetooth_permission_v12": "Yakındaki cihazlar izni verilmiş olmalı",
       "tip_stay_close": "Cihazınız telefonunuza yakın durmalı"
@@ -7993,7 +8228,7 @@
       "nearby_permission_denied": "Yakındaki cihazlar izni gereklidir",
       "bluetooth_off": "Cihazınıza bağlanmak için lütfen Bluetooth'u açın",
       "bluetooth_scan_failed": "Cihazlar taranamadı. Lütfen tekrar deneyin",
-      "bluetooth_connection_failed": "Devam etmek için cihazınızda Bluetooth'u etkinleştirin",
+      "bluetooth_connection_failed": "Cihazınıza bağlanılamadı. Lütfen tekrar deneyin",
       "not_supported": "Bu işlem desteklenmiyor",
       "unknown_error": "{{device}} cihazınızda bu hesap için Gizli Kurtarma İfadesi veya parola kurulumunun yapıldığından emin olun"
     },
@@ -8033,12 +8268,22 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Cash",
-      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
-      "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
+      "cash": "Nakit",
+      "cash_empty_description": "Henüz mUSD'niz yok. Ana sayfada Nakit kısmından stabil kripto paraları mUSD'ye dönüştürün.",
+      "cash_empty_description_network_filter": "Bu ağda mUSD yok. mUSD'nizi görmek için ağ değiştirin.",
       "tokens": "tokenlar",
       "perpetuals": "Sürekli Vadeli İşlemler",
       "predictions": "Tahminler",
+      "whats_happening": "Neler oluyor",
+      "top_traders": "Top Traders",
+      "whats_happening_categories": {
+        "geopolitical": "Jeopolitik",
+        "macro": "Makro",
+        "regulatory": "Mevzuat",
+        "technical": "Teknik",
+        "social": "Sosyal",
+        "other": "Diğer"
+      },
       "defi": "DeFi",
       "nfts": "NFT'ler",
       "import_nfts": "NFT'leri içe aktar",

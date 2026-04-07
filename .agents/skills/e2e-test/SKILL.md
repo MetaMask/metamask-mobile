@@ -89,10 +89,10 @@ Step 5 → Iterate (fix → lint → run) until green
 
 Documentation is split by **action**. Open only the reference that matches what you are doing.
 
-| Action                                        | File                                                       | When to open it                                                                                   |
-| --------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Writing or updating a spec**                | [references/writing-tests.md](references/writing-tests.md) | New spec file, spec structure, FixtureBuilder patterns, smoke/regression templates.               |
-| **Page Objects and selectors**                | [references/page-objects.md](references/page-objects.md)   | Create or update POM classes, selector/testId conventions, Matchers/Gestures/Assertions API.      |
-| **API and feature flag mocking**              | [references/mocking.md](references/mocking.md)             | testSpecificMock, setupRemoteFeatureFlagsMock, setupMockRequest, shared mock files.               |
+| Action                                        | File                                                                | When to open it                                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Writing or updating a spec**                | [references/writing-tests.md](references/writing-tests.md)          | New spec file, spec structure, FixtureBuilder patterns, smoke/regression templates.                                |
+| **Page Objects and selectors**                | [references/page-objects.md](references/page-objects.md)            | Create or update POM classes, selector/testId conventions, Matchers/Gestures/Assertions API.                       |
+| **API and feature flag mocking**              | [references/mocking.md](references/mocking.md)                      | testSpecificMock, setupRemoteFeatureFlagsMock, setupMockRequest, shared mock files.                                |
 | **MetaMetrics / analytics expectations**      | [tests/docs/analytics-e2e.md](../../../tests/docs/analytics-e2e.md) | `analyticsExpectations` on `withFixtures`, declarative checks, presets in `tests/helpers/analytics/expectations/`. |
-| **Running tests, debugging, fixing failures** | [references/running-tests.md](references/running-tests.md) | Build check, detox run commands, lint/tsc, common failures table, retry patterns, iteration loop. |
+| **Running tests, debugging, fixing failures** | [references/running-tests.md](references/running-tests.md)          | Build check, detox run commands, lint/tsc, common failures table, retry patterns, iteration loop.                  |

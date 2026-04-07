@@ -17,7 +17,14 @@ import {
   Switch,
   TouchableOpacity,
 } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
@@ -40,11 +47,6 @@ import { TextVariant as ComponentTextVariant } from '../../../../../component-li
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import {
@@ -74,10 +76,7 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  resetAuthenticatedData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -105,7 +104,7 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../pushProvisioning';
-import { AddToWalletButton } from '@expensify/react-native-wallet';
+import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
 import { createViewPinBottomSheetNavigationDetails } from '../../components/ViewPinBottomSheet';
@@ -142,7 +141,7 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
-  const userLocation = useSelector(selectUserCardLocation);
+  const userLocation = useSelector(selectCardUserLocation);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
@@ -189,7 +188,6 @@ const CardHome = () => {
     error: cardError,
     warning,
     isAuthenticated,
-    isBaanxLoginEnabled,
     fetchAllData,
     fetchCardDetails,
     allTokens,
@@ -271,12 +269,12 @@ const CardHome = () => {
       cardDetails
         ? {
             id: cardDetails.id,
-            holderName: cardDetails.holderName,
+            holderName: cardholderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
           }
         : null,
-    [cardDetails],
+    [cardDetails, cardholderName],
   );
 
   const {
@@ -286,6 +284,7 @@ const CardHome = () => {
   } = usePushProvisioning({
     cardDetails: cardDetailsForProvisioning,
     userAddress: userAddressForProvisioning,
+    accountCreatedAt: kycStatus?.userDetails?.createdAt,
     onSuccess: () => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -914,15 +913,13 @@ const CardHome = () => {
 
   const cardSetupState = useMemo(() => {
     const needsSetup =
-      isBaanxLoginEnabled &&
-      (warning === CardStateWarning.NoCard ||
-        warning === CardStateWarning.NeedDelegation);
+      warning === CardStateWarning.NoCard ||
+      warning === CardStateWarning.NeedDelegation;
 
     const isKYCVerified =
       isAuthenticated && kycStatus?.verificationState === 'VERIFIED';
 
     const isKYCPending =
-      isBaanxLoginEnabled &&
       isAuthenticated &&
       (kycStatus?.verificationState === 'PENDING' ||
         kycStatus?.verificationState === 'UNVERIFIED');
@@ -935,7 +932,7 @@ const CardHome = () => {
         : CardHomeSelectors.ENABLE_ASSETS_BUTTON;
 
     return { needsSetup, canEnable, isKYCPending, setupTestId };
-  }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
+  }, [warning, isAuthenticated, kycStatus, isLoading]);
 
   /**
    * Check if the card is being provisioned.
@@ -956,7 +953,6 @@ const CardHome = () => {
       !cardSetupState.isKYCPending &&
       !isCardProvisioning &&
       isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
       isAuthenticated &&
       warning === CardStateWarning.NoCard &&
       userLocation === 'us' &&
@@ -966,7 +962,6 @@ const CardHome = () => {
       cardSetupState.isKYCPending,
       isCardProvisioning,
       isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
       isAuthenticated,
       warning,
       userLocation,
@@ -1014,19 +1009,6 @@ const CardHome = () => {
       );
     }
 
-    if (!isBaanxLoginEnabled) {
-      return (
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_home.add_funds')}
-          size={ButtonSize.Lg}
-          onPress={addFundsAction}
-          width={ButtonWidthTypes.Full}
-          testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        />
-      );
-    }
-
     if (isCardProvisioning) {
       return null;
     }
@@ -1038,51 +1020,53 @@ const CardHome = () => {
 
       return (
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_home.enable_card_button_label')}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={
             shouldRedirectToChooseCard
               ? navigateToChooseYourCard
               : openOnboardingDelegationAction
           }
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={cardSetupState.setupTestId}
-        />
+        >
+          {strings('card.card_home.enable_card_button_label')}
+        </Button>
       );
     }
 
     return (
       <Box twClassName="w-full gap-2 flex-row justify-between items-center">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={tw.style(
             'w-1/2',
             !isSwapEnabledForPriorityToken && 'opacity-50',
           )}
-          label={strings('card.card_home.add_funds')}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
-          width={ButtonWidthTypes.Full}
-          disabled={!isSwapEnabledForPriorityToken}
+          isFullWidth
+          isDisabled={!isSwapEnabledForPriorityToken}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        />
+        >
+          {strings('card.card_home.add_funds')}
+        </Button>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={tw.style('w-1/2')}
-          label={strings('card.card_home.change_asset')}
           size={ButtonSize.Lg}
           onPress={changeAssetAction}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-        />
+        >
+          {strings('card.card_home.change_asset')}
+        </Button>
       </Box>
     );
   }, [
     addFundsAction,
     changeAssetAction,
     cardSetupState,
-    isBaanxLoginEnabled,
     isLoading,
     isSwapEnabledForPriorityToken,
     tw,
@@ -1099,14 +1083,12 @@ const CardHome = () => {
       !cardSetupState.needsSetup &&
       !isCardProvisioning &&
       isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
       isAuthenticated &&
       userLocation === 'us' &&
       userShippingAddress &&
       cardDetails?.type === CardType.VIRTUAL,
     [
       isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
       isAuthenticated,
       userLocation,
       userShippingAddress,
@@ -1145,12 +1127,16 @@ const CardHome = () => {
 
       try {
         await removeCardBaanxToken();
+        // Sync controller state: token is now gone so validateAndRefreshSession
+        // will mark CardController.isAuthenticated = false without an API call.
+        await Engine.context.CardController.validateAndRefreshSession().catch(
+          () => undefined,
+        );
 
         if (isComponentUnmountedRef.current) {
           return;
         }
 
-        dispatch(resetAuthenticatedData());
         queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({
@@ -1174,7 +1160,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
+  }, [cardError, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -1277,15 +1263,16 @@ const CardHome = () => {
         {retries < 3 && !isAuthenticationError(cardError) && (
           <Box twClassName="pt-2">
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_home.try_again')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
               onPress={() => {
                 setRetries((prevState) => prevState + 1);
                 fetchAllData();
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
-            />
+            >
+              {strings('card.card_home.try_again')}
+            </Button>
           </Box>
         )}
       </Box>
@@ -1571,23 +1558,21 @@ const CardHome = () => {
               testID="freeze-card-list-item"
             />
           )}
-        {isBaanxLoginEnabled &&
-          !isLoading &&
-          !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={strings(
-                priorityToken?.allowanceState === AllowanceState.Enabled
-                  ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-                  : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={manageSpendingLimitAction}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {!isLoading && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.manage_spending_limit',
+            )}
+            description={strings(
+              priorityToken?.allowanceState === AllowanceState.Enabled
+                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={manageSpendingLimitAction}
+            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+          />
+        )}
       </Box>
       {!isLoading &&
         !cardSetupState.isKYCPending &&

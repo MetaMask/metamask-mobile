@@ -14,7 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView } from 'react-native';
-import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
@@ -22,7 +22,7 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
 import PredictBuyBottomContent from './components/PredictBuyBottomContent';
-import PredictBuyMinimumError from './components/PredictBuyMinimumError';
+import PredictBuyError from './components/PredictBuyError';
 import PredictBuyPreviewHeader from './components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from './components/PredictFeeSummary/PredictFeeSummary';
@@ -33,24 +33,24 @@ import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
 import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
-import usePredictBuyBackSwipe from './hooks/usePredictBuyBackSwipe';
 import { usePredictBuyConditions } from './hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from './hooks/usePredictBuyInputState';
-import { usePredictBuyActions } from './hooks/usePredictBuyPreviewActions';
+import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { usePredictPayWithAnyTokenTracking } from './hooks/usePredictPayWithAnyTokenTracking';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
+
+import {
+  selectPredictFakOrdersEnabledFlag,
+  selectPredictWithAnyTokenEnabledFlag,
+} from '../../selectors/featureFlags';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
-import { usePredictOrderTracking } from './hooks/usePredictOrderTracking';
-
-const SHOW_TOKEN_SELECTION = false;
+import { formatPrice } from '../../utils/format';
+import { usePredictBuyError } from './hooks/usePredictBuyError';
+import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
@@ -59,16 +59,16 @@ const PredictBuyWithAnyToken = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const {
-    market,
-    outcome,
-    outcomeToken,
-    entryPoint,
-    isConfirmation,
-    preview: initialPreview,
-  } = route.params;
+  const { market, outcome, outcomeToken, entryPoint } = route.params;
+
+  const { isPlacingOrder } = usePredictActiveOrder();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
+  const payWithAnyTokenEnabled = useSelector(
+    selectPredictWithAnyTokenEnabledFlag,
+  );
+  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -77,6 +77,15 @@ const PredictBuyWithAnyToken = () => {
 
   const { availableBalance, isBalanceLoading } =
     usePredictBuyAvailableBalance();
+
+  const availableBalanceDisplay = useMemo(
+    () =>
+      formatPrice(availableBalance, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      }),
+    [availableBalance],
+  );
 
   const {
     currentValue,
@@ -91,15 +100,6 @@ const PredictBuyWithAnyToken = () => {
     setIsConfirming,
   } = usePredictBuyInputState();
 
-  const {
-    placeOrder,
-    isLoading: isPlaceOrderLoading,
-    error: placeOrderError,
-    result,
-    isOrderNotFilled,
-    resetOrderNotFilled,
-  } = usePredictPlaceOrder();
-
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
   }, []);
@@ -107,8 +107,6 @@ const PredictBuyWithAnyToken = () => {
   const handleFeeBreakdownClose = useCallback(() => {
     setIsFeeBreakdownVisible(false);
   }, []);
-
-  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const {
     preview,
@@ -121,7 +119,6 @@ const PredictBuyWithAnyToken = () => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
-    initialPreview,
   });
 
   const {
@@ -131,59 +128,49 @@ const PredictBuyWithAnyToken = () => {
     total,
     depositFee,
     rewardsFeeAmount,
-    errorMessage,
+    totalPayForPredictBalance,
   } = usePredictBuyInfo({
     currentValue,
     preview,
     previewError,
-    isPlaceOrderLoading,
-    placeOrderError,
-    isOrderNotFilled,
     isConfirming,
-  });
-
-  const {
-    handleBack,
-    handleBackSwipe,
-    handleTokenSelected,
-    handleConfirm,
-    handleDepositFailed,
-    handlePlaceOrderSuccess,
-    handlePlaceOrderError,
-  } = usePredictBuyActions({
-    currentValue,
-    analyticsProperties,
-    preview,
-    placeOrder,
-    depositAmount: total - depositFee,
-    setIsConfirming,
-  });
-
-  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
-
-  usePredictPayWithAnyTokenTracking({
-    onFail: handleDepositFailed,
-    onConfirm: handleConfirm,
-  });
-
-  const {
     isPlacingOrder,
-    isBelowMinimum,
+  });
+
+  const {
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
+    isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
   } = usePredictBuyConditions({
     currentValue,
     preview,
     isPreviewCalculating,
-    isPlaceOrderLoading,
     isUserInputChange,
     isConfirming,
+    totalPayForPredictBalance,
+    isInputFocused,
   });
 
-  usePredictPaymentToken({
-    onTokenSelected: handleTokenSelected,
+  const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
+    usePredictBuyError({
+      preview,
+      previewError,
+      isPlacingOrder,
+      isBelowMinimum,
+      isInsufficientBalance,
+      maxBetAmount,
+      isConfirming,
+      isPayFeesLoading,
+    });
+
+  const { handleConfirm, placeOrder } = usePredictBuyActions({
+    analyticsProperties,
+    preview,
+    setIsConfirming,
   });
 
   useEffect(() => {
@@ -216,28 +203,13 @@ const PredictBuyWithAnyToken = () => {
     },
   });
 
-  usePredictOrderTracking({
-    result,
-    error: placeOrderError,
-    onSuccess: handlePlaceOrderSuccess,
-    onError: handlePlaceOrderError,
-  });
-
-  const edges = useMemo(
-    () => (isConfirmation ? (['top', 'left', 'right'] as Edge[]) : undefined),
-    [isConfirmation],
-  );
-
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={edges}
-    >
+    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
         market={market}
         outcome={outcome}
+        outcomeToken={outcomeToken}
         preview={preview}
-        onBack={handleBack}
       />
       <ScrollView
         style={tw.style('flex-col')}
@@ -256,19 +228,17 @@ const PredictBuyWithAnyToken = () => {
             isInputFocused={isInputFocused}
             isBalanceLoading={isBalanceLoading}
             isBalancePulsing={isBalancePulsing}
-            availableBalanceDisplay={availableBalance}
+            availableBalanceDisplay={availableBalanceDisplay}
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
+            isPlacingOrder={isPlacingOrder}
           />
-          {SHOW_TOKEN_SELECTION && (
+          {payWithAnyTokenEnabled && (
             <PredictPayWithRow disabled={isPlacingOrder} />
           )}
         </Box>
       </ScrollView>
-      <PredictBuyMinimumError
-        isBalanceLoading={isBalanceLoading}
-        isBelowMinimum={isBelowMinimum}
-      />
+      <PredictBuyError errorMessage={errorMessage} />
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -278,10 +248,7 @@ const PredictBuyWithAnyToken = () => {
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
       />
-      <PredictBuyBottomContent
-        isInputFocused={isInputFocused}
-        errorMessage={errorMessage}
-      >
+      <PredictBuyBottomContent isInputFocused={isInputFocused}>
         <PredictFeeSummary
           disabled={isInputFocused}
           loading={isPayFeesLoading}
@@ -323,9 +290,11 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      {isConfirmation && (
-        <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
-      )}
+      <PredictPayWithAnyTokenInfo
+        currentValue={currentValue}
+        preview={preview}
+        isInputFocused={isInputFocused}
+      />
     </SafeAreaView>
   );
 };

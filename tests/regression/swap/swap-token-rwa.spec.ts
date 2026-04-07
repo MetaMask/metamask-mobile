@@ -11,9 +11,10 @@ import {
   checkSwapActivity,
 } from '../../helpers/swap/swap-unified-ui';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap RWA'), (): void => {
   jest.setTimeout(120000);
@@ -41,7 +42,6 @@ describe(RegressionTrade('Swap RWA'), (): void => {
               nickname: 'Localhost',
               ticker: 'ETH',
             })
-            .withDisabledSmartTransactions()
             .build();
         },
         localNodeOptions: [
@@ -53,7 +53,10 @@ describe(RegressionTrade('Swap RWA'), (): void => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
       },
       async () => {

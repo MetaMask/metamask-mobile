@@ -377,7 +377,18 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             deviceProp: 'Device value',
             userProp: 'User value',
           });
-          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_IN.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'settings',
+              }),
+            }),
+          );
+          expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+            2,
             expect.objectContaining({
               name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
               properties: expect.objectContaining({
@@ -407,7 +418,18 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         fireEvent(metaMetricsSwitch, 'valueChange', true);
 
         await waitFor(() => {
-          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_IN.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'onboarding_default_settings',
+              }),
+            }),
+          );
+          expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+            2,
             expect.objectContaining({
               name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
               properties: expect.objectContaining({
@@ -467,6 +489,16 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         fireEvent(metaMetricsSwitch, 'valueChange', true);
 
         await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_IN.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'settings',
+                account_type: AccountType.MetamaskGoogle,
+              }),
+            }),
+          );
           expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
             expect.objectContaining({
               name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
@@ -809,6 +841,16 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
               1,
               expect.objectContaining({
+                name: MetaMetricsEvents.METRICS_OPT_IN.category,
+                properties: expect.objectContaining({
+                  location: 'settings',
+                  updated_after_onboarding: true,
+                }),
+              }),
+            );
+            expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+              2,
+              expect.objectContaining({
                 name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
                 properties: expect.objectContaining({
                   is_metrics_opted_in: true,
@@ -827,8 +869,8 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             },
           );
           expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-            // if MetaMetrics is initially disabled, trackEvent is called twice and this is 2nd call
-            !metaMetricsInitiallyEnabled ? 2 : 1,
+            // if MetaMetrics is initially disabled, marketing consent is the 3rd trackEvent
+            !metaMetricsInitiallyEnabled ? 3 : 1,
             expect.objectContaining({
               name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
               properties: expect.objectContaining({

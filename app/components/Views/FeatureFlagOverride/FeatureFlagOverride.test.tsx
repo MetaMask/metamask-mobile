@@ -40,18 +40,12 @@ jest.mock('../../../hooks/useFeatureFlagStats', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      border: { default: '#D6D9DC', muted: '#F2F4F6' },
-      text: { default: '#24272A', muted: '#6A737D', alternative: '#535A61' },
-      background: { default: '#FFFFFF', alternative: '#F8F9FA' },
-      warning: { muted: '#FFF4E6' },
-    },
-    brandColors: { white: '#FFFFFF' },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -71,10 +65,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock useMetrics
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   __esModule: true,
-  default: jest.fn(() => ({
+  useAnalytics: jest.fn(() => ({
     addTraitsToUser: jest.fn(),
   })),
 }));
@@ -272,7 +265,8 @@ describe('useFeatureFlagOverride Hook', () => {
 });
 
 describe('FeatureFlagOverride', () => {
-  let mockNavigation: ReturnType<typeof useNavigation>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNavigation: any;
 
   // Helper to render with providers
   const renderWithProviders = (

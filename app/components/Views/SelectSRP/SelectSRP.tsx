@@ -2,13 +2,13 @@ import React from 'react';
 import SRPList from '../../UI/SRPList';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { StyleProp, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 const SelectSRP = ({
   containerStyle,
   showArrowName,
 }: {
-  containerStyle?: StyleProp<ViewStyle>;
+  containerStyle?: ViewStyle;
   showArrowName?: string;
 }) => {
   const navigation = useNavigation();

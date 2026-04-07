@@ -21,10 +21,10 @@ jest.mock('react-native-device-info', () => ({
   getBuildNumber: () => mockGetBuildNumber(),
 }));
 
-// Mock isQa utility
-const mockIsQa = jest.fn();
-jest.mock('../../../../util/test/utils', () => ({
-  isQa: () => mockIsQa(),
+// Mock isProduction utility
+const mockIsProduction = jest.fn();
+jest.mock('../../../../util/environment', () => ({
+  isProduction: () => mockIsProduction(),
 }));
 
 // Mock getFeatureFlagAppEnvironment and getFeatureFlagAppDistribution
@@ -70,7 +70,7 @@ describe('AppInformation', () => {
     mockGetApplicationName.mockResolvedValue('MetaMask');
     mockGetVersion.mockResolvedValue('7.0.0');
     mockGetBuildNumber.mockResolvedValue('1000');
-    mockIsQa.mockReturnValue(false);
+    mockIsProduction.mockReturnValue(true);
     mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
   });
@@ -324,10 +324,9 @@ describe('AppInformation', () => {
       });
     });
 
-    it('displays branch information when isQa is true', async () => {
-      // Given isQa returns true
-      process.env.GIT_BRANCH = 'feature/test-branch';
-      mockIsQa.mockReturnValue(true);
+    it('displays build type and branch information for non-production builds', async () => {
+      // Given isProduction returns false (non-production build)
+      mockIsProduction.mockReturnValue(false);
 
       const { getByText } = renderScreen(
         AppInformation,
@@ -336,9 +335,29 @@ describe('AppInformation', () => {
       );
 
       // When the component renders
-      // Then it should display the branch information (this is always visible for QA)
+      // Then it should display the build type and branch information
+      // Note: env vars are inlined at build time, so we check the format pattern
       await waitFor(() => {
-        expect(getByText(/Branch:/)).toBeTruthy();
+        expect(getByText(/\| Branch:/)).toBeOnTheScreen();
+      });
+    });
+
+    it('does not display branch information for production builds', async () => {
+      // Given isProduction returns true (production build)
+      process.env.GIT_BRANCH = 'main';
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      mockIsProduction.mockReturnValue(true);
+
+      const { queryByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      // When the component renders
+      // Then it should NOT display the branch information
+      await waitFor(() => {
+        expect(queryByText(/Branch:/)).not.toBeOnTheScreen();
       });
     });
   });

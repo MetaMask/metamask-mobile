@@ -10,8 +10,10 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
+import WhatsHappeningSection from './Sections/WhatsHappening';
 import PerpsSection from './Sections/Perpetuals';
 import PredictionsSection from './Sections/Predictions';
+import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import { SectionRefreshHandle } from './types';
@@ -19,6 +21,8 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
+import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
@@ -32,15 +36,20 @@ import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetwor
  * their refresh functionality via refs.
  */
 const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
+  const cashSectionRef = useRef<SectionRefreshHandle>(null);
   const tokensSectionRef = useRef<SectionRefreshHandle>(null);
+  const whatsHappeningSectionRef = useRef<SectionRefreshHandle>(null);
   const perpsSectionRef = useRef<SectionRefreshHandle>(null);
   const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
+  const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
   const defiSectionRef = useRef<SectionRefreshHandle>(null);
   const nftsSectionRef = useRef<SectionRefreshHandle>(null);
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+  const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isMusdConversionEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
@@ -68,12 +77,27 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
+        {
+          name: HomeSectionNames.TOP_TRADERS,
+          enabled: isTopTradersEnabled,
+        },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        {
+          name: HomeSectionNames.WHATS_HAPPENING,
+          enabled: isWhatsHappeningEnabled,
+        },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
-    [isCashSectionEnabled, isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
+    [
+      isCashSectionEnabled,
+      isWhatsHappeningEnabled,
+      isPerpsEnabled,
+      isPredictEnabled,
+      isTopTradersEnabled,
+      isDeFiEnabled,
+    ],
   );
 
   const totalSectionsLoaded = enabledSections.length;
@@ -88,9 +112,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   const refresh = useCallback(async () => {
     await Promise.allSettled([
+      cashSectionRef.current?.refresh(),
       tokensSectionRef.current?.refresh(),
+      whatsHappeningSectionRef.current?.refresh(),
       perpsSectionRef.current?.refresh(),
       predictionsSectionRef.current?.refresh(),
+      topTradersSectionRef.current?.refresh(),
       defiSectionRef.current?.refresh(),
       nftsSectionRef.current?.refresh(),
     ]);
@@ -106,12 +133,18 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
     >
       <CashSection
+        ref={cashSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.CASH)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+      <TopTradersSection
+        ref={topTradersSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <PerpsSection
@@ -122,6 +155,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
       <PredictionsSection
         ref={predictionsSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+      <WhatsHappeningSection
+        ref={whatsHappeningSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <DeFiSection

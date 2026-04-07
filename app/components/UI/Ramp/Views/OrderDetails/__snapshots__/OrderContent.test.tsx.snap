@@ -158,9 +158,8 @@ exports[`OrderContent renders completed state correctly 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
-            "fontWeight": 700,
             "letterSpacing": 0,
             "lineHeight": 50,
             "marginTop": 24,
@@ -198,7 +197,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -227,7 +225,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
               "color": "#457a39",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
-              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
             },
@@ -261,7 +258,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
                   "color": "#4459ff",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                   "marginRight": 4,
@@ -312,7 +308,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -345,7 +340,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginRight": 8,
@@ -395,7 +389,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -413,7 +406,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -446,7 +438,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -464,7 +455,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -472,8 +462,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $
-      2.5 USD
+      $2.50
     </Text>
   </View>
   <View
@@ -498,7 +487,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -516,7 +504,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -524,8 +511,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $
-      100 USD
+      $100.00
     </Text>
   </View>
   <View
@@ -562,7 +548,6 @@ exports[`OrderContent renders completed state correctly 1`] = `
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 14,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "textAlign": "center",
@@ -758,9 +743,8 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
-            "fontWeight": 700,
             "letterSpacing": 0,
             "lineHeight": 50,
             "marginTop": 24,
@@ -771,7 +755,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       }
       testID="ramps-order-details-token-amount"
     >
-      0.05
+      ...
        
       ETH
     </Text>
@@ -798,7 +782,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -857,7 +840,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -904,7 +886,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -951,7 +932,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -998,7 +978,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1057,7 +1036,6 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 14,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "textAlign": "center",
@@ -1095,7 +1073,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
 </View>
 `;
 
-exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or missing 1`] = `
+exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 or missing 1`] = `
 <View
   style={
     [
@@ -1253,9 +1231,8 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
         [
           {
             "color": "#131416",
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
-            "fontWeight": 700,
             "letterSpacing": 0,
             "lineHeight": 50,
             "marginTop": 24,
@@ -1266,7 +1243,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
       }
       testID="ramps-order-details-token-amount"
     >
-      0
+      ...
        
       ETH
     </Text>
@@ -1293,7 +1270,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1322,7 +1298,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
               "color": "#9a6300",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
-              "fontWeight": 400,
               "letterSpacing": 0,
               "lineHeight": 24,
             },
@@ -1356,7 +1331,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
                   "color": "#4459ff",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                   "marginRight": 4,
@@ -1407,7 +1381,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1440,7 +1413,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginRight": 8,
@@ -1490,7 +1462,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1508,7 +1479,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1541,7 +1511,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1559,7 +1528,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1567,8 +1535,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
         ]
       }
     >
-      $
-      2.5 USD
+      $2.50
     </Text>
   </View>
   <View
@@ -1593,7 +1560,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1611,7 +1577,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
             "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
-            "fontWeight": 400,
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -1619,8 +1584,7 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
         ]
       }
     >
-      $
-      100 USD
+      $100.00
     </Text>
   </View>
   <View
@@ -1657,7 +1621,6 @@ exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or 
                 "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 14,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "textAlign": "center",

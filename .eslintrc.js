@@ -168,25 +168,9 @@ module.exports = {
       },
     },
     {
-      // Temporary rollout strategy:
-      // Keep color-no-hex disabled for all tests by default, then re-enable it
-      // for specific folders in small PR batches. Once migration is complete,
-      // remove this override and enforce across all tests in:
-      // - app/components/
-      // - app/component-library/
-      files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'off',
-      },
-    },
-    {
       files: [
-        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
-        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+        'app/components/**/*.{js,jsx,ts,tsx}',
+        'app/component-library/**/*.{js,jsx,ts,tsx}',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
@@ -276,7 +260,10 @@ module.exports = {
     //
     // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
-      files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      files: [
+        'app/controllers/perps/**/*.{ts,tsx}',
+        'app/**/*-method-action-types*.ts',
+      ],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
         // === Existing rule ===
@@ -619,7 +606,7 @@ module.exports = {
     'react/no-string-refs': 'error',
     'react/no-unused-prop-types': 'error',
     'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'warn',
+    '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
     // These rule modifications are removing changes to our shared ESLint config made after

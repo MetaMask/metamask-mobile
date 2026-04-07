@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+import { cardNetworkInfos } from '../constants';
 
 /**
  * Checks if the priority token address is the same as the selected internal account address.
@@ -17,8 +17,10 @@ export const useIsSwapEnabledForPriorityToken = (
     selectSelectedInternalAccountByScope,
   );
   const evmAccount = selectSelectedInternalAccount('eip155:0');
-  const solanaAccount = selectSelectedInternalAccount(SOLANA_MAINNET.chainId);
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const solanaAccount = selectSelectedInternalAccount(
+    cardNetworkInfos.solana.caipChainId,
+  );
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
 
   if (!isAuthenticated) {
     // If the user is not authenticated reflects on-chain fetch logic, so we return true to allow swaps

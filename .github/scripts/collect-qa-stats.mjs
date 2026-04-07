@@ -20,6 +20,10 @@
  * Artifact names used below are coupled to `name:` fields in ci.yml and run-e2e-workflow.yml —
  * renaming either side silently drops that metric from the output.
  *
+ * MetaMetrics (top-level `metametrics` namespace): static scan of
+ * `tests/helpers/analytics/expectations/*.ts` plus `LEGACY_INLINE_METAMETRICS_PATHS`
+ * for specs not yet using declarative expectations.
+ *
  * Example output:
  *   {
  *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
@@ -27,12 +31,15 @@
  *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
  *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
  *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
+ *     "metametrics":   { "metametrics_events_checked_unique_count": 42,
+ *                        "metametrics_events_checked_names_json": "[\"Action Button Clicked\", ...]" },
  *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
  *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
  *   }
  */
 
-import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
+import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
@@ -49,6 +56,32 @@ if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
 // ---------------------------------------------------------------------------
 const SCAN_APP_DIR        = 'app';
 const SCAN_E2E_SMOKE_DIRS = ['tests/smoke'];
+/** Declarative MetaMetrics expectations (`AnalyticsExpectations`) — primary source for QA event coverage. */
+const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
+/**
+ * E2E sources that still assert MetaMetrics inline (not only via expectations/*.analytics.ts).
+ * Remove paths here when migrated to the expectations folder so the slim parser is enough.
+ */
+const LEGACY_INLINE_METAMETRICS_PATHS = [
+  'tests/smoke/card/card-button.spec.ts',
+  'tests/smoke/card/card-home-add-funds.spec.ts',
+  'tests/smoke/card/card-home-manage-card.spec.ts',
+  'tests/smoke/confirmations/send/metricsValidationHelper.ts',
+  'tests/smoke/confirmations/transactions/dapp-initiated-transfer.spec.ts',
+  'tests/smoke/predict/predict-cash-out.spec.ts',
+  'tests/smoke/predict/predict-claim-positions.spec.ts',
+  'tests/smoke/predict/predict-geo-restriction.spec.ts',
+  'tests/smoke/predict/predict-open-position.spec.ts',
+  'tests/smoke/ramps/onramp-unified-buy.spec.ts',
+  'tests/smoke/snaps/test-snap-preinstalled.spec.ts',
+  'tests/smoke/swap/bridge-action-smoke.spec.ts',
+  'tests/smoke/swap/swap-action-smoke.spec.ts',
+  'tests/smoke/wallet/analytics/import-wallet.spec.ts',
+  'tests/smoke/wallet/analytics/new-wallet.spec.ts',
+  'tests/regression/ramps/onramp-parameters.spec.ts',
+  'tests/regression/wallet/analytics/opt-out.ts',
+];
+const PATH_ONBOARDING_EVENTS = 'tests/helpers/analytics/helpers.ts';
 const SCAN_PERFORMANCE_DIR = 'tests/performance';
 
 const PATTERN_CV_TEST_FILE   = /\.view(?:\..+)?\.test\.[jt]sx?$/;
@@ -270,6 +303,357 @@ async function walkFiles(dir, predicate) {
   return results;
 }
 
+// ---------------------------------------------------------------------------
+// E2E MetaMetrics event names (static scan)
+// Primary: tests/helpers/analytics/expectations/*.ts (AnalyticsExpectations).
+// Legacy: explicit paths that still use getEventsPayloads / inline comparisons.
+// ---------------------------------------------------------------------------
+
+/**
+ * Loads onboarding event key → display name map from tests/helpers/analytics/helpers.ts.
+ *
+ * @returns {Promise<Record<string, string>>}
+ */
+async function loadOnboardingEventsMap() {
+  const raw = await readFile(PATH_ONBOARDING_EVENTS, 'utf8');
+  const marker = 'export const onboardingEvents = {';
+  const idx = raw.indexOf(marker);
+  if (idx === -1) return {};
+  const start = raw.indexOf('{', idx);
+  let depth = 0;
+  let i = start;
+  for (; i < raw.length; i += 1) {
+    const c = raw[i];
+    if (c === '{') depth += 1;
+    else if (c === '}') {
+      depth -= 1;
+      if (depth === 0) break;
+    }
+  }
+  const body = raw.slice(start + 1, i);
+  const map = {};
+  for (const m of body.matchAll(/(\w+)\s*:\s*(?:\r?\n\s*)?['"]([^'"]+)['"]\s*,?/g)) {
+    map[m[1]] = m[2];
+  }
+  return map;
+}
+
+/**
+ * @param {string} source
+ * @returns {Record<string, string>}
+ */
+function parseConstStringLiterals(source) {
+  const out = {};
+  for (const m of source.matchAll(/\bconst\s+(\w+)\s*=\s*['"]([^'"]+)['"]\s*;/g)) {
+    out[m[1]] = m[2];
+  }
+  return out;
+}
+
+/**
+ * Event names from declarative `*.analytics.ts` modules (onboarding refs, `name:` entries, event arrays).
+ *
+ * @param {string} source
+ * @param {Record<string, string>} onboardingMap
+ * @param {Set<string>} out
+ */
+function collectFromDeclarativeExpectationsSource(source, onboardingMap, out) {
+  const strConsts = parseConstStringLiterals(source);
+
+  for (const m of source.matchAll(/\bonboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/\bname:\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/\bname:\s*onboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/\bname:\s*(\w+)\s*,/g)) {
+    const v = strConsts[m[1]];
+    if (v) out.add(v);
+  }
+
+  const reArrays = /\bconst\s+(\w+)\s*=\s*\[([\s\S]*?)\];/g;
+  let am;
+  while ((am = reArrays.exec(source)) !== null) {
+    const varName = am[1];
+    const inner = am[2];
+    const looksLikeEventList =
+      /(?:event|Event|Expected|expectation|analytics|Names)/.test(varName) ||
+      /\bonboardingEvents\b|\bexpectedEvents\b/.test(inner);
+    if (!looksLikeEventList) continue;
+    for (const part of inner.split(',')) {
+      const t = part.replace(/^\s+|\s+$/g, '');
+      if (!t) continue;
+      const lit = t.match(/^['"]([^'"]+)['"]$/);
+      if (lit) {
+        out.add(lit[1]);
+        continue;
+      }
+      const onb = t.match(/^onboardingEvents\.(\w+)$/);
+      if (onb && onboardingMap[onb[1]]) {
+        out.add(onboardingMap[onb[1]]);
+        continue;
+      }
+      if (strConsts[t]) out.add(strConsts[t]);
+    }
+  }
+}
+
+/**
+ * @param {string} source
+ * @returns {Record<string, Record<string, string>>} enumName -> (member -> string value)
+ */
+function parseEnumStringMembers(source) {
+  const enums = {};
+  const re = /\benum\s+(\w+)\s*\{/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const enumName = m[1];
+    const start = source.indexOf('{', m.index);
+    let depth = 0;
+    let i = start;
+    for (; i < source.length; i += 1) {
+      const c = source[i];
+      if (c === '{') depth += 1;
+      else if (c === '}') {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    const inner = source.slice(start + 1, i);
+    const members = {};
+    for (const em of inner.matchAll(/\b(\w+)\s*=\s*['"]([^'"]+)['"]\s*,?/g)) {
+      members[em[1]] = em[2];
+    }
+    if (Object.keys(members).length > 0) enums[enumName] = members;
+  }
+  return enums;
+}
+
+/**
+ * @param {string} source
+ * @returns {Record<string, Record<string, string>>}
+ */
+function parseConstObjectStringValues(source) {
+  const maps = {};
+  const re = /\bconst\s+(\w+)\s*=\s*\{/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const start = source.indexOf('{', m.index);
+    let depth = 0;
+    let i = start;
+    for (; i < source.length; i += 1) {
+      const c = source[i];
+      if (c === '{') depth += 1;
+      else if (c === '}') {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    const inner = source.slice(start + 1, i);
+    const props = {};
+    for (const km of inner.matchAll(/\b(\w+)\s*:\s*['"]([^'"]+)['"]\s*,?/g)) {
+      props[km[1]] = km[2];
+    }
+    const varName = m[1];
+    if (Object.keys(props).length > 0) maps[varName] = props;
+  }
+  return maps;
+}
+
+/**
+ * @param {string} token
+ * @param {Record<string, string>} onboardingMap
+ * @param {Record<string, Record<string, string>>} enums
+ * @param {Record<string, Record<string, string>>} objectMaps
+ * @param {Record<string, string>} strConsts
+ * @returns {string|null}
+ */
+function resolveLegacyMetaMetricsToken(token, onboardingMap, enums, objectMaps, strConsts) {
+  const t = token.replace(/^\s+|\s+$/g, '');
+  if (!t) return null;
+  const lit = t.match(/^['"]([^'"]+)['"]$/);
+  if (lit) return lit[1];
+  const onb = t.match(/^onboardingEvents\.(\w+)$/);
+  if (onb && onboardingMap[onb[1]]) return onboardingMap[onb[1]];
+  const qual = t.match(/^(\w+)\.(\w+)$/);
+  if (qual) {
+    const [, base, mem] = qual;
+    if (enums[base]?.[mem]) return enums[base][mem];
+    if (objectMaps[base]?.[mem]) return objectMaps[base][mem];
+  }
+  if (strConsts[t]) return strConsts[t];
+  return null;
+}
+
+/**
+ * Inline MetaMetrics checks in specs (getEventsPayloads, `event.event ===`, enums, etc.).
+ *
+ * @param {string} source
+ * @param {Record<string, string>} onboardingMap
+ * @param {Set<string>} out
+ */
+function collectFromLegacyInlineAnalyticsSource(source, onboardingMap, out) {
+  const enums = parseEnumStringMembers(source);
+  const strConsts = parseConstStringLiterals(source);
+  const objectMaps = parseConstObjectStringValues(source);
+
+  for (const m of source.matchAll(/\bonboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/event\.event\s*===\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/event\.event\s*===\s*(\w+)\.(\w+)/g)) {
+    const v = resolveLegacyMetaMetricsToken(
+      `${m[1]}.${m[2]}`,
+      onboardingMap,
+      enums,
+      objectMaps,
+      strConsts,
+    );
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/findEvent\([^,]+,\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/findEvent\([^,]+,\s*onboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/filterEvents\(\s*[^,]+,\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/filterEvents\(\s*[^,]+,\s*onboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/\bevent:\s*([A-Za-z_]\w*)\s*[,}]/g)) {
+    const v = strConsts[m[1]];
+    if (v) out.add(v);
+  }
+  // Allow optional args after the event array (e.g. timeout): `], 5000)` not only `])`.
+  for (const m of source.matchAll(
+    /getEventsPayloads\s*\(\s*[^,]+,\s*\[([\s\S]*?)\]\s*(?:,\s*[^)]+)?\s*\)/g,
+  )) {
+    const inner = m[1];
+    for (const sm of inner.matchAll(/['"]([^'"]+)['"]/g)) {
+      out.add(sm[1]);
+    }
+    for (const sm of inner.matchAll(/\bonboardingEvents\.(\w+)/g)) {
+      const v = onboardingMap[sm[1]];
+      if (v) out.add(v);
+    }
+    for (const part of inner.split(',')) {
+      const v = resolveLegacyMetaMetricsToken(
+        part,
+        onboardingMap,
+        enums,
+        objectMaps,
+        strConsts,
+      );
+      if (v) out.add(v);
+    }
+  }
+
+  const reArrays = /\bconst\s+(\w+)\s*=\s*\[([\s\S]*?)\];/g;
+  let am;
+  while ((am = reArrays.exec(source)) !== null) {
+    const varName = am[1];
+    const inner = am[2];
+    const looksLikeEventList =
+      /(?:event|Event|Expected|expectation|analytics|Names)/.test(varName) ||
+      /\bonboardingEvents\b|\bexpectedEvents\b/.test(inner);
+    if (!looksLikeEventList) continue;
+    for (const part of inner.split(',')) {
+      const v = resolveLegacyMetaMetricsToken(
+        part,
+        onboardingMap,
+        enums,
+        objectMaps,
+        strConsts,
+      );
+      if (v) out.add(v);
+    }
+  }
+}
+
+/**
+ * @returns {Promise<Array<{ path: string, mode: 'expectations' | 'legacy' }>>}
+ */
+async function gatherE2EMetaMetricsSourceFiles() {
+  const out = [];
+
+  try {
+    for (const f of await walkFiles(SCAN_ANALYTICS_EXPECTATIONS_DIR, (n) => n.endsWith('.ts'))) {
+      out.push({ path: f, mode: 'expectations' });
+    }
+  } catch {
+    // Sparse checkout or missing path
+  }
+
+  for (const p of LEGACY_INLINE_METAMETRICS_PATHS) {
+    try {
+      await access(p, fsConstants.F_OK);
+      out.push({ path: p, mode: 'legacy' });
+    } catch {
+      // File removed or renamed — update LEGACY_INLINE_METAMETRICS_PATHS
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Static scan for distinct MetaMetrics event display names asserted in E2E.
+ *
+ * @returns {Promise<{ metametrics_events_checked_unique_count: number, metametrics_events_checked_names_json: string }>}
+ */
+async function collectE2EMetaMetricsEventCoverage() {
+  const onboardingMap = await loadOnboardingEventsMap();
+  const names = new Set();
+  const entries = await gatherE2EMetaMetricsSourceFiles();
+  console.log(`[metametrics] scanning ${entries.length} file(s) for referenced event names`);
+
+  for (const { path: filePath, mode } of entries) {
+    const source = await readFile(filePath, 'utf8');
+    if (mode === 'expectations') {
+      collectFromDeclarativeExpectationsSource(source, onboardingMap, names);
+    } else {
+      collectFromLegacyInlineAnalyticsSource(source, onboardingMap, names);
+    }
+  }
+
+  const sorted = [...names].sort((a, b) => a.localeCompare(b));
+  const payload = {
+    metametrics_events_checked_unique_count: sorted.length,
+    metametrics_events_checked_names_json: JSON.stringify(sorted),
+  };
+  console.log(
+    `[metametrics] ${sorted.length} unique event name(s) referenced in E2E sources`,
+  );
+  return payload;
+}
+
+/**
+ * Top-level `metametrics` namespace in qa-stats.json (static E2E event-name coverage).
+ *
+ * @returns {Promise<Record<string, unknown>>}
+ */
+async function collectMetametricsQaStats() {
+  try {
+    return await collectE2EMetaMetricsEventCoverage();
+  } catch (err) {
+    console.warn(`[metametrics] static scan failed, skipping namespace: ${err.message}`);
+    return {};
+  }
+}
+
 /**
  * Extracts a feature folder name from a Jest test file path.
  *
@@ -486,7 +870,9 @@ async function collectE2ECounts() {
   console.log(`[e2e] found ${e2eArtifacts.length} JUnit artifact(s)`);
 
   if (e2eArtifacts.length === 0) {
-    console.log('[e2e] no JUnit artifacts found — E2E tests did not run, skipping e2e metrics');
+    console.log(
+      '[e2e] no JUnit artifacts found — skipping JUnit-based e2e counts (see `metametrics` namespace for static event coverage)',
+    );
     return {};
   }
 
@@ -596,6 +982,35 @@ async function collectPerformanceTestCounts() {
 }
 
 // ---------------------------------------------------------------------------
+// Feature flag E2E coverage
+// Delegates to tests/feature-flags/feature-flag-coverage-report.ts (single source of truth).
+// Requires `yarn install` in the workflow so ts-node is available.
+// ---------------------------------------------------------------------------
+
+const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
+
+async function collectFeatureFlagCoverage() {
+  console.log('[feature_flags] running coverage report via ts-node...');
+  execSync('yarn ts-node tests/feature-flags/feature-flag-coverage-report.ts', { stdio: 'pipe' });
+
+  const report = JSON.parse(await readFile(FF_REPORT_PATH, 'utf8'));
+  const { summary } = report;
+
+  console.log(`[feature_flags] total: ${summary.totalFlags}, active: ${summary.activeFlags}, coverage: ${summary.coveragePercentage}%`);
+
+  return {
+    total_flags: summary.totalFlags,
+    active_flags: summary.activeFlags,
+    deprecated_flags: summary.deprecatedFlags,
+    in_prod_flags: summary.inProdFlags,
+    full_coverage_flags: summary.fullCoverage,
+    partial_coverage_flags: summary.partialCoverage,
+    default_only_flags: summary.defaultOnlyCoverage,
+    coverage_percentage: summary.coveragePercentage,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -606,7 +1021,9 @@ async function main() {
     { namespace: 'unit', collect: collectUnitTestCount },
     { namespace: 'component_view', collect: collectComponentViewTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
+    { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
+    { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
   ];
 
   for (const { namespace, collect } of collectors) {

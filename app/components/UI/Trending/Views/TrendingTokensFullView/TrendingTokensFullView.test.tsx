@@ -13,6 +13,7 @@ import {
   PriceChangeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
+import { mockTheme } from '../../../../../util/theme';
 
 import { useTrendingRequest } from '../../hooks/useTrendingRequest/useTrendingRequest';
 import type TrendingTokensList from '../../components/TrendingTokensList';
@@ -128,14 +129,6 @@ describe('TrendingTokensData', () => {
     networkFilter: 'all',
     isSearchResult: false,
   };
-
-  const mockTheme = {
-    colors: {
-      primary: { default: '#037DD6' },
-      icon: { default: '#6A737D' },
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
 
   beforeEach(() => {
     jest.clearAllMocks();

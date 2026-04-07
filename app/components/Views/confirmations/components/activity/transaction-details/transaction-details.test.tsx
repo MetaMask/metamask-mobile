@@ -254,6 +254,23 @@ describe('TransactionDetails', () => {
       );
     });
 
+    it('returns perps_withdraw title for perpsWithdraw type', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          nestedTransactions: [{ type: TransactionType.perpsWithdraw }],
+        } as unknown as TransactionMeta,
+      });
+
+      render();
+
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: strings('transaction_details.title.perps_withdraw'),
+        }),
+      );
+    });
+
     it('returns default title for other transaction types', () => {
       render();
 

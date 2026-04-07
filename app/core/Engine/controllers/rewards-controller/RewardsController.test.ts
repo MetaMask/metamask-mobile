@@ -18,6 +18,9 @@ import {
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
+  type CampaignState,
+  type CampaignParticipantStatusState,
+  type CampaignLeaderboardPositionState,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -355,6 +358,7 @@ describe('RewardsController', () => {
       subscribe: jest.fn(),
       call: jest.fn(),
       registerActionHandler: jest.fn(),
+      registerMethodActionHandlers: jest.fn(),
       unregisterActionHandler: jest.fn(),
       publish: jest.fn(),
       clearEventSubscriptions: jest.fn(),
@@ -379,37 +383,22 @@ describe('RewardsController', () => {
     });
 
     it('registers action handlers', () => {
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getHasAccountOptedIn',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getPointsEvents',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:estimatePoints',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getPerpsDiscountForAccount',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:isRewardsFeatureEnabled',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getSeasonStatus',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getReferralDetails',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:getSeasonOneLineaRewardTokens',
-        expect.any(Function),
+      expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
+        controller,
+        expect.arrayContaining([
+          'getHasAccountOptedIn',
+          'getPointsEvents',
+          'estimatePoints',
+          'getPerpsDiscountForAccount',
+          'isRewardsFeatureEnabled',
+          'getSeasonStatus',
+          'getReferralDetails',
+          'getSeasonOneLineaRewardTokens',
+          'optIn',
+          'optOut',
+          'resetAll',
+          'setRewardsEnvUrl',
+        ]),
       );
     });
 
@@ -606,9 +595,9 @@ describe('RewardsController', () => {
     });
 
     it('registers the action handler', () => {
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsController:setRewardsEnvUrl',
-        expect.any(Function),
+      expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
+        controller,
+        expect.arrayContaining(['setRewardsEnvUrl']),
       );
     });
   });
@@ -4165,6 +4154,7 @@ describe('RewardsController', () => {
         call: jest.fn(),
         subscribe: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         registerInitialEventPayload: jest.fn(),
         publish: jest.fn(),
         unsubscribe: jest.fn(),
@@ -4939,6 +4929,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5028,6 +5019,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5147,6 +5139,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5270,6 +5263,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5419,6 +5413,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5550,6 +5545,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5650,6 +5646,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5749,6 +5746,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5829,6 +5827,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5906,6 +5905,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -5965,6 +5965,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -6025,6 +6026,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -14155,6 +14157,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -14800,6 +14803,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -14902,6 +14906,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -15831,6 +15836,9 @@ describe('RewardsController', () => {
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
+          "ondoCampaignLeaderboard": {},
+          "ondoCampaignLeaderboardPositions": {},
+          "ondoCampaignPortfolio": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
@@ -15853,6 +15861,9 @@ describe('RewardsController', () => {
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
+          "ondoCampaignLeaderboard": {},
+          "ondoCampaignLeaderboardPositions": {},
+          "ondoCampaignPortfolio": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "rewardsEnvUrl": null,
@@ -15880,6 +15891,9 @@ describe('RewardsController', () => {
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
+          "ondoCampaignLeaderboard": {},
+          "ondoCampaignLeaderboardPositions": {},
+          "ondoCampaignPortfolio": {},
           "pointsEvents": {},
           "rewardsEnvUrl": null,
           "seasonStatuses": {},
@@ -16851,6 +16865,186 @@ describe('RewardsController', () => {
         testController.state.subscriptionReferralDetails[compositeKey],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
+    });
+
+    it('invalidates campaign and ondo leaderboard data when seasonId is provided', async () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-id';
+      const seasonId = 'test-season-id';
+      const campaignId = 'test-campaign-id';
+
+      const initialState = getRewardsControllerDefaultState();
+      const seasonCompositeKey = `${seasonId}:${subscriptionId}`;
+      const campaignCompositeKey = `${subscriptionId}:${campaignId}`;
+
+      initialState.seasonStatuses[seasonCompositeKey] = {} as SeasonStatusState;
+      initialState.campaigns.CAMPAIGNS_CACHE_KEY = {
+        campaigns: [
+          {
+            id: campaignId,
+            type: CampaignType.ONDO_HOLDING,
+            name: 'Test Campaign',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            termsAndConditions: null,
+            excludedRegions: [],
+            statusLabel: 'Active',
+            image: null,
+            details: null,
+            featured: false,
+          },
+        ],
+        lastFetched: Date.now(),
+      } as CampaignState;
+      initialState.campaignParticipantStatus[campaignCompositeKey] = {
+        optedIn: true,
+        participantCount: 10,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.ondoCampaignLeaderboardPositions[campaignCompositeKey] = {
+        projectedTier: 'MID',
+        rank: 5,
+        totalInTier: 100,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      // Act
+      testController.invalidateSubscriptionCache(subscriptionId, seasonId);
+
+      // Assert - season data cleared
+      expect(
+        testController.state.seasonStatuses[seasonCompositeKey],
+      ).toBeUndefined();
+      // Assert - campaigns are NOT cleared (global data, not subscription-specific)
+      expect(testController.state.campaigns.CAMPAIGNS_CACHE_KEY).toBeDefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignCompositeKey],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[
+          campaignCompositeKey
+        ],
+      ).toBeUndefined();
+    });
+
+    it('invalidates campaign and ondo leaderboard data when no seasonId is provided', async () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-id';
+      const otherSubscriptionId = 'other-subscription-id';
+      const campaignId1 = 'campaign-1';
+      const campaignId2 = 'campaign-2';
+
+      const initialState = getRewardsControllerDefaultState();
+      const campaignKey1 = `${subscriptionId}:${campaignId1}`;
+      const campaignKey2 = `${subscriptionId}:${campaignId2}`;
+      const otherCampaignKey = `${otherSubscriptionId}:${campaignId1}`;
+
+      initialState.campaigns.CAMPAIGNS_CACHE_KEY = {
+        campaigns: [
+          {
+            id: campaignId1,
+            type: CampaignType.ONDO_HOLDING,
+            name: 'Campaign 1',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            termsAndConditions: null,
+            excludedRegions: [],
+            statusLabel: 'Active',
+            image: null,
+            details: null,
+            featured: false,
+          },
+          {
+            id: campaignId2,
+            type: CampaignType.ONDO_HOLDING,
+            name: 'Campaign 2',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            termsAndConditions: null,
+            excludedRegions: [],
+            statusLabel: 'Active',
+            image: null,
+            details: null,
+            featured: false,
+          },
+        ],
+        lastFetched: Date.now(),
+      } as CampaignState;
+      initialState.campaignParticipantStatus[campaignKey1] = {
+        optedIn: true,
+        participantCount: 5,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.campaignParticipantStatus[campaignKey2] = {
+        optedIn: false,
+        participantCount: 3,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.campaignParticipantStatus[otherCampaignKey] = {
+        optedIn: true,
+        participantCount: 7,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.ondoCampaignLeaderboardPositions[campaignKey1] = {
+        projectedTier: 'STARTER',
+        rank: 10,
+        totalInTier: 200,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+      initialState.ondoCampaignLeaderboardPositions[otherCampaignKey] = {
+        projectedTier: 'UPPER',
+        rank: 1,
+        totalInTier: 50,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      // Act
+      testController.invalidateSubscriptionCache(subscriptionId);
+
+      // Assert - campaigns are NOT cleared (global data, not subscription-specific)
+      expect(testController.state.campaigns.CAMPAIGNS_CACHE_KEY).toBeDefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignKey2],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[campaignKey1],
+      ).toBeUndefined();
+
+      // Assert - other subscription data untouched
+      expect(
+        testController.state.campaignParticipantStatus[otherCampaignKey],
+      ).toBeDefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[otherCampaignKey],
+      ).toBeDefined();
     });
   });
 
@@ -18230,6 +18424,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -18612,6 +18807,7 @@ describe('RewardsController', () => {
         excludedRegions: string[];
         statusLabel: string;
         details: null;
+        featured: boolean;
       }> = {},
     ) => ({
       id: 'campaign-1',
@@ -18623,6 +18819,7 @@ describe('RewardsController', () => {
       excludedRegions: [],
       statusLabel: 'Active',
       details: null,
+      featured: false,
       ...overrides,
     });
 
@@ -18631,6 +18828,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -18655,27 +18853,10 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns empty array when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.getCampaigns(mockSubscriptionId);
-
-      expect(result).toEqual([]);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getCampaigns',
-        expect.anything(),
-      );
-    });
-
-    it('fetches campaigns when campaigns feature flag is enabled', async () => {
+    it('fetches campaigns when rewards is enabled', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [createTestCampaign({ id: 'campaign-flag-test' })];
@@ -18694,7 +18875,6 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [
@@ -18712,41 +18892,38 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockCampaigns);
       expect(result).toHaveLength(2);
 
-      const cachedData = controller.state.campaigns[mockSubscriptionId];
-      expect(cachedData).toBeDefined();
-      expect(cachedData.campaigns).toEqual(mockCampaigns);
-      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
+      const cached = controller.state.campaigns.CAMPAIGNS_CACHE_KEY;
+      expect(cached).toBeDefined();
+      expect(cached.campaigns).toEqual(mockCampaigns);
+      expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
     it('returns cached campaigns when cache is fresh', async () => {
       const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
-      const mockCachedCampaigns = [
-        createTestCampaign({ id: 'cached-campaign' }),
-      ];
+      const mockCachedCampaign = createTestCampaign({ id: 'cached-campaign' });
 
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaigns: {
-            [mockSubscriptionId]: {
-              campaigns: mockCachedCampaigns,
+            CAMPAIGNS_CACHE_KEY: {
+              campaigns: [{ ...mockCachedCampaign, image: null }],
               lastFetched: recentTime,
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       const result = await controller.getCampaigns(mockSubscriptionId);
 
-      expect(result).toEqual(mockCachedCampaigns);
+      expect(result).toEqual([{ ...mockCachedCampaign, image: null }]);
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches fresh campaigns when cache is stale', async () => {
       const staleTime = Date.now() - 1000 * 60 * 10; // 10 minutes ago (beyond 5 minute threshold)
-      const staleCampaigns = [createTestCampaign({ id: 'stale-campaign' })];
+      const staleCampaign = createTestCampaign({ id: 'stale-campaign' });
       const freshCampaigns = [createTestCampaign({ id: 'fresh-campaign' })];
 
       controller = new RewardsController({
@@ -18754,13 +18931,12 @@ describe('RewardsController', () => {
         state: {
           ...getRewardsControllerDefaultState(),
           campaigns: {
-            [mockSubscriptionId]: {
-              campaigns: staleCampaigns,
+            CAMPAIGNS_CACHE_KEY: {
+              campaigns: [{ ...staleCampaign, image: null }],
               lastFetched: staleTime,
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(freshCampaigns);
@@ -18778,7 +18954,6 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue([]);
@@ -18803,6 +18978,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -18831,27 +19007,10 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns { optedIn: false, participantCount: 0 } when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.optInToCampaign(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual({ optedIn: false, participantCount: 0 });
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
     it('calls data service and returns status on success', async () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -18873,7 +19032,6 @@ describe('RewardsController', () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -18901,7 +19059,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -18909,6 +19066,56 @@ describe('RewardsController', () => {
       expect(ctrl.state.campaignParticipantStatus[cacheKey]).toBeDefined();
       await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
       expect(ctrl.state.campaignParticipantStatus[cacheKey]).toBeUndefined();
+    });
+
+    it('clears cached portfolio for the campaign on opt-in', async () => {
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          ondoCampaignPortfolio: {
+            [cacheKey]: {
+              positions: [],
+              summary: {
+                totalCurrentValue: '1',
+                totalCostBasis: '1',
+                totalUsdDeposited: '1',
+                netDeposit: '1',
+                portfolioPnl: '0',
+                portfolioPnlPercent: '0',
+              },
+              computedAt: '2024-03-20T12:00:00.000Z',
+              lastFetched: Date.now(),
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
+
+      expect(ctrl.state.ondoCampaignPortfolio[cacheKey]).toBeUndefined();
+    });
+
+    it('publishes portfolioPositionInvalidated on first opt-in', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
+
+      expect(mockMessenger.publish).toHaveBeenCalledWith(
+        'RewardsController:portfolioPositionInvalidated',
+        {
+          campaignId: mockCampaignId,
+          subscriptionId: mockSubscriptionId,
+        },
+      );
     });
   });
 
@@ -18923,6 +19130,7 @@ describe('RewardsController', () => {
         subscribe: jest.fn(),
         call: jest.fn(),
         registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
         unregisterActionHandler: jest.fn(),
         publish: jest.fn(),
         clearEventSubscriptions: jest.fn(),
@@ -18947,27 +19155,10 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns { optedIn: false, participantCount: 0 } when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.getCampaignParticipantStatus(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual({ optedIn: false, participantCount: 0 });
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
     it('fetches status from API and caches result', async () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -19007,7 +19198,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       const result = await ctrl.getCampaignParticipantStatus(
@@ -19035,7 +19225,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -19057,7 +19246,6 @@ describe('RewardsController', () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -19070,6 +19258,415 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh campaign participant status via API call',
+      );
+    });
+  });
+
+  describe('getOndoCampaignLeaderboard', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-ondo-123';
+    const mockLeaderboard = {
+      campaignId: mockCampaignId,
+      computedAt: '2024-03-20T12:00:00.000Z',
+      tiers: {
+        STARTER: { entries: [], totalParticipants: 100 },
+      },
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns empty leaderboard when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(result).toEqual({
+        campaignId: mockCampaignId,
+        computedAt: '',
+        tiers: {},
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches leaderboard from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
+
+      const result = await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignLeaderboard',
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockLeaderboard);
+      expect(ctrl.state.ondoCampaignLeaderboard[mockCampaignId]).toBeDefined();
+    });
+
+    it('returns cached leaderboard when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          ondoCampaignLeaderboard: {
+            [mockCampaignId]: {
+              ...mockLeaderboard,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(result).toEqual(mockLeaderboard);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('logs when fetching fresh leaderboard', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign leaderboard via API call',
+      );
+    });
+  });
+
+  describe('getOndoCampaignLeaderboardPosition', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-ondo-456';
+    const mockSubscriptionId = 'sub-789';
+    const mockPosition = {
+      projectedTier: 'MID',
+      rank: 5,
+      totalInTier: 150,
+      rateOfReturn: 0.15,
+      currentUsdValue: 12500.5,
+      totalUsdDeposited: 10000.0,
+      netDeposit: 8500.0,
+      computedAt: '2024-03-20T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOndoCampaignLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches position from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPosition);
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignLeaderboardPosition',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockPosition);
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      expect(
+        ctrl.state.ondoCampaignLeaderboardPositions[cacheKey],
+      ).toBeDefined();
+    });
+
+    it('returns cached position when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          ondoCampaignLeaderboardPositions: {
+            [cacheKey]: {
+              ...mockPosition,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockPosition);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null and caches a not-found sentinel when API returns null (user not on leaderboard)', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const cached = ctrl.state.ondoCampaignLeaderboardPositions[cacheKey];
+      expect(cached).toBeDefined();
+      expect(cached).toMatchObject({ notFound: true });
+      expect((cached as { lastFetched: number }).lastFetched).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('does not re-fetch when a fresh not-found sentinel is cached (TTL respected)', async () => {
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          ondoCampaignLeaderboardPositions: {
+            [cacheKey]: {
+              notFound: true as const,
+              lastFetched: Date.now() - 60000,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('logs when fetching fresh position', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPosition);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign leaderboard position via API call',
+      );
+    });
+  });
+
+  describe('getOndoCampaignPortfolioPosition', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-ondo-portfolio';
+    const mockSubscriptionId = 'sub-portfolio-1';
+    const mockPortfolio = {
+      positions: [
+        {
+          tokenSymbol: 'AAPL',
+          tokenName: 'Apple Inc.',
+          tokenAsset:
+            'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+          units: '10',
+          costBasis: '1000.000000',
+          avgCostPerUnit: '100.000000',
+          currentPrice: '110.000000',
+          currentValue: '1100.000000',
+          unrealizedPnl: '100.000000',
+          unrealizedPnlPercent: '0.1',
+        },
+      ],
+      summary: {
+        totalCurrentValue: '1100.000000',
+        totalCostBasis: '1000.000000',
+        totalUsdDeposited: '1000.000000',
+        netDeposit: '1000.000000',
+        portfolioPnl: '100.000000',
+        portfolioPnlPercent: '0.1',
+      },
+      computedAt: '2024-03-20T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches portfolio from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
+
+      const result = await ctrl.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignPortfolioPosition',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockPortfolio);
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      expect(ctrl.state.ondoCampaignPortfolio[cacheKey]).toBeDefined();
+    });
+
+    it('returns cached portfolio when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          ondoCampaignPortfolio: {
+            [cacheKey]: {
+              ...mockPortfolio,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockPortfolio);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when API returns null and does not cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      expect(ctrl.state.ondoCampaignPortfolio[cacheKey]).toBeUndefined();
+    });
+
+    it('logs when fetching fresh portfolio', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign portfolio via API call',
       );
     });
   });

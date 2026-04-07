@@ -33,7 +33,7 @@ import {
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../UI/PhishingModal/index.js';
-import { useMetrics } from '../../../hooks/useMetrics/index.ts';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import {
   MM_BLOCKLIST_ISSUE_URL,
@@ -133,7 +133,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number>();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
@@ -480,6 +480,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     sdkV2Connection?.originatorInfo?.url ??
     '';
 
+  // Should be the self reported dapp url if SDK or WC connection, empty/null if no self reported dapp url.
+  // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
+  let referrer = channelIdOrHostname;
+  if (isOriginMMSDKRemoteConn) {
+    referrer = dappUrl;
+  } else if (isOriginWalletConnect) {
+    referrer = wc2Metadata?.url;
+  }
+
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
     let dappHostname = dappUrl || channelIdOrHostname;
@@ -694,7 +703,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             account_type: 'multichain',
             source: eventSource,
             chain_id_list: selectedChainIds,
-            referrer: request.metadata.origin,
+            referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
@@ -732,6 +741,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     eventSource,
     toastRef,
     faviconSource,
+    referrer,
   ]);
 
   const handleAccountGroupsSelected = useCallback(

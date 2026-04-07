@@ -97,6 +97,8 @@
 		<string>MMSans-Regular.otf</string>
 		<string>Geist-BoldItalic.otf</string>
 		<string>Geist-Bold.otf</string>
+		<string>Geist-SemiBoldItalic.otf</string>
+		<string>Geist-SemiBold.otf</string>
 		<string>Geist-MediumItalic.otf</string>
 		<string>Geist-Medium.otf</string>
 		<string>Geist-RegularItalic.otf</string>
@@ -120,5 +122,9 @@
 	<string>$(MM_BRANCH_KEY_LIVE)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+  <key>braze_api_key</key>
+	<string>$(MM_BRAZE_API_KEY_IOS)</string>
+	<key>braze_sdk_endpoint</key>
+	<string>$(MM_BRAZE_SDK_ENDPOINT)</string>
 </dict>
 </plist>

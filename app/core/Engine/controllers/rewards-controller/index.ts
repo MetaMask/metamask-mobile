@@ -2,7 +2,6 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import {
   selectBitcoinRewardsEnabledFlag,
   selectTronRewardsEnabledFlag,
-  selectCampaignsRewardsEnabledFlag,
 } from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import type { ControllerInitFunction } from '../../types';
 import {
@@ -34,7 +33,6 @@ export const rewardsControllerInit: ControllerInitFunction<
     },
     isBitcoinOptinEnabled: () => selectBitcoinRewardsEnabledFlag(getState()),
     isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
-    isCampaignsEnabled: () => selectCampaignsRewardsEnabledFlag(getState()),
   });
 
   return { controller };
@@ -42,3 +40,64 @@ export const rewardsControllerInit: ControllerInitFunction<
 
 export { RewardsController };
 export type { RewardsControllerMessenger };
+export type { RewardsControllerGetStateAction } from './types';
+export type {
+  RewardsControllerAddPointsEstimateToHistoryAction,
+  RewardsControllerApplyBonusCodeAction,
+  RewardsControllerApplyReferralCodeAction,
+  RewardsControllerCalculateTierStatusAction,
+  RewardsControllerCanChangeRewardsEnvUrlAction,
+  RewardsControllerCheckOptInStatusAgainstCacheAction,
+  RewardsControllerClaimRewardAction,
+  RewardsControllerConvertInternalAccountToCaipAccountIdAction,
+  RewardsControllerConvertToSeasonStatusDtoAction,
+  RewardsControllerEstimatePointsAction,
+  RewardsControllerGetActivePointsBoostsAction,
+  RewardsControllerGetActualSubscriptionIdAction,
+  RewardsControllerGetCampaignParticipantStatusAction,
+  RewardsControllerGetCampaignsAction,
+  RewardsControllerGetCandidateSubscriptionIdAction,
+  RewardsControllerGetClientVersionRequirementsAction,
+  RewardsControllerGetDefaultRewardsEnvUrlAction,
+  RewardsControllerGetFirstSubscriptionIdAction,
+  RewardsControllerGetGeoRewardsMetadataAction,
+  RewardsControllerGetHasAccountOptedInAction,
+  RewardsControllerGetOffDeviceSubscriptionAccountsAction,
+  RewardsControllerGetOndoCampaignLeaderboardAction,
+  RewardsControllerGetOndoCampaignLeaderboardPositionAction,
+  RewardsControllerGetOndoCampaignPortfolioPositionAction,
+  RewardsControllerGetOptInStatusAction,
+  RewardsControllerGetPerpsDiscountForAccountAction,
+  RewardsControllerGetPointsEventsAction,
+  RewardsControllerGetPointsEventsIfChangedAction,
+  RewardsControllerGetPointsEventsLastUpdatedAction,
+  RewardsControllerGetReferralDetailsAction,
+  RewardsControllerGetRewardsEnvUrlAction,
+  RewardsControllerGetSeasonMetadataAction,
+  RewardsControllerGetSeasonOneLineaRewardTokensAction,
+  RewardsControllerGetSeasonStatusAction,
+  RewardsControllerGetUnlockedRewardsAction,
+  RewardsControllerHandleAuthenticationTriggerAction,
+  RewardsControllerHasActiveSeasonAction,
+  RewardsControllerHasPointsEventsChangedAction,
+  RewardsControllerInvalidateReferralDetailsCacheAction,
+  RewardsControllerInvalidateSubscriptionAndAccountsAction,
+  RewardsControllerInvalidateSubscriptionCacheAction,
+  RewardsControllerIsOptInSupportedAction,
+  RewardsControllerIsRewardsFeatureEnabledAction,
+  RewardsControllerLinkAccountsToSubscriptionCandidateAction,
+  RewardsControllerLinkAccountToSubscriptionCandidateAction,
+  RewardsControllerLogoutAction,
+  RewardsControllerOptInAction,
+  RewardsControllerOptInToCampaignAction,
+  RewardsControllerOptOutAction,
+  RewardsControllerPerformSilentAuthAction,
+  RewardsControllerResetAllAction,
+  RewardsControllerResetStateAction,
+  RewardsControllerSetActiveAccountFromCandidateAction,
+  RewardsControllerSetRewardsEnvUrlAction,
+  RewardsControllerShouldSkipSilentAuthAction,
+  RewardsControllerSignRewardsMessageAction,
+  RewardsControllerValidateBonusCodeAction,
+  RewardsControllerValidateReferralCodeAction,
+} from './RewardsController-method-action-types';

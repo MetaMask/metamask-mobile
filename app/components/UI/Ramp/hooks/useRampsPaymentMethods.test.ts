@@ -115,7 +115,7 @@ describe('useRampsPaymentMethods', () => {
     jest.clearAllMocks();
   });
 
-  it('returns idle before an active request exists', () => {
+  it('returns idle when no provider is selected', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
     });
@@ -138,7 +138,7 @@ describe('useRampsPaymentMethods', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('returns loading while the active query is in flight', () => {
+  it('returns loading while the query is in flight', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
 
@@ -225,7 +225,7 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.paymentMethods).toEqual([]);
   });
 
-  it('calls Engine.context.RampsController.setSelectedPaymentMethod with payment method id', () => {
+  it('calls Engine.context.RampsController.setSelectedPaymentMethod with full payment method object', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
     });
@@ -241,10 +241,10 @@ describe('useRampsPaymentMethods', () => {
 
     expect(
       Engine.context.RampsController.setSelectedPaymentMethod,
-    ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
+    ).toHaveBeenCalledWith(mockPaymentMethods[0]);
   });
 
-  it('calls Engine.context.RampsController.setSelectedPaymentMethod with undefined when payment method is null', () => {
+  it('calls Engine.context.RampsController.setSelectedPaymentMethod with null when payment method is null', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
     });
@@ -260,6 +260,51 @@ describe('useRampsPaymentMethods', () => {
 
     expect(
       Engine.context.RampsController.setSelectedPaymentMethod,
-    ).toHaveBeenCalledWith(undefined);
+    ).toHaveBeenCalledWith(null);
+  });
+
+  it('lowercases checksummed assetId before passing to getPaymentMethods', async () => {
+    const checksummedAssetId =
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    const store = createMockStore({
+      tokens: {
+        ...baseRampsState.tokens,
+        selected: {
+          assetId: checksummedAssetId,
+          chainId: 'eip155:1',
+          name: 'USDC',
+          symbol: 'USDC',
+          decimals: 6,
+          iconUrl: '',
+          tokenSupported: true,
+        },
+      },
+    });
+    const { Wrapper, queryClient } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockResolvedValue({ payments: mockPaymentMethods });
+
+    const { unmount } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.RampsController.getPaymentMethods,
+      ).toHaveBeenCalled();
+    });
+
+    const callArgs = (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mock.calls[0];
+    // Second argument is the options object containing assetId
+    expect(callArgs[1].assetId).toBe(checksummedAssetId.toLowerCase());
+
+    queryClient.cancelQueries();
+    unmount();
+    queryClient.clear();
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 });
