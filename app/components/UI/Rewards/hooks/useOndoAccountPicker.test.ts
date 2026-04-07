@@ -1,6 +1,10 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import type { MutableRefObject } from 'react';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import { useOndoAccountPicker } from './useOndoAccountPicker';
 import Engine from '../../../../core/Engine';
+import type { AccountPickerConfig } from '../components/Campaigns/OndoPortfolio';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -67,9 +71,9 @@ const MOCK_PICKER = {
   },
   entries: [{ group: { id: 'group-1' }, balance: '100' }],
   tokenDecimals: 6,
-} as never;
+} as unknown as AccountPickerConfig;
 
-const MOCK_GROUP = { id: 'group-1' } as never;
+const MOCK_GROUP = { id: 'group-1' } as unknown as AccountGroupObject;
 
 describe('useOndoAccountPicker', () => {
   beforeEach(() => {
@@ -191,11 +195,14 @@ describe('useOndoAccountPicker', () => {
     it('defers navigation via onCloseBottomSheet when sheetRef is set', () => {
       const { result } = renderHook(() => useOndoAccountPicker(CAMPAIGN_ID));
 
-      const mockOnCloseBottomSheet = jest.fn((cb: () => void) => cb());
+      const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
       act(() => {
-        result.current.sheetRef.current = {
+        (
+          result.current.sheetRef as MutableRefObject<BottomSheetRef | null>
+        ).current = {
+          onOpenBottomSheet: jest.fn(),
           onCloseBottomSheet: mockOnCloseBottomSheet,
-        } as never;
+        };
       });
       act(() => {
         result.current.setPendingPicker(MOCK_PICKER);
