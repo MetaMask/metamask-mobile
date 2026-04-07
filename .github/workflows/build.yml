@@ -495,14 +495,17 @@ jobs:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
       - name: Read metadata from tree at built ref
         id: meta
         run: |
           REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
-          VC=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
           {
             echo "checkout_ref=$REF"
             echo "built_commit_sha=$(git rev-parse HEAD)"
-            echo "semantic_version=$(node -p "require('./package.json').version")"
-            echo "android_version_code=$VC"
           } >> "$GITHUB_OUTPUT"
+          ./scripts/get-build-metadata.sh --ci
