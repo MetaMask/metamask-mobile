@@ -19,6 +19,7 @@ export function useAutomaticGasFeeTokenSelect() {
     gasFeeTokens,
     id: transactionId,
     selectedGasFeeToken,
+    excludeNativeTokenForFee,
   } = transactionMeta;
 
   const [first, second] = gasFeeTokens || [];
@@ -34,12 +35,28 @@ export function useAutomaticGasFeeTokenSelect() {
     updateSelectedGasFeeToken(transactionId, firstGasFeeTokenAddress);
   }, [transactionId, firstGasFeeTokenAddress]);
 
+  /**
+   * Selecting first gas fee token when `selectedGasFeeToken` is set but
+   * actually doesn't exist in the gasFeeTokens list.
+   * Since this logic is introduced with Tempo we use `excludeNativeTokenForFee`
+   * (only be set for Tempo as of now) to reduce regression risks.
+   */
+  const hasSelectedGasFeeTokenNotInList =
+    excludeNativeTokenForFee &&
+    selectedGasFeeToken &&
+    !gasFeeTokens?.find(
+      ({ tokenAddress }) =>
+        tokenAddress.toLocaleLowerCase() ===
+        selectedGasFeeToken.toLocaleLowerCase(),
+    );
+
   const shouldSelect =
-    !checked &&
-    isGaslessSupported &&
-    hasInsufficientBalance &&
-    !selectedGasFeeToken &&
-    Boolean(firstGasFeeTokenAddress);
+    Boolean(firstGasFeeTokenAddress) &&
+    ((!checked &&
+      isGaslessSupported &&
+      hasInsufficientBalance &&
+      !selectedGasFeeToken) ||
+      hasSelectedGasFeeTokenNotInList);
 
   useEffect(() => {
     if (shouldSelect) {
