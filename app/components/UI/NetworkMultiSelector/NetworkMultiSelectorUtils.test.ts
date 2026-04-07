@@ -90,7 +90,7 @@ describe('resolveNetworkDisplayName', () => {
       [solanaMainnet]: {
         chainId: solanaMainnet,
         name: 'Solana',
-      } as MultichainNetworkConfiguration,
+      } as unknown as MultichainNetworkConfiguration,
     };
 
     const result = resolveNetworkDisplayName({
@@ -107,7 +107,7 @@ describe('resolveNetworkDisplayName', () => {
     const nonEvm = {
       [solanaMainnet]: {
         chainId: solanaMainnet,
-      } as MultichainNetworkConfiguration,
+      } as unknown as MultichainNetworkConfiguration,
     };
 
     const result = resolveNetworkDisplayName({
