@@ -10,7 +10,7 @@ import otaConfig from '../../ota.config.js';
  * Reset when releasing a new native build as appropriate for that line.
  * Kept here (not only in ota.config.js) so changes there do not alter the Expo fingerprint and break CI.
  */
-export const OTA_VERSION: string = 'vX.XX.X';
+export const OTA_VERSION: string = 'v7.77.01';
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;
