@@ -43,12 +43,12 @@ describe('useNativeCurrencySymbol', () => {
     jest.restoreAllMocks();
   });
 
-  it('returns true when network is found in map using hex chainId', () => {
+  it('returns FOO when network is found in map using hex chainId', () => {
     const { result } = renderWithMock({ chainId: '0x1' });
     expect(result.current).toEqual({ nativeCurrencySymbol: 'FOO' });
   });
 
-  it('returns false when network is found in map using hex chainId', () => {
+  it('returns BAR when network is found in map using hex chainId', () => {
     const { result } = renderWithMock({ chainId: '0x2' });
     expect(result.current).toEqual({ nativeCurrencySymbol: 'BAR' });
   });
