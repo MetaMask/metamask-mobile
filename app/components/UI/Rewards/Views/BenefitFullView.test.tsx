@@ -9,6 +9,7 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockPostBenefitImpression = jest.fn().mockResolvedValue(undefined);
 const mockUseSelector = jest.fn();
+const mockLoggerError = jest.fn();
 const mockFormatDateRemaining = formatDateRemaining as jest.MockedFunction<
   typeof formatDateRemaining
 >;
@@ -57,6 +58,13 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: {
       call: (...args: unknown[]) => mockPostBenefitImpression(...args),
     },
+  },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: (...args: unknown[]) => mockLoggerError(...args),
   },
 }));
 
@@ -161,6 +169,22 @@ describe('BenefitFullView', () => {
 
     await waitFor(() => {
       expect(mockPostBenefitImpression).not.toHaveBeenCalled();
+    });
+  });
+
+  it('logs an error when posting benefit impression fails', async () => {
+    const testError = new Error('Network request failed');
+    mockPostBenefitImpression.mockRejectedValueOnce(testError);
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(testError, {
+        message: 'BenefitFullView: Failed to post benefit impression',
+        benefitId: mockBenefit.id,
+        benefitTypeId: mockBenefit.type.id,
+        subscriptionId: 'subscription-123',
+      });
     });
   });
 

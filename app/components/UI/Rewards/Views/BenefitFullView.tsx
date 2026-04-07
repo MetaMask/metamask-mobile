@@ -29,6 +29,7 @@ import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 
 const BenefitFullView = () => {
   const tw = useTailwind();
@@ -46,8 +47,19 @@ const BenefitFullView = () => {
         benefit.id,
         benefit.type.id,
       )
-      .then()
-      .catch();
+      .catch((error: unknown) => {
+        Logger.error(
+          error instanceof Error
+            ? error
+            : new Error('Failed to post benefit impression'),
+          {
+            message: 'BenefitFullView: Failed to post benefit impression',
+            benefitId: benefit.id,
+            benefitTypeId: benefit.type.id,
+            subscriptionId,
+          },
+        );
+      });
   }, [benefit, subscriptionId]);
 
   const handleClaim = useCallback(() => {
