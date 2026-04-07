@@ -5,6 +5,7 @@ import {
 } from '../../core/Engine/controllers/seedless-onboarding-controller/error';
 import {
   getRehydrationErrorTypeForSeedlessControllerCode,
+  SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
   getSeedlessOnboardingControllerErrorTypeName,
   getSocialLoginFailureAnalyticsProperties,
 } from './loginFailureAnalytics';
@@ -90,6 +91,14 @@ describe('loginFailureAnalytics', () => {
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
         ),
       ).toBe('PasswordRecentlyUpdated');
+    });
+  });
+
+  describe('seedless recovery analytics constants', () => {
+    it('uses auth failure wording for incorrect password recovery failures', () => {
+      expect(SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE).toBe(
+        'recovery_auth_failure',
+      );
     });
   });
 });

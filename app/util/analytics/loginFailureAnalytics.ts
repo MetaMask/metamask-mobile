@@ -59,8 +59,8 @@ export function getRehydrationErrorTypeForSeedlessControllerCode(
   }
 }
 
-export const SEEDLESS_RECOVERY_ERROR_TYPE_INCORRECT_PASSWORD =
-  'recovery_incorrect_password';
+export const SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE =
+  'recovery_auth_failure';
 
 export const SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS =
   'recovery_too_many_attempts';

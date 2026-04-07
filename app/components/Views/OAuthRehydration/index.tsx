@@ -105,7 +105,7 @@ import {
   ErrorOrigin,
   getRehydrationErrorTypeForSeedlessControllerCode,
   getSeedlessOnboardingControllerErrorTypeName,
-  SEEDLESS_RECOVERY_ERROR_TYPE_INCORRECT_PASSWORD,
+  SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
   SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
 } from '../../../util/analytics/loginFailureAnalytics';
 
@@ -134,6 +134,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
+  const accountType = getSocialAccountType(authConnection, true);
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -250,6 +251,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [saveOnboardingEvent],
   );
 
+  const trackRehydrationFailure = useCallback(
+    (properties: Record<string, string | boolean | number>) => {
+      if (!isComingFromOauthOnboarding) {
+        return;
+      }
+
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: accountType,
+        failed_attempts: rehydrationFailedAttempts,
+        ...properties,
+      });
+    },
+    [accountType, isComingFromOauthOnboarding, rehydrationFailedAttempts, track],
+  );
+
   const [biometryChoice, setBiometryChoice] = useState(true);
 
   const promptBiometricFailedAlert = useCallback(async () => {
@@ -319,6 +335,159 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [],
   );
 
+  const showNoInternetErrorSheet = useCallback(() => {
+    const params: SuccessErrorSheetParams = {
+      title: strings(`error_sheet.no_internet_connection_title`),
+      description: strings(`error_sheet.no_internet_connection_description`),
+      descriptionAlign: 'left',
+      primaryButtonLabel: strings(`error_sheet.no_internet_connection_button`),
+      closeOnPrimaryButtonPress: true,
+      type: 'error',
+    };
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params,
+    });
+  }, [navigation]);
+
+  const captureOrThrowOauthRehydrationError = useCallback(
+    (seedlessError: Error) => {
+      if (!isComingFromOauthOnboarding) {
+        return;
+      }
+
+      if (isMetricsEnabled()) {
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
+        return;
+      }
+
+      setErrorToThrow(
+        new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+      );
+    },
+    [isComingFromOauthOnboarding, isMetricsEnabled, setErrorToThrow],
+  );
+
+  const handleRecoveryError = useCallback(
+    (
+      seedlessError: SeedlessOnboardingControllerRecoveryError,
+    ): boolean => {
+      if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+          trackRehydrationFailure({
+            error_type: 'incorrect_password',
+            error_origin: ErrorOrigin.SeedlessRecovery,
+            seedless_error_type: SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
+          });
+        setError(strings('login.invalid_password'));
+        return true;
+      }
+
+      if (
+        seedlessError.message !==
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+      ) {
+        return false;
+      }
+
+      const failedAttempts =
+        seedlessError.data?.numberOfAttempts ?? rehydrationFailedAttempts;
+
+      if (seedlessError.data?.numberOfAttempts !== undefined) {
+        setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+      }
+
+      trackRehydrationFailure({
+        failed_attempts: failedAttempts,
+        error_type: 'too_many_login_attempts',
+        error_origin: ErrorOrigin.SeedlessRecovery,
+        seedless_error_type: SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
+      });
+
+      if (typeof seedlessError.data?.remainingTime === 'number') {
+        tooManyAttemptsError(seedlessError.data.remainingTime).catch(() => null);
+      }
+
+      return true;
+    },
+    [
+      rehydrationFailedAttempts,
+      setRehydrationFailedAttempts,
+      tooManyAttemptsError,
+      trackRehydrationFailure,
+    ],
+  );
+
+  const handleSeedlessControllerError = useCallback(
+    (seedlessError: SeedlessOnboardingControllerError): boolean => {
+      trackRehydrationFailure({
+        error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+          seedlessError.code,
+        ),
+        error_origin: ErrorOrigin.SeedlessController,
+        seedless_error_type: getSeedlessOnboardingControllerErrorTypeName(
+          seedlessError.code,
+        ),
+      });
+
+      if (
+        seedlessError.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        setError(strings('login.seedless_password_outdated'));
+        return true;
+      }
+
+      setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
+      captureOrThrowOauthRehydrationError(seedlessError);
+      return true;
+    },
+    [captureOrThrowOauthRehydrationError, trackRehydrationFailure],
+  );
+
+  const handleNonOauthSeedlessFailure = useCallback(
+    (seedlessError: Error): boolean => {
+      if (isComingFromOauthOnboarding) {
+        return false;
+      }
+
+      if (isMetricsEnabled()) {
+        captureException(seedlessError, {
+          tags: {
+            view: 'Re-login',
+            context:
+              'seedless flow unlock wallet failed - user consented to analytics',
+          },
+        });
+      }
+
+      Logger.error(seedlessError, 'Error in Unlock Screen');
+      promptSeedlessRelogin();
+      return true;
+    },
+    [isComingFromOauthOnboarding, isMetricsEnabled, promptSeedlessRelogin],
+  );
+
+  const handleUnknownOauthSeedlessFailure = useCallback(
+    (seedlessError: Error) => {
+      setError(sanitizeSeedlessControllerErrorMessage(seedlessError.message));
+      trackRehydrationFailure({
+        error_type: 'unknown_error',
+        error_origin: ErrorOrigin.SeedlessUnclassified,
+        seedless_error_type: 'unclassified',
+      });
+      captureOrThrowOauthRehydrationError(seedlessError);
+    },
+    [captureOrThrowOauthRehydrationError, trackRehydrationFailure],
+  );
+
   const handleSeedlessOnboardingControllerError = useCallback(
     (
       seedlessError:
@@ -329,170 +498,37 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
 
       if (!netInfo.isConnected || !netInfo.isInternetReachable) {
-        const params: SuccessErrorSheetParams = {
-          title: strings(`error_sheet.no_internet_connection_title`),
-          description: strings(
-            `error_sheet.no_internet_connection_description`,
-          ),
-          descriptionAlign: 'left',
-          primaryButtonLabel: strings(
-            `error_sheet.no_internet_connection_button`,
-          ),
-          closeOnPrimaryButtonPress: true,
-          type: 'error',
-        };
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params,
-        });
+        showNoInternetErrorSheet();
         return;
       }
 
-      if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
-        if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-        ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
-              error_origin: ErrorOrigin.SeedlessRecovery,
-              seedless_error_type:
-                SEEDLESS_RECOVERY_ERROR_TYPE_INCORRECT_PASSWORD,
-            });
-          }
-          setError(strings('login.invalid_password'));
-          return;
-        } else if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
-        ) {
-          // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-          if (seedlessError.data?.numberOfAttempts !== undefined) {
-            setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-          }
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: 'social',
-              failed_attempts:
-                seedlessError.data?.numberOfAttempts ??
-                rehydrationFailedAttempts,
-              error_type: 'too_many_login_attempts',
-              error_origin: ErrorOrigin.SeedlessRecovery,
-              seedless_error_type:
-                SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
-            });
-          }
-          if (typeof seedlessError.data?.remainingTime === 'number') {
-            tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
-              () => null,
-            );
-          }
-          return;
-        }
-      } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
-        if (isComingFromOauthOnboarding) {
-          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-            account_type: accountType,
-            failed_attempts: rehydrationFailedAttempts,
-            error_type: getRehydrationErrorTypeForSeedlessControllerCode(
-              seedlessError.code,
-            ),
-            error_origin: ErrorOrigin.SeedlessController,
-            seedless_error_type: getSeedlessOnboardingControllerErrorTypeName(
-              seedlessError.code,
-            ),
-          });
-        }
-
-        if (
-          seedlessError.code ===
-          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-        ) {
-          setError(strings('login.seedless_password_outdated'));
-          return;
-        }
-
-        const seedlessErrMessage = sanitizeSeedlessControllerErrorMessage(
-          seedlessError.message,
-        );
-        setError(seedlessErrMessage);
-
-        if (isComingFromOauthOnboarding) {
-          if (isMetricsEnabled()) {
-            captureException(seedlessError, {
-              tags: {
-                view: 'Login',
-                context:
-                  'OAuth rehydration failed - user consented to analytics',
-              },
-            });
-          } else {
-            setErrorToThrow(
-              new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-            );
-          }
-        }
-        return;
-      } else if (!isComingFromOauthOnboarding) {
-        // new password relogin failed
-        // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
-        // do we want to capture and report the error?
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Re-login',
-              context:
-                'seedless flow unlock wallet failed - user consented to analytics',
-            },
-          });
-        }
-        Logger.error(seedlessError, 'Error in Unlock Screen');
-        promptSeedlessRelogin();
+      if (
+        seedlessError instanceof SeedlessOnboardingControllerRecoveryError &&
+        handleRecoveryError(seedlessError)
+      ) {
         return;
       }
 
-      const errMessage = sanitizeSeedlessControllerErrorMessage(
-        seedlessError.message,
-      );
-      setError(errMessage);
-
-      if (isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: 'social',
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'unknown_error',
-          error_origin: ErrorOrigin.SeedlessUnclassified,
-          seedless_error_type: 'unclassified',
-        });
-
-        if (isMetricsEnabled()) {
-          captureException(seedlessError, {
-            tags: {
-              view: 'Login',
-              context: 'OAuth rehydration failed - user consented to analytics',
-            },
-          });
-        } else {
-          setErrorToThrow(
-            new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-          );
-        }
+      if (
+        seedlessError instanceof SeedlessOnboardingControllerError &&
+        handleSeedlessControllerError(seedlessError)
+      ) {
+        return;
       }
+
+      if (handleNonOauthSeedlessFailure(seedlessError)) {
+        return;
+      }
+
+      handleUnknownOauthSeedlessFailure(seedlessError);
     },
     [
-      rehydrationFailedAttempts,
-      setRehydrationFailedAttempts,
-      track,
-      tooManyAttemptsError,
-      isMetricsEnabled,
+      handleNonOauthSeedlessFailure,
+      handleRecoveryError,
+      handleSeedlessControllerError,
+      handleUnknownOauthSeedlessFailure,
       netInfo,
-      navigation,
-      setErrorToThrow,
-      promptSeedlessRelogin,
-      isComingFromOauthOnboarding,
+      showNoInternetErrorSheet,
     ],
   );
 
