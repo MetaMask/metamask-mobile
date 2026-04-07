@@ -1,31 +1,13 @@
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
+import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { enrichWithABTests } from './enrichWithABTests';
-
-const createEvent = (
-  name: string,
-  properties: AnalyticsEventProperties = {},
-): AnalyticsTrackingEvent => ({
-  name,
-  properties,
-  sensitiveProperties: { sensitive: 'value' },
-  saveDataRecording: false,
-  get isAnonymous(): boolean {
-    return true;
-  },
-  get hasProperties(): boolean {
-    return (
-      Object.keys(this.properties).length > 0 ||
-      Object.keys(this.sensitiveProperties).length > 0
-    );
-  },
-});
 
 describe('enrichWithABTests', () => {
   it('injects one active assignment for a matching allowlisted event', () => {
-    const event = createEvent('Card Button Viewed', {
-      screen: 'wallet',
-    });
+    const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
+      .addProperties({
+        screen: 'wallet',
+      })
+      .build();
 
     const result = enrichWithABTests(event, {
       cardCARD338AbtestAttentionBadge: 'withBadge',
@@ -40,7 +22,9 @@ describe('enrichWithABTests', () => {
   });
 
   it('injects multiple assignments when multiple tests match the same event', () => {
-    const event = createEvent('Unified SwapBridge Page Viewed');
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Unified SwapBridge Page Viewed',
+    ).build();
 
     const result = enrichWithABTests(event, {
       swapsSWAPS4135AbtestNumpadQuickAmounts: { name: 'treatment' },
@@ -60,9 +44,11 @@ describe('enrichWithABTests', () => {
   });
 
   it('does nothing when the event is not allowlisted', () => {
-    const event = createEvent('Unrelated Event', {
-      source: 'test',
-    });
+    const event = AnalyticsEventBuilder.createEventBuilder('Unrelated Event')
+      .addProperties({
+        source: 'test',
+      })
+      .build();
 
     const result = enrichWithABTests(event, {
       cardCARD338AbtestAttentionBadge: 'withBadge',
@@ -74,7 +60,9 @@ describe('enrichWithABTests', () => {
   });
 
   it('ignores missing and invalid flag values', () => {
-    const event = createEvent('Unified SwapBridge Page Viewed');
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Unified SwapBridge Page Viewed',
+    ).build();
 
     const result = enrichWithABTests(event, {
       swapsSWAPS4135AbtestNumpadQuickAmounts: 42,
@@ -85,7 +73,8 @@ describe('enrichWithABTests', () => {
   });
 
   it('supports both string flags and controller object flags', () => {
-    const event = createEvent('Card Button Viewed');
+    const event =
+      AnalyticsEventBuilder.createEventBuilder('Card Button Viewed').build();
 
     const result = enrichWithABTests(event, {
       cardCARD338AbtestAttentionBadge: { name: 'control' },
@@ -97,15 +86,19 @@ describe('enrichWithABTests', () => {
   });
 
   it('merges with existing active_ab_tests and preserves explicit payload values', () => {
-    const event = createEvent('Unified SwapBridge Page Viewed', {
-      active_ab_tests: [
-        {
-          key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-          value: 'manual-value',
-        },
-      ],
-      quote_count: 3,
-    });
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      'Unified SwapBridge Page Viewed',
+    )
+      .addProperties({
+        active_ab_tests: [
+          {
+            key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
+            value: 'manual-value',
+          },
+        ],
+        quote_count: 3,
+      })
+      .build();
 
     const result = enrichWithABTests(event, {
       swapsSWAPS4135AbtestNumpadQuickAmounts: 'treatment',
@@ -128,9 +121,14 @@ describe('enrichWithABTests', () => {
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
-    const event = createEvent('Card Button Viewed', {
-      button_type: 'card',
-    });
+    const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
+      .addProperties({
+        button_type: 'card',
+      })
+      .addSensitiveProperties({
+        sensitive: 'value',
+      })
+      .build();
 
     const result = enrichWithABTests(event, {
       cardCARD338AbtestAttentionBadge: 'control',

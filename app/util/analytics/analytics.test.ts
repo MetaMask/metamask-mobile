@@ -1,4 +1,7 @@
-import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from './AnalyticsEventBuilder';
 import type {
   AnalyticsEventProperties,
   AnalyticsUserTraits,
@@ -104,18 +107,9 @@ describe('analytics', () => {
 
   describe('trackEvent', () => {
     it('queues trackEvent operation', () => {
-      const event: AnalyticsTrackingEvent = {
-        name: 'test_event',
-        properties: { prop1: 'value1' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return true;
-        },
-      };
+      const event = AnalyticsEventBuilder.createEventBuilder('test_event')
+        .addProperties({ prop1: 'value1' })
+        .build();
 
       analytics.trackEvent(event);
 
@@ -144,18 +138,11 @@ describe('analytics', () => {
         },
       } as ReturnType<typeof store.getState>);
 
-      const event: AnalyticsTrackingEvent = {
-        name: 'Card Button Viewed',
-        properties: { source: 'wallet' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return true;
-        },
-      };
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        'Card Button Viewed',
+      )
+        .addProperties({ source: 'wallet' })
+        .build();
 
       analytics.trackEvent(event);
 
@@ -179,18 +166,8 @@ describe('analytics', () => {
     it('logs error when queueOperation rejects', async () => {
       const error = new Error('Queue operation failed');
       mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
-      const event: AnalyticsTrackingEvent = {
-        name: 'test_event',
-        properties: {},
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return false;
-        },
-      };
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('test_event').build();
 
       analytics.trackEvent(event);
 
