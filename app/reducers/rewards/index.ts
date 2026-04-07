@@ -7,6 +7,7 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
+  SubscriptionBenefitDto,
   SeasonWayToEarnDto,
   CampaignDto,
   CampaignParticipantStatusDto,
