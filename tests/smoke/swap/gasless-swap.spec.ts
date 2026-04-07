@@ -19,6 +19,7 @@ import { testSpecificMock as swapTestSpecificMock } from '../../helpers/swap/swa
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
+import { Gestures } from '../../framework';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {
   const chainId = '0x1';
@@ -242,6 +243,12 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         await QuoteView.enterAmount('1');
         await QuoteView.tapDestinationToken();
         await QuoteView.tapToken(chainId, 'MUSD');
+
+        // Sometimes the keyboard is not dismissed after selecting the
+        // destination token so we tap the network fee label to dismiss it
+        await Gestures.waitAndTap(QuoteView.networkFeeLabel, {
+          elemDescription: 'Network fee label',
+        });
 
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,

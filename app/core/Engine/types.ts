@@ -297,6 +297,12 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 import {
+  MoneyAccountController,
+  MoneyAccountControllerActions,
+  MoneyAccountControllerEvents,
+  MoneyAccountControllerState,
+} from '@metamask/money-account-controller';
+import {
   GeolocationController,
   GeolocationControllerState,
   GeolocationControllerActions,
@@ -532,6 +538,7 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
+  | MoneyAccountControllerActions
   | GeolocationControllerActions
   | GeolocationApiServiceActions
   | PerpsControllerActions
@@ -614,6 +621,7 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | MoneyAccountControllerEvents
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
@@ -739,6 +747,7 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  MoneyAccountController: MoneyAccountController;
   GeolocationController: GeolocationController;
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
@@ -823,6 +832,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  MoneyAccountController: MoneyAccountControllerState;
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
@@ -899,6 +909,7 @@ export type ControllersToInitialize =
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
+  | 'MoneyAccountController'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
