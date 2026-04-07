@@ -1,11 +1,7 @@
 import { test as perfTest } from '../../../framework/fixture';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  SrpProfile,
-} from '../../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
@@ -26,7 +22,6 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 2. Time to verify available balance info is displayed
  */
 perfTest.describe(PerformancePredict, () => {
-  perfTest.use({ srpProfile: SrpProfile.PERFORMANCE });
   perfTest(
     'Predict Available Balance - Complete Flow Performance',
     { tag: '@team-predict' },

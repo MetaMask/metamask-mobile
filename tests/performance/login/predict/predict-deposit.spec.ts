@@ -1,11 +1,7 @@
 import { test as perfTest } from '../../../framework/fixture';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  SrpProfile,
-} from '../../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
@@ -29,7 +25,6 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 5. Time to verify deposit info (fees, amount) appears
  */
 perfTest.describe(PerformancePredict, () => {
-  perfTest.use({ srpProfile: SrpProfile.PERFORMANCE });
   perfTest(
     'Predict Deposit - Complete Flow Performance',
     { tag: '@team-predict' },

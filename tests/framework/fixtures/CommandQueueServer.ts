@@ -1,11 +1,12 @@
 import { getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
-import { createLogger } from '../logger';
+import { createLogger, LogLevel } from '../logger';
 import { E2ECommandTypes, Resource, ServerStatus, SrpProfile } from '../types';
 import PortManager, { ResourceType } from '../PortManager';
 
 const logger = createLogger({
   name: 'CommandQueueServer',
+  level: LogLevel.DEBUG,
 });
 
 /**
@@ -53,6 +54,7 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isDebugRequest(ctx)) {
+        logger.debug('Debug request received');
         ctx.body = {
           queue: this._queue,
         };
@@ -60,6 +62,7 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isExportedStatePost(ctx)) {
+        logger.debug('Exported state post request received');
         const body = await this._parseJsonBody(ctx);
         this._exportedState = body as Record<string, unknown>;
         ctx.status = 200;
@@ -68,6 +71,7 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isExportedStateGet(ctx)) {
+        logger.debug('Exported state get request received');
         if (this._exportedState === null) {
           ctx.status = 404;
           ctx.body = { error: 'No exported state available' };
@@ -78,6 +82,10 @@ class CommandQueueServer implements Resource {
       }
 
       if (this._isSrpProfileTypeRequest(ctx)) {
+        logger.debug(
+          'SRP profile type request received. Current SRP profile:',
+          this._srpProfile,
+        );
         ctx.body = {
           srpProfile: this._srpProfile,
         };
@@ -105,7 +113,7 @@ class CommandQueueServer implements Resource {
   // Start the fixture server
   async start(): Promise<void> {
     if (this._serverStatus === ServerStatus.STARTED) {
-      logger.debug('The command queue server has already been started');
+      logger.info('The command queue server has already been started');
       return;
     }
 
@@ -116,7 +124,7 @@ class CommandQueueServer implements Resource {
     };
 
     await new Promise<void>((resolve, reject) => {
-      logger.debug('Starting command queue server on port', this._serverPort);
+      logger.info('Starting command queue server on port', this._serverPort);
       this._server = this._app.listen(options);
       if (!this._server) {
         logger.error(
@@ -164,7 +172,7 @@ class CommandQueueServer implements Resource {
     }
 
     await new Promise((resolve, reject) => {
-      logger.debug('Stopping command queue server on port', this._serverPort);
+      logger.info('Stopping command queue server on port', this._serverPort);
       if (!this._server) {
         logger.error(
           '❌ Failed to stop command queue server on port',
@@ -186,7 +194,7 @@ class CommandQueueServer implements Resource {
       this._server = undefined;
       this._serverStatus = ServerStatus.STOPPED;
     });
-    logger.debug('Command queue server stopped on port', this._serverPort);
+    logger.info('Command queue server stopped on port', this._serverPort);
   }
 
   addToQueue(item: CommandQueueItem) {

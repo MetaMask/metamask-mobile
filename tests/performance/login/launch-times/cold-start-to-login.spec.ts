@@ -4,7 +4,6 @@ import {
   asPlaywrightElement,
   PlaywrightAssertions,
   PlaywrightGestures,
-  SrpProfile,
 } from '../../../framework';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import LoginView from '../../../page-objects/wallet/LoginView';
@@ -27,7 +26,6 @@ import {
  * 1. Time to relaunch the app and display the login screen
  */
 perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
-  perfTest.use({ srpProfile: SrpProfile.PERFORMANCE });
   perfTest(
     'Cold Start: Measure ColdStart To Login Screen',
     { tag: '@metamask-mobile-platform' },

@@ -8,11 +8,9 @@ import {
   PerformanceLogin,
   PerformanceAssetLoading,
 } from '../../tags.performance.js';
-import { SrpProfile } from '../../framework';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
-  test.use({ srpProfile: SrpProfile.PERFORMANCE });
   test(
     'Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },

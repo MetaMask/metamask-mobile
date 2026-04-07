@@ -20,7 +20,6 @@ export class BrowserStackProvider extends BaseServiceProvider {
    */
   async globalSetup(): Promise<void> {
     await super.globalSetup?.();
-    // TODO: Verify that the bs:// app exists in BrowserStack and is valid
     this.logger.info('BrowserStack global setup complete');
   }
 
@@ -33,11 +32,18 @@ export class BrowserStackProvider extends BaseServiceProvider {
     const configBuilder = new BrowserStackConfigBuilder(this.project);
     const config = configBuilder.build();
 
+    this.logger.info(
+      `Requesting session with capabilities:\n${JSON.stringify(config.capabilities, null, 2)}`,
+    );
+
     const browser = await remote(config);
     this.sessionId = browser.sessionId;
 
     this.logger.info(
       `Driver created for BrowserStack with session: ${this.sessionId}`,
+    );
+    this.logger.info(
+      `Session capabilities returned:\n${JSON.stringify(browser.capabilities, null, 2)}`,
     );
     return browser;
   }

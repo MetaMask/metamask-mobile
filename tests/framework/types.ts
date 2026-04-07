@@ -26,6 +26,11 @@ export enum SrpProfile {
   ONBOARDING = 'onboarding',
 }
 
+export enum TestType {
+  E2E = 'e2e-test',
+  PERFORMANCE = 'performance-test',
+}
+
 // Gestures
 import { LanguageAndLocale } from 'detox/detox';
 import { DappVariants } from './Constants.ts';
@@ -75,6 +80,17 @@ export interface AppConfig {
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
 
+export interface E2EContext {
+  testType: 'e2e-test';
+}
+
+export interface PerformanceContext {
+  testType: 'performance-test';
+  srpProfile: SrpProfile;
+}
+
+export type TestContext = E2EContext | PerformanceContext;
+
 export interface TimeoutOptions {
   /**
    * The maximum amount of time (in milliseconds) to wait for the condition to be met.
@@ -89,6 +105,7 @@ export interface WebDriverConfig {
   appBundleId: string;
   expectTimeout: number;
   app: AppConfig;
+  testContext: TestContext;
 }
 /**
  * END OF WDIO PLAYWRIIGHT

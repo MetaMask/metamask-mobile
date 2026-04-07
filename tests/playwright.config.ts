@@ -1,4 +1,4 @@
-import { Platform } from './framework/types';
+import { Platform, SrpProfile } from './framework/types';
 import { defineConfig } from './framework/config';
 
 /**
@@ -23,29 +23,10 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'android',
-      testMatch: [
-        'tests/performance/**/*.spec.ts',
-        'tests/performance/**/*.spec.js',
-      ],
-      use: {
-        platform: Platform.ANDROID,
-        device: {
-          provider: 'emulator',
-          name: 'Samsung Galaxy S24 Ultra',
-          osVersion: '14', // 14 for local testing
-        },
-        app: {
-          packageName: 'io.metamask',
-          launchableActivity: 'io.metamask.MainActivity',
-        },
-        buildPath: 'PATH-TO-BUILD', // Path to your .apk file
-      },
-    },
-    {
       // Browserstack does not support appium 3 just yet.
       name: 'browserstack-android',
-      testMatch: '**/performance/login/**/*.spec.ts',
+      testMatch:
+        'tests/performance/onboarding/launch-times/cold-start-after-wallet-import.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -57,22 +38,11 @@ export default defineConfig({
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
-      },
-    },
-    {
-      name: 'ios',
-      testMatch: '**/performance/login/**/*.spec.ts',
-      use: {
-        platform: Platform.IOS,
-        device: {
-          provider: 'emulator',
-          osVersion: '16.0',
+        buildPath: 'bs://5364725fb11933b9b5da1ad0baf9ccaf782027a8', // Path to Browserstack url
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.ONBOARDING,
         },
-        app: {
-          appId: 'io.metamask.MetaMask',
-        },
-        buildPath: 'PATH-TO-BUILD', // Path to your .app file
       },
     },
     {
@@ -89,6 +59,10 @@ export default defineConfig({
           appId: 'io.metamask.MetaMask',
         },
         buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.PERFORMANCE,
+        },
       },
     },
 
@@ -111,6 +85,10 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
           process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.ONBOARDING,
+        },
       },
     },
     {
@@ -130,6 +108,10 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
           process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.ONBOARDING,
+        },
       },
     },
     {
@@ -146,6 +128,10 @@ export default defineConfig({
           appId: 'io.metamask.MetaMask',
         },
         buildPath: 'bs://a0ea40650b0a1108e32b27ec93ac73af3b393855', // Just a demo, CI will take care of this
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.MM_CONNECT,
+        },
       },
     },
     {
@@ -161,6 +147,10 @@ export default defineConfig({
           appId: 'io.metamask.MetaMask',
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .app file
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.MM_CONNECT,
+        },
       },
     },
     {
@@ -178,6 +168,10 @@ export default defineConfig({
           launchableActivity: 'io.metamask.MainActivity',
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.MM_CONNECT,
+        },
       },
     },
     {
@@ -195,6 +189,10 @@ export default defineConfig({
           launchableActivity: 'io.metamask.MainActivity',
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.MM_CONNECT,
+        },
       },
     },
     {
@@ -214,6 +212,10 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_ANDROID_SEEDLESS_PERF_APP_URL ??
           process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.ONBOARDING,
+        },
       },
     },
     {
@@ -232,6 +234,10 @@ export default defineConfig({
         buildPath:
           process.env.BROWSERSTACK_IOS_SEEDLESS_PERF_APP_URL ??
           process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        testContext: {
+          testType: 'performance-test',
+          srpProfile: SrpProfile.ONBOARDING,
+        },
       },
     },
   ],

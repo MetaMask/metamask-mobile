@@ -19,6 +19,22 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
       await PlaywrightGestures.terminateApp(currentDeviceDetails);
