@@ -424,7 +424,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload iOS IPA
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios'
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa-${{ inputs.build_name }}
@@ -447,7 +447,7 @@ jobs:
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
           if-no-files-found: warn
 
-      # Dev builds (CONFIGURATION=Debug): APK only
+      # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
       - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
@@ -455,6 +455,14 @@ jobs:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
+
+      - name: Upload Android test APK (dev)
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_test_apk_path }}
+          if-no-files-found: warn
 
       # Release builds: APK and AAB as separate artifacts
       - name: Upload Android APK (release)

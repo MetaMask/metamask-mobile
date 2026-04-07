@@ -291,6 +291,7 @@ builds:
       IS_TEST: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
+      IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
