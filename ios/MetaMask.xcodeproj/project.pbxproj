@@ -17,7 +17,6 @@
 		153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		15ACC9FB226555820063978B /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
-		AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
@@ -37,7 +36,6 @@
 		2EF282712B0FF86900D7B4B1 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		2EF282762B0FF86900D7B4B1 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		2EF2827C2B0FF86900D7B4B1 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
-		AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		2EF2827D2B0FF86900D7B4B1 /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
 		2EF2828C2B0FF86900D7B4B1 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283292B17EBD600D7B4B1 /* RnTar.swift */; };
@@ -64,6 +62,9 @@
 		A1F5C74197AA4BB4B2F9C002 /* Geist-SemiBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A1F5C74197AA4BB4B2F9C012 /* Geist-SemiBoldItalic.otf */; };
 		A9A253A9A4C55258DD932254 /* libPods-MetaMask-QA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B6C7C9864634E61C13A07C28 /* libPods-MetaMask-QA.a */; };
 		A9AB7F6A09E06325C0A71FA4 /* libPods-MetaMask-Flask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */; };
+		AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
+		AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
+		AA11BB22CC33DD44EE55FF69 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
 		B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		B339FF03289ABD70001B89FB /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
@@ -79,7 +80,6 @@
 		B339FF17289ABD70001B89FB /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		B339FF1C289ABD70001B89FB /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		B339FF22289ABD70001B89FB /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
-		AA11BB22CC33DD44EE55FF69 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		B339FF23289ABD70001B89FB /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
@@ -186,7 +186,6 @@
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = MetaMask/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.m; path = MetaMask/AppDelegate.m; sourceTree = "<group>"; };
 		13B07FB21A68108700A75B9A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
-		AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MetaMask/SplashScreen.storyboard; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MetaMask/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MetaMask/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.m; path = MetaMask/main.m; sourceTree = "<group>"; };
@@ -234,6 +233,7 @@
 		A1F5C74197AA4BB4B2F9C012 /* Geist-SemiBoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-SemiBoldItalic.otf"; path = "../app/fonts/Geist-SemiBoldItalic.otf"; sourceTree = "<group>"; };
 		A498EA4CD2F8488DB666B94C /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		A98DB430A7DA47EFB97EDF8B /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MetaMask/SplashScreen.storyboard; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ThemeColors.xcassets; sourceTree = "<group>"; };
 		B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MetaMask-QA-Info.plist"; path = "MetaMask/MetaMask-QA-Info.plist"; sourceTree = "<group>"; };

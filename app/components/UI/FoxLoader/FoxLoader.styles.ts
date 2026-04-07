@@ -43,9 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
       top: '50%',
       marginTop: -(STATIC_FOX_SIZE / 2),
     },
-    hidden: {
-      opacity: 0,
-    },
   });
 };
 
