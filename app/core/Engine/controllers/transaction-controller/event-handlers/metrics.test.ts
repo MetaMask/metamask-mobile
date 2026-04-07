@@ -388,8 +388,8 @@ describe('Transaction Metric Event Handlers', () => {
 
       // Force the mock to return the expected properties
       mockGetSmartTransactionMetricsProperties.mockResolvedValue({
-        smart_transaction_timed_out: false,
-        smart_transaction_proxied: false,
+        is_smart_transactions_user_opt_in: true,
+        is_smart_transactions_available: true,
         is_smart_transaction: true,
       });
 
