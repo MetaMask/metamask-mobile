@@ -553,6 +553,22 @@ describe('OAuthRehydration', () => {
       });
     });
 
+    it('only strips the seedless controller prefix when it starts the message', async () => {
+      const seedlessError = new Error(
+        'Wrapped error: SeedlessOnboardingController - Something went wrong',
+      );
+      mockUnlockWallet.mockRejectedValue(seedlessError);
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement.props.children).toBe(
+          'Wrapped error: SeedlessOnboardingController - Something went wrong',
+        );
+      });
+    });
+
     it('prompts seedless relogin for non-oauth seedless failure', async () => {
       mockRoute.mockReturnValue({
         params: { locked: true, oauthLoginSuccess: false },
@@ -889,6 +905,32 @@ describe('OAuthRehydration', () => {
               context: 'OAuth rehydration failed - user consented to analytics',
             }),
           }),
+        );
+      });
+    });
+
+    it('tracks unknown oauth errors with the unclassified error origin', async () => {
+      const unknownError = new Error(
+        'SeedlessOnboardingController - Unknown crash',
+      );
+      mockIsEnabled.mockReturnValue(true);
+      mockUnlockWallet.mockRejectedValue(unknownError);
+      mockTrackOnboarding.mockClear();
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'password123');
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
+            properties: expect.objectContaining({
+              error_type: 'unknown_error',
+              error_origin: 'seedless_unclassified',
+              seedless_error_type: 'unclassified',
+            }),
+          }),
+          expect.any(Function),
         );
       });
     });

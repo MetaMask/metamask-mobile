@@ -110,6 +110,7 @@ import {
 } from '../../../util/analytics/loginFailureAnalytics';
 
 const EmptyRecordConstant = {};
+const SEEDLESS_CONTROLLER_PREFIX = /^SeedlessOnboardingController - /;
 
 interface OAuthRehydrationRouteParams {
   locked: boolean;
@@ -121,6 +122,9 @@ interface OAuthRehydrationRouteParams {
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
+
+const sanitizeSeedlessControllerErrorMessage = (message: string) =>
+  message.replace(SEEDLESS_CONTROLLER_PREFIX, '');
 
 const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
@@ -411,9 +415,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           return;
         }
 
-        const seedlessErrMessage = seedlessError.message.replace(
-          'SeedlessOnboardingController - ',
-          '',
+        const seedlessErrMessage = sanitizeSeedlessControllerErrorMessage(
+          seedlessError.message,
         );
         setError(seedlessErrMessage);
 
@@ -451,9 +454,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
-      const errMessage = seedlessError.message.replace(
-        'SeedlessOnboardingController - ',
-        '',
+      const errMessage = sanitizeSeedlessControllerErrorMessage(
+        seedlessError.message,
       );
       setError(errMessage);
 
