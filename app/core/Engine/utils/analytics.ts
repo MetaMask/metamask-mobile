@@ -27,12 +27,18 @@ export const trackEvent = (
   initMessenger: ControllerMessenger,
   event: AnalyticsTrackingEvent,
 ): void => {
+  let enrichedEvent: AnalyticsTrackingEvent;
+
   try {
-    const enrichedEvent = enrichWithABTests(
+    enrichedEvent = enrichWithABTests(
       event,
       getRemoteFeatureFlagsFromState(store.getState()),
     );
+  } catch {
+    enrichedEvent = event;
+  }
 
+  try {
     (
       initMessenger as ControllerMessenger & {
         call: (
