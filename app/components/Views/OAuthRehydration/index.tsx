@@ -263,7 +263,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         ...properties,
       });
     },
-    [accountType, isComingFromOauthOnboarding, rehydrationFailedAttempts, track],
+    [
+      accountType,
+      isComingFromOauthOnboarding,
+      rehydrationFailedAttempts,
+      track,
+    ],
   );
 
   const [biometryChoice, setBiometryChoice] = useState(true);
@@ -374,18 +379,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const handleRecoveryError = useCallback(
-    (
-      seedlessError: SeedlessOnboardingControllerRecoveryError,
-    ): boolean => {
+    (seedlessError: SeedlessOnboardingControllerRecoveryError): boolean => {
       if (
         seedlessError.message ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
       ) {
-          trackRehydrationFailure({
-            error_type: 'incorrect_password',
-            error_origin: ErrorOrigin.SeedlessRecovery,
-            seedless_error_type: SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
-          });
+        trackRehydrationFailure({
+          error_type: 'incorrect_password',
+          error_origin: ErrorOrigin.SeedlessRecovery,
+          seedless_error_type: SEEDLESS_RECOVERY_ERROR_TYPE_AUTH_FAILURE,
+        });
         setError(strings('login.invalid_password'));
         return true;
       }
@@ -412,7 +415,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
 
       if (typeof seedlessError.data?.remainingTime === 'number') {
-        tooManyAttemptsError(seedlessError.data.remainingTime).catch(() => null);
+        tooManyAttemptsError(seedlessError.data.remainingTime).catch(
+          () => null,
+        );
       }
 
       return true;
