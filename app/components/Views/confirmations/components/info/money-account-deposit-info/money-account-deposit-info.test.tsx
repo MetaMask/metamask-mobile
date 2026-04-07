@@ -14,18 +14,15 @@ jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: ({
     currency,
     children,
-    afterPayWith,
   }: {
     currency: string;
     children?: React.ReactNode;
-    afterPayWith?: React.ReactNode;
   }) => {
     const { View, Text } = jest.requireActual('react-native');
     return (
       <View>
         <Text testID="custom-amount-info">{currency}</Text>
         {children}
-        {afterPayWith}
       </View>
     );
   },
@@ -35,50 +32,9 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
-  useTransactionMetadataRequest: jest.fn(() => ({
-    id: 'mock-tx-id',
-    chainId: '0x1',
-    txParams: { from: '0xFromAddress', to: undefined },
-  })),
-}));
-
-jest.mock('../../../../../../util/transaction-controller', () => ({
-  updateEditableParams: jest.fn(),
-}));
-
-jest.mock('../../MoneyAccountSelector', () => {
-  const { TextInput } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      onAccountSelected,
-      selectedAddress,
-    }: {
-      onAccountSelected: (address: string) => void;
-      chainId?: string;
-      selectedAddress?: string;
-    }) => (
-      <TextInput
-        testID="money-account-selector-input"
-        value={selectedAddress ?? ''}
-        onChangeText={onAccountSelected}
-      />
-    ),
-  };
-});
-
 describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const { useTransactionMetadataRequest } = jest.requireMock(
-      '../../../hooks/transactions/useTransactionMetadataRequest',
-    );
-    useTransactionMetadataRequest.mockReturnValue({
-      id: 'mock-tx-id',
-      chainId: '0x1',
-      txParams: { from: '0xFromAddress', to: undefined },
-    });
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
@@ -102,46 +58,5 @@ describe('MoneyAccountDepositInfo', () => {
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
     expect(MONEY_ACCOUNT_CURRENCY).toBe('usd');
-  });
-
-  it('renders MoneyAccountSelector for recipient account to be updated', () => {
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
-
-    expect(getByTestId('money-account-selector-input')).toBeOnTheScreen();
-  });
-
-  it('calls updateEditableParams with typed address', () => {
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
-    );
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
-
-    fireEvent.changeText(
-      getByTestId('money-account-selector-input'),
-      '0xTestAddress',
-    );
-
-    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
-      to: '0xTestAddress',
-    });
-  });
-
-  it('does not call updateEditableParams when transactionMeta has no id', () => {
-    const { useTransactionMetadataRequest } = jest.requireMock(
-      '../../../hooks/transactions/useTransactionMetadataRequest',
-    );
-    useTransactionMetadataRequest.mockReturnValueOnce(null);
-
-    const { updateEditableParams } = jest.requireMock(
-      '../../../../../../util/transaction-controller',
-    );
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
-
-    fireEvent.changeText(
-      getByTestId('money-account-selector-input'),
-      '0xTestAddress',
-    );
-
-    expect(updateEditableParams).not.toHaveBeenCalled();
   });
 });
