@@ -165,6 +165,7 @@ const PredictBuyWithAnyToken = () => {
       maxBetAmount,
       isConfirming,
       isPayFeesLoading,
+      isInputFocused,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
