@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { StyleSheet, Animated } from 'react-native';
 import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
@@ -17,6 +17,7 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
 }: ControllersGateProps) => {
   const appServicesReady = useSelector(selectAppServicesReady);
   const [loaderDone, setLoaderDone] = useState(false);
+  const [animationDone, setAnimationDone] = useState(false);
   const loaderOpacity = useRef(new Animated.Value(1)).current;
 
   const fadeOutLoader = useCallback(() => {
@@ -27,9 +28,17 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
     }).start(() => setLoaderDone(true));
   }, [loaderOpacity]);
 
+  // Only fade out once BOTH the animation is done AND app services are ready.
+  // This prevents a blank screen when Rive fails or times out before services finish.
+  useEffect(() => {
+    if (animationDone && appServicesReady) {
+      setTimeout(fadeOutLoader, 250);
+    }
+  }, [animationDone, appServicesReady, fadeOutLoader]);
+
   const handleAnimationComplete = useCallback(() => {
-    setTimeout(fadeOutLoader, 250);
-  }, [fadeOutLoader]);
+    setAnimationDone(true);
+  }, []);
 
   return (
     <React.Fragment>

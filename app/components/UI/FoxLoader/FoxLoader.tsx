@@ -43,13 +43,13 @@ if (Platform.OS === 'android') {
 }
 
 interface FoxLoaderProps {
-  appServicesReady: boolean;
-  onAnimationComplete: () => void;
+  appServicesReady?: boolean;
+  onAnimationComplete?: () => void;
 }
 
 const FoxLoader = ({
-  appServicesReady,
-  onAnimationComplete,
+  appServicesReady = false,
+  onAnimationComplete = () => undefined,
 }: FoxLoaderProps) => {
   const { styles } = useStyles(styleSheet, STYLE_PARAMS);
   const riveRef = useRef<RiveRef>(null);
