@@ -143,41 +143,41 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     <>
       {isTokenTradingOpen(token as BridgeToken) &&
         shouldRenderFooterButtons && (
-        <BottomSheetFooter
-          style={footerStyle}
-          buttonPropsArray={[
-            ...(showSwapButton
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.swap'),
-                    size: ButtonSize.Lg,
-                    onPress: () =>
-                      handleFooterAction(
-                        onSwap,
-                        strings('asset_overview.swap'),
-                      ),
-                  },
-                ]
-              : []),
-            ...(showBuyButton
-              ? [
-                  {
-                    variant: ButtonVariants.Primary,
-                    label: strings('asset_overview.buy_button'),
-                    size: ButtonSize.Lg,
-                    onPress: () =>
-                      handleFooterAction(
-                        onBuy,
-                        strings('asset_overview.buy_button'),
-                      ),
-                  },
-                ]
-              : []),
-          ]}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-        />
-      )}
+          <BottomSheetFooter
+            style={footerStyle}
+            buttonPropsArray={[
+              ...(showSwapButton
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: strings('asset_overview.swap'),
+                      size: ButtonSize.Lg,
+                      onPress: () =>
+                        handleFooterAction(
+                          onSwap,
+                          strings('asset_overview.swap'),
+                        ),
+                    },
+                  ]
+                : []),
+              ...(showBuyButton
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: strings('asset_overview.buy_button'),
+                      size: ButtonSize.Lg,
+                      onPress: () =>
+                        handleFooterAction(
+                          onBuy,
+                          strings('asset_overview.buy_button'),
+                        ),
+                    },
+                  ]
+                : []),
+            ]}
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+          />
+        )}
     </>
   );
 };
