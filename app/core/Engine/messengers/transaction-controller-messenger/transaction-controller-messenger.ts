@@ -158,6 +158,7 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
+      'KeyringController:accountSupports7702',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'RemoteFeatureFlagController:getState',

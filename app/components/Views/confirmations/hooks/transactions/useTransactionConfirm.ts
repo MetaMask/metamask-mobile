@@ -109,18 +109,30 @@ export function useTransactionConfirm() {
   );
 
   const onConfirm = useCallback(
-    async (options?: { onError?: (error: unknown) => void }) => {
+    async (options?: {
+      onError?: (error: unknown) => void;
+      waitForResult?: boolean;
+    }) => {
       if (!transactionMetadata) {
         return;
       }
 
       const updatedMetadata = cloneDeep(transactionMetadata);
 
-      if (isGaslessSupportedSTX) {
+      if (isGaslessSupportedSTX && !isHardwareWallet) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken) {
+      } else if (selectedGasFeeToken && !isHardwareWallet) {
         handleGasless7702(updatedMetadata);
       }
+
+      if (
+        isHardwareAccount(updatedMetadata.txParams?.from ?? '') &&
+        updatedMetadata.batchTransactionsOptions
+      ) {
+        updatedMetadata.batchTransactionsOptions.disable7702 = true;
+      }
+
+      const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
 
       try {
         await onRequestConfirm(
@@ -128,7 +140,7 @@ export function useTransactionConfirm() {
             deleteAfterResult: true,
             // Intentionally not hiding errors so we can log
             handleErrors: false,
-            waitForResult,
+            waitForResult: effectiveWaitForResult,
           },
           { txMeta: updatedMetadata },
         );
@@ -171,6 +183,7 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork,
       type,
       waitForResult,
+      isHardwareWallet,
     ],
   );
 
