@@ -20,6 +20,11 @@ export interface QAMockTokenExchangeResult {
 
 const DEFAULT_E2E_BYOA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
 
+const generateUniqueE2EEmail = (): string => {
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${rand}${Date.now()}+e2e@web3auth.io`;
+};
+
 export class QAMockOAuthService {
   static async exchangeTokens(
     loginHandler: BaseLoginHandler,
@@ -27,9 +32,8 @@ export class QAMockOAuthService {
   ): Promise<QAMockTokenExchangeResult> {
     const byoaSecret = getE2EByoaAuthSecret() ?? DEFAULT_E2E_BYOA_AUTH_SECRET;
 
-    const e2eEmail = `${loginHandler.authConnection}.newuser+e2e@web3auth.io`;
     const emailForMock =
-      getE2EMockOAuthEmailForQaMock() ?? 'newuser+e2e@web3auth.io';
+      getE2EMockOAuthEmailForQaMock() ?? generateUniqueE2EEmail();
 
     const response = await fetchImpl(E2E_QA_MOCK_OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -58,8 +62,8 @@ export class QAMockOAuthService {
     const jwtPayload = JSON.parse(
       loginHandler.decodeIdToken(data.id_token),
     ) as Partial<OAuthUserInfo>;
-    const userId = jwtPayload.sub ?? `e2e-user-${e2eEmail}`;
-    const accountName = jwtPayload.email ?? e2eEmail;
+    const userId = jwtPayload.sub ?? `e2e-user-${emailForMock}`;
+    const accountName = jwtPayload.email ?? emailForMock;
 
     return { data, userId, accountName };
   }

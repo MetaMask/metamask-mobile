@@ -654,13 +654,11 @@ describe('OAuth login service', () => {
       const body = JSON.parse(
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
-      expect(body).toMatchObject({
-        email_id: 'newuser+e2e@web3auth.io',
-        client_id: 'e2e-mock-google-client-id',
-        login_provider: AuthConnection.Google,
-        access_type: 'offline',
-      });
-      expect(mockAuthenticate).not.toHaveBeenCalled();
+      expect(body.client_id).toBe('e2e-mock-google-client-id');
+      expect(body.login_provider).toBe(AuthConnection.Google);
+      expect(body.access_type).toBe('offline');
+      expect(body.email_id).toMatch(/^[a-z0-9]+\d+\+e2e@web3auth\.io$/);
+      expect(mockAuthenticate).toHaveBeenCalledTimes(1);
       expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
     });
@@ -693,7 +691,7 @@ describe('OAuth login service', () => {
       expect(mockAuthenticate).not.toHaveBeenCalled();
     });
 
-    it('succeeds when QA mock response omits refresh_token', async () => {
+    it('rejects when QA mock response omits refresh_token (seedless authenticate requires it)', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -711,23 +709,22 @@ describe('OAuth login service', () => {
       } as Response);
       const loginHandler = mockCreateLoginHandler();
 
-      const result = await OAuthLoginService.handleOAuthLogin(
-        loginHandler,
-        false,
+      await expectOAuthError(
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
+        OAuthErrorType.LoginError,
       );
 
-      expect(result.type).toBe('success');
       expect(mockAuthenticate).not.toHaveBeenCalled();
     });
 
-    it('does not call provider login, getAuthTokens, or seedless authenticate', async () => {
+    it('does not call provider login or getAuthTokens but does call seedless authenticate', async () => {
       const loginHandler = mockCreateLoginHandler();
 
       await OAuthLoginService.handleOAuthLogin(loginHandler, false);
 
       expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
       expect(mockGetAuthTokens).not.toHaveBeenCalled();
-      expect(mockAuthenticate).not.toHaveBeenCalled();
+      expect(mockAuthenticate).toHaveBeenCalledTimes(1);
     });
   });
 });

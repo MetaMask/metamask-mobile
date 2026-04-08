@@ -139,10 +139,6 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      if (isE2EMockOAuth()) {
-        return QAMockOAuthService.mockSeedlessHandleResult(accountName);
-      }
-
       const authConnectionConfig = getAuthConnectionIdFromClientId({
         clientId,
         authConnection,
