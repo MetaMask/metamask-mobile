@@ -7,6 +7,7 @@ import { Spinner } from '@metamask/design-system-react-native/dist/components/te
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -19,9 +20,12 @@ import type { PredictTransactionStatusChangedPayload } from '../controllers/Pred
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
+import { store } from '../../../../store';
+import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 
 const showPendingToast = ({
   showToast,
@@ -133,12 +137,14 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
 
+  // Subscribe to account group changes so the hook re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount } =
+      const { type, status, senderAddress, transactionId, amount, marketId } =
         payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
@@ -147,6 +153,21 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         queryClient.invalidateQueries({
           queryKey: predictQueries.balance.keys.all(),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.unrealizedPnL.keys.all(),
+        });
+
+        // Deposit/Withdraw should not invalidate positions/activity
+        if (type === 'claim' || type === 'order') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.activity.keys.all(),
+          });
+        }
       }
 
       if (type === 'deposit') {
@@ -232,10 +253,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          queryClient.invalidateQueries({
-            queryKey: predictQueries.positions.keys.all(),
-          });
-
           showSuccessToast({
             showToast,
             title: strings('predict.deposit.account_ready'),
@@ -279,19 +296,16 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          const formattedWithdrawAmount = formatPrice(
-            amount ?? withdrawTransaction?.amount ?? 0,
+          const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
+          const { title, description } = getWithdrawConfirmedMessage(
+            transactionId,
+            fallbackAmount,
           );
 
           showSuccessToast({
             showToast,
-            title: strings('predict.withdraw.withdraw_completed'),
-            description: strings(
-              'predict.withdraw.withdraw_completed_subtitle',
-              {
-                amount: formattedWithdrawAmount,
-              },
-            ),
+            title,
+            description,
             iconColor: theme.colors.success.default,
           });
           return;
@@ -310,6 +324,50 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
+            backgroundColor: theme.colors.accent04.normal,
+            iconColor: theme.colors.error.default,
+          });
+          return;
+        }
+      }
+
+      if (type === 'order') {
+        if (status === 'depositing') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
+          showPendingToast({
+            showToast,
+            title: strings('predict.order.prediction_in_progress'),
+            description: strings(
+              'predict.order.prediction_in_progress_description',
+            ),
+          });
+          return;
+        }
+
+        if (status === 'confirmed') {
+          showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Check,
+            iconColor: theme.colors.success.default,
+            labelOptions: [
+              {
+                label: strings('predict.order.prediction_placed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return;
+        }
+
+        if (status === 'failed') {
+          showErrorToast({
+            showToast,
+            title: strings('predict.order.prediction_failed'),
+            description: strings('predict.order.order_failed_generic'),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
@@ -341,3 +399,41 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
     [handleTransactionStatusChanged],
   );
 };
+
+/**
+ * Derives the withdraw-confirmed toast message from transaction metadata.
+ *
+ * For post-quote withdrawals with valid metamaskPay data, displays the
+ * resolved token symbol and targetFiat amount. Otherwise falls back to the
+ * original USDC-only message.
+ */
+function getWithdrawConfirmedMessage(
+  transactionId: string | undefined,
+  fallbackAmount: number,
+): { title: string; description: string } {
+  const title = strings('predict.withdraw.withdraw_completed');
+
+  const { isPostQuote, targetFiat, tokenSymbol } = resolveWithdrawTokenInfo(
+    store.getState(),
+    transactionId,
+  );
+
+  if (!isPostQuote) {
+    return {
+      title,
+      description: strings('predict.withdraw.withdraw_completed_subtitle', {
+        amount: formatPrice(fallbackAmount),
+      }),
+    };
+  }
+
+  const withdrawAmount = targetFiat ?? fallbackAmount;
+
+  return {
+    title,
+    description: strings(
+      'predict.withdraw.withdraw_any_token_completed_subtitle',
+      { amount: formatPrice(withdrawAmount), token: tokenSymbol },
+    ),
+  };
+}

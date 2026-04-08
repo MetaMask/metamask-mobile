@@ -107,7 +107,6 @@ scripts/                  # Build and automation scripts
 | `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling     |
 | `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA       |
 | `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects          |
-| `component-view-testing.mdc`      | Component testing with presets/renderers             |
 | `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
 | `pr-creation-guidelines.mdc`      | Pull request standards                               |
 
@@ -193,4 +192,35 @@ If the user asks to implement a ticket directly from Jira:
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
 
 ## Test Guidelines
-When working on tests, read tests/AGENTS.md for testing conventions.
+
+Three test types coexist in this repo:
+
+- **Unit tests** (`*.test.tsx`)
+- **Component view tests** (`*.view.test.tsx`)
+- **E2E tests** (`tests/smoke/`, `tests/regression/`)
+
+For conventions and skill references for each type, read `tests/AGENTS.md`.
+
+## A/B Testing Agent Standard
+
+For A/B test implementation or review tasks, use the canonical standard:
+
+- `docs/ab-testing.md` (`Agent Execution Standard (SSOT)`)
+
+Codex skill entrypoint:
+
+- `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+
+Harness entrypoints:
+
+- Claude: `.claude/commands/create-ab-test.md` (`/create-ab-test`)
+- Cursor: `.cursor/commands/create-ab-test.md` (`/create-ab-test`) shim to Claude command
+- Windsurf and other harnesses: start prompts with `Follow docs/ab-testing.md section "Agent Execution Standard (SSOT)".`
+
+Compliance check command:
+
+```bash
+bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
+```
+
+If no files are staged, the checker automatically falls back to changed working-tree files.

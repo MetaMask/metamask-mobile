@@ -94,15 +94,12 @@ jest.mock('../../../../selectors/networkInfos', () => ({
 }));
 
 // Mock the theme
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-      border: { muted: '#e0e0e0' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockStore = configureMockStore();
 
@@ -320,7 +317,29 @@ describe('TokenListControlBar', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 
-      expect(addTokenButton.props.disabled).toBe(false);
+      expect(addTokenButton.props.disabled).toBeFalsy();
+    });
+  });
+
+  describe('showAddToken and hideSort (Cash view)', () => {
+    it('does not render add token button when showAddToken is false', () => {
+      const { queryByTestId } = renderComponent({
+        ...defaultProps,
+        showAddToken: false,
+      });
+
+      expect(queryByTestId('import-token-button')).toBeNull();
+    });
+
+    it('renders network filter when showAddToken is false', () => {
+      const { getByTestId } = renderComponent({
+        ...defaultProps,
+        showAddToken: false,
+      });
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+      ).toBeOnTheScreen();
     });
   });
 });

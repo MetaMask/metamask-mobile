@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
 import { PopularToken, IncludeAsset } from './usePopularTokens';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
+import Engine from '../../../../core/Engine';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -45,6 +46,7 @@ export const useSearchTokens = ({
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [bearerToken, setBearerToken] = useState<string | null>(null);
   // Consumers need to distinguish "waiting for debounce" from "search returned 0 results"
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
   const currentSearchQueryRef = useRef<string>('');
@@ -61,6 +63,16 @@ export const useSearchTokens = ({
   useEffect(() => {
     includeAssetsRef.current = includeAssets;
   }, [includeAssets]);
+
+  useEffect(() => {
+    Engine.context.AuthenticationController.getBearerToken()
+      .then((token) => {
+        setBearerToken(token);
+      })
+      .catch((error) => {
+        console.warn('Failed to get bearer token for /getTokens/search', error);
+      });
+  }, []);
 
   const resetSearch = useCallback(() => {
     setSearchResults([]);
@@ -118,6 +130,7 @@ export const useSearchTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${bearerToken ?? ''}`,
             },
             body: JSON.stringify(requestBody),
           },
@@ -156,7 +169,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [resetSearch],
+    [resetSearch, bearerToken],
   );
 
   // Create debounced search function

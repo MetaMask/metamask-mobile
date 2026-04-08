@@ -1,12 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Alert,
-  TextInput,
-  View,
-  DimensionValue,
-  SafeAreaView,
-} from 'react-native';
+import { Alert, TextInput, View, DimensionValue } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -28,7 +23,8 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
@@ -145,7 +141,7 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
@@ -158,56 +154,57 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <HeaderStackedStandard
+          <HeaderCompactStandard
             includesTopInset
             backButtonProps={{
               onPress: dismiss,
               testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
             }}
-            titleStandardProps={{
-              title: strings('import_private_key.title'),
-              bottomAccessory: (
-                <View style={styles.descriptionContainer}>
-                  {isSRP ? (
+          />
+          <TitleStandard
+            title={strings('import_private_key.title')}
+            bottomAccessory={
+              <View style={styles.descriptionContainer}>
+                {isSRP ? (
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('import_private_key.description_srp')}{' '}
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Primary}
+                      onPress={learnMore}
+                    >
+                      {strings('import_private_key.learn_more')}
+                    </Text>
+                  </Text>
+                ) : (
+                  <>
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                     >
-                      {strings('import_private_key.description_srp')}{' '}
+                      {strings('import_private_key.description_one')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                      onPress={learnMore}
+                    >
                       <Text
                         variant={TextVariant.BodyMD}
                         color={TextColor.Primary}
-                        onPress={learnMore}
                       >
-                        {strings('import_private_key.learn_more')}
+                        {strings('import_private_key.learn_more')}{' '}
                       </Text>
+                      {strings('import_private_key.learn_more_here')}
                     </Text>
-                  ) : (
-                    <>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('import_private_key.description_one')}
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
-                        onPress={learnMore}
-                      >
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Primary}
-                        >
-                          {strings('import_private_key.learn_more')}{' '}
-                        </Text>
-                        {strings('import_private_key.learn_more_here')}
-                      </Text>
-                    </>
-                  )}
-                </View>
-              ),
-            }}
+                  </>
+                )}
+              </View>
+            }
+            twClassName="px-4 pt-1 pb-3"
           />
           <View style={styles.bottom}>
             <TextInput

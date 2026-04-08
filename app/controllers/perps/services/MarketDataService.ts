@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import type { ServiceContext } from './ServiceContext';
 import type { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -31,7 +32,6 @@ import type {
   AssetRoute,
   PerpsPlatformDependencies,
 } from '../types';
-import type { ServiceContext } from './ServiceContext';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
 
@@ -760,28 +760,16 @@ export class MarketDataService {
         },
       });
 
-      // Check if provider supports historical candles via clientService
-      const hyperLiquidProvider = provider as {
-        clientService?: {
-          fetchHistoricalCandles?: (options: {
-            symbol: string;
-            interval: CandlePeriod;
-            limit?: number;
-            endTime?: number;
-          }) => Promise<CandleData>;
-        };
-      };
-      if (!hyperLiquidProvider.clientService?.fetchHistoricalCandles) {
+      if (!provider.fetchHistoricalCandles) {
         throw new Error('Historical candles not supported by provider');
       }
 
-      const result =
-        await hyperLiquidProvider.clientService.fetchHistoricalCandles({
-          symbol,
-          interval,
-          limit,
-          endTime,
-        });
+      const result = await provider.fetchHistoricalCandles({
+        symbol,
+        interval,
+        limit,
+        endTime,
+      });
 
       traceData = { success: true };
       return result;

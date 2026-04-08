@@ -24,12 +24,21 @@ import type {
   SeasonStateDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
-  SnapshotDto,
+  ApplyBonusCodeDto,
+  CampaignDto,
+  CampaignParticipantStatusDto,
+  ClientVersionRequirementDto,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
+  PaginatedOndoGmActivityDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
-import { successfulFetch } from '@metamask/controller-utils';
-import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
+import {
+  canChangeRewardsEnvUrl,
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
+} from '../utils/rewards-api-url';
 
 /**
  * Custom error for invalid timestamps
@@ -79,12 +88,6 @@ const SERVICE_NAME = 'RewardsDataService';
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
-// Geolocation URLs for different environments
-const GEOLOCATION_URLS = {
-  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-};
-
 // Auth endpoint action types
 
 export interface RewardsDataServiceLoginAction {
@@ -129,11 +132,6 @@ export interface RewardsDataServiceGetSeasonStatusAction {
 export interface RewardsDataServiceGetReferralDetailsAction {
   type: `${typeof SERVICE_NAME}:getReferralDetails`;
   handler: RewardsDataService['getReferralDetails'];
-}
-
-export interface RewardsDataServiceFetchGeoLocationAction {
-  type: `${typeof SERVICE_NAME}:fetchGeoLocation`;
-  handler: RewardsDataService['fetchGeoLocation'];
 }
 
 export interface RewardsDataServiceValidateReferralCodeAction {
@@ -191,22 +189,97 @@ export interface RewardsDataServiceApplyReferralCodeAction {
   handler: RewardsDataService['applyReferralCode'];
 }
 
-export interface RewardsDataServiceGetSnapshotsAction {
-  type: `${typeof SERVICE_NAME}:getSnapshots`;
-  handler: RewardsDataService['getSnapshots'];
+export interface RewardsDataServiceValidateBonusCodeAction {
+  type: `${typeof SERVICE_NAME}:validateBonusCode`;
+  handler: RewardsDataService['validateBonusCode'];
+}
+
+export interface RewardsDataServiceApplyBonusCodeAction {
+  type: `${typeof SERVICE_NAME}:applyBonusCode`;
+  handler: RewardsDataService['applyBonusCode'];
+}
+
+export interface RewardsDataServiceGetSubscriptionAccountsAction {
+  type: `${typeof SERVICE_NAME}:getSubscriptionAccounts`;
+  handler: RewardsDataService['getSubscriptionAccounts'];
+}
+
+export interface RewardsDataServiceGetCampaignsAction {
+  type: `${typeof SERVICE_NAME}:getCampaigns`;
+  handler: RewardsDataService['getCampaigns'];
+}
+
+export interface RewardsDataServiceOptInToCampaignAction {
+  type: `${typeof SERVICE_NAME}:optInToCampaign`;
+  handler: RewardsDataService['optInToCampaign'];
+}
+
+export interface RewardsDataServiceGetCampaignParticipantStatusAction {
+  type: `${typeof SERVICE_NAME}:getCampaignParticipantStatus`;
+  handler: RewardsDataService['getCampaignParticipantStatus'];
+}
+
+export interface RewardsDataServiceGetClientVersionRequirementsAction {
+  type: `${typeof SERVICE_NAME}:getClientVersionRequirements`;
+  handler: RewardsDataService['getClientVersionRequirements'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboard`;
+  handler: RewardsDataService['getOndoCampaignLeaderboard'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignLeaderboardPositionAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboardPosition`;
+  handler: RewardsDataService['getOndoCampaignLeaderboardPosition'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignPortfolioPositionAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignPortfolioPosition`;
+  handler: RewardsDataService['getOndoCampaignPortfolioPosition'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignActivityAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignActivity`;
+  handler: RewardsDataService['getOndoCampaignActivity'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignActivityLastUpdated`;
+  handler: RewardsDataService['getOndoCampaignActivityLastUpdated'];
+}
+
+export interface RewardsDataServiceGetRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
+  handler: RewardsDataService['getRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceCanChangeRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:canChangeRewardsEnvUrl`;
+  handler: RewardsDataService['canChangeRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceSetRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:setRewardsEnvUrl`;
+  handler: RewardsDataService['setRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:getDefaultRewardsEnvUrl`;
+  handler: RewardsDataService['getDefaultRewardsEnvUrl'];
 }
 
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
@@ -218,7 +291,22 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetRewardsEnvUrlAction
+  | RewardsDataServiceCanChangeRewardsEnvUrlAction
+  | RewardsDataServiceSetRewardsEnvUrlAction
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction
+  | RewardsDataServiceValidateBonusCodeAction
+  | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
+  | RewardsDataServiceGetCampaignsAction
+  | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
+  | RewardsDataServiceGetOndoCampaignActivityAction
+  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -242,7 +330,8 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
-  readonly #rewardsApiUrl: string;
+  /** Explicit API URL override; null means use the build-default mapping */
+  #rewardsApiUrl: string | null = null;
 
   constructor({
     messenger,
@@ -259,7 +348,6 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
-    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -296,10 +384,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getReferralDetails`,
       this.getReferralDetails.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:fetchGeoLocation`,
-      this.fetchGeoLocation.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateReferralCode`,
@@ -346,18 +430,132 @@ export class RewardsDataService {
       this.applyReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshots`,
-      this.getSnapshots.bind(this),
+      `${SERVICE_NAME}:validateBonusCode`,
+      this.validateBonusCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:applyBonusCode`,
+      this.applyBonusCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSubscriptionAccounts`,
+      this.getSubscriptionAccounts.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaigns`,
+      this.getCampaigns.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optInToCampaign`,
+      this.optInToCampaign.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaignParticipantStatus`,
+      this.getCampaignParticipantStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignLeaderboard`,
+      this.getOndoCampaignLeaderboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignLeaderboardPosition`,
+      this.getOndoCampaignLeaderboardPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignPortfolioPosition`,
+      this.getOndoCampaignPortfolioPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignActivity`,
+      this.getOndoCampaignActivity.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignActivityLastUpdated`,
+      this.getOndoCampaignActivityLastUpdated.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getRewardsEnvUrl`,
+      this.getRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:canChangeRewardsEnvUrl`,
+      this.canChangeRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:setRewardsEnvUrl`,
+      this.setRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
+      this.getDefaultRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getClientVersionRequirements`,
+      this.getClientVersionRequirements.bind(this),
     );
   }
 
-  private getRewardsApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
-    // otherwise using default per-env url
-    return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+  /**
+   * Returns the rewards API base URL the data service is currently targeting.
+   */
+  getRewardsEnvUrl(): string {
+    const [defaultUrl, canChange] = getDefaultRewardsApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
     );
+    // PRD builds are locked — never allow an override to take effect.
+    if (!canChange) return defaultUrl;
+    return this.#rewardsApiUrl ?? defaultUrl;
+  }
+
+  /**
+   * Returns whether the current MetaMask build allows manually switching the
+   * rewards API environment (true for non-RC / non-production builds).
+   */
+  canChangeRewardsEnvUrl(): boolean {
+    return canChangeRewardsEnvUrl(process.env.METAMASK_ENVIRONMENT);
+  }
+
+  /**
+   * Overrides the active rewards API base URL.
+   * Callers should reset all cached controller state after calling this.
+   */
+  setRewardsEnvUrl(url: string): void {
+    if (this.canChangeRewardsEnvUrl()) {
+      this.#rewardsApiUrl = url;
+      Logger.log(`RewardsDataService: env switched to ${url}`);
+    } else {
+      this.#rewardsApiUrl = null;
+    }
+  }
+
+  /**
+   * Returns the default rewards API base URL for the current MetaMask
+   * environment, ignoring any manual override.
+   */
+  getDefaultRewardsEnvUrl(): string {
+    const [defaultUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+    return defaultUrl;
+  }
+
+  /**
+   * Fetch the minimum client version requirements from the public API.
+   * @returns The client version requirements DTO.
+   */
+  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
+    const response = await this.makeRequest(
+      '/public/client-version-requirements',
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get client version requirements failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as ClientVersionRequirementDto;
   }
 
   /**
@@ -405,7 +603,8 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${this.#rewardsApiUrl}${endpoint}`;
+    const envBaseUrl = this.getRewardsEnvUrl();
+    const url = `${envBaseUrl}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();
@@ -425,6 +624,13 @@ export class RewardsDataService {
       });
 
       clearTimeout(timeoutId);
+
+      if (response.status === 403 && subscriptionId) {
+        throw new AuthorizationFailedError(
+          `Authorization failed: ${response.status}`,
+        );
+      }
+
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -686,11 +892,6 @@ export class RewardsDataService {
 
     if (!response.ok) {
       const errorData = await response.json();
-      if (errorData?.message?.includes('Rewards authorization failed')) {
-        throw new AuthorizationFailedError(
-          'Rewards authorization failed. Please login and try again.',
-        );
-      }
 
       if (errorData?.message?.includes('Season not found')) {
         throw new SeasonNotFoundError(
@@ -737,28 +938,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Fetch geolocation information from MetaMask's geolocation service.
-   * Returns location in Country or Country-Region format (e.g., 'US', 'CA-ON', 'FR').
-   * @returns Promise<string> - The geolocation string or 'UNKNOWN' on failure.
-   */
-  async fetchGeoLocation(): Promise<string> {
-    let location = 'UNKNOWN';
-
-    try {
-      const response = await successfulFetch(GEOLOCATION_URLS.PROD);
-
-      if (!response.ok) {
-        return location;
-      }
-      location = await response?.text();
-      return location;
-    } catch (e) {
-      Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
-      return location;
-    }
-  }
-
-  /**
    * Validate a referral code.
    * @param code - The referral code to validate.
    * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
@@ -774,6 +953,33 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(
         `Failed to validate referral code. Please try again shortly.`,
+      );
+    }
+
+    return (await response.json()) as { valid: boolean };
+  }
+
+  /**
+   * Validate a bonus code.
+   * @param code - The bonus code to validate.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
+   */
+  async validateBonusCode(
+    code: string,
+    subscriptionId: string,
+  ): Promise<{ valid: boolean }> {
+    const response = await this.makeRequest(
+      `/subscriptions/bonus-code?code=${encodeURIComponent(code)}`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to validate bonus code. Please try again shortly.`,
       );
     }
 
@@ -1107,17 +1313,46 @@ export class RewardsDataService {
   }
 
   /**
-   * Get snapshots for a specific season.
-   * @param seasonId - The ID of the season to get snapshots for.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The list of snapshots for the season.
+   * Apply a bonus code to a subscription.
+   * @param dto - The DTO containing the bonus code to apply.
+   * @param subscriptionId - The subscription ID to apply the bonus code to.
+   * @returns Promise that resolves when the bonus code is applied successfully.
+   * @throws Error with the error message from the API response.
    */
-  async getSnapshots(
-    seasonId: string,
+  async applyBonusCode(
+    dto: ApplyBonusCodeDto,
     subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
+  ): Promise<void> {
     const response = await this.makeRequest(
-      `/v1/seasons/${seasonId}/snapshots`,
+      '/wr/subscriptions/apply-bonus-code',
+      {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      if (response.status === 204) {
+        return;
+      }
+
+      const errorData = await response.json();
+      const errorMessage =
+        errorData?.message || `Apply bonus code failed: ${response.status}`;
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Get CAIP-10 encoded account addresses linked to the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Array of CAIP-10 account strings (up to 1000).
+   */
+  async getSubscriptionAccounts(subscriptionId: string): Promise<string[]> {
+    const response = await this.makeRequest(
+      `/subscriptions/accounts`,
       {
         method: 'GET',
       },
@@ -1125,9 +1360,228 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get snapshots failed: ${response.status}`);
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+      throw new Error(`Get subscription accounts failed: ${response.status}`);
     }
 
-    return (await response.json()) as SnapshotDto[];
+    return (await response.json()) as string[];
+  }
+
+  /**
+   * Get all available campaigns.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The list of available campaigns.
+   */
+  async getCampaigns(subscriptionId: string): Promise<CampaignDto[]> {
+    const response = await this.makeRequest(
+      '/campaigns',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaigns failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignDto[];
+  }
+
+  /**
+   * Opt a subscription into a campaign.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to opt into.
+   * @returns The participant status after opting in.
+   */
+  async optInToCampaign(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    const response = await this.makeRequest(
+      `/wr/campaigns/${campaignId}/opt-in`,
+      { method: 'POST' },
+      subscriptionId,
+    );
+
+    if (response.status === 409) {
+      // Already opted in — fetch and return current status as a graceful success
+      return this.getCampaignParticipantStatus(subscriptionId, campaignId);
+    }
+
+    if (!response.ok) {
+      throw new Error(`Opt-in to campaign failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the campaign participant status for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to check status for.
+   * @returns The participant status.
+   */
+  async getCampaignParticipantStatus(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    const response = await this.makeRequest(
+      `/campaigns/${campaignId}/status`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign participant status failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the campaign leaderboard showing top 20 participants per tier.
+   * This is a public endpoint - no authentication required.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard data grouped by tier.
+   */
+  async getOndoCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/leaderboard`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign leaderboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignLeaderboardDto;
+  }
+
+  /**
+   * Get the current user's position on the campaign leaderboard.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found (404).
+   */
+  async getOndoCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardPositionDto | null> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/leaderboard/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign leaderboard position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CampaignLeaderboardPositionDto;
+  }
+
+  /**
+   * Get the current user's Ondo GM portfolio for a campaign.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID to get portfolio for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The portfolio, or null if not found (404).
+   */
+  async getOndoCampaignPortfolioPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmPortfolioDto | null> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/portfolio/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign portfolio position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as OndoGmPortfolioDto;
+  }
+
+  /**
+   * Get paginated activity for an Ondo GM campaign.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param cursor - Pagination cursor, null for the first page.
+   * @returns Paginated activity entries.
+   */
+  async getOndoCampaignActivity(
+    campaignId: string,
+    subscriptionId: string,
+    cursor: string | null,
+  ): Promise<PaginatedOndoGmActivityDto> {
+    const queryParams: string[] = [];
+    if (cursor) queryParams.push(`cursor=${encodeURIComponent(cursor)}`);
+
+    let url = `/ondo-gm/${campaignId}/activity/me`;
+    if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+
+    const response = await this.makeRequest(
+      url,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign activity failed: ${response.status}`);
+    }
+
+    return (await response.json()) as PaginatedOndoGmActivityDto;
+  }
+
+  /**
+   * Get the last-updated timestamp for Ondo GM campaign activity.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The last-updated date, or null if no activity exists.
+   */
+  async getOndoCampaignActivityLastUpdated(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<Date | null> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/activity/me/last-updated`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign activity last updated failed: ${response.status}`,
+      );
+    }
+
+    const result = await response.json();
+    return result?.lastUpdated ? new Date(result.lastUpdated) : null;
   }
 }

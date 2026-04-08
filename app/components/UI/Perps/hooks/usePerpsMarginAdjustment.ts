@@ -1,10 +1,14 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsTrading } from './usePerpsTrading';
-import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;
@@ -78,25 +82,29 @@ export function usePerpsMarginAdjustment(
       } catch (error) {
         DevLogger.log('Error adjusting margin:', error);
 
-        // Capture exception with margin context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'usePerpsMarginAdjustment',
-              action: `margin_${action}`,
-              operation: 'position_management',
-            },
-            extra: {
-              marginContext: {
-                symbol,
-                amount,
-                action,
-                adjustmentAmount: action === 'remove' ? -amount : amount,
-              },
+        Logger.error(ensureError(error, 'usePerpsMarginAdjustment.handle'), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsMarginAdjustment',
+            action: `margin_${action}`,
+            operation: 'position_management',
+          },
+          context: {
+            name: 'usePerpsMarginAdjustment',
+            data: {
+              symbol,
+              amount,
+              action,
+              adjustmentAmount: action === 'remove' ? -amount : amount,
+              rawError:
+                error instanceof Error
+                  ? undefined
+                  : error === undefined
+                    ? 'undefined'
+                    : String(error),
             },
           },
-        );
+        });
 
         const errorMessage =
           error instanceof Error

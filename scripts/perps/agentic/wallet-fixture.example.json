@@ -1,0 +1,14 @@
+{
+  "password": "your-password-here",
+  "accounts": [
+    { "type": "mnemonic", "value": "your twelve word seed phrase goes here replace with real words" },
+    { "type": "privateKey", "value": "0xYourPrivateKeyHex", "name": "Trading" }
+  ],
+  "settings": {
+    "metametrics": false,
+    "skipGtmModals": true,
+    "skipPerpsTutorial": true,
+    "autoLockNever": true,
+    "deviceAuthEnabled": false
+  }
+}

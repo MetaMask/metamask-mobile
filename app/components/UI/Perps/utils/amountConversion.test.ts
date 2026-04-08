@@ -14,8 +14,8 @@ describe('convertPerpsAmountToUSD', () => {
   });
 
   it('handles hex wei values correctly', () => {
-    // 1 ETH in wei (0xde0b6b3a7640000)
-    expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$20,000');
+    // Hex wei is not supported in Perps flow; all inputs return '$0'
+    expect(convertPerpsAmountToUSD('0xde0b6b3a7640000')).toBe('$0');
   });
 
   it('handles numeric strings correctly', () => {

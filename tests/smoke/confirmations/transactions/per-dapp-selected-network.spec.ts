@@ -60,13 +60,11 @@ describe(SmokeConfirmations('Dapp Network Switching'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: LOCAL_CHAIN_ID,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: LOCAL_CHAIN_NAME,
-                ticker: 'ETH',
-              },
+              chainId: LOCAL_CHAIN_ID,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: LOCAL_CHAIN_NAME,
+              ticker: 'ETH',
             })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions([LOCAL_CHAIN_ID]),
@@ -134,8 +132,11 @@ describe(SmokeConfirmations('Dapp Network Switching'), () => {
           },
         );
 
-        // Change the network to Localhost in app
-        await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
+        // Change the network to Localhost in app (custom network)
+        await TabBarComponent.tapWallet();
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.selectNetworkInCustomTab(LOCAL_CHAIN_NAME);
 
         // Check activity tab (already on wallet from helper, just navigate)
         await TabBarComponent.tapActivity();

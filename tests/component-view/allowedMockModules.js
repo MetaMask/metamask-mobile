@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Centralized whitelist of modules allowed to be mocked in component-view tests.
  * Consumed by both the runtime guard (testSetupView.js) and ESLint configuration.

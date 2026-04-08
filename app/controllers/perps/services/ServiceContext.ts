@@ -1,7 +1,4 @@
-import type {
-  PerpsControllerState,
-  PerpsControllerMessenger,
-} from '../PerpsController';
+import type { PerpsControllerState } from '../PerpsController';
 import type { Order, Position } from '../types';
 
 /**
@@ -55,13 +52,6 @@ export type ServiceContext = {
     update: (updater: (state: PerpsControllerState) => void) => void;
     getState: () => PerpsControllerState;
   };
-
-  /**
-   * Messenger for controller communication (optional)
-   * Required by: DataLakeService (getBearerToken)
-   * Note: TradingService now receives this via setControllerDependencies()
-   */
-  messenger?: PerpsControllerMessenger;
 
   /**
    * Query functions for dependent data

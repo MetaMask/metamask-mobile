@@ -130,7 +130,7 @@ pipelines:
         - pr_check_build_cache
   expo_dev_pipeline:
     stages:
-      - create_build_qa_and_expo: {}
+      - create_build_dev_expo: {}
       # - app_launch_times_test_stage: {}
   #Main expo pipeline
   expo_main_pipeline:
@@ -254,13 +254,11 @@ stages:
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
-  create_build_qa_and_expo:
+  create_build_dev_expo:
     workflows:
       - build_android_devbuild: {}
-      - build_android_qa: {}
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
-      - build_ios_qa: {}
   create_build_main_expo:
     workflows:
       - build_android_devbuild: {}
@@ -2244,6 +2242,27 @@ workflows:
             - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+      # TapAndPay SDK Setup
+      - script@1:
+          title: Clone TapAndPay SDK
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -euo pipefail
+                mkdir -p ~/.ssh
+                echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d | tr -d '\r' > ~/.ssh/tap_and_pay_key
+                echo "" >> ~/.ssh/tap_and_pay_key
+                chmod 600 ~/.ssh/tap_and_pay_key
+                ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+                eval "$(ssh-agent -s)"
+                ssh-add ~/.ssh/tap_and_pay_key
+                echo "Cloning TapAndPay SDK into android/libs/..."
+                git clone --depth 1 git@github.com:MetaMask/tap-and-pay-sdk.git /tmp/tap-and-pay-sdk
+                mkdir -p android/libs
+                cp -r /tmp/tap-and-pay-sdk/* android/libs/
+                rm -rf /tmp/tap-and-pay-sdk
+                rm -f ~/.ssh/tap_and_pay_key
+                echo "TapAndPay SDK installed to android/libs/"
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -2374,6 +2393,15 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/generated/sourcemaps/react/$OUTPUT_PATH
+            - is_compress: true
+            - zip_name: Android_Sourcemaps_$OUTPUT_PATH
+          title: Deploy Android Sourcemaps
       - script@1:
           title: Prepare Android build outputs for caching
           run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
@@ -3050,6 +3078,14 @@ workflows:
           inputs:
             - deploy_path: ios/build/$RENAMED_ARCHIVE_FILE
           title: Deploy Symbols File
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
+          inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Source Map
       - save-cache@1:
           title: Save iOS PR Build Cache
           run_if: '{{and (getenv "IOS_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
@@ -3076,7 +3112,7 @@ workflows:
             - paths: /tmp/last-build-commit
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
+        stack: osx-xcode-26.2.x
         machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
@@ -3432,7 +3468,7 @@ workflows:
                 echo "🧹 Cleaned up API key file"
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
+        stack: osx-xcode-26.2.x
         machine_type_id: g2.mac.4large
   set_main_target_workflow:
     steps:
@@ -3516,16 +3552,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.68.0
+      VERSION_NAME: 7.74.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3607
+      VERSION_NUMBER: 4138
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.68.0
+      FLASK_VERSION_NAME: 7.74.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3607
+      FLASK_VERSION_NUMBER: 4138
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3555,7 +3591,7 @@ app:
       SEEDLESS_ONBOARDING_ENABLED: true
 meta:
   bitrise.io:
-    stack: osx-xcode-16.3.x
+    stack: osx-xcode-26.2.x
     machine_type_id: g2.mac.4large
 trigger_map:
   # Disable auto RC generation

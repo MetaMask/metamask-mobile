@@ -1,0 +1,4 @@
+interface:
+  display_name: "E2E Test"
+  short_description: "Add and fix Detox E2E smoke/regression tests for MetaMask Mobile."
+  default_prompt: "Use $e2e-test to add or fix E2E tests with withFixtures, Page Objects, and the tests/framework."

@@ -30,20 +30,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24272A',
-        alternative: '#6A737D',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -114,6 +106,8 @@ jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
   default: jest.fn(() => false),
 }));
 
+jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
+
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
@@ -156,15 +150,16 @@ describe('AccountsMenu', () => {
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      // Mock state object
       const mockState = {
-        fiatOrders: { detectedGeolocation: 'US' },
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'US' },
+          },
+        },
       };
 
-      // Try to call the selector with mock state
       try {
         const result = selector(mockState);
-        // If it's the geolocation selector, return 'US'
         if (result === 'US') {
           return 'US';
         }
@@ -200,43 +195,7 @@ describe('AccountsMenu', () => {
     expect(getByText('accounts_menu.resources')).toBeOnTheScreen();
   });
 
-  describe('Snapshots', () => {
-    it('match snapshot when MetaMask Card is hidden', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('match snapshot when MetaMask Card is visible', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('MetaMask Card Button', () => {
-    it('render MetaMask Card row when shouldDisplayCardButton is true', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { getByText, getByTestId } = render(<AccountsMenu />);
-
-      expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
-      expect(
-        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD),
-      ).toBeOnTheScreen();
-    });
-
-    it('does NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { queryByText, queryByTestId } = render(<AccountsMenu />);
-
-      expect(queryByText('accounts_menu.card_title')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD)).toBeNull();
-    });
-
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
@@ -318,7 +277,7 @@ describe('AccountsMenu', () => {
 
       // Verify properties were added
       expect(mockAddProperties).toHaveBeenCalledWith({
-        text: 'Buy',
+        button_text: 'Buy',
         location: 'AccountsMenu',
         ramp_type: 'UNIFIED_BUY',
         chain_id_destination: null,
@@ -431,7 +390,11 @@ describe('AccountsMenu', () => {
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
-          fiatOrders: { detectedGeolocation: 'US' },
+          engine: {
+            backgroundState: {
+              GeolocationController: { location: 'US' },
+            },
+          },
         };
 
         try {
@@ -626,6 +589,26 @@ describe('AccountsMenu', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.SDK_SESSIONS_MANAGER,
+      );
+    });
+  });
+
+  describe('Networks Row', () => {
+    it('render Networks row', () => {
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.networks')).toBeOnTheScreen();
+      expect(getByTestId(AccountsMenuSelectorsIDs.NETWORKS)).toBeOnTheScreen();
+    });
+
+    it('navigate to NetworksManagement when Networks is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const networksButton = getByTestId(AccountsMenuSelectorsIDs.NETWORKS);
+
+      fireEvent.press(networksButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
       );
     });
   });

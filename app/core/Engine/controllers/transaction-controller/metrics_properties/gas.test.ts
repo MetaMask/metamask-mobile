@@ -165,4 +165,24 @@ describe('getGasMetricsProperties', () => {
 
     expect(result.properties.gas_insufficient_native_asset).toBe(false);
   });
+
+  describe('MM Pay transactions', () => {
+    it('derives gas_paid_with from metamaskPay.tokenAddress instead of selectedGasFeeToken', () => {
+      const request = createMockRequest({
+        selectedGasFeeToken: '0xignored',
+        metamaskPay: {
+          chainId: '0x1',
+          tokenAddress: '0xusdc',
+        },
+        gasFeeTokens: [
+          { symbol: 'USDC', tokenAddress: '0xusdc' },
+          { symbol: 'IGNORED', tokenAddress: '0xignored' },
+        ] as unknown as TransactionMeta['gasFeeTokens'],
+      });
+
+      const result = getGasMetricsProperties(request);
+
+      expect(result.properties.gas_paid_with).toBe('USDC');
+    });
+  });
 });

@@ -66,6 +66,11 @@ const smokeTags = {
     description:
       'Tests Polymarket prediction market integration. Covers the full position lifecycle: opening new positions on available markets (sports, crypto, events), cashing out open positions early, and claiming winnings from resolved markets. Tests balance synchronization after prediction transactions, verifying USDC balance updates correctly. Validates the Positions tab for viewing all open positions and the Activities tab for transaction history. Tests error handling scenarios: API failures when Polymarket is unavailable and geographic restriction handling for unsupported regions. Entry point is via the Predict button in TradeWalletActions. Predictions is also a section inside the Trending tab (SmokeWalletPlatform); changes to Predictions views (headers, lists, full views) affect Trending. When selecting SmokePredictions, also select SmokeWalletPlatform (Trending section) and SmokeConfirmations (opening/closing positions are on-chain transactions). Integrates with SmokeTrade for the trading category.',
   },
+  smokeSeedlessOnboarding: {
+    tag: 'SmokeSeedlessOnboarding:',
+    description:
+      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeIdentity for account sync after social login.',
+  },
 };
 
 const flaskTags = {
@@ -89,6 +94,7 @@ const otherTags = {
   regressionTrade: 'RegressionTrade:',
   regressionSampleFeature: 'RegressionSampleFeature:',
   performance: 'Performance:',
+  fixtureValidation: 'FixtureValidation:',
 };
 
 // Smoke test tag functions
@@ -112,6 +118,8 @@ const SmokeMultiChainAPI = (testName) =>
   `${smokeTags.smokeMultiChainAPI.tag} ${testName}`;
 const SmokePredictions = (testName) =>
   `${smokeTags.smokePredictions.tag} ${testName}`;
+const SmokeSeedlessOnboarding = (testName) =>
+  `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
 // Other test tags functions.
 const RegressionAccounts = (testName) =>
   `${otherTags.regressionAccounts} ${testName}`;
@@ -136,6 +144,8 @@ const RegressionSampleFeature = (testName) =>
 const FlaskBuildTests = (testName) =>
   `${flaskTags.flaskBuildTests.tag} ${testName}`;
 const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
+const FixtureValidation = (testName) =>
+  `${otherTags.fixtureValidation} ${testName}`;
 
 export {
   smokeTags,
@@ -152,6 +162,7 @@ export {
   SmokeRamps,
   SmokeMultiChainAPI,
   SmokePredictions,
+  SmokeSeedlessOnboarding,
   RegressionAccounts,
   RegressionConfirmations,
   RegressionIdentity,
@@ -164,4 +175,5 @@ export {
   RegressionSampleFeature,
   FlaskBuildTests,
   SmokePerformance,
+  FixtureValidation,
 };

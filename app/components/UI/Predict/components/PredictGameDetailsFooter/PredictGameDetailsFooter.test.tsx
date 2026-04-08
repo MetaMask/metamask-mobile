@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictGameDetailsFooter from './PredictGameDetailsFooter';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -92,7 +93,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       homeTeam: {
@@ -100,7 +101,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },
@@ -186,8 +187,10 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getByText('35¢')).toBeOnTheScreen();
     });
 
     it('renders team buttons for game market', () => {
@@ -197,8 +200,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('SEA · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA')).toBeOnTheScreen();
+      expect(screen.getByText('DEN')).toBeOnTheScreen();
     });
 
     it('calls onBetPress when bet button is pressed', () => {

@@ -11,7 +11,7 @@ import {
   buildRiskAssessmentSection,
 } from '../shared/base-system-prompt';
 import { LLM_CONFIG } from '../../config';
-import { SkillMetadata } from '../../types';
+import { SkillMetadata, AnalysisContext } from '../../types';
 
 /**
  * Builds the system prompt, i.e. the initial system message
@@ -73,10 +73,15 @@ Performance tests measure app responsiveness and render times. Select performanc
 
 /**
  * Builds the task prompt, i.e. the initial user message
+ *
+ * @param allFiles - All changed files
+ * @param criticalFiles - Critical files that need attention
+ * @param _context - Analysis context (unused in select-tags mode)
  */
 export function buildTaskPrompt(
   allFiles: string[],
   criticalFiles: string[],
+  _context: AnalysisContext,
 ): string {
   // Build E2E tag coverage list
   const tagCoverageList = SELECT_TAGS_CONFIG.map(

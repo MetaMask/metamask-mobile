@@ -25,9 +25,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import {
@@ -42,6 +40,9 @@ import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionD
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
 import { toDateFormat } from '../../../../../util/date';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -98,6 +99,24 @@ interface BridgeTransactionDetailsProps {
     };
   };
 }
+
+const PaidByMetaMask = () => (
+  <TagColored
+    color={TagColor.Success}
+    labelProps={{
+      variant: TextVariant.BodySM,
+      style: {
+        textTransform: 'none',
+        textAlign: 'center',
+        bottom: 1,
+        fontWeight: 'normal',
+      },
+      testID: 'paid-by-metamask',
+    }}
+  >
+    {strings('transactions.paid_by_metamask')}
+  </TagColored>
+);
 
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.PENDING]: TextColor.Warning,
@@ -371,18 +390,24 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {/* TODO get solana gas fee from multiChainTx */}
-          {evmTotalGasFee && (
-            <Text>
-              {evmTotalGasFee}{' '}
-              {getNativeAssetForChainId(quote.srcChainId).symbol}
-            </Text>
-          )}
-          {multiChainTotalGasFee && (
-            <Text>
-              {multiChainTotalGasFee}{' '}
-              {getNativeAssetForChainId(quote.srcChainId).symbol}
-            </Text>
+          {evmTxMeta?.isGasFeeSponsored ? (
+            <PaidByMetaMask />
+          ) : (
+            <>
+              {/* TODO get solana gas fee from multiChainTx */}
+              {evmTotalGasFee && (
+                <Text>
+                  {evmTotalGasFee}{' '}
+                  {getNativeAssetForChainId(quote.srcChainId).symbol}
+                </Text>
+              )}
+              {multiChainTotalGasFee && (
+                <Text>
+                  {multiChainTotalGasFee}{' '}
+                  {getNativeAssetForChainId(quote.srcChainId).symbol}
+                </Text>
+              )}
+            </>
           )}
         </Box>
       </Box>
@@ -390,27 +415,31 @@ export const BridgeTransactionDetails = (
         {isIntentNotCompletedItem || (
           <Button
             style={styles.blockExplorerButton}
-            variant={ButtonVariants.Secondary}
-            label={strings('bridge_transaction_details.view_on_block_explorer')}
+            variant={ButtonVariant.Secondary}
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-                navigation.navigate(Routes.BROWSER.VIEW, {
-                  newTabUrl: swapSrcExplorerData.explorerTxUrl,
-                  timestamp: Date.now(),
+                navigation.navigate(Routes.WEBVIEW.MAIN, {
+                  screen: Routes.WEBVIEW.SIMPLE,
+                  params: {
+                    url: swapSrcExplorerData.explorerTxUrl,
+                  },
                 });
-              } else {
+              } else if (isBridge) {
                 // For bridges, show the modal with both explorers
-                navigation.navigate(
-                  Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-                  {
+                navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                  screen:
+                    Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+                  params: {
                     evmTxMeta: props.route.params.evmTxMeta,
                     multiChainTx: props.route.params.multiChainTx,
                   },
-                );
+                });
               }
             }}
-          />
+          >
+            {strings('bridge_transaction_details.view_on_block_explorer')}
+          </Button>
         )}
       </Box>
     </ScreenView>

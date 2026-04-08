@@ -1,12 +1,19 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import { GanacheHardfork, RampsRegion } from './types.ts';
-import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
+import { GanacheHardfork, RampsRegion } from './types';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 // The RPC URL for the local node
 // This should be used in fixtures where a url is needed.
 // The port is then translated to the actual allocated port
 export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
+
+// Default implicit wait timeout for WebDriverIO element lookups (in ms).
+// Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
+export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;
+
+// Default action timeout for Playwright/WebDriverIO actions (tap, click, type, etc.) in ms.
+export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
 
 // Port Constants
 // Fallback ports - used in fixture data (app's persisted state)
@@ -32,6 +39,9 @@ export const APP_PACKAGE_IDS = {
   IOS: 'io.metamask.MetaMask',
   ANDROID: 'io.metamask',
 } as const;
+
+// Package ID for the React Native playground APK (pre-installed on the device)
+export const PLAYGROUND_PACKAGE_ID = 'com.anonymous.multichainrnplayground';
 
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',

@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmEmail from './ConfirmEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import useRegions from '../../hooks/useRegions';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -95,8 +96,46 @@ jest.mock('@metamask/design-system-react-native', () => {
         },
         children,
       ),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(
+          Text,
+          { testID: 'button-label' },
+          children || label,
+        ),
+      );
+    },
     TextVariant: {
       BodyLg: 'BodyLg',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -258,22 +297,19 @@ jest.mock('react-native-confirmation-code-field', () => {
 });
 
 // Mock useStyles hook
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      codeFieldRoot: {},
-      cellRoot: {},
-      focusCell: {},
-    },
-    theme: {
-      colors: {
-        text: {
-          alternative: '#6a737d',
-        },
+jest.mock('../../../../../component-library/hooks', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useStyles: jest.fn(() => ({
+      styles: {
+        codeFieldRoot: {},
+        cellRoot: {},
+        focusCell: {},
       },
-    },
-  })),
-}));
+      theme: mockTheme,
+    })),
+  };
+});
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
@@ -345,6 +381,11 @@ jest.mock('../../hooks/useEmailVerificationSend', () => ({
   default: () => mockUseEmailVerificationSend(),
 }));
 
+jest.mock('../../hooks/useRegions', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 // Mock SDK
 jest.mock('../../sdk', () => ({
   useCardSDK: jest.fn(() => ({
@@ -413,6 +454,14 @@ describe('ConfirmEmail Component', () => {
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
       password: 'testPassword123',
+      countryKey: 'US',
+    });
+
+    (useRegions as jest.Mock).mockReturnValue({
+      getRegionByCode: (code: string) =>
+        code === 'US'
+          ? { key: 'US', name: 'United States', emoji: '🇺🇸' }
+          : null,
     });
 
     // Set up useAnalytics mock
@@ -626,6 +675,7 @@ describe('ConfirmEmail Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+          { countryKey: 'US' },
         );
       });
     });
@@ -672,6 +722,7 @@ describe('ConfirmEmail Component', () => {
       // Navigation should be called after verification
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
       );
     }, 10000);
 
@@ -738,6 +789,10 @@ describe('ConfirmEmail Component', () => {
 
       // Navigation should be called again on duplicate input
       expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
+      );
     }, 20000);
   });
 
@@ -745,6 +800,8 @@ describe('ConfirmEmail Component', () => {
     it('should display email from params in description', () => {
       mockUseParams.mockReturnValue({
         email: 'user@test.com',
+        password: 'testPassword123',
+        countryKey: 'US',
       });
 
       const store = createTestStore();
@@ -1206,6 +1263,7 @@ describe('ConfirmEmail Component', () => {
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
       );
     });
   });

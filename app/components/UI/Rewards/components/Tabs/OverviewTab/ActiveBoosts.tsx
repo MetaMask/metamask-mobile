@@ -34,7 +34,7 @@ import {
 } from '../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
@@ -183,20 +183,18 @@ const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
   count,
   isLoading,
 }) => (
-  <Box twClassName="px-4">
-    <Box twClassName="flex-row items-center gap-2">
-      <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-        {strings('rewards.active_boosts_title')}
-      </Text>
-      {isLoading && <ActivityIndicator size="small" />}
-      {count !== null && !isLoading && (
-        <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
-          <Text variant={TextVariant.BodySm} twClassName="text-default">
-            {count}
-          </Text>
-        </Box>
-      )}
-    </Box>
+  <Box twClassName="flex-row items-center gap-2">
+    <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+      {strings('rewards.active_boosts_title')}
+    </Text>
+    {isLoading && <ActivityIndicator size="small" />}
+    {count !== null && !isLoading && (
+      <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
+        <Text variant={TextVariant.BodySm} twClassName="text-default">
+          {count}
+        </Text>
+      </Box>
+    )}
   </Box>
 );
 
@@ -278,7 +276,7 @@ const ActiveBoosts: React.FC<{
   }
 
   return (
-    <Box twClassName="pt-2 pb-4 gap-4">
+    <Box twClassName="gap-4">
       {/* Always show section header */}
       <SectionHeader
         count={activeBoosts?.length || null}

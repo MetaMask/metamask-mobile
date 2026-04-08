@@ -9,6 +9,7 @@ import {
   WildcardTokenList,
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -17,6 +18,7 @@ export const selectPooledStakingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -29,6 +31,7 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   });
 
@@ -39,6 +42,7 @@ export const selectStablecoinLendingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -50,6 +54,7 @@ export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   });
 
@@ -60,6 +65,7 @@ export const selectIsMusdConversionFlowEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionFlowEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -77,10 +83,12 @@ export const selectIsMusdGetBuyCtaEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdCtaEnabled as unknown as VersionGatedFeatureFlag;
 
+    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -99,10 +107,12 @@ export const selectIsMusdConversionAssetOverviewEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionAssetOverviewCtaEnabled as unknown as VersionGatedFeatureFlag;
 
+    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -121,10 +131,12 @@ export const selectIsMusdConversionTokenListItemCtaEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMusdConversionTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
 
+    // mUSD conversion flow must be enabled to show the mUSD CTA
     if (!isMusdConversionFlowEnabled) {
       return false;
     }
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -154,6 +166,30 @@ export const selectMusdConversionCTATokens = createSelector(
       process.env.MM_MUSD_CTA_TOKENS,
       'MM_MUSD_CTA_TOKENS',
     ),
+);
+
+/**
+ * Selector for the mUSD Quick Convert feature flag.
+ * This flag enables the Quick Convert Token List screen where users can
+ * quickly convert their existing tokens to mUSD via Max or Edit flows.
+ *
+ * IMPORTANT: This flag depends on selectIsMusdConversionFlowEnabledFlag.
+ */
+export const selectMusdQuickConvertEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectIsMusdConversionFlowEnabledFlag,
+  (remoteFeatureFlags, isMusdConversionFlowEnabled) => {
+    if (!isMusdConversionFlowEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MUSD_QUICK_CONVERT_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMusdQuickConvertEnabled as unknown as VersionGatedFeatureFlag;
+
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );
 
 /**
@@ -316,6 +352,39 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
 );
 
 /**
+ * The chain IDs on which mUSD token registration is attempted at app mount.
+ * Used as the fallback when the remote flag is unavailable.
+ */
+export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
+  CHAIN_IDS.MAINNET, // Ethereum mainnet
+  CHAIN_IDS.LINEA_MAINNET, // Linea mainnet
+];
+
+/**
+ * Selects the chain IDs on which the mUSD token should be eagerly registered
+ * in TokensController at app mount (via useEnsureMusdTokenRegistered).
+ *
+ * Remote flag takes precedence over the local fallback.
+ * An empty remote array is honoured (disabling registration); the fallback is
+ * only used when the remote flag is absent or structurally invalid (i.e.
+ * `chainIds` is missing or not an array).
+ */
+export const selectMusdTokenRegistrationChainIds = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remoteFlag = remoteFeatureFlags?.earnMusdTokenRegistrationChainIds as
+      | { chainIds?: string[] }
+      | undefined;
+
+    if (Array.isArray(remoteFlag?.chainIds)) {
+      return remoteFlag.chainIds;
+    }
+
+    return MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK;
+  },
+);
+
+/**
  * Selector for Merkl campaign claiming feature flag
  * Controls visibility of Merkl rewards claiming functionality in the UI
  *
@@ -328,6 +397,7 @@ export const selectMerklCampaignClaimingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );

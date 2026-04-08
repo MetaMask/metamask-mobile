@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
     mainContainer: {
       paddingTop: 8,
       paddingHorizontal: 16,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       height: '100%',
       justifyContent: 'space-between',
     },

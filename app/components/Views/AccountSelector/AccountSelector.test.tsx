@@ -101,11 +101,12 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
     dispatch: jest.fn(),
+    isFocused: jest.fn(() => true),
   }),
 }));
 
 // Mock whenEngineReady
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -140,9 +141,9 @@ const createTestState = (
   if (selectedGroupId) {
     (
       baseState.engine.backgroundState.AccountTreeController as {
-        accountTree: { selectedAccountGroup: string };
+        selectedAccountGroup: string;
       }
-    ).accountTree.selectedAccountGroup = selectedGroupId;
+    ).selectedAccountGroup = selectedGroupId;
   }
 
   return baseState;
@@ -692,9 +693,9 @@ describe('AccountSelector', () => {
       const emptyState = createTestState([mockAccountGroup1]);
       (
         emptyState.engine.backgroundState.AccountTreeController as {
-          accountTree: { selectedAccountGroup: string };
+          selectedAccountGroup: string;
         }
-      ).accountTree.selectedAccountGroup = '';
+      ).selectedAccountGroup = '';
 
       renderScreen(
         AccountSelectorWrapper,

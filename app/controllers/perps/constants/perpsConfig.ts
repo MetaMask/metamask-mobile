@@ -8,6 +8,9 @@
  * UI-only constants (layout, display, navigation) live in:
  * app/components/UI/Perps/constants/perpsConfig.ts
  */
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ZERO_BALANCE = '0x0';
+
 export const PERPS_CONSTANTS = {
   FeatureFlagKey: 'perpsEnabled',
   FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
@@ -30,6 +33,8 @@ export const PERPS_CONSTANTS = {
   ReconnectionDelayAndroidMs: 300, // Android-specific reconnection delay for better reliability on slower devices
   ReconnectionDelayIosMs: 100, // iOS-specific reconnection delay for optimal performance
   ReconnectionRetryDelayMs: 5_000, // 5 seconds delay between reconnection attempts
+  NetworkRestoreMaxRetries: 8, // Max retry attempts when reconnecting after WiFi/network restore
+  NetworkRestoreRetryBaseMs: 1_500, // Base delay (ms) between network restore retries (multiplied by attempt number)
 
   // Connection manager timing constants
   BalanceUpdateThrottleMs: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
@@ -101,6 +106,14 @@ export const ORDER_SLIPPAGE_CONFIG = {
 } as const;
 
 /**
+ * Max order amount buffer to reduce "Insufficient margin" rejections from the exchange.
+ * When the user selects 100% (slider or Max), we cap the order at (1 - this) of the
+ * theoretical max so that fees, rounding, and exchange-side margin checks are covered.
+ * Value as decimal (e.g. 0.005 = 0.5%).
+ */
+export const MAX_ORDER_MARGIN_BUFFER = 0.005; // 0.5%
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
@@ -116,6 +129,10 @@ export const PERFORMANCE_CONFIG = {
   // Liquidation price debounce delay (milliseconds)
   // Prevents excessive liquidation price calls during rapid form input changes
   LiquidationPriceDebounceMs: 500,
+
+  // Candle subscription debounce delay (milliseconds)
+  // Prevents WS subscription churn during rapid market switching (#28141)
+  CandleConnectDebounceMs: 500,
 
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
@@ -339,5 +356,5 @@ export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
   /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: true,
+  MYX_TESTNET_ONLY: false,
 } as const;

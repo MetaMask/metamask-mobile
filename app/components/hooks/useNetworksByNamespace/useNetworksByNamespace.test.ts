@@ -115,6 +115,9 @@ describe('useNetworksByNamespace', () => {
         '0x89': false,
         '0x13881': true,
       },
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
+      popularNetworks: [],
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -296,6 +299,9 @@ describe('useNetworksByNamespace', () => {
           '0x1': true,
           '0x89': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -350,6 +356,9 @@ describe('useNetworksByNamespace', () => {
           '0x1': false,
           '0x89': false,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -453,6 +462,9 @@ describe('useNetworksByNamespace', () => {
         enabledNetworksForAllNamespaces: {
           '0x1': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       (parseCaipChainId as jest.Mock).mockReturnValue({

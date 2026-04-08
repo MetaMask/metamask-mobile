@@ -1,8 +1,15 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import Text from '../../../../../component-library/components/Texts/Text';
+import {
+  Button,
+  ButtonVariant,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -37,10 +44,14 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
         </View>
 
         <View style={styles.textContent}>
-          <Text style={styles.mainText}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            style={styles.mainText}
+          >
             {strings('card.card_home.warnings.close_spending_limit.title')}
           </Text>
-          <Text style={styles.subText}>
+          <Text color={TextColor.TextAlternative}>
             {strings(
               'card.card_home.warnings.close_spending_limit.description',
             )}
@@ -49,24 +60,16 @@ const SpendingLimitWarning: React.FC<SpendingLimitWarningProps> = ({
       </View>
 
       <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-          <Text style={styles.buttonText}>
-            {strings(
-              'card.card_home.warnings.close_spending_limit.dismiss_button_label',
-            )}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.setLimitButton}
-          onPress={handleSetNewLimit}
-        >
-          <Text style={styles.buttonText}>
-            {strings(
-              'card.card_home.warnings.close_spending_limit.confirm_button_label',
-            )}
-          </Text>
-        </TouchableOpacity>
+        <Button variant={ButtonVariant.Secondary} onPress={onDismiss}>
+          {strings(
+            'card.card_home.warnings.close_spending_limit.dismiss_button_label',
+          )}
+        </Button>
+        <Button variant={ButtonVariant.Primary} onPress={handleSetNewLimit}>
+          {strings(
+            'card.card_home.warnings.close_spending_limit.confirm_button_label',
+          )}
+        </Button>
       </View>
     </View>
   );

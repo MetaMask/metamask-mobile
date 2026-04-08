@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import TransactionField from './TransactionField';

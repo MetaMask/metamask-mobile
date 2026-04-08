@@ -1,7 +1,7 @@
 import { RpcEndpointType } from '@metamask/network-controller';
 import Engine from '../Engine';
 import { wallet_watchAsset } from './wallet_watchAsset';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as transactionsUtils from '../../util/transactions';
 import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,

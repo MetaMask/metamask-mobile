@@ -128,12 +128,32 @@ export class AnthropicProvider implements ILLMProvider {
       anthropicRequest.tools = toAnthropicTools(request.tools);
     }
 
+    // Use streaming for Opus models to avoid timeout issues
+    const isOpus = request.model.includes('opus');
+    if (isOpus) {
+      const stream = client.messages.stream(anthropicRequest);
+      const response = await stream.finalMessage();
+      return {
+        content: fromAnthropicContent(response.content),
+        model: response.model,
+        stopReason: response.stop_reason || 'end_turn',
+        usage: {
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+        },
+      };
+    }
+
     const response = await client.messages.create(anthropicRequest);
 
     return {
       content: fromAnthropicContent(response.content),
       model: response.model,
       stopReason: response.stop_reason || 'end_turn',
+      usage: {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+      },
     };
   }
 
@@ -150,7 +170,9 @@ export class AnthropicProvider implements ILLMProvider {
         messages: [{ role: 'user', content: 'hi' }],
       });
       return true;
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`   ⚠️  Anthropic API error: ${message}`);
       return false;
     }
   }

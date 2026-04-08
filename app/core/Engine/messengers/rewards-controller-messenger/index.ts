@@ -8,6 +8,7 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
+import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
@@ -16,8 +17,8 @@ import {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
-  RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
+  RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
 } from '../../controllers/rewards-controller/services';
@@ -46,7 +47,21 @@ import {
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
-  RewardsDataServiceGetSnapshotsAction,
+  RewardsDataServiceApplyBonusCodeAction,
+  RewardsDataServiceGetRewardsEnvUrlAction,
+  RewardsDataServiceCanChangeRewardsEnvUrlAction,
+  RewardsDataServiceSetRewardsEnvUrlAction,
+  RewardsDataServiceGetDefaultRewardsEnvUrlAction,
+  RewardsDataServiceGetSubscriptionAccountsAction,
+  RewardsDataServiceGetCampaignsAction,
+  RewardsDataServiceOptInToCampaignAction,
+  RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetClientVersionRequirementsAction,
+  RewardsDataServiceGetOndoCampaignLeaderboardAction,
+  RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
+  RewardsDataServiceGetOndoCampaignActivityAction,
+  RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -57,6 +72,7 @@ type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | AccountsControllerListMultichainAccountsAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
+  | GeolocationControllerGetGeolocationAction
   | KeyringControllerSignPersonalMessageAction
   | RemoteFeatureFlagControllerGetStateAction
   | RewardsDataServiceLoginAction
@@ -68,8 +84,8 @@ type AllowedActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -80,7 +96,21 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetRewardsEnvUrlAction
+  | RewardsDataServiceCanChangeRewardsEnvUrlAction
+  | RewardsDataServiceSetRewardsEnvUrlAction
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction
+  | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
+  | RewardsDataServiceGetCampaignsAction
+  | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
+  | RewardsDataServiceGetOndoCampaignActivityAction
+  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -112,6 +142,7 @@ export function getRewardsControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
+      'GeolocationController:getGeolocation',
       'KeyringController:signPersonalMessage',
       'RemoteFeatureFlagController:getState',
       'RewardsDataService:login',
@@ -123,8 +154,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',
       'RewardsDataService:logout',
-      'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',
+      'RewardsDataService:validateBonusCode',
       'RewardsDataService:mobileJoin',
       'RewardsDataService:getOptInStatus',
       'RewardsDataService:optOut',
@@ -135,7 +166,21 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
-      'RewardsDataService:getSnapshots',
+      'RewardsDataService:applyBonusCode',
+      'RewardsDataService:getSubscriptionAccounts',
+      'RewardsDataService:getCampaigns',
+      'RewardsDataService:optInToCampaign',
+      'RewardsDataService:getCampaignParticipantStatus',
+      'RewardsDataService:getRewardsEnvUrl',
+      'RewardsDataService:canChangeRewardsEnvUrl',
+      'RewardsDataService:setRewardsEnvUrl',
+      'RewardsDataService:getDefaultRewardsEnvUrl',
+      'RewardsDataService:getClientVersionRequirements',
+      'RewardsDataService:getOndoCampaignLeaderboard',
+      'RewardsDataService:getOndoCampaignLeaderboardPosition',
+      'RewardsDataService:getOndoCampaignPortfolioPosition',
+      'RewardsDataService:getOndoCampaignActivity',
+      'RewardsDataService:getOndoCampaignActivityLastUpdated',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

@@ -4,7 +4,7 @@ exports[`Identicon renders Blockie from address 1`] = `
 <View
   placeholderStyle={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
   useNativeDriver={true}
@@ -60,7 +60,7 @@ exports[`Identicon renders Blockie from address 1`] = `
             "backgroundColor": "#eee",
           },
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           },
         ]
       }
@@ -73,7 +73,7 @@ exports[`Identicon renders Jazzicon 1`] = `
 <View
   placeholderStyle={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
   useNativeDriver={true}
@@ -242,7 +242,7 @@ exports[`Identicon renders Jazzicon 1`] = `
             "backgroundColor": "#eee",
           },
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           },
         ]
       }
@@ -255,7 +255,7 @@ exports[`Identicon renders Maskicon 1`] = `
 <View
   placeholderStyle={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
   useNativeDriver={true}
@@ -302,7 +302,7 @@ exports[`Identicon renders Maskicon 1`] = `
             "backgroundColor": "#eee",
           },
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           },
         ]
       }
@@ -315,7 +315,7 @@ exports[`Identicon renders custom URI 1`] = `
 <View
   placeholderStyle={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
   useNativeDriver={true}
@@ -363,7 +363,7 @@ exports[`Identicon renders custom URI 1`] = `
             "backgroundColor": "#eee",
           },
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           },
         ]
       }

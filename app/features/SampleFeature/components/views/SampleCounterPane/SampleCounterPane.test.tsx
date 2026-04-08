@@ -3,28 +3,15 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SampleCounterPane } from './SampleCounterPane';
 import { strings } from '../../../../../../locales/i18n';
-import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder.ts';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 
-/**
- * Mock implementation for react-native Linking module
- * Required for testing components that use deep linking functionality
- */
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 
-/**
- * Mock implementation of the increment function
- * Used to verify counter increment functionality
- */
 const mockIncrement = jest.fn();
 
-/**
- * Mock implementation of the useSampleCounter hook
- * Provides a controlled test environment for the counter functionality
- */
 jest.mock('../../hooks/useSampleCounter/useSampleCounter', () => ({
   __esModule: true,
   useSampleCounter: () => ({
@@ -33,32 +20,11 @@ jest.mock('../../hooks/useSampleCounter/useSampleCounter', () => ({
   }),
 }));
 
-jest.mock('../../../../../components/hooks/useMetrics/useMetrics');
+const mockAnalytics = jest.mocked(useAnalytics)();
 
-const mockTrackEvent = jest.fn();
-
-/**
- * Test suite for SampleCounterPane component
- *
- * @group Components
- * @group SampleCounterPane
- */
 describe('SampleCounterPane', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
   });
 
   /**
@@ -107,10 +73,9 @@ describe('SampleCounterPane', () => {
     fireEvent.press(getByTestId('sample-counter-pane-increment-button'));
 
     await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED.category,
-        }),
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+      expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+        SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED,
       );
     });
   });

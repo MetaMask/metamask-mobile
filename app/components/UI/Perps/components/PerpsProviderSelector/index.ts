@@ -4,5 +4,9 @@ export type {
   PerpsProviderSelectorBadgeProps,
   PerpsProviderSelectorSheetProps,
   ProviderDisplayInfo,
+  ProviderNetworkOption,
 } from './PerpsProviderSelector.types';
-export { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
+export {
+  PROVIDER_DISPLAY_INFO,
+  PROVIDER_NETWORK_OPTIONS,
+} from './PerpsProviderSelector.constants';

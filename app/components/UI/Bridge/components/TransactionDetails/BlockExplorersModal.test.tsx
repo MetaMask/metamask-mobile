@@ -9,30 +9,47 @@ import { BridgeState } from '../../../../../core/redux/slices/bridge';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
+import { fireEvent } from '@testing-library/react-native';
 
-describe('BlockExplorersModal', () => {
-  const mockTx = {
-    id: 'test-tx-id',
-    chainId: '0x1',
-    hash: '0x123',
-    networkClientId: 'mainnet',
-    time: Date.now(),
-    txParams: {
-      from: '0x123',
-      to: '0x456',
-      value: '0x0',
-      data: '0x',
-    },
-    status: TransactionStatus.submitted,
-  } as TransactionMeta;
+const mockNavigate = jest.fn();
 
-  const mockProps = {
-    route: {
+const mockTx = {
+  id: 'test-tx-id',
+  chainId: '0x1',
+  hash: '0x123',
+  networkClientId: 'mainnet',
+  time: Date.now(),
+  txParams: {
+    from: '0x123',
+    to: '0x456',
+    value: '0x0',
+    data: '0x',
+  },
+  status: TransactionStatus.submitted,
+} as TransactionMeta;
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
       params: {
         evmTxMeta: mockTx,
       },
-    },
+    }),
   };
+});
+
+describe('BlockExplorersModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   const mockState = {
     ...initialState,
@@ -54,7 +71,7 @@ describe('BlockExplorersModal', () => {
 
   it('should render without crashing', () => {
     const { getByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -65,7 +82,7 @@ describe('BlockExplorersModal', () => {
 
   it('should display both source and destination chain block explorer buttons', () => {
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -106,7 +123,7 @@ describe('BlockExplorersModal', () => {
     };
 
     const { getAllByText } = renderScreen(
-      () => <BlockExplorersModal {...mockProps} />,
+      () => <BlockExplorersModal />,
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
@@ -114,5 +131,45 @@ describe('BlockExplorersModal', () => {
     );
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(1);
+  });
+
+  it('should navigate to webview when source chain explorer button is pressed', () => {
+    const { getAllByText } = renderScreen(
+      () => <BlockExplorersModal />,
+      {
+        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      },
+      { state: mockState },
+    );
+
+    const [srcExplorerButton] = getAllByText('Etherscan');
+    fireEvent.press(srcExplorerButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: expect.objectContaining({
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    });
+  });
+
+  it('should navigate to webview when destination chain explorer button is pressed', () => {
+    const { getByText } = renderScreen(
+      () => <BlockExplorersModal />,
+      {
+        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      },
+      { state: mockState },
+    );
+
+    const destExplorerButton = getByText('Optimistic');
+    fireEvent.press(destExplorerButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: expect.objectContaining({
+        url: expect.stringContaining('optimistic.etherscan.io'),
+      }),
+    });
   });
 });

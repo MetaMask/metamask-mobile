@@ -40,19 +40,25 @@ export function getGasMetricsProperties({
     (token) => token.symbol,
   );
 
+  const { metamaskPay } = transactionMeta;
+  const gasFeeTokenAddress = metamaskPay?.tokenAddress ?? selectedGasFeeToken;
+  const gasFeeChainId = metamaskPay?.chainId ?? chainId;
+
   let gas_paid_with = gasFeeTokens?.find(
     (token) =>
-      token.tokenAddress.toLowerCase() === selectedGasFeeToken?.toLowerCase(),
+      token.tokenAddress.toLowerCase() === gasFeeTokenAddress?.toLowerCase(),
   )?.symbol;
 
-  if (selectedGasFeeToken?.toLowerCase() === getNativeTokenAddress(chainId)) {
+  if (
+    gasFeeTokenAddress?.toLowerCase() === getNativeTokenAddress(gasFeeChainId)
+  ) {
     gas_paid_with = 'pre-funded_ETH';
   }
 
   const state = getState();
   const gas_insufficient_native_asset = getNativeBalance(
     state,
-    chainId,
+    gasFeeChainId,
     from,
   ).lt(getMaxGasCost(transactionMeta));
 

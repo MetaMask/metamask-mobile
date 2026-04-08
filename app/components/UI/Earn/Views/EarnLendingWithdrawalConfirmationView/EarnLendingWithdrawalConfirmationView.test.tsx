@@ -1,4 +1,5 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
+import { mockTheme } from '../../../../../util/theme';
 import { useRoute } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
@@ -23,7 +24,7 @@ import {
 } from '@metamask/transaction-controller';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import useEarnToken from '../../hooks/useEarnToken';
@@ -164,7 +165,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: 'keyring:test-wallet/ethereum',
             wallets: {
               'keyring:test-wallet': {
                 id: 'keyring:test-wallet',
@@ -179,6 +179,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
               },
             },
           },
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
         },
       },
     },
@@ -234,7 +235,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       expect.any(Object), // theme.colors
       {
         hasCancelButton: false,
-        backgroundColor: '#f3f5f9',
+        backgroundColor: mockTheme.colors.background.default,
       },
       {
         backButtonEvent: {
@@ -1063,7 +1064,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             AccountTreeController: {
               accountTree: {
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
                 wallets: {
                   'keyring:test-wallet': {
                     id: 'keyring:test-wallet',
@@ -1076,6 +1076,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
                   },
                 },
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
           },
         },

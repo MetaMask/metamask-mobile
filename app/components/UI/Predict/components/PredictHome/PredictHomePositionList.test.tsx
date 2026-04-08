@@ -1,30 +1,17 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { PredictPosition, PredictPositionStatus } from '../../types';
+import React, { ComponentType } from 'react';
 import PredictHomePositionList from './PredictHomePositionList';
-import PredictPositionComponent from '../PredictPosition/PredictPosition';
-import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
+import { PredictPositionsSelectorsIDs } from '../../Predict.testIds';
+import { PredictPosition, PredictPositionStatus } from '../../types';
 
-const mockSelectPrivacyMode = jest.fn();
-
-jest.mock('../../../../../selectors/preferencesController', () => ({
-  selectPrivacyMode: (state: unknown) => mockSelectPrivacyMode(state),
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: (selector: (state: unknown) => unknown) =>
-    selector({
-      engine: {
-        backgroundState: {
-          PreferencesController: {
-            privacyMode: false,
-          },
-        },
-      },
-    }),
-}));
+// Type helper for UNSAFE_getByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -32,240 +19,328 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../PredictPosition/PredictPosition', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return jest.fn(({ onPress, position }) => (
-    <TouchableOpacity testID={`position-${position.id}`} onPress={onPress}>
-      <Text>{position.title}</Text>
-    </TouchableOpacity>
-  ));
+jest.mock('../PredictPosition/PredictPosition', () => 'PredictPosition');
+jest.mock(
+  '../PredictPositionResolved/PredictPositionResolved',
+  () => 'PredictPositionResolved',
+);
+jest.mock('../PredictNewButton', () => 'PredictNewButton');
+
+const createMockPosition = (
+  overrides: Partial<PredictPosition>,
+): PredictPosition => ({
+  id: 'position-1',
+  providerId: 'provider-1',
+  marketId: 'market-1',
+  outcomeId: 'outcome-1',
+  outcome: 'Yes',
+  outcomeTokenId: 'token-1',
+  currentValue: 100,
+  title: 'Test Market',
+  icon: 'https://example.com/icon.png',
+  amount: 50,
+  price: 0.5,
+  status: PredictPositionStatus.OPEN,
+  size: 100,
+  outcomeIndex: 0,
+  percentPnl: 10,
+  cashPnl: 5,
+  claimable: false,
+  initialValue: 45,
+  avgPrice: 0.45,
+  endDate: '2025-12-31',
+  ...overrides,
 });
 
-jest.mock('../PredictPositionResolved/PredictPositionResolved', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return jest.fn(({ onPress, position }) => (
-    <TouchableOpacity
-      testID={`resolved-position-${position.id}`}
-      onPress={onPress}
-    >
-      <Text>{position.title}</Text>
-    </TouchableOpacity>
-  ));
-});
+const mockActivePositions: PredictPosition[] = [
+  createMockPosition({
+    id: 'position-1',
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcomeIndex: 0,
+    endDate: '2025-12-31',
+  }),
+  createMockPosition({
+    id: 'position-2',
+    marketId: 'market-2',
+    outcomeId: 'outcome-2',
+    outcomeIndex: 1,
+    endDate: '2025-06-30',
+  }),
+];
 
-jest.mock('../PredictNewButton', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return () => (
-    <View testID="predict-new-button">
-      <Text>New Button</Text>
-    </View>
-  );
-});
+const mockClaimablePositions: PredictPosition[] = [
+  createMockPosition({
+    id: 'position-3',
+    marketId: 'market-3',
+    outcomeId: 'outcome-3',
+    outcomeIndex: 0,
+    endDate: '2025-01-15',
+    claimable: true,
+    status: PredictPositionStatus.WON,
+  }),
+  createMockPosition({
+    id: 'position-4',
+    marketId: 'market-4',
+    outcomeId: 'outcome-4',
+    outcomeIndex: 1,
+    endDate: '2025-01-20',
+    claimable: true,
+    status: PredictPositionStatus.WON,
+  }),
+];
 
 describe('PredictHomePositionList', () => {
-  const createMockPosition = (overrides = {}): PredictPosition => ({
-    id: '1',
-    providerId: 'provider1',
-    marketId: 'market1',
-    outcomeId: 'outcome1',
-    outcome: 'Yes',
-    outcomeTokenId: 'token1',
-    currentValue: 100,
-    title: 'Test Market 1',
-    icon: 'icon1',
-    amount: 10,
-    price: 1.5,
-    status: PredictPositionStatus.OPEN,
-    size: 10,
-    outcomeIndex: 0,
-    realizedPnl: 5,
-    percentPnl: 50,
-    cashPnl: 5,
-    claimable: false,
-    initialValue: 10,
-    avgPrice: 1.0,
-    endDate: '2024-01-01T00:00:00Z',
-    negRisk: false,
-    ...overrides,
-  });
+  const initialState = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        PreferencesController: {
+          ...backgroundState.PreferencesController,
+          privacyMode: false,
+        },
+      },
+    },
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectPrivacyMode.mockReturnValue(false);
   });
 
-  it('renders active positions', () => {
-    const positions = [
-      createMockPosition({ id: '1', outcomeId: 'outcome1', outcomeIndex: 0 }),
-      createMockPosition({ id: '2', outcomeId: 'outcome2', outcomeIndex: 1 }),
-    ];
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
 
-    const { getByTestId } = render(
+  it('renders active positions list container', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(
       <PredictHomePositionList
-        activePositions={positions}
+        activePositions={mockActivePositions}
         claimablePositions={[]}
       />,
+      { state: initialState },
     );
 
-    expect(getByTestId('position-1')).toBeOnTheScreen();
-    expect(getByTestId('position-2')).toBeOnTheScreen();
+    // Assert
+    expect(
+      getByTestId(PredictPositionsSelectorsIDs.ACTIVE_POSITIONS_LIST),
+    ).toBeOnTheScreen();
   });
 
-  it('renders new button', () => {
-    const { getByTestId } = render(
-      <PredictHomePositionList activePositions={[]} claimablePositions={[]} />,
-    );
-
-    expect(getByTestId('predict-new-button')).toBeOnTheScreen();
-  });
-
-  it('renders claimable positions with header', () => {
-    const claimablePositions = [
-      createMockPosition({
-        id: '3',
-        claimable: true,
-        status: PredictPositionStatus.REDEEMABLE,
-      }),
-    ];
-
-    const { getByTestId, getByText } = render(
+  it('renders PredictPosition for each active position', () => {
+    // Arrange & Act
+    const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictHomePositionList
-        activePositions={[]}
-        claimablePositions={claimablePositions}
+        activePositions={mockActivePositions}
+        claimablePositions={[]}
       />,
+      { state: initialState },
     );
 
-    expect(getByTestId('resolved-position-3')).toBeOnTheScreen();
+    // Assert
+    const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
+    expect(positions).toHaveLength(mockActivePositions.length);
+  });
+
+  it('renders PredictNewButton', () => {
+    // Arrange & Act
+    const { UNSAFE_getByType } = renderWithProvider(
+      <PredictHomePositionList
+        activePositions={mockActivePositions}
+        claimablePositions={[]}
+      />,
+      { state: initialState },
+    );
+
+    // Assert
+    expect(
+      UNSAFE_getByType(asComponentType('PredictNewButton')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders claimable positions list when claimable positions exist', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(
+      <PredictHomePositionList
+        activePositions={mockActivePositions}
+        claimablePositions={mockClaimablePositions}
+      />,
+      { state: initialState },
+    );
+
+    // Assert
+    expect(
+      getByTestId(PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders resolved markets header when claimable positions exist', () => {
+    // Arrange & Act
+    const { getByText } = renderWithProvider(
+      <PredictHomePositionList
+        activePositions={mockActivePositions}
+        claimablePositions={mockClaimablePositions}
+      />,
+      { state: initialState },
+    );
+
+    // Assert
     expect(getByText('Resolved markets')).toBeOnTheScreen();
   });
 
-  it('navigates to market details when position pressed', () => {
-    const positions = [
-      createMockPosition({ id: '1', marketId: 'test-market' }),
-    ];
-
-    const { getByTestId } = render(
+  it('does not render claimable section when no claimable positions', () => {
+    // Arrange & Act
+    const { queryByTestId, queryByText } = renderWithProvider(
       <PredictHomePositionList
-        activePositions={positions}
+        activePositions={mockActivePositions}
         claimablePositions={[]}
       />,
+      { state: initialState },
     );
 
-    fireEvent.press(getByTestId('position-1'));
+    // Assert
+    expect(
+      queryByTestId(PredictPositionsSelectorsIDs.CLAIMABLE_POSITIONS_LIST),
+    ).toBeNull();
+    expect(queryByText('Resolved markets')).toBeNull();
+  });
 
-    expect(mockNavigate).toHaveBeenCalledWith('Predict', {
-      screen: 'PredictMarketDetails',
+  it('renders PredictPositionResolved for each claimable position', () => {
+    // Arrange & Act
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictHomePositionList
+        activePositions={mockActivePositions}
+        claimablePositions={mockClaimablePositions}
+      />,
+      { state: initialState },
+    );
+
+    // Assert
+    const resolvedPositions = UNSAFE_getAllByType(
+      asComponentType('PredictPositionResolved'),
+    );
+    expect(resolvedPositions).toHaveLength(mockClaimablePositions.length);
+  });
+
+  it('navigates to market details when active position is pressed', () => {
+    // Arrange
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictHomePositionList
+        activePositions={mockActivePositions}
+        claimablePositions={[]}
+      />,
+      { state: initialState },
+    );
+    const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
+
+    // Act
+    positions[0].props.onPress();
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
-        marketId: 'test-market',
-        entryPoint: 'homepage_positions',
+        marketId: 'market-1',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
         headerShown: false,
       },
     });
   });
 
-  it('navigates to market details when resolved position pressed', () => {
-    const claimablePositions = [
-      createMockPosition({
-        id: '3',
-        marketId: 'resolved-market',
-        claimable: true,
-        status: PredictPositionStatus.REDEEMABLE,
-      }),
-    ];
-
-    const { getByTestId } = render(
+  it('navigates to market details when claimable position is pressed', () => {
+    // Arrange
+    const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictHomePositionList
-        activePositions={[]}
-        claimablePositions={claimablePositions}
+        activePositions={mockActivePositions}
+        claimablePositions={mockClaimablePositions}
       />,
+      { state: initialState },
+    );
+    const resolvedPositions = UNSAFE_getAllByType(
+      asComponentType('PredictPositionResolved'),
     );
 
-    fireEvent.press(getByTestId('resolved-position-3'));
+    // Act
+    resolvedPositions[0].props.onPress();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Predict', {
-      screen: 'PredictMarketDetails',
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
       params: {
-        marketId: 'resolved-market',
-        entryPoint: 'homepage_positions',
+        marketId: expect.any(String),
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
         headerShown: false,
       },
+    });
+  });
+
+  it('passes privacyMode to PredictPosition components', () => {
+    // Arrange
+    const stateWithPrivacy = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          PreferencesController: {
+            ...backgroundState.PreferencesController,
+            privacyMode: true,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictHomePositionList
+        activePositions={mockActivePositions}
+        claimablePositions={[]}
+      />,
+      { state: stateWithPrivacy },
+    );
+
+    // Assert
+    const positions = UNSAFE_getAllByType(asComponentType('PredictPosition'));
+    positions.forEach((position) => {
+      expect(position.props.privacyMode).toBe(true);
     });
   });
 
   it('sorts claimable positions by end date descending', () => {
-    const claimablePositions = [
+    // Arrange
+    const unsortedClaimable: PredictPosition[] = [
       createMockPosition({
-        id: '1',
-        outcomeId: 'outcome1',
+        id: 'position-a',
+        marketId: 'market-a',
+        outcomeId: 'outcome-a',
         outcomeIndex: 0,
-        endDate: '2024-01-01T00:00:00Z',
+        endDate: '2025-01-10',
         claimable: true,
-        status: PredictPositionStatus.REDEEMABLE,
+        status: PredictPositionStatus.WON,
       }),
       createMockPosition({
-        id: '2',
-        outcomeId: 'outcome2',
+        id: 'position-b',
+        marketId: 'market-b',
+        outcomeId: 'outcome-b',
         outcomeIndex: 1,
-        endDate: '2024-01-03T00:00:00Z',
+        endDate: '2025-01-25',
         claimable: true,
-        status: PredictPositionStatus.REDEEMABLE,
-      }),
-      createMockPosition({
-        id: '3',
-        outcomeId: 'outcome3',
-        outcomeIndex: 2,
-        endDate: '2024-01-02T00:00:00Z',
-        claimable: true,
-        status: PredictPositionStatus.REDEEMABLE,
+        status: PredictPositionStatus.WON,
       }),
     ];
 
-    render(
+    // Act
+    const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictHomePositionList
         activePositions={[]}
-        claimablePositions={claimablePositions}
+        claimablePositions={unsortedClaimable}
       />,
+      { state: initialState },
     );
 
-    const mockResolvedPosition = jest.mocked(PredictPositionResolved);
-    const callOrder = mockResolvedPosition.mock.calls.map(
-      (call) => call[0].position.id,
+    // Assert - First rendered should be the one with later end date
+    const resolvedPositions = UNSAFE_getAllByType(
+      asComponentType('PredictPositionResolved'),
     );
-
-    // Positions sorted descending by endDate: 2024-01-03 (id=2), 2024-01-02 (id=3), 2024-01-01 (id=1)
-    expect(callOrder).toEqual(['2', '3', '1']);
-  });
-
-  it('passes privacy mode value to active and resolved position components', () => {
-    const activePositions = [
-      createMockPosition({ id: '1', outcomeId: 'outcome1', outcomeIndex: 0 }),
-    ];
-    const claimablePositions = [
-      createMockPosition({
-        id: '2',
-        outcomeId: 'outcome2',
-        outcomeIndex: 1,
-        claimable: true,
-        status: PredictPositionStatus.REDEEMABLE,
-      }),
-    ];
-    mockSelectPrivacyMode.mockReturnValue(true);
-
-    render(
-      <PredictHomePositionList
-        activePositions={activePositions}
-        claimablePositions={claimablePositions}
-      />,
-    );
-
-    const mockPredictPosition = jest.mocked(PredictPositionComponent);
-    const mockResolvedPosition = jest.mocked(PredictPositionResolved);
-
-    expect(mockPredictPosition.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ privacyMode: true }),
-    );
-    expect(mockResolvedPosition.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ privacyMode: true }),
-    );
+    expect(resolvedPositions[0].props.position.marketId).toBe('market-b');
+    expect(resolvedPositions[1].props.position.marketId).toBe('market-a');
   });
 });

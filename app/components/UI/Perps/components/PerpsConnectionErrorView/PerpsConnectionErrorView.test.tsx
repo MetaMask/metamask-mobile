@@ -109,6 +109,12 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
+// Mock usePerpsEventTracking
+const mockTrack = jest.fn();
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({ track: mockTrack })),
+}));
+
 // Mock ScreenView
 jest.mock('../../../../Base/ScreenView', () => {
   const { View } = jest.requireActual('react-native');
@@ -217,6 +223,30 @@ describe('PerpsConnectionErrorView', () => {
 
     const backButton = getByText('perps.errors.connectionFailed.go_back');
     expect(backButton).toBeTruthy();
+  });
+
+  it('navigates back and tracks event when back button is pressed', () => {
+    const { getByText } = render(
+      <PerpsConnectionErrorView
+        error="Test error"
+        onRetry={mockOnRetry}
+        showBackButton
+        retryAttempts={2}
+      />,
+    );
+
+    const backButton = getByText('perps.errors.connectionFailed.go_back');
+    if (backButton.parent) {
+      fireEvent.press(backButton.parent);
+    }
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'connection_go_back',
+      }),
+    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('should hide back button when showBackButton is false', () => {

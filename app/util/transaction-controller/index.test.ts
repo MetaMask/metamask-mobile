@@ -6,7 +6,7 @@ import {
   IsAtomicBatchSupportedRequest,
 } from '@metamask/transaction-controller';
 import { cloneDeep } from 'lodash';
-//eslint-disable-next-line import/no-namespace
+//eslint-disable-next-line import-x/no-namespace
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
@@ -17,6 +17,7 @@ const {
   estimateGas,
   getNetworkNonce,
   estimateGasFee,
+  getPreviousGasFromController,
   ...proxyMethods
 } = TransactionControllerUtils;
 
@@ -96,6 +97,7 @@ jest.mock('../../core/Engine', () => ({
       wipeTransactions: jest.fn(),
       updateEditableParams: jest.fn(),
       updateTransactionGasFees: jest.fn(),
+      updatePreviousGasParams: jest.fn(),
       updateAtomicBatchData: jest.fn(),
       addTransactionBatch: jest.fn(),
       updateSelectedGasFeeToken: jest.fn(),
@@ -590,6 +592,24 @@ describe('Transaction Controller Util', () => {
       expect(
         Engine.context.TransactionController.updateSelectedGasFeeToken,
       ).toHaveBeenCalledWith(transactionId, selectedGasFeeToken);
+    });
+  });
+
+  describe('updatePreviousGasParams', () => {
+    it('delegates to TransactionController.updatePreviousGasParams', () => {
+      const transactionId = 'tx-123';
+      const previousGas = {
+        maxFeePerGas: '0x1',
+        maxPriorityFeePerGas: '0x2',
+        gasLimit: '0x5208',
+      };
+      TransactionControllerUtils.updatePreviousGasParams(
+        transactionId,
+        previousGas,
+      );
+      expect(
+        Engine.context.TransactionController.updatePreviousGasParams,
+      ).toHaveBeenCalledWith(transactionId, previousGas);
     });
   });
 

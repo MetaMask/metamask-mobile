@@ -299,15 +299,15 @@ describe('TrendingTokenTimeBottomSheet', () => {
     expect(getByTestId('icon-Check')).toBeOnTheScreen();
   });
 
-  it('calls onOpenBottomSheet when isVisible becomes true', () => {
-    const { rerender } = render(
+  it('renders when isVisible becomes true', () => {
+    const { rerender, queryByTestId } = render(
       <TrendingTokenTimeBottomSheet isVisible={false} onClose={mockOnClose} />,
     );
 
-    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+    expect(queryByTestId('bottom-sheet')).toBeNull();
 
     rerender(<TrendingTokenTimeBottomSheet isVisible onClose={mockOnClose} />);
 
-    expect(mockOnOpenBottomSheet).toHaveBeenCalled();
+    expect(queryByTestId('bottom-sheet')).toBeOnTheScreen();
   });
 });

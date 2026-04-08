@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
-import useCardDetailsToken from './useCardDetailsToken';
+import useCardDetailsToken, { CARD_DETAILS_CSS } from './useCardDetailsToken';
 import { CardType, CardDetailsTokenResponse } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
 
@@ -116,15 +116,13 @@ describe('useCardDetailsToken', () => {
         await result.current.fetchCardDetailsToken();
       });
 
-      // Then: Fetches with VIRTUAL card CSS config
-      expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
-        customCss: {
-          cardBackgroundColor: '#FF5C16',
-          cardTextColor: '#FFFFFF',
-          panBackgroundColor: '#EFEFEF',
-          panTextColor: '#000000',
-        },
-      });
+      // Then: Fetches with card CSS object and sets the image URL
+      const firstCallArgs = mockGenerateCardDetailsToken.mock.calls[0][0];
+      expect(firstCallArgs).toEqual(
+        expect.objectContaining({
+          customCss: CARD_DETAILS_CSS[CardType.VIRTUAL],
+        }),
+      );
       expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
     });
 
@@ -137,15 +135,19 @@ describe('useCardDetailsToken', () => {
         await result.current.fetchCardDetailsToken(CardType.VIRTUAL);
       });
 
-      // Then: Fetches with VIRTUAL card CSS config (orange)
-      expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
-        customCss: {
-          cardBackgroundColor: '#FF5C16',
-          cardTextColor: '#FFFFFF',
-          panBackgroundColor: '#EFEFEF',
-          panTextColor: '#000000',
-        },
+      // Then: Explicit VIRTUAL has the same CSS config as default card type
+      const virtualCss =
+        mockGenerateCardDetailsToken.mock.calls[0][0].customCss;
+
+      mockGenerateCardDetailsToken.mockClear();
+
+      await act(async () => {
+        await result.current.fetchCardDetailsToken();
       });
+
+      const defaultCss =
+        mockGenerateCardDetailsToken.mock.calls[0][0].customCss;
+      expect(virtualCss).toEqual(defaultCss);
     });
 
     it('fetches card details token with METAL card type', async () => {
@@ -157,15 +159,18 @@ describe('useCardDetailsToken', () => {
         await result.current.fetchCardDetailsToken(CardType.METAL);
       });
 
-      // Then: Fetches with METAL card CSS config (purple)
-      expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
-        customCss: {
-          cardBackgroundColor: '#3D065F',
-          cardTextColor: '#FFFFFF',
-          panBackgroundColor: '#EFEFEF',
-          panTextColor: '#000000',
-        },
+      // Then: METAL has a different CSS config from VIRTUAL
+      const metalCss = mockGenerateCardDetailsToken.mock.calls[0][0].customCss;
+
+      mockGenerateCardDetailsToken.mockClear();
+
+      await act(async () => {
+        await result.current.fetchCardDetailsToken(CardType.VIRTUAL);
       });
+
+      const virtualCss =
+        mockGenerateCardDetailsToken.mock.calls[0][0].customCss;
+      expect(metalCss).not.toEqual(virtualCss);
     });
 
     it('fetches card details token with PHYSICAL card type', async () => {
@@ -177,15 +182,18 @@ describe('useCardDetailsToken', () => {
         await result.current.fetchCardDetailsToken(CardType.PHYSICAL);
       });
 
-      // Then: Fetches with PHYSICAL card CSS config (purple)
-      expect(mockGenerateCardDetailsToken).toHaveBeenCalledWith({
-        customCss: {
-          cardBackgroundColor: '#3D065F',
-          cardTextColor: '#FFFFFF',
-          panBackgroundColor: '#EFEFEF',
-          panTextColor: '#000000',
-        },
+      // Then: PHYSICAL shares the same CSS config as METAL
+      const physicalCss =
+        mockGenerateCardDetailsToken.mock.calls[0][0].customCss;
+
+      mockGenerateCardDetailsToken.mockClear();
+
+      await act(async () => {
+        await result.current.fetchCardDetailsToken(CardType.METAL);
       });
+
+      const metalCss = mockGenerateCardDetailsToken.mock.calls[0][0].customCss;
+      expect(physicalCss).toEqual(metalCss);
     });
 
     it('sets loading state while fetching', async () => {

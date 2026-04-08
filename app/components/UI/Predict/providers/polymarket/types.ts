@@ -1,5 +1,5 @@
 import { PredictGamePeriod, Side } from '../../types';
-import { SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
@@ -7,6 +7,7 @@ export interface PolymarketPosition {
   icon: string;
   title: string;
   slug: string;
+  eventSlug?: string;
   size: number;
   outcome: string;
   outcomeIndex: number;
@@ -119,7 +120,7 @@ export type ClobHeaders = {
 export interface PolymarketOffchainTradeParams {
   clobOrder: ClobOrderObject;
   headers: ClobHeaders;
-  feeAuthorization?: SafeFeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
 }
 
 // Polymarket API response types
@@ -149,6 +150,9 @@ export interface PolymarketApiMarket {
 }
 
 export interface PolymarketApiSeries {
+  id: string;
+  slug: string;
+  title: string;
   recurrence: string;
 }
 

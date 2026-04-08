@@ -47,7 +47,6 @@ export const ConfirmationRowComponentIDs = {
   TOTAL: 'total',
   RECEIVE: 'receive',
   TRANSACTION_FEE: 'transaction-fee',
-  NETWORK_FEE: 'network-fee',
   AMOUNT: 'amount',
 } as const;
 
@@ -98,7 +97,9 @@ export const GasFeeTokenModalSelectorsText = {
 export const TransactionPayComponentIDs = {
   CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
   KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',
-  PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_FIAT: 'pay-with-fiat',
+  PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
+  PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
+  KEYBOARD_CONTAINER: 'custom-amount-input',
 };

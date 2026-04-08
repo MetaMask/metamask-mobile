@@ -60,7 +60,7 @@ function extractStatusCode(error: unknown): number | null {
  */
 function parseLedgerCommunicationError(
   error: LedgerCommunicationErrors,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError {
   switch (error) {
     case LedgerCommunicationErrors.LedgerDisconnected:
@@ -122,7 +122,7 @@ function parseLedgerCommunicationError(
  */
 function parseLedgerStatusCode(
   statusCode: number,
-  walletType: HardwareWalletType,
+  walletType: HardwareWalletType | null | undefined,
   originalError?: Error,
 ): HardwareWalletError {
   const hexCode = toHexStatusCode(statusCode);
@@ -163,7 +163,7 @@ function parseLedgerStatusCode(
  */
 function parseErrorByName(
   error: Error,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
   const name = error.name;
 
@@ -196,7 +196,7 @@ function parseErrorByName(
  */
 function parseErrorByMessage(
   error: Error,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
   const message = error.message.toLowerCase();
   const name = error.name?.toLowerCase() ?? '';
@@ -222,6 +222,7 @@ function parseErrorByMessage(
       patterns: ['disconnected', 'disconnect', 'connection lost'],
       code: ErrorCode.DeviceDisconnected,
     },
+    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
     {
       patterns: ['locked', 'unlock'],
       code: ErrorCode.AuthenticationDeviceLocked,
@@ -240,7 +241,6 @@ function parseErrorByMessage(
       patterns: ['rejected', 'cancelled', 'refused'],
       code: ErrorCode.UserRejected,
     },
-    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
     {
       patterns: ['not authorized', 'unauthorized'],
       code: ErrorCode.PermissionNearbyDevicesDenied,
@@ -285,13 +285,19 @@ function parseErrorByMessage(
  */
 export function parseErrorByType(
   error: unknown,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError {
   if (error instanceof HardwareWalletError) {
     return error;
   }
 
   if (isErrorCodeObject(error)) {
+    if (error.code === ErrorCode.Unknown && isErrorLike(error)) {
+      const reParsed = parseErrorByMessage(error, walletType);
+      if (reParsed) {
+        return reParsed;
+      }
+    }
     const message =
       typeof error.message === 'string' ? error.message : undefined;
     return createHardwareWalletError(error.code, walletType, message);

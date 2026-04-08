@@ -15,13 +15,49 @@ import { MYXClientService } from './MYXClientService';
 
 const mockGetPoolSymbolAll = jest.fn().mockResolvedValue([]);
 const mockGetTickerList = jest.fn().mockResolvedValue([]);
+const mockWsConnect = jest.fn();
+const mockWsDisconnect = jest.fn();
+const mockListPositions = jest.fn();
+const mockGetOrders = jest.fn();
+const mockGetOrderHistory = jest.fn();
+const mockGetPositionHistory = jest.fn();
+const mockGetAccountInfo = jest.fn();
+const mockGetWalletQuoteTokenBalance = jest.fn();
+const mockGetTradeFlow = jest.fn();
+const mockGetKlineList = jest.fn();
+const mockGetMarketDetail = jest.fn();
+const mockSubscribeKline = jest.fn();
+const mockUnsubscribeKline = jest.fn();
+const mockAuth = jest.fn();
 
 jest.mock('@myx-trade/sdk', () => ({
   MyxClient: jest.fn(() => ({
     markets: {
       getPoolSymbolAll: mockGetPoolSymbolAll,
       getTickerList: mockGetTickerList,
+      getKlineList: mockGetKlineList,
+      getMarketDetail: mockGetMarketDetail,
     },
+    subscription: {
+      connect: mockWsConnect,
+      disconnect: mockWsDisconnect,
+      subscribeKline: mockSubscribeKline,
+      unsubscribeKline: mockUnsubscribeKline,
+    },
+    position: {
+      listPositions: mockListPositions,
+      getPositionHistory: mockGetPositionHistory,
+    },
+    order: {
+      getOrders: mockGetOrders,
+      getOrderHistory: mockGetOrderHistory,
+    },
+    account: {
+      getAccountInfo: mockGetAccountInfo,
+      getWalletQuoteTokenBalance: mockGetWalletQuoteTokenBalance,
+      getTradeFlow: mockGetTradeFlow,
+    },
+    auth: mockAuth,
   })),
 }));
 
@@ -31,7 +67,7 @@ jest.mock('@myx-trade/sdk', () => ({
 
 function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
   return {
-    chainId: 97,
+    chainId: 59141,
     marketId: 'market-1',
     poolId: '0xpool1',
     baseSymbol: 'RHEA',
@@ -45,10 +81,10 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
 
 function makeTicker(overrides: Partial<MYXTicker> = {}): MYXTicker {
   return {
-    chainId: 97,
+    chainId: 59141,
     poolId: '0xpool1',
     oracleId: 1,
-    price: '1500000000000000000000000000000000',
+    price: '1500.00',
     change: '2.5',
     high: '0',
     low: '0',
@@ -107,7 +143,7 @@ describe('MYXClientService', () => {
         '[MYXClientService] Initialized with SDK',
         expect.objectContaining({
           isTestnet: true,
-          chainId: 97,
+          chainId: 59141,
         }),
       );
     });
@@ -227,7 +263,7 @@ describe('MYXClientService', () => {
 
       expect(result).toEqual(tickers);
       expect(mockGetTickerList).toHaveBeenCalledWith({
-        chainId: 97,
+        chainId: 59141,
         poolIds: ['0xpool1'],
       });
     });
@@ -271,7 +307,7 @@ describe('MYXClientService', () => {
 
       expect(result).toEqual(tickers);
       expect(mockGetTickerList).toHaveBeenCalledWith({
-        chainId: 97,
+        chainId: 59141,
         poolIds: ['0xpool1', '0xpool2'],
       });
     });
@@ -562,6 +598,453 @@ describe('MYXClientService', () => {
       );
 
       mainnetService.disconnect();
+    });
+  });
+
+  // ==========================================================================
+  // Authenticated Read Operations
+  // ==========================================================================
+
+  describe('listPositions', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, data: [{ poolId: '0x1', size: '100' }] };
+      mockListPositions.mockResolvedValueOnce(mockResult);
+
+      const result = await service.listPositions('0xuser');
+
+      expect(result).toEqual(mockResult);
+      expect(mockListPositions).toHaveBeenCalledWith('0xuser');
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockListPositions.mockRejectedValueOnce(new Error('API error'));
+
+      await expect(service.listPositions('0xuser')).rejects.toThrow(
+        'API error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('getOrders', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, data: [] };
+      mockGetOrders.mockResolvedValueOnce(mockResult);
+
+      const result = await service.getOrders('0xuser');
+
+      expect(result).toEqual(mockResult);
+      expect(mockGetOrders).toHaveBeenCalledWith('0xuser');
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetOrders.mockRejectedValueOnce(new Error('Order error'));
+
+      await expect(service.getOrders('0xuser')).rejects.toThrow('Order error');
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('getOrderHistory', () => {
+    it('delegates to SDK with params and address', async () => {
+      const params = { limit: 50, chainId: 59141 };
+      const mockResult = { code: 9200, data: [] };
+      mockGetOrderHistory.mockResolvedValueOnce(mockResult);
+
+      const result = await service.getOrderHistory(
+        params as Parameters<typeof service.getOrderHistory>[0],
+        '0xuser',
+      );
+
+      expect(result).toEqual(mockResult);
+      expect(mockGetOrderHistory).toHaveBeenCalledWith(params, '0xuser');
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetOrderHistory.mockRejectedValueOnce(new Error('History error'));
+
+      await expect(
+        service.getOrderHistory(
+          { limit: 50 } as Parameters<typeof service.getOrderHistory>[0],
+          '0xuser',
+        ),
+      ).rejects.toThrow('History error');
+    });
+  });
+
+  describe('getPositionHistory', () => {
+    it('delegates to SDK with params and address', async () => {
+      const params = { limit: 50 };
+      const mockResult = { code: 9200, data: [] };
+      mockGetPositionHistory.mockResolvedValueOnce(mockResult);
+
+      const result = await service.getPositionHistory(
+        params as Parameters<typeof service.getPositionHistory>[0],
+        '0xuser',
+      );
+
+      expect(result).toEqual(mockResult);
+      expect(mockGetPositionHistory).toHaveBeenCalledWith(params, '0xuser');
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetPositionHistory.mockRejectedValueOnce(new Error('Pos history'));
+
+      await expect(
+        service.getPositionHistory(
+          { limit: 50 } as Parameters<typeof service.getPositionHistory>[0],
+          '0xuser',
+        ),
+      ).rejects.toThrow('Pos history');
+    });
+  });
+
+  describe('getAccountInfo', () => {
+    it('delegates to SDK with chainId, address, poolId', async () => {
+      const mockResult = { code: 9200, data: { totalCollateral: '1000' } };
+      mockGetAccountInfo.mockResolvedValueOnce(mockResult);
+
+      const result = await service.getAccountInfo(59141, '0xuser', '0xpool1');
+
+      expect(result).toEqual(mockResult);
+      expect(mockGetAccountInfo).toHaveBeenCalledWith(
+        59141,
+        '0xuser',
+        '0xpool1',
+      );
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetAccountInfo.mockRejectedValueOnce(new Error('Account error'));
+
+      await expect(
+        service.getAccountInfo(59141, '0xuser', '0xpool1'),
+      ).rejects.toThrow('Account error');
+    });
+  });
+
+  describe('getWalletQuoteTokenBalance', () => {
+    it('delegates to SDK', async () => {
+      const mockResult = { code: 9200, data: '500000000' };
+      mockGetWalletQuoteTokenBalance.mockResolvedValueOnce(mockResult);
+
+      const result = await service.getWalletQuoteTokenBalance(59141, '0xuser');
+
+      expect(result).toEqual(mockResult);
+      expect(mockGetWalletQuoteTokenBalance).toHaveBeenCalledWith(
+        59141,
+        '0xuser',
+      );
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetWalletQuoteTokenBalance.mockRejectedValueOnce(
+        new Error('Balance error'),
+      );
+
+      await expect(
+        service.getWalletQuoteTokenBalance(59141, '0xuser'),
+      ).rejects.toThrow('Balance error');
+    });
+  });
+
+  describe('getTradeFlow', () => {
+    it('delegates to SDK with params and address', async () => {
+      const params = { limit: 50 };
+      const mockResult = { code: 9200, data: [] };
+      mockGetTradeFlow.mockResolvedValueOnce(mockResult);
+
+      const result = await service.getTradeFlow(
+        params as Parameters<typeof service.getTradeFlow>[0],
+        '0xuser',
+      );
+
+      expect(result).toEqual(mockResult);
+      expect(mockGetTradeFlow).toHaveBeenCalledWith(params, '0xuser');
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetTradeFlow.mockRejectedValueOnce(new Error('Flow error'));
+
+      await expect(
+        service.getTradeFlow(
+          { limit: 50 } as Parameters<typeof service.getTradeFlow>[0],
+          '0xuser',
+        ),
+      ).rejects.toThrow('Flow error');
+    });
+  });
+
+  // ==========================================================================
+  // Kline (Candle) Data
+  // ==========================================================================
+
+  describe('getKlineData', () => {
+    it('fetches kline data from SDK', async () => {
+      const klineData = [
+        {
+          time: 1700000000,
+          open: '50000',
+          close: '51000',
+          high: '52000',
+          low: '49000',
+        },
+      ];
+      mockGetKlineList.mockResolvedValueOnce(klineData);
+
+      const result = await service.getKlineData({
+        poolId: '0xpool1',
+        interval: '1h' as Parameters<
+          typeof service.getKlineData
+        >[0]['interval'],
+        limit: 100,
+      });
+
+      expect(result).toEqual(klineData);
+      expect(mockGetKlineList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          poolId: '0xpool1',
+          chainId: 59141,
+          interval: '1h',
+          limit: 100,
+        }),
+      );
+    });
+
+    it('returns empty array when SDK returns null', async () => {
+      mockGetKlineList.mockResolvedValueOnce(null);
+
+      const result = await service.getKlineData({
+        poolId: '0xpool1',
+        interval: '1h' as Parameters<
+          typeof service.getKlineData
+        >[0]['interval'],
+        limit: 100,
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetKlineList.mockRejectedValueOnce(new Error('Kline error'));
+
+      await expect(
+        service.getKlineData({
+          poolId: '0xpool1',
+          interval: '1h' as Parameters<
+            typeof service.getKlineData
+          >[0]['interval'],
+          limit: 100,
+        }),
+      ).rejects.toThrow('Kline error');
+    });
+  });
+
+  // ==========================================================================
+  // Global ID
+  // ==========================================================================
+
+  describe('getGlobalId', () => {
+    it('fetches globalId from market detail and caches it', async () => {
+      mockGetMarketDetail.mockResolvedValueOnce({ globalId: 42 });
+
+      const result = await service.getGlobalId('0xpool1');
+
+      expect(result).toBe(42);
+      expect(mockGetMarketDetail).toHaveBeenCalledWith({
+        chainId: 59141,
+        poolId: '0xpool1',
+      });
+    });
+
+    it('returns cached globalId on subsequent calls', async () => {
+      mockGetMarketDetail.mockResolvedValueOnce({ globalId: 42 });
+
+      await service.getGlobalId('0xpool1');
+      const result = await service.getGlobalId('0xpool1');
+
+      expect(result).toBe(42);
+      expect(mockGetMarketDetail).toHaveBeenCalledTimes(1);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetMarketDetail.mockRejectedValueOnce(new Error('Detail error'));
+
+      await expect(service.getGlobalId('0xpool1')).rejects.toThrow(
+        'Detail error',
+      );
+    });
+  });
+
+  // ==========================================================================
+  // Kline WebSocket Subscriptions
+  // ==========================================================================
+
+  describe('subscribeToKline', () => {
+    it('delegates to SDK subscription', () => {
+      const callback = jest.fn();
+
+      service.subscribeToKline(
+        42,
+        '1h' as Parameters<typeof service.subscribeToKline>[1],
+        callback,
+      );
+
+      expect(mockSubscribeKline).toHaveBeenCalledWith(42, '1h', callback);
+    });
+  });
+
+  describe('unsubscribeFromKline', () => {
+    it('delegates to SDK unsubscription', () => {
+      const callback = jest.fn();
+
+      service.unsubscribeFromKline(
+        42,
+        '1h' as Parameters<typeof service.unsubscribeFromKline>[1],
+        callback,
+      );
+
+      expect(mockUnsubscribeKline).toHaveBeenCalledWith(42, '1h', callback);
+    });
+  });
+
+  // ==========================================================================
+  // Simple Getters
+  // ==========================================================================
+
+  describe('getChainId', () => {
+    it('returns testnet chain ID', () => {
+      expect(service.getChainId()).toBe(59141);
+    });
+
+    it('returns mainnet chain ID', () => {
+      const mainnetService = new MYXClientService(mockDeps, {
+        isTestnet: false,
+      });
+
+      expect(mainnetService.getChainId()).toBe(56);
+      mainnetService.disconnect();
+    });
+  });
+
+  describe('getNetwork', () => {
+    it('returns testnet for testnet service', () => {
+      expect(service.getNetwork()).toBe('testnet');
+    });
+
+    it('returns mainnet for mainnet service', () => {
+      const mainnetService = new MYXClientService(mockDeps, {
+        isTestnet: false,
+      });
+
+      expect(mainnetService.getNetwork()).toBe('mainnet');
+      mainnetService.disconnect();
+    });
+  });
+
+  describe('isAuthenticated', () => {
+    it('returns false before authentication', () => {
+      expect(service.isAuthenticated()).toBe(false);
+    });
+
+    it('returns true after successful authentication', async () => {
+      // authenticate() calls myxClient.auth() synchronously, then sets #authenticated
+      await service.authenticate({}, {}, '0xuser');
+
+      expect(service.isAuthenticated()).toBe(true);
+    });
+  });
+
+  describe('isAuthenticatedForAddress', () => {
+    it('returns false before authentication', () => {
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(false);
+    });
+
+    it('returns true for the authenticated address', async () => {
+      await service.authenticate({}, {}, '0xuser');
+
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(true);
+    });
+
+    it('returns true regardless of address casing', async () => {
+      await service.authenticate({}, {}, '0xUser');
+
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(true);
+      expect(service.isAuthenticatedForAddress('0xUSER')).toBe(true);
+    });
+
+    it('returns false for a different address', async () => {
+      await service.authenticate({}, {}, '0xuser');
+
+      expect(service.isAuthenticatedForAddress('0xother')).toBe(false);
+    });
+
+    it('returns false after disconnect', async () => {
+      await service.authenticate({}, {}, '0xuser');
+      service.disconnect();
+
+      expect(service.isAuthenticatedForAddress('0xuser')).toBe(false);
+    });
+  });
+
+  // ==========================================================================
+  // authenticate
+  // ==========================================================================
+
+  describe('authenticate', () => {
+    it('calls SDK auth with signer, getAccessToken, and walletClient', async () => {
+      const signer = { signMessage: jest.fn() };
+      const walletClient = {};
+
+      await service.authenticate(signer, walletClient, '0xuser');
+
+      expect(mockAuth).toHaveBeenCalledWith(
+        expect.objectContaining({
+          signer,
+          walletClient,
+          getAccessToken: expect.any(Function),
+        }),
+      );
+    });
+
+    it('skips if already authenticated', async () => {
+      await service.authenticate({}, {}, '0xuser');
+      mockAuth.mockClear();
+
+      await service.authenticate({}, {}, '0xuser');
+
+      expect(mockAuth).not.toHaveBeenCalled();
+    });
+
+    it('deduplicates concurrent auth calls', async () => {
+      // Slow auth: resolve after a tick
+      let resolveAuth: () => void = () => undefined;
+      mockAuth.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveAuth = resolve;
+          }),
+      );
+
+      const p1 = service.authenticate({}, {}, '0xuser');
+      const p2 = service.authenticate({}, {}, '0xuser');
+
+      resolveAuth();
+      await Promise.all([p1, p2]);
+
+      // Only one SDK auth call despite two authenticate() calls
+      expect(mockAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('wraps and rethrows SDK auth errors', async () => {
+      mockAuth.mockImplementationOnce(() => {
+        throw new Error('Auth failed');
+      });
+
+      await expect(service.authenticate({}, {}, '0xuser')).rejects.toThrow(
+        'Auth failed',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
 });

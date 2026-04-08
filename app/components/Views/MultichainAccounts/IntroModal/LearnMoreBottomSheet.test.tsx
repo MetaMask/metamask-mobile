@@ -14,11 +14,11 @@ const mockDispatch = jest.fn();
 
 // Mock the BottomSheet component
 const mockOnCloseBottomSheet = jest.fn();
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-commonjs, @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs, @typescript-eslint/no-var-requires
     const ReactMock = require('react');
     return {
       __esModule: true,
@@ -221,13 +221,13 @@ describe('LearnMoreBottomSheet', () => {
     );
 
     // Initially checkbox should be unchecked and confirm button disabled
-    expect(confirmButton).toHaveProp('disabled', true);
+    expect(confirmButton).toBeDisabled();
 
     // Press checkbox to check it
     fireEvent.press(checkbox);
 
     // Confirm button should now be enabled
-    expect(confirmButton).toHaveProp('disabled', false);
+    expect(confirmButton).toBeEnabled();
   });
 
   it('handles confirm button press when checkbox is checked', () => {

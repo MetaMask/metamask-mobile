@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useIsInsufficientBalance } from './useIsInsufficientBalance';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useInsufficientBalanceAlertModule from './alerts/useInsufficientBalanceAlert';
 import { Severity } from '../types/alerts';
 

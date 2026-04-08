@@ -15,7 +15,10 @@ import type {
   OpenOrdersWsEvent,
 } from '@nktkas/hyperliquid';
 
+import type { HyperLiquidClientService } from './HyperLiquidClientService';
+import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { TP_SL_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { WebSocketConnectionState } from '../types';
 import type {
   PriceUpdate,
   Position,
@@ -32,9 +35,8 @@ import type {
   OrderBookData,
   OrderBookLevel,
   PerpsPlatformDependencies,
+  PerpsLogger,
 } from '../types';
-import type { HyperLiquidClientService } from './HyperLiquidClientService';
-import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import { calculateWeightedReturnOnEquity } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import {
@@ -115,7 +117,17 @@ export class HyperLiquidSubscriptionService {
 
   readonly #globalActiveAssetSubscriptions = new Map<string, ISubscription>();
 
+  // Track in-progress activeAssetCtx subscription promises to prevent leaks
+  // when cleanup fires before the async subscription resolves (#28141)
+  readonly #pendingActiveAssetPromises = new Map<
+    string,
+    Promise<void | undefined>
+  >();
+
   readonly #globalBboSubscriptions = new Map<string, ISubscription>();
+
+  // Track in-progress BBO subscription promises to prevent leaks (#28141)
+  readonly #pendingBboPromises = new Map<string, Promise<void | undefined>>();
 
   // Order fill subscriptions keyed by accountId (normalized: undefined -> 'default')
   readonly #orderFillSubscriptions = new Map<string, ISubscription>();
@@ -166,6 +178,9 @@ export class HyperLiquidSubscriptionService {
   // Global price data cache
   #cachedPriceData: Map<string, PriceUpdate> | null = null;
 
+  // Raw allMids WS snapshots keyed by DEX ('' for main DEX)
+  readonly #allMidsSnapshots = new Map<string, Record<string, string>>();
+
   // Fills cache for cache-first pattern (similar to price caching)
   #cachedFills: OrderFill[] | null = null;
 
@@ -177,6 +192,10 @@ export class HyperLiquidSubscriptionService {
   readonly #dexAssetCtxsCache = new Map<string, AssetCtxsWsEvent['ctxs']>(); // Per-DEX asset contexts
 
   readonly #assetCtxsSubscriptionPromises = new Map<string, Promise<void>>(); // Track in-progress subscriptions
+
+  readonly #dexAllMidsSubscriptions = new Map<string, ISubscription>();
+
+  readonly #dexAllMidsSubscriptionPromises = new Map<string, Promise<void>>();
 
   readonly #clearinghouseStateSubscriptions = new Map<string, ISubscription>(); // Key: dex name ('' for main)
 
@@ -233,6 +252,11 @@ export class HyperLiquidSubscriptionService {
   // Set in clearAll() and never reset (service instance is discarded after disconnect)
   #isClearing = false;
 
+  readonly #restoreRetryTimeouts = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
+
   // Platform dependencies for logging
   readonly #deps: PerpsPlatformDependencies;
 
@@ -253,6 +277,83 @@ export class HyperLiquidSubscriptionService {
     this.#discoveredDexNames = enabledDexs ?? [];
     this.#allowlistMarkets = allowlistMarkets ?? [];
     this.#blocklistMarkets = blocklistMarkets ?? [];
+  }
+
+  /**
+   * Conditionally log an error to Sentry, suppressing during intentional disconnect.
+   * When `clearAll()` is called, pending subscription promises reject with
+   * `WebSocketRequestError` — these are expected and must not pollute Sentry.
+   *
+   * @param error - The error to log
+   * @param context - Sentry context from #getErrorContext()
+   */
+  #logErrorUnlessClearing(
+    error: Error,
+    context: Parameters<PerpsLogger['error']>[1],
+  ): void {
+    if (this.#isClearing) {
+      return;
+    }
+    this.#deps.logger.error(error, context);
+  }
+
+  #isTransientAssetCtxsError(error: unknown): boolean {
+    const ensuredError = ensureError(
+      error,
+      'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
+    );
+    const connectionState = this.#clientService.getConnectionState?.();
+    const messageParts = [
+      ensuredError.message,
+      error instanceof Error ? error.name : '',
+      typeof error === 'string' ? error : '',
+      String(error),
+    ]
+      .join(' ')
+      .toLowerCase();
+    const isReconnectChurn =
+      connectionState === WebSocketConnectionState.Connecting ||
+      connectionState === WebSocketConnectionState.Disconnected;
+
+    return (
+      messageParts.includes('websocketrequesterror') ||
+      messageParts.includes('unknown error while making a websocket request') ||
+      (isReconnectChurn &&
+        (messageParts.includes('unknown error (no details provided)') ||
+          messageParts.includes('undefined')))
+    );
+  }
+
+  #scheduleRestoreRetry(dex: string, kind: 'assetCtxs' | 'allMids'): void {
+    const retryKey = `${kind}:${dex}`;
+    if (this.#isClearing || this.#restoreRetryTimeouts.has(retryKey)) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      this.#restoreRetryTimeouts.delete(retryKey);
+      const retryPromise =
+        kind === 'assetCtxs'
+          ? this.#ensureAssetCtxsSubscription(dex, {
+              incrementRefCount: false,
+            })
+          : this.#ensureDexAllMidsSubscription(dex);
+
+      retryPromise.catch((error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.restoreSubscriptions.retry',
+          ),
+          this.#getErrorContext('restoreSubscriptions.retry', {
+            dex,
+            kind,
+          }),
+        );
+      });
+    }, 1000);
+
+    this.#restoreRetryTimeouts.set(retryKey, timeoutId);
   }
 
   /**
@@ -476,7 +577,7 @@ export class HyperLiquidSubscriptionService {
             try {
               await this.#ensureAssetCtxsSubscription(dex);
             } catch (error) {
-              this.#deps.logger.error(
+              this.#logErrorUnlessClearing(
                 ensureError(
                   error,
                   'HyperLiquidSubscriptionService.updateFeatureFlags',
@@ -517,7 +618,7 @@ export class HyperLiquidSubscriptionService {
                   `Established user data subscriptions for new DEX: ${dex}`,
                 );
               } catch (error) {
-                this.#deps.logger.error(
+                this.#logErrorUnlessClearing(
                   ensureError(
                     error,
                     'HyperLiquidSubscriptionService.updateFeatureFlags',
@@ -531,7 +632,7 @@ export class HyperLiquidSubscriptionService {
             }),
           );
         } catch (error) {
-          this.#deps.logger.error(
+          this.#logErrorUnlessClearing(
             ensureError(
               error,
               'HyperLiquidSubscriptionService.updateFeatureFlags',
@@ -940,27 +1041,47 @@ export class HyperLiquidSubscriptionService {
     // Ensure global subscriptions are established
     this.#ensureGlobalAllMidsSubscription();
 
-    // HIP-3: Establish assetCtxs subscriptions ONLY for DEXs with requested symbols
-    // Performance: Avoid unnecessary WebSocket connections for unused DEXs
-    if (includeMarketData) {
-      // Extract unique DEXs from requested symbols
-      const dexsNeeded = new Set<string | null>();
-      symbols.forEach((symbol) => {
-        const { dex } = parseAssetName(symbol);
-        dexsNeeded.add(dex);
-      });
+    // Extract unique DEXs from requested symbols
+    const dexsNeeded = new Set<string | null>();
+    symbols.forEach((symbol) => {
+      const { dex } = parseAssetName(symbol);
+      dexsNeeded.add(dex);
+    });
 
-      // Only subscribe to DEXs that have requested symbols
+    // Always ensure assetCtxs subscriptions (1 per DEX, lightweight).
+    // Provides prevDayPx for percentChange24h even without includeMarketData
+    // (e.g., prewarm after reconnection). Uses incrementRefCount: false when
+    // not explicitly requested so lifecycle is managed by component subscriptions.
+    dexsNeeded.forEach((dex) => {
+      const dexName = dex ?? '';
+      this.#ensureAssetCtxsSubscription(dexName, {
+        incrementRefCount: includeMarketData,
+      }).catch((error) => {
+        this.#logErrorUnlessClearing(
+          ensureError(
+            error,
+            'HyperLiquidSubscriptionService.subscribeToPrices',
+          ),
+          this.#getErrorContext(
+            'subscribeToPrices.ensureAssetCtxsSubscription',
+            { dex: dexName },
+          ),
+        );
+      });
+    });
+
+    // dexAllMids and activeAssetCtx only when market data explicitly requested
+    if (includeMarketData) {
       dexsNeeded.forEach((dex) => {
         const dexName = dex ?? '';
-        this.#ensureAssetCtxsSubscription(dexName).catch((error) => {
-          this.#deps.logger.error(
+        this.#ensureDexAllMidsSubscription(dexName).catch((error) => {
+          this.#logErrorUnlessClearing(
             ensureError(
               error,
               'HyperLiquidSubscriptionService.subscribeToPrices',
             ),
             this.#getErrorContext(
-              'subscribeToPrices.ensureAssetCtxsSubscription',
+              'subscribeToPrices.ensureDexAllMidsSubscription',
               { dex: dexName },
             ),
           );
@@ -1006,14 +1127,6 @@ export class HyperLiquidSubscriptionService {
 
       // Cleanup DEX-level assetCtxs subscriptions
       if (includeMarketData) {
-        // Extract unique DEXs from requested symbols
-        const dexsNeeded = new Set<string | null>();
-        symbols.forEach((symbol) => {
-          const { dex } = parseAssetName(symbol);
-          dexsNeeded.add(dex);
-        });
-
-        // Cleanup assetCtxs subscription for each DEX
         dexsNeeded.forEach((dex) => {
           const dexName = dex ?? '';
           this.#cleanupAssetCtxsSubscription(dexName);
@@ -1186,7 +1299,7 @@ export class HyperLiquidSubscriptionService {
                 );
               }
             } catch (error) {
-              this.#deps.logger.error(
+              this.#logErrorUnlessClearing(
                 ensureError(
                   error,
                   'HyperLiquidSubscriptionService.createUserDataSubscription',
@@ -1207,7 +1320,7 @@ export class HyperLiquidSubscriptionService {
             return undefined;
           })
           .catch((error) => {
-            this.#deps.logger.error(
+            this.#logErrorUnlessClearing(
               ensureError(
                 error,
                 'HyperLiquidSubscriptionService.createUserDataSubscription',
@@ -1231,7 +1344,7 @@ export class HyperLiquidSubscriptionService {
             return undefined;
           })
           .catch((error) => {
-            this.#deps.logger.error(
+            this.#logErrorUnlessClearing(
               ensureError(
                 error,
                 'HyperLiquidSubscriptionService.createUserDataSubscription',
@@ -1331,7 +1444,7 @@ export class HyperLiquidSubscriptionService {
                 );
               }
             } catch (error) {
-              this.#deps.logger.error(
+              this.#logErrorUnlessClearing(
                 ensureError(
                   error,
                   'HyperLiquidSubscriptionService.createUserDataSubscription',
@@ -1356,7 +1469,7 @@ export class HyperLiquidSubscriptionService {
             return undefined;
           })
           .catch((error) => {
-            this.#deps.logger.error(
+            this.#logErrorUnlessClearing(
               ensureError(
                 error,
                 'HyperLiquidSubscriptionService.createUserDataSubscription',
@@ -1504,7 +1617,7 @@ export class HyperLiquidSubscriptionService {
       // Remove this DEX from expected set so it doesn't block notifications for other DEXs
       this.#expectedDexs.delete(dexName);
 
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(
           error,
           'HyperLiquidSubscriptionService.createClearinghouseSubscription',
@@ -1632,7 +1745,7 @@ export class HyperLiquidSubscriptionService {
       // Remove this DEX from expected set so it doesn't block notifications for other DEXs
       this.#expectedDexs.delete(dexName);
 
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(
           error,
           'HyperLiquidSubscriptionService.createOpenOrdersSubscription',
@@ -1736,20 +1849,18 @@ export class HyperLiquidSubscriptionService {
       if (this.#webData3Subscriptions.size > 0) {
         this.#webData3Subscriptions.forEach((subscription, dexName) => {
           subscription.unsubscribe().catch((error: Error) => {
-            if (!this.#isClearing) {
-              this.#deps.logger.error(
-                ensureError(
-                  error,
-                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
-                ),
-                this.#getErrorContext(
-                  'cleanupSharedWebData3ISubscription.webData3',
-                  {
-                    dex: dexName,
-                  },
-                ),
-              );
-            }
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
+              this.#getErrorContext(
+                'cleanupSharedWebData3ISubscription.webData3',
+                {
+                  dex: dexName,
+                },
+              ),
+            );
           });
         });
         this.#webData3Subscriptions.clear();
@@ -1761,20 +1872,18 @@ export class HyperLiquidSubscriptionService {
         this.#clearinghouseStateSubscriptions.forEach(
           (subscription, dexName) => {
             subscription.unsubscribe().catch((error: Error) => {
-              if (!this.#isClearing) {
-                this.#deps.logger.error(
-                  ensureError(
-                    error,
-                    'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
-                  ),
-                  this.#getErrorContext(
-                    'cleanupSharedWebData3ISubscription.clearinghouseState',
-                    {
-                      dex: dexName,
-                    },
-                  ),
-                );
-              }
+              this.#logErrorUnlessClearing(
+                ensureError(
+                  error,
+                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+                ),
+                this.#getErrorContext(
+                  'cleanupSharedWebData3ISubscription.clearinghouseState',
+                  {
+                    dex: dexName,
+                  },
+                ),
+              );
             });
           },
         );
@@ -1784,20 +1893,18 @@ export class HyperLiquidSubscriptionService {
       if (this.#openOrdersSubscriptions.size > 0) {
         this.#openOrdersSubscriptions.forEach((subscription, dexName) => {
           subscription.unsubscribe().catch((error: Error) => {
-            if (!this.#isClearing) {
-              this.#deps.logger.error(
-                ensureError(
-                  error,
-                  'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
-                ),
-                this.#getErrorContext(
-                  'cleanupSharedWebData3ISubscription.openOrders',
-                  {
-                    dex: dexName,
-                  },
-                ),
-              );
-            }
+            this.#logErrorUnlessClearing(
+              ensureError(
+                error,
+                'HyperLiquidSubscriptionService.cleanupSharedWebData3ISubscription',
+              ),
+              this.#getErrorContext(
+                'cleanupSharedWebData3ISubscription.openOrders',
+                {
+                  dex: dexName,
+                },
+              ),
+            );
           });
         });
         this.#openOrdersSubscriptions.clear();
@@ -1863,7 +1970,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(
           error,
           'HyperLiquidSubscriptionService.subscribeToPositions',
@@ -1905,7 +2012,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure webData3 subscription is active (OI caps come from webData3)
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOICaps'),
         this.#getErrorContext('subscribeToOICaps'),
       );
@@ -1947,7 +2054,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure subscription is established for this accountId
     this.#ensureOrderFillISubscription(accountId).catch((error) => {
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(
           error,
           'HyperLiquidSubscriptionService.subscribeToOrderFills',
@@ -1966,7 +2073,7 @@ export class HyperLiquidSubscriptionService {
           this.#orderFillSubscriptions.get(normalizedAccountId);
         if (subscription) {
           subscription.unsubscribe().catch((error: Error) => {
-            this.#deps.logger.error(
+            this.#logErrorUnlessClearing(
               ensureError(
                 error,
                 'HyperLiquidSubscriptionService.subscribeToOrderFills',
@@ -2018,26 +2125,39 @@ export class HyperLiquidSubscriptionService {
     const subscription = await subscriptionClient.userFills(
       { user: userAddress },
       (data: UserFillsWsEvent) => {
-        const orderFills: OrderFill[] = data.fills.map((fill) => ({
-          orderId: fill.oid.toString(),
-          symbol: fill.coin,
-          side: fill.side,
-          size: fill.sz,
-          price: fill.px,
-          fee: fill.fee,
-          timestamp: fill.time,
-          pnl: fill.closedPnl,
-          direction: fill.dir,
-          feeToken: fill.feeToken,
-          startPosition: fill.startPosition,
-          liquidation: fill.liquidation
-            ? {
-                liquidatedUser: fill.liquidation.liquidatedUser,
-                markPx: fill.liquidation.markPx,
-                method: fill.liquidation.method,
-              }
-            : undefined,
-        }));
+        // Build a Map for O(1) lookup instead of O(n) find per fill
+        const orderMap = new Map<string, string>();
+        if (this.#cachedOrders) {
+          for (const order of this.#cachedOrders) {
+            if (order.detailedOrderType) {
+              orderMap.set(order.orderId, order.detailedOrderType);
+            }
+          }
+        }
+        const orderFills: OrderFill[] = data.fills.map((fill) => {
+          const oid = fill.oid.toString();
+          return {
+            orderId: oid,
+            symbol: fill.coin,
+            side: fill.side,
+            size: fill.sz,
+            price: fill.px,
+            fee: fill.fee,
+            timestamp: fill.time,
+            pnl: fill.closedPnl,
+            direction: fill.dir,
+            feeToken: fill.feeToken,
+            startPosition: fill.startPosition,
+            liquidation: fill.liquidation
+              ? {
+                  liquidatedUser: fill.liquidation.liquidatedUser,
+                  markPx: fill.liquidation.markPx,
+                  method: fill.liquidation.method,
+                }
+              : undefined,
+            detailedOrderType: orderMap.get(oid),
+          };
+        });
 
         // Cache fills for cache-first pattern (similar to price caching)
         // This allows getOrFetchFills() to return cached data without REST API calls
@@ -2092,7 +2212,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.subscribeToOrders'),
         this.#getErrorContext('subscribeToOrders'),
       );
@@ -2129,7 +2249,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure shared subscription is active (reuses existing connection)
     this.#ensureSharedWebData3Subscription(accountId).catch((error) => {
-      this.#deps.logger.error(
+      this.#logErrorUnlessClearing(
         ensureError(error, 'HyperLiquidSubscriptionService.subscribeToAccount'),
         this.#getErrorContext('subscribeToAccount'),
       );
@@ -2200,6 +2320,15 @@ export class HyperLiquidSubscriptionService {
    */
   public getCachedPrice(symbol: string): string | undefined {
     return this.#cachedPriceData?.get(symbol)?.price;
+  }
+
+  public getLastAllMidsSnapshot(dex?: string): Record<string, string> | null {
+    const dexKey = dex ?? '';
+    const snapshot = this.#allMidsSnapshots.get(dexKey);
+    if (!snapshot) {
+      return null;
+    }
+    return { ...snapshot };
   }
 
   /**
@@ -2343,6 +2472,9 @@ export class HyperLiquidSubscriptionService {
         // Initialize cache if needed
         this.#cachedPriceData ??= new Map<string, PriceUpdate>();
 
+        // Store raw snapshot for the main DEX so market fetches can reuse it without REST.
+        this.#allMidsSnapshots.set('', data.mids as Record<string, string>);
+
         const subscribedSymbols = new Set<string>();
 
         // Collect all symbols that have subscribers
@@ -2401,7 +2533,7 @@ export class HyperLiquidSubscriptionService {
         // Clear the promise on error so it can be retried
         this.#globalAllMidsPromise = undefined;
 
-        this.#deps.logger.error(
+        this.#logErrorUnlessClearing(
           ensureError(
             error,
             'HyperLiquidSubscriptionService.ensureGlobalAllMidsSubscription',
@@ -2421,8 +2553,11 @@ export class HyperLiquidSubscriptionService {
     const currentCount = this.#symbolSubscriberCounts.get(symbol) ?? 0;
     this.#symbolSubscriberCounts.set(symbol, currentCount + 1);
 
-    // If subscription already exists, just return
-    if (this.#globalActiveAssetSubscriptions.has(symbol)) {
+    // If subscription already exists or is being created, just return
+    if (
+      this.#globalActiveAssetSubscriptions.has(symbol) ||
+      this.#pendingActiveAssetPromises.has(symbol)
+    ) {
       return;
     }
 
@@ -2437,7 +2572,7 @@ export class HyperLiquidSubscriptionService {
       startTime: Date.now(),
     };
 
-    subscriptionClient
+    const promise = subscriptionClient
       .activeAssetCtx(
         { coin: symbol },
         (data: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent) => {
@@ -2499,6 +2634,22 @@ export class HyperLiquidSubscriptionService {
         },
       )
       .then((sub) => {
+        // Only clear pending ref if this is still the current promise.
+        // A rapid away-and-back can replace the pending promise; blindly
+        // deleting would remove the *newer* reference (#28141).
+        if (this.#pendingActiveAssetPromises.get(symbol) === promise) {
+          this.#pendingActiveAssetPromises.delete(symbol);
+        }
+        // Stale subscription: cleanup was called while pending, a newer
+        // subscription already won the race, OR a different pending promise
+        // exists (rapid away-and-back before this one resolved). (#28141)
+        if (
+          (this.#symbolSubscriberCounts.get(symbol) ?? 0) <= 0 ||
+          this.#globalActiveAssetSubscriptions.has(symbol) ||
+          this.#pendingActiveAssetPromises.has(symbol)
+        ) {
+          return sub.unsubscribe();
+        }
         this.#globalActiveAssetSubscriptions.set(symbol, sub);
         this.#deps.debugLogger.log(
           `HyperLiquid: Market data subscription established for ${symbol}`,
@@ -2506,7 +2657,10 @@ export class HyperLiquidSubscriptionService {
         return undefined;
       })
       .catch((error) => {
-        this.#deps.logger.error(
+        if (this.#pendingActiveAssetPromises.get(symbol) === promise) {
+          this.#pendingActiveAssetPromises.delete(symbol);
+        }
+        this.#logErrorUnlessClearing(
           ensureError(
             error,
             'HyperLiquidSubscriptionService.ensureActiveAssetSubscription',
@@ -2514,6 +2668,8 @@ export class HyperLiquidSubscriptionService {
           this.#getErrorContext('ensureActiveAssetSubscription', { symbol }),
         );
       });
+
+    this.#pendingActiveAssetPromises.set(symbol, promise);
   }
 
   /**
@@ -2525,6 +2681,8 @@ export class HyperLiquidSubscriptionService {
     const currentCount = this.#symbolSubscriberCounts.get(symbol) ?? 0;
     if (currentCount <= 1) {
       // Last subscriber, cleanup subscription
+      this.#symbolSubscriberCounts.delete(symbol);
+
       const subscription = this.#globalActiveAssetSubscriptions.get(symbol);
       if (subscription && typeof subscription.unsubscribe === 'function') {
         const unsubscribeResult = Promise.resolve(subscription.unsubscribe());
@@ -2533,13 +2691,17 @@ export class HyperLiquidSubscriptionService {
           // Ignore errors during cleanup
         });
         this.#globalActiveAssetSubscriptions.delete(symbol);
-        this.#symbolSubscriberCounts.delete(symbol);
       } else if (subscription) {
         // Subscription exists but unsubscribe is not a function or doesn't return a Promise
         // Just clean up the reference
         this.#globalActiveAssetSubscriptions.delete(symbol);
-        this.#symbolSubscriberCounts.delete(symbol);
       }
+
+      // If subscription is still pending (async), the .then() handler in
+      // #ensureActiveAssetSubscription will check symbolSubscriberCounts
+      // and unsubscribe immediately when it resolves (#28141)
+      // Clean up the pending promise reference
+      this.#pendingActiveAssetPromises.delete(symbol);
     } else {
       // Still has subscribers, just decrement count
       this.#symbolSubscriberCounts.set(symbol, currentCount - 1);
@@ -2552,36 +2714,130 @@ export class HyperLiquidSubscriptionService {
    * Implements reference counting to track active subscribers per DEX
    *
    * @param dex - The DEX identifier (empty string for main DEX).
+   * @param options - Subscription behavior overrides.
+   * @param options.incrementRefCount - Skip incrementing when restoring existing subscribers after reconnect.
    */
-  async #ensureAssetCtxsSubscription(dex: string): Promise<void> {
+  async #ensureAssetCtxsSubscription(
+    dex: string,
+    options: { incrementRefCount?: boolean } = {},
+  ): Promise<void> {
     const dexKey = dex || '';
+    const { incrementRefCount = true } = options;
 
-    // Increment subscriber count for this DEX
-    const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
-    this.#dexSubscriberCounts.set(dexKey, currentCount + 1);
+    if (incrementRefCount) {
+      const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
+      this.#dexSubscriberCounts.set(dexKey, currentCount + 1);
+    }
 
     // Return if subscription already exists
     if (this.#assetCtxsSubscriptions.has(dexKey)) {
       return;
     }
 
-    // Await existing promise if subscription is being established
-    if (this.#assetCtxsSubscriptionPromises.has(dexKey)) {
-      await this.#assetCtxsSubscriptionPromises.get(dexKey);
-      return;
+    let promise = this.#assetCtxsSubscriptionPromises.get(dexKey);
+    if (!promise) {
+      promise = this.#createAssetCtxsSubscription(dex);
+      this.#assetCtxsSubscriptionPromises.set(dexKey, promise);
     }
-
-    // Create new subscription promise
-    const promise = this.#createAssetCtxsSubscription(dex);
-    this.#assetCtxsSubscriptionPromises.set(dexKey, promise);
 
     try {
       await promise;
     } catch (error) {
-      // Clear promise on error so it can be retried
-      this.#assetCtxsSubscriptionPromises.delete(dexKey);
+      if (this.#assetCtxsSubscriptionPromises.get(dexKey) === promise) {
+        this.#assetCtxsSubscriptionPromises.delete(dexKey);
+      }
+      if (incrementRefCount) {
+        const currentCount = this.#dexSubscriberCounts.get(dexKey) ?? 0;
+        if (currentCount <= 1) {
+          this.#dexSubscriberCounts.delete(dexKey);
+        } else {
+          this.#dexSubscriberCounts.set(dexKey, currentCount - 1);
+        }
+      }
       throw error;
     }
+  }
+
+  /**
+   * Ensure a per-DEX allMids WS subscription exists (singleton per DEX).
+   * Mirrors the assetCtxs subscription dedup pattern and is used only for HIP-3 DEXs.
+   *
+   * @param dex - The HIP-3 DEX name.
+   */
+  async #ensureDexAllMidsSubscription(dex: string): Promise<void> {
+    if (!dex) {
+      return;
+    }
+
+    if (this.#dexAllMidsSubscriptions.has(dex)) {
+      return;
+    }
+
+    if (this.#dexAllMidsSubscriptionPromises.has(dex)) {
+      await this.#dexAllMidsSubscriptionPromises.get(dex);
+      return;
+    }
+
+    const promise = this.#createDexAllMidsSubscription(dex);
+    this.#dexAllMidsSubscriptionPromises.set(dex, promise);
+
+    try {
+      await promise;
+    } catch (error) {
+      this.#dexAllMidsSubscriptionPromises.delete(dex);
+      throw error;
+    }
+  }
+
+  /**
+   * Create allMids WS subscription for a specific HIP-3 DEX.
+   *
+   * @param dex - The HIP-3 DEX name.
+   */
+  async #createDexAllMidsSubscription(dex: string): Promise<void> {
+    await this.#clientService.ensureSubscriptionClient(
+      this.#walletService.createWalletAdapter(),
+    );
+    const subscriptionClient = this.#clientService.getSubscriptionClient();
+
+    if (!subscriptionClient) {
+      throw new Error('Subscription client not initialized');
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      subscriptionClient
+        .allMids({ dex }, (data: AllMidsWsEvent) => {
+          this.#allMidsSnapshots.set(dex, data.mids as Record<string, string>);
+        })
+        .then((sub) => {
+          // If a newer subscription already won the race, discard this one (#28141)
+          if (this.#dexAllMidsSubscriptions.has(dex)) {
+            resolve();
+            return sub.unsubscribe();
+          }
+          this.#dexAllMidsSubscriptions.set(dex, sub);
+          this.#deps.debugLogger.log(
+            `allMids subscription established for DEX: ${dex}`,
+          );
+          resolve();
+          return undefined;
+        })
+        .catch((error) => {
+          this.#logErrorUnlessClearing(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createDexAllMidsSubscription',
+            ),
+            this.#getErrorContext('createDexAllMidsSubscription', { dex }),
+          );
+          reject(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createDexAllMidsSubscription',
+            ),
+          );
+        });
+    });
   }
 
   /**
@@ -2641,56 +2897,102 @@ export class HyperLiquidSubscriptionService {
 
     return new Promise<void>((resolve, reject) => {
       const subscriptionParams = dex ? { dex } : {};
+      const handleAssetCtxsUpdate = (data: AssetCtxsWsEvent): void => {
+        // Cache asset contexts for this DEX
+        this.#dexAssetCtxsCache.set(dexKey, data.ctxs);
 
-      subscriptionClient
-        .assetCtxs(subscriptionParams, (data: AssetCtxsWsEvent) => {
-          // Cache asset contexts for this DEX
-          this.#dexAssetCtxsCache.set(dexKey, data.ctxs);
+        // Use cached meta to map ctxs array indices to symbols (no REST API call!)
+        validatedMeta.universe.forEach((asset, index) => {
+          const ctx = data.ctxs[index];
+          if (ctx && 'funding' in ctx) {
+            // This is a perps context
+            const ctxPrice = ctx.midPx ?? ctx.markPx;
+            const openInterestUSD = calculateOpenInterestUSD(
+              ctx.openInterest,
+              ctxPrice,
+            );
+            const marketData = {
+              prevDayPx: ctx.prevDayPx
+                ? parseFloat(ctx.prevDayPx.toString())
+                : undefined,
+              funding: parseFloat(ctx.funding.toString()),
+              openInterest: isNaN(openInterestUSD)
+                ? undefined
+                : openInterestUSD,
+              volume24h: ctx.dayNtlVlm
+                ? parseFloat(ctx.dayNtlVlm.toString())
+                : undefined,
+              oraclePrice: parseFloat(ctx.oraclePx.toString()),
+              lastUpdated: Date.now(),
+            };
 
-          // Use cached meta to map ctxs array indices to symbols (no REST API call!)
-          validatedMeta.universe.forEach((asset, index) => {
-            const ctx = data.ctxs[index];
-            if (ctx && 'funding' in ctx) {
-              // This is a perps context
-              const ctxPrice = ctx.midPx ?? ctx.markPx;
-              const openInterestUSD = calculateOpenInterestUSD(
-                ctx.openInterest,
-                ctxPrice,
-              );
-              const marketData = {
-                prevDayPx: ctx.prevDayPx
-                  ? parseFloat(ctx.prevDayPx.toString())
-                  : undefined,
-                funding: parseFloat(ctx.funding.toString()),
-                openInterest: isNaN(openInterestUSD)
-                  ? undefined
-                  : openInterestUSD,
-                volume24h: ctx.dayNtlVlm
-                  ? parseFloat(ctx.dayNtlVlm.toString())
-                  : undefined,
-                oraclePrice: parseFloat(ctx.oraclePx.toString()),
-                lastUpdated: Date.now(),
-              };
+            this.#marketDataCache.set(asset.name, marketData);
 
-              this.#marketDataCache.set(asset.name, marketData);
-
-              // HIP-3: Extract price from assetCtx and update cached prices
-              const price = ctx.midPx?.toString() ?? ctx.markPx?.toString();
-              if (price) {
-                // For HIP-3 DEXs, meta() returns asset.name already containing the DEX prefix
-                // (e.g., "xyz:XYZ100"), so use it directly
-                const symbol = asset.name;
-                const priceUpdate = this.#createPriceUpdate(symbol, price);
-                this.#cachedPriceData ??= new Map<string, PriceUpdate>();
-                this.#cachedPriceData.set(symbol, priceUpdate);
-              }
+            // HIP-3: Extract price from assetCtx and update cached prices
+            const price = ctx.midPx?.toString() ?? ctx.markPx?.toString();
+            if (price) {
+              // For HIP-3 DEXs, meta() returns asset.name already containing the DEX prefix
+              // (e.g., "xyz:XYZ100"), so use it directly
+              const symbol = asset.name;
+              const priceUpdate = this.#createPriceUpdate(symbol, price);
+              this.#cachedPriceData ??= new Map<string, PriceUpdate>();
+              this.#cachedPriceData.set(symbol, priceUpdate);
             }
-          });
+          }
+        });
 
-          // Notify price subscribers with updated market data
-          this.#notifyAllPriceSubscribers();
-        })
+        // Notify price subscribers with updated market data
+        this.#notifyAllPriceSubscribers();
+      };
+
+      const subscribeWithRetry = async (): Promise<ISubscription> => {
+        const maxAttempts = 3;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            return await subscriptionClient.assetCtxs(
+              subscriptionParams,
+              handleAssetCtxsUpdate,
+            );
+          } catch (error) {
+            const ensuredError = ensureError(
+              error,
+              'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
+            );
+            const isLastAttempt = attempt === maxAttempts;
+            if (
+              isLastAttempt ||
+              !this.#isTransientAssetCtxsError(ensuredError)
+            ) {
+              throw ensuredError;
+            }
+
+            const retryDelayMs = attempt * 500;
+            this.#deps.debugLogger.log(
+              'Transient assetCtxs subscription failure during reconnect, retrying',
+              {
+                dex: dexKey || 'main',
+                attempt,
+                retryDelayMs,
+                error: ensuredError.message,
+              },
+            );
+            await new Promise((_resolve) => setTimeout(_resolve, retryDelayMs));
+          }
+        }
+
+        throw new Error(
+          `Failed to establish assetCtxs subscription for ${dexIdentifier}`,
+        );
+      };
+
+      subscribeWithRetry()
         .then((sub) => {
+          // If a newer subscription already won the race, discard this one (#28141)
+          if (this.#assetCtxsSubscriptions.has(dexKey)) {
+            resolve();
+            return sub.unsubscribe();
+          }
           this.#assetCtxsSubscriptions.set(dexKey, sub);
           this.#deps.debugLogger.log(
             `assetCtxs subscription established for ${
@@ -2701,7 +3003,7 @@ export class HyperLiquidSubscriptionService {
           return undefined;
         })
         .catch((error) => {
-          this.#deps.logger.error(
+          this.#logErrorUnlessClearing(
             ensureError(
               error,
               'HyperLiquidSubscriptionService.createAssetCtxsSubscription',
@@ -2733,10 +3035,13 @@ export class HyperLiquidSubscriptionService {
     if (currentCount <= 1) {
       // Last subscriber - cleanup the subscription
       const subscription = this.#assetCtxsSubscriptions.get(dexKey);
+      const allMidsSubscription = dex
+        ? this.#dexAllMidsSubscriptions.get(dex)
+        : undefined;
 
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
-          this.#deps.logger.error(
+          this.#logErrorUnlessClearing(
             ensureError(
               error,
               'HyperLiquidSubscriptionService.cleanupAssetCtxsSubscription',
@@ -2744,18 +3049,36 @@ export class HyperLiquidSubscriptionService {
             this.#getErrorContext('cleanupAssetCtxsSubscription', { dex }),
           );
         });
-
-        this.#assetCtxsSubscriptions.delete(dexKey);
-        this.#dexAssetCtxsCache.delete(dexKey);
-        this.#assetCtxsSubscriptionPromises.delete(dexKey);
-        this.#dexSubscriberCounts.delete(dexKey);
-
-        this.#deps.debugLogger.log(
-          `Cleaned up assetCtxs subscription for ${
-            dex ? `DEX: ${dex}` : 'main DEX'
-          }`,
-        );
       }
+
+      if (allMidsSubscription) {
+        allMidsSubscription.unsubscribe().catch((error: Error) => {
+          this.#logErrorUnlessClearing(
+            ensureError(
+              error,
+              'HyperLiquidSubscriptionService.cleanupDexAllMidsSubscription',
+            ),
+            this.#getErrorContext('cleanupDexAllMidsSubscription', { dex }),
+          );
+        });
+      }
+
+      this.#assetCtxsSubscriptions.delete(dexKey);
+      this.#dexAssetCtxsCache.delete(dexKey);
+      this.#assetCtxsSubscriptionPromises.delete(dexKey);
+      this.#dexSubscriberCounts.delete(dexKey);
+
+      if (dex) {
+        this.#dexAllMidsSubscriptions.delete(dex);
+        this.#dexAllMidsSubscriptionPromises.delete(dex);
+        this.#allMidsSnapshots.delete(dex);
+      }
+
+      this.#deps.debugLogger.log(
+        `Cleaned up assetCtxs subscription for ${
+          dex ? `DEX: ${dex}` : 'main DEX'
+        }`,
+      );
     } else {
       // Still has subscribers - just decrement count
       this.#dexSubscriberCounts.set(dexKey, currentCount - 1);
@@ -2771,7 +3094,11 @@ export class HyperLiquidSubscriptionService {
    * @param symbol - The trading pair symbol to subscribe to BBO for.
    */
   #ensureBboSubscription(symbol: string): void {
-    if (this.#globalBboSubscriptions.has(symbol)) {
+    // Skip if subscription already exists or is being created
+    if (
+      this.#globalBboSubscriptions.has(symbol) ||
+      this.#pendingBboPromises.has(symbol)
+    ) {
       return;
     }
 
@@ -2780,7 +3107,7 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
-    subscriptionClient
+    const promise = subscriptionClient
       .bbo({ coin: symbol }, (data: BboWsEvent) => {
         processBboData({
           symbol,
@@ -2792,6 +3119,20 @@ export class HyperLiquidSubscriptionService {
         });
       })
       .then((sub) => {
+        // Only clear pending ref if this is still the current promise (#28141).
+        if (this.#pendingBboPromises.get(symbol) === promise) {
+          this.#pendingBboPromises.delete(symbol);
+        }
+        // Stale subscription: cleanup was called while pending, a newer
+        // subscription already won the race, OR a different pending promise
+        // exists (rapid away-and-back before this one resolved). (#28141)
+        if (
+          (this.#orderBookSubscribers.get(symbol)?.size ?? 0) <= 0 ||
+          this.#globalBboSubscriptions.has(symbol) ||
+          this.#pendingBboPromises.has(symbol)
+        ) {
+          return sub.unsubscribe();
+        }
         this.#globalBboSubscriptions.set(symbol, sub);
         this.#deps.debugLogger.log(
           `HyperLiquid: BBO subscription established for ${symbol}`,
@@ -2799,7 +3140,10 @@ export class HyperLiquidSubscriptionService {
         return undefined;
       })
       .catch((error) => {
-        this.#deps.logger.error(
+        if (this.#pendingBboPromises.get(symbol) === promise) {
+          this.#pendingBboPromises.delete(symbol);
+        }
+        this.#logErrorUnlessClearing(
           ensureError(
             error,
             'HyperLiquidSubscriptionService.ensureBboSubscription',
@@ -2807,6 +3151,8 @@ export class HyperLiquidSubscriptionService {
           this.#getErrorContext('ensureBboSubscription', { symbol }),
         );
       });
+
+    this.#pendingBboPromises.set(symbol, promise);
   }
 
   /**
@@ -2835,6 +3181,11 @@ export class HyperLiquidSubscriptionService {
       this.#globalBboSubscriptions.delete(symbol);
       this.#orderBookCache.delete(symbol);
     }
+
+    // If subscription is still pending (async), the .then() handler in
+    // #ensureBboSubscription will check orderBookSubscribers and
+    // unsubscribe immediately when it resolves (#28141)
+    this.#pendingBboPromises.delete(symbol);
   }
 
   /**
@@ -2890,7 +3241,7 @@ export class HyperLiquidSubscriptionService {
           try {
             await sub.unsubscribe();
           } catch (unsubError: unknown) {
-            this.#deps.logger.error(
+            this.#logErrorUnlessClearing(
               ensureError(
                 unsubError,
                 'HyperLiquidSubscriptionService.subscribeToOrderBook',
@@ -2907,7 +3258,7 @@ export class HyperLiquidSubscriptionService {
         return undefined;
       })
       .catch((error) => {
-        this.#deps.logger.error(
+        this.#logErrorUnlessClearing(
           ensureError(
             error,
             'HyperLiquidSubscriptionService.subscribeToOrderBook',
@@ -2926,7 +3277,7 @@ export class HyperLiquidSubscriptionService {
       cancelled = true;
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
-          this.#deps.logger.error(
+          this.#logErrorUnlessClearing(
             ensureError(
               error,
               'HyperLiquidSubscriptionService.subscribeToOrderBook',
@@ -3135,6 +3486,7 @@ export class HyperLiquidSubscriptionService {
     if (this.#marketDataSubscribers.size > 0) {
       // Clear existing subscriptions (they're dead after reconnection)
       this.#globalActiveAssetSubscriptions.clear();
+      this.#pendingActiveAssetPromises.clear();
       // Clear reference counts to prevent double-counting after reconnection
       this.#symbolSubscriberCounts.clear();
 
@@ -3151,6 +3503,7 @@ export class HyperLiquidSubscriptionService {
     if (this.#orderBookSubscribers.size > 0) {
       // Clear existing subscriptions (they're dead after reconnection)
       this.#globalBboSubscriptions.clear();
+      this.#pendingBboPromises.clear();
 
       // Re-establish subscriptions for all symbols with order book subscribers
       const symbolsNeedingOrderBook = Array.from(
@@ -3166,8 +3519,8 @@ export class HyperLiquidSubscriptionService {
       // Clear existing subscriptions (they're dead after reconnection)
       this.#assetCtxsSubscriptions.clear();
       this.#assetCtxsSubscriptionPromises.clear();
-      // Clear reference counts to prevent double-counting after reconnection
-      this.#dexSubscriberCounts.clear();
+      this.#dexAllMidsSubscriptions.clear();
+      this.#dexAllMidsSubscriptionPromises.clear();
 
       // Re-establish subscriptions for all DEXs with market data subscribers
       const dexsNeeded = new Set<string>();
@@ -3189,14 +3542,73 @@ export class HyperLiquidSubscriptionService {
         dexsNeeded.add('');
       }
 
-      // Re-establish subscriptions
-      await Promise.all(
-        Array.from(dexsNeeded).map((dex) =>
-          this.#ensureAssetCtxsSubscription(dex).catch(() => {
-            // Ignore errors during assetCtxs subscription restoration
-          }),
-        ),
+      const marketDataRestoreOperations = Array.from(dexsNeeded).flatMap(
+        (dex) => {
+          const operations: {
+            dex: string;
+            kind: 'assetCtxs' | 'allMids';
+            promise: Promise<void>;
+          }[] = [
+            {
+              dex,
+              kind: 'assetCtxs',
+              promise: this.#ensureAssetCtxsSubscription(dex, {
+                incrementRefCount: false,
+              }),
+            },
+          ];
+
+          if (dex) {
+            operations.push({
+              dex,
+              kind: 'allMids',
+              promise: this.#ensureDexAllMidsSubscription(dex),
+            });
+          }
+
+          return operations;
+        },
       );
+
+      const marketDataRestoreResults = await Promise.allSettled(
+        marketDataRestoreOperations.map(({ promise }) => promise),
+      );
+      const marketDataRestoreFailures = marketDataRestoreResults.flatMap(
+        (result, index) => {
+          if (result.status === 'fulfilled') {
+            return [];
+          }
+
+          const operation = marketDataRestoreOperations[index];
+          return [
+            {
+              ...operation,
+              error: ensureError(
+                result.reason,
+                'HyperLiquidSubscriptionService.restoreSubscriptions',
+              ),
+            },
+          ];
+        },
+      );
+
+      if (marketDataRestoreFailures.length > 0) {
+        marketDataRestoreFailures.forEach(({ dex, kind }) => {
+          this.#scheduleRestoreRetry(dex, kind);
+        });
+
+        this.#logErrorUnlessClearing(
+          new Error(
+            `Failed to restore ${marketDataRestoreFailures.length} market data subscriptions`,
+          ),
+          this.#getErrorContext('restoreSubscriptions.marketData', {
+            failures: marketDataRestoreFailures.map(
+              ({ dex, kind, error }) =>
+                `${kind}:${dex || 'main'}:${error.message}`,
+            ),
+          }),
+        );
+      }
     }
   }
 
@@ -3228,6 +3640,7 @@ export class HyperLiquidSubscriptionService {
 
     // Clear cached data
     this.#cachedPriceData = null;
+    this.#allMidsSnapshots.clear();
     this.#cachedPositions = null;
     this.#cachedOrders = null;
     this.#cachedAccount = null;
@@ -3265,8 +3678,11 @@ export class HyperLiquidSubscriptionService {
 
     // Clear subscription references (actual cleanup handled by client service)
     this.#globalAllMidsSubscription = undefined;
+    this.#globalAllMidsPromise = undefined;
     this.#globalActiveAssetSubscriptions.clear();
+    this.#pendingActiveAssetPromises.clear();
     this.#globalBboSubscriptions.clear();
+    this.#pendingBboPromises.clear();
     this.#webData3Subscriptions.clear();
     this.#webData3SubscriptionPromise = undefined;
 
@@ -3274,18 +3690,25 @@ export class HyperLiquidSubscriptionService {
     this.#assetCtxsSubscriptions.clear();
     this.#assetCtxsSubscriptionPromises.clear();
 
+    // HIP-3: Clear per-DEX allMids subscriptions
+    this.#dexAllMidsSubscriptions.clear();
+    this.#dexAllMidsSubscriptionPromises.clear();
+
+    this.#restoreRetryTimeouts.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    this.#restoreRetryTimeouts.clear();
+
     // Cleanup individual subscriptions (clearinghouseState + openOrders)
     if (this.#clearinghouseStateSubscriptions.size > 0) {
       this.#clearinghouseStateSubscriptions.forEach((subscription, dexName) => {
         subscription.unsubscribe().catch((error: Error) => {
-          if (!this.#isClearing) {
-            this.#deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-              this.#getErrorContext('clearAll.clearinghouseState', {
-                dex: dexName,
-              }),
-            );
-          }
+          this.#logErrorUnlessClearing(
+            ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+            this.#getErrorContext('clearAll.clearinghouseState', {
+              dex: dexName,
+            }),
+          );
         });
       });
       this.#clearinghouseStateSubscriptions.clear();
@@ -3294,14 +3717,12 @@ export class HyperLiquidSubscriptionService {
     if (this.#openOrdersSubscriptions.size > 0) {
       this.#openOrdersSubscriptions.forEach((subscription, dexName) => {
         subscription.unsubscribe().catch((error: Error) => {
-          if (!this.#isClearing) {
-            this.#deps.logger.error(
-              ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
-              this.#getErrorContext('clearAll.openOrders', {
-                dex: dexName,
-              }),
-            );
-          }
+          this.#logErrorUnlessClearing(
+            ensureError(error, 'HyperLiquidSubscriptionService.clearAll'),
+            this.#getErrorContext('clearAll.openOrders', {
+              dex: dexName,
+            }),
+          );
         });
       });
       this.#openOrdersSubscriptions.clear();

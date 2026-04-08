@@ -9,6 +9,7 @@ import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
@@ -18,6 +19,7 @@ import {
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
+import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -40,36 +42,13 @@ export const useRampNavigation = () => {
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
 
-  /**
-   * Resolves an assetId to the controller's canonical format.
-   * Handles casing (API lowercase vs checksummed) and native token
-   * placeholder ('slip44:.' vs 'slip44:{coinType}').
-   */
-  const resolveControllerAssetId = useCallback(
-    (assetId: string): string => {
-      const allTokens = rampsTokens?.allTokens ?? [];
-      const isNative = assetId.includes('/slip44:');
-      const [chainId] = assetId.split('/');
-
-      const match = allTokens.find((tok) => {
-        if (!tok.assetId) return false;
-        if (isNative) {
-          return tok.chainId === chainId && tok.assetId.includes('/slip44:');
-        }
-        return tok.assetId.toLowerCase() === assetId.toLowerCase();
-      });
-
-      return match?.assetId ?? assetId;
-    },
-    [rampsTokens],
-  );
-
   const goToBuy = useCallback(
     (
       intent?: RampIntent,
       options?: {
         mode?: RampMode;
         overrideUnifiedRouting?: boolean;
+        buyFlowOrigin?: BuyFlowOrigin;
       },
     ) => {
       const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
@@ -102,7 +81,10 @@ export const useRampNavigation = () => {
         !overrideUnifiedRouting
       ) {
         // Resolve to the controller's canonical assetId format (lowercase)
-        const controllerAssetId = resolveControllerAssetId(intent.assetId);
+        const controllerAssetId = resolveRampControllerAssetId(
+          intent.assetId,
+          rampsTokens?.allTokens ?? [],
+        );
         try {
           setSelectedToken(controllerAssetId);
         } catch {
@@ -110,8 +92,21 @@ export const useRampNavigation = () => {
           // Navigate anyway — BuildQuote will handle the missing token.
         }
         navigation.navigate(
-          ...createBuildQuoteNavDetails({ assetId: controllerAssetId }),
+          ...createBuildQuoteNavDetails({
+            assetId: controllerAssetId,
+            buyFlowOrigin: options?.buyFlowOrigin,
+          }),
         );
+        return;
+      }
+
+      // V2: If no assetId and V2 is enabled, route to TokenSelection (matches handleRampUrl deeplink behavior)
+      if (
+        isRampsUnifiedV2Enabled &&
+        !intent?.assetId &&
+        !overrideUnifiedRouting
+      ) {
+        navigation.navigate(...createTokenSelectionNavDetails());
         return;
       }
 
@@ -151,11 +146,11 @@ export const useRampNavigation = () => {
     },
     [
       setSelectedToken,
-      resolveControllerAssetId,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
       rampRoutingDecision,
+      rampsTokens?.allTokens,
     ],
   );
 

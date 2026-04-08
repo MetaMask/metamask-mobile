@@ -337,6 +337,7 @@ class WalletMainScreen {
     }
   }
 
+  // Migrated to WalletView.ts (tests/page-objects/wallet/WalletView.ts)
   async waitForBalanceToStabilize(options = {}) {
     const {
       maxWaitTime = 60000,
@@ -455,6 +456,11 @@ class WalletMainScreen {
   async waitForNetworkModalToDisappear() {
     const element = await this.networkModal;
     await element.waitForExist({ reverse: true });
+  }
+
+  async tapOnTokensSection() {
+    const tokensSection = await AppwrightSelectors.getElementByText(this._device, 'Tokens');
+    await AppwrightGestures.tap(tokensSection);
   }
 }
 

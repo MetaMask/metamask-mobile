@@ -2,6 +2,7 @@ import { goToAddEvmToken } from './goToAddEvmToken';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../../core/NavigationService/types';
 
 jest.mock('../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
@@ -9,13 +10,10 @@ jest.mock('../../../../core/Analytics', () => ({
   },
 }));
 
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
-
 describe('goToAddEvmToken', () => {
-  const mockNavigation = { push: jest.fn() };
+  const mockNavigation = {
+    navigate: jest.fn(),
+  };
   const mockTrackEvent = jest.fn();
   const mockGetDecimalChainId = jest.fn(() => 1);
   const mockCreateEventBuilder = jest.fn(
@@ -29,10 +27,8 @@ describe('goToAddEvmToken', () => {
   );
 
   const mockProps = {
-    navigation: mockNavigation as unknown as StackNavigationProp<
-      TokenListNavigationParamList,
-      'AddAsset'
-    >,
+    navigation:
+      mockNavigation as unknown as StackNavigationProp<RootStackParamList>,
     trackEvent: mockTrackEvent,
     createEventBuilder:
       mockCreateEventBuilder as unknown as typeof AnalyticsEventBuilder.createEventBuilder,
@@ -44,11 +40,11 @@ describe('goToAddEvmToken', () => {
     jest.clearAllMocks();
   });
 
-  it('should navigate to AddAsset and track event', () => {
+  it('navigates to AddAsset and tracks event', () => {
     goToAddEvmToken(mockProps);
 
     // Check if navigation was triggered correctly
-    expect(mockNavigation.push).toHaveBeenCalledWith('AddAsset', {
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('AddAsset', {
       assetType: 'token',
     });
 

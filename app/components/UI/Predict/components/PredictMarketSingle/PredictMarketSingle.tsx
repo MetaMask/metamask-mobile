@@ -19,6 +19,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
@@ -150,6 +151,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigateToBuyPreview } = usePredictNavigation();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -186,15 +188,15 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
+        navigateToBuyPreview(
+          {
             market,
             outcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
           },
-        });
+          { throughRoot: true },
+        );
       },
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -255,7 +257,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.SuccessDefault}
               >
@@ -271,7 +273,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.ErrorDefault}
               >

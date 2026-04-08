@@ -16,7 +16,7 @@ import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
 jest.mock('../handleMetaMaskDeeplink');
@@ -31,7 +31,6 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 jest.mock('../handleDeepLinkModalDisplay');
 jest.mock('../handleRampUrl');
-jest.mock('../handleDepositCashUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBrowserUrl');
@@ -40,7 +39,6 @@ jest.mock('../handlePerpsUrl');
 jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
-jest.mock('../handleEnableCardButton');
 jest.mock('../handleTrendingUrl');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -228,14 +226,14 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('ACTIONS.DEPOSIT', () => {
-    it('calls instance._handleDepositCash if action is ACTIONS.DEPOSIT', async () => {
+  describe('deprecated deposit universal link', () => {
+    it('treats deposit path as unsupported without signature', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}?x=1`;
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        pathname: `/${ACTIONS.DEPOSIT}/additional/path`,
-        href: 'test-href',
+        pathname: `/${ACTIONS.DEPOSIT}`,
+        href: url,
       } as ReturnType<typeof extractURLParams>['urlObj'];
-      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}/additional/path/additional/path`;
 
       await handleUniversalLink({
         instance,
@@ -244,6 +242,12 @@ describe('handleUniversalLink', () => {
         browserCallBack: mockBrowserCallBack,
         url,
         source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.INVALID,
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -934,50 +938,6 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(handled).toHaveBeenCalled();
-      },
-    );
-  });
-
-  describe('ACTIONS.ENABLE_CARD_BUTTON', () => {
-    const testCases = [
-      {
-        domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        description: 'old deeplink domain',
-      },
-      {
-        domain: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-        description: 'new deeplink domain',
-      },
-      {
-        domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
-        description: 'test deeplink domain',
-      },
-    ] as const;
-
-    it.each(testCases)(
-      'calls _handleEnableCardButton without showing modal for $description',
-      async ({ domain }) => {
-        const enableCardButtonUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.ENABLE_CARD_BUTTON}`;
-        const origin = `${PROTOCOLS.HTTPS}://${domain}`;
-        const enableCardButtonUrlObj = {
-          ...urlObj,
-          hostname: domain,
-          href: enableCardButtonUrl,
-          pathname: `/${ACTIONS.ENABLE_CARD_BUTTON}`,
-          origin,
-        };
-
-        await handleUniversalLink({
-          instance,
-          handled,
-          urlObj: enableCardButtonUrlObj,
-          browserCallBack: mockBrowserCallBack,
-          url: enableCardButtonUrl,
-          source: 'test-source',
-        });
-
-        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
         expect(handled).toHaveBeenCalled();
       },
     );
@@ -1702,7 +1662,7 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('skips handling deeplinks without pathname and query params', () => {
+  describe('skips handling deeplinks that should exit early', () => {
     // Link cases to test for skipping handling
     const testLinkCases = [
       {
@@ -1732,6 +1692,14 @@ describe('handleUniversalLink', () => {
       {
         link: 'metamask://action?query=value',
         shouldSkip: false,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}`,
+        shouldSkip: true,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}?code=test-code&state=test-state`,
+        shouldSkip: true,
       },
     ];
 

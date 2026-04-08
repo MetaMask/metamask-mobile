@@ -9,7 +9,7 @@ import { TextProps } from '@metamask/design-system-react-native';
  */
 export interface TitleStandardProps {
   /**
-   * Main title text, rendered with TextVariant.DisplayMd.
+   * Main title text, rendered with TextVariant.HeadingLg.
    */
   title?: string;
   /**

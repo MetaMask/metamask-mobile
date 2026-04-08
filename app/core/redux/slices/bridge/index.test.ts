@@ -12,19 +12,22 @@ import reducer, {
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
-  selectGasIncludedQuoteParams,
   selectIsBridgeEnabledSource,
   selectAllowedChainRanking,
   setTokenSelectorNetworkFilter,
   selectTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   selectVisiblePillChainIds,
+  setSelectedQuoteRequestId,
+  selectSelectedQuoteRequestId,
+  selectDestTokenWarning,
 } from '.';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { TokenFeatureType } from '@metamask/bridge-controller';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 
@@ -72,6 +75,8 @@ describe('bridge slice', () => {
         isDestTokenManuallySet: false,
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
+        selectedQuoteRequestId: undefined,
+        abTestContext: undefined,
       });
     });
   });
@@ -469,70 +474,6 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('selectGasIncludedQuoteParams', () => {
-    it('returns gasIncluded true with 7702 false when STX send bundle is supported', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          isGasIncludedSTXSendBundleSupported: true,
-          isGasIncluded7702Supported: true,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
-    });
-
-    it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          sourceToken: mockToken,
-          destToken: { ...mockDestToken, chainId: mockToken.chainId },
-          isGasIncludedSTXSendBundleSupported: false,
-          isGasIncluded7702Supported: true,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
-    });
-
-    it('returns gasIncluded false with 7702 false for swap without 7702 support', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          sourceToken: mockToken,
-          destToken: { ...mockDestToken, chainId: mockToken.chainId },
-          isGasIncludedSTXSendBundleSupported: false,
-          isGasIncluded7702Supported: false,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
-    });
-
-    it('returns gasIncluded false with 7702 false for bridge mode', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          sourceToken: mockToken,
-          destToken: mockDestToken,
-          isGasIncludedSTXSendBundleSupported: false,
-          isGasIncluded7702Supported: true,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
-    });
-  });
-
   describe('selectIsBridgeEnabledSource', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Mock state structure causes TypeScript warnings but tests are valid
@@ -742,6 +683,128 @@ describe('bridge slice', () => {
       );
 
       expect(result).toEqual(['eip155:1', 'eip155:10']);
+    });
+  });
+
+  describe('setSelectedQuoteRequestId', () => {
+    it('sets the selected quote request ID', () => {
+      const requestId = 'quote-request-123';
+      const action = setSelectedQuoteRequestId(requestId);
+      const state = reducer(initialState, action);
+
+      expect(state.selectedQuoteRequestId).toBe(requestId);
+    });
+
+    it('clears the selected quote request ID when set to undefined', () => {
+      const stateWithSelection = {
+        ...initialState,
+        selectedQuoteRequestId: 'quote-request-123',
+      };
+      const action = setSelectedQuoteRequestId(undefined);
+      const state = reducer(stateWithSelection, action);
+
+      expect(state.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('updates the selected quote request ID from one to another', () => {
+      const stateWithSelection = {
+        ...initialState,
+        selectedQuoteRequestId: 'quote-request-123',
+      };
+      const action = setSelectedQuoteRequestId('quote-request-456');
+      const state = reducer(stateWithSelection, action);
+
+      expect(state.selectedQuoteRequestId).toBe('quote-request-456');
+    });
+  });
+
+  describe('selectSelectedQuoteRequestId', () => {
+    it('returns undefined when no quote is selected', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      const result = selectSelectedQuoteRequestId(mockState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the selected quote request ID', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          selectedQuoteRequestId: 'quote-request-789',
+        },
+      } as RootState;
+
+      const result = selectSelectedQuoteRequestId(mockState);
+
+      expect(result).toBe('quote-request-789');
+    });
+  });
+
+  describe('resetBridgeState with selectedQuoteRequestId', () => {
+    it('resets selectedQuoteRequestId when bridge state resets', () => {
+      const stateWithSelection = {
+        ...initialState,
+        selectedQuoteRequestId: 'quote-request-123',
+        sourceAmount: '1.5',
+      };
+
+      const newState = reducer(stateWithSelection, resetBridgeState());
+
+      expect(newState.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
+  describe('selectDestTokenWarning', () => {
+    const buildStateWithWarnings = (tokenWarnings: unknown[]) => {
+      const state = cloneDeep(mockRootState);
+      state.engine.backgroundState.BridgeController = {
+        ...state.engine.backgroundState.BridgeController,
+        tokenWarnings,
+      } as any;
+      return state as unknown as RootState;
+    };
+
+    it('returns undefined when there are no token warnings', () => {
+      const state = buildStateWithWarnings([]);
+      expect(selectDestTokenWarning(state)).toBeUndefined();
+    });
+
+    it('returns the first warning regardless of type', () => {
+      const first = {
+        type: TokenFeatureType.WARNING,
+        feature_id: 'warn-1',
+        description: 'First warning',
+      };
+      const second = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'Malicious token',
+      };
+      const state = buildStateWithWarnings([first, second]);
+      expect(selectDestTokenWarning(state)).toEqual(first);
+    });
+
+    it('returns a MALICIOUS warning when it is first', () => {
+      const malicious = {
+        type: TokenFeatureType.MALICIOUS,
+        feature_id: 'mal-1',
+        description: 'Malicious token',
+      };
+      const state = buildStateWithWarnings([malicious]);
+      expect(selectDestTokenWarning(state)).toEqual(malicious);
+    });
+
+    it('returns a WARNING when it is first', () => {
+      const warning = {
+        type: TokenFeatureType.WARNING,
+        feature_id: 'warn-1',
+        description: 'Suspicious token',
+      };
+      const state = buildStateWithWarnings([warning]);
+      expect(selectDestTokenWarning(state)).toEqual(warning);
     });
   });
 

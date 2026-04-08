@@ -1,6 +1,5 @@
 // Third party dependencies.
 import {
-  ImageSourcePropType,
   KeyboardAvoidingView,
   Linking,
   Switch,
@@ -10,7 +9,8 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, type RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import Cell, {
@@ -41,12 +41,17 @@ import Networks, {
   isMainNet,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
-import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+  Box,
+} from '@metamask/design-system-react-native';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize as InternalButtonSize,
+  ButtonProps,
+} from '../../../component-library/components/Buttons/Button/Button.types';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
@@ -59,6 +64,7 @@ import {
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
+import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -71,7 +77,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
@@ -80,7 +85,6 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -104,38 +108,19 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { analytics } from '../../../util/analytics/analytics';
-import {
-  NETWORK_SELECTOR_SOURCES,
-  NetworkSelectorSource,
-} from '../../../constants/networkSelector';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../util/address';
 import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
 
-interface infuraNetwork {
-  name: string;
-  imageSource: ImageSourcePropType;
-  chainId: Hex;
+interface NetworkSelectorProps {
+  route: RouteProp<RootStackParamList, 'NetworkSelector'>;
 }
 
-interface ShowConfirmDeleteModalState {
-  isVisible: boolean;
-  networkName: string;
-  chainId?: `0x${string}`;
-}
-
-interface NetworkSelectorRouteParams {
-  chainId?: Hex;
-  hostInfo?: {
-    metadata?: {
-      origin?: string;
-    };
-  };
-  source?: NetworkSelectorSource;
-}
-
-const NetworkSelector = () => {
+const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -157,6 +142,12 @@ const NetworkSelector = () => {
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareWallet = Boolean(
+    selectedAddress && isHardwareAccount(selectedAddress),
+  );
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -171,12 +162,9 @@ const NetworkSelector = () => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
-  const route =
-    useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
-
   // origin is defined if network selector is opened from a dapp
-  const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const browserChainId = route.params?.chainId || null;
+  const origin = route?.params?.hostInfo?.metadata?.origin || '';
+  const browserChainId = route?.params?.chainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -192,7 +180,7 @@ const NetworkSelector = () => {
   const { addPopularNetwork } = useAddPopularNetwork();
 
   const isSendFlow =
-    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
+    route?.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -582,17 +570,22 @@ const NetworkSelector = () => {
                 <View>
                   <Box twClassName="flex-row gap-2">
                     <Text variant={TextVariant.BodyMD}>{name}</Text>
-                    {isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                    {!isHardwareWallet &&
+                    isGasFeesSponsoredNetworkEnabled(chainId) ? (
                       <TagColored
                         color={TagColor.Success}
                         style={styles.noNetworkFeeContainer}
+                        labelProps={{
+                          variant: TextVariant.BodySM,
+                          style: {
+                            textTransform: 'none',
+                            textAlign: 'center',
+                            bottom: 1,
+                            fontWeight: 'normal',
+                          },
+                        }}
                       >
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Success}
-                        >
-                          {strings('networks.no_network_fee')}
-                        </Text>
+                        {strings('networks.no_network_fee')}
                       </TagColored>
                     ) : undefined}
                   </Box>
@@ -600,7 +593,9 @@ const NetworkSelector = () => {
               )
             }
             tertiaryText={
-              isSendFlow && isGasFeesSponsoredNetworkEnabled(chainId)
+              isSendFlow &&
+              !isHardwareWallet &&
+              isGasFeesSponsoredNetworkEnabled(chainId)
                 ? strings('networks.no_network_fee')
                 : undefined
             }
@@ -924,14 +919,14 @@ const NetworkSelector = () => {
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('accountApproval.cancel'),
-    size: ButtonSize.Lg,
+    size: InternalButtonSize.Lg,
     onPress: () => closeDeleteModal(),
   };
 
   const deleteButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
     label: strings('app_settings.delete'),
-    size: ButtonSize.Lg,
+    size: InternalButtonSize.Lg,
     onPress: () => confirmRemoveRpc(),
   };
 
@@ -991,14 +986,15 @@ const NetworkSelector = () => {
           </ScrollView>
           {!isSendFlow ? (
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings(buttonLabelAddNetwork)}
+              variant={ButtonVariant.Secondary}
               onPress={goToNetworkSettings}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               size={ButtonSize.Lg}
               style={styles.addNetworkButton}
               testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-            />
+            >
+              {strings(buttonLabelAddNetwork)}
+            </Button>
           ) : null}
         </KeyboardAvoidingView>
 

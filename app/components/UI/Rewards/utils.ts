@@ -65,6 +65,17 @@ export const handleRewardsErrorMessage = (error: unknown) => {
     return strings('rewards.error_messages.cannot_use_own_referral_code');
   }
 
+  // Bonus code errors
+  if (message.toLowerCase().includes('invalid bonus code')) {
+    return strings('rewards.error_messages.invalid_bonus_code');
+  }
+  if (message.toLowerCase().includes('already redeemed')) {
+    return strings('rewards.error_messages.already_redeemed');
+  }
+  if (message.toLowerCase().includes('reached its maximum')) {
+    return strings('rewards.error_messages.reached_maximum');
+  }
+
   return message;
 };
 
@@ -93,6 +104,8 @@ export enum RewardsMetricsButtons {
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
+  BUY_MUSD = 'buy_musd',
+  SWAP_TO_MUSD = 'swap_to_musd',
 }
 
 export const deriveAccountMetricProps = (account?: InternalAccount) => {

@@ -22,6 +22,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  ORDER_TYPE: 'order_type',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
@@ -55,6 +56,9 @@ export const PredictEventProperties = {
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
+
+  // Payment token (buy-with-any-token flow only)
+  PREDICT_TOKEN_ADDRESS: 'predict_token_address',
 
   // Market slug and game properties (for live sports markets)
   MARKET_SLUG: 'market_slug',

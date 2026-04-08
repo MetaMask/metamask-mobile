@@ -1,8 +1,12 @@
+import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
 
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
@@ -34,9 +38,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
-      success: { default: '#00ff00' },
-      error: { default: '#ff0000' },
-      accent04: { normal: '#ffffff' },
+      success: { default: mockTestHexColors.SUCCESS_BRIGHT },
+      error: { default: mockTestHexColors.ERROR_BRIGHT },
+      accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
     },
   }),
 }));
@@ -64,6 +68,36 @@ jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: selectedAddress,
   })),
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../selectors/tokensController', () => ({
+  selectSingleTokenByAddressAndChainId: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  selectTickerByChainId: jest.fn(() => undefined),
 }));
 
 describe('usePredictToastRegistrations', () => {
@@ -154,6 +188,11 @@ describe('usePredictToastRegistrations', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
         }),
       );
     });
@@ -302,6 +341,11 @@ describe('usePredictToastRegistrations', () => {
           queryKey: ['predict', 'balance'],
         }),
       );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
     });
 
     it('shows error toast with retry on failed status', async () => {
@@ -396,6 +440,11 @@ describe('usePredictToastRegistrations', () => {
           queryKey: ['predict', 'balance'],
         }),
       );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
     });
 
     it('uses payload amount for withdraw success toast when state amount is unavailable', () => {
@@ -417,6 +466,225 @@ describe('usePredictToastRegistrations', () => {
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('$55.12'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('looks up transaction from store and resolves token for post-quote withdraw toast', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '25.50',
+          chainId: '0x38',
+          tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue({
+        symbol: 'USDT',
+      });
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-withdraw-1',
+          amount: 10,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$25.50'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('USDT'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to original USDC message when metamaskPay is undefined', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('withdraw_completed_subtitle'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to original USDC message when isPostQuote is false', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: { isPostQuote: false },
+      });
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 42,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('withdraw_completed_subtitle'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to event amount when targetFiat is invalid on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: undefined,
+          chainId: '0x38',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue('BNB');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 77,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$77'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('BNB'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to USDC when both token selectors return undefined on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '10',
+          chainId: '0x38',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-no-symbol',
+          amount: 10,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('USDC'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to event amount when targetFiat is zero on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '0',
+          chainId: '0x1',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue('ETH');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-zero',
+          amount: 30,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$30'),
             }),
           ]),
         }),
@@ -483,6 +751,158 @@ describe('usePredictToastRegistrations', () => {
       );
 
       expect(showToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('order transactions', () => {
+    it('shows pending toast with spinner on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          hasNoTimeout: false,
+          startAccessory: expect.any(Object),
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress_description',
+              isBold: false,
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('invalidates positions queries on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+    });
+
+    it('shows prediction placed toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Check',
+          hasNoTimeout: false,
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows prediction placed toast without View button when marketId is absent', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows error toast on failed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Error',
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows error toast without Try Again button when marketId is absent', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
     });
   });
 });

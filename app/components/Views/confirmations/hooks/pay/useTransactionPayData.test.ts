@@ -4,6 +4,7 @@ import {
   TransactionPayTotals,
   TransactionPayRequiredToken,
   TransactionPaySourceAmount,
+  TransactionFiatPayment,
 } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
@@ -15,6 +16,7 @@ import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayFiatPayment,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -44,6 +46,11 @@ const TOTALS_MOCK = {
   total: { usd: '1000', fiat: '1234' },
 } as TransactionPayTotals;
 
+const FIAT_PAYMENT_MOCK: TransactionFiatPayment = {
+  selectedPaymentMethodId: 'pm-123',
+  amountFiat: '50.00',
+};
+
 const state = merge(
   {},
   simpleSendTransactionControllerMock,
@@ -61,6 +68,7 @@ const state = merge(
               sourceAmounts: [SOURCE_AMOUNT_MOCK],
               tokens: [REQUIRED_TOKEN_MOCK],
               totals: TOTALS_MOCK,
+              fiatPayment: FIAT_PAYMENT_MOCK,
             },
           },
         },
@@ -179,6 +187,13 @@ describe('useTransactionPayData', () => {
         state: updatedState,
       }).result.current,
     ).toBe(false);
+  });
+
+  it('returns fiatPayment', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayFiatPayment, { state }).result
+        .current,
+    ).toStrictEqual(FIAT_PAYMENT_MOCK);
   });
 
   it('returns false for isPostQuote when no transaction data', () => {

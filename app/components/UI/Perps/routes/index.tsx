@@ -62,18 +62,14 @@ function getRedesignedConfirmationsHeaderOptions({
     : { header: () => null };
 }
 
-const PerpsConfirmScreen = (
-  props: React.ComponentProps<typeof Confirm> & {
-    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
-  },
-) => {
-  const params =
+const PerpsConfirmScreen = () => {
+  const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
-    params?.params?.showPerpsHeader ??
+    params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
+  return <Confirm disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {
@@ -96,9 +92,9 @@ const PerpsModalStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
+            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -194,9 +190,9 @@ const PerpsClosePositionBottomSheetStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
+            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -269,7 +265,6 @@ const PerpsScreenStack = () => {
               title: strings('perps.home.markets'),
               showBalanceActions: false,
               showBottomNav: false,
-              defaultSearchVisible: false,
             }}
           />
 

@@ -8,23 +8,24 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       flexDirection: 'column',
-      paddingHorizontal: 4,
+      paddingHorizontal: 8,
     },
     row: {
-      paddingVertical: 8,
+      paddingBottom: 12,
     },
     rowSeparator: {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.colors.border.muted,
+      paddingTop: 12,
+      paddingBottom: 8,
     },
     label: {
-      marginBottom: 2,
+      paddingBottom: 4,
     },
     labelRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-      marginBottom: 2,
       marginLeft: -8,
     },
     addressRow: {

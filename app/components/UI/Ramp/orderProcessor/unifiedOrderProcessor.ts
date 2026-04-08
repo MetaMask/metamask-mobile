@@ -1,4 +1,7 @@
-import type { RampsOrder } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  type RampsOrder,
+} from '@metamask/ramps-controller';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -39,7 +42,7 @@ export const orderStatusToFiatOrderState = (
  * Converts a V2 RampsOrder to a FiatOrder for Redux storage.
  */
 export const rampsOrderToFiatOrder = (rampsOrder: RampsOrder) => ({
-  id: rampsOrder.id || '',
+  id: rampsOrder.providerOrderId || rampsOrder.id || '',
   provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
   createdAt: rampsOrder.createdAt,
   amount: rampsOrder.fiatAmount,
@@ -48,8 +51,10 @@ export const rampsOrderToFiatOrder = (rampsOrder: RampsOrder) => ({
   cryptoFee: rampsOrder.totalFeesFiat || 0,
   currency: rampsOrder.fiatCurrency?.symbol || '',
   currencySymbol: rampsOrder.fiatCurrency?.denomSymbol || '',
+  amountInUSD: rampsOrder.fiatAmountInUsd?.toString(),
   cryptocurrency: rampsOrder.cryptoCurrency?.symbol || '',
-  network: rampsOrder.network?.chainId || '',
+  network:
+    rampsOrder.cryptoCurrency?.chainId || rampsOrder.network?.chainId || '',
   state: orderStatusToFiatOrderState(rampsOrder.status),
   account: rampsOrder.walletAddress,
   txHash: rampsOrder.txHash,
@@ -99,7 +104,7 @@ export async function processUnifiedOrder(
   try {
     const data = order.data as RampsOrder;
     const orderCode = data.providerOrderId;
-    const providerCode = data.provider?.id?.replace('/providers/', '') ?? '';
+    const providerCode = normalizeProviderCode(data.provider?.id ?? '');
 
     if (!providerCode || !orderCode) {
       throw new Error(

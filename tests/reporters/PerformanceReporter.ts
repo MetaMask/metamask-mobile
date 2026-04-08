@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs';
 import path from 'path';
 import { createLogger } from '../framework/logger';
@@ -7,7 +7,7 @@ import {
   QualityGatesReportFormatter,
   clearQualityGateFailures,
 } from '../framework/quality-gates';
-import { getTeamInfoFromTags } from '../teams-config.js';
+import { getTeamInfoFromTags } from '../framework/utils/teams';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
@@ -400,19 +400,26 @@ class PerformanceReporter {
     const projectNames = this.sessions
       .map((s) => s.projectName)
       .filter(Boolean);
+    const isBrowserStackProject = (name: string): boolean => {
+      const normalizedName = name.toLowerCase();
+      return (
+        normalizedName.includes('browserstack') ||
+        normalizedName === 'android-onboarding' ||
+        normalizedName === 'ios-onboarding'
+      );
+    };
     const isBrowserStackRun =
       this.sessions.length > 0 &&
-      projectNames.some((name) => (name ?? '').includes('browserstack-'));
+      projectNames.some((name) => isBrowserStackProject(name ?? ''));
 
     logger.info(
       `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
     );
     if (this.sessions.length > 0 && !isBrowserStackRun) {
       logger.info(
-        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project name does not include "browserstack-"',
+        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project is not recognized as BrowserStack-backed',
       );
     }
-
     return isBrowserStackRun;
   }
 

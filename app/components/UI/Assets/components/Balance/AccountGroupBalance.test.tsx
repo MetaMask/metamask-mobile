@@ -6,17 +6,18 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
-  // This selector is used directly with useSelector, so it must accept (state) and return a value
-  selectBalanceBySelectedAccountGroup: jest.fn(() => null),
-  // This one is a factory: selectBalanceChangeBySelectedAccountGroup(period) -> (state) => value
+  // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
+  selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  // Factory: selectBalanceChangeBySelectedAccountGroup(period, popularChainIds?) -> (state) => value
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
   // This selector is used to display the BalanceEmptyState
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
 
-// Mock homepage redesign feature flag for BalanceEmptyState
+// Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
+  selectHomepageSectionsV1Enabled: jest.fn(() => true),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic
@@ -44,6 +45,16 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+// AccountGroupBalance uses listPopularNetworks for balance selectors
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({
+      listPopularNetworks: () => [],
+    }),
+  }),
+);
+
 const testState = {
   engine: {
     backgroundState: {
@@ -66,7 +77,7 @@ describe('AccountGroupBalance', () => {
       selectBalanceChangeBySelectedAccountGroup,
     } = jest.requireMock('../../../../../selectors/assets/balances');
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => null,
+      () => () => null,
     );
     (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
       () => null,
@@ -96,7 +107,7 @@ describe('AccountGroupBalance', () => {
       '../../../../../selectors/assets/balances',
     );
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => ({
+      () => () => ({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 123.45,
@@ -125,7 +136,7 @@ describe('AccountGroupBalance', () => {
 
     // Mock the regular balance selector to return zero balance data
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => ({
+      () => () => ({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 0, // Zero on current network
@@ -172,7 +183,7 @@ describe('AccountGroupBalance', () => {
 
     // Start with zero balance
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => ({
+      () => () => ({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 0,
@@ -196,7 +207,7 @@ describe('AccountGroupBalance', () => {
 
     // Update mocks to return non-zero balance (simulating balance fetch completing)
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => ({
+      () => () => ({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 123.45,
@@ -227,7 +238,7 @@ describe('AccountGroupBalance', () => {
 
     // Start with zero balance (simulates account with no funds or just switched)
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => ({
+      () => () => ({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 0,
@@ -256,7 +267,7 @@ describe('AccountGroupBalance', () => {
 
     // Update mocks to show balance has loaded with funds
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => ({
+      () => () => ({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 150,

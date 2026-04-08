@@ -13,6 +13,13 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
   }),
+  useRoute: () => ({
+    params: {},
+  }),
+}));
+
+jest.mock('./EnterEmail', () => ({
+  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -67,7 +74,14 @@ describe('V2VerifyIdentity', () => {
 
     fireEvent.press(getByText('deposit.verify_identity.button'));
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampEnterEmail');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampEnterEmail',
+      expect.objectContaining({
+        amount: undefined,
+        currency: undefined,
+        assetId: undefined,
+      }),
+    );
   });
 
   it('opens Transak URL when Transak link is pressed', () => {

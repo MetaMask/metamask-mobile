@@ -21,11 +21,13 @@ import {
 // import Routes from '../../../../constants/navigation/Routes';
 import SwitchLoadingModal from '../../Notification/SwitchLoadingModal';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
+import { BACKUP_AND_SYNC_TOGGLE_TEST_IDS } from './BackupAndSyncToggle.testIds';
 
 interface Props {
   trackBackupAndSyncToggleEventOverride?: (newValue: boolean) => void;
@@ -41,7 +43,7 @@ const BackupAndSyncToggle = ({
 }: Readonly<Props>) => {
   const theme = useTheme();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { colors } = theme;
 
@@ -160,7 +162,7 @@ const BackupAndSyncToggle = ({
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
-          testID="toggle-backupAndSync"
+          testID={BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE}
         />
       </View>
       <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

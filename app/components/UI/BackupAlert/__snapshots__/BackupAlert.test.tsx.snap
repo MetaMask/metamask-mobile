@@ -53,7 +53,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
         }
       >
         <SvgMock
-          color="#121314"
+          color="#131416"
           fill="currentColor"
           height={20}
           name="Notification"
@@ -77,8 +77,8 @@ exports[`BackupAlert render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
-              "fontFamily": "Geist-Bold",
+              "color": "#131416",
+              "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
@@ -107,7 +107,7 @@ exports[`BackupAlert render matches snapshot 1`] = `
                 {
                   "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "Geist-Bold",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,

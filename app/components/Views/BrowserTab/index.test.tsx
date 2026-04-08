@@ -72,6 +72,9 @@ const mockInitialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
+  settings: {
+    searchEngine: 'Google',
+  },
 };
 
 jest.mock('../../../core/Engine', () => ({
@@ -94,6 +97,25 @@ jest.mock('../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn(() =>
     Promise.resolve({ result: false, name: '' }),
   ),
+}));
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    popularEvmNetworks: [],
+    popularMultichainNetworks: [],
+    popularNetworks: [],
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
+  }),
 }));
 
 const mockProps = {

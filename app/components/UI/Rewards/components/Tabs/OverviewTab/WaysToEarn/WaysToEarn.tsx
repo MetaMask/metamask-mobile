@@ -128,6 +128,16 @@ export const WaysToEarn = () => {
     );
 
     const { title, description, ctaLabel } = getBottomSheetData(wayToEarn);
+
+    if (wayToEarn.type === 'BONUS_CODE') {
+      navigation.navigate(Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET, {
+        title,
+        description,
+        ctaLabel,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
       title,
       description,
@@ -144,9 +154,13 @@ export const WaysToEarn = () => {
     });
   };
 
+  if (!seasonWaysToEarn.length) {
+    return null;
+  }
+
   return (
-    <Box twClassName="p-4">
-      <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
+    <Box twClassName="gap-4">
+      <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.ways_to_earn.title')}
       </Text>
 

@@ -7,7 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -25,7 +24,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
@@ -47,12 +46,12 @@ import {
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
+import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
@@ -265,19 +264,19 @@ const PredictSellPreview = () => {
                 width={200}
                 height={74}
                 style={tw.style('rounded-lg')}
-                testID="predict-sell-preview-value-skeleton"
+                testID={PREDICT_SELL_PREVIEW_TEST_IDS.VALUE_SKELETON}
               />
               <Skeleton
                 width={180}
                 height={24}
                 style={tw.style('rounded-md')}
-                testID="predict-sell-preview-price-skeleton"
+                testID={PREDICT_SELL_PREVIEW_TEST_IDS.PRICE_SKELETON}
               />
               <Skeleton
                 width={150}
                 height={24}
                 style={tw.style('rounded-md')}
-                testID="predict-sell-preview-pnl-skeleton"
+                testID={PREDICT_SELL_PREVIEW_TEST_IDS.PNL_SKELETON}
               />
             </Box>
           ) : (

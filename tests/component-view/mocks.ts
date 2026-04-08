@@ -12,6 +12,9 @@ jest.mock('../../app/core/Engine', () => {
           keyrings: [],
         },
       },
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
+      },
       AccountTrackerController: {
         refresh() {
           return undefined;
@@ -26,6 +29,9 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -89,6 +95,24 @@ jest.mock('../../app/core/Engine', () => {
         enableNetworkInNamespace() {
           return undefined;
         },
+        enableNetwork() {
+          return undefined;
+        },
+        disableNetwork() {
+          return undefined;
+        },
+        enableAllPopularNetworks() {
+          return undefined;
+        },
+        listPopularEvmNetworks() {
+          return [];
+        },
+        listPopularMultichainNetworks() {
+          return [];
+        },
+        listPopularNetworks() {
+          return [];
+        },
       },
       MultichainAssetsRatesController: {
         startPolling() {
@@ -98,10 +122,20 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
-      BridgeController: {
-        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
-        resetState: jest.fn(),
-        stopAllPolling: jest.fn(),
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      },
+      AssetsContractController: {
+        getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
+      },
+      TransactionController: {
+        state: {
+          transactions: [],
+        },
+        addTransaction: jest.fn().mockResolvedValue({}),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
       },
       NetworkController: {
         state: { networksMetadata: {} },
@@ -140,13 +174,34 @@ jest.mock('../../app/core/Engine', () => {
           return { id, provider };
         },
       },
+      BridgeController: {
+        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
+        resetState: jest.fn(),
+        stopAllPolling: jest.fn(),
+        setLocation: jest.fn(),
+        trackUnifiedSwapBridgeEvent: jest.fn(),
+      },
+      PredictController: {
+        getMarkets: jest.fn().mockResolvedValue([]),
+        getMarket: jest.fn().mockResolvedValue(null),
+        getBalance: jest.fn().mockResolvedValue(0),
+        getPositions: jest.fn().mockResolvedValue([]),
+        getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        trackFeedViewed: jest.fn(),
+        trackTabChanged: jest.fn(),
+        trackMarketDetailsOpened: jest.fn(),
+        trackGeoBlockTriggered: jest.fn(),
+        refreshEligibility: jest.fn().mockResolvedValue(undefined),
+      },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
+        state: { isTestnet: false },
         getActiveProvider: jest.fn(() => ({
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
+        switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue(undefined),
@@ -165,12 +220,28 @@ jest.mock('../../app/core/Engine', () => {
         getOrders: jest.fn().mockResolvedValue([]),
         getOpenOrders: jest.fn().mockResolvedValue([]),
         getAccountState: jest.fn().mockResolvedValue(null),
+        depositWithOrder: jest.fn().mockResolvedValue({
+          result: Promise.resolve('0xcomponent-view-deposit'),
+        }),
+        depositWithConfirmation: jest.fn().mockResolvedValue({
+          result: Promise.resolve('0xcomponent-view-deposit'),
+        }),
+        clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
+        calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        flipPosition: jest.fn().mockResolvedValue({ success: false }),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
+        getWithdrawalRoutes: jest.fn(() => [
+          {
+            assetId: 'usdc-mainnet',
+            constraints: { minAmount: 10 },
+          },
+        ]),
         startMarketDataPreload: jest.fn(),
         stopMarketDataPreload: jest.fn(),
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
       },
     },
     controllerMessenger: {
@@ -180,9 +251,15 @@ jest.mock('../../app/core/Engine', () => {
       unsubscribe() {
         return undefined;
       },
-      call(_action: string, ..._args: unknown[]) {
-        // Analytics calls are side effects - return resolved promise to prevent errors
-        // but don't execute actual analytics tracking in tests
+      call(action: string, ...args: unknown[]) {
+        // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
+        const params = args[0] as { request?: { method?: string } } | undefined;
+        if (
+          action === 'SnapController:handleRequest' &&
+          params?.request?.method === 'onAmountInput'
+        ) {
+          return Promise.resolve({ valid: true, errors: [] });
+        }
         return Promise.resolve(undefined);
       },
     },
@@ -218,6 +295,9 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
         },
         unsubscribe() {
           return undefined;
+        },
+        call(_action: string, ..._args: unknown[]) {
+          return Promise.resolve(undefined);
         },
       };
     },

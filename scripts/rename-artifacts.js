@@ -25,8 +25,35 @@ const packageJson = JSON.parse(
 );
 const appVersion = packageJson.version;
 
-// Get build number from environment (GitHub Actions run number or 1 for local)
-const buildNumber = process.env.GITHUB_RUN_NUMBER || '1';
+/**
+ * Read the native build number from the platform config files
+ * (versionCode in build.gradle for Android, CURRENT_PROJECT_VERSION in
+ * project.pbxproj for iOS) rather than using the GitHub Actions run number.
+ */
+function readNativeBuildNumber() {
+  if (platform === 'android') {
+    const gradle = fs.readFileSync(
+      path.join(__dirname, '../android/app/build.gradle'),
+      'utf8',
+    );
+    const match = gradle.match(/versionCode\s+(\d+)/);
+    if (match) return match[1];
+  } else {
+    const pbxproj = fs.readFileSync(
+      path.join(
+        __dirname,
+        '../ios/MetaMask.xcodeproj/project.pbxproj',
+      ),
+      'utf8',
+    );
+    const match = pbxproj.match(/CURRENT_PROJECT_VERSION\s*=\s*(\d+)/);
+    if (match) return match[1];
+  }
+  console.warn('⚠️  Could not read native build number, falling back to 0');
+  return '0';
+}
+
+const buildNumber = readNativeBuildNumber();
 
 // Required env vars
 const buildType = process.env.METAMASK_BUILD_TYPE;
@@ -114,20 +141,32 @@ function renameAndroid() {
     const newApk = path.join(apkDir, `${newBaseName}.apk`);
     fs.copyFileSync(oldApk, newApk);
     console.log(`✅ Renamed APK: ${newApk}`);
+    setGithubOutput('android_apk_path', newApk);
   } else {
     console.log(`⚠️  APK not found: ${oldApk}`);
   }
 
-  // Rename AAB (only for Release builds)
+  // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
     if (fs.existsSync(oldAab)) {
       const newAab = path.join(bundleDir, `${newBaseName}.aab`);
       fs.copyFileSync(oldAab, newAab);
       console.log(`✅ Renamed AAB: ${newAab}`);
+      setGithubOutput('android_aab_path', newAab);
     } else {
       console.log(`⚠️  AAB not found: ${oldAab}`);
     }
+  }
+
+  // Expose sourcemap directory for all non-Debug builds (prod, RC, beta, test, e2e, exp)
+  if (buildConfig === 'release') {
+    const sourcemapDir = path.join(
+      __dirname,
+      `../android/app/build/generated/sourcemaps/react/${appFlavor}Release`,
+    );
+    setGithubOutput('android_sourcemap_dir', sourcemapDir);
+    console.log(`✅ Sourcemap dir: ${sourcemapDir}`);
   }
 
   // List final artifacts
@@ -144,6 +183,17 @@ function renameAndroid() {
       console.log(`  ${file}`);
     }
   });
+}
+
+/**
+ * Write key=value pairs to $GITHUB_OUTPUT (mirrors Bitrise's envman add).
+ * No-ops outside of GitHub Actions.
+ */
+function setGithubOutput(key, value) {
+  const githubOutput = process.env.GITHUB_OUTPUT;
+  if (githubOutput) {
+    fs.appendFileSync(githubOutput, `${key}=${value}\n`);
+  }
 }
 
 /**
@@ -201,20 +251,44 @@ function renameIos() {
       fs.copyFileSync(oldBinary, newBinary);
     }
     console.log(`✅ Renamed binary: ${newBinary}`);
+
+    if (isSimBuild) {
+      // Zip the .app bundle for clean single-file download (mirrors Bitrise's is_compress: true)
+      const zipPath = path.join(buildDir, `${newBaseName}.zip`);
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${newBinary}" "${zipPath}"`,
+      );
+      console.log(`✅ Zipped: ${zipPath}`);
+      setGithubOutput('ios_deploy_path', zipPath);
+    } else {
+      setGithubOutput('ios_deploy_path', newBinary);
+    }
   } else {
     console.log(`⚠️  Binary not found: ${oldBinary}`);
   }
 
-  // Rename xcarchive (only for device builds)
+  // Expose sourcemap path for device builds (mirrors Bitrise's Deploy Source Map step)
+  if (!isSimBuild) {
+    const sourcemapPath = path.join(__dirname, '../sourcemaps/ios/index.js.map');
+    setGithubOutput('ios_sourcemap_path', sourcemapPath);
+    console.log(`✅ Sourcemap path: ${sourcemapPath}`);
+  }
+
+  // Zip xcarchive into a single file (only for device builds)
+  // .xcarchive is a directory; zipping it produces a clean single-file artifact
+  // that Runway and other tools can match by extension.
   if (!isSimBuild) {
     const oldArchive = path.join(__dirname, `../ios/build/${appName}.xcarchive`);
     if (fs.existsSync(oldArchive)) {
-      const newArchive = path.join(
+      const archiveZip = path.join(
         __dirname,
-        `../ios/build/${newBaseName}.xcarchive`,
+        `../ios/build/${newBaseName}.xcarchive.zip`,
       );
-      execSync(`cp -r "${oldArchive}" "${newArchive}"`);
-      console.log(`✅ Renamed archive: ${newArchive}`);
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${oldArchive}" "${archiveZip}"`,
+      );
+      console.log(`✅ Zipped archive: ${archiveZip}`);
+      setGithubOutput('ios_archive_path', archiveZip);
     } else {
       console.log(`⚠️  Archive not found: ${oldArchive}`);
     }
@@ -223,12 +297,15 @@ function renameIos() {
   // List final artifacts
   console.log('📦 Final artifacts:');
   if (isSimBuild) {
-    const apps = findDirs(
-      path.join(__dirname, '../ios/build/Build/Products'),
-      '*.app',
-    );
-    apps.forEach((app) => {
-      console.log(`  ${app}`);
+    const zips = findFiles(buildDir, '*.zip');
+    zips.forEach((zip) => {
+      try {
+        const stats = fs.statSync(zip);
+        const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+        console.log(`  ${zip} (${sizeMB} MB)`);
+      } catch {
+        console.log(`  ${zip}`);
+      }
     });
   } else {
     const ipas = findFiles(path.join(__dirname, '../ios/build/output'), '*.ipa');

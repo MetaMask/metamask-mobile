@@ -19,21 +19,22 @@ import {
 } from '@react-navigation/native';
 import Fuse from 'fuse.js';
 
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
-import Icon, {
+import { IconName as ComponentLibraryIconName } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+  FontWeight,
+  Icon,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+  ButtonIcon,
+  ButtonIconSize,
+} from '@metamask/design-system-react-native';
 
 import styleSheet, {
   styles as navigationOptionsStyles,
@@ -43,7 +44,9 @@ import { getNavigationOptionsTitle } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
-import useRampsController from '../../../hooks/useRampsController';
+import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
+import { useRampsCountries } from '../../../hooks/useRampsCountries';
+import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -93,7 +96,7 @@ interface HeaderBackButtonProps {
 function HeaderBackButton({ onPress, testID }: HeaderBackButtonProps) {
   return (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSize.Md}
       iconName={IconName.ArrowLeft}
       onPress={onPress}
       style={navigationOptionsStyles.headerLeft}
@@ -107,13 +110,12 @@ function RegionSelector() {
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
 
+  const { userRegion, setUserRegion } = useRampsUserRegion();
   const {
-    userRegion,
-    setUserRegion,
     countries,
-    countriesLoading,
-    countriesError,
-  } = useRampsController();
+    isLoading: countriesLoading,
+    error: countriesError,
+  } = useRampsCountries();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
@@ -367,11 +369,12 @@ function RegionSelector() {
                   {item.country.flag && (
                     <View style={styles.emoji}>
                       <Text
-                        variant={TextVariant.BodyLGMedium}
+                        variant={TextVariant.BodyLg}
+                        fontWeight={FontWeight.Medium}
                         color={
                           isSupported
-                            ? TextColor.Default
-                            : TextColor.Alternative
+                            ? TextColor.TextDefault
+                            : TextColor.TextAlternative
                         }
                       >
                         {item.country.flag}
@@ -380,17 +383,20 @@ function RegionSelector() {
                   )}
                   <View style={styles.textContainer}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyLg}
+                      fontWeight={FontWeight.Medium}
                       color={
-                        isSupported ? TextColor.Default : TextColor.Alternative
+                        isSupported
+                          ? TextColor.TextDefault
+                          : TextColor.TextAlternative
                       }
                     >
                       {item.country.name}
                     </Text>
                     {showStateName && userRegion.state && (
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Muted}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextMuted}
                       >
                         {userRegion.state.name}
                       </Text>
@@ -423,11 +429,12 @@ function RegionSelector() {
                     <View style={[styles.region, styles.nestedStateRegion]}>
                       <View style={styles.textContainer}>
                         <Text
-                          variant={TextVariant.BodyLGMedium}
+                          variant={TextVariant.BodyLg}
+                          fontWeight={FontWeight.Medium}
                           color={
                             isStateSupported
-                              ? TextColor.Default
-                              : TextColor.Alternative
+                              ? TextColor.TextDefault
+                              : TextColor.TextAlternative
                           }
                         >
                           {state.name || ''}
@@ -470,9 +477,12 @@ function RegionSelector() {
                 {region.flag && (
                   <View style={styles.emoji}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyLg}
+                      fontWeight={FontWeight.Medium}
                       color={
-                        isSupported ? TextColor.Default : TextColor.Alternative
+                        isSupported
+                          ? TextColor.TextDefault
+                          : TextColor.TextAlternative
                       }
                     >
                       {region.flag}
@@ -481,15 +491,21 @@ function RegionSelector() {
                 )}
                 <View style={styles.textContainer}>
                   <Text
-                    variant={TextVariant.BodyLGMedium}
+                    variant={TextVariant.BodyLg}
+                    fontWeight={FontWeight.Medium}
                     color={
-                      isSupported ? TextColor.Default : TextColor.Alternative
+                      isSupported
+                        ? TextColor.TextDefault
+                        : TextColor.TextAlternative
                     }
                   >
                     {region.name}
                   </Text>
                   {showStateName && userRegion.state && (
-                    <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextMuted}
+                    >
                       {userRegion.state.name}
                     </Text>
                   )}
@@ -518,9 +534,12 @@ function RegionSelector() {
             <View style={styles.region}>
               <View style={styles.textContainer}>
                 <Text
-                  variant={TextVariant.BodyLGMedium}
+                  variant={TextVariant.BodyLg}
+                  fontWeight={FontWeight.Medium}
                   color={
-                    isStateSupported ? TextColor.Default : TextColor.Alternative
+                    isStateSupported
+                      ? TextColor.TextDefault
+                      : TextColor.TextAlternative
                   }
                 >
                   {region.name || ''}
@@ -557,10 +576,14 @@ function RegionSelector() {
     if (countriesError && countries.length === 0) {
       return (
         <View style={styles.emptyList}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.errorText}>
+          <Text
+            variant={TextVariant.BodyLg}
+            fontWeight={FontWeight.Medium}
+            style={styles.errorText}
+          >
             {strings('fiat_on_ramp_aggregator.error')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {countriesError}
           </Text>
         </View>
@@ -570,7 +593,7 @@ function RegionSelector() {
     if (searchString.length > 0) {
       return (
         <View style={styles.emptyList}>
-          <Text variant={TextVariant.BodyLGMedium}>
+          <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
             {strings('fiat_on_ramp_aggregator.region.no_region_results', {
               searchString,
             })}
@@ -617,7 +640,10 @@ function RegionSelector() {
 
   const stateHeaderLeft = useCallback(
     () => (
-      <HeaderBackButton onPress={handleRegionBackButton} testID="back-button" />
+      <HeaderBackButton
+        onPress={handleRegionBackButton}
+        testID={REGION_SELECTOR_TEST_IDS.BACK_BUTTON}
+      />
     ),
     [handleRegionBackButton],
   );
@@ -647,8 +673,8 @@ function RegionSelector() {
       <View style={styles.searchContainer}>
         {activeView === RegionViewType.COUNTRY && (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             style={styles.descriptionText}
           >
             {strings('fiat_on_ramp_aggregator.region.region_variation_notice')}
@@ -658,8 +684,8 @@ function RegionSelector() {
           value={searchString}
           onPressClearButton={clearSearchText}
           clearButtonProps={{
-            iconName: IconName.Close,
-            testID: 'region-selector-clear-button',
+            iconName: ComponentLibraryIconName.Close,
+            testID: REGION_SELECTOR_TEST_IDS.CLEAR_BUTTON,
           }}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
@@ -706,7 +732,7 @@ RegionSelector.navigationOptions = ({
 }) => ({
   headerLeft: () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSize.Md}
       iconName={IconName.ArrowLeft}
       onPress={() => navigation.goBack()}
       style={navigationOptionsStyles.headerLeft}

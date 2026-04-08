@@ -164,6 +164,12 @@ class TransactionConfirmationView {
       elemDescription: 'Gas Fee Token Pill in Confirmation View',
     });
   }
+
+  async tapAdvancedDetails(): Promise<void> {
+    await Gestures.waitAndTap(RowComponents.AdvancedDetails, {
+      elemDescription: 'Advanced details in Confirmation View',
+    });
+  }
 }
 
 export default new TransactionConfirmationView();

@@ -7,6 +7,547 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.72.0]
+
+### Added
+
+- Card Spending limit screen analytics include Linea mUSD fiat balance, top card-supported asset by fiat, and top wallet-wide asset by fiat when the screen is viewed (#27981)
+- Upgrade @metamask/seedless-onboarding-controller to v9.0.0 (#27859)
+- Added new workflow runway_ios_rc_workflow (#27662)
+- Added check to hide Speed up and Cancel buttons in the activity list and transaction details when the user has selected another token to pay for gas (#27404)
+- Added skeleton-style quote loading UI during swaps (#27174)
+- Added Earn Rewards preview section to the Rewards Dashboard with geo-gated mUSD calculator and MetaMask Card earn cards (#27684)
+- Added geo-restriction guard to campaign opt-in sheet, disabling opt-in for users in restricted regions (#27676)
+- Added edit gas from cancel/speed up modal: users can tap the network fee row to open the gas fee modal and adjust gas before confirming cancel or speed up (#27194)
+- Added an experiment for the bridge token selector balance layout (#27690)
+- Added Stable network logo and USDT0 native token icon (#27258)
+- Added "View all" actions for Explore search sections (#26569)
+- Added Ondo GM campaign portfolio positions (#27971)
+- Added Ondo campaign leaderboard rank and position (#27917)
+- Added remote feature flag for the Tron unstaked TRX claim button on token details (#27908)
+- Added compliance access-restricted modal when a wallet address is flagged (#27694)
+- Added ERC-1155 send from NFT details (#27800)
+- Added Money home empty state scaffold (#27831)
+- Added Solana SPL delegation for MetaMask Card spending limits (#25276)
+- Added Perps withdraw entry under Developer Options with updated UI (#27792)
+- Added test-app universal link support (#27811)
+- Added Braze SDK integration for push notification delivery (#28143)
+
+### Changed
+
+- Changed the default in-app browser search engine to Brave Search for a privacy-focused, ad-free browsing experience (#26356)
+- Updated ERC-20 token balance loading to resolve balances via an API call instead of cache-only reads (#27611)
+- Improved Predict withdraw token list load performance (#27735)
+- Removed token list item V1/V2 feature flag (#27731)
+- Updated hosted charting library URL for in-app charts (#27972)
+- Hid date on Rewards campaign cards, tightened disclaimer copy, and added mUSD button metrics in the mUSD view (#27952)
+- Improved mUSD calculator defaults, swap navigation, and disclaimer placement (#27949)
+- Market Insights feedback buttons show a filled state and persist selection for the current digest (#27849)
+- Migrated `Button` to the design system in the web3auth scope (#27810)
+- Migrated `Button` to the design system in the card scope (#27752)
+- Migrated `Button` to the design system in the confirmations scope (#27805)
+- Migrated `Button` to the design system in the wallet-integration scope (#27548)
+- Migrated `Button` to the design system in the bridge scope (#27535)
+- Activity "View full history" uses the correct block explorer when the wallet network does not match the activity chain (#27734)
+- WalletConnect v2: sequential session restore (#27950)
+- WalletConnect v2: `pairingTopic` handling for permission revocation (#27945)
+- WalletConnect v2: Redux store listener cleanup (#27932)
+- Updated Activity to filter incoming native transfers from unknown senders while keeping transfers from your accounts and address book (#27799)
+- Gated campaigns with rewards enabled instead of a separate campaigns feature flag (#27863)
+- Updated global error handling by moving `ErrorBoundary` above providers to catch render failures (#27816)
+- Updated the general settings language picker to show each language in its native name (#27788)
+- Updated `@metamask/design-system-react-native` to 0.11.0 and deprecated overlapping component-library exports (#27652)
+- Refactored Card spending limit flow with account-scoped token ordering, settings-style rows, and a dedicated limit options sheet (#27918)
+- Improved cross-chain bridge activity visibility on the destination chain (#27536)
+
+### Fixed
+
+- fix: replace static hex colors with design tokens in test files (#26396)
+- Fixed Perps PnL comma formatting (#27815)
+- Fixed incorrect aggregated PnL and order size for multi-fill trades on Perps market and home (#27906)
+- Fixed HIP-3 market category labels for URNM (commodity) and USAR (stock) (#27910)
+- Fixed low-price asset TP/SL price entry to allow up to six decimals (#27901)
+- Fixed prediction outcome labels breaking the market details action button layout (#27832)
+- Fixed Card delegation by adding missing Card-supported networks so approvals receive a valid `networkClientId` (#27833)
+- Fixed Perps max-size buffer to reduce spurious "Insufficient margin" near 100% margin (#27417)
+- Fixed missing TP/SL pills on Perps and Activity recent activity (#27685)
+- Fixed perps order toast styling and deposit progress toast behavior (#27487)
+- Fixed empty error messages in authentication flows (#27705)
+- Fixed gas-sponsored swap activity to show "Paid by MetaMask" on the total gas fee row (#27268)
+- Fixed error reporting initialization for Sentry (#27794)
+- Suppressed WebView JavaScript dialogs when the browser screen is not focused (#26705)
+- Fixed mUSD/Cash row typography and fiat formatting alignment with the token list (#27736)
+- Fixed swap amount row alignment with quote details (#27730)
+- Fixed opening a trending token from Swap dismissing the screen instead of showing token details (#27707)
+- Fixed bridge amount keypad cursor handling (#27367)
+- Fixed mUSD analytics and address-copy regressions (#27670)
+- Fixed brief Long/Short flash when opening a market that already has a position (#27671)
+- Fixed Merkl bonus claim handling with session lock and reward refetching (#28204)
+- Fixed token details sticky swap actions to use balance-aware defaults (#28151)
+
+## [7.71.1]
+
+### Changed
+
+- Pointed Market Insights digest fallback URL at the production endpoint when `DIGEST_API_URL` is not set at build time (#28098)
+
+## [7.71.0]
+
+### Added
+
+- Added backend-provided intent typedData for signing intent swap txs (#25913)
+- Added Security & Trust section to Token Details page showing risk level, contract security features, buy/sell tax, token distribution, and official links powered by Blockaid (#27073)
+- Added a "Withdraw" button to the unstaked TRX banner so users can claim TRX that has completed the lock period (#27076)
+- Added handling for aggregated balance on the new home page (#27172)
+- Added LD flags to consume price impact threshold (#27196)
+- Added Segment event tracking for mUSD Quick Convert flow and enriched generic Transaction\* events for mUSD conversion transactions (#27305)
+- Improved bridge/swap quote expiry experience; expired quotes now remain visible inline with a prompt to refresh, replacing a separate modal flow (#27340)
+- Added support for ramps providers such as PayPal, Robinhood & Coinbase that use a different checkout browser (#27364)
+- Added authentication for transaction submission to sentinel and transaction API (#27410)
+- Added skeleton loading indicator to NFT grid items while images are loading (#27413)
+- Embedded the metal card checkout flow into the Card onboarding/sign-up flow (#27420)
+- Added attention badge on Card button (#27425)
+- Added a new tab for users to see their NFTs and fixed NFT flicker on that view (#27437)
+- Added press opacity feedback to NFT grid items (#27488)
+- Applied a minimum $0.01 threshold for showing the "Claim bonus" CTA for Merkl rewards so that amounts below the threshold show the 3% bonus label instead (#27522)
+- Updated Predict withdraw to default to the user’s last used destination token before falling back to the remote preferred token (#27532)
+- Enabled campaigns view under feature flag (#27556)
+- Redirected buy deeplinks to the new Ramps Buy flow when Ramps Unified V2 is enabled; deprecated cash deposit deeplinks (#27557)
+- Restored mUSD claimable bonus claim section on asset overview screen (#27567)
+- Added campaign opt-in flow with details and mechanics screens in the Rewards section (#27619)
+- Updated Ramp buy flow modal headers and typography to use shared compact header and design system components (#27627)
+- Migrated Card authentication to CardController with new `useCardAuth` hook for controller-based auth flow (#27656)
+- Extracted Card supported-country check into `selectIsUserInSupportedCardCountry` selector (#27695)
+- Updated mUSD aggregated balance row to redirect to the Cash tokens list when the user holds mUSD on any network (#27703)
+
+### Changed
+
+- Removed deprecated payment request (#27519)
+- Updated earn balance row layout (logo size, badge size, balance/percentage placement) and added privacy mode support for StakingBalance and EarnLendingBalance (#27457)
+- Refactored Card onboarding to use the `useRegions` hook instead of Redux `selectedCountry` for region/country data (#27539)
+- Adjusted spacing in homepage (#27637)
+
+### Fixed
+
+- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the token selection screen (#27277)
+- Fixed false "Token Not Available" errors during Buy flow when payment methods are still loading after provider change; fixed missing "Token Not Available" modal in home buy flow; fixed crash when navigating back from "Token Not Available" modal in token info buy flow (#27448)
+- Fixed token row display on homepage to show price and variation separated by a dot for consistency with token list items (#27449)
+- Fixed stop loss banner rendering issue (#27458)
+- Fixed Order Details screen displaying excessive decimal places for crypto amounts after ramp purchases (#27469)
+- Fixed remove network confirmation header casing to sentence case (#27480)
+- Fixed the custom network header trash icon color to match other trash icons in the app (#27481)
+- Fixed a bug where the RPC URL field in network details could appear focused after blur and had inconsistent typography between states (#27482)
+- Fixed RAMP_INTERNAL_BUILD default for OTA push (#27507)
+- Fixed a bug where Perps activity could appear blank after reopening the Activity screen from Perps home (#27509)
+- Fixed universal link handling for redirect-oauth (#27511)
+- Fixed Network Details so network name is required and no longer labeled optional (#27541)
+- Fixed onboarding import button text being invisible in dark mode; ensured both CTAs have proper contrast in dark mode (#27550)
+- Removed a stale feature-flag gate so the Networks menu item is always available (#27591)
+- Fixed MegaETH explorer button to display "View on Megaeth Explorer" instead of "View on Megaeth" (#27592)
+- Fixed padding in security screen header (#27621)
+- Fixed TokenList crash when switching networks (#27655)
+- Fixed miscategorization of BRENTOIL and other non-crypto instruments appearing in the "Explore Crypto" section on Perps Home (#27699)
+
+## [7.70.1]
+
+### Fixed
+
+- Fixed stale perpetuals data and missing 24h price change after returning from background (#27530)
+- Fixed a bug where closing positions on HIP-3 markets (e.g., xyz:BRENTOIL) failed with "Asset ID not found" when navigating via the Perps tab (#27854)
+
+## [7.70.0]
+
+### Added
+
+- Add auth header to bridge getToken calls (#26191)
+- Add a Contact Support button on CardHome (#27421)
+- Added an mUSD bonus calculator to the Rewards tab (#27398)
+- Add Monad integration on Card delegation (#27392)
+- Added a Cash section on the homepage that shows aggregated mUSD balance, annualized bonus copy for stablecoin holders, and a dedicated Cash token list view with network filter (#27123)
+- Homepage tokens and DeFi now always sort by balance/value; View all keeps your sort preference. Popular networks are selected when opening the Wallet so View all shows all popular networks by default (#27339)
+- Include nfts on manual refresh (#27272)
+- Added a remote feature flag to control default pay token preselection when users have no Perps balance. (#27289)
+- Added a banner to display TRX that is ready for withdrawal on the token details view (#27075)
+- Add campaign opt-in and participant status hooks/controller actions (#27121)
+- Added a banner to display TRX in the 14-day unstaking lock period on the token details view (#27074)
+- Add select quotes functionality (#26640)
+- When users have no perps balance, the app now preselects the allowlist token with the highest balance for payment when available, and shows an "Add funds" button on the market details screen when no token can be preselected (#26281)
+- Expose GET /campaigns endpoint through RewardsController with 5-minute cache (#27108)
+- Always display popular networks assets on the token section of the home page (#27009)
+- Added Trending tokens to the mobile Swap zero state with filter controls and improved Bridge quote/loading state handling (#26620)
+- Added off-device linked accounts detection, caching, and display in Rewards Settings (#26674)
+- Added a live blinking cursor to the Ramp Buy and Sell amount input screens for a more intuitive input experience (#27292)
+
+### Changed
+
+- Updated the mUSD conversion flow to redirect users to the home page if they've "Max" converted their last eligible token (#27383)
+- Updated Bridge token selector balance sizing and color hierarchy (#27197)
+- Improved RPC URL display in Networks Management to hide protocol and API keys, matching Network Selector (#27067)
+- Update the new home page nft section redesign to always show popular networks (#27165)
+- Update the new home page redesign defi section to always show popular networks (#27163)
+- Updated swap price impact text coloring (#26390)
+- Updated mUSD conversion copy to reflect annualized bonus and claim timeline (#27097)
+- Refactored token-conversion-asset-header to stack assets vertically when text overflow is detected (#27010)
+- Replaced mUSD conversion-specific network fee row with the generic transaction fee row and updated fee tooltip copy (#27091)
+- Updates price impact modals content (#27256)
+- Update icons when tab bar is pressed (#27082)
+- Updated the error state icon on the homepage to a new no-connection illustration (#27070)
+- Updated View more card styling with background color and updated Perps View more to navigate to market list (#27078)
+
+### Fixed
+
+- Fixed Ledger connect screen image being cut off on iOS after using the keyboard. (#27665)
+- Fixed a bug where tapping perpetuals items on the homepage did not show the tutorial for first-time users (#27423)
+- Fixed UI styling on perps, explore and predictions (#26890)
+- Fixed missing mUSD icon when viewing token details from the Cash section empty state (#27442)
+- Fixed a brief flash of empty content in the Tokens section while token data loads on the homepage (#27431)
+- Fixed Perps reconnect recovery and error reporting for market data and position actions (#27408)
+- Fixed Card Onboarding name issues (#27291)
+- fix(homepage): fix session summary section tracking and visibility detection (#27402)
+- Disable slide-to-dismiss behavior of swaps keypad (#26770)
+- Remove thrown exceptions in migration 121 when `NetworkEnablementController` is absent or `NetworkEnablementController.nativeAssetIdentifiers` is missing (#27275)
+- Fixed Android Google sign-in errors not falling back to browser-based login for unrecognized credential manager failures (#26964)
+- Fixed a visual inconsistency where bridge token selector ticker text appeared thinner than other token lists. (#27357)
+- fix: scanning verbiage only shows when actually scanning (#27319)
+- Fixed a bug where switching to a non-EVM network caused EVM transaction details to display the wrong block explorer link (#27321)
+- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the token selection screen (#27297)
+- Fixed a bug where the "Change provider" link in the payment selection modal was not clickable while payment methods were loading (#27288)
+- fix: increase touchable area of select quotes entry (#27267)
+- Fixed OTP error messages to show the actual error from the server instead of a generic fallback (#26727)
+- fix: pin seed phrase font size to prevent shrinking on large font devices (#27238)
+- Fix issue related to info icon press navigating to select quotes rather than opening info modal (#27249)
+- Long/Short from Asset Details now ensures Arbitrum network exists (adds it if missing) before creating the deposit transaction, fixing "Transaction creation failed" when the user has no Arbitrum network (#27213, #26756)
+- Fixed a race condition causing CLIENT_NOT_INITIALIZED errors when navigating to Perps before controller initialization completes (#27178)
+- Fixed a bug where hiding balances on the wallet home screen was not reflected in the account list (#27190)
+- Fixed BottomSheet dismissing the wrong screen when rapidly opened and closed, which could leave mUSD conversion confirmation flows in a blocked state with unrejected pending approvals (#27026)
+- Fixed layout issues in Ramp Order Details — inline info icon, centered status text, sticky footer, stripped redundant order prefix, adjusted toast offset, and centered text in processing info modal (#27025)
+- Fix avoid O(n) api calls to on-ramp endpoint (#26900)
+- Fixed mUSD conversion confirmation no longer gets stuck when tapping external links that briefly background the app (#27155)
+- Fixed a bug in the asset picker where token and balance text could wrap incorrectly by aligning mobile layout and truncation behavior with extension (#27069)
+- Fixed privacy mode not hiding financial values on Perps screens (#27128)
+- Fix Ledger transaction not displayed after opening ETH app (#26322)
+- Fixed issue of confirmation not rejecting when app locks (#26905)
+- Fixed missing horizontal padding on NFT skeleton loading state in full view (#27077)
+- Fixed a bug where the Ramp checkout provider title appeared above the WebView content (#27024)
+- Hardened mUSD conversion quick convert status tracking. Auto reject pending mUSD approvals when app is foregrounded. (#26608)
+- Fixed missing block explorer link on "Receive mUSD" row for Linea USDT and DAI conversions using aggregator routes (#27022)
+
+## [7.69.1]
+
+### Fixed
+
+- Fixed root pages scrollable behavior with SafeAreaView, standardizing safe area and header inset handling across main tab views (#27446)
+- Fixed token prices in the wallet list displaying without thousand-separator commas and with too many decimal places (#27485)
+
+## [7.69.0]
+
+### Added
+
+- Add network logo for Tempo mainnet (#26904)
+- Added the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance (#27065)
+- Added MYX Finance as a second perpetuals provider with provider+network switching UI and validated market data (#26553)
+- Added redesigned Speed up and Cancel transaction modal (#26209)
+- Added max convert bottom sheet for mUSD Quick Convert (#26638)
+- Allow users to select a payment method if their amount is 0 (#26717)
+- Added watchlist tokens to the top of the Perpetuals trending carousel on the homepage with a star badge indicator (#26763)
+- Added a bottom fade overlay to the homepage wallet view indicating scrollable content (#26470)
+- Sets Infura RPC for HyperEVM with Quicknode failover (#25367)
+- Added new toast-style notifications for buy order status updates (processing, completed, failed, cancelled) behind the Unified Buy V2 feature flag (#26670)
+- Added blue claim button to the homepage Predictions section for users with claimable winnings (#26650)
+
+### Changed
+
+- Updated mUSD conversion flow copy to replace boost with bonus (#26453)
+- Removed showing OTA modal when users are on onboarding screen (#26839)
+- Inlined perps "Add funds" flow in the pay-with token filter so the Pay With modal no longer depends on a deposit callback from the parent (#26543)
+- Improved keyboard UX for buy feature (#26776)
+- Improved Ramps buy flow by preventing auto-lock during checkout (#26723)
+- Updated prediction market card design with smaller cards, plain-text percentages, and consistent heights (#26795)
+- Updated ramp provider selection modal UI (#26726)
+- UI updates for the Reveal SRP feature, specifically the Quiz Component and Reveal SRP views (#25388)
+- Disabled the Max button for Predict Withdraw (#27006)
+- Updated mUSD conversion tertiary CTA copy (#26805)
+- Removed "Reset notifications" button from notifications list (#26641)
+- Removed territory field for unified formatting (#26623)
+
+### Fixed
+
+- Refactored Ramp buyability to add batched useTokensBuyability with keyed results and keep useTokenBuyability as a backward-compatible wrapper, reducing redundant legacy token-cache fetches for multi-token checks (#25539)
+- Fixed incorrect error message shown when there is not enough native token to cover gas fees during a withdrawal (#27001)
+- Fixed missing Ramps Button Clicked analytics event when tapping Buy on the homepage token empty state (#27058)
+- Fixed spurious offline/reconnecting toasts on mount and during intentional reconnects (#27034)
+- Fixed the occasional Input placeholder misalignments (#26835)
+- Fixed a quote expired element showing outside of the bridge page (#26729)
+- Fixed missing NFT detection on homepage focus, restoring auto-detection when the user navigates to the homepage (#26919)
+- Fixed cashback option visibility for US users on Card home screen and updated cashback description for Metal Card holders (#26993)
+- Fixed camera permission "allow once" not showing the camera popup on Android (#26415)
+- Fixed a bug where the Receive address in EVM token details showed a Non-EVM address after switching from a Non-EVM network (#26965)
+- Fixed a bug where some swap deeplink token icons did not load because ERC-20 icon URLs used checksummed addresses (#26914)
+- Fixed perps ROE percentage display to show 2 decimal places for improved precision (#26600)
+- Fixed token price display on the token details page to show up to 4 decimal places for precision, and subscript notation for very small prices, consistent with the trending token list (#26894)
+- Fixed Perps section on homepage showing a full-screen error instead of the compact inline error state (#26831)
+- Fixed Buy token selection screen showing "No tokens match" with an empty list on first app load after install or update; screen now shows loading until tokens are ready (#26852)
+- Fixed date of birth formatting on Card onboarding so the displayed date matches the user's selected date in all timezones (#26893)
+- Fixed Unified Buy Build Quote header to use correct typography and icon sizing per design spec (#26713)
+- Fixed Google login crash on Android devices without credential provider dependencies by falling back to browser-based authentication (#26677)
+- Fixed saving network details for custom networks (e.g. added from Popular list) when the Save button had no effect (#27053)
+- Fixed off-center "Buy/Get mUSD" button for primary mUSD conversion CTA (#27015)
+- Fixed network details screen showing a delete (trash) icon for networks that cannot be removed (e.g. Ethereum mainnet, Linea, Goerli, testnets) (#26983)
+- Fixed token hiding not working on the redesigned homepage (#26649)
+- Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after token selection (#25952)
+
+## [7.68.3]
+
+### Fixed
+
+- Fixed seedless onboarding vault decryption crash by handling both vault formats in encryptorAdapter (#27393)
+- Fixed OTA environment variable configuration to use new build flag (#26668)
+
+## [7.68.2]
+
+### Fixed
+
+- Fixed a bug that permanently locked some seedless onboarding users out of their wallets after a background token refresh (#27382)
+
+## [7.68.1]
+
+### Added
+
+- Add support for additional icon colors in Snaps `Icon` component (#27335)
+
+## [7.68.0]
+
+### Added
+
+- Implemented mUSD Cashback on the Card dashboard (#26586)
+- Added a persistent "Submitting your trade" toast during Perps order placement (#26432)
+- Added mUSD Quick Convert flow (#26581)
+- Added open perps positions section to the new wallet Homepage (#26430)
+- Incoming ERC-20 token transfers from unknown senders are now hidden from the activity feed to protect against address poisoning attacks (#26235)
+- Added MM fee display for Predict Withdraw to any token (#26562)
+- Added gasless bridge with 7702 behind feature flag (#26513)
+- Added a dedicated order details screen for Ramps V2 (Unified Buy) orders with status tracking, provider link, and processing info modal (#26462)
+- Added ability to redeem a bonus code in WaysToEarn (#26097)
+- Added DeFi full view screen accessible from the homepage DeFi section title (#26498)
+- Added withdraw token and amount display in activity and on transaction detail page (#26223)
+- Added modal for changing token or provider if token is unavailable (#26043)
+- Added a Networks Management screen to the Account Menu behind a feature flag (#26336)
+- Added popular tokens section on Homepage for zero balance accounts (#26379)
+- Added gas sponsorship UI (#26252)
+- Added market close bottom sheet to prevent trading on closed markets (#25157)
+- Added trust signal icons to address displays in confirmations (#25154)
+- Added card freeze/unfreeze toggle to the Card Home screen (#26246)
+- Added Native Transak v2 purchase flow with in-app email/OTP authentication, KYC handling, order creation, and payment processing (#26033)
+- Added support for WalletConnect verify API (#26070)
+- Added Predict withdrawal to any token (#25441)
+- Added amount row display when simulation fails (#25716)
+- Preloaded Perps market and user data at startup for instant rendering (#26061)
+- Added network pill overflow with "+X more" button in the bridge token selector (#25893)
+
+### Changed
+
+- Updated prediction buy fee details UI to improve readability and updated fee breakdown copy (#26524)
+- Updated Predict withdraw toast to show the actual token symbol and amount instead of hardcoded USDC (#26418)
+- Updated full-screen confirmation/loading for mUSD Quick Convert to use the bottom-sheet flow (#26437)
+- Updated Add network behavior on new Network Management view (#26339)
+- Updated Predict orders to use Polymarket market-specific fees when placing orders (#26518)
+- Improved swaps input functionality (#26225)
+- Enhanced token import with search endpoint integration, trending tokens, and modernized UI architecture (#26108)
+- Replaced webview-based Veriff KYC flow with native Veriff SDK integration with MetaMask-branded UI (#26138)
+- Moved notifications and QR scanner from home screen header to Account Menu and added Deposit quick action (#26100)
+- Increased the browser tab limit from 5 to 20 and improved tab switching performance (#26143)
+- Prefill country of residence from geolocation on Card onboarding SignUp (#26136)
+- Revamped swaps keypad (#25845)
+- Removed opt out button from Rewards settings (#26189)
+- Removed notifications for all swap/bridge transactions (#25919)
+- Removed quote details tooltip CTA and fixed paddings (#26156)
+- Updated mUSD claim bonus subtitle copy (#26019)
+
+### Fixed
+
+- Fixed pull-to-refresh gesture intercepting taps on buttons near the top of the page in the in-app browser (#26373)
+- Fixed Perps failure tightly coupled to trending feature (#26549)
+- Fixed a potential decompression bomb vulnerability in the deeplink connection flow by adding streaming output size limits (#26542)
+- Fixed the limit-order TP/SL display gap and related order-row/detail display (#25885)
+- Fixed claim button text color in Predict positions header to always display white for proper contrast (#26510)
+- Fixed TokenController string decimals via migration (#26338)
+- Fixed first-time interaction alerts trigger for token transfer recipients (#26326)
+- Fixed Bridge recipient selection to preserve external recipients and show an error state for invalid recipient addresses (#26398)
+- Fixed `NetworkEnablementController.nativeAssetIdentifiers['eip155:999']` migration to `eip155:999/slip44:2457` (#26231)
+- Fixed a bug where the balance check for prediction market orders did not account for fees (#26446)
+- Fixed Android JNI UncaughtException error caused by WebView debugging configuration (#26391)
+- Fixed order book grouping by 1 unit no longer incorrectly groups by 2 (#26331)
+- Fixed an issue where validation triggered when user tries `,` separator in gas fields (#26429)
+- Fixed a bug where the transaction details bottom sheet would show a stale "Pending" status after the transaction was confirmed (#26306)
+- Fixed WalletConnect connection tray getting stuck or looping when scanning QR codes (#26121)
+- Fixed Ledger transaction speed up and cancel transaction handling (#24745)
+- Fixed balance rounding, localization formatting and decimal representation on source swap asset balance (#26267)
+- Fixed keypad bottom border visible occasionally on Android (#26229)
+- Fixed add/remove network confirmation toasts appearing during Bridge flows (#26239)
+- Fixed an iOS bug where scanning a MetaMask universal link QR code opened Safari instead of handling in-app (#25739)
+- Fixed DeFi tab not appearing when switching from non-EVM networks to "All Popular Networks" (#26193)
+- Fixed quick pick button height to match confirm CTA (#26170)
+- Fixed Bridge token selectors to show all supported networks, persist selected network pills, and auto-add missing networks on token selection (#26174)
+- Fixed token prices not displaying for non-EVM tokens in the V2 token list layout (#26132)
+- Fixed excessive ENS API calls when opening the bridge/swaps flow that scaled with the number of accounts (#26126)
+- Fixed a bug where tapping a token's info icon in Swaps could open the wrong asset details page (#26123)
+- Fixed perpetual trading margin display showing $0 when placing orders from the Token Details page (#26105)
+- Fixed confirm button loading state not rendering on input change (#26107)
+- Fixed issue that triggered account creation during onboarding using pre BIP-44 flow when switching networks (#26088)
+- Fixed a UI issue where buttons in the signature message details view were overlapping (#26040)
+- Fixed keypad state on flip and close it when dest token input is pressed (#26068)
+- Fixed intermittent placeholder text alignment and clipping in text inputs on iOS (#26049)
+- Fixed swap quote sorting to fall back to priceImpact or destTokenAmount (#25928)
+- Improved claim bonus responsiveness by caching Merkl API responses (#26016)
+- Fixed keyboard not hiding when scrolling in explore search (#26577)
+
+## [7.67.3]
+
+### Fixed
+
+- Fixed an issue with running Snaps (#26992)
+- Improve reliability of persistence (#26979
+- Fixed Perps WebSocket not reconnecting after app resume from background or WiFi/network toggle (#26780)
+- Remove duplicate AppState listener causing reconnection race (#26982)
+
+## [7.67.0]
+
+### Uncategorized
+
+- chore: merge stable into release 7.67.0 branch (#26496)
+- chore: make OTA Version Display more robust (#26295)
+- Bump new assets controller to v2.0.0 (#26166)
+- Updated assets controllers to 99.4.0 (#26261)
+- Added code fencing for gh actions defined at builds.yml (#26159)
+- Fixed OTA version display (#26204)
+- Remove npx in favor of yarn in sync script (#26233)
+- Remove opt out button from Rewards settings (#26189)
+- Removed notifications for all swap/bridge txs (#25919)
+- Use chain-agnostic gas fee estimates source for bridging (#26047)
+- Stop using portfolio API to fetch contentful sites (#26003)
+- chore(release): sync stable to main for version 7.66.0 (#25916)
+- Updated OTA modal user interface (#25867)
+- Adds FAST_NETWORKS filter for gas-speed component and returns " < 1 Sec" when speed is < 1000ms (#25825)
+  Modifies toHumanEstimatedTimeRange in utils/time.ts to
+  handle "fast network" filter and " < 1 Sec" display
+- Use `StorageService` in Snap Controller (#25672)
+- Fixed the limit price row in Perps order form so it no longer shows rounded bottom borders when the Pay with row is visible (#25834)
+  below it.
+- Replace modal with bottom sheet on 'Account added' click (#25770)
+- chore(deps): bump the npm_and_yarn group across 1 directory with 2 updates (#25696)
+- chore(release): sync stable to main for version 7.66.0 (#25802)
+
+### Added
+
+- Gas sponsorship UI (#26252)
+- Replaced webview-based Veriff KYC flow with native Veriff SDK integration, featuring MetaMask-branded UI with dynamic (#26138)
+  light/dark theme support, custom fonts, and fox logo
+- Add market close bottom sheet to stop user perform trade. (#25157)
+- Added trust signal icons to address displays in confirmations, showing verified, warning, or malicious indicators based (#25154)
+  on address scan results.
+- Moved notifications and QR scanner from home screen header to Account Menu and added Deposit quick action (#26100)
+- Added card freeze/unfreeze toggle to the Card Home screen, allowing users to temporarily disable and re-enable their card. (#26246)
+- `[ADDED]` Native Transak v2 purchase flow with in-app email/OTP authentication, KYC handling, order creation, and payment (#26033)
+  processing.
+- Force enable explore feature (#26128)
+- Add support for wallet connect verify api (#26070)
+- Increased the browser tab limit from 5 to 20 and improved tab switching performance by keeping only the 5 most recently (#26143)
+  used tabs live in memory
+- Prefill country of residence from geolocation on Card onboarding SignUp and extract reusable SelectField component across (#26136)
+  onboarding screens
+- Predict withdrawal to any token (happy path) (#25441)
+- Display amount row when simulation fails (#25716)
+- Improved claim bonus responsiveness by caching Merkl API responses and fixed claim bonus button in token list V2 layout (#26016)
+- Preloaded Perps market and user data at startup for instant rendering (#26061)
+- Added network pill overflow with "+X more" button that opens a full network list in the bridge token selector (#25893)
+- Revamp swaps keypad (#25845)
+- Init the new assets controller under a feature flag (#25957)
+- Adds a page for changing preferred ramp provider (#25860)
+- Add asset overview deeplinks (#25447)
+- Restored the previously selected "Pay with" token when returning to the Perps order view within 5 minutes. (#25938)
+- Fixed predict transaction toast notifications not appearing when navigating away from the Predict tab (#25863)
+- Added new Accounts Menu screen to organize settings navigation with Settings, Manage, and Resources sections (#25611)
+- Adds Bridge and Swap feature to `MegaETH` (#25906)
+- Adds chiliz.png as network logo and enables it in metamask mobile (#25437)
+- Always display learn more about perps link (#25958)
+- Created new token list item v2 (#25824)
+- Added custom claim transaction request screen for mUSD bonus claims with improved UX flow (#25837)
+- Added an "Ending soon" tab to prediction markets feed showing markets sorted by end date (#25868)
+- Removed legacy homepage script injection and related RPC methods (#25620)
+- Add google/web search inside browser search bar (#25897)
+- Homogenize spacing on Explore page for perps items (#25894)
+- Added 1st interaction alert to warn users when interacting with an address for the first time. (#25575)
+- Added icons to the bridge token selector network pills (#25851)
+- Create feature flag for the new unified assets state (#25891)
+- Adds Bridge and Swap feature to HyperEVM (#25769)
+- Added lightweight position display and one-click Long/Short trading on token details page for perps-enabled assets (#25685)
+- Improved browser tab switching performance by keeping tabs mounted (#25702)
+- Validation errors from non-EVM transaction snaps will now be displayed to users during send flow. (#25648)
+- Added detailed transaction display for mUSD reward claims showing claimed amount, network fee, and received total (#25452)
+- Adds functionality for selecting a payment method (#25681)
+- Base setup for in-app provisioning (#25669)
+
+### Fixed
+
+- Adds analytics instrumentation for Token Details V2 layout A/B test (#25844)
+- Fix issues with balance rounding, localization formatting and decimal representation on source swap asset balance. (#26267)
+- Keypad bottom border is visible occasionally on Android (#26229)
+- Adds location property to swap events. (#26067)
+- Fixed a bug where add/remove network confirmation toasts appeared during Bridge flows. (#26239)
+- Fixed an iOS bug where scanning a MetaMask universal link QR code opened Safari and redirected to the App Store instead of (#25739)
+  handling the link in-app.
+- Fixed DeFi tab not appearing when switching from non-EVM networks to "All Popular Networks" (#26193)
+- Set height of quick pick buttons the same as confirm cta (#26170)
+- Fixed Bridge token selectors to show all supported networks, persist selected network pills, and auto-add missing networks (#26174)
+  on token selection.
+- Fixed token prices not displaying for non-EVM tokens in the V2 token list layout. (#26132)
+- Prevent full app reload when editing Trending files (#26135)
+- Fixed excessive ENS API calls when opening the bridge/swaps flow that scaled with the number of accounts (#26126)
+- Fixed a bug where tapping a token’s info icon in Swaps could open the wrong asset details page. (#26123)
+- Fixed perpetual trading margin display showing $0 when placing orders from the Token Details page (#26105)
+- Start rendering confirm button loading state on input change (#26107)
+- Fixed issue that triggered account creation during onboarding using pre BIP-44 flow when switching networks (#26088)
+- Fixed a UI issue where buttons in the signature message details view were overlapping. (#26040)
+- Keep keypad state on flip and close it when dest token input is pressed (#26068)
+- Updated mUSD claim bonus subtitle copy (#26019)
+- Fixed intermittent placeholder text alignment and clipping in text inputs on iOS. (#26049)
+- Fall back to priceImpact or destTokenAmount for swap quote sorting (#25928)
+- Remove deeplink interstitial on dApp deeplinks (#25963)
+- Multiple fixes on import token flow (#25962)
+- Fixed decimal precision calculation for Tron's staked balance (#25430)
+- Fixed intermittent "Failed to fetch market data" errors on Perps by switching market data fetches from WebSocket to HTTP (#26014)
+  transport
+- Fixed `x-us-env` header being incorrectly set to `false` for US Card users when geolocation requests fail (#25971)
+- Fix #24546 with human readable message (#25555)
+- Removed "Add funds to start trading perps" banner from Perps market details and allow opening trades (Long/Short) when perps (#25960)
+  balance is zero.
+- Fixed long token names pushing balance off screen in Send flow and MM Pay token picker (#25338)
+- Fix #25693 styling issue in for ledger devices (#25758)
+- Fixed navigation error and token buyability checks when purchasing crypto with cash using unified buy V2 (#25617)
+- Fixed Predictions tab not hiding monetary values when privacy mode is enabled (#25887)
+- Fixed Perps deposit+order flow so the pending deposit toast auto-dismisses after a few seconds and the "deposit taking longer" (#25939)
+  message appears after 30 seconds.
+- Fixed header height to scale properly with larger accessibility font sizes (#25855)
+- Activity header symbol fallback (#25821)
+- Fixed the Perps order pay row not appearing until margin was loaded. (#25836)
+- When passoword oudated, it navigate to oauthRehydrate screen when reopen app (#25687)
+- Fixed notification and transaction display for EIP-7702 transactions without nonces (#25646)
+- Adds event for when token details page is opened. (#25780)
+- Added error screens when wallet creation fails, allowing users to retry or contact support instead of being redirected (#25564)
+  to login.
+- Remove toggle switch from login screen (#25424)
+- Fixed minor button layout issues (#25771)
+- Fixed long account names overflowing in the Deposit Buy screen by enabling proper text truncation (#25715)
+- Remove subtitle in token details (#25726)
+- Fixed flow for "Cash buy X" button on the new token details layout (#25719)
+- Pass assetID to the on ramp buy screen. (#25709)
+
+## [7.66.1]
+
+### Fixed
+
+- remove process.env spread (#26528)
+
 ## [7.66.0]
 
 ### Added
@@ -10615,7 +11156,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...HEAD
+[7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
+[7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
+[7.71.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.71.0
+[7.70.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...v7.70.1
+[7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...v7.70.0
+[7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
+[7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.3...v7.69.0
+[7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.68.3
+[7.68.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.1...v7.68.2
+[7.68.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.0...v7.68.1
+[7.68.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.67.3...v7.68.0
+[7.67.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.67.0...v7.67.3
+[7.67.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.1...v7.67.0
+[7.66.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...v7.66.1
 [7.66.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...v7.66.0
 [7.65.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...v7.65.0
 [7.64.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...v7.64.1

@@ -75,7 +75,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                     "alignItems": "center",
                     "alignSelf": "stretch",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc866",
+                    "borderColor": "#b4b4b566",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -263,7 +263,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -279,7 +279,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -310,7 +310,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -326,7 +326,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -339,7 +339,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                   </View>
                 </View>
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"

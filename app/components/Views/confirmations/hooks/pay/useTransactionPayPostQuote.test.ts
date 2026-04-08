@@ -1,8 +1,11 @@
 import { renderHook } from '@testing-library/react-hooks';
+import type { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayPostQuote } from './useTransactionPayPostQuote';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import Engine from '../../../../../core/Engine';
+import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayWithdraw');
@@ -13,8 +16,13 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+jest.mock('../../../../UI/Predict/providers/polymarket/safe/utils', () => ({
+  computeProxyAddress: jest.fn(),
+}));
 
 const TRANSACTION_ID_MOCK = 'transaction-123';
+const FROM_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
+const PROXY_ADDRESS_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
 
 describe('useTransactionPayPostQuote', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
@@ -24,9 +32,11 @@ describe('useTransactionPayPostQuote', () => {
   const setTransactionConfigMock = jest.mocked(
     Engine.context.TransactionPayController.setTransactionConfig,
   );
+  const computeProxyAddressMock = jest.mocked(computeProxyAddress);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    computeProxyAddressMock.mockReturnValue(PROXY_ADDRESS_MOCK);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
       canSelectWithdrawToken: false,
@@ -60,6 +70,7 @@ describe('useTransactionPayPostQuote', () => {
   it('sets isPostQuote when canSelectWithdrawToken is true and transactionId exists', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
     } as never);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: true,
@@ -74,9 +85,54 @@ describe('useTransactionPayPostQuote', () => {
     );
   });
 
+  it('sets isPostQuote=true and refundTo=proxyAddress in config callback', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    expect(computeProxyAddressMock).toHaveBeenCalledWith(FROM_MOCK);
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as { isPostQuote?: boolean; refundTo?: Hex };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.refundTo).toBe(PROXY_ADDRESS_MOCK);
+  });
+
+  it('sets refundTo=undefined when txParams.from is missing', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: {},
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    expect(computeProxyAddressMock).not.toHaveBeenCalled();
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as { isPostQuote?: boolean; refundTo?: Hex };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.refundTo).toBeUndefined();
+  });
+
   it('does not call setTransactionConfig twice for the same transactionId', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
     } as never);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: true,
@@ -113,6 +169,7 @@ describe('useTransactionPayPostQuote', () => {
     });
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
     } as never);
 
     const { rerender } = renderHook(() => useTransactionPayPostQuote());
@@ -120,9 +177,63 @@ describe('useTransactionPayPostQuote', () => {
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'transaction-456',
+      txParams: { from: FROM_MOCK },
     } as never);
     rerender();
 
     expect(setTransactionConfigMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('sets isHyperliquidSource=true and no refundTo for perpsWithdraw', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
+      type: TransactionType.perpsWithdraw,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as {
+      isPostQuote?: boolean;
+      refundTo?: Hex;
+      isHyperliquidSource?: boolean;
+    };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.isHyperliquidSource).toBe(true);
+    expect(config.refundTo).toBeUndefined();
+    expect(computeProxyAddressMock).not.toHaveBeenCalled();
+  });
+
+  it('does not set isHyperliquidSource for non-perps withdrawals', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      txParams: { from: FROM_MOCK },
+      type: TransactionType.predictWithdraw,
+    } as never);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: true,
+      canSelectWithdrawToken: true,
+    });
+
+    renderHook(() => useTransactionPayPostQuote());
+
+    const callback = setTransactionConfigMock.mock.calls[0][1];
+    const config = {} as {
+      isPostQuote?: boolean;
+      refundTo?: Hex;
+      isHyperliquidSource?: boolean;
+    };
+    callback(config);
+
+    expect(config.isPostQuote).toBe(true);
+    expect(config.refundTo).toBe(PROXY_ADDRESS_MOCK);
+    expect(config.isHyperliquidSource).toBeUndefined();
   });
 });

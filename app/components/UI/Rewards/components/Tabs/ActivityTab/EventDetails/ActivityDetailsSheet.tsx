@@ -1,7 +1,7 @@
 import React from 'react';
 import { ButtonVariant } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { ModalAction, ModalType } from '../../../RewardsBottomSheetModal';
 import { strings } from '../../../../../../../../locales/i18n';
 import { getEventDetails } from '../../../../utils/eventDetailsUtils';
@@ -13,6 +13,7 @@ import {
   PointsEventDto,
   SeasonActivityTypeDto,
 } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
+import { BonusCodeEventDetails } from './BonusCodeEventDetails';
 
 interface ActivityDetailsSheetProps {
   event: PointsEventDto;
@@ -48,6 +49,13 @@ export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
           accountName={accountName}
         />
       );
+    case 'BONUS_CODE':
+      return (
+        <BonusCodeEventDetails
+          event={event as Extract<PointsEventDto, { type: 'BONUS_CODE' }>}
+          accountName={accountName}
+        />
+      );
     default:
       return <GenericEventDetails event={event} accountName={accountName} />;
   }
@@ -55,7 +63,7 @@ export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
 
 // Helper to open the Rewards bottom sheet with the activity details content
 export const openActivityDetailsSheet = (
-  navigation: ReturnType<typeof useNavigation>,
+  navigation: AppNavigationProp,
   props: ActivityDetailsSheetProps,
 ) => {
   const {

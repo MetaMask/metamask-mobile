@@ -25,18 +25,21 @@ const AvatarTokenOrNetworkAssetLogo = ({
   asset,
   chainId,
   displayName,
+  size = AvatarSize.Xl,
 }: {
   asset: TokenI;
   chainId: Hex;
   displayName: string;
+  size?: AvatarSize;
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { image, isNative } = asset;
   const isUnknownToken = displayName === strings('token.unknown');
+  const isBiggest = size === AvatarSize.Xl;
   return isNative ? (
     <NetworkAssetLogo
       big
-      biggest
+      biggest={isBiggest}
       chainId={chainId}
       style={styles.avatarToken}
       ticker={displayName}
@@ -46,14 +49,16 @@ const AvatarTokenOrNetworkAssetLogo = ({
     <AvatarToken
       imageSource={image ? { uri: image } : NetworkBadgeSource(chainId as Hex)}
       name={isUnknownToken ? undefined : displayName}
-      size={AvatarSize.Xl}
+      size={size}
       style={styles.avatarToken}
       testID={`avatar-with-badge-avatar-token-${displayName}`}
     />
   );
 };
 
-export const AvatarTokenWithNetworkBadge = () => {
+export const AvatarTokenWithNetworkBadge = ({
+  size,
+}: { size?: AvatarSize } = {}) => {
   const { styles } = useStyles(styleSheet, {});
   const { chainId } =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);
@@ -76,6 +81,7 @@ export const AvatarTokenWithNetworkBadge = () => {
           asset={asset as TokenI}
           chainId={chainId}
           displayName={displayName}
+          size={size}
         />
       </BadgeWrapper>
     </View>

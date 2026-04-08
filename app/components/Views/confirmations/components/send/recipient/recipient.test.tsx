@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { RedesignedSendViewSelectorsIDs } from '../RedesignedSendView.testIds';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -14,7 +14,7 @@ import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
-jest.mock('../../../../../../component-library/components/Skeleton');
+jest.mock('../../../../../../component-library/components-temp/Skeleton');
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -144,6 +144,37 @@ jest.mock('../../recipient-input', () => ({
   },
 }));
 
+jest.mock('../send-alert-modal', () => ({
+  SendAlertModal: ({
+    isOpen,
+    onAcknowledge,
+    onClose,
+    title,
+    errorMessage,
+  }: {
+    isOpen: boolean;
+    onAcknowledge: () => void;
+    onClose: () => void;
+    title: string;
+    errorMessage: string;
+  }) => {
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    if (!isOpen) return null;
+    return (
+      <View testID="send-alert-modal">
+        <Text testID="alert-modal-title">{title}</Text>
+        <Text testID="alert-modal-error">{errorMessage}</Text>
+        <Pressable testID="alert-modal-acknowledge" onPress={onAcknowledge}>
+          <Text>Acknowledge</Text>
+        </Pressable>
+        <Pressable testID="alert-modal-close" onPress={onClose}>
+          <Text>Close</Text>
+        </Pressable>
+      </View>
+    );
+  },
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
@@ -151,6 +182,9 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'send.contacts': 'Contacts',
       'send.no_contacts_found': 'No contacts found',
       'send.review': 'Review',
+      'send.smart_contract_address': 'Smart contract address',
+      'send.smart_contract_address_warning':
+        'You are sending to a smart contract address',
     };
     return mockStrings[key] || key;
   }),
@@ -205,6 +239,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -307,6 +342,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: 'some_dummy_address',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -399,6 +435,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -426,6 +463,7 @@ describe('Recipient', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -463,6 +501,7 @@ describe('Recipient', () => {
       loading: true,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: 'Warning',
     });
@@ -530,6 +569,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xother',
       toAddressWarning: undefined,
     });
@@ -545,6 +585,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: 'Invalid address',
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -560,6 +601,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: 'Warning',
     });
@@ -575,6 +617,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: true,
       resolvedAddress: '0xresolved',
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: '0xvalid',
       toAddressWarning: undefined,
     });
@@ -591,6 +634,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -624,6 +668,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -661,6 +706,7 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
       loading: false,
       resolvedAddress: undefined,
       toAddressError: 'Error',
+      toAddressErrorAllowAcknowledge: false,
       toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
@@ -690,5 +736,182 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
 
     // Then: submit is not called
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+});
+
+describe('SendAlertModal integration', () => {
+  const mockUpdateTo = jest.fn();
+  let mockHandleSubmitPressLocal: jest.Mock;
+
+  const setupTokenContractScenario = (
+    overrides: Partial<ReturnType<typeof useToAddressValidation>> = {},
+  ) => {
+    mockHandleSubmitPressLocal = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPressLocal,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: { address: '0xabc', chainId: '0x1' } as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: 'Token contract warning',
+      toAddressErrorAllowAcknowledge: true,
+      toAddressValidated: '0x1234567890123456789012345678901234567890',
+      toAddressWarning: undefined,
+      ...overrides,
+    });
+
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: jest.fn(),
+    });
+
+    mockUseAccounts.mockReturnValue(mockAccounts);
+    mockUseContacts.mockReturnValue(mockContacts);
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+    } as ReturnType<typeof useSendType>);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens alert modal when review pressed and toAddressErrorAllowAcknowledge is true', () => {
+    setupTokenContractScenario();
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(getByTestId('send-alert-modal')).toBeOnTheScreen();
+  });
+
+  it('displays correct title and error message in alert modal', () => {
+    setupTokenContractScenario();
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(getByTestId('alert-modal-title')).toBeOnTheScreen();
+    expect(getByTestId('alert-modal-error')).toBeOnTheScreen();
+  });
+
+  it('closes alert modal when cancel is pressed', () => {
+    setupTokenContractScenario();
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    expect(getByTestId('send-alert-modal')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('alert-modal-close'));
+
+    expect(queryByTestId('send-alert-modal')).not.toBeOnTheScreen();
+  });
+
+  it('proceeds with submit when acknowledge is pressed', async () => {
+    setupTokenContractScenario();
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+
+    await fireEvent.press(getByTestId('alert-modal-acknowledge'));
+
+    expect(mockHandleSubmitPressLocal).toHaveBeenCalledWith(
+      '0x1234567890123456789012345678901234567890',
+    );
+  });
+
+  it('does not show alert modal when toAddressErrorAllowAcknowledge is false', () => {
+    setupTokenContractScenario({
+      toAddressError: 'Some error',
+      toAddressErrorAllowAcknowledge: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(queryByTestId('send-alert-modal')).not.toBeOnTheScreen();
+  });
+
+  it('does not call handleSubmitPress when cancel is pressed on alert modal', () => {
+    setupTokenContractScenario();
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
+    fireEvent.press(getByTestId('alert-modal-close'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('auto-submits when pasted recipient matches validated address with no errors', async () => {
+    const mockHandleSubmit = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmit,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0xvalid',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: { address: '0xabc', chainId: '0x1' } as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressErrorAllowAcknowledge: false,
+      toAddressValidated: '0xvalid',
+      toAddressWarning: undefined,
+    });
+
+    mockUseAccounts.mockReturnValue(mockAccounts);
+    mockUseContacts.mockReturnValue(mockContacts);
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+    } as ReturnType<typeof useSendType>);
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId('set-pasted'));
+
+    await waitFor(() => {
+      expect(mockHandleSubmit).toHaveBeenCalledWith('0xvalid');
+    });
   });
 });

@@ -191,6 +191,23 @@ describe('useMusdConversionTokens', () => {
       expect(result.current.tokens).not.toContainEqual(mockDaiMainnet);
     });
 
+    it('returns tokens sorted by fiat balance descending', () => {
+      mockUseAccountTokens.mockReturnValue([
+        mockUsdcLinea,
+        mockUsdcMainnet,
+        mockUsdtMainnet,
+      ]);
+      mockIsTokenAllowed.mockReturnValue(true);
+
+      const { result } = renderHook(() => useMusdConversionTokens());
+
+      expect(result.current.tokens).toEqual([
+        mockUsdtMainnet,
+        mockUsdcMainnet,
+        mockUsdcLinea,
+      ]);
+    });
+
     it('returns empty array when no tokens match allowlist', () => {
       mockUseAccountTokens.mockReturnValue([mockDaiMainnet]);
       mockIsTokenAllowed.mockReturnValue(false);

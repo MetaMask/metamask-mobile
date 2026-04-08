@@ -25,7 +25,7 @@ import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureF
 import { TokenI } from '../../../Tokens/types';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -195,19 +195,7 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-      trackEvent: jest.fn(),
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getAnalyticsId: jest.fn(),
-    });
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
       isLoadingEligibility: false,

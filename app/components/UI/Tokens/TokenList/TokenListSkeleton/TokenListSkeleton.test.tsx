@@ -3,20 +3,12 @@ import { render } from '@testing-library/react-native';
 import TokenListSkeleton from './TokenListSkeleton';
 
 // Mock the theme hook
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        section: '#E5E5E5',
-        subsection: '#F5F5F5',
-        default: '#FFFFFF',
-      },
-      border: {
-        muted: '#D6D9DC',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 describe('TokenListSkeleton', () => {
   it('renders without errors', () => {

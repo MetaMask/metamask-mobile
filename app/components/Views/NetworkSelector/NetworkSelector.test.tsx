@@ -45,7 +45,7 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
 
 const mockEngine = Engine;
@@ -310,13 +310,19 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+const createMockRoute = () => ({
+  params: {},
+  key: 'NetworkSelector',
+  name: 'NetworkSelector' as const,
+});
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="NETWORK_SELECTOR">
-        {() => <NetworkSelector />}
+        {() => <NetworkSelector route={createMockRoute()} />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },

@@ -4,6 +4,22 @@ import TokenNotAvailableModal from './TokenNotAvailableModal';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const MOCK_ASSET_ID =
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -42,9 +58,14 @@ let mockSelectedToken: unknown = {
   symbol: 'USDC',
 };
 
-jest.mock('../../../hooks/useRampsController', () => ({
-  useRampsController: () => ({
+jest.mock('../../../hooks/useRampsProviders', () => ({
+  useRampsProviders: () => ({
     selectedProvider: mockSelectedProvider,
+  }),
+}));
+
+jest.mock('../../../hooks/useRampsTokens', () => ({
+  useRampsTokens: () => ({
     selectedToken: mockSelectedToken,
   }),
 }));
@@ -52,6 +73,8 @@ jest.mock('../../../hooks/useRampsController', () => ({
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   if (callback) callback();
 });
+
+let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -61,11 +84,14 @@ jest.mock(
       (
         {
           children,
+          onClose,
         }: {
           children: React.ReactNode;
+          onClose?: (hasPendingAction?: boolean) => void;
         },
         ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
       ) => {
+        capturedOnClose = onClose;
         ReactActual.useImperativeHandle(ref, () => ({
           onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
@@ -118,7 +144,9 @@ describe('TokenNotAvailableModal', () => {
     fireEvent.press(getByText('Change token'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
   });
 
   it('navigates to provider picker when Change provider is pressed', () => {
@@ -136,13 +164,31 @@ describe('TokenNotAvailableModal', () => {
     );
   });
 
-  it('closes the modal when the close button is pressed', () => {
+  it('closes the bottom sheet when the close button is pressed', () => {
     const { getByTestId } = render(TokenNotAvailableModal);
     const closeButton = getByTestId('bottomsheetheader-close-button');
 
     fireEvent.press(closeButton);
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+  });
+
+  it('navigates to token selection when modal is dismissed without a pending action', () => {
+    render(TokenNotAvailableModal);
+
+    capturedOnClose?.(false);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
+  });
+
+  it('does not navigate on dismiss when there is a pending action', () => {
+    render(TokenNotAvailableModal);
+
+    capturedOnClose?.(true);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('matches snapshot with missing provider and token names', () => {
@@ -152,5 +198,108 @@ describe('TokenNotAvailableModal', () => {
     const { toJSON } = render(TokenNotAvailableModal);
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('fires RAMPS_SCREEN_VIEWED analytics event on mount', () => {
+    render(TokenNotAvailableModal);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: 'Token Unavailable Modal',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires RAMPS_CHANGE_TOKEN_BUTTON_CLICKED analytics event when Change token is pressed', () => {
+    const { getByText } = render(TokenNotAvailableModal);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    mockAddProperties.mockClear();
+
+    fireEvent.press(getByText('Change token'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_CHANGE_TOKEN_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      current_provider: 'Transak',
+      location: 'Token Unavailable Modal',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires RAMPS_CLOSE_BUTTON_CLICKED analytics event when close button is pressed', () => {
+    const { getByTestId } = render(TokenNotAvailableModal);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    mockAddProperties.mockClear();
+
+    fireEvent.press(getByTestId('bottomsheetheader-close-button'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: 'Token Unavailable Modal',
+      ramp_type: 'UNIFIED_BUY_2',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  describe('buyFlowOrigin: tokenInfo', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({
+        assetId: MOCK_ASSET_ID,
+        buyFlowOrigin: 'tokenInfo',
+      });
+    });
+
+    it('navigates to Tokens Full View when Change token is pressed', () => {
+      const { getByText } = render(TokenNotAvailableModal);
+
+      fireEvent.press(getByText('Change token'));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+    });
+
+    it('calls goBack once when modal is dismissed without a pending action', () => {
+      render(TokenNotAvailableModal);
+
+      capturedOnClose?.(false);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('buyFlowOrigin: homeTokenList', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({
+        assetId: MOCK_ASSET_ID,
+        buyFlowOrigin: 'homeTokenList',
+      });
+    });
+
+    it('navigates to Home when Change token is pressed', () => {
+      const { getByText } = render(TokenNotAvailableModal);
+
+      fireEvent.press(getByText('Change token'));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
+    it('navigates to Home when modal is dismissed without a pending action', () => {
+      render(TokenNotAvailableModal);
+
+      capturedOnClose?.(false);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
   });
 });

@@ -1,11 +1,17 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import Text, {
+import {
+  Box,
+  BoxAlignItems,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
@@ -26,19 +32,16 @@ import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../util/Logger';
-import useAnalytics from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
-import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
+import { isE2E } from '../../../../../util/test/utils';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -52,7 +55,7 @@ export const createV2OtpCodeNavDetails =
   createNavigationDetails<V2OtpCodeParams>(Routes.RAMP.OTP_CODE);
 
 const CELL_COUNT = 6;
-const COOLDOWN_TIME = 30;
+const COOLDOWN_TIME = 60;
 const MAX_RESET_ATTEMPTS = 3;
 
 const ResendButton: FC<{
@@ -76,7 +79,7 @@ const V2OtpCode = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId } =
     useParams<V2OtpCodeParams>();
-  const trackEvent = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const {
     setAuthToken,
@@ -97,8 +100,8 @@ const V2OtpCode = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
-    'resend' | 'cooldown' | 'contactSupport' | 'resendError'
-  >('resend');
+    'resend' | 'cooldown' | 'contactSupport'
+  >('cooldown');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
@@ -109,9 +112,33 @@ const V2OtpCode = () => {
         navigation,
         { title: strings('deposit.otp_code.navbar_title') },
         theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'OTP Code',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, trackEvent, createEventBuilder]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'OTP Code',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const [value, setValue] = useState('');
 
@@ -122,6 +149,10 @@ const V2OtpCode = () => {
   }, [inputRef]);
 
   useEffect(() => {
+    // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
+    // thread non-idle and causes Detox synchronization to stall indefinitely.
+    if (isE2E) return;
+
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
       timerRef.current = setTimeout(() => {
         setCooldownSeconds((prev) => prev - 1);
@@ -156,12 +187,18 @@ const V2OtpCode = () => {
       }
 
       setCurrentStateToken(resendResponse.stateToken);
-      trackEvent('RAMPS_OTP_RESENT', {
-        ramp_type: 'DEPOSIT',
-        region: userRegion?.regionCode || '',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_RESENT)
+          .addProperties({
+            ramp_type: 'DEPOSIT',
+            region: userRegion?.regionCode || '',
+          })
+          .build(),
+      );
     } catch (e) {
-      setResendButtonState('resendError');
+      setError(
+        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
+      );
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [
@@ -171,6 +208,7 @@ const V2OtpCode = () => {
     resetAttemptCount,
     userRegion?.regionCode,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const handleContactSupport = useCallback(() => {
@@ -199,10 +237,14 @@ const V2OtpCode = () => {
 
         await setAuthToken(token);
 
-        trackEvent('RAMPS_OTP_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          region: userRegion?.regionCode || '',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+              region: userRegion?.regionCode || '',
+            })
+            .build(),
+        );
 
         if (amount && currency && assetId) {
           try {
@@ -215,24 +257,25 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            navigation.navigate(
-              Routes.RAMP.AMOUNT_INPUT as never,
-              {
-                nativeFlowError: parseUserFacingError(
-                  routeError,
-                  strings('deposit.otp_code.error'),
-                ),
-              } as never,
-            );
+            navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
+              nativeFlowError: parseUserFacingError(
+                routeError,
+                strings('deposit.otp_code.error'),
+              ),
+            });
           }
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
         }
       } catch (e) {
-        trackEvent('RAMPS_OTP_FAILED', {
-          ramp_type: 'DEPOSIT',
-          region: userRegion?.regionCode || '',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+              region: userRegion?.regionCode || '',
+            })
+            .build(),
+        );
         setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
         Logger.error(e as Error, 'Error submitting OTP code or verifying');
       } finally {
@@ -249,6 +292,7 @@ const V2OtpCode = () => {
     currentStateToken,
     userRegion?.regionCode,
     trackEvent,
+    createEventBuilder,
     amount,
     currency,
     assetId,
@@ -285,11 +329,11 @@ const V2OtpCode = () => {
   });
 
   return (
-    <ScreenLayout>
+    <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+          <Text variant={TextVariant.HeadingLg} style={styles.title}>
             {strings('deposit.otp_code.title')}
           </Text>
           <Text style={styles.description}>
@@ -298,17 +342,17 @@ const V2OtpCode = () => {
 
           <Box alignItems={BoxAlignItems.End}>
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryDefault}
               onPress={handlePaste}
-              testID="otp-code-paste-button"
+              testID={OtpCodeSelectorsIDs.PASTE_BUTTON}
             >
               {strings('deposit.otp_code.paste')}
             </Text>
           </Box>
 
           <CodeField
-            testID="otp-code-input"
+            testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
             ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
@@ -324,14 +368,18 @@ const V2OtpCode = () => {
                 style={[styles.cellRoot, isFocused && styles.focusCell]}
               >
                 <Text style={styles.cellText}>
-                  {symbol || (isFocused ? <Cursor /> : null)}
+                  {/* Cursor uses setInterval which keeps the JS thread non-idle,
+                      stalling Detox synchronization. Omit it in E2E builds. */}
+                  {symbol || (isFocused && !isE2E ? <Cursor /> : null)}
                 </Text>
               </View>
             )}
           />
 
           {error && (
-            <Text style={{ color: theme.colors.error.default }}>{error}</Text>
+            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+              {error}
+            </Text>
           )}
 
           <Row style={styles.resendButtonContainer}>
@@ -356,13 +404,6 @@ const V2OtpCode = () => {
                 button="deposit.otp_code.contact_support"
               />
             ) : null}
-            {resendButtonState === 'resendError' ? (
-              <ResendButton
-                onPress={handleContactSupport}
-                text="deposit.otp_code.resend_code_error"
-                button="deposit.otp_code.contact_support"
-              />
-            ) : null}
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -372,13 +413,14 @@ const V2OtpCode = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.otp_code.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
-            testID="otp-code-submit-button"
-          />
+            testID={OtpCodeSelectorsIDs.SUBMIT_BUTTON}
+          >
+            {strings('deposit.otp_code.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

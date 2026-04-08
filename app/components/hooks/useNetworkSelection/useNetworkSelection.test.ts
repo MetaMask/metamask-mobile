@@ -12,7 +12,6 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from './useNetworkSelection';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectPopularNetworkConfigurationsByCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
@@ -96,13 +95,6 @@ jest.mock('../../../constants/popular-networks', () => ({
 jest.mock('../useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: jest.fn(),
 }));
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -319,9 +311,6 @@ describe('useNetworkSelection', () => {
       if (selector === selectNetworkConfigurationsByCaipChainId) {
         return mockNetworkConfigurations;
       }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
-      }
       if (selector === selectInternalAccounts) {
         return [];
       }
@@ -359,6 +348,9 @@ describe('useNetworkSelection', () => {
         '0x89': false,
         '0x13881': true,
       },
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
+      popularNetworks: [],
     });
 
     mockToHex.mockImplementation((value) => {
@@ -495,6 +487,9 @@ describe('useNetworkSelection', () => {
           '0x89': false,
           '0x13881': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -566,6 +561,9 @@ describe('useNetworkSelection', () => {
           '0x89': false,
           '0x13881': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -658,14 +656,15 @@ describe('useNetworkSelection', () => {
           '0x89': false,
           '0x13881': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
     });
 
-    it('selectCustomNetwork with multichain enabled calls MultichainNetworkController', async () => {
-      // Mock multichain enabled
+    it('selectCustomNetwork calls MultichainNetworkController', async () => {
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
         .mockReturnValueOnce([]); // selectInternalAccounts
 
       const customChainId = 'eip155:999' as CaipChainId;
@@ -847,6 +846,9 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -885,6 +887,9 @@ describe('useNetworkSelection', () => {
           '0x1': true,
           '0x2': false,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       renderHook(() => useNetworkSelection({ networks: mockNetworks }));
@@ -957,9 +962,6 @@ describe('useNetworkSelection', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
           return initialPopularNetworks;
-        }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
         }
         if (selector === selectInternalAccounts) {
           return [];
@@ -1190,9 +1192,6 @@ describe('useNetworkSelection', () => {
         if (selector === selectNetworkConfigurationsByCaipChainId) {
           return mockNetworkConfigurations;
         }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
         if (selector === selectInternalAccounts) {
           return [mockBitcoinAccount];
         }
@@ -1224,9 +1223,6 @@ describe('useNetworkSelection', () => {
         }
         if (selector === selectNetworkConfigurationsByCaipChainId) {
           return mockNetworkConfigurations;
-        }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
         }
         if (selector === selectInternalAccounts) {
           return [];
@@ -1474,6 +1470,9 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -1505,6 +1504,9 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -1801,9 +1803,6 @@ describe('useNetworkSelection', () => {
           if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
             return newPopularConfigs;
           }
-          if (selector === selectMultichainAccountsState2Enabled) {
-            return false;
-          }
           if (selector === selectInternalAccounts) {
             return [];
           }
@@ -1832,9 +1831,6 @@ describe('useNetworkSelection', () => {
                 name: 'Bitcoin Mainnet',
               },
             ];
-          }
-          if (selector === selectMultichainAccountsState2Enabled) {
-            return false;
           }
           if (selector === selectInternalAccounts) {
             return []; // No Bitcoin accounts

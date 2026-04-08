@@ -2,21 +2,15 @@ import React from 'react';
 import { View } from 'react-native';
 import { shallow } from 'enzyme';
 import DepositTextField from './DepositTextField';
-import Label from '../../../../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Label } from '@metamask/design-system-react-native';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
+import { mockTheme } from '../../../../../../util/theme';
+import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 
 const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 
-const mockTheme = {
-  colors: {
-    text: { muted: '#888888' },
-    error: { default: '#FF0000' },
-  },
-  themeAppearance: 'light',
-};
+let mockCurrentTheme: Theme = mockTheme;
 
 const defaultProps = {
   label: 'Test Label',
@@ -30,11 +24,15 @@ jest.mock('../../../../../hooks/useStyles', () => ({
       label: {},
       error: {},
     },
-    theme: mockTheme,
+    theme: mockCurrentTheme,
   }),
 }));
 
 describe('DepositTextField', () => {
+  beforeEach(() => {
+    mockCurrentTheme = mockTheme;
+  });
+
   it('should render default settings correctly', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     expect(wrapper).toMatchSnapshot();
@@ -44,7 +42,6 @@ describe('DepositTextField', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const labelComponent = wrapper.find(Label);
     expect(labelComponent.exists()).toBe(true);
-    expect(labelComponent.prop('variant')).toBe(TextVariant.BodyMD);
     expect(labelComponent.prop('children')).toBe('Test Label');
   });
 
@@ -54,6 +51,20 @@ describe('DepositTextField', () => {
     expect(textFieldComponent.exists()).toBe(true);
     expect(textFieldComponent.prop('keyboardAppearance')).toBe(
       mockTheme.themeAppearance,
+    );
+  });
+
+  it('should use dark keyboard appearance in dark theme', () => {
+    mockCurrentTheme = {
+      ...mockTheme,
+      themeAppearance: AppThemeKey.dark,
+    };
+
+    const wrapper = shallow(<DepositTextField {...defaultProps} />);
+    const textFieldComponent = wrapper.find(TextField);
+
+    expect(textFieldComponent.prop('keyboardAppearance')).toBe(
+      AppThemeKey.dark,
     );
   });
 

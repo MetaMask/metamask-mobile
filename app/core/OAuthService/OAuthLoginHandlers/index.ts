@@ -7,13 +7,11 @@ import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallb
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import {
   AuthServerUrl,
-  AppRedirectUri,
-  IosGID,
-  IosGoogleRedirectUri,
-  AndroidGoogleWebGID,
-  AndroidGoogleRedirectUri,
+  GoogleWebGID,
+  GoogleRedirectUri,
   AppleWebClientId,
   web3AuthNetwork,
+  getIosGoogleConfig,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
@@ -33,24 +31,24 @@ export function createLoginHandler(
 ): BaseLoginHandler {
   if (
     !AuthServerUrl ||
-    !AppRedirectUri ||
-    !IosGID ||
-    !IosGoogleRedirectUri ||
-    !AndroidGoogleWebGID ||
-    !AppleWebClientId
+    !GoogleWebGID ||
+    !AppleWebClientId ||
+    !GoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
   }
   switch (platformOS) {
     case 'ios':
       switch (provider) {
-        case AuthConnection.Google:
+        case AuthConnection.Google: {
+          const { clientId, redirectUri } = getIosGoogleConfig();
           return new IosGoogleLoginHandler({
-            clientId: IosGID,
-            redirectUri: IosGoogleRedirectUri,
+            clientId,
+            redirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
+        }
         case AuthConnection.Apple:
           return new IosAppleLoginHandler({
             clientId: AppleWebClientId,
@@ -68,20 +66,20 @@ export function createLoginHandler(
         case AuthConnection.Google:
           return fallback
             ? new AndroidGoogleFallbackLoginHandler({
-                clientId: AndroidGoogleWebGID,
-                redirectUri: AndroidGoogleRedirectUri,
+                clientId: GoogleWebGID,
+                redirectUri: GoogleRedirectUri,
                 authServerUrl: AuthServerUrl,
                 web3AuthNetwork,
               })
             : new AndroidGoogleLoginHandler({
-                clientId: AndroidGoogleWebGID,
+                clientId: GoogleWebGID,
                 authServerUrl: AuthServerUrl,
                 web3AuthNetwork,
               });
         case AuthConnection.Apple:
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
-            appRedirectUri: AppRedirectUri,
+            appRedirectUri: GoogleRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });

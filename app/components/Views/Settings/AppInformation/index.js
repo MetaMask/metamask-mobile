@@ -1,7 +1,6 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   Image,
   Text,
@@ -10,6 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
   getVersion,
@@ -32,7 +32,7 @@ import AppConstants from '../../../../core/AppConstants';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
-import { isQa } from '../../../../util/test/utils';
+import { isProduction } from '../../../../util/environment';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -98,7 +98,7 @@ const createStyles = (colors) =>
     },
   });
 
-const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import-x/no-commonjs
 
 /**
  * View that contains app information
@@ -203,10 +203,12 @@ class AppInformation extends PureComponent {
 
     return (
       <SafeAreaView
+        edges={{ bottom: 'additive' }}
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
         <HeaderCompactStandard
+          includesTopInset
           title={aboutTitle}
           onBack={() => this.props.navigation.goBack()}
           backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
@@ -225,9 +227,9 @@ class AppInformation extends PureComponent {
               />
             </TouchableOpacity>
             <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
-            {isQa ? (
+            {!isProduction() ? (
               <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
+                {`${process.env.METAMASK_ENVIRONMENT?.toUpperCase() ?? 'DEV'} | Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 
@@ -241,6 +243,12 @@ class AppInformation extends PureComponent {
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Rewards API URL: ${process.env.REWARDS_API_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}

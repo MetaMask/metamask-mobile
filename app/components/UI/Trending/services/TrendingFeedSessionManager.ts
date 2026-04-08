@@ -1,8 +1,9 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 /**
  * Interaction types for Trending Feed analytics events
@@ -255,8 +256,8 @@ class TrendingFeedSessionManager {
       entry_point: this.entryPoint,
     };
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       )
         .addProperties(analyticsProperties)
@@ -300,8 +301,8 @@ class TrendingFeedSessionManager {
       ...logContext,
     });
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       )
         .addProperties(analyticsProperties)

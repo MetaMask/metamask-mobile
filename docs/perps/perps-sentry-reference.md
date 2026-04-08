@@ -174,17 +174,17 @@ setMeasurement(
 
 **Purpose:** Track order execution, position management, and transaction completion.
 
-| TraceName            | Operation                 | Tags                                                      | Data Attributes                                                   |
-| -------------------- | ------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------- |
-| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet          | isBuy, orderPrice, success, orderId                               |
-| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet          | isBuy, orderPrice, success, orderId                               |
-| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only) | orderId, success, **coinCount** (batch), **successCount** (batch) |
-| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch) | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
-| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                               | takeProfitPrice, stopLossPrice, success                           |
-| `PerpsUpdateMargin`  | `PerpsPositionManagement` | provider, coin, action, isTestnet                         | amount, success                                                   |
-| `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet     | size, success                                                     |
-| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                              | success, txHash, withdrawalId                                     |
-| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                              | success, txHash                                                   |
+| TraceName            | Operation                 | Tags                                                                | Data Attributes                                                   |
+| -------------------- | ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet, **payment_token** | isBuy, orderPrice, success, orderId, payment_token                |
+| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId                               |
+| `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only)           | orderId, success, **coinCount** (batch), **successCount** (batch) |
+| `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch)           | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
+| `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                                         | takeProfitPrice, stopLossPrice, success                           |
+| `PerpsUpdateMargin`  | `PerpsPositionManagement` | provider, coin, action, isTestnet                                   | amount, success                                                   |
+| `PerpsFlipPosition`  | `PerpsPositionManagement` | provider, coin, fromDirection, toDirection, isTestnet               | size, success                                                     |
+| `PerpsWithdraw`      | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash, withdrawalId                                     |
+| `PerpsDeposit`       | `PerpsOperation`          | assetId, provider, isTestnet                                        | success, txHash                                                   |
 
 **Batch Operations Pattern:**
 
@@ -563,6 +563,49 @@ catch (error) {
 8. **Cache API calls**: Use cached values in Rewards API to avoid redundant calls
 9. **Use `Logger.error()` with context** for all error logging (see Error Logging Best Practices)
 10. **Use `ensureError()` helper** to normalize caught errors before logging
+
+## Order Execution by Payment Token
+
+### Tracing order per payment token
+
+Order execution is traced with a **payment_token** tag so you can build Sentry dashboard charts for duration grouped by payment token (e.g. Perps balance vs ETH).
+
+- **payment_token** values:
+  - `perps_balance` – order paid with existing Perps balance (no deposit in this flow)
+  - Token symbol when paying with a custom token (e.g. `ETH`, `USDC`) – from `trackingData.mmPayTokenSelected`
+  - `unknown_token` – pay with any token but symbol not set
+
+### Breadcrumbs: deposit vs order execution
+
+Breadcrumbs separate the deposit step from the order execution step:
+
+| Breadcrumb message        | When it fires                                    | data fields                            |
+| ------------------------- | ------------------------------------------------ | -------------------------------------- |
+| `Deposit action started`  | When deposit flow starts (with or without order) | `place_order_after_deposit` (boolean)  |
+| `Order execution started` | When the exchange order is about to be submitted | `payment_token`, `market`, `orderType` |
+
+In Sentry you can filter by these breadcrumbs and use the **payment_token** tag on the `Perps Place Order` span to build charts (e.g. **Discover** or **Performance**) for "order execution duration by payment_token".
+
+## Connection Error Screen Monitoring
+
+### Sentry Filter
+
+```
+component:PerpsConnectionManager action:connection_connection
+```
+
+Use this to isolate genuine perps connection failures. You can also use `feature:perps` as a broader filter — the `feature` tag is set on all perps errors and already excludes Polymarket noise.
+
+Fires on initial `connect()` failures and programmatic `reconnectWithNewContext()` calls. User-initiated retries from the error screen only add a Sentry breadcrumb (no new event) to avoid noise.
+
+### MixPanel
+
+| Event                  | Key Properties                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `PERPS_SCREEN_VIEWED`  | `screen_name: connection_error`, `error_message`, `retry_attempts`                    |
+| `PERPS_UI_INTERACTION` | `action: connection_retry` or `connection_go_back`, `error_message`, `attempt_number` |
+
+---
 
 ## Related Files
 

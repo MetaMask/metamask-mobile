@@ -11,7 +11,8 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import { isEqual } from 'lodash';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
@@ -36,10 +37,8 @@ import AppConstants from '../../../../../core/AppConstants';
 import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissions';
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
-import {
-  selectIsDaimoDemo,
-  clearCacheData,
-} from '../../../../../core/redux/slices/card';
+import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import { cardQueries } from '../../queries';
 import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
@@ -78,7 +77,7 @@ const DaimoPayModal: React.FC = () => {
   const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
 
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
@@ -170,9 +169,11 @@ const DaimoPayModal: React.FC = () => {
         pollingIntervalRef.current = null;
       }
 
-      dispatch(clearCacheData('card-details'));
+      queryClient.invalidateQueries({
+        queryKey: cardQueries.dashboard.keys.cardDetails(),
+      });
 
-      const parentNavigator = navigation.dangerouslyGetParent();
+      const parentNavigator = navigation.getParent();
       if (parentNavigator) {
         parentNavigator.dispatch(
           CommonActions.reset({
@@ -199,17 +200,14 @@ const DaimoPayModal: React.FC = () => {
           }),
         );
       } else {
-        navigation.navigate(
-          Routes.CARD.ORDER_COMPLETED as never,
-          {
-            paymentMethod: 'crypto',
-            transactionHash: txHash,
-            fromUpgrade,
-          } as never,
-        );
+        navigation.navigate(Routes.CARD.ORDER_COMPLETED, {
+          paymentMethod: 'crypto',
+          transactionHash: txHash,
+          fromUpgrade,
+        });
       }
     },
-    [trackEvent, createEventBuilder, navigation, fromUpgrade, dispatch],
+    [trackEvent, createEventBuilder, navigation, fromUpgrade, queryClient],
   );
 
   const handlePaymentBounced = useCallback(

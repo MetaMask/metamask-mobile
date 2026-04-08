@@ -5,9 +5,23 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import NFTsSection from './NFTsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 const mockOnRefresh = jest.fn().mockResolvedValue(undefined);
+const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
+const mockAbortDetection = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -16,11 +30,23 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    useFocusEffect: (callback: () => void) => {
+      const React = jest.requireActual('react');
+      React.useEffect(callback, [callback]);
+    },
   };
 });
 
 jest.mock('../../../../../reducers/collectibles', () => ({
   isNftFetchingProgressSelector: jest.fn(() => false),
+}));
+
+jest.mock('../../../../hooks/useNftDetection', () => ({
+  useNftDetection: () => ({
+    detectNfts: mockDetectNfts,
+    abortDetection: mockAbortDetection,
+    chainIdsToDetectNftsFor: [],
+  }),
 }));
 
 jest.mock('../../../../UI/NftGrid/useNftRefresh', () => ({
@@ -42,6 +68,24 @@ jest.mock('./hooks', () => ({
   useOwnedNfts: jest.fn(() => []),
 }));
 
+jest.mock('../../../../UI/NftGrid/NftGridItemBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ isVisible }: { isVisible: boolean }) =>
+    isVisible ? <View testID="nft-grid-item-bottom-sheet" /> : null;
+});
+
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ onLayout: jest.fn() })),
+  HomeSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 // State with preferences needed for NftGridItem/CollectibleMedia
 const stateWithNftPreferences = {
   engine: {
@@ -59,6 +103,12 @@ const stateWithNftPreferences = {
 describe('NFTsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     // Reset mock return values to defaults to ensure test isolation
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
     jest
@@ -72,29 +122,43 @@ describe('NFTsSection', () => {
       .requireMock('../../../../../reducers/collectibles')
       .isNftFetchingProgressSelector.mockReturnValue(true);
 
-    renderWithProvider(<NFTsSection />);
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
     // Empty state and NFT grid should not be visible during loading
     expect(screen.queryByText('Import NFTs')).not.toBeOnTheScreen();
   });
 
-  it('renders empty state card when user has no NFTs', () => {
-    renderWithProvider(<NFTsSection />);
+  it('renders empty state when user has no NFTs', () => {
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
     expect(screen.getByText('Import NFTs')).toBeOnTheScreen();
-    expect(screen.getByText('Easily add your collectibles')).toBeOnTheScreen();
   });
 
   it('navigates to AddAsset when import NFTs card is pressed', () => {
-    renderWithProvider(<NFTsSection />);
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByText('Import NFTs'));
 
     expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
       assetType: 'collectible',
     });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Wallet View',
+        properties: expect.objectContaining({
+          action: 'Wallet View',
+          name: 'Add Collectibles',
+        }),
+      }),
+    );
   });
 
   it('renders section title when user has NFTs', () => {
@@ -102,7 +166,10 @@ describe('NFTsSection', () => {
       .requireMock('./hooks')
       .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
 
-    renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
   });
@@ -112,7 +179,10 @@ describe('NFTsSection', () => {
       .requireMock('./hooks')
       .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
 
-    renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
 
     fireEvent.press(screen.getByText('NFTs'));
 
@@ -125,7 +195,10 @@ describe('NFTsSection', () => {
     );
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue(nfts);
 
-    renderWithProvider(<NFTsSection />, { state: stateWithNftPreferences });
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
 
     // First 6 NFTs (indices 0-5) should be displayed
     expect(screen.getByText('NFT 0')).toBeOnTheScreen();
@@ -140,10 +213,59 @@ describe('NFTsSection', () => {
     expect(screen.queryByText('NFT 7')).not.toBeOnTheScreen();
   });
 
+  it('triggers NFT detection on focus', () => {
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls abortDetection on unmount', () => {
+    const { unmount } = renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    unmount();
+
+    expect(mockAbortDetection).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders without error when detectNfts rejects', async () => {
+    mockDetectNfts.mockRejectedValueOnce(new Error('Aborted'));
+
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    await act(async () => undefined);
+
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
+  });
+
+  it('opens bottom sheet when an NFT item is long-pressed', () => {
+    jest
+      .requireMock('./hooks')
+      .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
+
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
+
+    expect(screen.queryByTestId('nft-grid-item-bottom-sheet')).toBeNull();
+
+    fireEvent(screen.getByTestId('collectible-NFT 1-1'), 'longPress');
+
+    expect(screen.getByTestId('nft-grid-item-bottom-sheet')).toBeOnTheScreen();
+  });
+
   it('exposes refresh function via ref that calls useNftRefresh.onRefresh', async () => {
     const ref = createRef<SectionRefreshHandle>();
 
-    renderWithProvider(<NFTsSection ref={ref} />);
+    renderWithProvider(
+      <NFTsSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(ref.current).not.toBeNull();
     expect(typeof ref.current?.refresh).toBe('function');

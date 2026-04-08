@@ -17,14 +17,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      icon: { default: '#24292E' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -40,13 +38,6 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
   selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
 }));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => false),
-  }),
-);
 
 jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
@@ -82,25 +73,6 @@ jest.mock('./TokenListItem/TokenListItem', () => ({
     );
   },
 }));
-
-jest.mock('./TokenListItemV2/TokenListItemV2', () => ({
-  TokenListItemV2: ({ assetKey }: { assetKey: { address: string } }) => {
-    const React = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
-      View,
-      { testID: `token-item-v2-${assetKey.address}` },
-      React.createElement(Text, null, `Token V2: ${assetKey.address}`),
-    );
-  },
-}));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: jest.fn(() => false),
-  }),
-);
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => ({
@@ -214,6 +186,7 @@ describe('TokenList', () => {
       isDataRecorded: jest.fn(),
       isEnabled: jest.fn(),
       getAnalyticsId: jest.fn(),
+      identify: jest.fn(),
     });
 
     // Mock useSelector to call the selector function with empty state
@@ -327,7 +300,7 @@ describe('TokenList', () => {
     expect(flashList.props.contentContainerStyle).toBeDefined();
   });
 
-  it('uses TokenListItemBip44 when multichain accounts state 2 is enabled', () => {
+  it('renders token list correctly', () => {
     // Reset and set new mock implementation for this test
     mockUseSelector.mockReset();
     mockUseSelector.mockImplementation((selector) => {
@@ -338,11 +311,6 @@ describe('TokenList', () => {
         selector
           .toString()
           .includes('selectIsTokenNetworkFilterEqualCurrentNetwork')
-      ) {
-        return true;
-      }
-      if (
-        selector.toString().includes('selectMultichainAccountsState2Enabled')
       ) {
         return true;
       }

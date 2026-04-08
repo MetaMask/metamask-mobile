@@ -1,4 +1,4 @@
-import * as permissions from '.'; // eslint-disable-line import/no-namespace
+import * as permissions from '.'; // eslint-disable-line import-x/no-namespace
 import { captureException } from '@sentry/react-native';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';

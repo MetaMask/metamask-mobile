@@ -1,39 +1,34 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
-  FiatOrder,
-  getOrderById,
-  updateFiatOrder,
-} from '../../../../../reducers/fiatOrders';
-import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
+  RampsOrderStatus,
+  type TransakDepositOrder,
+  normalizeProviderCode,
+} from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
-import { RootState } from '../../../../../reducers';
-import { hasDepositOrderField } from '../../Deposit/utils';
-import { depositOrderToFiatOrder } from '../../Deposit/orderProcessor';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import useAnalytics from '../../hooks/useAnalytics';
 
@@ -42,20 +37,33 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { useSelector } from 'react-redux';
+import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
+import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
 export interface BankDetailsParams {
   orderId: string;
   shouldUpdate?: boolean;
 }
 
+const TERMINAL_STATUSES = new Set([
+  RampsOrderStatus.Completed,
+  RampsOrderStatus.Failed,
+  RampsOrderStatus.Cancelled,
+]);
+
+/**
+ * V2 bank details screen. Reads order lifecycle from controller state
+ * and fetches deposit-specific data (paymentDetails) from TransakService.
+ */
 const V2BankDetails = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
-  const dispatch = useDispatch();
   const {
     logoutFromProvider,
-    getOrder,
+    getOrder: getDepositOrder,
     confirmPayment,
     cancelOrder: transakCancelOrder,
   } = useTransakController();
@@ -63,12 +71,16 @@ const V2BankDetails = () => {
   const tokensResource = useSelector(selectTokens);
   const selectedCryptoCurrency = tokensResource?.selected;
   const trackEvent = useAnalytics();
+  const { getOrderById, refreshOrder } = useRampsOrders();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
-  const order = useSelector((state: RootState) => getOrderById(state, orderId));
+  const order = getOrderById(orderId);
 
+  const [depositOrder, setDepositOrder] = useState<TransakDepositOrder | null>(
+    null,
+  );
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -79,13 +91,6 @@ const V2BankDetails = () => {
     null,
   );
   const [isLoadingConfirmPayment, setIsLoadingConfirmPayment] = useState(false);
-
-  const dispatchUpdateFiatOrder = useCallback(
-    (updatedOrder: FiatOrder) => {
-      dispatch(updateFiatOrder(updatedOrder));
-    },
-    [dispatch],
-  );
 
   const handleLogoutError = useCallback(async () => {
     try {
@@ -101,22 +106,23 @@ const V2BankDetails = () => {
 
     try {
       setIsRefreshing(true);
-      const updatedDepositOrder = await getOrder(order.id, order.account);
+
+      const updatedDepositOrder = await getDepositOrder(
+        order.providerOrderId,
+        order.walletAddress,
+      );
       if (updatedDepositOrder) {
-        const updatedFiatOrder = depositOrderToFiatOrder(
-          updatedDepositOrder as Parameters<typeof depositOrderToFiatOrder>[0],
-        );
-        dispatchUpdateFiatOrder({
-          ...updatedFiatOrder,
-          account: order.account,
-          lastTimeFetched: Date.now(),
-          errorCount: 0,
-          forceUpdate: false,
-        });
+        setDepositOrder(updatedDepositOrder);
       }
+
+      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      await refreshOrder(
+        providerCode,
+        order.providerOrderId,
+        order.walletAddress,
+      );
     } catch (refreshError) {
-      const httpError = refreshError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(refreshError)) {
         await handleLogoutError();
         return;
       }
@@ -124,31 +130,28 @@ const V2BankDetails = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, [order, getOrder, dispatchUpdateFiatOrder, handleLogoutError]);
+  }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
   useEffect(() => {
-    if (order?.state === FIAT_ORDER_STATES.CREATED && shouldUpdate) {
+    if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
       handleOnRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!order?.state) return;
-    if (order.state === FIAT_ORDER_STATES.CANCELLED) {
-      navigation.navigate(Routes.RAMP.AMOUNT_INPUT as never);
-    } else if (
-      order.state === FIAT_ORDER_STATES.PENDING ||
-      order.state === FIAT_ORDER_STATES.COMPLETED ||
-      order.state === FIAT_ORDER_STATES.FAILED
+    if (!order?.status) return;
+    if (
+      TERMINAL_STATUSES.has(order.status) ||
+      order.status === RampsOrderStatus.Pending
     ) {
-      navigation.dispatch(
-        StackActions.replace(Routes.RAMP.ORDER_PROCESSING, {
-          orderId: order.id,
-        }),
-      );
+      // @ts-expect-error navigation prop mismatch
+      navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+        orderId: order.providerOrderId,
+        showCloseButton: true,
+      });
     }
-  }, [order?.state, navigation, order?.id]);
+  }, [order?.status, navigation, order?.providerOrderId]);
 
   const capitalizeWords = useCallback(
     (text: string): string =>
@@ -166,19 +169,15 @@ const V2BankDetails = () => {
 
   const getFieldValue = useCallback(
     (fieldName: string): string | null => {
-      if (!hasDepositOrderField(order?.data, 'paymentDetails')) return null;
+      const details = depositOrder?.paymentDetails ?? order?.paymentDetails;
+      if (!details?.length) return null;
 
-      if (!order.data.paymentDetails || order.data.paymentDetails.length === 0)
-        return null;
-
-      const field = order.data.paymentDetails[0].fields.find(
-        (f) => f.name === fieldName,
-      );
+      const field = details[0].fields.find((f) => f.name === fieldName);
       if (!field?.value) return null;
 
       return capitalizeWords(field.value);
     },
-    [order, capitalizeWords],
+    [depositOrder, order, capitalizeWords],
   );
 
   const amount = getFieldValue('Amount');
@@ -197,31 +196,34 @@ const V2BankDetails = () => {
   const iban = getFieldValue('IBAN');
   const bic = getFieldValue('BIC');
 
+  const paymentMethodShortName =
+    depositOrder?.paymentMethod?.shortName ??
+    order?.paymentMethod?.shortName ??
+    '';
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
         {
           title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: hasDepositOrderField(order?.data, 'paymentMethod')
-              ? order.data.paymentMethod?.shortName
-              : '',
+            paymentMethod: paymentMethodShortName,
           }),
         },
         theme,
       ),
     );
-  }, [navigation, theme, order?.data]);
+  }, [navigation, theme, paymentMethodShortName]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
     if (isLoadingConfirmPayment || !order) return;
     try {
       setIsLoadingConfirmPayment(true);
-      if (
-        !hasDepositOrderField(order?.data, 'paymentMethod') ||
-        !order.data.paymentMethod.id
-      ) {
+
+      const paymentMethodId =
+        depositOrder?.paymentMethod?.id ?? order.paymentMethod?.id;
+      if (!paymentMethodId) {
         Logger.error(
           new Error('Payment method not found or empty'),
           'V2BankDetails: handleBankTransferSent',
@@ -229,28 +231,26 @@ const V2BankDetails = () => {
         return;
       }
 
-      const paymentMethodId = order.data.paymentMethod.id;
-      await confirmPayment(order.id, paymentMethodId);
+      await confirmPayment(order.providerOrderId, paymentMethodId);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
-        amount_source: Number(order.data.fiatAmount),
+        amount_source: Number(order.fiatAmount),
         amount_destination: Number(order.cryptoAmount),
-        exchange_rate: Number(order.data.exchangeRate),
+        exchange_rate: Number(order.exchangeRate),
         gas_fee: 0,
         processing_fee: 0,
-        total_fee: Number(order.data.totalFeesFiat),
+        total_fee: Number(order.totalFeesFiat),
         payment_method_id: paymentMethodId,
         country: regionIsoCode,
         chain_id: selectedCryptoCurrency?.chainId || '',
         currency_destination: selectedCryptoCurrency?.assetId || '',
-        currency_source: order.data.fiatCurrency,
+        currency_source: order.fiatCurrency?.symbol || '',
       });
 
       await handleOnRefresh();
     } catch (fetchError) {
-      const httpError = fetchError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(fetchError)) {
         await handleLogoutError();
         return;
       }
@@ -270,6 +270,7 @@ const V2BankDetails = () => {
   }, [
     isLoadingConfirmPayment,
     order,
+    depositOrder,
     trackEvent,
     regionIsoCode,
     selectedCryptoCurrency?.assetId,
@@ -284,11 +285,10 @@ const V2BankDetails = () => {
     if (isLoadingCancelOrder || !order) return;
     try {
       setIsLoadingCancelOrder(true);
-      await transakCancelOrder(order.id);
+      await transakCancelOrder(order.providerOrderId);
       await handleOnRefresh();
     } catch (fetchError) {
-      const httpError = fetchError as { status?: number };
-      if (httpError.status === 401) {
+      if (isHttpUnauthorized(fetchError)) {
         await handleLogoutError();
         return;
       }
@@ -309,10 +309,12 @@ const V2BankDetails = () => {
     setShowBankInfo(!showBankInfo);
   }, [showBankInfo]);
 
+  const hasData = order && (depositOrder || order.paymentDetails?.length);
+
   return (
     <ScreenLayout>
       <ScrollView
-        testID="bank-details-refresh-control-scrollview"
+        testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -325,18 +327,24 @@ const V2BankDetails = () => {
         <ScreenLayout.Body>
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.mainSection}>
-              <Text variant={TextVariant.HeadingMD}>
+              <Text variant={TextVariant.HeadingMd}>
                 {strings('deposit.bank_details.main_title')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('deposit.bank_details.main_content_1')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('deposit.bank_details.main_content_2')}
               </Text>
             </View>
 
-            {order ? (
+            {hasData ? (
               <View style={styles.detailsContainer}>
                 {amount ? (
                   <BankDetailRow
@@ -418,7 +426,10 @@ const V2BankDetails = () => {
                   style={styles.showBankInfoButton}
                   onPress={toggleBankInfo}
                 >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.PrimaryDefault}
+                  >
                     {showBankInfo
                       ? strings('deposit.bank_details.hide_bank_info')
                       : strings('deposit.bank_details.show_bank_info')}
@@ -426,7 +437,7 @@ const V2BankDetails = () => {
                   <Icon
                     name={showBankInfo ? IconName.ArrowUp : IconName.ArrowDown}
                     size={IconSize.Sm}
-                    color={theme.colors.primary.default}
+                    color={IconColor.PrimaryDefault}
                   />
                 </TouchableOpacity>
               </View>
@@ -441,18 +452,21 @@ const V2BankDetails = () => {
         <ScreenLayout.Content>
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {confirmPaymentError}
               </Text>
             ) : null}
             {cancelOrderError ? (
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {strings('deposit.bank_details.cancel_order_error')}
               </Text>
             ) : null}
 
             <PrivacySection>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
                 {strings('deposit.bank_details.info_banner_text', {
                   accountHolderName: accountName,
                 })}
@@ -462,24 +476,26 @@ const V2BankDetails = () => {
             <View style={styles.buttonContainer}>
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 onPress={handleCancelOrder}
-                label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
-                loading={isLoadingCancelOrder}
-                disabled={isLoadingConfirmPayment}
-              />
+                isLoading={isLoadingCancelOrder}
+                isDisabled={isLoadingConfirmPayment || isLoadingCancelOrder}
+              >
+                {strings('deposit.order_processing.cancel_order_button')}
+              </Button>
 
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 onPress={handleBankTransferSent}
-                testID="main-action-button"
-                label={strings('deposit.bank_details.button')}
+                testID={BANK_DETAILS_TEST_IDS.MAIN_ACTION_BUTTON}
                 size={ButtonSize.Lg}
-                disabled={isLoadingCancelOrder}
-                loading={isLoadingConfirmPayment}
-              />
+                isDisabled={isLoadingCancelOrder || isLoadingConfirmPayment}
+                isLoading={isLoadingConfirmPayment}
+              >
+                {strings('deposit.bank_details.button')}
+              </Button>
             </View>
           </View>
         </ScreenLayout.Content>

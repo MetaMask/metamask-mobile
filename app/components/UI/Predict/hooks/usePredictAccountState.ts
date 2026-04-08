@@ -1,131 +1,58 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Engine from '../../../../core/Engine';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { useEffect, useRef } from 'react';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { AccountState } from '../types';
-import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import { predictQueries } from '../queries';
+import type { AccountState } from '../types';
 
-interface UsePredictWalletParams {
+interface UsePredictAccountStateOptions {
   /**
-   * Whether to load account state on mount
+   * Whether the query is enabled.
    * @default true
    */
-  loadOnMount?: boolean;
-  /**
-   * Whether to refresh account state when screen comes into focus
-   * @default true
-   */
-  refreshOnFocus?: boolean;
+  enabled?: boolean;
 }
 
-export const usePredictAccountState = ({
-  loadOnMount = true,
-  refreshOnFocus = true,
-}: UsePredictWalletParams = {}) => {
-  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [accountState, setAccountState] = useState<AccountState | null>(null);
+/**
+ * Fetches the Predict account state (address, deployment status, allowances).
+ */
+export function usePredictAccountState(
+  options: UsePredictAccountStateOptions = {},
+): UseQueryResult<AccountState, Error> {
+  const { enabled = true } = options;
 
-  const address = useMemo(() => accountState?.address, [accountState]);
-  const isDeployed = useMemo(() => !!accountState?.isDeployed, [accountState]);
-  const hasAllowances = useMemo(
-    () => !!accountState?.hasAllowances,
-    [accountState],
-  );
+  const queryResult = useQuery({
+    ...predictQueries.accountState.options(),
+    enabled,
+  });
 
-  const loadAccountState = useCallback(
-    async (loadOptions?: { isRefresh?: boolean }) => {
-      const { isRefresh = false } = loadOptions || {};
+  const reportedErrorRef = useRef<Error | null>(null);
 
-      try {
-        if (isRefresh) {
-          setIsRefreshing(true);
-        } else {
-          setIsLoading(true);
-        }
-        setError(null);
-
-        try {
-          await ensurePolygonNetworkExists();
-        } catch (networkError) {
-          DevLogger.log(
-            'usePredictAccountState: Failed to ensure Polygon network exists',
-            networkError,
-          );
-        }
-
-        const controller = Engine.context.PredictController;
-        const accountStateResponse = await controller.getAccountState({});
-
-        setAccountState(accountStateResponse);
-
-        DevLogger.log('usePredictAccountState: Loaded account state', {
-          address: accountStateResponse?.address,
-          isDeployed: accountStateResponse?.isDeployed,
-          hasAllowances: accountStateResponse?.hasAllowances,
-        });
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to load account state';
-        setError(errorMessage);
-        DevLogger.log(
-          'usePredictAccountState: Error loading account state',
-          err,
-        );
-
-        // Capture exception with account state loading context (no user address)
-        Logger.error(ensureError(err), {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            component: 'usePredictAccountState',
-          },
-          context: {
-            name: 'usePredictAccountState',
-            data: {
-              method: 'loadAccountState',
-              action: 'account_state_load',
-              operation: 'data_fetching',
-            },
-          },
-        });
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [ensurePolygonNetworkExists],
-  );
-
-  // Load account state on mount if enabled
   useEffect(() => {
-    if (loadOnMount) {
-      loadAccountState();
+    if (!queryResult.error) {
+      reportedErrorRef.current = null;
+      return;
     }
-  }, [loadOnMount, loadAccountState]);
 
-  // Refresh account state when screen comes into focus if enabled
-  useFocusEffect(
-    useCallback(() => {
-      if (refreshOnFocus) {
-        // Refresh account state when returning to this screen
-        // Use refresh mode to avoid showing loading spinner
-        loadAccountState({ isRefresh: true });
-      }
-    }, [refreshOnFocus, loadAccountState]),
-  );
+    if (reportedErrorRef.current === queryResult.error) return;
+    reportedErrorRef.current = queryResult.error;
 
-  return {
-    address,
-    isDeployed,
-    hasAllowances,
-    isLoading,
-    isRefreshing,
-    error,
-    loadAccountState,
-  };
-};
+    Logger.error(ensureError(queryResult.error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictAccountState',
+      },
+      context: {
+        name: 'usePredictAccountState',
+        data: {
+          method: 'queryFn',
+          action: 'account_state_load',
+          operation: 'data_fetching',
+        },
+      },
+    });
+  }, [queryResult.error]);
+
+  return queryResult;
+}

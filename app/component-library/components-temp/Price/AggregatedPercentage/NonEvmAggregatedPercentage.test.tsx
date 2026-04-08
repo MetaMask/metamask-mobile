@@ -8,7 +8,7 @@ import {
   FORMATTED_PERCENTAGE_TEST_ID,
 } from './AggregatedPercentage.constants';
 import NonEvmAggregatedPercentage from './NonEvmAggregatedPercentage';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as multichain from '../../../../selectors/multichain/multichain';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain/multichain';
 

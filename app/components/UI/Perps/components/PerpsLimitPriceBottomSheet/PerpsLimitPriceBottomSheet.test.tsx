@@ -65,19 +65,16 @@ jest.mock('react-native-safe-area-context', () => {
 
 // Mock theme
 const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-  mockTheme: {
-    colors: {
-      background: { default: '#FFFFFF', alternative: '#f0f0f0' },
-      text: { default: '#000000', alternative: '#666666', muted: '#999999' },
-      border: { muted: '#CCCCCC' },
-      success: { default: '#00FF00' },
-      primary: { default: '#0066cc' },
-      error: { default: '#ff0000' },
-    },
-  },
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: mockUseTheme,
+    mockTheme,
+  };
+});
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 // Mock useTailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -304,48 +301,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   },
 }));
 
-// Mock styles
-jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
-  createStyles: () => ({
-    container: { paddingHorizontal: 16 },
-    priceInfo: { marginTop: 8, marginBottom: 16 },
-    priceRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    priceLabel: { fontSize: 14, color: '#666' },
-    priceValue: { fontSize: 16, fontWeight: '500' },
-    limitPriceDisplay: {
-      backgroundColor: '#f0f0f0',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    limitPriceValue: { fontSize: 32, fontWeight: '600' },
-    limitPriceCurrency: { fontSize: 18, color: '#666' },
-    percentageButtonsRow: { flexDirection: 'row', marginBottom: 10, gap: 8 },
-    percentageButton: {
-      flex: 1,
-      backgroundColor: '#fff',
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    keypadContainer: { marginBottom: 16, padding: 0 },
-    footerContainer: { paddingHorizontal: 16, paddingBottom: 24 },
-  }),
-}));
-
 describe('PerpsLimitPriceBottomSheet', () => {
-  const mockTheme = {
-    colors: {
-      background: { alternative: '#f0f0f0', default: '#ffffff' },
-      text: { default: '#000000', muted: '#666666', alternative: '#999999' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0066cc' },
-      error: { default: '#ff0000' },
-    },
-  };
-
   const defaultProps = {
     isVisible: true,
     onClose: jest.fn(),
@@ -357,7 +313,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
 
     // Mock stream hooks
     const { usePerpsLivePrices, usePerpsTopOfBook } =
@@ -569,6 +525,69 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Verify limit price was updated (BigNumber mock returns base price)
       expect(screen.getByTestId('keypad-value')).toHaveTextContent('3000');
+    });
+  });
+
+  describe('Preset decimal precision (TAT-2399)', () => {
+    const xrpProps = {
+      ...defaultProps,
+      asset: 'XRP',
+      currentPrice: 2.3418,
+    };
+
+    beforeEach(() => {
+      const { usePerpsTopOfBook } = jest.requireMock('../../hooks/stream');
+      usePerpsTopOfBook.mockReturnValue({
+        bestBid: '2.3412',
+        bestAsk: '2.3426',
+      });
+    });
+
+    it('Mid preset uses 5 significant figures (not 4) for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="long" />);
+
+      const midButton = screen.getByText(
+        'perps.order.limit_price_modal.mid_price',
+      );
+      fireEvent.press(midButton);
+
+      // With 5 sig figs: 2.3418 → 4 decimals (intDig=1, dec=4)
+      // With 4 sig figs (bug): 2.3418 → 3 decimals (2.342)
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3418');
+    });
+
+    it('Bid preset uses 5 significant figures for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="long" />);
+
+      const bidButton = screen.getByText(
+        'perps.order.limit_price_modal.bid_price',
+      );
+      fireEvent.press(bidButton);
+
+      // bestBid='2.3412' → parseFloat → 2.3412 → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3412');
+    });
+
+    it('Ask preset uses 5 significant figures for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="short" />);
+
+      const askButton = screen.getByText(
+        'perps.order.limit_price_modal.ask_price',
+      );
+      fireEvent.press(askButton);
+
+      // bestAsk='2.3426' → parseFloat → 2.3426 → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3426');
+    });
+
+    it('Percentage preset uses 5 significant figures for XRP-range prices', () => {
+      render(<PerpsLimitPriceBottomSheet {...xrpProps} direction="long" />);
+
+      const pctButton = screen.getByText('-1%');
+      fireEvent.press(pctButton);
+
+      // BigNumber mock returns base price (2.3418) → 5 sig figs → 4 decimals
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2.3418');
     });
   });
 

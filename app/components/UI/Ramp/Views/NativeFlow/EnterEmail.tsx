@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterEmail/EnterEmail.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
@@ -18,16 +22,13 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../Deposit/utils';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
-import useAnalytics from '../../hooks/useAnalytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
   amount?: string;
@@ -47,7 +48,7 @@ const V2EnterEmail = () => {
   const [validationError, setValidationError] = useState(false);
 
   const { styles, theme } = useStyles(styleSheet, {});
-  const trackEvent = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { sendUserOtp } = useTransakController();
 
   useEffect(() => {
@@ -56,9 +57,33 @@ const V2EnterEmail = () => {
         navigation,
         { title: strings('deposit.enter_email.navbar_title') },
         theme,
+        () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Enter Email',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
       ),
     );
-  }, [navigation, theme]);
+  }, [navigation, theme, trackEvent, createEventBuilder]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Enter Email',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const emailInputRef = useRef<TextInput>(null);
 
@@ -83,9 +108,13 @@ const V2EnterEmail = () => {
           throw new Error('State token is required for OTP verification');
         }
 
-        trackEvent('RAMPS_EMAIL_SUBMITTED', {
-          ramp_type: 'DEPOSIT',
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_EMAIL_SUBMITTED)
+            .addProperties({
+              ramp_type: 'DEPOSIT',
+            })
+            .build(),
+        );
         navigation.navigate(
           ...createV2OtpCodeNavDetails({
             email,
@@ -104,7 +133,7 @@ const V2EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [email, navigation, sendUserOtp, trackEvent, params]);
+  }, [email, navigation, sendUserOtp, trackEvent, createEventBuilder, params]);
 
   return (
     <ScreenLayout>
@@ -112,14 +141,15 @@ const V2EnterEmail = () => {
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
           <View style={styles.contentContainer}>
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text variant={TextVariant.HeadingLg} style={styles.title}>
               {strings('deposit.enter_email.title')}
             </Text>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
               {strings('deposit.enter_email.description')}
             </Text>
 
             <TextField
+              testID={EnterEmailSelectorsIDs.EMAIL_INPUT}
               autoComplete="email"
               keyboardType="email-address"
               placeholder={strings('deposit.enter_email.input_placeholder')}
@@ -134,12 +164,16 @@ const V2EnterEmail = () => {
             />
 
             {validationError && (
-              <Text style={styles.error}>
+              <Text variant={TextVariant.BodySm} style={styles.error}>
                 {strings('deposit.enter_email.validation_error')}
               </Text>
             )}
 
-            {error && <Text style={styles.error}>{error}</Text>}
+            {error && (
+              <Text variant={TextVariant.BodySm} style={styles.error}>
+                {error}
+              </Text>
+            )}
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -147,14 +181,16 @@ const V2EnterEmail = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <Button
+            testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.enter_email.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading}
-          />
+          >
+            {strings('deposit.enter_email.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

@@ -8,7 +8,19 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
+import {
+  getPostQuoteTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
+import { useSelector } from 'react-redux';
+import {
+  selectMetaMaskPayTokensFlags,
+  PreferredToken,
+  getPreferredTokensForTransactionType,
+} from '../../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../../reducers';
+import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
+import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -24,18 +36,19 @@ export function useAutomaticTransactionPayToken({
   disable?: boolean;
   preferredToken?: SetPayTokenRequest;
 } = {}) {
-  const isUpdated = useRef(false);
-  const { setPayToken } = useTransactionPayToken();
+  const isUpdated = useRef<string | undefined>();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
+  const { availableTokens } = useTransactionPayAvailableTokens();
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
 
-  const tokensWithBalance = useMemo(
-    () => tokens.filter((t) => !t.disabled),
-    [tokens],
+  const transactionMetaRequest = useTransactionMetadataRequest();
+  const transactionMeta = useMemo(
+    () => transactionMetaRequest ?? ({ txParams: {} } as TransactionMeta),
+    [transactionMetaRequest],
   );
-
-  const transactionMeta =
-    useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
+  const transactionId = transactionMeta.id;
+  const postQuoteTransactionType = getPostQuoteTransactionType(transactionMeta);
 
   const {
     txParams: { from },
@@ -51,20 +64,52 @@ export function useAutomaticTransactionPayToken({
     [requiredTokens],
   );
 
-  // For withdrawals, skip auto-selection — the default token is derived
-  // from required tokens and shown via PayWithRow
+  const preferredTokensFromFlags = useMemo(
+    () =>
+      getPreferredTokensForTransactionType(
+        payTokensFlags.preferredTokens,
+        postQuoteTransactionType ?? transactionMeta.type,
+      ),
+    [
+      transactionMeta.type,
+      postQuoteTransactionType,
+      payTokensFlags.preferredTokens,
+    ],
+  );
+
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const lastWithdrawToken = useSelector((state: RootState) =>
+    selectLastWithdrawTokenByType(state, postQuoteTransactionType),
+  );
+  const withdrawTokenFilter = useWithdrawTokenFilter();
+
+  const tokens = useMemo(
+    () =>
+      isWithdraw
+        ? withdrawTokenFilter(availableTokens)
+        : availableTokens.filter((t) => !t.disabled),
+    [availableTokens, isWithdraw, withdrawTokenFilter],
+  );
 
   useEffect(() => {
-    if (disable || isWithdraw || isUpdated.current) {
+    if (
+      disable ||
+      payToken ||
+      !transactionId ||
+      isUpdated.current === transactionId
+    ) {
       return;
     }
 
     const automaticToken = getBestToken({
       isHardwareWallet,
+      isWithdraw,
+      lastWithdrawToken,
       targetToken,
-      tokens: tokensWithBalance,
+      tokens,
       preferredToken,
+      preferredTokensFromFlags,
+      minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
     });
 
     if (!automaticToken) {
@@ -77,29 +122,42 @@ export function useAutomaticTransactionPayToken({
       chainId: automaticToken.chainId,
     });
 
-    isUpdated.current = true;
+    isUpdated.current = transactionId;
 
     log('Automatically selected pay token', automaticToken);
   }, [
     disable,
     isHardwareWallet,
     isWithdraw,
+    lastWithdrawToken,
+    payTokensFlags.minimumRequiredTokenBalance,
+    payToken,
     preferredToken,
+    preferredTokensFromFlags,
     requiredTokens,
     setPayToken,
     targetToken,
-    tokensWithBalance,
+    tokens,
+    transactionId,
   ]);
 }
 
 function getBestToken({
   isHardwareWallet,
+  isWithdraw,
+  lastWithdrawToken,
   preferredToken,
+  preferredTokensFromFlags,
+  minimumRequiredTokenBalance,
   targetToken,
   tokens,
 }: {
   isHardwareWallet: boolean;
+  isWithdraw: boolean;
+  lastWithdrawToken?: SetPayTokenRequest;
   preferredToken?: SetPayTokenRequest;
+  preferredTokensFromFlags: PreferredToken[];
+  minimumRequiredTokenBalance: number;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
 }): { address: Hex; chainId: Hex } | undefined {
@@ -114,6 +172,20 @@ function getBestToken({
     return targetTokenFallback;
   }
 
+  if (isWithdraw && lastWithdrawToken) {
+    const lastWithdrawTokenAvailable = tokens.some(
+      (token) =>
+        token.address.toLowerCase() ===
+          lastWithdrawToken.address.toLowerCase() &&
+        token.chainId?.toLowerCase() ===
+          lastWithdrawToken.chainId.toLowerCase(),
+    );
+
+    if (lastWithdrawTokenAvailable) {
+      return lastWithdrawToken;
+    }
+  }
+
   if (preferredToken) {
     const preferredTokenAvailable = tokens.some(
       (token) =>
@@ -126,7 +198,43 @@ function getBestToken({
     }
   }
 
+  if (preferredTokensFromFlags.length) {
+    const sorted = [...preferredTokensFromFlags].sort(
+      (a, b) => b.successRate - a.successRate,
+    );
+
+    for (const preferred of sorted) {
+      const matchingToken = tokens.find(
+        (token) =>
+          token.address.toLowerCase() === preferred.address.toLowerCase() &&
+          token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
+      );
+
+      if (matchingToken) {
+        if (isWithdraw) {
+          return {
+            address: matchingToken.address as Hex,
+            chainId: matchingToken.chainId as Hex,
+          };
+        }
+
+        const fiatBalance = matchingToken.fiat?.balance ?? 0;
+
+        if (fiatBalance >= minimumRequiredTokenBalance) {
+          return {
+            address: matchingToken.address as Hex,
+            chainId: matchingToken.chainId as Hex,
+          };
+        }
+      }
+    }
+  }
+
   if (tokens?.length) {
+    if (isWithdraw) {
+      return undefined;
+    }
+
     return {
       address: tokens[0].address as Hex,
       chainId: tokens[0].chainId as Hex,

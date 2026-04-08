@@ -18,12 +18,10 @@ import SRPListItem from './SRPListItem';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -75,6 +73,7 @@ const mockAccountGroup1 = {
     name: 'Account 1',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
     entropy: { groupIndex: 0 },
   },
 };
@@ -87,6 +86,7 @@ const mockAccountGroup2 = {
     name: 'Account 2',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
     entropy: { groupIndex: 1 },
   },
 };
@@ -108,8 +108,8 @@ const mockAccountTreeControllerState: DeepPartial<AccountTreeControllerState> =
           },
         },
       },
-      selectedAccountGroup: mockAccountGroupId1,
     },
+    selectedAccountGroup: mockAccountGroupId1,
   };
 
 const initialState = {
@@ -134,7 +134,10 @@ const getTestId = (selector: string, keyringId: string) =>
 describe('SRPList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.Mock).mockReturnValue({
+    const { useAnalytics } = jest.requireMock(
+      '../../hooks/useAnalytics/useAnalytics',
+    );
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     });

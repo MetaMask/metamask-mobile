@@ -15,7 +15,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from '../../RewardItem/RewardItem';
 import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { ActivityIndicator } from 'react-native';
 interface UnlockedRewardItemProps {

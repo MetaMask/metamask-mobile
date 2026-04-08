@@ -212,7 +212,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
               numberOfLines={1}
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -238,7 +238,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -249,7 +249,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 0x2990079bcdEe240329a520d2444386FC119da21a
               </Text>
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={10}
                 name="ArrowDown"
@@ -267,7 +267,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             <View
               style={
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#f3f3f4",
                   "borderRadius": 4,
                   "height": 24,
                   "justifyContent": "center",
@@ -281,7 +281,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 12,
                     "letterSpacing": 0.25,
@@ -324,7 +324,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       testID="button-menu-select-test-id"
     >
       <SvgMock
-        color="#121314"
+        color="#131416"
         fill="currentColor"
         height={20}
         name="MoreVertical"

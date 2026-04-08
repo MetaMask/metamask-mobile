@@ -56,7 +56,7 @@ const AdditionalNetworkItem = ({ item, onAdd }: AdditionalNetworkItemProps) => {
         hitSlop={HIT_SLOP}
         style={({ pressed }) =>
           tw.style(
-            'w-7 h-7 items-center justify-center rounded-lg bg-background-muted mr-2.5',
+            'w-7 h-7 items-center justify-center mr-2.5',
             pressed && 'opacity-70',
           )
         }

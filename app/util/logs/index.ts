@@ -4,14 +4,14 @@ import {
   getBuildNumber,
   getVersion,
 } from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
-import { MetaMetrics } from '../../core/Analytics';
+import { analytics } from '../analytics/analytics';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -80,7 +80,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
 };
 
 // TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
   const fullState = JSON.parse(JSON.stringify(state));
 
@@ -134,9 +134,8 @@ export const downloadStateLogs = async (
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
-  const metrics = MetaMetrics.getInstance();
-  const metaMetricsId = metrics.isEnabled()
-    ? await metrics.getMetaMetricsId()
+  const metaMetricsId = analytics.isEnabled()
+    ? await analytics.getAnalyticsId()
     : undefined;
   const path =
     RNFS.DocumentDirectoryPath +

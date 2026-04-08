@@ -13,7 +13,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
+      "borderColor": "#949596",
       "borderRadius": 4,
       "borderWidth": 1,
       "padding": 16,
@@ -188,7 +188,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -204,7 +204,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -219,7 +219,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -232,7 +232,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
             "borderRadius": 4,
             "height": 24,
             "justifyContent": "center",
@@ -245,7 +245,7 @@ exports[`CellDisplay should render default settings correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Medium",
               "fontSize": 12,
               "letterSpacing": 0.25,

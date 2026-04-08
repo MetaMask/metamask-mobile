@@ -6,6 +6,8 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
+  TextInputSelectionChangeEventData,
+  NativeSyntheticEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -15,17 +17,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
-import {
-  selectCurrentCurrency,
-  selectCurrencyRates,
-} from '../../../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import Button, {
-  ButtonVariants,
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import OldButton, {
+  ButtonVariants as OldButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -34,10 +32,6 @@ import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
-import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -49,7 +43,8 @@ import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
-import { useTokenInputAreaFormattedBalance } from '../../hooks/useTokenInputAreaFormattedBalance';
+import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
+import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -125,6 +120,10 @@ interface TokenInputAreaProps {
   onBlur?: () => void;
   onInputPress?: () => void;
   onMaxPress?: () => void;
+  selection?: { start: number; end: number };
+  onSelectionChange?: (
+    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+  ) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -150,6 +149,8 @@ export const TokenInputArea = forwardRef<
       onBlur,
       onInputPress,
       onMaxPress,
+      selection,
+      onSelectionChange,
       latestAtomicBalance,
       isSourceToken,
       style,
@@ -201,35 +202,15 @@ export const TokenInputArea = forwardRef<
       });
     };
 
-    // // Data for fiat value calculation
-    const evmMultiChainMarketData = useSelector(selectTokenMarketData);
-    const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
-    const networkConfigurationsByChainId = useSelector(
-      selectNetworkConfigurations,
-    );
-
     const isInsufficientBalance = useIsInsufficientBalance({
       amount,
       token,
       latestAtomicBalance,
     });
 
-    let nonEvmMultichainAssetRates = {};
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    const currencyValue = useDisplayCurrencyValue(amount, token);
 
-    const currencyValue = getDisplayCurrencyValue({
-      token,
-      amount,
-      evmMultiChainMarketData,
-      networkConfigurationsByChainId,
-      evmMultiChainCurrencyRates,
-      currentCurrency,
-      nonEvmMultichainAssetRates,
-    });
-
-    const formattedBalance = useTokenInputAreaFormattedBalance(
+    const formattedBalance = useFormattedBalanceWithThreshold(
       tokenBalance,
       token,
     );
@@ -286,7 +267,7 @@ export const TokenInputArea = forwardRef<
                   isReadonly={tokenType === TokenInputAreaType.Destination}
                   showSoftInputOnFocus={false}
                   caretHidden={false}
-                  autoFocus
+                  autoFocus={false}
                   placeholder="0"
                   testID={`${testID}-input`}
                   onPressIn={() => {
@@ -299,11 +280,20 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
-                  // Android only issue, for long numbers, the input field will focus on the right hand side
-                  // Force it to focus on the left hand side
+                  // Source selection is controlled so Bridge can keep the
+                  // visible caret aligned with the raw cursor used by keypad
+                  // edits. On iOS you have to use the press-and-drag magnifier
+                  // handle; Android supports direct tap placement.
                   selection={
+                    // Android only issue, for long numbers, the input field will focus on the right hand side
+                    // Force it to focus on the left hand side
                     tokenType === TokenInputAreaType.Destination
                       ? { start: 0, end: 0 }
+                      : selection
+                  }
+                  onSelectionChange={
+                    tokenType === TokenInputAreaType.Source
+                      ? onSelectionChange
                       : undefined
                   }
                 />
@@ -320,15 +310,16 @@ export const TokenInputArea = forwardRef<
               />
             ) : (
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings(tokenButtonText)}
+                variant={ButtonVariant.Primary}
                 onPress={
                   isSourceToken
                     ? navigateToSourceTokenSelector
                     : navigateToDestTokenSelector
                 }
                 testID={testID}
-              />
+              >
+                {strings(tokenButtonText)}
+              </Button>
             )}
           </Box>
           <Box style={styles.row}>
@@ -366,8 +357,8 @@ export const TokenInputArea = forwardRef<
                     tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton && (
-                      <Button
-                        variant={ButtonVariants.Link}
+                      <OldButton
+                        variant={OldButtonVariants.Link}
                         label={strings('bridge.max')}
                         onPress={onMaxPress}
                         disabled={!subtitle}

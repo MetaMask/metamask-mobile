@@ -13,7 +13,7 @@ import { Image, Pressable, StyleSheet } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsDiscoveryBannerProps } from './PerpsDiscoveryBanner.types';
 
-// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+// eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const perpsLogo = require('../../../../../images/perps-home-empty-state.png');
 
 const styleSheet = () =>

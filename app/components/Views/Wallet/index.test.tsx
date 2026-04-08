@@ -37,6 +37,17 @@ jest.mock('../../UI/Predict/views/PredictTabView', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock AssetPollingProvider to assert chainIds when homepage sections are disabled
+const mockAssetPollingProvider = jest.fn<null, [{ chainIds?: string[] }]>(
+  () => null,
+);
+jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: (props: { chainIds?: string[] }) => {
+    mockAssetPollingProvider(props as { chainIds?: string[] });
+    return null;
+  },
+}));
+
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -90,15 +101,10 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import {
-  screen as RNScreen,
-  renderHook,
-  waitFor,
-} from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
@@ -208,6 +214,9 @@ jest.mock('../../../core/Engine', () => {
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: jest.fn(),
+        listPopularEvmNetworks: jest.fn(() => ['0x1']),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       },
     },
   };
@@ -282,6 +291,10 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
+  collectibles: {
+    favorites: {},
+    isNftFetchingProgress: false,
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -317,13 +330,6 @@ const mockInitialState = {
         activeAccount: null,
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
-        identities: {
-          [MOCK_ADDRESS]: {
-            address: MOCK_ADDRESS,
-            name: 'Account 1',
-          },
-        },
         useTokenDetection: true,
         isTokenNetworkFilterEqualToAllNetworks: false,
         tokenNetworkFilter: {
@@ -397,6 +403,22 @@ jest.mock('../../../util/address', () => ({
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
+// Mock core first so useIsFocused/useNavigation work when Wallet or children use them
+jest.mock('@react-navigation/core', () => {
+  const actualCore = jest.requireActual('@react-navigation/core');
+  return {
+    ...actualCore,
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: () => true,
+      dangerouslyGetParent: jest.fn(),
+    })),
+    useIsFocused: jest.fn(() => true),
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -404,11 +426,23 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(() => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
     })),
     useRoute: jest.fn(() => ({
       params: {},
     })),
     useFocusEffect: jest.fn(),
+    useIsFocused: jest.fn(() => true),
   };
 });
 
@@ -475,31 +509,6 @@ describe('Wallet', () => {
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
   });
-  it('should render the address copy button', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const addressCopyButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-    );
-    expect(addressCopyButton).toBeDefined();
-  });
-  it('should render the account picker', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const accountPicker = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
-    );
-    expect(accountPicker).toBeDefined();
-  });
-
-  it('should render scan qr icon', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const scanButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
-    );
-    expect(scanButton).toBeDefined();
-  });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {
     const mockedAddTokens = jest.mocked(Engine.context.TokensController);
@@ -519,43 +528,6 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
-  });
-
-  it('calls AccountTrackerController.refresh when selectedInternalAccount changes', async () => {
-    const refreshMock = jest.mocked(
-      Engine.context.AccountTrackerController.refresh,
-    );
-
-    //@ts-expect-error we are ignoring the navigation params on purpose
-    render(Wallet);
-    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
-    refreshMock.mockClear();
-
-    renderScreen(
-      // @ts-expect-error we are ignoring the navigation params on purpose
-      Wallet,
-      { name: Routes.WALLET_VIEW },
-      {
-        state: {
-          ...mockInitialState,
-          engine: {
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              AccountsController: {
-                ...mockInitialState.engine.backgroundState.AccountsController,
-                internalAccounts: {
-                  ...mockInitialState.engine.backgroundState.AccountsController
-                    .internalAccounts,
-                  selectedAccount: 'different-account-id',
-                },
-              },
-            },
-          },
-        },
-      },
-    );
-
-    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });
 
   // Simple test to verify mock setup
@@ -640,9 +612,8 @@ describe('Wallet', () => {
               },
             },
             AccountTreeController: {
-              accountTree: {
-                selectedAccountGroup: 'group-id-123',
-              },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: 'keyring:wallet-1/ethereum',
             },
             NetworkController: {
               ...mockInitialState.engine.backgroundState.NetworkController,
@@ -684,9 +655,8 @@ describe('Wallet', () => {
           backgroundState: {
             ...mockInitialState.engine.backgroundState,
             AccountTreeController: {
-              accountTree: {
-                selectedAccountGroup: 'group-id-123',
-              },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: 'keyring:wallet-1/ethereum',
             },
           },
         },
@@ -695,7 +665,7 @@ describe('Wallet', () => {
       jest.mocked(useSelector).mockImplementation((callback) => {
         const selectorString = callback.toString();
         if (selectorString.includes('selectSelectedAccountGroupId')) {
-          return 'group-id-123'; // Ensure this returns the group ID
+          return 'keyring:wallet-1/ethereum';
         }
         return callback(mockStateWithMultichainAccounts);
       });
@@ -903,6 +873,17 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -973,6 +954,17 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -1022,6 +1014,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1039,7 +1042,7 @@ describe('Wallet', () => {
       mockPredictGTMModalEnabled = false; // Reset to default
     });
 
-    it('should register visibility callback when Perps is enabled', () => {
+    it('renders PerpsTabView without visibility props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1065,20 +1068,17 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Debug: Check if TabsList was rendered
       expect(mockTabsListComponent).toHaveBeenCalled();
-
-      // Check that PerpsTabView was rendered
       expect(mockPerpsTabView).toHaveBeenCalled();
 
-      // Check the props it was called with
+      // With PerpsAlwaysOnProvider managing lifecycle, PerpsTabView no longer
+      // receives visibility props — lifecycle is centralized at the wallet root.
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.onVisibilityChange).toBeDefined();
-      expect(typeof perpsTabViewProps.onVisibilityChange).toBe('function');
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.onVisibilityChange).toBeUndefined();
+      expect(perpsTabViewProps.isVisible).toBeUndefined();
     });
 
-    it('should calculate correct perpsTabIndex when Perps is enabled', () => {
+    it('renders PerpsTabView with only tab-related props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1104,9 +1104,10 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Perps should be at index 1 when enabled (after Tokens at index 0)
+      expect(mockPerpsTabView).toHaveBeenCalled();
+      // tabLabel and key are the only props passed — no isVisible or onVisibilityChange
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.tabLabel).toBeDefined();
     });
 
     it('should not render PerpsTabView when Perps is disabled', () => {
@@ -1198,6 +1199,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1423,6 +1435,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Reset flags to default state

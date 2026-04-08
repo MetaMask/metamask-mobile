@@ -13,7 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -33,6 +32,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -44,67 +44,41 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import {
-  PredictTradeStatus,
-  PredictEventValues,
-} from '../../constants/eventNames';
+import { PredictTradeStatus } from '../../constants/eventNames';
+import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
+import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
+
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-
-export const MINIMUM_BET = 1; // $1 minimum bet
+import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
+import { MINIMUM_BET } from '../../constants/transactions';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
   const analyticsProperties = useMemo(
-    () => ({
-      marketId: market?.id,
-      marketTitle: market?.title,
-      marketCategory: market?.category,
-      marketTags: market?.tags,
-      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
-      liquidity: market?.liquidity,
-      volume: market?.volume,
-      sharePrice: outcomeToken?.price,
-      marketType:
-        market?.outcomes?.length === 1
-          ? PredictEventValues.MARKET_TYPE.BINARY
-          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      outcome: outcomeToken?.title?.toLowerCase(),
-      marketSlug: market?.slug,
-      gameId: market?.game?.id,
-      gameStartTime: market?.game?.startTime,
-      gameLeague: market?.game?.league,
-      gameStatus: market?.game?.status,
-      gamePeriod: market?.game?.period,
-      gameClock: market?.game?.elapsed,
-    }),
+    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
     [market, outcomeToken, entryPoint],
   );
 
@@ -120,7 +94,7 @@ const PredictBuyPreview = () => {
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
 
-  const { deposit } = usePredictDeposit();
+  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
@@ -219,21 +193,8 @@ const PredictBuyPreview = () => {
     !isBalanceLoading &&
     !isRateLimited;
 
-  const {
-    enabled: isRewardsEnabled,
-    isLoading: isRewardsLoading,
-    accountOptedIn: isAccountOptedIntoRewards,
-    rewardsAccountScope,
-    estimatedPoints: estimatedRewardsPoints,
-    hasError: isRewardsError,
-  } = usePredictRewards(
-    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
-  );
-
-  // Show rewards row if we have a valid amount
-  // && either active account address is opted in or not opted in but opt-in is supported
-  const shouldShowRewardsRow =
-    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+  const rewardsFeeAmountUsd =
+    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -408,31 +369,6 @@ const PredictBuyPreview = () => {
     </ScrollView>
   );
 
-  const renderErrorMessage = () => {
-    if (isBalanceLoading) return null;
-
-    if (isBelowMinimum) {
-      return (
-        <Box twClassName="px-12 pb-4">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center')}
-          >
-            {strings('predict.order.prediction_minimum_bet', {
-              amount: formatPrice(MINIMUM_BET, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-            })}
-          </Text>
-        </Box>
-      );
-    }
-
-    return null;
-  };
-
   const renderActionButton = () => {
     if (isLoading) {
       return (
@@ -479,6 +415,27 @@ const PredictBuyPreview = () => {
     );
   };
 
+  const renderMinimumBetWarning = () => {
+    if (isBalanceLoading || !isBelowMinimum) {
+      return null;
+    }
+
+    return (
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.ErrorDefault}
+        style={tw.style('text-center pb-2')}
+      >
+        {strings('predict.order.prediction_minimum_bet', {
+          amount: formatPrice(MINIMUM_BET, {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+          }),
+        })}
+      </Text>
+    );
+  };
+
   const renderBottomContent = () => {
     if (isInputFocused) {
       return null;
@@ -487,9 +444,19 @@ const PredictBuyPreview = () => {
     return (
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="border-t border-muted p-4 pb-0 gap-4"
+        twClassName="border-t border-muted"
       >
-        <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
+        <PredictFeeSummary
+          disabled={false}
+          total={total}
+          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+          rewardsLoadingOverride={isCalculating && isUserInputChange}
+          handleFeesInfoPress={handleFeesInfoPress}
+        />
+        <Box
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-2 px-4 pb-0"
+        >
           {errorMessage && (
             <Text
               variant={TextVariant.BodySm}
@@ -500,7 +467,7 @@ const PredictBuyPreview = () => {
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center flex-wrap">
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
@@ -526,22 +493,7 @@ const PredictBuyPreview = () => {
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       {renderHeader()}
       {renderAmount()}
-      <PredictFeeSummary
-        disabled={isInputFocused}
-        total={total}
-        metamaskFee={metamaskFee}
-        providerFee={providerFee}
-        shouldShowRewardsRow={shouldShowRewardsRow}
-        rewardsAccountScope={rewardsAccountScope}
-        accountOptedIn={isAccountOptedIntoRewards}
-        estimatedPoints={estimatedRewardsPoints}
-        isLoadingRewards={
-          (isCalculating && isUserInputChange) || isRewardsLoading
-        }
-        hasRewardsError={isRewardsError}
-        onFeesInfoPress={handleFeesInfoPress}
-      />
-      {renderErrorMessage()}
+      {renderMinimumBetWarning()}
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -550,7 +502,6 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
-        onAddFunds={deposit}
       />
       {renderBottomContent()}
       {isFeeBreakdownVisible && (
@@ -558,7 +509,12 @@ const PredictBuyPreview = () => {
           ref={feeBreakdownSheetRef}
           providerFee={providerFee}
           metamaskFee={metamaskFee}
+          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          contractCount={preview?.minAmountReceived ?? 0}
+          betAmount={currentValue}
+          total={total}
           onClose={handleFeeBreakdownClose}
+          fakOrdersEnabled={fakOrdersEnabled}
         />
       )}
       <PredictOrderRetrySheet

@@ -5,17 +5,11 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
 import {
+  selectIsCardAuthenticated,
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-  selectCardGeoLocation,
-  setAlwaysShowCardButton,
-} from '../../../redux/slices/card';
-import {
-  selectCardExperimentalSwitch,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
+} from '../../../../selectors/cardController';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
+import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
 /**
  * Card home deeplink handler
@@ -47,41 +41,28 @@ export const handleCardHome = () => {
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
-    const cardGeoLocation = selectCardGeoLocation(state);
-    const isCardExperimentalSwitchEnabled = selectCardExperimentalSwitch(state);
-    const displayCardButtonFeatureFlag =
-      selectDisplayCardButtonFeatureFlag(state);
-    const cardSupportedCountries = selectCardSupportedCountries(
-      state,
-    ) as Record<string, boolean>;
-    const shouldCardBeEnabled =
-      isCardExperimentalSwitchEnabled ||
-      (cardSupportedCountries?.[cardGeoLocation as string] === true &&
-        displayCardButtonFeatureFlag);
-
-    if (!shouldCardBeEnabled) {
-      DevLogger.log('[handleCardHome] Card is not enabled, skipping');
-      return;
-    }
-
-    ReduxService.store.dispatch(setAlwaysShowCardButton(true));
-    DevLogger.log('[handleCardHome] Successfully enabled card button');
 
     if (isAuthenticated || hasCardLinkedAccount) {
       if (hasCardLinkedAccount && !isAuthenticated) {
-        const firstCardholderAddress = cardholderAccounts[0];
+        const firstCardholderAddress = cardholderAccounts
+          .map((id) =>
+            isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
+          )
+          .find(Boolean);
         DevLogger.log(
           '[handleCardHome] Switching to first cardholder account:',
           firstCardholderAddress,
         );
 
         try {
-          Engine.setSelectedAddress(firstCardholderAddress);
-          DevLogger.log(
-            '[handleCardHome] Successfully switched to cardholder account',
-          );
+          if (firstCardholderAddress) {
+            Engine.setSelectedAddress(firstCardholderAddress);
+            DevLogger.log(
+              '[handleCardHome] Successfully switched to cardholder account',
+            );
+          }
         } catch (switchError) {
           DevLogger.log(
             '[handleCardHome] Error switching account:',

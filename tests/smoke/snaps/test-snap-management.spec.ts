@@ -9,6 +9,7 @@ import SettingsView from '../../page-objects/Settings/SettingsView';
 import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 
 jest.setTimeout(150_000);
 
@@ -46,7 +47,9 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
 
         await SnapSettingsView.tapBackButton();
         await SnapSettingsView.tapBackButton();
+        // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
+        await AccountMenu.tapBack();
 
         await navigateToBrowserView();
 
@@ -76,7 +79,9 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
 
         await SnapSettingsView.tapBackButton();
         await SnapSettingsView.tapBackButton();
+        // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
+        await AccountMenu.tapBack();
 
         await navigateToBrowserView();
 

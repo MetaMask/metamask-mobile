@@ -10,7 +10,7 @@ exports[`ButtonBase handles custom label color 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -24,7 +24,7 @@ exports[`ButtonBase handles custom label color 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -44,7 +44,7 @@ exports[`ButtonBase handles custom label text variant 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -58,7 +58,7 @@ exports[`ButtonBase handles custom label text variant 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sHeadingSM"
@@ -78,7 +78,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 32,
@@ -92,7 +92,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 32 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -112,7 +112,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -126,7 +126,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 40 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -146,7 +146,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 48,
@@ -160,7 +160,7 @@ exports[`ButtonBase handles different sizes: ButtonBase with size 48 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -179,7 +179,7 @@ exports[`ButtonBase handles different widths 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -194,7 +194,7 @@ exports[`ButtonBase handles different widths 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -215,7 +215,7 @@ exports[`ButtonBase renders when disabled 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -230,7 +230,7 @@ exports[`ButtonBase renders when disabled 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -250,7 +250,7 @@ exports[`ButtonBase renders with basic props 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -264,7 +264,7 @@ exports[`ButtonBase renders with basic props 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -284,7 +284,7 @@ exports[`ButtonBase renders with both start and end icons 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -308,7 +308,7 @@ exports[`ButtonBase renders with both start and end icons 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -338,7 +338,7 @@ exports[`ButtonBase renders with custom label component 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -362,7 +362,7 @@ exports[`ButtonBase renders with end icon 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -376,7 +376,7 @@ exports[`ButtonBase renders with end icon 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"
@@ -406,7 +406,7 @@ exports[`ButtonBase renders with start icon 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
       "borderRadius": 12,
       "flexDirection": "row",
       "height": 40,
@@ -430,7 +430,7 @@ exports[`ButtonBase renders with start icon 1`] = `
     accessibilityRole="none"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
       }
     }
     variant="sBodyMDMedium"

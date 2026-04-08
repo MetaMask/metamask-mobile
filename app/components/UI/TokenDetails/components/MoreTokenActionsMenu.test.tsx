@@ -130,6 +130,9 @@ const mockGetBlockExplorerName = jest.fn(() => 'Etherscan');
 const mockGetBlockExplorerUrl = jest.fn(
   () => 'https://etherscan.io/token/0x123',
 );
+const mockGetBlockExplorerTokenUrl = jest.fn(
+  () => 'https://etherscan.io/token/0x123',
+);
 const mockGetBlockExplorerBaseUrl = jest.fn(() => 'https://etherscan.io');
 
 jest.mock('../../../hooks/useBlockExplorer', () => ({
@@ -137,6 +140,7 @@ jest.mock('../../../hooks/useBlockExplorer', () => ({
   default: () => ({
     getBlockExplorerName: mockGetBlockExplorerName,
     getBlockExplorerUrl: mockGetBlockExplorerUrl,
+    getBlockExplorerTokenUrl: mockGetBlockExplorerTokenUrl,
     getBlockExplorerBaseUrl: mockGetBlockExplorerBaseUrl,
   }),
 }));

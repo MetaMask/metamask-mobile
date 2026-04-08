@@ -21,6 +21,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectInteractiveButton: 'connectinteractive-ui',
   connectManageStateButton: 'connectmanage-state',
   connectMultichainProviderButton: 'connectmultichain-provider',
+  connectNameLookupButton: 'connectname-lookup',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
@@ -161,4 +162,5 @@ export const TestSnapResultSelectorWebIDS = {
 export const TestSnapBottomSheetSelectorWebIDS = {
   BOTTOMSHEET_FOOTER_BUTTON_ID: 'bottomsheetfooter-button-subsequent',
   DEFAULT_FOOTER_BUTTON_ID: 'default-snap-footer-button',
+  SNAP_FOOTER_BUTTON_ID: 'snap-footer-button',
 };

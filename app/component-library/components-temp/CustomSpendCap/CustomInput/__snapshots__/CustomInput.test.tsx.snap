@@ -33,7 +33,7 @@ exports[`CustomInput should render correctly 1`] = `
       style={
         [
           {
-            "color": "#121314",
+            "color": "#131416",
             "flexGrow": 1,
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
@@ -55,7 +55,7 @@ exports[`CustomInput should render correctly 1`] = `
     onPress={[Function]}
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
       }
     }
     testID="custom-spend-cap-max-test-id"

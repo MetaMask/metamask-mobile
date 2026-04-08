@@ -101,10 +101,9 @@ exports[`TabsList Edge Cases handles non-React element children with default val
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -122,10 +121,9 @@ exports[`TabsList Edge Cases handles non-React element children with default val
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -187,10 +185,9 @@ exports[`TabsList Edge Cases handles non-React element children with default val
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -275,7 +272,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
   style={
     [
       {
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
         "display": "flex",
         "paddingBottom": 16,
         "paddingLeft": 16,
@@ -373,10 +370,9 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -394,10 +390,9 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -476,10 +471,9 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -497,10 +491,9 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
             style={
               [
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -562,10 +555,9 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -683,10 +675,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -704,10 +695,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -786,10 +776,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -807,10 +796,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             style={
               [
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -889,10 +877,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Bold",
+                  "color": "#131416",
+                  "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -910,10 +897,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
             style={
               [
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -975,10 +961,9 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },

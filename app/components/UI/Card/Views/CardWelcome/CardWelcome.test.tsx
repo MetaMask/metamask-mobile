@@ -51,14 +51,28 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { background: { default: '#fff' } } }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
-const createTestStore = (initialState = {}) =>
+const createTestStore = (
+  initialState: { cardholderAccounts?: string[] } = {},
+) =>
   configureStore({
     reducer: {
-      card: (state = { cardholderAccounts: [], ...initialState }) => state,
+      engine: (
+        state = {
+          backgroundState: {
+            CardController: {
+              cardholderAccounts: initialState.cardholderAccounts ?? [],
+            },
+          },
+        },
+      ) => state,
     },
   });
 

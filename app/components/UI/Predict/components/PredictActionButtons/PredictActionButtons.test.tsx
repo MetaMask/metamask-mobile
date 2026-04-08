@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictActionButtons from './PredictActionButtons';
+import PredictBetButton from './PredictBetButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import {
   PredictMarket,
   PredictOutcome,
@@ -79,7 +81,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       homeTeam: {
@@ -87,11 +89,58 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },
   });
+
+const createMockDrawCapableGameMarket = (): PredictMarket => {
+  const homeOutcome = createMockOutcome({
+    id: 'outcome-home',
+    groupItemThreshold: 0,
+    tokens: [{ id: 'token-home', title: 'Home', price: 0.42 }],
+  });
+  const drawOutcome = createMockOutcome({
+    id: 'outcome-draw',
+    groupItemThreshold: 1,
+    tokens: [{ id: 'token-draw', title: 'Draw', price: 0.3 }],
+  });
+  const awayOutcome = createMockOutcome({
+    id: 'outcome-away',
+    groupItemThreshold: 2,
+    tokens: [{ id: 'token-away', title: 'Away', price: 0.28 }],
+  });
+
+  return createMockMarket({
+    outcomes: [awayOutcome, drawOutcome, homeOutcome],
+    game: {
+      id: 'game-ucl-1',
+      startTime: '2024-12-15T13:00:00Z',
+      status: 'ongoing',
+      league: 'ucl',
+      elapsed: '65:00',
+      period: '2H',
+      score: { away: 1, home: 2, raw: '1-2' },
+      awayTeam: {
+        id: 'psg',
+        name: 'Paris Saint-Germain',
+        logo: 'https://example.com/psg.png',
+        abbreviation: 'PSG',
+        color: TEST_HEX_COLORS.TEAM_SEA,
+        alias: 'PSG',
+      },
+      homeTeam: {
+        id: 'ars',
+        name: 'Arsenal',
+        logo: 'https://example.com/ars.png',
+        abbreviation: 'ARS',
+        color: TEST_HEX_COLORS.TEAM_DEN,
+        alias: 'Arsenal',
+      },
+    },
+  });
+};
 
 const createDefaultProps = (overrides = {}) => ({
   market: createMockMarket(),
@@ -128,7 +177,7 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('YES')).not.toBeOnTheScreen();
     });
   });
 
@@ -200,8 +249,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getAllByText('65¢')).toHaveLength(1);
+      expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
 
     it('calls onBetPress with yes token when yes button is pressed', () => {
@@ -233,8 +284,21 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
-      expect(screen.queryByText('NO · 35¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('YES')).not.toBeOnTheScreen();
+      expect(screen.queryByText('NO')).not.toBeOnTheScreen();
+    });
+
+    it('passes carousel mode to bet buttons', () => {
+      const props = createDefaultProps({ isCarousel: true });
+
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <PredictActionButtons {...props} />,
+      );
+
+      const betButtons = UNSAFE_getAllByType(PredictBetButton);
+
+      expect(betButtons[0].props.size).toBe('md');
+      expect(betButtons[1].props.size).toBe('md');
     });
   });
 
@@ -246,8 +310,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('SEA · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA')).toBeOnTheScreen();
+      expect(screen.getByText('DEN')).toBeOnTheScreen();
+      expect(screen.getAllByText('65¢')).toHaveLength(1);
+      expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
 
     it('calls onBetPress with correct token for away team', () => {
@@ -279,6 +345,40 @@ describe('PredictActionButtons', () => {
 
       expect(mockOnBetPress).toHaveBeenCalledWith(outcome.tokens[1]);
     });
+
+    it('renders home, draw, and away buttons for draw-capable leagues', () => {
+      const market = createMockDrawCapableGameMarket();
+      const props = createDefaultProps({
+        market,
+        outcome: market.outcomes[0],
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('ARS')).toBeOnTheScreen();
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('PSG')).toBeOnTheScreen();
+      expect(screen.getAllByText('42¢')).toHaveLength(1);
+      expect(screen.getAllByText('30¢')).toHaveLength(1);
+      expect(screen.getAllByText('28¢')).toHaveLength(1);
+    });
+
+    it('calls onBetPress with draw token for draw-capable leagues', () => {
+      const market = createMockDrawCapableGameMarket();
+      const mockOnBetPress = jest.fn();
+      const props = createDefaultProps({
+        market,
+        outcome: market.outcomes[0],
+        onBetPress: mockOnBetPress,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+      fireEvent.press(screen.getByTestId('action-buttons-bet-draw'));
+
+      expect(mockOnBetPress).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'token-draw' }),
+      );
+    });
   });
 
   describe('priority order', () => {
@@ -306,11 +406,22 @@ describe('PredictActionButtons', () => {
       renderWithProvider(<PredictActionButtons {...props} />);
 
       expect(screen.getByText('Claim $50.25')).toBeOnTheScreen();
-      expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
+      expect(screen.queryByText('YES')).not.toBeOnTheScreen();
     });
   });
 
   describe('edge cases', () => {
+    it('uses default testID when testID is not provided', () => {
+      const props = createDefaultProps();
+      delete (props as Partial<typeof props>).testID;
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(
+        screen.getByTestId('predict-action-buttons-bet-yes'),
+      ).toBeOnTheScreen();
+    });
+
     it('renders nothing when outcome has less than 2 tokens', () => {
       const outcomeWithOneToken = createMockOutcome({
         tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
@@ -335,8 +446,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getAllByText('65¢')).toHaveLength(1);
+      expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
   });
 
@@ -362,8 +475,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 73¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 29¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getAllByText('73¢')).toHaveLength(1);
+      expect(screen.getAllByText('29¢')).toHaveLength(1);
     });
 
     it('falls back to static prices when live prices unavailable', () => {
@@ -377,8 +492,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getAllByText('65¢')).toHaveLength(1);
+      expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
 
     it('uses partial live prices with fallback for missing tokens', () => {
@@ -398,8 +515,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('YES · 81¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES')).toBeOnTheScreen();
+      expect(screen.getByText('NO')).toBeOnTheScreen();
+      expect(screen.getAllByText('81¢')).toHaveLength(1);
+      expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
 
     it('subscribes with correct token IDs', () => {
@@ -437,6 +556,21 @@ describe('PredictActionButtons', () => {
       );
     });
 
+    it('subscribes with sorted token IDs for draw-capable leagues', () => {
+      const market = createMockDrawCapableGameMarket();
+      const props = createDefaultProps({
+        market,
+        outcome: market.outcomes[0],
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
+      );
+    });
+
     it('displays live prices for game markets', () => {
       const priceMap = new Map<string, PriceUpdate>([
         [
@@ -460,8 +594,10 @@ describe('PredictActionButtons', () => {
 
       renderWithProvider(<PredictActionButtons {...props} />);
 
-      expect(screen.getByText('SEA · 56¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN · 46¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA')).toBeOnTheScreen();
+      expect(screen.getByText('DEN')).toBeOnTheScreen();
+      expect(screen.getAllByText('56¢')).toHaveLength(1);
+      expect(screen.getAllByText('46¢')).toHaveLength(1);
     });
   });
 });

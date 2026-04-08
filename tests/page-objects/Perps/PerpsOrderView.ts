@@ -1,5 +1,6 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import {
@@ -7,13 +8,32 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
+import {
+  asPlaywrightElement,
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { element as detoxElement, by as detoxBy } from 'detox';
+import {
+  encapsulatedAction,
+  PlatformDetector,
+  PlaywrightElement,
+  PlaywrightGestures,
+} from '../../framework';
 
 class PerpsOrderView {
-  get placeOrderButton() {
-    return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
+  /** Place order button - wdio uses 'perps-order-view-place-order-button' */
+  get placeOrderButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   get takeProfitButton() {
@@ -33,9 +53,12 @@ class PerpsOrderView {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
-  // Row label to open the leverage modal (uses visible text "Leverage")
-  get leverageRowLabel(): DetoxElement {
-    return Matchers.getElementByText('Leverage');
+  /** Row label to open the leverage modal - wdio uses getElementByText('Leverage') */
+  get leverageRowLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Leverage'),
+      appium: () => PlaywrightMatchers.getElementByText('Leverage'),
+    });
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
@@ -44,7 +67,9 @@ class PerpsOrderView {
   }
 
   async tapPlaceOrderButton() {
-    await Gestures.waitAndTap(this.placeOrderButton);
+    await UnifiedGestures.waitAndTap(this.placeOrderButton, {
+      description: 'Place Order button',
+    });
   }
 
   async tapTakeProfitButton() {
@@ -59,8 +84,8 @@ class PerpsOrderView {
 
   async selectLeverage(leverageX: number) {
     // Open leverage modal
-    await Gestures.waitAndTap(this.leverageRowLabel, {
-      elemDescription: 'Open leverage modal',
+    await UnifiedGestures.waitAndTap(this.leverageRowLabel, {
+      description: 'Open leverage modal',
     });
 
     // Wait for the modal to be visible
@@ -180,6 +205,42 @@ class PerpsOrderView {
     await Gestures.waitAndTap(setButton, {
       elemDescription: 'Confirm limit price',
     });
+  }
+
+  /**
+   * Set leverage for appium context — opens modal, selects option, confirms.
+   */
+  async setLeverageAppium(leverageX: number): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        // Tap "Leverage" row to open modal
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.leverageRowLabel),
+        );
+
+        // Tap the leverage option (e.g. "40x")
+        let optionEl: PlaywrightElement;
+        if (await PlatformDetector.isIOS()) {
+          optionEl = await PlaywrightMatchers.getElementByText(`${leverageX}x`);
+        } else {
+          optionEl = await PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.text("${leverageX}x").instance(1)`,
+          );
+        }
+
+        await PlaywrightGestures.waitAndTap(optionEl);
+
+        // Tap confirm button (e.g. "Set 40x")
+        const confirmEl = await PlaywrightMatchers.getElementByText(
+          `Set ${leverageX}x`,
+        );
+        await PlaywrightGestures.waitAndTap(confirmEl);
+      },
+    });
+  }
+
+  async tapPlaceOrder(): Promise<void> {
+    await this.tapPlaceOrderButton();
   }
 }
 

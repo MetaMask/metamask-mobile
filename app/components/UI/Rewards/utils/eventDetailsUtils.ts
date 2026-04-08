@@ -8,6 +8,7 @@ import {
   MusdDepositEventPayload,
   EventAssetDto,
   SeasonActivityTypeDto,
+  BonusCodeEventPayload,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
@@ -16,7 +17,6 @@ import { PerpsEventType } from './eventConstants';
 import {
   formatRewardsMusdDepositPayloadDate,
   getIconName,
-  resolveTemplate,
 } from './formatUtils';
 
 /**
@@ -240,6 +240,8 @@ export const resolveEventDetails = (
           : undefined,
       };
     }
+    case 'BONUS_CODE':
+      return { details: (payload as BonusCodeEventPayload)?.code };
     case 'REFERRAL':
     case 'APPLY_REFERRAL_BONUS':
     case 'ONE_TIME_BONUS':
@@ -284,20 +286,6 @@ export const getEventDetails = (
         icon: getIconName(matchingActivityType.icon),
       };
     }
-
-    // For unknown types, fall back to description template resolution
-    return {
-      title: matchingActivityType.title,
-      details: resolveTemplate(
-        (
-          matchingActivityType as SeasonActivityTypeDto & {
-            description: string;
-          }
-        ).description ?? '',
-        (event.payload ?? {}) as Record<string, string>,
-      ),
-      icon: getIconName(matchingActivityType.icon),
-    };
   }
 
   return {

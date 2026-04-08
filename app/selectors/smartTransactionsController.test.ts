@@ -2,9 +2,9 @@ import {
   selectShouldUseSmartTransaction,
   selectSmartTransactionsEnabled,
   selectSmartTransactionsForCurrentChain,
-  // Add the pending selector to test it.
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
+  getGaslessBridgeWith7702EnabledForChain,
 } from './smartTransactionsController';
 import { backgroundState } from '../util/test/initial-root-state';
 import { isHardwareAccount } from '../util/address';
@@ -407,6 +407,35 @@ describe('SmartTransactionsController Selectors', () => {
             isSmartTransaction: true,
           },
         ]),
+      );
+    });
+  });
+
+  describe('getGaslessBridgeWith7702EnabledForChain', () => {
+    it('returns false when flag is not set for chain', () => {
+      const state = getDefaultState();
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x1')).toBe(false);
+    });
+
+    it('returns true when flag is true for chain', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.smartTransactionsNetworks[
+        '0x1'
+      ].gaslessBridgeWith7702Enabled = true;
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x1')).toBe(true);
+    });
+
+    it('returns false when smartTransactionsNetworks is undefined', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.smartTransactionsNetworks =
+        undefined;
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x1')).toBe(false);
+    });
+
+    it('returns false for a chain not in the config', () => {
+      const state = getDefaultState();
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x89')).toBe(
+        false,
       );
     });
   });

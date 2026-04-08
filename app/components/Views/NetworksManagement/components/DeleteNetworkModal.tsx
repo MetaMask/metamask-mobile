@@ -53,7 +53,7 @@ const DeleteNetworkModal = forwardRef<BottomSheetRef, DeleteNetworkModalProps>(
         testID={NetworksManagementViewSelectorsIDs.DELETE_MODAL}
       >
         <BottomSheetHeader>
-          {`${strings('app_settings.delete')} ${networkName} ${strings('asset_details.network')}`}
+          {`${strings('app_settings.delete')} ${networkName} ${strings('app_settings.network')}`}
         </BottomSheetHeader>
         <Box alignItems={BoxAlignItems.Center} twClassName="px-4">
           <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">

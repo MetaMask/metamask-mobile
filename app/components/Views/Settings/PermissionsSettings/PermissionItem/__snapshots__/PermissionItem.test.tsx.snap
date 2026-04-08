@@ -22,7 +22,7 @@ exports[`PermissionItem renders correctly 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           }
         }
         useNativeDriver={true}
@@ -67,7 +67,7 @@ exports[`PermissionItem renders correctly 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#f3f3f4",
                 },
               ]
             }
@@ -98,9 +98,9 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -122,7 +122,7 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -138,7 +138,7 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -153,7 +153,7 @@ exports[`PermissionItem renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -176,7 +176,7 @@ exports[`PermissionItem renders correctly 1`] = `
     }
   >
     <SvgMock
-      color="#121314"
+      color="#131416"
       fill="currentColor"
       height={20}
       name="ArrowRight"

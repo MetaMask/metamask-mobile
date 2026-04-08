@@ -6,7 +6,7 @@
  *
  * This file contains:
  * - UI-only configuration constants (layout, display, navigation)
- * - Mobile-specific exports (TokenI, @metamask/swaps-controller dependencies)
+ * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
@@ -16,7 +16,21 @@ export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
 
 /** Chain id used for the "Perps balance" payment option. */
-export { ARBITRUM_CHAIN_ID as PERPS_BALANCE_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import {
+  HYPERLIQUID_MAINNET_CHAIN_ID,
+  HYPERLIQUID_TESTNET_CHAIN_ID,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+
+export { HYPERLIQUID_MAINNET_CHAIN_ID, HYPERLIQUID_TESTNET_CHAIN_ID };
+
+/**
+ * Minimum perps balance (USD) threshold for default pay token logic.
+ * When available perps balance is above this, we do not preselect a pay token.
+ * When below, we may preselect the allowlist token with highest balance.
+ * Also used as the minimum token balance (USD) to consider for preselection.
+ */
+export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
 
 /**
  * Minimum number of aggregators (exchanges) a token must be listed on
@@ -229,11 +243,6 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // No banner shown until ROE drops below this value
   MinLossThreshold: -10,
 
-  // Debounce duration for ROE threshold (milliseconds)
-  // User must have ROE below threshold for this duration before showing banner
-  // Prevents banner from appearing during temporary price fluctuations
-  RoeDebounceMs: 60_000, // 60 seconds
-
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
   PositionMinAgeMs: 120_000, // 2 minutes
@@ -255,5 +264,52 @@ export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
   /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: true,
+  MYX_TESTNET_ONLY: false,
+} as const;
+
+/** Network mode for perps (testnet vs mainnet). */
+export type PerpsNetwork = 'mainnet' | 'testnet';
+
+/**
+ * Chain IDs for each perps provider by network.
+ * Identifies the provider's native chain (where "Perps balance" lives) so callers
+ * can exclude it from pay-with-any-token allowlist or filter tokens.
+ * Add entries when integrating new providers (e.g. MYX).
+ */
+export const PERPS_PROVIDER_CHAIN_IDS: Record<
+  string,
+  Partial<Record<PerpsNetwork, string>>
+> = {
+  hyperliquid: {
+    mainnet: HYPERLIQUID_MAINNET_CHAIN_ID,
+    testnet: HYPERLIQUID_TESTNET_CHAIN_ID,
+  },
+  // myx: add mainnet/testnet chain IDs when MYX integration provides them
+};
+
+/**
+ * Returns the chain ID for the given perps provider and network.
+ * Used to exclude the provider's native chain from pay-with-any-token options.
+ *
+ * @param provider - Perps provider (e.g. 'hyperliquid'). Use concrete provider;
+ * for 'aggregated' mode callers should pass PROVIDER_CONFIG.DefaultProvider.
+ * @param network - 'mainnet' or 'testnet'
+ * @returns Chain ID hex string, or undefined if provider has no chain configured
+ */
+export function getPerpsProviderChainId(
+  provider: string,
+  network: PerpsNetwork,
+): string | undefined {
+  return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
+}
+
+/** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
+export const PERPS_CONNECTION_SOURCE = {
+  WALLET_ROOT_MOUNT: 'wallet_root_mount',
+  WALLET_ROOT_RETRY: 'wallet_root_retry',
+  WALLET_ROOT_FOREGROUND: 'wallet_root_foreground',
+  TUTORIAL_PRELOAD: 'tutorial_preload',
+  PERPS_FULLSCREEN_ENTRY: 'perps_fullscreen_entry',
+  PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
+  UNSPECIFIED: 'unspecified',
 } as const;

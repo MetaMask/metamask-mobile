@@ -1,103 +1,17 @@
-/* eslint-disable react-native/split-platform-components */
-import { useState, useCallback, useEffect } from 'react';
-import { PermissionsAndroid, AppStateStatus, AppState } from 'react-native';
-
-import { strings } from '../../../../../../locales/i18n';
-import Device from '../../../../../util/device';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
-import {
-  PERMISSION_RESULT,
-  PERMISSION_TYPE,
-} from '../../../../../core/Analytics/MetaMetrics.events';
-
-export const useCamera = (isSigningQRObject: boolean) => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  // todo: integrate with alert system
-  const [cameraError, setCameraError] = useState<string | undefined>();
-
-  // ios handled camera perfectly in this situation, we just need to check permission with android.
-  const [hasCameraPermission, setCameraPermission] = useState(Device.isIos());
-
-  const checkAndroidCamera = useCallback(() => {
-    if (Device.isAndroid() && !hasCameraPermission) {
-      PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then(
-        (_hasPermission) => {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
-            )
-              .addProperties({
-                permission: PERMISSION_TYPE.CAMERA,
-                result: _hasPermission
-                  ? PERMISSION_RESULT.GRANTED
-                  : PERMISSION_RESULT.DENIED,
-                device_type: HardwareDeviceTypes.QR,
-              })
-              .build(),
-          );
-          setCameraPermission(_hasPermission);
-          if (!_hasPermission) {
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
-              )
-                .addProperties({
-                  permission: PERMISSION_TYPE.CAMERA,
-                  result: PERMISSION_RESULT.LIMITED,
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-            setCameraError(strings('transaction.no_camera_permission_android'));
-          } else {
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.HARDWARE_WALLET_PERMISSION_REQUEST,
-              )
-                .addProperties({
-                  permission: PERMISSION_TYPE.CAMERA,
-                  result: PERMISSION_RESULT.UNAVAILABLE,
-                  device_type: HardwareDeviceTypes.QR,
-                })
-                .build(),
-            );
-            setCameraError(undefined);
-          }
-        },
-      );
-    }
-  }, [hasCameraPermission, trackEvent, createEventBuilder]);
-
-  const handleAppState = useCallback(
-    (appState: AppStateStatus) => {
-      if (appState === 'active') {
-        checkAndroidCamera();
-      }
-    },
-    [checkAndroidCamera],
-  );
-
-  useEffect(() => {
-    if (!isSigningQRObject) {
-      return;
-    }
-    checkAndroidCamera();
-  }, [checkAndroidCamera, isSigningQRObject]);
-
-  useEffect(() => {
-    if (!isSigningQRObject) {
-      return;
-    }
-    const appStateListener = AppState.addEventListener(
-      'change',
-      handleAppState,
-    );
-    return () => {
-      appStateListener.remove();
-    };
-  }, [handleAppState, isSigningQRObject]);
-
-  return { cameraError, hasCameraPermission };
-};
+/**
+ * Camera permission is fully handled by AnimatedQRScannerModal via
+ * react-native-vision-camera's useCameraPermission / requestPermission().
+ *
+ * This hook no longer pre-checks or pre-requests Android camera permission
+ * because PermissionsAndroid and react-native-vision-camera maintain separate
+ * permission state, and calling PermissionsAndroid.request() can conflict with
+ * vision-camera's camera initialization pipeline (see #26115).
+ *
+ * hasCameraPermission is always true so the "Get signature" button is never
+ * disabled for permission reasons. The scanner modal will prompt the user
+ * when it opens.
+ */
+export const useCamera = (_isSigningQRObject: boolean) => ({
+  cameraError: undefined as string | undefined,
+  hasCameraPermission: true,
+});

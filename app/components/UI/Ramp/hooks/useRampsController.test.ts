@@ -59,6 +59,9 @@ jest.mock('./useRampsPaymentMethods', () => ({
     selectedPaymentMethod: null,
     setSelectedPaymentMethod: jest.fn(),
     isLoading: false,
+    isFetching: false,
+    status: 'idle',
+    isSuccess: false,
     error: null,
   })),
 }));
@@ -66,7 +69,20 @@ jest.mock('./useRampsPaymentMethods', () => ({
 jest.mock('./useRampsQuotes', () => ({
   useRampsQuotes: jest.fn(() => ({
     getQuotes: jest.fn(),
-    getWidgetUrl: jest.fn(),
+    getBuyWidgetData: jest.fn(),
+    status: 'idle',
+    isSuccess: false,
+  })),
+}));
+
+jest.mock('./useRampsOrders', () => ({
+  useRampsOrders: jest.fn(() => ({
+    orders: [],
+    getOrderById: jest.fn(),
+    addOrder: jest.fn(),
+    removeOrder: jest.fn(),
+    refreshOrder: jest.fn(),
+    getOrderFromCallback: jest.fn(),
   })),
 }));
 
@@ -83,9 +99,10 @@ const createMockStore = () =>
       }),
       multichainAccounts: () => ({
         accountTree: {
-          selectedAccountGroup: {
-            accounts: [{ address: '0x123' }],
-          },
+          wallets: {},
+        },
+        selectedAccountGroup: {
+          accounts: [{ address: '0x123' }],
         },
       }),
       network: () => ({
@@ -134,7 +151,14 @@ describe('useRampsController', () => {
     expect(typeof result.current.setSelectedToken).toBe('function');
     expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
     expect(typeof result.current.getQuotes).toBe('function');
-    expect(typeof result.current.getWidgetUrl).toBe('function');
+    expect(typeof result.current.getBuyWidgetData).toBe('function');
+
+    expect(result.current.orders).toEqual([]);
+    expect(typeof result.current.getOrderById).toBe('function');
+    expect(typeof result.current.addOrder).toBe('function');
+    expect(typeof result.current.removeOrder).toBe('function');
+    expect(typeof result.current.refreshOrder).toBe('function');
+    expect(typeof result.current.getOrderFromCallback).toBe('function');
   });
 
   it('calls child hooks', () => {

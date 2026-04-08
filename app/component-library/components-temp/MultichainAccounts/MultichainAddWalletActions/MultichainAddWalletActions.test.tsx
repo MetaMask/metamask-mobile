@@ -24,8 +24,8 @@ const mockCreateEventBuilder = jest.fn((event) => ({
   build: jest.fn(() => event),
 }));
 
-jest.mock('../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),

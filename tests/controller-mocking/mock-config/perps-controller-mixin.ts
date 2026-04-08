@@ -466,9 +466,10 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     candles: {
-      subscribe: (params: { callback: (data: unknown[]) => void }) => {
-        // Return empty array - no candle data in E2E tests by default
-        setTimeout(() => params.callback([]), 0);
+      subscribe: (params: { callback: (data: unknown) => void }) => {
+        // Return CandleData-like payload to match consumers that access
+        // candleData.candles on homepage sparklines.
+        setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
     },

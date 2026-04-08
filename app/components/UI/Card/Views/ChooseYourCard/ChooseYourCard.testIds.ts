@@ -6,4 +6,5 @@ export const ChooseYourCardSelectors = {
   CARD_NAME: 'choose-your-card-name',
   CARD_PRICE: 'choose-your-card-price',
   CONTINUE_BUTTON: 'choose-your-card-continue-button',
+  UPGRADE_TO_METAL_BUTTON: 'choose-your-card-upgrade-to-metal-button',
 };

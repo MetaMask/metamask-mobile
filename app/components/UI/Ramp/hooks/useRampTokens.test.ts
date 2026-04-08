@@ -83,10 +83,18 @@ const createMockState = (
   detectedGeolocation?: string,
 ) => ({
   ...initialRootState,
+  engine: {
+    ...initialRootState.engine,
+    backgroundState: {
+      ...initialRootState.engine.backgroundState,
+      GeolocationController: {
+        location: detectedGeolocation ?? 'UNKNOWN',
+      },
+    },
+  },
   fiatOrders: {
     ...initialRootState.fiatOrders,
     rampRoutingDecision,
-    detectedGeolocation,
   },
 });
 
@@ -179,6 +187,29 @@ describe('useRampTokens', () => {
 
       const calledUrl = mockHandleFetch.mock.calls[0][0];
       expect(calledUrl).toContain('sdk=2.1.5');
+    });
+  });
+
+  describe('fetchOnMount option', () => {
+    it('skips fetching tokens when fetchOnMount is false', () => {
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      mockHandleFetch.mockResolvedValueOnce(mockResponse);
+
+      const { result } = renderHookWithProvider(
+        () => useRampTokens({ fetchOnMount: false }),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        },
+      );
+
+      expect(result.current.topTokens).toBeNull();
+      expect(result.current.allTokens).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(mockHandleFetch).not.toHaveBeenCalled();
     });
   });
 

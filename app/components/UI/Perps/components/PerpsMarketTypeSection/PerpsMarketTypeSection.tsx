@@ -1,26 +1,17 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { View, StyleProp, ViewStyle } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   type PerpsMarketData,
   type MarketTypeFilter,
   type SortField,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsMarketList from '../PerpsMarketList';
 import styleSheet from './PerpsMarketTypeSection.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 
 export interface PerpsMarketTypeSectionProps {
   /** Section title (e.g., "Perps", "Stocks", "Commodities") */
@@ -33,6 +24,8 @@ export interface PerpsMarketTypeSectionProps {
   sortBy?: SortField;
   /** Whether markets are loading */
   isLoading?: boolean;
+  /** Analytics source identifying the parent screen (e.g., 'perps_home') */
+  source?: string;
   /** Test ID for component */
   testID?: string;
   /** Optional style override for the section container */
@@ -72,61 +65,45 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   marketType,
   sortBy = 'volume',
   isLoading,
+  source,
   testID,
   style,
   headerStyle,
   contentContainerStyle,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   const handleViewAll = useCallback(() => {
-    // Navigate to the specific market type tab when "See all" is pressed
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: marketType,
+        source,
       },
     });
-  }, [navigation, marketType]);
+  }, [navigation, marketType, source]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source },
       });
     },
-    [navigation],
-  );
-
-  // Header component - full row is pressable with chevron icon next to title
-  const SectionHeader = useCallback(
-    () => (
-      <TouchableOpacity
-        style={[styles.header, headerStyle]}
-        onPress={handleViewAll}
-      >
-        <View style={styles.titleRow}>
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
-            {title}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        </View>
-      </TouchableOpacity>
-    ),
-    [styles.header, styles.titleRow, title, handleViewAll, headerStyle],
+    [navigation, source],
   );
 
   // Show skeleton during initial load
   if (isLoading) {
     return (
       <View style={[styles.section, style]} testID={testID}>
-        <SectionHeader />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAll}
+          twClassName="mb-3"
+          style={headerStyle}
+        />
         <View style={[styles.contentContainer, contentContainerStyle]}>
           <PerpsRowSkeleton count={5} />
         </View>
@@ -142,7 +119,12 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   // Render market list
   return (
     <View style={[styles.section, style]} testID={testID}>
-      <SectionHeader />
+      <SectionHeader
+        title={title}
+        onPress={handleViewAll}
+        twClassName="mb-3"
+        style={headerStyle}
+      />
       <View style={[styles.contentContainer, contentContainerStyle]}>
         <PerpsMarketList
           markets={markets}

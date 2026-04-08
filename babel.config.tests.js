@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 
 const baseConfig = require('./babel.config');
 
@@ -12,10 +12,11 @@ const newOverrides = [
   {
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
+      'app/components/UI/Money/selectors/featureFlags.ts',
+      'app/components/UI/Money/selectors/featureFlags.test.ts',
+      'app/lib/Money/feature-flags.ts',
+      'app/lib/Money/feature-flags.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
-      'app/components/UI/Predict/selectors/featureFlags/index.ts',
-      'app/selectors/featureFlagController/legalNotices/index.ts',
-      'app/selectors/featureFlagController/networkBlacklist/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.ts',
@@ -28,22 +29,30 @@ const newOverrides = [
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.test.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-controller-init.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.test.ts',
+      'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.ts',
+      'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.test.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.test.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.test.ts',
+      'app/selectors/featureFlagController/legacyIosGoogleConfig/index.ts',
+      'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.test.ts',
+      'app/core/Engine/controllers/card-controller/services/baanx-config.ts',
+      'app/core/Engine/controllers/card-controller/services/baanx-config.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
     ],

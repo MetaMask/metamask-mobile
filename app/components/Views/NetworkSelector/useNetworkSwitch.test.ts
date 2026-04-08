@@ -4,6 +4,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import Engine from '../../../core/Engine';
 
 // Mock the feature flags
@@ -80,9 +81,7 @@ const mockUseNetworksByNamespace =
 const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
   typeof useNetworkSelection
 >;
-const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-  typeof useAnalytics
->;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 
 const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -110,19 +109,12 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       customNetworksToReset: [],
     });
 
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: () => true,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      getAnalyticsId: jest.fn(),
-    });
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Mock the event builder
     mockCreateEventBuilder.mockReturnValue({

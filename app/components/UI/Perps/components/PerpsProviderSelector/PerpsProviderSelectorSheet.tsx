@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -16,36 +16,36 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
-import type { PerpsProviderSelectorSheetProps } from './PerpsProviderSelector.types';
-import { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
+import type {
+  PerpsProviderSelectorSheetProps,
+  ProviderNetworkOption,
+} from './PerpsProviderSelector.types';
+import { PROVIDER_NETWORK_OPTIONS } from './PerpsProviderSelector.constants';
 import { styleSheet } from './PerpsProviderSelector.styles';
-import type { PerpsProviderType } from '@metamask/perps-controller';
 
 /**
  * PerpsProviderSelectorSheet Component
  *
- * Bottom sheet for selecting between available perps providers.
- *
- * @example
- * ```tsx
- * <PerpsProviderSelectorSheet
- *   isVisible={showSheet}
- *   onClose={() => setShowSheet(false)}
- *   selectedProvider="hyperliquid"
- *   onProviderSelect={handleProviderSelect}
- * />
- * ```
+ * Bottom sheet for selecting between available perps provider + network combinations.
  */
 const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
   isVisible,
   onClose,
-  selectedProvider,
-  onProviderSelect,
+  selectedOptionId,
+  onOptionSelect,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { availableProviders } = usePerpsProvider();
+
+  const filteredOptions = useMemo(
+    () =>
+      PROVIDER_NETWORK_OPTIONS.filter((opt) =>
+        availableProviders.includes(opt.providerId),
+      ),
+    [availableProviders],
+  );
 
   useEffect(() => {
     const sheet = bottomSheetRef.current;
@@ -60,13 +60,12 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
     };
   }, [isVisible]);
 
-  const handleProviderPress = useCallback(
-    async (providerId: PerpsProviderType) => {
-      await onProviderSelect(providerId);
-      // Just close the sheet - the BottomSheet's onClose prop handles navigation
+  const handleOptionPress = useCallback(
+    async (option: ProviderNetworkOption) => {
+      await onOptionSelect(option);
       bottomSheetRef.current?.onCloseBottomSheet();
     },
-    [onProviderSelect],
+    [onOptionSelect],
   );
 
   if (!isVisible) return null;
@@ -85,32 +84,51 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
         </Text>
       </BottomSheetHeader>
       <View style={styles.optionsList}>
-        {availableProviders.map((providerId) => {
-          const providerInfo = PROVIDER_DISPLAY_INFO[providerId];
-          const isSelected = selectedProvider === providerId;
+        {filteredOptions.map((option) => {
+          const isSelected = selectedOptionId === option.id;
 
           return (
             <TouchableOpacity
-              key={providerId}
+              key={option.id}
               style={[styles.optionRow, isSelected && styles.optionRowSelected]}
               activeOpacity={0.7}
-              onPress={() => handleProviderPress(providerId)}
-              testID={testID ? `${testID}-option-${providerId}` : undefined}
+              onPress={() => handleOptionPress(option)}
+              testID={testID ? `${testID}-option-${option.id}` : undefined}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
             >
               <View style={styles.optionContent}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  style={styles.optionName}
-                >
-                  {providerInfo.name}
-                </Text>
+                <View style={styles.optionNameRow}>
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.optionName}
+                  >
+                    {option.name}
+                  </Text>
+                  {option.isTestnet ? (
+                    <View style={styles.testnetTag}>
+                      <View style={styles.testnetDot} />
+                      <Text
+                        variant={TextVariant.BodyXS}
+                        color={TextColor.Warning}
+                      >
+                        {option.network}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Alternative}
+                    >
+                      {option.network}
+                    </Text>
+                  )}
+                </View>
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {providerInfo.description}
+                  {option.description}
                 </Text>
               </View>
               {isSelected && (
@@ -119,7 +137,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                   size={IconSize.Md}
                   color={IconColor.Primary}
                   style={styles.checkIcon}
-                  testID={testID ? `${testID}-check-${providerId}` : undefined}
+                  testID={testID ? `${testID}-check-${option.id}` : undefined}
                 />
               )}
             </TouchableOpacity>

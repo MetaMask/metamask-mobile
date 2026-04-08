@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import {
@@ -40,7 +40,7 @@ export interface PerpsNavigationHandlers {
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
   navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
-  navigateToClosePosition: (position: Position) => void;
+  navigateToClosePosition: (position: Position, source?: string) => void;
   navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
@@ -76,7 +76,7 @@ export interface PerpsNavigationHandlers {
  * @returns Object containing all navigation handler functions
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
@@ -199,8 +199,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToClosePosition = useCallback(
-    (position: Position) => {
-      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
+    (position: Position, source?: string) => {
+      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position, source });
     },
     [navigation],
   );

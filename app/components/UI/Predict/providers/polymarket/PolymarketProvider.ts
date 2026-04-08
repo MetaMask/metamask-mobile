@@ -14,17 +14,20 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { SUPPORTED_SPORTS_LEAGUES } from '../../constants/sports';
+import { filterSupportedLeagues } from '../../constants/sports';
+import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  GetSeriesParams,
   PredictActivity,
   PredictCategory,
   PredictMarket,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PredictSportsLeague,
   PriceResult,
   Side,
   UnrealizedPnL,
@@ -63,8 +66,10 @@ import {
   ROUNDING_CONFIG,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
+import { PERMIT2_ADDRESS } from './safe/constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -73,11 +78,14 @@ import {
   getWithdrawTransactionCallData,
   hasAllowances,
 } from './safe/utils';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderData,
   OrderType,
   PolymarketApiActivity,
+  PolymarketApiEvent,
+  PolymarketApiTeam,
   PolymarketPosition,
   SignatureType,
   TickSize,
@@ -86,13 +94,14 @@ import {
 import {
   createApiKey,
   encodeErc20Transfer,
+  fetchEventsFromPolymarketApi,
+  fetchCarouselFromPolymarketApi,
   generateSalt,
   getBalance,
   getContractConfig,
   getL2Headers,
   getMarketDetailsFromGammaApi,
   getOrderTypedData,
-  getParsedMarketsFromPolymarketApi,
   getPolymarketEndpoints,
   parsePolymarketActivity,
   parsePolymarketEvents,
@@ -101,7 +110,11 @@ import {
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
-import { PredictFeeCollection } from '../../types/flags';
+import { PredictFeatureFlags } from '../../types/flags';
+import {
+  extractNeededTeamsFromEvents,
+  isLiveSportsEvent,
+} from '../../utils/gameParser';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -135,6 +148,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
+  readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -146,6 +160,54 @@ export class PolymarketProvider implements PredictProvider {
   >();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
+
+  constructor({
+    getFeatureFlags,
+  }: {
+    getFeatureFlags: () => PredictFeatureFlags;
+  }) {
+    this.#getFeatureFlags = getFeatureFlags;
+  }
+
+  #getSupportedLeagues(): PredictSportsLeague[] {
+    const { liveSportsLeagues } = this.#getFeatureFlags();
+    return filterSupportedLeagues(liveSportsLeagues);
+  }
+
+  #createTeamLookup(
+    enabled: boolean,
+  ):
+    | ((
+        league: PredictSportsLeague,
+        abbreviation: string,
+      ) => PolymarketApiTeam | undefined)
+    | undefined {
+    return enabled
+      ? (league, abbreviation) =>
+          TeamsCache.getInstance().getTeam(league, abbreviation)
+      : undefined;
+  }
+
+  /**
+   * Ensure all sport teams referenced by the given events are loaded into
+   * the cache. No-op when live sports is disabled (empty supportedLeagues).
+   */
+  async #ensureTeamsLoadedForEvents(
+    events: PolymarketApiEvent[],
+    supportedLeagues: PredictSportsLeague[],
+  ): Promise<void> {
+    if (supportedLeagues.length === 0) {
+      return;
+    }
+
+    const neededTeams = extractNeededTeamsFromEvents(events, supportedLeagues);
+
+    await Promise.all(
+      [...neededTeams.entries()].map(([league, abbreviations]) =>
+        TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
+      ),
+    );
+  }
 
   /**
    * Generate standard error context for Logger.error calls with searchable tags and context.
@@ -174,12 +236,36 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  #hasPermit2Config(params: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+  }): boolean {
+    return (
+      params.permit2Enabled === true &&
+      Array.isArray(params.executors) &&
+      params.executors.length > 0
+    );
+  }
+
+  #shouldUseFakOrderType({
+    permit2Enabled,
+    executors,
+    fakOrdersEnabled,
+  }: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+    fakOrdersEnabled: boolean;
+  }): boolean {
+    return (
+      this.#hasPermit2Config({ permit2Enabled, executors }) &&
+      fakOrdersEnabled === true
+    );
+  }
+
   public async getMarketDetails({
     marketId,
-    liveSportsLeagues = [],
   }: {
     marketId: string;
-    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
@@ -190,20 +276,16 @@ export class PolymarketProvider implements PredictProvider {
         marketId,
       });
 
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+      const isSportsEvent =
+        liveSportsEnabled && isLiveSportsEvent(event, supportedLeagues);
 
-      if (liveSportsEnabled) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
-        );
+      if (isSportsEvent) {
+        await this.#ensureTeamsLoadedForEvents([event], supportedLeagues);
       }
 
-      const teamLookup = liveSportsEnabled
-        ? (
-            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
-            abbreviation: string,
-          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
-        : undefined;
+      const teamLookup = this.#createTeamLookup(isSportsEvent);
 
       const [parsedMarket] = parsePolymarketEvents([event], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
@@ -214,34 +296,31 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return liveSportsEnabled
+      const result = isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
+
+      return result;
     } catch (error) {
       DevLogger.log('Error getting market details via Polymarket API:', error);
       throw error;
     }
   }
 
-  public async getMarketsByIds(
-    marketIds: string[],
-    liveSportsLeagues: string[] = [],
-  ): Promise<PredictMarket[]> {
+  public async getMarketsByIds(marketIds: string[]): Promise<PredictMarket[]> {
     if (!marketIds || marketIds.length === 0) {
       return [];
     }
 
     try {
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId, liveSportsLeagues }).catch(
-          (error) => {
-            DevLogger.log(
-              `PolymarketProvider: Failed to fetch market ${marketId}`,
-              error,
-            );
-            return null;
-          },
-        ),
+        this.getMarketDetails({ marketId }).catch((error) => {
+          DevLogger.log(
+            `PolymarketProvider: Failed to fetch market ${marketId}`,
+            error,
+          );
+          return null;
+        }),
       );
 
       const results = await Promise.all(marketPromises);
@@ -301,26 +380,28 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
 
-      if (liveSportsEnabled) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
-        );
-      }
+      // Step 1: Fetch raw events from API
+      const { events, category, isSearch } =
+        await fetchEventsFromPolymarketApi(params);
 
-      const teamLookup = liveSportsEnabled
-        ? (
-            league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
-            abbreviation: string,
-          ) => TeamsCache.getInstance().getTeam(league, abbreviation)
-        : undefined;
+      // Step 2: If live sports enabled, extract needed teams and fetch only those
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
 
-      const markets = await getParsedMarketsFromPolymarketApi({
-        ...params,
+      // Step 3: Create team lookup and parse events
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      const parsedMarkets = parsePolymarketEvents(events, {
+        category,
+        sortMarketsBy: 'price',
         teamLookup,
       });
+
+      const markets = isSearch
+        ? parsedMarkets.filter((m) => m.outcomes.length > 0)
+        : parsedMarkets;
 
       return liveSportsEnabled
         ? GameCache.getInstance().overlayOnMarkets(markets)
@@ -336,6 +417,94 @@ export class PolymarketProvider implements PredictProvider {
           sortBy: params?.sortBy,
           hasSearchQuery: !!params?.q,
         }),
+      );
+
+      return [];
+    }
+  }
+
+  public async getMarketSeries(
+    params: GetSeriesParams,
+  ): Promise<PredictMarket[]> {
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const limit = params.limit ?? SERIES_MAX_EVENTS;
+
+    try {
+      const queryParams = new URLSearchParams({
+        series_id: params.seriesId,
+        end_date_min: params.endDateMin,
+        end_date_max: params.endDateMax,
+        limit: String(limit),
+        order: 'endDate',
+        ascending: 'true',
+      });
+
+      const response = await fetch(
+        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch series events');
+      }
+
+      const events = (await response.json()) as PolymarketApiEvent[];
+
+      if (!Array.isArray(events) || events.length === 0) {
+        return [];
+      }
+
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      return parsePolymarketEvents(events, {
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        teamLookup,
+      });
+    } catch (error) {
+      DevLogger.log('Error fetching series events via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getMarketSeries', {
+          seriesId: params.seriesId,
+        }),
+      );
+
+      return [];
+    }
+  }
+
+  public async getCarouselMarkets(): Promise<PredictMarket[]> {
+    try {
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+
+      const items = await fetchCarouselFromPolymarketApi();
+      const events = items.map((item) => item.event);
+
+      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      const parsedMarkets = parsePolymarketEvents(events, {
+        category: 'trending',
+        sortMarketsBy: 'price',
+        teamLookup,
+      }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(parsedMarkets)
+        : parsedMarkets;
+    } catch (error) {
+      DevLogger.log('Error fetching carousel markets:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCarouselMarkets', {}),
       );
 
       return [];
@@ -676,6 +845,64 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   /**
+   * Create an optimistic position from a preview before the order is placed.
+   * Used during the deposit phase of the pay-with-any-token flow so the
+   * position appears immediately while the deposit confirms.
+   *
+   * On order success the provider's own placeOrder() will overwrite this
+   * entry with real amounts (same outcomeTokenId key).
+   */
+  async createOptimisticPositionFromPreview({
+    address,
+    preview,
+  }: {
+    address: string;
+    preview: OrderPreview;
+  }): Promise<void> {
+    const { outcomeTokenId, outcomeId } = preview;
+
+    let existingPosition: PredictPosition | undefined;
+    try {
+      const positions = await this.getPositions({
+        address,
+        outcomeId,
+        limit: 5,
+      });
+      existingPosition = positions.find(
+        (p) => p.outcomeTokenId === outcomeTokenId && !p.claimable,
+      );
+    } catch {
+      // Position lookup failure is non-critical; treat as new position
+    }
+
+    await this.createOrUpdateOptimisticPosition({
+      address,
+      type: existingPosition
+        ? OptimisticUpdateType.UPDATE
+        : OptimisticUpdateType.CREATE,
+      marketId: preview.marketId,
+      outcomeId,
+      outcomeTokenId,
+      spentAmount: preview.maxAmountSpent,
+      receivedAmount: preview.minAmountReceived,
+      existingPosition,
+      preview,
+    });
+  }
+
+  /**
+   * Remove a previously created optimistic position entry.
+   * Used to immediately clean up preview-based optimistic positions
+   * when a deposit or order fails.
+   */
+  clearOptimisticPosition(address: string, outcomeTokenId: string): void {
+    const addressMap = this.#optimisticPositionUpdatesByAddress.get(address);
+    if (addressMap) {
+      addressMap.delete(outcomeTokenId);
+    }
+  }
+
+  /**
    * Check if an API position has been updated to match our expected size
    * Simple comparison: if API size matches expected size, we're done
    */
@@ -864,8 +1091,13 @@ export class PolymarketProvider implements PredictProvider {
     }
     const positionsData = (await response.json()) as PolymarketPosition[];
 
+    const teamLookup = this.#createTeamLookup(
+      this.#getSupportedLeagues().length > 0,
+    );
+
     const parsedPositions = await parsePolymarketPositions({
       positions: positionsData,
+      teamLookup,
     });
 
     // Apply optimistic updates (unified for BUY/SELL/CLAIM)
@@ -968,21 +1200,38 @@ export class PolymarketProvider implements PredictProvider {
   public async previewOrder(
     params: PreviewOrderParams & {
       signer: Signer;
-      feeCollection?: PredictFeeCollection;
     },
   ): Promise<OrderPreview> {
-    const basePreview = await previewOrder(params);
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const basePreview = await previewOrder({ ...params, feeCollection });
+
+    // Determine intended order type from feature flags.
+    // FAK is used when Permit2 config is active and FAK orders are enabled.
+    // placeOrder() guarantees the Permit2 allowance is set before submission,
+    // so we can always use FAK when the config allows it.
+    let orderType = OrderType.FOK;
+
+    if (
+      this.#shouldUseFakOrderType({
+        permit2Enabled: feeCollection.permit2Enabled,
+        executors: feeCollection.executors,
+        fakOrdersEnabled,
+      })
+    ) {
+      orderType = OrderType.FAK;
+    }
 
     if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
+          orderType,
           rateLimited: true,
         };
       }
     }
 
-    return basePreview;
+    return { ...basePreview, orderType };
   }
 
   public async placeOrder(
@@ -1136,10 +1385,123 @@ export class PolymarketProvider implements PredictProvider {
 
       const signerApiKey = await this.getApiKey({ address: signer.address });
 
+      // Determine fees, permit2, and order type BEFORE building clobOrder
+      // so the HMAC signature covers the correct orderType.
+      const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+      const shouldUsePermit2 = this.#hasPermit2Config({
+        permit2Enabled: fees?.permit2Enabled,
+        executors: fees?.executors,
+      });
+
+      let feeAuthorization:
+        | SafeFeeAuthorization
+        | Permit2FeeAuthorization
+        | undefined;
+      let executor: string | undefined;
+      let orderType: OrderType = OrderType.FOK;
+      let permit2FeeReady = false;
+
+      if (fees !== undefined && fees.totalFee > 0) {
+        const safeAddress = computeProxyAddress(signer.address);
+        const feeAmountInUsdc = BigInt(
+          parseUnits(fees.totalFee.toString(), 6).toString(),
+        );
+
+        if (shouldUsePermit2) {
+          // Always use Permit2 fee authorization when permit2 is enabled.
+          // The relay will submit the allowancesTx on-chain first (if
+          // attached) before redeeming the Permit2 authorization.
+          permit2FeeReady = true;
+          const executors = fees.executors ?? [];
+          const randomIndex = new Uint32Array(1);
+          global.crypto.getRandomValues(randomIndex);
+          executor = executors[randomIndex[0] % executors.length];
+          feeAuthorization = await createPermit2FeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            spender: executor,
+          });
+        } else {
+          feeAuthorization = await createSafeFeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            to: fees.collector,
+          });
+        }
+      }
+
+      let allowancesTx: { to: string; data: string } | undefined;
+      let permit2AllowanceReady = false;
+
+      // When Permit2 is enabled via feature flags, ensure the proxy wallet
+      // has the required allowances. If not, generate a signed Safe TX that
+      // the relay will submit on-chain before processing the order.
+      // This uses the feature flag (not per-order fees) so it works for
+      // both BUY orders (with fees) and SELL orders (no fees).
+      //
+      // IMPORTANT: Skip when a Safe fee authorization was already signed,
+      // because both transactions read the same on-chain Safe nonce and
+      // the relay would invalidate one when executing the other.
+      const hasSafeFeeAuth = feeAuthorization !== undefined && !permit2FeeReady;
+
+      if (feeCollection.permit2Enabled && !hasSafeFeeAuth) {
+        try {
+          const accountState = await this.getAccountState({
+            ownerAddress: signer.address,
+          });
+
+          if (accountState.hasAllowances) {
+            permit2AllowanceReady = true;
+          } else {
+            const allowanceTx = await getProxyWalletAllowancesTransaction({
+              signer,
+              extraUsdcSpenders: [PERMIT2_ADDRESS],
+            });
+
+            allowancesTx = allowanceTx.params;
+            permit2AllowanceReady = true;
+          }
+        } catch (allowanceError) {
+          // Log but don't block the order — the relay will fall back
+          // to FOK if FAK isn't viable without allowances.
+          DevLogger.log(
+            'PolymarketProvider: Failed to generate allowances transaction',
+            { error: allowanceError },
+          );
+          Logger.error(
+            allowanceError instanceof Error
+              ? allowanceError
+              : new Error(String(allowanceError)),
+            this.getErrorContext('placeOrder:allowancesTx', {
+              operation: 'generate_allowances_tx',
+            }),
+          );
+        }
+      }
+
+      // Determine order type: FAK when Permit2 config is active and
+      // FAK orders are enabled. For orders with fees, the relay also
+      // needs Permit2 allowances (either already on-chain or via
+      // the attached allowancesTx).
+      if (
+        this.#shouldUseFakOrderType({
+          permit2Enabled: feeCollection.permit2Enabled,
+          executors: feeCollection.executors,
+          fakOrdersEnabled,
+        })
+      ) {
+        const hasFees = fees !== undefined && fees.totalFee > 0;
+        if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
+          orderType = OrderType.FAK;
+        }
+      }
+
       const clobOrder = {
         order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
         owner: signerApiKey.apiKey,
-        orderType: OrderType.FOK,
+        orderType,
       };
 
       const body = JSON.stringify(clobOrder);
@@ -1154,24 +1516,12 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      let feeAuthorization;
-      if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = computeProxyAddress(signer.address);
-        const feeAmountInUsdc = BigInt(
-          parseUnits(fees.totalFee.toString(), 6).toString(),
-        );
-        feeAuthorization = await createSafeFeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          to: fees.collector,
-        });
-      }
-
       const { success, response, error } = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
+        executor,
+        allowancesTx,
       });
 
       if (!success) {
@@ -1464,8 +1814,13 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     if (!accountState.hasAllowances) {
+      const { feeCollection: depositFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = depositFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       const allowanceTransaction = await getProxyWalletAllowancesTransaction({
         signer,
+        extraUsdcSpenders,
       });
 
       if (!allowanceTransaction) {
@@ -1537,13 +1892,17 @@ export class PolymarketProvider implements PredictProvider {
       // Check deployment status and allowances
       let isDeployed: boolean;
       let hasAllowancesResult: boolean;
+      const { feeCollection: flagFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = flagFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       try {
         [isDeployed, hasAllowancesResult] = await Promise.all([
           isSmartContractAddress(
             address,
             numberToHex(POLYGON_MAINNET_CHAIN_ID),
           ),
-          hasAllowances({ address }),
+          hasAllowances({ address, extraUsdcSpenders }),
         ]);
       } catch (error) {
         throw new Error(

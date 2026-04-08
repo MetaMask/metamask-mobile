@@ -20,7 +20,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 import {
   setOnboardingActiveStep,

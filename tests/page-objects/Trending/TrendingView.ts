@@ -33,9 +33,9 @@ class TrendingView {
     );
   }
 
-  get googleSearchButton(): DetoxElement {
+  get searchEngineButton(): DetoxElement {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_FOOTER_GOOGLE_LINK,
+      TrendingViewSelectorsIDs.SEARCH_FOOTER_SEARCH_LINK,
     );
   }
 
@@ -143,6 +143,7 @@ class TrendingView {
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
       'Trending tokens': 'tokens',
+      Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
       Perps: 'perps',
@@ -194,6 +195,7 @@ class TrendingView {
 
     await Gestures.tap(quickActionButton, {
       elemDescription: `Tap QuickAction button for ${sectionTitle}`,
+      checkStability: true, // Wait for element to stop moving after horizontal scroll
     });
   }
 
@@ -203,13 +205,9 @@ class TrendingView {
       `section-header-view-all-${id}`,
     );
 
-    // Determine scroll direction: Predictions and Trending tokens are usually near top
-    // But scrollToElement can handle both directions, so we try 'up' first for top sections
-    // and it will automatically adjust if needed
-    const direction =
-      sectionTitle === 'Predictions' || sectionTitle === 'Trending tokens'
-        ? 'up'
-        : 'down';
+    // Predictions is at the top of the feed; scroll up to find it.
+    // All other sections (tokens, perps, stocks, sites) are below.
+    const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
 
     // Use generic scroll method
     await this.scrollToElementInFeed(
@@ -220,6 +218,7 @@ class TrendingView {
 
     await Gestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
+      checkStability: true, // Wait for element to stop moving after scroll
     });
   }
 
@@ -469,23 +468,23 @@ class TrendingView {
   }
 
   /**
-   * Scroll down in search results to ensure Google Search Option is visible
+   * Scroll down in search results to ensure the search engine option is visible
    */
-  async scrollToGoogleSearchOption(): Promise<void> {
+  async scrollToSearchEngineOption(): Promise<void> {
     await Gestures.scrollToElement(
-      this.googleSearchButton,
+      this.searchEngineButton,
       Matchers.getIdentifier(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
       {
         direction: 'down',
         scrollAmount: 300,
-        elemDescription: 'Scroll to Google search option',
+        elemDescription: 'Scroll to search engine option',
       },
     );
   }
 
-  async verifyGoogleSearchOptionVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.googleSearchButton, {
-      description: 'Google search option should be visible',
+  async verifySearchEngineOptionVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchEngineButton, {
+      description: 'Search engine option should be visible',
     });
   }
 

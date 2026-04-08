@@ -30,18 +30,54 @@ export const getSeparatedLabelYPositions = (
     return dotPositions.map((pos) => pos.dotY);
   }
 
-  const [first, second] = dotPositions;
-  const gap = Math.abs(first.dotY - second.dotY);
+  const minSpacing = LABEL_HEIGHT + MIN_LABEL_GAP;
 
-  if (gap >= LABEL_HEIGHT + MIN_LABEL_GAP) {
-    return [first.dotY, second.dotY];
+  // For 2 labels, use symmetric centering around the midpoint
+  if (dotPositions.length === 2) {
+    const [first, second] = dotPositions;
+    const gap = Math.abs(first.dotY - second.dotY);
+
+    if (gap >= minSpacing) {
+      return [first.dotY, second.dotY];
+    }
+
+    const midPoint = (first.dotY + second.dotY) / 2;
+    const offset = minSpacing / 2;
+
+    if (first.dotY < second.dotY) {
+      return [midPoint - offset, midPoint + offset];
+    }
+    return [midPoint + offset, midPoint - offset];
   }
 
-  const midPoint = (first.dotY + second.dotY) / 2;
-  const offset = (LABEL_HEIGHT + MIN_LABEL_GAP) / 2;
+  // For 3+ labels, sort and push overlapping labels downward
+  const positions = dotPositions.map((pos, index) => ({
+    index,
+    y: pos.dotY,
+  }));
 
-  if (first.dotY < second.dotY) {
-    return [midPoint - offset, midPoint + offset];
+  positions.sort((a, b) => a.y - b.y);
+
+  for (let i = 1; i < positions.length; i++) {
+    const gap = positions[i].y - positions[i - 1].y;
+    if (gap < minSpacing) {
+      positions[i].y = positions[i - 1].y + minSpacing;
+    }
   }
-  return [midPoint + offset, midPoint - offset];
+
+  // Shift group upward if bottom label overflows chart bounds
+  const maxY = CHART_HEIGHT - LABEL_HEIGHT;
+  const overflow = positions[positions.length - 1].y - maxY;
+  if (overflow > 0) {
+    const shift = Math.min(overflow, positions[0].y);
+    for (const pos of positions) {
+      pos.y -= shift;
+    }
+  }
+
+  const result = new Array<number>(dotPositions.length);
+  for (const pos of positions) {
+    result[pos.index] = pos.y;
+  }
+  return result;
 };

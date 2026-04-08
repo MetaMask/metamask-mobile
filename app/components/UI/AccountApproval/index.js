@@ -16,9 +16,11 @@ import { shuffle } from 'lodash';
 import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../Views/AccountConnect/ConnectAccountBottomSheet.testIds';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -33,8 +35,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { SourceType } from '../../hooks/useAnalytics/useAnalytics.types';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 /**
  * Account access approval component
@@ -82,10 +83,6 @@ class AccountApproval extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
 
   state = {
@@ -162,8 +159,8 @@ class AccountApproval extends PureComponent {
     const { hostname } = new URL(prefixedUrl);
     this.checkUrlFlaggedAsPhishing(hostname);
 
-    this.props.metrics.trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECT_REQUEST_STARTED,
       )
         .addProperties(this.getAnalyticsParams())
@@ -206,8 +203,8 @@ class AccountApproval extends PureComponent {
       // onConfirm will close current window by rejecting current approvalRequest.
       this.props.onCancel();
 
-      this.props.metrics.trackEvent(
-        MetricsEventBuilder.createEventBuilder(
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
         )
           .addProperties(this.getAnalyticsParams())
@@ -230,8 +227,8 @@ class AccountApproval extends PureComponent {
     }
 
     this.props.onConfirm();
-    this.props.metrics.trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       )
         .addProperties(this.getAnalyticsParams())
@@ -244,8 +241,8 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    this.props.metrics.trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       )
         .addProperties(this.getAnalyticsParams())
@@ -343,6 +340,7 @@ class AccountApproval extends PureComponent {
             {this.state.otps.map((otpValue, index) => (
               <TouchableOpacity
                 key={`otp${index}`}
+                testID={AccountApprovalSelectorsIDs.getOtpOption(otpValue)}
                 style={[
                   styles.touchableOption,
                   this.state.otpChoice === otpValue && styles.selectedOption,
@@ -422,4 +420,4 @@ const mapStateToProps = (state) => ({
 
 AccountApproval.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(withMetricsAwareness(AccountApproval));
+export default connect(mapStateToProps)(AccountApproval);

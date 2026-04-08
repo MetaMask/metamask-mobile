@@ -8,7 +8,7 @@ import {
   SOLANA_ASSET,
 } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendUtils from '../../utils/send';
 import { usePercentageAmount } from './usePercentageAmount';
 import { useBalance } from './useBalance';

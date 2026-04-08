@@ -1,7 +1,6 @@
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -84,10 +83,13 @@ import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
-  const { position } = route.params as { position: Position };
+  const { position, source: routeSource } = route.params as {
+    position: Position;
+    source?: string;
+  };
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
@@ -393,6 +395,7 @@ const PerpsClosePositionView: React.FC = () => {
         metamaskFee: feeResults.metamaskFee,
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
+        source: routeSource,
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context

@@ -9,6 +9,47 @@ on:
       platform:
         required: true
         type: string # android, ios, or both
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
+      source_branch:
+        description: >-
+          Branch, tag, or SHA. If skip_version_bump is false: base branch for the version bump (empty uses github.ref_name).
+          If skip_version_bump is true: ref for prepare, node-modules setup, and build checkout (empty uses the default triggering ref).
+        required: false
+        type: string
+        default: ''
+      upload_to_sentry:
+        description: 'If true, enable Sentry CLI upload of JS source maps and native debug symbols during the build'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      build_name:
+        description: 'build_name input passed to this workflow'
+        value: ${{ inputs.build_name }}
+      platform:
+        description: 'platform input (android, ios, or both)'
+        value: ${{ inputs.platform }}
+      source_branch_input:
+        description: 'source_branch input (empty means default ref was used)'
+        value: ${{ inputs.source_branch }}
+      checkout_ref:
+        description: 'Git ref used for checkout (version-bump commit SHA or source_branch / triggering ref)'
+        value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at checkout_ref after build succeeded'
+        value: ${{ jobs.emit-build-metadata.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -32,38 +73,56 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
+      skip_version_bump:
+        required: false
+        type: boolean
+        default: false
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # Bump version in repo (bitrise.yml, package.json, ios/android) before building
+  # Bump version in repo (bitrise.yml, package.json, ios/android) before building.
+  # Skipped when skip_version_bump=true (e.g. nightly builds where Bitrise owns the bump).
   update-build-version:
+    if: ${{ !inputs.skip_version_bump }}
     uses: ./.github/workflows/update-latest-build-version.yml
     permissions:
       contents: write
       id-token: write
     with:
-      base-branch: ${{ github.ref_name }}
+      base-branch: ${{ inputs.source_branch || github.ref_name }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
   # Load config
   prepare:
     needs: [update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
+      tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
+      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          fetch-depth: 0
+          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
       - run: yarn install --immutable
       - run: node scripts/validate-build-config.js
 
@@ -77,23 +136,48 @@ jobs:
           const build = config.builds['${{ inputs.build_name }}'];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          const env = build.env || {};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           const signing = build.signing;
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           "
 
-  # Build
-  build:
-    needs: [prepare, update-build-version]
+  # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
+  setup-dependencies:
+    name: Setup Dependencies (${{ matrix.platform }})
+    needs: [prepare]
+    if: ${{ always() && !failure() && !cancelled() }}
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    uses: ./.github/workflows/setup-node-modules.yml
+    with:
+      ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+      fetch-depth: 0
+      checkout-submodules: true
+      platform: ${{ matrix.platform }}
+      build_name: ${{ inputs.build_name }}
+      use-tarball: true
+      upload-artifact: true
+      artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
+      artifact-retention-days: 1
+
+  # Build
+  build:
+    needs: [prepare, setup-dependencies, update-build-version]
+    if: ${{ always() && !failure() && !cancelled() }}
+    timeout-minutes: 120 # Must allow build step (115min) + setup; comment at Build step documents this
+    strategy:
+      matrix:
+        platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
+        if: ${{ !inputs.skip_version_bump }}
         run: |
           COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
           if [ -z "$COMMIT_HASH" ]; then
@@ -102,26 +186,145 @@ jobs:
           fi
           echo "Building at version-bump commit: $COMMIT_HASH"
       - uses: actions/checkout@v4
+        if: ${{ !inputs.skip_version_bump }}
         with:
           ref: ${{ needs.update-build-version.outputs.commit-hash }}
-      - uses: actions/setup-node@v4
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump && inputs.source_branch != '' }}
         with:
-          node-version: '20'
-          cache: 'yarn'
-      - run: yarn install --immutable
+          ref: ${{ inputs.source_branch }}
+          submodules: recursive
+
+      - uses: actions/checkout@v4
+        if: ${{ inputs.skip_version_bump && inputs.source_branch == '' }}
+        with:
+          submodules: recursive
+
+      # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
+
+      - name: Extract tarball (preserves symlinks)
+        run: |
+          echo "📦 Extracting tarball..."
+          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
+          rm node-modules-${{ matrix.platform }}.tar.gz
+          echo "✅ Tarball extracted"
+
+      - name: Verify artifacts and symlinks
+        run: |
+          echo "✅ Verifying artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+
+          # Verify symlinks in .bin directory
+          echo "🔍 Checking .bin symlinks..."
+          if [ -e "node_modules/.bin/react-native" ]; then
+            echo "✅ react-native symlink exists and target is valid"
+            find node_modules/.bin -maxdepth 1 -name 'react-native' -ls
+          else
+            echo "❌ react-native symlink missing or broken"
+            find node_modules/.bin -maxdepth 1 -ls | head -10
+            exit 1
+          fi
+
+          # Check React Native scripts
+          if [ -d "node_modules/react-native/scripts" ]; then
+            echo "✅ React Native scripts found"
+          else
+            echo "❌ React Native scripts missing"
+            exit 1
+          fi
+
+          echo "✅ All artifacts verified with working symlinks!"
+
+      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from tarball). Signing is in Configure signing certificates below.
+      - name: Setup Ruby (iOS)
+        if: matrix.platform == 'ios'
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Select Xcode (iOS)
+        if: matrix.platform == 'ios'
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
+
+      # TapAndPay SDK Setup (Android only)
+      - name: Clone TapAndPay SDK
+        if: |
+          matrix.platform == 'android' &&
+          needs.prepare.outputs.tap_and_pay_sdk_repo_ssh != ''
+        run: |
+          if [ -z "$TAP_AND_PAY_SDK_SSH_KEY" ]; then
+            echo "⚠️ TAP_AND_PAY_SDK_SSH_KEY not set, skipping TapAndPay SDK clone"
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          echo "$TAP_AND_PAY_SDK_SSH_KEY" | base64 -d | tr -d '\r' > ~/.ssh/tap_and_pay_key
+          echo "" >> ~/.ssh/tap_and_pay_key
+          chmod 600 ~/.ssh/tap_and_pay_key
+          trap 'rm -f ~/.ssh/tap_and_pay_key' EXIT
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/tap_and_pay_key
+          echo "📦 Cloning TapAndPay SDK into android/libs/..."
+          git clone --depth 1 "$TAP_AND_PAY_SDK_REPO_SSH" /tmp/tap-and-pay-sdk
+          mkdir -p android/libs
+          cp -r /tmp/tap-and-pay-sdk/* android/libs/
+          rm -rf /tmp/tap-and-pay-sdk
+          ssh-add -D
+          eval "$(ssh-agent -k)"
+          echo "✅ TapAndPay SDK installed to android/libs/"
+        env:
+          TAP_AND_PAY_SDK_SSH_KEY: ${{ secrets.TAP_AND_PAY_SDK_SSH_KEY }}
+          TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
         run: |
           # Load env vars from builds.yml (this step only)
-          eval "$(node scripts/apply-build-config.js "${{ inputs.build_name }}" --export)"
+          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
-          node scripts/apply-build-config.js "${{ inputs.build_name }}" --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
       - name: Validate secrets
         env:
           CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
           SECRETS_JSON: ${{ toJSON(secrets) }}
         run: node scripts/validate-secrets-from-config.js
+
+      # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
+      - name: Install CocoaPods dependencies (iOS)
+        if: matrix.platform == 'ios'
+        env:
+          BUNDLE_GEMFILE: ios/Gemfile
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            node -e "require('fs').writeFileSync('ios/debug.xcconfig',''); require('fs').writeFileSync('ios/release.xcconfig','');"
+            yarn pod:install
 
       - name: Set secrets
         env:
@@ -133,8 +336,10 @@ jobs:
       - name: Set Android environment variables
         if: matrix.platform == 'android'
         run: |
-          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+          {
+            echo "ANDROID_HOME=/opt/android-sdk"
+            echo "ANDROID_SDK_ROOT=/opt/android-sdk"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Java
         if: matrix.platform == 'android'
@@ -142,6 +347,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      # iOS: Clean up any existing keychains from previous runs
+      - name: Clean up existing keychains
+        if: matrix.platform == 'ios' && needs.prepare.outputs.signing_aws_role != ''
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          if [ -f "$KEYCHAIN_PATH" ]; then
+            echo "🧹 Removing existing keychain..."
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
 
       # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
       - name: Configure signing certificates
@@ -154,31 +369,31 @@ jobs:
           aws-secret-name: ${{ needs.prepare.outputs.signing_aws_secret }}
           android-keystore-path: ${{ needs.prepare.outputs.signing_android_keystore_path }}
 
-      # iOS: install Ruby, Bundler, and CocoaPods so setup:github-ci has a working Ruby (fixes self-hosted runners)
-      - name: Installing iOS Environment Setup
+      # iOS: Configure Node path for Xcode build scripts (React Native Codegen)
+      - name: Configure Node path for Xcode
         if: matrix.platform == 'ios'
-        timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1
-        with:
-          platform: ios
-          configure-keystores: false
-          setup-simulator: false
-          ruby-version: '3.1.6'
+        run: |
+          NODE_BINARY=$(command -v node)
+          echo "Node binary: $NODE_BINARY"
+          echo "export NODE_BINARY=\"$NODE_BINARY\"" > ios/.xcode.env.local
+          echo "✅ Created ios/.xcode.env.local"
+          cat ios/.xcode.env.local
+          node --version
 
-      - name: Setup project dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            echo "🚀 Setting up project..."
-            if [ "${{ matrix.platform }}" = "ios" ]; then
-              yarn setup:github-ci --build-ios --no-build-android
-            else
-              yarn setup:github-ci --no-build-ios
-            fi
+      # Sentry: build.sh defaults SENTRY_DISABLE_AUTO_UPLOAD=true; set false only when opted in.
+      - name: Configure Sentry upload
+        env:
+          UPLOAD_TO_SENTRY: ${{ inputs.upload_to_sentry }}
+        run: |
+          if [ "$UPLOAD_TO_SENTRY" = "true" ]; then
+            echo "SENTRY_DISABLE_AUTO_UPLOAD=false" >> "$GITHUB_ENV"
+            echo "✅ Sentry auto-upload enabled for this build"
+          else
+            echo "SENTRY_DISABLE_AUTO_UPLOAD=true" >> "$GITHUB_ENV"
+            echo "ℹ️ Sentry auto-upload disabled"
+          fi
 
+      # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -193,26 +408,108 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts
+      # Rename build artifacts (zips simulator .app and .xcarchive; writes ios_deploy_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
+        if: success()
+        id: rename
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      - name: Upload iOS artifacts
-        if: matrix.platform == 'ios'
+      - name: Upload iOS simulator app
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ inputs.build_name }}
-          path: |
-            ios/build/Build/Products/
-            ios/build/output/
-            ios/build/*.xcarchive
+          name: ios-app-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
           if-no-files-found: error
 
-      - name: Upload Android artifacts
-        if: matrix.platform == 'android' && success()
+      - name: Upload iOS IPA
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.build_name }}
-          path: android/app/build/outputs/
+          name: ios-ipa-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
           if-no-files-found: error
+
+      - name: Upload iOS xcarchive
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcarchive-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_archive_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS sourcemap
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_sourcemap_path }}
+          if-no-files-found: warn
+
+      # Dev builds (CONFIGURATION=Debug): APK only
+      - name: Upload Android APK (dev)
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_apk_path }}
+          if-no-files-found: error
+
+      # Release builds: APK and AAB as separate artifacts
+      - name: Upload Android APK (release)
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_apk_path }}
+          if-no-files-found: error
+
+      - name: Upload Android AAB
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_aab_path }}
+          if-no-files-found: error
+
+      - name: Upload Android sourcemaps
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_sourcemap_dir }}
+          if-no-files-found: warn
+
+  # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
+  emit-build-metadata:
+    name: Emit build metadata
+    needs: [prepare, build]
+    if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+      ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Read metadata from tree at built ref
+        id: meta
+        run: |
+          REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
+          {
+            echo "checkout_ref=$REF"
+            echo "built_commit_sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+          ./scripts/get-build-metadata.sh --ci

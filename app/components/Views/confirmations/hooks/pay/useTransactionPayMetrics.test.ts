@@ -23,7 +23,6 @@ import { Json } from '@metamask/utils';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
-  useTransactionPayTotals,
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
@@ -82,7 +81,6 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
-  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -122,7 +120,7 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
-  it('does not update metrics if no pay token selected', async () => {
+  it('dispatches empty properties if no pay token selected', async () => {
     runHook();
 
     await act(async () => noop());
@@ -136,7 +134,7 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
-  it('includes pay token properties if pay token selected', async () => {
+  it('includes UI-only properties when pay token is selected', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
@@ -150,28 +148,55 @@ describe('useTransactionPayMetrics', () => {
       id: transactionIdMock,
       params: {
         properties: expect.objectContaining({
-          mm_pay: true,
-          mm_pay_token_selected: PAY_TOKEN_MOCK.symbol,
-          mm_pay_chain_selected: CHAIN_ID_MOCK,
           mm_pay_token_presented: PAY_TOKEN_MOCK.symbol,
           mm_pay_chain_presented: PAY_TOKEN_MOCK.chainId,
+          mm_pay_payment_token_list_size: 5,
+          mm_pay_quote_requested: false,
+          mm_pay_quote_loaded: false,
+          mm_pay_chain_highest_balance_caip: null,
         }),
         sensitiveProperties: {},
       },
     });
   });
 
-  it('includes step properties based on number of quotes', async () => {
+  it('does not include builder-owned properties', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
 
-    useTransactionPayQuotesMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
+    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+    runHook();
+
+    await act(async () => noop());
+
+    const calledProps = (
+      updateConfirmationMetricMock.mock.calls[0]?.[0] as {
+        params: { properties: Record<string, unknown> };
+      }
+    )?.params?.properties;
+
+    expect(calledProps).not.toHaveProperty('mm_pay');
+    expect(calledProps).not.toHaveProperty('mm_pay_token_selected');
+    expect(calledProps).not.toHaveProperty('mm_pay_chain_selected');
+    expect(calledProps).not.toHaveProperty('mm_pay_use_case');
+    expect(calledProps).not.toHaveProperty('mm_pay_sending_value_usd');
+    expect(calledProps).not.toHaveProperty('mm_pay_receiving_value_usd');
+    expect(calledProps).not.toHaveProperty('mm_pay_metamask_fee_usd');
+    expect(calledProps).not.toHaveProperty('mm_pay_strategy');
+    expect(calledProps).not.toHaveProperty('mm_pay_network_fee_usd');
+    expect(calledProps).not.toHaveProperty('mm_pay_provider_fee_usd');
+    expect(calledProps).not.toHaveProperty('mm_pay_transaction_step');
+    expect(calledProps).not.toHaveProperty('mm_pay_transaction_step_total');
+  });
+
+  it('includes simulation_sending_assets_total_value for perps deposit', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
 
     runHook();
 
@@ -181,35 +206,6 @@ describe('useTransactionPayMetrics', () => {
       id: transactionIdMock,
       params: {
         properties: expect.objectContaining({
-          mm_pay_transaction_step_total: 4,
-          mm_pay_transaction_step: 4,
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
-  it('includes perps deposit properties', async () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionPayQuotesMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
-
-    runHook();
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_use_case: 'perps_deposit',
           simulation_sending_assets_total_value: 1.23,
         }),
         sensitiveProperties: {},
@@ -217,17 +213,11 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
-  it('includes predict deposit properties', async () => {
+  it('includes simulation_sending_assets_total_value for predict deposit', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: noop,
     } as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionPayQuotesMock.mockReturnValue([
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-      QUOTE_MOCK,
-    ]);
 
     runHook({ type: TransactionType.predictDeposit });
 
@@ -237,80 +227,7 @@ describe('useTransactionPayMetrics', () => {
       id: transactionIdMock,
       params: {
         properties: expect.objectContaining({
-          mm_pay_use_case: 'predict_deposit',
           simulation_sending_assets_total_value: 1.23,
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
-  it('includes dust property for non-native quote', async () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK, QUOTE_MOCK]);
-
-    runHook();
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_dust_usd: '0.5',
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
-  it('includes token size property', async () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
-
-    runHook();
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_payment_token_list_size: 5,
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
-  it('includes quote metrics', async () => {
-    useTransactionPayTotalsMock.mockReturnValue({
-      fees: {
-        sourceNetwork: { estimate: { usd: '1.5', fiat: '1.6' } },
-        targetNetwork: { usd: '2.5', fiat: '2.6' },
-        provider: { usd: '0.5', fiat: '0.6' },
-      },
-    } as ReturnType<typeof useTransactionPayTotals>);
-
-    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
-
-    runHook();
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_network_fee_usd: '4',
-          mm_pay_provider_fee_usd: '0.5',
-          mm_pay_strategy: 'mm_swaps_bridge',
         }),
         sensitiveProperties: {},
       },

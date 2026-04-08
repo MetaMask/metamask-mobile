@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler'; // Must use this to make sure scroll works inside a bottom sheet on Android
 import { useSelector, useDispatch } from 'react-redux';
 import { Icon, IconName, IconSize } from '@metamask/design-system-react-native';
 import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';

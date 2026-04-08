@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import-x/no-commonjs */
 import type { ThemeColors } from '@metamask/design-tokens';
 import LottieView from 'lottie-react-native';
 import React from 'react';

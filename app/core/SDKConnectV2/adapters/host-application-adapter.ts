@@ -45,6 +45,30 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     );
   }
 
+  showInternalError(conninfo?: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo?.id || Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_internal_error.title'),
+        description: strings('sdk_connect_v2.show_internal_error.description'),
+        status: 'error',
+      }),
+    );
+  }
+
+  showMethodError(conninfo?: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo?.id || Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_method_error.title'),
+        description: strings('sdk_connect_v2.show_method_error.description'),
+        status: 'error',
+      }),
+    );
+  }
+
   showConfirmationRejectionError(conninfo?: ConnectionInfo): void {
     store.dispatch(
       showSimpleNotification({

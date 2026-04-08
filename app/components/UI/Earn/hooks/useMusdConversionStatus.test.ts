@@ -71,6 +71,7 @@ import {
   TransactionPayStrategy,
   type TransactionPayQuote,
 } from '@metamask/transaction-pay-controller';
+import { mockTheme } from '../../../../util/theme';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
@@ -123,8 +124,7 @@ describe('useMusdConversionStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.Loading,
     hasNoTimeout: true,
-    iconColor: '#000000',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: mockTheme.colors.background.default,
     hapticsType: NotificationFeedbackType.Warning,
     labelOptions: [{ label: 'In Progress', isBold: true }],
   };
@@ -136,8 +136,8 @@ describe('useMusdConversionStatus', () => {
         variant: ToastVariants.Icon as const,
         iconName: IconName.CheckBold,
         hasNoTimeout: false,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
+        iconColor: mockTheme.colors.success.default,
+        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationFeedbackType.Success,
         labelOptions: [{ label: 'Success', isBold: true }],
       },
@@ -145,8 +145,8 @@ describe('useMusdConversionStatus', () => {
         variant: ToastVariants.Icon as const,
         iconName: IconName.Danger,
         hasNoTimeout: false,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
+        iconColor: mockTheme.colors.error.default,
+        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationFeedbackType.Error,
         labelOptions: [{ label: 'Failed', isBold: true }],
       },
@@ -156,8 +156,7 @@ describe('useMusdConversionStatus', () => {
         variant: ToastVariants.Icon as const,
         iconName: IconName.Loading,
         hasNoTimeout: true,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationFeedbackType.Warning,
         labelOptions: [{ label: 'Claiming bonus', isBold: true }],
       },
@@ -165,8 +164,8 @@ describe('useMusdConversionStatus', () => {
         variant: ToastVariants.Icon as const,
         iconName: IconName.CheckBold,
         hasNoTimeout: false,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
+        iconColor: mockTheme.colors.success.default,
+        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationFeedbackType.Success,
         labelOptions: [{ label: 'Success', isBold: true }],
       },
@@ -174,11 +173,22 @@ describe('useMusdConversionStatus', () => {
         variant: ToastVariants.Icon as const,
         iconName: IconName.Danger,
         hasNoTimeout: false,
-        iconColor: '#000000',
-        backgroundColor: '#FFFFFF',
+        iconColor: mockTheme.colors.error.default,
+        backgroundColor: mockTheme.colors.background.default,
         hapticsType: NotificationFeedbackType.Error,
         labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
       },
+    },
+    tronWithdrawal: {
+      failed: jest.fn().mockReturnValue({
+        variant: ToastVariants.Icon as const,
+        iconName: IconName.Danger,
+        hasNoTimeout: false,
+        iconColor: mockTheme.colors.error.default,
+        backgroundColor: mockTheme.colors.background.default,
+        hapticsType: NotificationFeedbackType.Error,
+        labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
+      }),
     },
   };
 

@@ -1,0 +1,52 @@
+{
+  "positions": {
+    "description": "Open perps positions",
+    "expression": "Engine.context.PerpsController.getPositions().then(function(r){return JSON.stringify(r)})",
+    "async": true
+  },
+  "auth": {
+    "description": "Active provider auth state (isReadyToTrade)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var id=c.state.activeProvider;var p=c.providers.get(id);if(!p)return JSON.stringify({error:'no provider for '+id});return p.isReadyToTrade().then(function(r){return JSON.stringify({provider:id,isAuthenticated:r.ready,authenticatedAddress:r.authenticatedAddress||null})});})()",
+    "async": true
+  },
+  "balances": {
+    "description": "Account state (balances, margin) from cached state",
+    "expression": "JSON.stringify(Engine.context.PerpsController.state.accountState)",
+    "async": false
+  },
+  "markets": {
+    "description": "Markets with live prices",
+    "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(r){return JSON.stringify(r.map(function(m){return{symbol:m.symbol,price:m.price,change24h:m.change24hPercent}}))})",
+    "async": true
+  },
+  "orders": {
+    "description": "Open limit/stop orders",
+    "expression": "Engine.context.PerpsController.getOpenOrders().then(function(r){return JSON.stringify(r)})",
+    "async": true
+  },
+  "state": {
+    "description": "Full PerpsController state snapshot",
+    "expression": "JSON.stringify(Engine.context.PerpsController.state)",
+    "async": false
+  },
+  "providers": {
+    "description": "Registered provider IDs",
+    "expression": "JSON.stringify(Array.from(Engine.context.PerpsController.providers.keys()))",
+    "async": false
+  },
+  "pre-trade": {
+    "description": "Position count + balance snapshot before a trade (use for pre/post comparison)",
+    "expression": "Promise.all([Engine.context.PerpsController.getPositions(),Engine.context.PerpsController.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice,unrealizedPnl:p.unrealizedPnl}}),accountState:r[1]})})",
+    "async": true
+  },
+  "place-order": {
+    "description": "TEMPLATE: market buy BTC $10 at 2x leverage — substitute params via eval-async for custom scenarios",
+    "expression": "Engine.context.PerpsController.placeOrder({symbol:'BTC',isBuy:true,orderType:'market',size:'0.0001',leverage:2,usdAmount:'10',maxSlippageBps:500}).then(function(r){return JSON.stringify(r)})",
+    "async": true
+  },
+  "post-trade": {
+    "description": "Position count + balance snapshot after a trade (compare with pre-trade output)",
+    "expression": "Promise.all([Engine.context.PerpsController.getPositions(),Engine.context.PerpsController.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice,unrealizedPnl:p.unrealizedPnl}}),accountState:r[1]})})",
+    "async": true
+  }
+}

@@ -44,12 +44,15 @@ function WebviewModal() {
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
-  const handleNavigationStateChangeWithDedup = (navState: { url: string }) => {
-    if (navState.url !== previousUrlRef.current) {
-      previousUrlRef.current = navState.url;
-      handleNavigationStateChange?.(navState);
-    }
-  };
+  const handleNavigationStateChangeWithDedup = useCallback(
+    (navState: { url: string }) => {
+      if (navState.url !== previousUrlRef.current) {
+        previousUrlRef.current = navState.url;
+        handleNavigationStateChange?.(navState);
+      }
+    },
+    [handleNavigationStateChange],
+  );
 
   const handleShouldStartLoadWithRequest = useCallback(
     ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),

@@ -88,10 +88,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -109,10 +108,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -191,10 +189,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -212,10 +209,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -294,10 +290,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -315,10 +310,9 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -431,10 +425,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -452,10 +445,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -534,10 +526,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -555,10 +546,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -637,10 +627,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -658,10 +647,9 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -774,10 +762,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -795,10 +782,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -877,10 +863,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -898,10 +883,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -980,10 +964,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1001,10 +984,9 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1118,10 +1100,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1139,10 +1120,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#b7bbc8",
+                "color": "#babbbe",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1222,10 +1202,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1243,10 +1222,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#b7bbc8",
+                "color": "#babbbe",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1326,10 +1304,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1347,10 +1324,9 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#b7bbc8",
+                "color": "#babbbe",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1463,10 +1439,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1484,10 +1459,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1567,10 +1541,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1588,10 +1561,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#b7bbc8",
+                "color": "#babbbe",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1670,10 +1642,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1691,10 +1662,9 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1840,10 +1810,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1861,10 +1830,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1943,10 +1911,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1964,10 +1931,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2046,10 +2012,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2067,10 +2032,9 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2183,10 +2147,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2204,10 +2167,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2286,10 +2248,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2307,10 +2268,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2389,10 +2349,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2410,10 +2369,9 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },

@@ -29,6 +29,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -44,6 +45,34 @@ jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionConfirm');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
+  useTransactionPayWithdraw: jest.fn(() => ({
+    isWithdraw: false,
+    canSelectWithdrawToken: false,
+  })),
+}));
+jest.mock('../../../../../../util/transaction-controller', () => ({
+  updateEditableParams: jest.fn(),
+}));
+jest.mock('../../AccountSelector', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onAccountSelected,
+    }: {
+      onAccountSelected: (address: string) => void;
+      selectedAddress?: string;
+    }) => (
+      <TouchableOpacity
+        testID="account-selector"
+        onPress={() => onAccountSelected('0xTestRecipient')}
+      >
+        <Text>Select account</Text>
+      </TouchableOpacity>
+    ),
+  };
+});
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
     trackInlineAlertClicked: jest.fn(),
@@ -54,6 +83,14 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: () => ({
     setConfirmationMetric: jest.fn(),
+  }),
+}));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+    })),
   }),
 }));
 
@@ -77,6 +114,19 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
+  }),
+}));
+
+jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: () => ({
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
+    isFetching: false,
+    isLoading: false,
+    status: 'idle',
+    isSuccess: false,
+    error: null,
   }),
 }));
 
@@ -143,9 +193,15 @@ describe('CustomAmountInfo', () => {
   );
 
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
+  const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: false,
+      canSelectWithdrawToken: false,
+    });
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -293,24 +349,27 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  it('renders alternate confirm label if predict withdraw', async () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.predictWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
+  it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
+    'renders the withdraw confirm label for %s transactions',
+    async (transactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
 
-    const { getByText, findByText } = render({
-      transactionType: TransactionType.predictWithdraw,
-    });
+      const { getByText, findByText } = render({ transactionType });
 
-    await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-    });
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
 
-    expect(
-      await findByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
-    ).toBeDefined();
-  });
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_predict_withdraw'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('calls overrideContent with amountHuman and hides default content', () => {
     const mockOverrideContent = jest.fn().mockReturnValue(null);
@@ -345,5 +404,48 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render AccountSelector for non-moneyAccountWithdraw transactions', () => {
+    const { queryByTestId } = render();
+
+    expect(queryByTestId('account-selector')).toBeNull();
+  });
+
+  it('renders AccountSelector for moneyAccountWithdraw transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountWithdraw,
+    });
+
+    expect(getByTestId('account-selector')).toBeOnTheScreen();
+  });
+
+  it('calls updateEditableParams when recipient account is selected', async () => {
+    const { updateEditableParams } = jest.requireMock(
+      '../../../../../../util/transaction-controller',
+    );
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
+      to: '0xTestRecipient',
+    });
   });
 });

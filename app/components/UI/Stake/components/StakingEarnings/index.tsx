@@ -78,7 +78,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.your_earnings')}
       </Text>
-      <View>
+      <View style={styles.stakingEarningsContent}>
         {isPooledStakingServiceInterruptionBannerEnabled && (
           <EarnMaintenanceBanner />
         )}

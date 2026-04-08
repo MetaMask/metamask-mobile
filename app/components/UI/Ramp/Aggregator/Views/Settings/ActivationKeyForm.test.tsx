@@ -1,8 +1,11 @@
-import ActivationKeyForm from './ActivationKeyForm';
+import ActivationKeyForm, {
+  ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID,
+  ACTIVATION_KEY_FORM_HEADER_TEST_ID,
+} from './ActivationKeyForm';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -26,27 +29,63 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
-      setOptions: actualReactNavigation.useNavigation().setOptions,
     }),
   };
 });
 
 const mockOnSubmit = jest.fn();
 
+let mockUseParamsValue: {
+  onSubmit: jest.Mock;
+  key?: string;
+  label?: string;
+  active?: boolean;
+} = {
+  onSubmit: mockOnSubmit,
+};
+
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
-  useParams: () => ({
-    onSubmit: mockOnSubmit,
-  }),
+  useParams: () => mockUseParamsValue,
 }));
 
 describe('AddActivationKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseParamsValue = { onSubmit: mockOnSubmit };
   });
+
   it('renders correctly', () => {
     render(ActivationKeyForm);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders inline header with title Add activation key', () => {
+    render(ActivationKeyForm);
+    const header = screen.getByTestId(ACTIVATION_KEY_FORM_HEADER_TEST_ID);
+    expect(header).toBeOnTheScreen();
+    expect(within(header).getByText('Add activation key')).toBeOnTheScreen();
+  });
+
+  it('renders inline header with title Edit activation key when key param is provided', () => {
+    mockUseParamsValue = {
+      onSubmit: mockOnSubmit,
+      key: 'existing-key',
+      label: 'My Key',
+      active: true,
+    };
+    render(ActivationKeyForm);
+    const header = screen.getByTestId(ACTIVATION_KEY_FORM_HEADER_TEST_ID);
+    expect(within(header).getByText('Edit activation key')).toBeOnTheScreen();
+  });
+
+  it('navigates back when header back button is pressed', () => {
+    render(ActivationKeyForm);
+    const backButton = screen.getByTestId(
+      ACTIVATION_KEY_FORM_BACK_BUTTON_TEST_ID,
+    );
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('has button disabled when input is empty', () => {

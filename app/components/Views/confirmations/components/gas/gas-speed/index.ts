@@ -1,1 +1,1 @@
-export { GasSpeed } from './gas-speed';
+export { GasSpeed, type GasSpeedProps } from './gas-speed';

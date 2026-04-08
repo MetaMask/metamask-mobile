@@ -3,13 +3,11 @@ import {
   RampsRegions,
   RampsRegionsEnum,
 } from '../../../framework/Constants.ts';
-import {
-  RAMPS_NETWORKS_RESPONSE,
-  RAMPS_TOP_TOKENS_RESPONSE,
-  RAMPS_PROVIDERS_RESPONSE,
-  RAMPS_PAYMENTS_V2_RESPONSE,
-} from '../ramps/ramps-mocks.ts';
-import { createGeolocationResponse } from '../ramps/ramps-geolocation.ts';
+import { RAMPS_NETWORKS_RESPONSE } from '../ramps/responses/ramps-networks-response.ts';
+import { RAMPS_TOP_TOKENS_RESPONSE } from '../ramps/responses/ramps-tokens-response.ts';
+import { RAMPS_PROVIDERS_RESPONSE } from '../ramps/responses/ramps-providers-response.ts';
+import { RAMPS_PAYMENTS_V2_RESPONSE } from '../ramps/responses/ramps-payments-response.ts';
+import { createGeolocationResponse } from '../ramps/responses/ramps-geolocation.ts';
 
 /**
  * Mock data for on-ramp API endpoints used in E2E testing.
@@ -57,6 +55,12 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/countries\?.*$/,
       responseCode: 200,
       response: [],
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/.*\/tokens\?.*$/,
+      responseCode: 200,
+      response: RAMPS_TOP_TOKENS_RESPONSE,
     },
     {
       urlEndpoint:

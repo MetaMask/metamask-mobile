@@ -5,13 +5,14 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '@metamask/design-system-react-native';
 import {
-  IconName,
-  IconColor,
+  IconName as ComponentLibraryIconName,
+  IconColor as ComponentLibraryIconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -22,9 +23,11 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import MenuItem from '../../../components/MenuItem';
-import { useRampsController } from '../../../hooks/useRampsController';
+import { useRampsProviders } from '../../../hooks/useRampsProviders';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
@@ -46,10 +49,11 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 );
 
 function SettingsModal() {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
-  const { selectedProvider, setSelectedProvider } = useRampsController();
+  const { selectedProvider, setSelectedProvider } = useRampsProviders();
 
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
@@ -92,6 +96,15 @@ function SettingsModal() {
   )?.url;
 
   const navigateToOrderHistory = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'View Order History',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet();
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
@@ -99,16 +112,47 @@ function SettingsModal() {
         redirectToOrders: true,
       },
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
-  const handleContactSupport = useCallback(() => {
-    if (supportUrl) {
-      sheetRef.current?.onCloseBottomSheet();
-      Linking.openURL(supportUrl);
+  const handleContactSupport = useCallback(async () => {
+    if (!supportUrl) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'Contact Support',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        sheetRef.current?.onCloseBottomSheet();
+        await InAppBrowser.open(supportUrl);
+      } else {
+        // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
+        // shouldNavigateBack would fire goBack() after the close animation and pop the
+        // Webview screen off the stack instead of the modal.
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url: supportUrl },
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl]);
+  }, [supportUrl, navigation, trackEvent, createEventBuilder]);
 
   const handleLogOut = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'Log Out',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     try {
       await resetProviderToken();
       setSelectedProvider(null);
@@ -123,8 +167,9 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CheckBold,
-        iconColor: IconColor.Success,
+        iconName: ComponentLibraryIconName.CheckBold,
+        // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
+        iconColor: ComponentLibraryIconColor.Success,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -138,12 +183,12 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CircleX,
-        iconColor: IconColor.Error,
+        iconName: ComponentLibraryIconName.CircleX,
+        iconColor: ComponentLibraryIconColor.Error,
         hasNoTimeout: false,
       });
     }
-  }, [setSelectedProvider, toastRef]);
+  }, [setSelectedProvider, toastRef, trackEvent, createEventBuilder]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -151,9 +196,10 @@ function SettingsModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>
-        {strings('fiat_on_ramp.build_quote_settings_modal.title')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
+        onClose={handleClosePress}
+      />
       <MenuItem
         iconName={IconName.Clock}
         title={strings(

@@ -3,11 +3,23 @@ import {
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
+  PerpsClosePositionViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlaywrightGestures } from '../../framework';
+import { isPositionOpen } from '../../flows/perps.flow';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -25,9 +37,19 @@ class PerpsMarketDetailsView {
     return Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.ERROR);
   }
 
-  // Header elements
-  get header() {
-    return Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER);
+  /** Header - wdio PerpsPositionDetailsView uses 'perps-market-header' for isContainerDisplayed */
+  get header(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.HEADER,
+          {
+            exact: true,
+          },
+        ),
+    });
   }
 
   get backButton() {
@@ -117,17 +139,59 @@ class PerpsMarketDetailsView {
     );
   }
 
-  // Trading action buttons
-  get longButton() {
-    return Matchers.getElementByID(
-      PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-    );
+  get closeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+        ) as DetoxElement,
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
-  get shortButton() {
-    return Matchers.getElementByID(
-      PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-    );
+  get confirmCloseButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ) as DetoxElement,
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          { exact: true },
+        ),
+    });
+  }
+
+  // Trading action buttons
+  get longButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+          { exact: true },
+        ),
+    });
+  }
+
+  get shortButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   // Info icons
@@ -162,13 +226,32 @@ class PerpsMarketDetailsView {
   }
 
   async tapLongButton() {
-    // Ensure button is enabled before tapping to avoid flaky interactions
-    await Utilities.waitForElementToBeEnabled(this.longButton as DetoxElement);
-    await Gestures.waitAndTap(this.longButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeEnabled(
+          this.longButton as DetoxElement,
+        );
+        await Gestures.waitAndTap(this.longButton);
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.longButton),
+        );
+      },
+    });
   }
 
   async tapShortButton() {
-    await Gestures.waitAndTap(this.shortButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.shortButton);
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.shortButton),
+        );
+      },
+    });
   }
 
   async tapMoreButton() {
@@ -262,6 +345,63 @@ class PerpsMarketDetailsView {
     await Assertions.expectElementToBeVisible(closeBtn, {
       description: 'Close position button visible on market details',
       timeout: 5000,
+    });
+  }
+
+  async isContainerDisplayed(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        const headerEl = asDetoxElement(this.header);
+        await Assertions.expectElementToBeVisible(headerEl, {
+          description: 'Perps market details header visible',
+          timeout: 20000,
+        });
+      },
+      appium: async () => {
+        const headerEl = await asPlaywrightElement(this.header);
+        await headerEl.waitForDisplayed({ timeout: 20000 });
+      },
+    });
+  }
+
+  async tapClosePositionButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.closeButton, {
+      description: 'Close position button',
+    });
+    await UnifiedGestures.waitAndTap(this.confirmCloseButton, {
+      description: 'Confirm close position button',
+    });
+  }
+
+  async closePositionWithRetry(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        if (await isPositionOpen()) {
+          await this.tapClosePositionButton();
+          await Assertions.expectElementToNotBeVisible(
+            asDetoxElement(this.closeButton),
+            {
+              timeout: 5000,
+              description: 'Close button disappears after confirm',
+            },
+          );
+        }
+      },
+      appium: async () => {
+        await Utilities.executeWithRetry(
+          async () => {
+            if (await isPositionOpen()) {
+              await this.tapClosePositionButton();
+              const closeEl = await asPlaywrightElement(this.closeButton);
+              await closeEl.waitForDisplayed({ reverse: true, timeout: 5000 });
+            }
+          },
+          {
+            description: 'close position',
+            elemDescription: 'Close position button',
+          },
+        );
+      },
     });
   }
 }

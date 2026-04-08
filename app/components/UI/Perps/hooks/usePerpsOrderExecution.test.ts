@@ -208,6 +208,47 @@ describe('usePerpsOrderExecution', () => {
         }),
       );
     });
+
+    it('tracks success with mm_pay_token_selected Perps Balance when trackingData has tradeWithToken false', async () => {
+      const onSuccess = jest.fn();
+      const paramsWithPerpsBalance: OrderParams = {
+        ...mockOrderParams,
+        size: '0.2',
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: false,
+        },
+      };
+
+      mockPlaceOrder.mockResolvedValue({
+        success: true,
+        orderId: 'order123',
+        filledSize: '0.1',
+      });
+      mockGetPositions.mockResolvedValue([mockPosition]);
+
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess, onError: jest.fn() }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder(paramsWithPerpsBalance);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPlacing).toBe(false);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: false,
+          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]:
+            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
+        }),
+      );
+    });
   });
 
   describe('failed order placement', () => {
@@ -276,6 +317,43 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
+        }),
+      );
+    });
+
+    it('tracks failed order with mm_pay_token_selected Perps Balance when trackingData has tradeWithToken false', async () => {
+      const onError = jest.fn();
+      const paramsWithPerpsBalance: OrderParams = {
+        ...mockOrderParams,
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: false,
+        },
+      };
+
+      mockPlaceOrder.mockResolvedValue({
+        success: false,
+        error: 'Insufficient margin',
+      });
+
+      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
+
+      await act(async () => {
+        await result.current.placeOrder(paramsWithPerpsBalance);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPlacing).toBe(false);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: false,
+          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]:
+            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
         }),
       );
     });
@@ -352,6 +430,40 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
+        }),
+      );
+    });
+
+    it('tracks exception with mm_pay_token_selected Perps Balance when placeOrder rejects and trackingData has tradeWithToken false', async () => {
+      const onError = jest.fn();
+      const paramsWithPerpsBalance: OrderParams = {
+        ...mockOrderParams,
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: false,
+        },
+      };
+
+      mockPlaceOrder.mockRejectedValue(new Error('Network timeout'));
+
+      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
+
+      await act(async () => {
+        await result.current.placeOrder(paramsWithPerpsBalance);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPlacing).toBe(false);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: false,
+          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]:
+            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
         }),
       );
     });

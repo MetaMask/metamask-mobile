@@ -63,7 +63,7 @@ export const usePerpsHomeData = ({
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Get connection state to guard REST calls that require an initialized controller
-  const { isConnected, isInitialized } = usePerpsConnection();
+  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
 
   // Fetch positions via WebSocket with throttling for performance
   const { positions, isInitialLoading: isPositionsLoading } =
@@ -76,6 +76,7 @@ export const usePerpsHomeData = ({
     usePerpsLiveOrders({
       throttleMs: 1000,
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
+      hideReduceOnly: true, // Hide all reduce-only orders from home screen
     });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)
@@ -102,7 +103,7 @@ export const usePerpsHomeData = ({
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
-        const provider = controller?.getActiveProvider();
+        const provider = controller?.getActiveProviderOrNull();
         if (!provider) {
           return;
         }
@@ -130,14 +131,25 @@ export const usePerpsHomeData = ({
 
     // Add REST fills first
     for (const fill of restFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
+      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
       fillsMap.set(key, fill);
     }
 
     // Add live fills (overwrites duplicates from REST - live data is fresher)
+    // Preserve detailedOrderType from REST fills since WS fills lack it
     for (const fill of liveFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
-      fillsMap.set(key, fill);
+      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+      const existing = fillsMap.get(key);
+      if (existing?.detailedOrderType && !fill.detailedOrderType) {
+        fillsMap.set(key, {
+          ...fill,
+          detailedOrderType: existing.detailedOrderType,
+          ...(existing.liquidation &&
+            !fill.liquidation && { liquidation: existing.liquidation }),
+        });
+      } else {
+        fillsMap.set(key, fill);
+      }
     }
 
     // Convert back to array and sort by timestamp descending (newest first)
@@ -181,7 +193,7 @@ export const usePerpsHomeData = ({
   const perpsMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => !m.marketType), // Crypto markets have no marketType
+        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -320,7 +332,7 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return perpsMarkets;
     }
-    return filteredData.markets.filter((m) => !m.marketType);
+    return filteredData.markets.filter((m) => !m.marketType && !m.isHip3);
   }, [searchQuery, perpsMarkets, filteredData.markets]);
 
   const searchedStocksMarkets = useMemo(() => {
@@ -365,12 +377,14 @@ export const usePerpsHomeData = ({
     recentActivity: limitedActivity,
     sortBy,
     isLoading: {
-      positions: isPositionsLoading,
-      orders: isOrdersLoading,
+      // During reconnection, treat WebSocket-backed data as loading so the UI
+      // shows skeletons instead of briefly flashing "no positions" → positions.
+      positions: isPositionsLoading || isConnecting,
+      orders: isOrdersLoading || isConnecting,
       markets: isMarketsLoading,
       // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
       // REST fills merge in background via mergedFills without blocking initial render
-      activity: isFillsLoading,
+      activity: isFillsLoading || isConnecting,
     },
     refresh,
   };

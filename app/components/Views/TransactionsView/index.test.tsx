@@ -67,6 +67,7 @@ jest.mock('../../../util/activity', () => ({
   sortTransactions: jest.fn((txs) => txs || []),
   filterByAddressAndNetwork: jest.fn(() => true),
   isTransactionOnChains: jest.fn(() => false),
+  buildTrustedAddressSet: jest.fn(() => new Set()),
 }));
 
 jest.mock('../../../util/transactions', () => ({
@@ -101,6 +102,7 @@ jest.mock('../../../selectors/tokensController', () => ({
 
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(() => null),
+  selectInternalAccounts: jest.fn(() => []),
 }));
 
 jest.mock('../../../selectors/preferencesController', () => ({
@@ -312,6 +314,9 @@ describe('TransactionsView', () => {
               },
             },
           },
+          AddressBookController: {
+            addressBook: {},
+          },
           TokensController: {
             ...initialRootState.engine.backgroundState.TokensController,
             allTokens: {
@@ -333,7 +338,6 @@ describe('TransactionsView', () => {
           <Stack.Navigator>
             <Stack.Screen
               name="TransactionsView"
-              // @ts-expect-error-next-line
               component={TransactionsView}
             />
           </Stack.Navigator>

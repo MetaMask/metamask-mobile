@@ -2,9 +2,10 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import { DeepLinkModal } from './';
 import { fireEvent, act } from '@testing-library/react-native';
 import { useParams } from '../../../util/navigation/navUtils';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useNavigation } from '@react-navigation/native';
 import { Linking, Platform } from 'react-native';
 import { createDeepLinkUsedEventBuilder } from '../../../core/DeeplinkManager/util/deeplinks/deepLinkAnalytics';
@@ -29,21 +30,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 jest.mock('../../../util/metrics', () =>
   jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
@@ -75,7 +69,6 @@ jest.mock(
       HOME: 'home',
       SWAP: 'swap',
       PERPS: 'perps',
-      DEPOSIT: 'deposit',
       TRANSACTION: 'transaction',
       BUY: 'buy',
       INVALID: 'invalid',
@@ -95,6 +88,7 @@ const mockGoBack = jest.fn();
 (useNavigation as jest.Mock).mockReturnValue({
   navigate: mockNavigate,
   goBack: mockGoBack,
+  isFocused: jest.fn(() => true),
 } as never);
 
 describe('DeepLinkModal', () => {

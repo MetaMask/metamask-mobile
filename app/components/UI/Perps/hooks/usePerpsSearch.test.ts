@@ -22,84 +22,19 @@ describe('usePerpsSearch', () => {
   ];
 
   describe('initialization', () => {
-    it('returns all markets when search is not visible', () => {
+    it('returns all markets when search query is empty', () => {
       const { result } = renderHook(() =>
         usePerpsSearch({ markets: mockMarkets }),
       );
 
       expect(result.current.filteredMarkets).toEqual(mockMarkets);
       expect(result.current.searchQuery).toBe('');
-      expect(result.current.isSearchVisible).toBe(false);
-    });
-
-    it('initializes with search visible when specified', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({ markets: mockMarkets, initialSearchVisible: true }),
-      );
-
-      expect(result.current.isSearchVisible).toBe(true);
     });
 
     it('returns empty array when markets array is empty', () => {
       const { result } = renderHook(() => usePerpsSearch({ markets: [] }));
 
       expect(result.current.filteredMarkets).toEqual([]);
-    });
-  });
-
-  describe('search visibility', () => {
-    it('shows search when setIsSearchVisible is called with true', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({ markets: mockMarkets }),
-      );
-
-      act(() => {
-        result.current.setIsSearchVisible(true);
-      });
-
-      expect(result.current.isSearchVisible).toBe(true);
-    });
-
-    it('hides search when setIsSearchVisible is called with false', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
-      );
-
-      act(() => {
-        result.current.setIsSearchVisible(false);
-      });
-
-      expect(result.current.isSearchVisible).toBe(false);
-    });
-
-    it('toggles search visibility from hidden to visible', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({ markets: mockMarkets }),
-      );
-
-      act(() => {
-        result.current.toggleSearchVisibility();
-      });
-
-      expect(result.current.isSearchVisible).toBe(true);
-    });
-
-    it('toggles search visibility from visible to hidden', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
-      );
-
-      act(() => {
-        result.current.toggleSearchVisibility();
-      });
-
-      expect(result.current.isSearchVisible).toBe(false);
     });
   });
 
@@ -116,12 +51,9 @@ describe('usePerpsSearch', () => {
       expect(result.current.searchQuery).toBe('BTC');
     });
 
-    it('clears search query and hides search when clearSearch is called', () => {
+    it('clears search query when clearSearch is called', () => {
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: mockMarkets }),
       );
 
       act(() => {
@@ -133,7 +65,6 @@ describe('usePerpsSearch', () => {
       });
 
       expect(result.current.searchQuery).toBe('');
-      expect(result.current.isSearchVisible).toBe(false);
     });
   });
 
@@ -144,7 +75,6 @@ describe('usePerpsSearch', () => {
       );
 
       act(() => {
-        result.current.setIsSearchVisible(true);
         result.current.setSearchQuery('BTC');
       });
 
@@ -158,7 +88,6 @@ describe('usePerpsSearch', () => {
       );
 
       act(() => {
-        result.current.setIsSearchVisible(true);
         result.current.setSearchQuery('A');
       });
 
@@ -175,7 +104,6 @@ describe('usePerpsSearch', () => {
       );
 
       act(() => {
-        result.current.setIsSearchVisible(true);
         result.current.setSearchQuery('btc');
       });
 
@@ -191,7 +119,6 @@ describe('usePerpsSearch', () => {
       );
 
       act(() => {
-        result.current.setIsSearchVisible(true);
         result.current.setSearchQuery('Bitcoin');
       });
 
@@ -205,7 +132,6 @@ describe('usePerpsSearch', () => {
       );
 
       act(() => {
-        result.current.setIsSearchVisible(true);
         result.current.setSearchQuery('Ava');
       });
 
@@ -219,7 +145,6 @@ describe('usePerpsSearch', () => {
       );
 
       act(() => {
-        result.current.setIsSearchVisible(true);
         result.current.setSearchQuery('ethereum');
       });
 
@@ -231,10 +156,7 @@ describe('usePerpsSearch', () => {
   describe('edge cases', () => {
     it('returns all markets when search query is empty string', () => {
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: mockMarkets }),
       );
 
       act(() => {
@@ -246,10 +168,7 @@ describe('usePerpsSearch', () => {
 
     it('returns all markets when search query is only whitespace', () => {
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: mockMarkets }),
       );
 
       act(() => {
@@ -261,10 +180,7 @@ describe('usePerpsSearch', () => {
 
     it('returns empty array when no markets match search', () => {
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: mockMarkets }),
       );
 
       act(() => {
@@ -274,25 +190,9 @@ describe('usePerpsSearch', () => {
       expect(result.current.filteredMarkets).toEqual([]);
     });
 
-    it('returns all markets when search is hidden regardless of query', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({ markets: mockMarkets }),
-      );
-
-      act(() => {
-        result.current.setIsSearchVisible(false);
-        result.current.setSearchQuery('BTC');
-      });
-
-      expect(result.current.filteredMarkets).toEqual(mockMarkets);
-    });
-
     it('trims whitespace from search query', () => {
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: mockMarkets }),
       );
 
       act(() => {
@@ -313,10 +213,7 @@ describe('usePerpsSearch', () => {
       ];
 
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: marketsWithNullSymbol,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: marketsWithNullSymbol }),
       );
 
       act(() => {
@@ -336,10 +233,7 @@ describe('usePerpsSearch', () => {
       ];
 
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: marketsWithNullName,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: marketsWithNullName }),
       );
 
       act(() => {
@@ -353,10 +247,7 @@ describe('usePerpsSearch', () => {
   describe('filtering behavior updates', () => {
     it('updates filtered markets when query changes', () => {
       const { result } = renderHook(() =>
-        usePerpsSearch({
-          markets: mockMarkets,
-          initialSearchVisible: true,
-        }),
+        usePerpsSearch({ markets: mockMarkets }),
       );
 
       act(() => {
@@ -375,8 +266,7 @@ describe('usePerpsSearch', () => {
 
     it('updates filtered markets when markets array changes', () => {
       const { result, rerender } = renderHook(
-        ({ markets }) =>
-          usePerpsSearch({ markets, initialSearchVisible: true }),
+        ({ markets }) => usePerpsSearch({ markets }),
         { initialProps: { markets: mockMarkets } },
       );
 
@@ -394,26 +284,6 @@ describe('usePerpsSearch', () => {
       rerender({ markets: newMarkets });
 
       expect(result.current.filteredMarkets).toHaveLength(2);
-    });
-
-    it('updates filtered markets when search visibility changes', () => {
-      const { result } = renderHook(() =>
-        usePerpsSearch({ markets: mockMarkets }),
-      );
-
-      act(() => {
-        result.current.setSearchQuery('BTC');
-        result.current.setIsSearchVisible(false);
-      });
-
-      expect(result.current.filteredMarkets).toEqual(mockMarkets);
-
-      act(() => {
-        result.current.setIsSearchVisible(true);
-      });
-
-      expect(result.current.filteredMarkets).toHaveLength(1);
-      expect(result.current.filteredMarkets[0].symbol).toBe('BTC');
     });
   });
 });

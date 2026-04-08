@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixtures/performance-test.js';
+import { test } from '../../framework/fixtures/performance';
 
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
@@ -19,8 +19,9 @@ import {
 } from '../../tags.performance.js';
 
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
+// TODO(MMQA-1616): Re-enable after migrating this spec to tests/framework/fixture.
 test.describe(`${PerformanceLogin} ${PerformanceAccountList}`, () => {
-  test(
+  test.skip(
     'Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3',
     { tag: '@accounts-team' },
     async ({ device, performanceTracker }) => {

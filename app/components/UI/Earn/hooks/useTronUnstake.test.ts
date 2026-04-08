@@ -12,7 +12,7 @@ import { TokenI } from '../../Tokens/types';
 
 const mockSelectSelectedInternalAccountByScope = jest.fn();
 const mockSelectTrxStakingEnabled = jest.fn();
-const mockSelectTronResourcesBySelectedAccountGroup = jest.fn();
+const mockSelectTronSpecialAssetsBySelectedAccountGroup = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -31,8 +31,8 @@ jest.mock(
 );
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
-  selectTronResourcesBySelectedAccountGroup: () =>
-    mockSelectTronResourcesBySelectedAccountGroup(),
+  selectTronSpecialAssetsBySelectedAccountGroup: () =>
+    mockSelectTronSpecialAssetsBySelectedAccountGroup(),
 }));
 
 jest.mock('../utils/tron-staking-snap', () => ({
@@ -46,7 +46,7 @@ jest.mock('../../../../core/Multichain/utils', () => ({
 }));
 
 jest.mock('../utils/tron', () => ({
-  getStakedTrxTotalFromResources: jest.fn(() => 100),
+  getStakedTrxTotalFromSpecialAssets: jest.fn(() => 100),
   buildTronEarnTokenIfEligible: jest.fn(() => ({
     symbol: 'TRX',
     balance: '100',
@@ -102,7 +102,7 @@ describe('useTronUnstake', () => {
     // Setup default mock values
     mockSelectSelectedInternalAccountByScope.mockReturnValue(mockAccount);
     mockSelectTrxStakingEnabled.mockReturnValue(true);
-    mockSelectTronResourcesBySelectedAccountGroup.mockReturnValue({
+    mockSelectTronSpecialAssetsBySelectedAccountGroup.mockReturnValue({
       energy: undefined,
       bandwidth: undefined,
       maxEnergy: undefined,
@@ -110,6 +110,9 @@ describe('useTronUnstake', () => {
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '50' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '50' },
       totalStakedTrx: 100,
+      trxReadyForWithdrawal: undefined,
+      trxStakingRewards: undefined,
+      trxInLockPeriod: undefined,
     });
   });
 

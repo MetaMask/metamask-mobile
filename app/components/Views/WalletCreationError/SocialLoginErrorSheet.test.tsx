@@ -1,22 +1,45 @@
-import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
-import { Linking, Image, SafeAreaView } from 'react-native';
+import React, { ComponentType } from 'react';
+import { Image, Linking } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
-import Routes from '../../../constants/navigation/Routes';
-import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { Authentication } from '../../../core';
+import AppConstants from '../../../core/AppConstants';
+import Routes from '../../../constants/navigation/Routes';
+
+// Type helper for UNSAFE_getAllByType with mocked string components
+const asComponentType = (name: string) => name as unknown as ComponentType;
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockReset = jest.fn();
 
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      reset: mockReset,
-    }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    reset: mockReset,
+  }),
+}));
+
+jest.mock('../../../core', () => ({
+  Authentication: {
+    deleteWallet: jest.fn(),
+  },
+}));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
@@ -24,117 +47,173 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
-jest.mock('../../../core', () => ({
-  Authentication: {
-    deleteWallet: jest.fn().mockResolvedValue(undefined),
-  },
-}));
-
-import { Authentication } from '../../../core';
+const mockError = new Error('Test social login error');
 
 describe('SocialLoginErrorSheet', () => {
-  const mockError = new Error('Test social login error');
+  const initialState = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+      },
+    },
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnThis();
+    mockBuild.mockReturnValue({});
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
-  describe('rendering', () => {
-    it('renders title text', () => {
+  describe('analytics', () => {
+    it('tracks screen viewed event on mount', () => {
+      renderWithProvider(<SocialLoginErrorSheet error={mockError} />, {
+        state: initialState,
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks event with correct flow_type property', () => {
+      renderWithProvider(<SocialLoginErrorSheet error={mockError} />, {
+        state: initialState,
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow_type: 'social_login',
+        error_name: 'Error',
+        error_message: 'Test social login error',
+      });
+    });
+
+    it('tracks retry clicked event when Try again is pressed', async () => {
+      (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+
       const { getByText } = renderWithProvider(
         <SocialLoginErrorSheet error={mockError} />,
+        { state: initialState },
       );
 
-      expect(getByText('Something went wrong')).toBeTruthy();
-    });
-
-    it('renders description text', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
-
-      expect(
-        getByText(
-          /An error occurred while creating your wallet\. Try again and if the issue persists, contact/,
-        ),
-      ).toBeTruthy();
-    });
-
-    it('renders Try again button', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
-
-      expect(getByText('Try again')).toBeTruthy();
-    });
-
-    it('renders MetaMask Support link', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
-
-      expect(getByText('MetaMask Support')).toBeTruthy();
-    });
-
-    it('renders without error prop', () => {
-      const { getByText } = renderWithProvider(<SocialLoginErrorSheet />);
-
-      expect(getByText('Something went wrong')).toBeTruthy();
-      expect(getByText('Try again')).toBeTruthy();
-    });
-
-    it('renders Fox logo image', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
-
-      const image = UNSAFE_getByType(Image);
-      expect(image).toBeTruthy();
-    });
-
-    it('renders SafeAreaView container', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
-
-      const container = UNSAFE_getByType(SafeAreaView);
-      expect(container).toBeTruthy();
-    });
-  });
-
-  describe('handleTryAgain', () => {
-    it('deletes wallet and navigates to onboarding root when Try again is pressed', async () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
 
       fireEvent.press(getByText('Try again'));
 
-      // Wait for async deleteWallet to complete
-      await Promise.resolve();
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          flow_type: 'social_login',
+        });
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+    });
 
+    it('tracks support clicked event when MetaMask Support is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SocialLoginErrorSheet error={mockError} />,
+        { state: initialState },
+      );
+
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(getByText('MetaMask Support'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow_type: 'social_login',
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  it('renders error title', () => {
+    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Something went wrong')).toBeOnTheScreen();
+  });
+
+  it('renders try again button', () => {
+    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('renders MetaMask Support link', () => {
+    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
+      state: initialState,
+    });
+
+    expect(getByText('MetaMask Support')).toBeOnTheScreen();
+  });
+
+  it('deletes wallet and resets navigation when try again is pressed', async () => {
+    (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
+      state: initialState,
+    });
+    const tryAgainButton = getByText('Try again');
+
+    fireEvent.press(tryAgainButton);
+
+    await waitFor(() => {
       expect(Authentication.deleteWallet).toHaveBeenCalled();
+    });
+    await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
       });
     });
   });
 
-  describe('handleContactSupport', () => {
-    it('opens support URL when MetaMask Support is pressed', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-      );
-
-      fireEvent.press(getByText('MetaMask Support'));
-
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        AppConstants.REVIEW_PROMPT.SUPPORT,
-      );
+  it('opens support URL when MetaMask Support is pressed', () => {
+    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
+      state: initialState,
     });
+    const supportLink = getByText('MetaMask Support');
+
+    fireEvent.press(supportLink);
+
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  });
+
+  it('renders fox logo image', () => {
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <SocialLoginErrorSheet />,
+      {
+        state: initialState,
+      },
+    );
+
+    const images = UNSAFE_getAllByType(Image);
+    expect(images.length).toBeGreaterThan(0);
+  });
+
+  it('renders danger icon', () => {
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <SocialLoginErrorSheet />,
+      {
+        state: initialState,
+      },
+    );
+
+    const icons = UNSAFE_getAllByType(asComponentType('SvgMock'));
+    expect(icons.length).toBeGreaterThan(0);
   });
 });

@@ -57,7 +57,6 @@ import fiatOrderReducer, {
   removeFiatSellTxHash,
   getOrdersProviders,
   getDetectedGeolocation,
-  setDetectedGeolocation,
   getRampRoutingDecision,
   setRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -846,28 +845,6 @@ describe('fiatOrderReducer', () => {
     expect(stateWithoutChanges).toEqual(stateWithOrder1);
   });
 
-  it('sets the detected geolocation', () => {
-    const stateWithGeolocation = fiatOrderReducer(
-      initialState,
-      setDetectedGeolocation('US'),
-    );
-    expect(stateWithGeolocation.detectedGeolocation).toBe('US');
-
-    const otherStateWithGeolocation = fiatOrderReducer(
-      stateWithGeolocation,
-      setDetectedGeolocation('CL'),
-    );
-    expect(otherStateWithGeolocation.detectedGeolocation).toBe('CL');
-  });
-
-  it('sets the detected geolocation to undefined', () => {
-    const stateWithGeolocation = fiatOrderReducer(
-      initialState,
-      setDetectedGeolocation(undefined),
-    );
-    expect(stateWithGeolocation.detectedGeolocation).toBeUndefined();
-  });
-
   it('sets the ramp routing decision', () => {
     const stateWithRoutingDecision = fiatOrderReducer(
       initialState,
@@ -1157,8 +1134,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -1257,8 +1234,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
@@ -1489,8 +1466,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -1591,8 +1568,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
@@ -1955,8 +1932,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -2165,8 +2142,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'binance',
@@ -2265,8 +2242,8 @@ describe('selectors', () => {
                     },
                   },
                 },
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
@@ -2587,18 +2564,33 @@ describe('selectors', () => {
   });
 
   describe('getDetectedGeolocation', () => {
-    it('should return the detected geolocation', () => {
+    it('should return the detected geolocation from GeolocationController state', () => {
       const state = merge({}, initialRootState, {
-        fiatOrders: {
-          detectedGeolocation: 'US',
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'US' },
+          },
         },
       });
       expect(getDetectedGeolocation(state)).toBe('US');
     });
 
-    it('should return undefined if detected geolocation is not set', () => {
+    it('should return undefined if GeolocationController location is UNKNOWN', () => {
       const state = merge({}, initialRootState, {
-        fiatOrders: {},
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'UNKNOWN' },
+          },
+        },
+      });
+      expect(getDetectedGeolocation(state)).toBeUndefined();
+    });
+
+    it('should return undefined if GeolocationController is not available', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {},
+        },
       });
       expect(getDetectedGeolocation(state)).toBeUndefined();
     });

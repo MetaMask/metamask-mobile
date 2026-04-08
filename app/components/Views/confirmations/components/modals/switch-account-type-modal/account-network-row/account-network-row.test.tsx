@@ -39,15 +39,6 @@ jest.mock('../../../../hooks/7702/useEIP7702Accounts', () => ({
   }),
 }));
 
-const mockMultichainAccountsState1Enabled = jest.fn().mockReturnValue(false);
-jest.mock(
-  '../../../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState1Enabled: () =>
-      mockMultichainAccountsState1Enabled(),
-  }),
-);
-
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -80,18 +71,36 @@ describe('Account Network Row', () => {
     });
   });
 
-  it('renders correctly for smart account', () => {
+  it('renders network name correctly', () => {
     const { getByText } = renderWithProvider(
       <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
       { state: MOCK_STATE },
     );
 
-    expect(getByText('Smart account')).toBeTruthy();
-    expect(getByText('Switch back')).toBeTruthy();
+    expect(getByText(MOCK_NETWORK.name)).toBeTruthy();
   });
 
-  it('renders correctly for standard account', () => {
-    const { getByText } = renderWithProvider(
+  it('renders switch component with correct testID', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+      { state: MOCK_STATE },
+    );
+
+    expect(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH)).toBeTruthy();
+  });
+
+  it('renders switch in correct state for smart account (supported network)', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+      { state: MOCK_STATE },
+    );
+
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    expect(switchComponent.props.value).toBe(true);
+  });
+
+  it('renders switch in correct state for standard account (unsupported network)', () => {
+    const { getByTestId } = renderWithProvider(
       <AccountNetworkRow
         address={MOCK_ADDRESS}
         network={{ ...MOCK_NETWORK, isSupported: false }}
@@ -99,203 +108,119 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    expect(getByText('Standard account')).toBeTruthy();
-    expect(getByText('Switch')).toBeTruthy();
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    expect(switchComponent.props.value).toBe(false);
   });
 
-  describe('Multichain Accounts Design', () => {
-    it('renders network name correctly', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByText } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
+  it('calls downgrade function when switch is toggled from smart to standard account', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+      { state: MOCK_STATE },
+    );
 
-      expect(getByText(MOCK_NETWORK.name)).toBeTruthy();
-    });
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    fireEvent(switchComponent, 'onValueChange', false);
 
-    it('renders switch component with correct testID', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
-
-      expect(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH)).toBeTruthy();
-    });
-
-    it('renders switch in correct state for smart account (supported network)', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
-
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      expect(switchComponent.props.value).toBe(true);
-    });
-
-    it('renders switch in correct state for standard account (unsupported network)', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow
-          address={MOCK_ADDRESS}
-          network={{ ...MOCK_NETWORK, isSupported: false }}
-        />,
-        { state: MOCK_STATE },
-      );
-
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      expect(switchComponent.props.value).toBe(false);
-    });
-
-    it('calls downgrade function when switch is toggled from smart to standard account', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
-
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      fireEvent(switchComponent, 'onValueChange', false);
-
-      expect(mockDowngradeAccount).toHaveBeenCalledWith(MOCK_ADDRESS);
-      expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls upgrade function when switch is toggled from standard to smart account', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow
-          address={MOCK_ADDRESS}
-          network={{ ...MOCK_NETWORK, isSupported: false }}
-        />,
-        { state: MOCK_STATE },
-      );
-
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      fireEvent(switchComponent, 'onValueChange', true);
-
-      expect(mockUpgradeAccount).toHaveBeenCalledWith(
-        MOCK_ADDRESS,
-        MOCK_NETWORK.upgradeContractAddress,
-      );
-      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call upgrade when upgradeContractAddress is missing', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const networkWithoutUpgradeContract = {
-        ...MOCK_NETWORK,
-        isSupported: false,
-        upgradeContractAddress: undefined,
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow
-          address={MOCK_ADDRESS}
-          network={networkWithoutUpgradeContract}
-        />,
-        { state: MOCK_STATE },
-      );
-
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      fireEvent(switchComponent, 'onValueChange', true);
-
-      expect(mockUpgradeAccount).not.toHaveBeenCalled();
-      expect(mockDowngradeAccount).not.toHaveBeenCalled();
-    });
-
-    it('disables switch when there are pending requests', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      mockUseBatchAuthorizationRequests.mockReturnValueOnce({
-        hasPendingRequests: true,
-      });
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      expect(switchComponent.props.disabled).toBe(true);
-    });
-
-    it('disables switch for standard account when upgradeContractAddress is missing', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const networkWithoutUpgradeContract = {
-        ...MOCK_NETWORK,
-        isSupported: false,
-        upgradeContractAddress: undefined,
-      };
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow
-          address={MOCK_ADDRESS}
-          network={networkWithoutUpgradeContract}
-        />,
-        { state: MOCK_STATE },
-      );
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-      expect(switchComponent.props.disabled).toBe(true);
-    });
+    expect(mockDowngradeAccount).toHaveBeenCalledWith(MOCK_ADDRESS);
+    expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
   });
 
-  describe('Switch Button', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
+  it('calls upgrade function when switch is toggled from standard to smart account', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow
+        address={MOCK_ADDRESS}
+        network={{ ...MOCK_NETWORK, isSupported: false }}
+      />,
+      { state: MOCK_STATE },
+    );
+
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    fireEvent(switchComponent, 'onValueChange', true);
+
+    expect(mockUpgradeAccount).toHaveBeenCalledWith(
+      MOCK_ADDRESS,
+      MOCK_NETWORK.upgradeContractAddress,
+    );
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call upgrade when upgradeContractAddress is missing', () => {
+    const networkWithoutUpgradeContract = {
+      ...MOCK_NETWORK,
+      isSupported: false,
+      upgradeContractAddress: undefined,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow
+        address={MOCK_ADDRESS}
+        network={networkWithoutUpgradeContract}
+      />,
+      { state: MOCK_STATE },
+    );
+
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    fireEvent(switchComponent, 'onValueChange', true);
+
+    expect(mockUpgradeAccount).not.toHaveBeenCalled();
+    expect(mockDowngradeAccount).not.toHaveBeenCalled();
+  });
+
+  it('disables switch when there are pending requests', () => {
+    mockUseBatchAuthorizationRequests.mockReturnValueOnce({
+      hasPendingRequests: true,
     });
-    it('when clicked call upgrade function if not already upgraded', () => {
-      const { getByText } = renderWithProvider(
-        <AccountNetworkRow
-          address={MOCK_ADDRESS}
-          network={{ ...MOCK_NETWORK, isSupported: false }}
-        />,
-        { state: MOCK_STATE },
-      );
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+      { state: MOCK_STATE },
+    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    expect(switchComponent.props.disabled).toBe(true);
+  });
 
-      fireEvent.press(getByText('Switch'));
+  it('disables switch for standard account when upgradeContractAddress is missing', () => {
+    const networkWithoutUpgradeContract = {
+      ...MOCK_NETWORK,
+      isSupported: false,
+      upgradeContractAddress: undefined,
+    };
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow
+        address={MOCK_ADDRESS}
+        network={networkWithoutUpgradeContract}
+      />,
+      { state: MOCK_STATE },
+    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+    expect(switchComponent.props.disabled).toBe(true);
+  });
 
-      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
-    });
+  it('does not navigate to wallet view when switch is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+      { state: MOCK_STATE },
+    );
 
-    it('when clicked call downgrade function if already upgraded', () => {
-      const { getByText } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
+    fireEvent.press(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH));
 
-      fireEvent.press(getByText('Switch back'));
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
+  });
 
-      expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
-    });
+  it('returns early when switchRequestSubmitted is true', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+      { state: MOCK_STATE },
+    );
 
-    it('does not close account modal when useMultichainAccountsDesign is true', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
 
-      fireEvent.press(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH));
+    // First click to trigger the switch and set switchRequestSubmitted to true
+    fireEvent(switchComponent, 'onValueChange', false);
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
-    });
+    // Second click while switchRequestSubmitted is true - should return early
+    fireEvent(switchComponent, 'onValueChange', true);
 
-    it('returns early when switchRequestSubmitted is true', async () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
-
-      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-
-      // First click to trigger the switch and set switchRequestSubmitted to true
-      fireEvent(switchComponent, 'onValueChange', false);
-
-      // Second click while switchRequestSubmitted is true - should return early
-      fireEvent(switchComponent, 'onValueChange', true);
-
-      // Calls downgradeAccount once
-      expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
-    });
+    // Calls downgradeAccount once
+    expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
   });
 });

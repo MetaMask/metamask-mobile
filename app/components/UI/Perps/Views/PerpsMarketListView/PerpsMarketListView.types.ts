@@ -39,7 +39,6 @@ export interface PerpsMarketListViewProps {
   title?: string;
   /**
    * Show balance actions component (deposit/withdraw)
-   * Only applicable when search is not visible
    * @default true
    */
   showBalanceActions?: boolean;
@@ -48,11 +47,6 @@ export interface PerpsMarketListViewProps {
    * @default true
    */
   showBottomNav?: boolean;
-  /**
-   * Start with search bar visible
-   * @default false
-   */
-  defaultSearchVisible?: boolean;
   /**
    * Start with watchlist filter enabled (show only watchlisted markets)
    * @default false

@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -96,6 +97,15 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
   })),
 }));
 
@@ -193,12 +203,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       bottomSpacer: {},
       tabBarContainer: {},
     },
-    theme: {
-      colors: {
-        primary: { default: '#0000ff' },
-        icon: { default: '#000000' },
-      },
-    },
+    theme: mockTheme,
   }),
 }));
 
@@ -234,6 +239,7 @@ jest.mock('@metamask/perps-controller', () => ({
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
       HOMESCREEN_TAB: 'homescreen_tab',
+      PERPS_HOME: 'perps_home',
     },
     BUTTON_LOCATION: {
       PERPS_HOME: 'perps_home',
@@ -560,11 +566,9 @@ describe('PerpsHomeView', () => {
     // Act - Press search toggle
     fireEvent.press(getByTestId('perps-home-search-toggle'));
 
-    // Assert - Should navigate to MarketListView with search enabled and 'all' category
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-      defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',

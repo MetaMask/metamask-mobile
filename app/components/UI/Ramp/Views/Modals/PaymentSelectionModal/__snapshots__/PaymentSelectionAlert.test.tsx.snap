@@ -46,13 +46,16 @@ exports[`PaymentSelectionAlert matches snapshot with default severity 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist-Regular",
-          "fontSize": 14,
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
+        [
+          {
+            "color": "#131416",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          undefined,
+        ]
       }
     >
       Something went wrong.
@@ -107,13 +110,16 @@ exports[`PaymentSelectionAlert matches snapshot with warning severity 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist-Regular",
-          "fontSize": 14,
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
+        [
+          {
+            "color": "#131416",
+            "fontFamily": "Geist-Regular",
+            "fontSize": 14,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          undefined,
+        ]
       }
     >
       No payment methods are available.

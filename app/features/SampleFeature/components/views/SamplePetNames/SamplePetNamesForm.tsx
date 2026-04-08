@@ -10,8 +10,7 @@ import styleSheet from './SamplePetNamesForm.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { SamplePetNamesFormContentProps } from './SamplePetNamesForm.types';
 import { useSamplePetNamesForm } from '../../hooks/useSamplePetNamesForm';
-import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
@@ -57,7 +56,7 @@ export function SamplePetNamesForm({
 
   const { onSubmit, isValid, name, setName, setAddress, address } =
     useSamplePetNamesForm(chainId, initialAddress, initialName);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { petNames } = useSamplePetNames(chainId);
 
   const submit = () => {
@@ -71,9 +70,7 @@ export function SamplePetNamesForm({
       if (isEditMode) {
         // User pressed existing pet name - direct update
         trackEvent(
-          MetricsEventBuilder.createEventBuilder(
-            SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
-          )
+          createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED)
             .addProperties({
               totalPetNames: petNames.length,
               chainId: chainId as string,
@@ -101,9 +98,7 @@ export function SamplePetNamesForm({
               text: strings('sample_feature.pet_name.update'),
               onPress: () => {
                 trackEvent(
-                  MetricsEventBuilder.createEventBuilder(
-                    SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
-                  )
+                  createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED)
                     .addProperties({
                       totalPetNames: petNames.length,
                       chainId: chainId as string,
@@ -119,9 +114,7 @@ export function SamplePetNamesForm({
     } else {
       // No duplicate - add new pet name
       trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          SAMPLE_FEATURE_EVENTS.PETNAME_ADDED,
-        )
+        createEventBuilder(SAMPLE_FEATURE_EVENTS.PETNAME_ADDED)
           .addProperties({
             totalPetNames: petNames.length,
             chainId: chainId as string,

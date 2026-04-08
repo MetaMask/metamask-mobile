@@ -24,6 +24,7 @@ export function getTransactionPayControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountTrackerController:getState',
+      'AssetsController:getStateForTransactionPay',
       'BridgeController:fetchQuotes',
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
@@ -39,6 +40,7 @@ export function getTransactionPayControllerMessenger(
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'KeyringController:signTypedMessage',
     ],
     events: [
       'BridgeStatusController:stateChange',

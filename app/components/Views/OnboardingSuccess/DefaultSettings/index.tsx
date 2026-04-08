@@ -1,21 +1,22 @@
 import React from 'react';
-import { ScrollView, Linking, View } from 'react-native';
+import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
-import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
+import {
+  Box,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import SettingsDrawer from '../../../UI/SettingsDrawer';
-import styleSheet from './index.styles';
 
 const DefaultSettings = () => {
   useOnboardingHeader(strings('default_settings.default_settings'));
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const navigation = useNavigation();
 
   const handleLink = () => {
@@ -23,16 +24,16 @@ const DefaultSettings = () => {
   };
 
   return (
-    <ScrollView style={styles.root}>
-      <View style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMD}>
+    <ScrollView style={tw.style('flex-1')}>
+      <Box twClassName="px-4">
+        <Text variant={TextVariant.BodyMd}>
           {strings('default_settings.description')}
-          <Text color={TextColor.Info} onPress={handleLink}>
+          <Text color={TextColor.InfoDefault} onPress={handleLink}>
             {' '}
             {strings('default_settings.learn_more_about_privacy')}
           </Text>
         </Text>
-      </View>
+      </Box>
       <SettingsDrawer
         title={strings('default_settings.drawer_general_title')}
         description={strings('default_settings.drawer_general_title_desc')}

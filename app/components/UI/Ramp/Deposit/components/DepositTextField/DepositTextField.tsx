@@ -7,10 +7,8 @@ import {
   StyleProp,
 } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
-import Label from '../../../../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Label } from '@metamask/design-system-react-native';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
@@ -47,9 +45,7 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
     return (
       <View style={[styles.field, containerStyle]}>
         {typeof label === 'string' ? (
-          <Label variant={TextVariant.BodyMD} style={styles.label}>
-            {label}
-          </Label>
+          <Label style={styles.label}>{label}</Label>
         ) : (
           <View style={styles.label}>{label}</View>
         )}

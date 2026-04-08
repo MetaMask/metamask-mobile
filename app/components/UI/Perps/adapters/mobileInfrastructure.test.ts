@@ -1,8 +1,13 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
+import Logger from '../../../../util/Logger';
 import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
-import { createMobileInfrastructure } from './mobileInfrastructure';
+import {
+  createMobileInfrastructure,
+  createMobileClientConfig,
+} from './mobileInfrastructure';
+import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -27,7 +32,10 @@ jest.mock('../../../../core/Analytics', () => ({
 }));
 
 jest.mock('../../../../util/Logger', () => ({
-  error: jest.fn(),
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -55,7 +63,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
-      getPerpsDiscountForAccount: jest.fn(),
+      getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
     },
   },
 }));
@@ -158,5 +166,111 @@ describe('createMobileInfrastructure', () => {
         name: 'fallback-event',
       });
     });
+  });
+
+  describe('logger', () => {
+    it('preserves logger options and injects the perps feature tag', () => {
+      const infra = createMobileInfrastructure();
+      const error = new Error('boom');
+
+      infra.logger.error(error, {
+        tags: { component: 'test_component' },
+        context: {
+          name: 'test_context',
+          data: { foo: 'bar' },
+        },
+        extras: { traceId: '123' },
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: expect.any(String),
+            component: 'test_component',
+          }),
+          context: {
+            name: 'test_context',
+            data: { foo: 'bar' },
+          },
+          extras: { traceId: '123' },
+        }),
+      );
+    });
+  });
+
+  describe('rewards', () => {
+    it('delegates getPerpsDiscountForAccount to RewardsController', async () => {
+      const infra = createMobileInfrastructure();
+      const caipAccountId =
+        'eip155:42161:0x1234' as `${string}:${string}:${string}`;
+
+      const result =
+        await infra.rewards.getPerpsDiscountForAccount(caipAccountId);
+
+      expect(
+        Engine.context.RewardsController.getPerpsDiscountForAccount,
+      ).toHaveBeenCalledWith(caipAccountId);
+      expect(result).toBe(5);
+    });
+  });
+});
+
+describe('createMobileClientConfig', () => {
+  it('returns default config with empty strings and arrays when no env vars are set', () => {
+    // Arrange — ensure relevant env vars are absent
+    const envVars = [
+      'MM_PERPS_BLOCKED_REGIONS',
+      'MM_PERPS_HIP3_ENABLED',
+      'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
+      'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+      'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
+      'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
+      'MM_PERPS_MYX_PROVIDER_ENABLED',
+      'MM_PERPS_MYX_APP_ID_TESTNET',
+      'MM_PERPS_MYX_API_SECRET_TESTNET',
+      'MM_PERPS_MYX_BROKER_ADDRESS_TESTNET',
+      'MM_PERPS_MYX_APP_ID_MAINNET',
+      'MM_PERPS_MYX_API_SECRET_MAINNET',
+      'MM_PERPS_MYX_BROKER_ADDRESS_MAINNET',
+    ];
+    const saved: Record<string, string | undefined> = {};
+    for (const key of envVars) {
+      saved[key] = process.env[key];
+      delete process.env[key];
+    }
+
+    // Act
+    const config = createMobileClientConfig();
+
+    // Assert
+    expect(config).toEqual({
+      fallbackBlockedRegions: [],
+      fallbackHip3Enabled: false,
+      fallbackHip3AllowlistMarkets: [],
+      fallbackHip3BlocklistMarkets: [],
+      providerCredentials: {
+        hyperliquid: {
+          builderAddressTestnet: '',
+          builderAddressMainnet: '',
+        },
+        myx: {
+          enabled: false,
+          appIdTestnet: '',
+          apiSecretTestnet: '',
+          brokerAddressTestnet: '',
+          appIdMainnet: '',
+          apiSecretMainnet: '',
+          brokerAddressMainnet: '',
+        },
+      },
+    });
+
+    // Restore
+    for (const key of envVars) {
+      if (saved[key] !== undefined) {
+        process.env[key] = saved[key];
+      }
+    }
   });
 });

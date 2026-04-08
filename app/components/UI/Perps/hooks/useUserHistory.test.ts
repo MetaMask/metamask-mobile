@@ -14,6 +14,7 @@ const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 describe('useUserHistory', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
+    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
   };
   let mockProvider: {
     getUserHistory: jest.MockedFunction<
@@ -53,6 +54,7 @@ describe('useUserHistory', () => {
     // Mock controller
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
+      getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
     };
 
     // Mock Engine context

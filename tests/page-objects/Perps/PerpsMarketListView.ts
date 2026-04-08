@@ -1,10 +1,17 @@
 import {
   PerpsMarketListViewSelectorsIDs,
+  PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { encapsulatedAction, PlaywrightGestures } from '../../framework';
 
 class PerpsMarketListView {
   // Main container
@@ -22,11 +29,8 @@ class PerpsMarketListView {
     );
   }
 
-  // Search functionality
-  get searchToggleButton() {
-    return Matchers.getElementByID(
-      PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
-    );
+  get searchBar() {
+    return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.SEARCH_BAR);
   }
 
   get searchClearButton() {
@@ -35,8 +39,25 @@ class PerpsMarketListView {
     );
   }
 
-  get listHeader() {
-    return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER);
+  /** List header - wdio PerpsMarketListView uses 'perps-home' for isHeaderVisible */
+  get listHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketListViewSelectorsIDs.LIST_HEADER,
+          { exact: true },
+        ),
+    });
+  }
+
+  get header(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () =>
+        // TODO: Create a testIds.ts const with this selector
+        PlaywrightMatchers.getElementById('perps-home', { exact: true }),
+    });
   }
 
   get marketRowItemBTC() {
@@ -100,10 +121,6 @@ class PerpsMarketListView {
     });
   }
 
-  async tapSearchToggleButton() {
-    await Gestures.waitAndTap(this.searchToggleButton);
-  }
-
   async tapSearchClearButton() {
     await Gestures.waitAndTap(this.searchClearButton);
   }
@@ -118,8 +135,21 @@ class PerpsMarketListView {
 
   // Helper method to select a specific market by text
   async selectMarket(marketName: string) {
-    const marketElement = Matchers.getElementByText(marketName);
-    await Gestures.waitAndTap(marketElement);
+    await encapsulatedAction({
+      detox: async () => {
+        const marketElement = Matchers.getElementByText(marketName);
+        await Gestures.waitAndTap(marketElement);
+      },
+      appium: async () => {
+        // TODO: Create a testIds.ts const with this selector
+        const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
+        const marketElement = await PlaywrightMatchers.getElementById(
+          marketSelector,
+          { exact: true },
+        );
+        await PlaywrightGestures.waitAndTap(marketElement);
+      },
+    });
   }
 }
 
