@@ -266,17 +266,21 @@ async function publishHook({
 
     const result = await hook(transactionMeta, signedTransactionInHex);
     if (result?.transactionHash) {
-      store.dispatch(
-        updateConfirmationMetric({
-          id: transactionMeta.id,
-          params: {
-            properties: {
-              [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
+      try {
+        store.dispatch(
+          updateConfirmationMetric({
+            id: transactionMeta.id,
+            params: {
+              properties: {
+                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
+              },
             },
-          },
-        }),
-      );
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to record sentinel_relay metrics fragment', e);
+      }
       return result;
     }
     // else, fall back to regular regular transaction submission
@@ -298,17 +302,21 @@ async function publishHook({
     });
 
     if (result?.transactionHash) {
-      store.dispatch(
-        updateConfirmationMetric({
-          id: transactionMeta.id,
-          params: {
-            properties: {
-              [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+      try {
+        store.dispatch(
+          updateConfirmationMetric({
+            id: transactionMeta.id,
+            params: {
+              properties: {
+                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+              },
             },
-          },
-        }),
-      );
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to record sentinel_stx metrics fragment', e);
+      }
       return result;
     }
   }
@@ -378,17 +386,24 @@ async function publishBatchSmartTransactionHook({
   if (result) {
     for (const tx of transactions) {
       if (tx.id) {
-        store.dispatch(
-          updateConfirmationMetric({
-            id: tx.id,
-            params: {
-              properties: {
-                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+        try {
+          store.dispatch(
+            updateConfirmationMetric({
+              id: tx.id,
+              params: {
+                properties: {
+                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
+                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+                },
               },
-            },
-          }),
-        );
+            }),
+          );
+        } catch (e) {
+          console.error(
+            'Failed to record sentinel_stx metrics fragment for batch tx',
+            e,
+          );
+        }
       }
     }
   }
