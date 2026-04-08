@@ -138,7 +138,11 @@ export function PayWithRow() {
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {displayToken.symbol}
-            {!isWithdraw && ` (${balanceUsdFormatted})`}
+            {!isWithdraw && (
+              <Text testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}>
+                {` (${balanceUsdFormatted})`}
+              </Text>
+            )}
           </Text>
           {canEdit && from && (
             <Icon
