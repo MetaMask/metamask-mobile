@@ -8150,10 +8150,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-tokens@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "@metamask/design-tokens@npm:8.3.0"
-  checksum: 10/b8fc870792f1d66986dce1e2c0d71f291f64a2da3e6c9d74de69b0f814b6479b922420c80bf59d03d9f22072b004c413029517619569ec5c21345a5aedd4c882
+"@metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.dbe1fac":
+  version: 8.3.0-preview.dbe1fac
+  resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.dbe1fac"
+  checksum: 10/5ffee0986b0aede4edf2870a9a93f67e326a0567aca3b7064c5faea1ee8e536ee3e349a925a292855e9eca732ccb97349da6a866f3223635e9ccb012ce329750
   languageName: node
   linkType: hard
 
@@ -35462,7 +35462,7 @@ __metadata:
     "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.13.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.1"
-    "@metamask/design-tokens": "npm:^8.3.0"
+    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.3.0-preview.dbe1fac"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
