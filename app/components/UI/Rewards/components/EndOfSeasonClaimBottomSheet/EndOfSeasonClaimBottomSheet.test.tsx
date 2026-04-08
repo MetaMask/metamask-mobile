@@ -42,25 +42,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock useAnalytics
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
-// Mock MetaMetricsEvents (still imported from useMetrics)
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_REWARD_VIEWED: 'REWARDS_REWARD_VIEWED',
-    REWARDS_REWARD_CLAIMED: 'REWARDS_REWARD_CLAIMED',
-  },
-}));
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Mock useRewardsToast
 const mockShowToast = jest.fn();
@@ -455,6 +446,12 @@ describe('EndOfSeasonClaimBottomSheet', () => {
 
     // Default selector mock
     mockUseSelector.mockImplementation(() => undefined);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   describe('rendering', () => {
@@ -1025,7 +1022,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       );
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'REWARDS_REWARD_VIEWED',
+        MetaMetricsEvents.REWARDS_REWARD_VIEWED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -1051,7 +1048,7 @@ describe('EndOfSeasonClaimBottomSheet', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'REWARDS_REWARD_CLAIMED',
+        MetaMetricsEvents.REWARDS_REWARD_CLAIMED,
       );
     });
   });

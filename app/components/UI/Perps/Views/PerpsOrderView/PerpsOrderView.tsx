@@ -605,7 +605,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [blockingPayAlerts],
   );
 
-  // Order execution hook. Perps balance: standard "Order submitted" toast. Custom token: persistent "Submitting your trade" toast during deposit.
+  // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -1084,19 +1084,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           },
         };
 
-        if (hasCustomTokenSelected) {
-          // Persistent "Submitting your trade" toast for deposit flow (user can dismiss via close button or swipe)
-          showToast(PerpsToastOptions.orderManagement.shared.submitting());
-        } else {
-          // Standard "Order submitted" toast for perps balance orders
-          showToast(
-            PerpsToastOptions.orderManagement[orderForm.type].submitted(
-              orderForm.direction,
-              positionSize,
-              orderForm.asset,
-            ),
-          );
-        }
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =

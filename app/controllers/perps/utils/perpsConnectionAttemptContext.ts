@@ -1,7 +1,7 @@
-export interface PerpsConnectionAttemptContext {
+export type PerpsConnectionAttemptContext = {
   source: string;
   suppressError: boolean;
-}
+};
 
 let currentAttemptContext: PerpsConnectionAttemptContext | null = null;
 
