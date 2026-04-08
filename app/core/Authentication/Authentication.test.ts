@@ -41,6 +41,7 @@ import {
   setCompletedOnboarding,
   clearAccountType,
   clearSeedlessOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
 } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
@@ -3921,6 +3922,9 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         clearSeedlessOnboarding(),
       );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setPendingSocialLoginMarketingConsentBackfill(null),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -4803,6 +4807,26 @@ describe('Authentication', () => {
       await Authentication.unlockWallet({ password: passwordToUse });
 
       // Verify that it navigates to the home flow.
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+    });
+
+    it('runs onBeforeNavigate before navigating home', async () => {
+      mockReset.mockClear();
+      const onBeforeNavigate = jest.fn(async () => {
+        await Promise.resolve();
+      });
+
+      await Authentication.unlockWallet({
+        password: passwordToUse,
+        onBeforeNavigate,
+      });
+
+      expect(onBeforeNavigate).toHaveBeenCalledTimes(1);
+      expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+        mockReset.mock.invocationCallOrder[0],
+      );
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });

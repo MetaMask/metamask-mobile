@@ -260,7 +260,10 @@ module.exports = {
     //
     // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
-      files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      files: [
+        'app/controllers/perps/**/*.{ts,tsx}',
+        'app/**/*-method-action-types*.ts',
+      ],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
         // === Existing rule ===

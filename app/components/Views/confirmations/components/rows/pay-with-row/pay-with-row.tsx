@@ -14,17 +14,19 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
-import Text, {
+import {
+  FontWeight,
+  Skeleton,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import Icon, {
   IconColor,
   IconName,
@@ -114,38 +116,42 @@ export function PayWithRow() {
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        justifyContent={JustifyContent.center}
-        gap={12}
+        justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <TokenIcon
-          address={displayToken.address}
-          chainId={displayToken.chainId}
-        />
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-        >
-          {`${label} ${displayToken.symbol}`}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
         </Text>
-        {/* For deposits, show the user's balance; for withdrawals, no balance needed */}
-        {!isWithdraw && (
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-          >
-            {balanceUsdFormatted}
-          </Text>
-        )}
-        {canEdit && from && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <TokenIcon
+            address={displayToken.address}
+            chainId={displayToken.chainId}
           />
-        )}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {displayToken.symbol}
+            {!isWithdraw && (
+              <Text testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}>
+                {` (${balanceUsdFormatted})`}
+              </Text>
+            )}
+          </Text>
+          {canEdit && from && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
       </Box>
     </TouchableOpacity>
   );
@@ -175,28 +181,37 @@ function PayWithFiatPaymentMethodRow({
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        justifyContent={JustifyContent.center}
-        gap={12}
+        justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <PaymentMethodIcon
-          paymentMethodType={paymentMethod.paymentType as PaymentType}
-          size={20}
-        />
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
-          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-        >
-          {`${label} ${paymentMethod.name}`}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
         </Text>
-        {canEdit && hasFrom && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <PaymentMethodIcon
+            paymentMethodType={paymentMethod.paymentType as PaymentType}
+            size={20}
           />
-        )}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {paymentMethod.name}
+          </Text>
+          {canEdit && hasFrom && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
       </Box>
     </TouchableOpacity>
   );
@@ -210,13 +225,18 @@ export function PayWithRowSkeleton() {
       testID="pay-with-row-skeleton"
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
-      justifyContent={JustifyContent.center}
-      gap={8}
-      style={styles.container}
+      justifyContent={JustifyContent.spaceBetween}
+      style={styles.skeletonContainer}
     >
-      <Skeleton height={32} width={32} style={styles.skeletonCircle} />
-      <Skeleton height={18} width={100} style={styles.skeletonTop} />
-      <Skeleton height={18} width={100} style={styles.skeletonTop} />
+      <Skeleton height={18} width={60} style={styles.skeletonTop} />
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={8}
+      >
+        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
+        <Skeleton height={18} width={120} style={styles.skeletonTop} />
+      </Box>
     </Box>
   );
 }

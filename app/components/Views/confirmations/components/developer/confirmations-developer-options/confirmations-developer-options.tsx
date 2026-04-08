@@ -24,11 +24,11 @@ import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
-import { ARBITRUM_USDC } from '../../../constants/perps';
 import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
+import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -57,14 +57,11 @@ export function ConfirmationsDeveloperOptions() {
 }
 
 function PerpsWithdraw() {
-  const { addTransactionBatchAndNavigate } = useAddPerpsTransactionBatch();
+  const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
 
   const handleWithdraw = useCallback(() => {
-    addTransactionBatchAndNavigate({
-      loader: ConfirmationLoader.CustomAmount,
-      transactionType: TransactionType.perpsWithdraw,
-    });
-  }, [addTransactionBatchAndNavigate]);
+    withdrawWithConfirmation();
+  }, [withdrawWithConfirmation]);
 
   return (
     <DeveloperButton
@@ -145,6 +142,7 @@ function MoneyAccountDeposit() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountDeposit,
+      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -166,6 +164,7 @@ function MoneyAccountWithdraw() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountWithdraw,
+      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -201,10 +200,12 @@ function useAddTransactionBatch() {
       headerShown,
       loader,
       transactionType,
+      recipient = POLYGON_USDCE_ADDRESS,
     }: {
       headerShown?: boolean;
       loader?: ConfirmationLoader;
       transactionType: TransactionType;
+      recipient?: Hex;
     }) => {
       navigateToConfirmation({
         headerShown,
@@ -227,7 +228,7 @@ function useAddTransactionBatch() {
           },
           {
             params: {
-              to: POLYGON_USDCE_ADDRESS,
+              to: recipient,
               data: transferData,
             },
             type: transactionType,
@@ -235,60 +236,6 @@ function useAddTransactionBatch() {
         ],
       }).catch((e) => {
         console.error('Predict transaction error', e);
-      });
-    },
-    [navigateToConfirmation, networkClientId, selectedAccount, transferData],
-  );
-
-  return {
-    addTransactionBatchAndNavigate,
-  };
-}
-
-function useAddPerpsTransactionBatch() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
-  const { navigateToConfirmation } = useConfirmNavigation();
-
-  const { networkClientId } =
-    useSelector((state: RootState) =>
-      selectDefaultEndpointByChainId(state, CHAIN_IDS.ARBITRUM),
-    ) ?? {};
-
-  const transferData = generateTransferData('transfer', {
-    toAddress: ARBITRUM_USDC.address,
-    amount: '0x0',
-  }) as Hex;
-
-  const addTransactionBatchAndNavigate = useCallback(
-    async ({
-      loader,
-      transactionType,
-    }: {
-      loader?: ConfirmationLoader;
-      transactionType: TransactionType;
-    }) => {
-      navigateToConfirmation({
-        loader,
-        stack: Routes.PERPS.ROOT,
-      });
-
-      addTransactionBatch({
-        from: selectedAccount as Hex,
-        origin: ORIGIN_METAMASK,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [
-          {
-            params: {
-              to: ARBITRUM_USDC.address,
-              data: transferData,
-            },
-            type: transactionType,
-          },
-        ],
-      }).catch((e) => {
-        console.error('Perps transaction error', e);
       });
     },
     [navigateToConfirmation, networkClientId, selectedAccount, transferData],
