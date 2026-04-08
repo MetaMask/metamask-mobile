@@ -371,7 +371,8 @@ export class CardController extends BaseController<
       const data = await this.getCardHomeData(address);
       if (generation === this.fetchGeneration) {
         this.update((s) => {
-          s.cardHomeData = data as unknown as Record<string, Json>;
+          (s as unknown as CardControllerState).cardHomeData =
+            data as unknown as Record<string, Json>;
           s.cardHomeDataStatus = 'success';
         });
       }
@@ -656,7 +657,7 @@ export class CardController extends BaseController<
     const previous = this.state.cardHomeData as unknown as CardHomeData | null;
     if (previous?.card) {
       this.update((s) => {
-        s.cardHomeData = {
+        (s as unknown as CardControllerState).cardHomeData = {
           ...previous,
           card: { ...previous.card, status: CardStatus.FROZEN } as CardDetails,
         } as unknown as Record<string, Json>;
@@ -671,7 +672,7 @@ export class CardController extends BaseController<
           .cardHomeData as unknown as CardHomeData | null;
         if (freshCard && current) {
           this.update((s) => {
-            s.cardHomeData = {
+            (s as unknown as CardControllerState).cardHomeData = {
               ...current,
               card: freshCard,
             } as unknown as Record<string, Json>;
@@ -682,7 +683,8 @@ export class CardController extends BaseController<
       }
     } catch (error) {
       this.update((s) => {
-        s.cardHomeData = previous as unknown as Record<string, Json>;
+        (s as unknown as CardControllerState).cardHomeData =
+          previous as unknown as Record<string, Json>;
       });
       throw error;
     }
@@ -692,7 +694,7 @@ export class CardController extends BaseController<
     const previous = this.state.cardHomeData as unknown as CardHomeData | null;
     if (previous?.card) {
       this.update((s) => {
-        s.cardHomeData = {
+        (s as unknown as CardControllerState).cardHomeData = {
           ...previous,
           card: { ...previous.card, status: CardStatus.ACTIVE } as CardDetails,
         } as unknown as Record<string, Json>;
@@ -707,7 +709,7 @@ export class CardController extends BaseController<
           .cardHomeData as unknown as CardHomeData | null;
         if (freshCard && current) {
           this.update((s) => {
-            s.cardHomeData = {
+            (s as unknown as CardControllerState).cardHomeData = {
               ...current,
               card: freshCard,
             } as unknown as Record<string, Json>;
@@ -718,7 +720,8 @@ export class CardController extends BaseController<
       }
     } catch (error) {
       this.update((s) => {
-        s.cardHomeData = previous as unknown as Record<string, Json>;
+        (s as unknown as CardControllerState).cardHomeData =
+          previous as unknown as Record<string, Json>;
       });
       throw error;
     }
@@ -780,7 +783,7 @@ export class CardController extends BaseController<
       const reordered = reorderAssets(asset, allAssets);
       const newPrimary = pickPrimaryFromReordered(reordered);
       this.update((s) => {
-        s.cardHomeData = {
+        (s as unknown as CardControllerState).cardHomeData = {
           ...previous,
           assets: reordered,
           primaryAsset: newPrimary,
@@ -799,7 +802,8 @@ export class CardController extends BaseController<
       await provider.updateAssetPriority(asset, allAssets, tokens);
     } catch (error) {
       this.update((s) => {
-        s.cardHomeData = previous as unknown as Record<string, Json>;
+        (s as unknown as CardControllerState).cardHomeData =
+          previous as unknown as Record<string, Json>;
       });
       throw error;
     }

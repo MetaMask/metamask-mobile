@@ -811,14 +811,14 @@ describe('BaanxProvider', () => {
     });
   });
 
-  describe('getCardSecureView', () => {
+  describe('getCardDetailsView', () => {
     it('returns url and token from the details endpoint', async () => {
       service.post.mockResolvedValue({
-        url: 'https://secure.view/card',
+        imageUrl: 'https://secure.view/card',
         token: 'view-token-123',
       });
 
-      const result = await provider.getCardSecureView(AUTH_TOKENS, {
+      const result = await provider.getCardDetailsView(AUTH_TOKENS, {
         customCss: '.card { color: red }',
       });
 
@@ -837,7 +837,7 @@ describe('BaanxProvider', () => {
       );
 
       await expect(
-        provider.getCardSecureView(AUTH_TOKENS, {}),
+        provider.getCardDetailsView(AUTH_TOKENS, {}),
       ).rejects.toThrow();
     });
   });
@@ -851,34 +851,42 @@ describe('BaanxProvider', () => {
           symbol: 'USDC',
           name: 'USDC',
           address: '0x1',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
           balance: '100',
           allowance: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
+          externalId: 1,
         },
         {
           symbol: 'mUSD',
           name: 'mUSD',
           address: '0x2',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
           balance: '50',
           allowance: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
+          externalId: 2,
         },
       ];
 
       await provider.updateAssetPriority(assets[1], assets, AUTH_TOKENS);
 
+      // Sorted by original priority: [USDC(1), mUSD(2)]
+      // mUSD matches selected → priority 1; USDC doesn't → priority 2
       expect(service.put).toHaveBeenCalledWith(
         '/v1/wallet/external/priority',
-        [
-          { address: '0x1', currency: 'USDC', network: 'linea', priority: 2 },
-          { address: '0x2', currency: 'mUSD', network: 'base', priority: 1 },
-        ],
+        {
+          wallets: [
+            { id: 1, priority: 2 },
+            { id: 2, priority: 1 },
+          ],
+        },
         AUTH_TOKENS,
       );
     });
@@ -891,46 +899,56 @@ describe('BaanxProvider', () => {
           symbol: 'USDC',
           name: 'USDC',
           address: '0x1',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
           balance: '100',
           allowance: '999999999999',
           priority: 2,
           status: FundingAssetStatus.Active,
+          externalId: 1,
         },
         {
           symbol: 'mUSD',
           name: 'mUSD',
           address: '0x2',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:8453' as const,
           balance: '50',
           allowance: '999999999999',
           priority: 1,
           status: FundingAssetStatus.Active,
+          externalId: 2,
         },
         {
           symbol: 'USDT',
           name: 'USDT',
           address: '0x3',
+          walletAddress: '0xwallet',
           decimals: 6,
           chainId: 'eip155:59144' as const,
           balance: '25',
           allowance: '999999999999',
           priority: 3,
           status: FundingAssetStatus.Active,
+          externalId: 3,
         },
       ];
 
       await provider.updateAssetPriority(assets[0], assets, AUTH_TOKENS);
 
+      // Sorted by original priority: [mUSD(1), USDC(2), USDT(3)]
+      // USDC matches selected → priority 1; mUSD and USDT don't → 2, 3
       expect(service.put).toHaveBeenCalledWith(
         '/v1/wallet/external/priority',
-        [
-          { address: '0x1', currency: 'USDC', network: 'linea', priority: 1 },
-          { address: '0x2', currency: 'mUSD', network: 'base', priority: 2 },
-          { address: '0x3', currency: 'USDT', network: 'linea', priority: 3 },
-        ],
+        {
+          wallets: [
+            { id: 2, priority: 2 },
+            { id: 1, priority: 1 },
+            { id: 3, priority: 3 },
+          ],
+        },
         AUTH_TOKENS,
       );
     });
@@ -1335,7 +1353,8 @@ describe('BaanxProvider', () => {
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
       expect(result.assets).toHaveLength(2);
-      expect(result.assets[0].symbol).toBe('mUSD');
+      // fetchWalletDetails uppercases currency when no matching token found in feature flags
+      expect(result.assets[0].symbol).toBe('MUSD');
       expect(result.assets[1].symbol).toBe('USDC');
       expect(result.primaryAsset?.symbol).toBe('USDC');
     });
@@ -1414,7 +1433,8 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
-      expect(result.primaryAsset?.symbol).toBe('mUSD');
+      // fetchWalletDetails uppercases currency when no matching token found in feature flags
+      expect(result.primaryAsset?.symbol).toBe('MUSD');
     });
   });
 

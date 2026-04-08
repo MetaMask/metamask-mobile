@@ -30,6 +30,14 @@ describe('cardControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
+    baseControllerMessenger.registerActionHandler(
+      // @ts-expect-error: Action not allowed.
+      'RemoteFeatureFlagController:getState',
+      jest.fn().mockReturnValue({
+        remoteFeatureFlags: {},
+      }),
+    );
+
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
