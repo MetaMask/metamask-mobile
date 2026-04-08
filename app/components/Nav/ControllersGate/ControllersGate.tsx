@@ -47,6 +47,7 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
       {appServicesReady && children}
       {!loaderDone && (
         <Animated.View
+          pointerEvents="none"
           style={[StyleSheet.absoluteFill, { opacity: loaderOpacity }]}
         >
           <FoxLoader

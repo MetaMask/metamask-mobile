@@ -5,7 +5,6 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 // Fox size matched to the native splash asset across all tested devices:
-// Pixel 4, Pixel 8, iPhone 17 Pro — 142 aligns perfectly with the native splash.
 const FOX_SIZE = 142;
 // Static fox PNG size — matches the fox asset's natural dimensions
 const STATIC_FOX_SIZE = 98;
