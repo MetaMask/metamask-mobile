@@ -107,6 +107,15 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // Redirect @metamask-previews/* imports to their @metamask/* counterparts
+          // so there is only one module instance per package (shared React context).
+          if (moduleName.startsWith('@metamask-previews/')) {
+            return context.resolveRequest(
+              context,
+              moduleName.replace('@metamask-previews/', '@metamask/'),
+              platform,
+            );
+          }
           // @ecies/ciphers uses package.json "exports" subpaths that Metro
           // can't resolve without unstable_enablePackageExports. Map them to
           // the react-native condition targets manually.
