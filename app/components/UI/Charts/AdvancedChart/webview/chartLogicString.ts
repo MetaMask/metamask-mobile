@@ -35,7 +35,18 @@ window.pendingMessages = [];
 window.libraryLoaded = false;
 window.libraryError = null;
 window.realtimeCallbacks = {};
-window.pendingGetBarsCallback = null;
+/**
+ * Pagination state for WebView-side direct fetching.
+ * Populated by \`SET_OHLCV_DATA\` when \`payload.pagination\` is present.
+ */
+window.ohlcvPagination = {
+  nextCursor: null,
+  hasMore: false,
+  assetId: null,
+  vsCurrency: null,
+};
+/** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
+window.ohlcvGeneration = 0;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -166,7 +177,7 @@ function queueTryCompleteLayoutSettleAfterData() {
 
 /**
  * Starts the deferred settle lifecycle after \`resetData()\` / \`setResolution\` or before resolving a
- * deferred \`getBars\` (\`NEED_MORE_HISTORY\`).
+ * deferred \`getBars\` (pagination).
  *
  * **Why:** Firing \`CHART_LAYOUT_SETTLED\` immediately after \`resetData()\` returns is too early —
  * TradingView often loads/refreshes series data asynchronously via \`getBars\`. RN then hides the
@@ -211,8 +222,7 @@ function handleMessage(event) {
 
     if (
       !window.isChartReady &&
-      message.type !== 'SET_OHLCV_DATA' &&
-      message.type !== 'RESOLVE_DEFERRED_GET_BARS'
+      message.type !== 'SET_OHLCV_DATA'
     ) {
       window.pendingMessages.push(message);
       return;
@@ -221,9 +231,6 @@ function handleMessage(event) {
     switch (message.type) {
       case 'SET_OHLCV_DATA':
         handleSetOHLCVData(message.payload);
-        break;
-      case 'RESOLVE_DEFERRED_GET_BARS':
-        resolveDeferredGetBarsNoData();
         break;
       case 'ADD_INDICATOR':
         handleAddIndicator(message.payload);
@@ -408,23 +415,25 @@ function handleSetOHLCVData(payload) {
 
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
+  window.ohlcvGeneration++;
+
+  if (payload.pagination) {
+    window.ohlcvPagination = {
+      nextCursor: payload.pagination.nextCursor || null,
+      hasMore: !!payload.pagination.hasMore,
+      assetId: payload.pagination.assetId || null,
+      vsCurrency: payload.pagination.vsCurrency || null,
+    };
+  } else {
+    window.ohlcvPagination = {
+      nextCursor: null,
+      hasMore: false,
+      assetId: null,
+      vsCurrency: null,
+    };
+  }
 
   var newResolution = detectResolution(window.ohlcvData);
-  var hasPending = !!window.pendingGetBarsCallback;
-
-  // TODO: Early return bypasses resolution-change handling at lines 146–170.
-  // If SET_OHLCV_DATA arrives at a different resolution while a history
-  // request is pending (if a user switches interval during a pending chart candle history navigation request),
-  // the widget stays at the old resolution while window.currentResolution
-  // reflects the new one. Fix when wiring up history pagination for Perps.
-  if (hasPending) {
-    var pending = window.pendingGetBarsCallback;
-    window.pendingGetBarsCallback = null;
-    window.currentResolution = newResolution;
-    beginDeferredLayoutSettleAfterOhlcvReload();
-    resolvePendingGetBars(pending);
-    return;
-  }
 
   if (window.chartWidget && window.isChartReady) {
     var previousResolution = window.currentResolution;
@@ -464,7 +473,6 @@ function handleSetOHLCVData(payload) {
       window.lineLastPriceShapeId = null;
       window.positionShapeIds = [];
       window.realtimeCallbacks = {};
-      window.pendingGetBarsCallback = null;
       window.currentChartType = 2;
       initChart();
     }
@@ -2984,61 +2992,93 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   return barsInRange;
 }
 
-function resolvePendingGetBars(pending) {
-  var currentOldest =
-    window.ohlcvData.length > 0 ? window.ohlcvData[0].time : 0;
-
-  function finishDeferredGetBars(bars, meta) {
-    pending.onResult(bars, meta);
-    // Deferred history: \`firstDataRequest\` is false on this callback; still complete settle if armed.
-    if (window.__mmLayoutSettlePending) {
-      queueTryCompleteLayoutSettleAfterData();
-    }
-  }
-
-  if (currentOldest >= pending.oldestAtDefer) {
-    finishDeferredGetBars([], { noData: true });
-    return;
-  }
-
-  // Return only the newly fetched bars (older than what we had before deferring).
-  // TradingView already has bars from oldestAtDefer onward.
-  var bars = [];
-  for (var i = 0; i < window.ohlcvData.length; i++) {
-    var b = window.ohlcvData[i];
-    if (b.time < pending.oldestAtDefer) {
-      bars.push({
-        time: b.time,
-        open: b.open,
-        high: b.high,
-        low: b.low,
-        close: b.close,
-        volume: b.volume,
-      });
-    }
-  }
-
-  finishDeferredGetBars(bars, { noData: false });
-}
+var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
 /**
- * Price API has no older page (\`hasNext: false\`). TradingView still has a deferred \`getBars\`
- * after NEED_MORE_HISTORY — complete it with noData so \`onChartReady\` can run.
+ * Fetches the next page of OHLCV history directly from the Price API inside the WebView.
+ * Called from \`getBars\` when \`window.ohlcvPagination\` has a cursor, avoiding the RN round-trip.
  */
-function resolveDeferredGetBarsNoData() {
-  var pending = window.pendingGetBarsCallback;
-  if (!pending) {
-    return;
-  }
-  window.pendingGetBarsCallback = null;
-  try {
+function fetchOlderBars(pending) {
+  var pag = window.ohlcvPagination;
+  if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     pending.onResult([], { noData: true });
     if (window.__mmLayoutSettlePending) {
       queueTryCompleteLayoutSettleAfterData();
     }
-  } catch (e) {
-    /* Defensive: TradingView callback should not throw */
+    return;
   }
+
+  var gen = window.ohlcvGeneration;
+  var url =
+    OHLCV_BASE_URL +
+    '/' +
+    encodeURIComponent(pag.assetId) +
+    '?nextCursor=' +
+    encodeURIComponent(pag.nextCursor);
+  if (pag.vsCurrency) {
+    url += '&vsCurrency=' + encodeURIComponent(pag.vsCurrency);
+  }
+
+  fetch(url)
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('OHLCV API error: ' + response.status);
+      }
+      return response.json();
+    })
+    .then(function (result) {
+      if (gen !== window.ohlcvGeneration) {
+        return;
+      }
+
+      if (!result || !Array.isArray(result.data)) {
+        throw new Error('OHLCV API response: invalid payload');
+      }
+
+      var newBars = [];
+      for (var i = 0; i < result.data.length; i++) {
+        var c = result.data[i];
+        newBars.push({
+          time: c.timestamp,
+          open: c.open,
+          high: c.high,
+          low: c.low,
+          close: c.close,
+          volume: c.volume,
+        });
+      }
+
+      window.ohlcvPagination.nextCursor = result.nextCursor || null;
+      window.ohlcvPagination.hasMore = !!result.hasNext;
+
+      if (newBars.length > 0) {
+        window.ohlcvData = newBars.concat(window.ohlcvData);
+      }
+
+      var olderBars = [];
+      for (var j = 0; j < newBars.length; j++) {
+        if (newBars[j].time < pending.oldestAtDefer) {
+          olderBars.push(newBars[j]);
+        }
+      }
+
+      pending.onResult(olderBars, { noData: olderBars.length === 0 });
+      if (window.__mmLayoutSettlePending) {
+        queueTryCompleteLayoutSettleAfterData();
+      }
+    })
+    .catch(function (err) {
+      if (gen !== window.ohlcvGeneration) {
+        return;
+      }
+      pending.onResult([], { noData: true });
+      if (window.__mmLayoutSettlePending) {
+        queueTryCompleteLayoutSettleAfterData();
+      }
+      sendToReactNative('DEBUG', {
+        message: 'fetchOlderBars error: ' + (err.message || String(err)),
+      });
+    });
 }
 
 var customDatafeed = {
@@ -3142,12 +3182,10 @@ var customDatafeed = {
 
       var oldestTs = window.ohlcvData[0].time;
 
-      window.pendingGetBarsCallback = {
+      fetchOlderBars({
         onResult: onResult,
         oldestAtDefer: oldestTs,
-      };
-
-      sendToReactNative('NEED_MORE_HISTORY', { oldestTimestamp: oldestTs });
+      });
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
       onError(error && error.message ? error.message : String(error));
