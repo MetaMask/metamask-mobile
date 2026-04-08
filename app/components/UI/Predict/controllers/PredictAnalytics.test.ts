@@ -153,6 +153,31 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('includes predict_token_address in properties when paymentTokenAddress is provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUBMITTED,
+        analyticsProperties: { marketId: 'test' },
+        paymentTokenAddress: '0xtoken',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        predict_token_address: '0xtoken',
+      });
+    });
+
+    it('omits predict_token_address from properties when paymentTokenAddress is not provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUBMITTED,
+        analyticsProperties: { marketId: 'test' },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('predict_token_address');
+    });
+
     it('includes pnl in sensitiveProperties when pnl is provided', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUCCEEDED,
