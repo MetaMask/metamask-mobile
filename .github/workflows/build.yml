@@ -47,6 +47,9 @@ on:
       android_version_code:
         description: 'android/app/build.gradle versionCode at the built commit'
         value: ${{ jobs.emit-build-metadata.outputs.android_version_code }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit'
+        value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       build_name:
@@ -489,6 +492,7 @@ jobs:
       built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
       semantic_version: ${{ steps.meta.outputs.semantic_version }}
       android_version_code: ${{ steps.meta.outputs.android_version_code }}
+      ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
     steps:
       - uses: actions/checkout@v4
         with:
