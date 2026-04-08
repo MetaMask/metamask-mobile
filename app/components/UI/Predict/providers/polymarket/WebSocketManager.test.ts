@@ -519,6 +519,232 @@ describe('WebSocketManager', () => {
     });
   });
 
+  describe('crypto price subscriptions', () => {
+    it('connects to RTDS WS when first subscription is made', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+
+      // Sports + Market WS instances may already exist from the singleton,
+      // but the RTDS one is the one with the RTDS URL
+      const rtdsInstance = mockWebSocketInstances.find(
+        (ws) => ws.url === 'wss://ws-live-data.polymarket.com',
+      );
+      expect(rtdsInstance).toBeDefined();
+    });
+
+    it('sends subscribe message after connection opens', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      expect(rtdsInstance.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'subscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices',
+              type: 'update',
+              filters: 'btcusdt',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('calls callback with crypto price update for subscribed symbol', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: {
+          symbol: 'btcusdt',
+          timestamp: 1700000001,
+          value: 67234.5,
+        },
+      });
+
+      // Throttled - advance timer to trigger flush
+      jest.advanceTimersByTime(16);
+
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'btcusdt',
+        price: 67234.5,
+        timestamp: 1700000001,
+      });
+    });
+
+    it('filters pong messages without calling callback', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      // Send pong as raw string (not JSON)
+      rtdsInstance.onmessage?.({ data: 'pong' } as MessageEvent);
+
+      jest.advanceTimersByTime(16);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('does not call callback for unsubscribed symbols', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: {
+          symbol: 'ethusdt',
+          timestamp: 1700000001,
+          value: 3500.0,
+        },
+      });
+
+      jest.advanceTimersByTime(16);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('sends unsubscribe message when all callbacks removed', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      const unsubscribe = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        callback,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.send.mockClear();
+
+      unsubscribe();
+
+      expect(rtdsInstance.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'unsubscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices',
+              type: 'update',
+              filters: 'btcusdt',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('disconnects when all subscribers unsubscribe', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      const unsubscribe1 = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        callback1,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      const unsubscribe2 = manager.subscribeToCryptoPrices(
+        ['ethusdt'],
+        callback2,
+      );
+
+      expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
+        2,
+      );
+
+      unsubscribe1();
+      expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
+        1,
+      );
+
+      unsubscribe2();
+      expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
+        0,
+      );
+      expect(rtdsInstance.close).toHaveBeenCalled();
+    });
+
+    it('throttles callbacks to configured interval', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      // Fire 5 rapid messages
+      for (let i = 0; i < 5; i++) {
+        rtdsInstance.simulateMessage({
+          topic: 'crypto_prices',
+          type: 'update',
+          timestamp: 1700000000 + i,
+          payload: {
+            symbol: 'btcusdt',
+            timestamp: 1700000000 + i,
+            value: 67234.5 + i,
+          },
+        });
+      }
+
+      // Before throttle flush: no callbacks yet (buffer is collecting)
+      expect(callback).not.toHaveBeenCalled();
+
+      // Advance past throttle interval
+      jest.advanceTimersByTime(16);
+
+      // Only latest value delivered (buffer overwrites per symbol)
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'btcusdt',
+        price: 67238.5,
+        timestamp: 1700000004,
+      });
+    });
+
+    it('ignores malformed JSON messages without calling callback', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.onmessage?.({
+        data: 'not valid json',
+      } as MessageEvent);
+
+      jest.advanceTimersByTime(16);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('reconnection with exponential backoff', () => {
     it('reconnects with increasing delay after connection closes', () => {
       const manager = WebSocketManager.getInstance();
@@ -589,6 +815,89 @@ describe('WebSocketManager', () => {
     });
   });
 
+  describe('RTDS reconnection', () => {
+    it('reconnects with increasing delay after RTDS connection closes', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const firstInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      firstInstance.simulateOpen();
+      const countAfterFirst = mockWebSocketInstances.length;
+
+      firstInstance.simulateClose();
+      jest.advanceTimersByTime(3000);
+      expect(mockWebSocketInstances.length).toBe(countAfterFirst + 1);
+
+      const secondInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      secondInstance.simulateClose();
+      jest.advanceTimersByTime(6000);
+      expect(mockWebSocketInstances.length).toBe(countAfterFirst + 2);
+    });
+
+    it('stops reconnecting after max attempts', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const initialCount = mockWebSocketInstances.length;
+
+      for (let i = 0; i < 5; i++) {
+        const idx = initialCount - 1 + i;
+        mockWebSocketInstances[idx].simulateClose();
+        jest.advanceTimersByTime((i + 1) * 3000);
+      }
+
+      const afterAttemptsCount = mockWebSocketInstances.length;
+      const lastIdx = afterAttemptsCount - 1;
+      mockWebSocketInstances[lastIdx].simulateClose();
+      jest.advanceTimersByTime(30000);
+
+      expect(mockWebSocketInstances.length).toBe(afterAttemptsCount);
+    });
+
+    it('resets reconnect attempts on successful connection', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const firstInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      firstInstance.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      const secondInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      secondInstance.simulateOpen();
+      secondInstance.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(2);
+    });
+
+    it('does not reconnect if no subscribers remain', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      const unsubscribe = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        callback,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      unsubscribe();
+      const countAfterUnsubscribe = mockWebSocketInstances.length;
+      rtdsInstance.simulateClose();
+      jest.advanceTimersByTime(10000);
+
+      expect(mockWebSocketInstances.length).toBe(countAfterUnsubscribe);
+    });
+  });
+
   describe('AppState handling', () => {
     it('disconnects on app background when connected', () => {
       const manager = WebSocketManager.getInstance();
@@ -644,6 +953,69 @@ describe('WebSocketManager', () => {
     });
   });
 
+  describe('RTDS AppState handling', () => {
+    it('disconnects RTDS on app background when connected', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      expect(appStateCallback).not.toBeNull();
+      if (appStateCallback) {
+        appStateCallback('background');
+      }
+
+      expect(rtdsInstance.readyState).toBe(MockWebSocket.CLOSED);
+    });
+
+    it('reconnects RTDS on app foreground with active subscriptions', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      const countBeforeBackground = mockWebSocketInstances.length;
+
+      if (appStateCallback) {
+        appStateCallback('background');
+        appStateCallback('active');
+      }
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(
+        countBeforeBackground,
+      );
+    });
+
+    it('does not reconnect RTDS on foreground if no subscriptions', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      const unsubscribe = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        callback,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      unsubscribe();
+      const countAfterUnsubscribe = mockWebSocketInstances.length;
+
+      if (appStateCallback) {
+        appStateCallback('background');
+        appStateCallback('active');
+      }
+
+      expect(mockWebSocketInstances.length).toBe(countAfterUnsubscribe);
+    });
+  });
+
   describe('ping/heartbeat', () => {
     it('sends ping at configured interval after connection opens', () => {
       const manager = WebSocketManager.getInstance();
@@ -674,6 +1046,43 @@ describe('WebSocketManager', () => {
     });
   });
 
+  describe('RTDS ping/heartbeat', () => {
+    it('sends lowercase ping at 5-second interval after connection opens', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.send.mockClear();
+
+      jest.advanceTimersByTime(5000);
+
+      expect(rtdsInstance.send).toHaveBeenCalledWith('ping');
+    });
+
+    it('stops ping on disconnect', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      const unsubscribe = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        callback,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      unsubscribe();
+      rtdsInstance.send.mockClear();
+
+      jest.advanceTimersByTime(10000);
+
+      expect(rtdsInstance.send).not.toHaveBeenCalledWith('ping');
+    });
+  });
+
   describe('getConnectionStatus', () => {
     it('returns connection status with all fields populated', () => {
       const manager = WebSocketManager.getInstance();
@@ -681,8 +1090,10 @@ describe('WebSocketManager', () => {
       expect(manager.getConnectionStatus()).toEqual({
         sportsConnected: false,
         marketConnected: false,
+        rtdsConnected: false,
         gameSubscriptionCount: 0,
         priceSubscriptionCount: 0,
+        cryptoPriceSubscriptionCount: 0,
       });
 
       manager.subscribeToGame('123', jest.fn());
@@ -691,11 +1102,16 @@ describe('WebSocketManager', () => {
       manager.subscribeToMarketPrices(['token1'], jest.fn());
       mockWebSocketInstances[1].simulateOpen();
 
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      mockWebSocketInstances[2].simulateOpen();
+
       expect(manager.getConnectionStatus()).toEqual({
         sportsConnected: true,
         marketConnected: true,
+        rtdsConnected: true,
         gameSubscriptionCount: 1,
         priceSubscriptionCount: 1,
+        cryptoPriceSubscriptionCount: 1,
       });
     });
   });
@@ -719,10 +1135,14 @@ describe('WebSocketManager', () => {
       manager.subscribeToMarketPrices(['token1'], jest.fn());
       mockWebSocketInstances[1].simulateOpen();
 
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      mockWebSocketInstances[2].simulateOpen();
+
       WebSocketManager.resetInstance();
 
       expect(mockWebSocketInstances[0].close).toHaveBeenCalled();
       expect(mockWebSocketInstances[1].close).toHaveBeenCalled();
+      expect(mockWebSocketInstances[2].close).toHaveBeenCalled();
     });
 
     it('clears all subscriptions', () => {
@@ -730,15 +1150,22 @@ describe('WebSocketManager', () => {
 
       manager.subscribeToGame('123', jest.fn());
       manager.subscribeToMarketPrices(['token1'], jest.fn());
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
 
       expect(manager.getConnectionStatus().gameSubscriptionCount).toBe(1);
       expect(manager.getConnectionStatus().priceSubscriptionCount).toBe(1);
+      expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
+        1,
+      );
 
       WebSocketManager.resetInstance();
       const newManager = WebSocketManager.getInstance();
 
       expect(newManager.getConnectionStatus().gameSubscriptionCount).toBe(0);
       expect(newManager.getConnectionStatus().priceSubscriptionCount).toBe(0);
+      expect(
+        newManager.getConnectionStatus().cryptoPriceSubscriptionCount,
+      ).toBe(0);
     });
   });
 });
