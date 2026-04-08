@@ -266,7 +266,7 @@ const UNWANTED_CHARS_RE = () => new RegExp(UNWANTED_CHARS_PATTERN, 'g');
 function documentToPlainText(value: unknown): string {
   if (typeof value === 'string')
     return value
-      .replace(UNWANTED_CHARS_RE(), ' ')
+      .replace(UNWANTED_CHARS_RE(), '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   if (value === null || value === undefined || typeof value !== 'object')
@@ -280,7 +280,7 @@ function documentToPlainText(value: unknown): string {
 
   if (node.nodeType === 'text' && typeof node.value === 'string') {
     return node.value
-      .replace(UNWANTED_CHARS_RE(), ' ')
+      .replace(UNWANTED_CHARS_RE(), '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   }
