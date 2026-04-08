@@ -1,12 +1,12 @@
 import { View } from 'react-native';
 import React, { useEffect } from 'react';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
-import { UnstakeConfirmationViewRouteParams } from './UnstakeConfirmationView.types';
+import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
 import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
@@ -19,11 +19,7 @@ import { selectEvmChainId } from '../../../../../selectors/networkController';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
-const UnstakeConfirmationView = () => {
-  const route =
-    useRoute<
-      RouteProp<{ params: UnstakeConfirmationViewRouteParams }, 'params'>
-    >();
+const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const chainId = useSelector(selectEvmChainId);
   const navigation = useNavigation();

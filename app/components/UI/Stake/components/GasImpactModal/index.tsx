@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { formatEther } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -24,16 +24,14 @@ import {
 import styleSheet from './GasImpactModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { GasImpactModalRouteParams } from './GasImpactModal.types';
+import { GasImpactModalProps } from './GasImpactModal.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
 
-const GasImpactModal = () => {
-  const route =
-    useRoute<RouteProp<{ params: GasImpactModalRouteParams }, 'params'>>();
+const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
   // TODO: Remove dead code as we are not using the legacy confirmations anymore
   const isStakingDepositRedesignedEnabled = true;

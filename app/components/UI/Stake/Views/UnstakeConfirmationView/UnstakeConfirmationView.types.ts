@@ -1,6 +1,6 @@
 import { RouteProp } from '@react-navigation/native';
 
-export interface UnstakeConfirmationViewRouteParams {
+interface UnstakeConfirmationViewRouteParams {
   amountWei: string;
   amountFiat: string;
 }
