@@ -176,10 +176,7 @@ describe('PerpsPayRow', () => {
   it('calls onPayWithInfoPress when info icon is pressed', () => {
     const onPayWithInfoPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <PerpsPayRow
-        initialAsset="BTC"
-        onPayWithInfoPress={onPayWithInfoPress}
-      />,
+      <PerpsPayRow onPayWithInfoPress={onPayWithInfoPress} />,
     );
 
     fireEvent.press(getByTestId('perps-pay-row-info'));
