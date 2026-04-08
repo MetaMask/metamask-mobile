@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   Button,
@@ -8,18 +8,14 @@ import {
 } from '@metamask/design-system-react-native';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
-import CampaignOptInSheet from './CampaignOptInSheet';
-import { getCampaignStatus, isOptinAllowed } from './CampaignTile.utils';
+import { getCampaignStatus } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useRewardsToast from '../../hooks/useRewardsToast';
+import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 
-export const CAMPAIGN_CTA_TEST_IDS = {
-  CTA_BUTTON: 'campaign-details-cta-button',
-} as const;
-
-interface CampaignCTAProps {
+interface OndoCampaignCTAProps {
   campaign: CampaignDto;
   participantStatus: Pick<
     UseGetCampaignParticipantStatusResult,
@@ -32,20 +28,17 @@ interface CampaignCTAProps {
 /**
  * Bottom CTA for the Ondo campaign details page.
  * Renders one of four states depending on campaign/participant status:
- * - "Opt In" button when the user has not opted in and the deposit cutoff has not passed
- * - Disabled "Entries closed" button (with Lock icon + toast) when cutoff has passed
+ * - Delegates to CampaignCTA for the opt-in flow (active, not opted in, within deposit window)
+ * - "Entries closed" button (with Lock icon + toast) when cutoff has passed and user is not opted in
  * - "Open Position" button when the user has opted in but has no portfolio positions
  * - "Swap Ondo Assets" button when the user has opted in and has portfolio positions
- *
- * Only visible when the campaign status is 'active'.
  */
-const CampaignCTA: React.FC<CampaignCTAProps> = ({
+const OndoCampaignCTA: React.FC<OndoCampaignCTAProps> = ({
   campaign,
   participantStatus,
   hasPositions,
   campaignId,
 }) => {
-  const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   const navigation = useNavigation();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
@@ -55,6 +48,7 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
       campaignId,
     });
   }, [navigation, campaignId]);
+
   const onSwapAssets = useCallback(() => {
     navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
       mode: 'swap',
@@ -62,30 +56,22 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
     });
   }, [navigation, campaignId]);
 
-  const isActive =
-    !participantStatus?.isLoading &&
-    participantStatus &&
-    getCampaignStatus(campaign) === 'active';
+  const campaignStatus = getCampaignStatus(campaign);
+  const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus?.status?.optedIn === true;
-  const optinAllowed = isOptinAllowed(campaign);
-  const isEntriesClosed = isActive && !isOptedIn && !optinAllowed;
-  const hasShownEntriesToast = useRef(false);
 
-  useEffect(() => {
-    if (isEntriesClosed && !hasShownEntriesToast.current) {
-      hasShownEntriesToast.current = true;
-      showToast(
-        RewardsToastOptions.entriesClosed(
-          strings('rewards.campaign_details.entries_closed_title'),
-          strings('rewards.campaign_details.entries_closed_description'),
-        ),
-      );
-    }
-  }, [isEntriesClosed, showToast, RewardsToastOptions]);
+  // Show "Entries closed" for complete campaigns when user has not opted in
+  const isEntriesClosed =
+    !isLoading && !isOptedIn && campaignStatus === 'complete';
 
-  if (!isActive) {
-    return null;
-  }
+  const handleEntriesClosedPress = useCallback(() => {
+    showToast(
+      RewardsToastOptions.entriesClosed(
+        strings('rewards.campaign_details.ondo.entries_closed_title'),
+        strings('rewards.campaign_details.ondo.entries_closed_description'),
+      ),
+    );
+  }, [showToast, RewardsToastOptions]);
 
   if (isEntriesClosed) {
     return (
@@ -94,44 +80,28 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled
           startIconName={IconName.Lock}
+          onPress={handleEntriesClosedPress}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.entries_closed_title')}
+          {strings('rewards.campaign_details.ondo.entries_closed_title')}
         </Button>
       </Box>
     );
   }
 
-  if (!isOptedIn) {
-    return (
-      <>
-        <Box twClassName="px-4 pt-2">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={() => setIsOptInSheetOpen(true)}
-            testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
-          >
-            {strings('rewards.campaign_details.join_campaign')}
-          </Button>
-        </Box>
-
-        {isOptInSheetOpen && (
-          <CampaignOptInSheet
-            campaign={campaign}
-            onClose={() => setIsOptInSheetOpen(false)}
-          />
-        )}
-      </>
-    );
+  const isActive = !isLoading && campaignStatus === 'active';
+  if (!isActive) {
+    return null;
   }
 
-  // Deposit window closed — can swap existing positions but cannot open new ones
-  if (!optinAllowed && !hasPositions) {
-    return null;
+  if (!isOptedIn) {
+    return (
+      <CampaignOptInCta
+        campaign={campaign}
+        participantStatus={participantStatus}
+      />
+    );
   }
 
   if (hasPositions) {
@@ -144,7 +114,7 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
           onPress={onSwapAssets}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.open_position')}
+          {strings('rewards.campaign_details.ondo.open_position')}
         </Button>
       </Box>
     );
@@ -159,10 +129,10 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
         onPress={onOpenPosition}
         testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
       >
-        {strings('rewards.campaign_details.open_position')}
+        {strings('rewards.campaign_details.ondo.open_position')}
       </Button>
     </Box>
   );
 };
 
-export default CampaignCTA;
+export default OndoCampaignCTA;
