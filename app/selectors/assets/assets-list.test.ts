@@ -362,6 +362,9 @@ const mockState = ({
         },
       },
     },
+    settings: {
+      hideZeroBalanceTokens: false,
+    },
   }) as unknown as RootState;
 
 describe('selectAssetsBySelectedAccountGroup', () => {
