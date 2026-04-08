@@ -41,6 +41,7 @@ import {
   setCompletedOnboarding,
   clearAccountType,
   clearSeedlessOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
 } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
@@ -3920,6 +3921,9 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         clearSeedlessOnboarding(),
+      );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setPendingSocialLoginMarketingConsentBackfill(null),
       );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });

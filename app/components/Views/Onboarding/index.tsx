@@ -1046,8 +1046,7 @@ const Onboarding = () => {
     }
   }, [isPna25FlagEnabled, storePna25Acknowledged]);
 
-  const { existingUser, errorToThrow, startFoxAnimation } = state;
-  const hasFooter = existingUser && !loading;
+  const { errorToThrow, startFoxAnimation } = state;
 
   const ThrowErrorIfNeeded = () => {
     if (errorToThrow) {
@@ -1107,7 +1106,7 @@ const Onboarding = () => {
         <FadeOutOverlay />
 
         {!isE2E && (
-          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
 
         <Box>{handleSimpleNotification()}</Box>
