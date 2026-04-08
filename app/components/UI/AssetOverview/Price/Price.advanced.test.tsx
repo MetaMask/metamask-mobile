@@ -99,10 +99,8 @@ const mockAsset: TokenI = {
 
 const baseProps: PriceAdvancedProps = {
   asset: mockAsset,
-  priceDiff: 5,
   currentPrice: 105,
   currentCurrency: 'USD',
-  comparePrice: 100,
   isLoading: false,
 };
 
@@ -273,5 +271,82 @@ describe('PriceAdvanced', () => {
   it('renders price-label with the time range date label', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
+
+  it('calculates percentage from OHLCV data instead of props', () => {
+    // Mock OHLCV data: first candle close = 100, current price = 105
+    // Expected: (105 - 100) / 100 * 100 = 5%
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        { time: 1000, open: 95, high: 101, low: 94, close: 100, volume: 1 },
+        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    // Should show 5.00% based on OHLCV data (105 - 100) / 100 * 100
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+  });
+
+  it('hides price diff when OHLCV data is empty', () => {
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+    // Should not render price-label when no OHLCV data
+    expect(queryByTestId('price-label')).not.toBeOnTheScreen();
+  });
+
+  it('updates percentage when time range changes and new OHLCV data loads', () => {
+    // Initial: 1D range with data showing 5% increase
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        { time: 1000, open: 95, high: 101, low: 94, close: 100, volume: 1 },
+        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText, rerender } = render(
+      <PriceAdvanced {...baseProps} currentPrice={105} />,
+    );
+
+    // Should show 5.00% based on initial OHLCV data
+    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+
+    // Simulate time range change: new OHLCV data with different starting price
+    // First candle close = 103, current price = 105
+    // Expected: (105 - 103) / 103 * 100 = 1.94%
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        { time: 3000, open: 102, high: 104, low: 102, close: 103, volume: 1 },
+        { time: 4000, open: 103, high: 106, low: 103, close: 105, volume: 1 },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    rerender(<PriceAdvanced {...baseProps} currentPrice={105} />);
+
+    // Should now show 1.94% based on new OHLCV data
+    expect(getByText(/1\.94%/)).toBeOnTheScreen();
   });
 });

@@ -58,10 +58,8 @@ const PLACEHOLDER_SVG_PATH =
 
 export interface PriceAdvancedProps {
   asset: TokenI;
-  priceDiff: number;
   currentPrice: number;
   currentCurrency: string;
-  comparePrice: number;
   isLoading: boolean;
 }
 
@@ -118,10 +116,8 @@ const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
 
 const PriceAdvanced = ({
   asset,
-  priceDiff,
   currentPrice,
   currentCurrency,
-  comparePrice,
   isLoading,
 }: PriceAdvancedProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -228,6 +224,17 @@ const PriceAdvanced = ({
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
+  // Calculate price diff and percentage from OHLCV data instead of legacy props
+  const dynamicComparePrice = useMemo(() => {
+    if (ohlcvData.length === 0) return null;
+    return ohlcvData[0].close; // First candle's close price = start of time range
+  }, [ohlcvData]);
+
+  const dynamicPriceDiff = useMemo(() => {
+    if (dynamicComparePrice === null) return null;
+    return currentPrice - dynamicComparePrice;
+  }, [currentPrice, dynamicComparePrice]);
+
   const { styles, theme } = useStyles(styleSheet);
 
   const hasChartData = ohlcvData.length > 1;
@@ -290,25 +297,25 @@ const PriceAdvanced = ({
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : (
+          ) : dynamicPriceDiff !== null && dynamicComparePrice !== null ? (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
-                priceDiff > 0
+                dynamicPriceDiff > 0
                   ? TextColor.SuccessDefault
-                  : priceDiff < 0
+                  : dynamicPriceDiff < 0
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
               allowFontScaling={false}
             >
-              {priceDiff > 0 ? '+' : ''}
-              {addCurrencySymbol(priceDiff, currentCurrency, true)} (
-              {priceDiff > 0 ? '+' : ''}
-              {priceDiff === 0 || comparePrice === 0
+              {dynamicPriceDiff > 0 ? '+' : ''}
+              {addCurrencySymbol(dynamicPriceDiff, currentCurrency, true)} (
+              {dynamicPriceDiff > 0 ? '+' : ''}
+              {dynamicPriceDiff === 0 || dynamicComparePrice === 0
                 ? '0'
-                : ((priceDiff / comparePrice) * 100).toFixed(2)}
+                : ((dynamicPriceDiff / dynamicComparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
                 testID="price-label"
@@ -320,7 +327,7 @@ const PriceAdvanced = ({
                 {dateLabel}
               </Text>
             </Text>
-          )}
+          ) : null}
         </Text>
       </View>
       <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
