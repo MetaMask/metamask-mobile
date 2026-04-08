@@ -88,20 +88,13 @@ describe('usePredictPositionsForHomepage', () => {
     expect(result.current.positions).toHaveLength(3);
   });
 
-  it('maps Error to error string', () => {
-    mockUsePredictPositionsReturn.error = new Error('API error');
+  it('forwards error from usePredictPositions', () => {
+    const err = new Error('API error');
+    mockUsePredictPositionsReturn.error = err;
 
     const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    expect(result.current.error).toBe('API error');
-  });
-
-  it('maps non-Error to error string', () => {
-    mockUsePredictPositionsReturn.error = 'string error' as unknown as Error;
-
-    const { result } = renderHook(() => usePredictPositionsForHomepage());
-
-    expect(result.current.error).toBe('string error');
+    expect(result.current.error).toBe(err);
   });
 
   it('returns null error when no error', () => {

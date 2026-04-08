@@ -7,7 +7,7 @@ export interface UsePredictPositionsForHomepageResult {
   /** Sum of currentValue across all claimable positions (only meaningful when claimable: true) */
   totalClaimableValue: number;
   isLoading: boolean;
-  error: string | null;
+  error: Error | null;
   refetch: () => Promise<unknown>;
 }
 
@@ -55,11 +55,7 @@ export const usePredictPositionsForHomepage = (
     positions,
     totalClaimableValue,
     isLoading,
-    error: error
-      ? error instanceof Error
-        ? error.message
-        : String(error)
-      : null,
+    error,
     refetch,
   };
 };

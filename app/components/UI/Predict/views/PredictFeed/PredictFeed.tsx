@@ -334,7 +334,10 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
-  if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
+  if (
+    !hasEverBeenActive ||
+    (isFetching && !marketData.length && !isFetchingMore && !isRefreshing)
+  ) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
         <PredictMarketSkeleton
@@ -353,7 +356,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     );
   }
 
-  if (error) {
+  if (error && !isFetching) {
     return (
       <Box style={{ paddingTop: currentPaddingTop }}>
         <PredictOffline onRetry={handleRefresh} />
@@ -361,7 +364,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     );
   }
 
-  if (!marketData || marketData.length === 0) {
+  if ((!marketData || marketData.length === 0) && !isFetching) {
     return (
       <Box
         testID={getPredictFeedSelector.emptyState(category)}
@@ -497,13 +500,22 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
   const isDebouncing = searchQuery !== debouncedSearchQuery;
 
-  const { marketData, isFetching, error, refetch } = usePredictMarketData({
+  const {
+    marketData,
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching,
+    error,
+    refetch,
+  } = usePredictMarketData({
     category: 'trending',
     q: debouncedSearchQuery,
     pageSize: 20,
   });
 
-  const isSearchLoading = isDebouncing || isFetching;
+  const isSearchBusy =
+    isDebouncing ||
+    isSearchLoading ||
+    (isSearchFetching && (!marketData || marketData.length === 0));
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -575,7 +587,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       </Box>
 
       <Box twClassName="flex-1">
-        {isSearchLoading ? (
+        {isSearchBusy ? (
           <Box twClassName="px-4 pt-4">
             <PredictMarketSkeleton
               testID={getPredictFeedSelector.searchSkeleton(1)}

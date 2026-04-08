@@ -9,6 +9,7 @@ import {
   predictFeaturedCarouselOptions,
 } from './featuredCarousel';
 import { predictMarketKeys, predictMarketOptions } from './market';
+import { predictMarketsKeys } from './markets';
 import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
@@ -44,6 +45,9 @@ export const predictQueries = {
   market: {
     keys: predictMarketKeys,
     options: predictMarketOptions,
+  },
+  markets: {
+    keys: predictMarketsKeys,
   },
   orderPreview: {
     keys: predictOrderPreviewKeys,

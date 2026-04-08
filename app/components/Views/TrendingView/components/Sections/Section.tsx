@@ -24,7 +24,12 @@ const Section: React.FC<SectionProps> = ({
   toggleSectionLoadingState,
 }) => {
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading, refetch } = section.useSectionData();
+  const {
+    data,
+    isLoading,
+    isFetching = false,
+    refetch,
+  } = section.useSectionData();
 
   // Notify parent when data is empty
   useEffect(() => {
@@ -44,8 +49,11 @@ const Section: React.FC<SectionProps> = ({
     }
   }, [refreshConfig, refetch]);
 
-  // Only show loading skeleton if refreshConfig allows it
-  const shouldShowSkeleton = isLoading && refreshConfig.silentRefresh;
+  // Always show skeleton when there's no data to display.
+  // Only gate on silentRefresh when data is already visible.
+  const shouldShowSkeleton =
+    isLoading ||
+    (isFetching && (data.length === 0 || refreshConfig.silentRefresh));
 
   return (
     <section.Section
