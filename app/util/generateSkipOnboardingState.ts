@@ -75,7 +75,7 @@ async function applyVaultInitialization() {
    * BrowserStack's local tunnel hostname. For local development,
    * standard localhost is used.
    */
-  const hosts = ['cqs.cursedlab.xyz', 'localhost', 'bs-local.com'];
+  const hosts = ['localhost', 'bs-local.com'];
   if (Platform.OS === 'android') {
     hosts.push('10.0.2.2');
   }
@@ -87,7 +87,7 @@ async function applyVaultInitialization() {
   );
 
   for (const host of hosts) {
-    const testUrl = `https://${host}/srp-profile-type.json`;
+    const testUrl = `http://${host}:${port}/srp-profile-type.json`;
     // eslint-disable-next-line no-console
     console.log(
       `[E2E - generateSkipOnboardingState] Trying command queue server at: ${testUrl}`,
