@@ -408,7 +408,7 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts (zips simulator .app and .xcarchive; writes ios_deploy_path / ios_archive_path / android_*_path outputs)
+      # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
@@ -420,19 +420,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
 
       - name: Upload iOS IPA
-        if: matrix.platform == 'ios'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          path: ${{ steps.rename.outputs.ios_ipa_path }}
           if-no-files-found: error
 
       - name: Upload iOS xcarchive
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-xcarchive-${{ inputs.build_name }}
@@ -440,7 +440,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload iOS sourcemap
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
