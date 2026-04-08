@@ -33,7 +33,8 @@ export interface UseOHLCVChartResult {
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
-  fetchMoreHistory: (params: { oldestTimestamp: number }) => void;
+  /** Opaque cursor for the next page. Pass to the WebView so it can fetch directly. */
+  nextCursor: string | null;
 }
 
 const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
@@ -97,9 +98,8 @@ export const useOHLCVChart = ({
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
-  const cursorRef = useRef<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const isFetchingMoreRef = useRef(false);
 
   const loadInitial = useCallback(async () => {
     if (!assetId) return;
@@ -110,7 +110,7 @@ export const useOHLCVChart = ({
 
     setIsLoading(true);
     setError(null);
-    cursorRef.current = null;
+    setNextCursor(null);
     setHasMore(false);
 
     try {
@@ -122,7 +122,7 @@ export const useOHLCVChart = ({
 
       if (!controller.signal.aborted) {
         setOhlcvData(result.data.map(mapCandle));
-        cursorRef.current = result.nextCursor || null;
+        setNextCursor(result.nextCursor || null);
         setHasMore(result.hasNext);
       }
     } catch (e) {
@@ -137,45 +137,10 @@ export const useOHLCVChart = ({
     }
   }, [assetId, timePeriod, interval, vsCurrency]);
 
-  const fetchMoreHistory = useCallback(
-    async (_params: { oldestTimestamp: number }) => {
-      if (!cursorRef.current || !hasMore || isFetchingMoreRef.current) return;
-
-      isFetchingMoreRef.current = true;
-      const controller = abortRef.current;
-
-      try {
-        const result = await fetchOHLCV(
-          assetId,
-          {
-            nextCursor: cursorRef.current,
-            vsCurrency,
-          },
-          controller?.signal,
-        );
-
-        if (controller?.signal.aborted) return;
-
-        const olderBars = result.data.map(mapCandle);
-        if (olderBars.length > 0) {
-          setOhlcvData((prev) => [...olderBars, ...prev]);
-        }
-        cursorRef.current = result.nextCursor || null;
-        setHasMore(result.hasNext);
-      } catch (e) {
-        if (controller?.signal.aborted) return;
-        setError(e instanceof Error ? e.message : 'Unknown error');
-      } finally {
-        isFetchingMoreRef.current = false;
-      }
-    },
-    [assetId, vsCurrency, hasMore],
-  );
-
   useEffect(() => {
     loadInitial();
     return () => abortRef.current?.abort();
   }, [loadInitial]);
 
-  return { ohlcvData, isLoading, error, hasMore, fetchMoreHistory };
+  return { ohlcvData, isLoading, error, hasMore, nextCursor };
 };

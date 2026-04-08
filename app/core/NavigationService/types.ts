@@ -149,6 +149,10 @@ import type {
   AddAccountParams,
   AmbiguousAddressParams,
 } from '../../components/Views/AccountActions/AccountActions.types';
+import type {
+  OnboardingOAuthRehydrateParams,
+  RehydrateParams,
+} from '../../components/Views/OAuthRehydration/OAuthRehydration.types';
 
 // Multichain accounts params
 import type {
@@ -387,14 +391,9 @@ export interface RootStackParamList extends ParamListBase {
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
   SocialLoginSuccessExistingUser: undefined;
-  Rehydrate:
-    | {
-        previous_screen?: string;
-        oauthLoginSuccess?: boolean;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onboardingTraceCtx?: any;
-      }
-    | undefined;
+  /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
+  OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
+  Rehydrate: RehydrateParams | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;

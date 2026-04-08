@@ -13,6 +13,9 @@ import {
 import type { OndoCampaignHowItWorks } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import { getIconName } from '../../utils/formatUtils';
+import ContentfulRichText, {
+  isDocument,
+} from '../ContentfulRichText/ContentfulRichText';
 
 export const CAMPAIGN_HOW_IT_WORKS_TEST_IDS = {
   CONTAINER: 'campaign-how-it-works-container',
@@ -63,13 +66,12 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
           >
             {step.title}
           </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative"
-            testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-${stepIndex}`}
-          >
-            {step.description}
-          </Text>
+          {isDocument(step.description) && (
+            <ContentfulRichText
+              document={step.description}
+              testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-${stepIndex}`}
+            />
+          )}
         </Box>
       </Box>
     ))}

@@ -18,6 +18,8 @@ import {
   formatComputedAt,
   getChainHex,
   getAssetReference,
+  parseCaip19,
+  caipChainIdToHex,
   shortenAddress,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
@@ -1327,6 +1329,58 @@ describe('formatUtils', () => {
 
     it('returns undefined for invalid CAIP-19', () => {
       expect(getChainHex('not-a-caip')).toBeUndefined();
+    });
+  });
+
+  describe('parseCaip19', () => {
+    it('parses a valid EIP-155 ERC-20 CAIP-19 identifier', () => {
+      expect(
+        parseCaip19(
+          'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+        ),
+      ).toEqual({
+        namespace: 'eip155',
+        chainId: '1',
+        assetReference: '0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+      });
+    });
+
+    it('parses a non-mainnet chain ID', () => {
+      expect(parseCaip19('eip155:137/erc20:0xdef')).toEqual({
+        namespace: 'eip155',
+        chainId: '137',
+        assetReference: '0xdef',
+      });
+    });
+
+    it('returns null for an invalid CAIP-19 string', () => {
+      expect(parseCaip19('not-a-caip')).toBeNull();
+    });
+
+    it('returns null for an empty string', () => {
+      expect(parseCaip19('')).toBeNull();
+    });
+  });
+
+  describe('caipChainIdToHex', () => {
+    it('converts eip155:1 to 0x1', () => {
+      expect(
+        caipChainIdToHex('eip155:1' as import('@metamask/utils').CaipChainId),
+      ).toBe('0x1');
+    });
+
+    it('converts eip155:137 to 0x89', () => {
+      expect(
+        caipChainIdToHex('eip155:137' as import('@metamask/utils').CaipChainId),
+      ).toBe('0x89');
+    });
+
+    it('converts eip155:42161 to 0xa4b1', () => {
+      expect(
+        caipChainIdToHex(
+          'eip155:42161' as import('@metamask/utils').CaipChainId,
+        ),
+      ).toBe('0xa4b1');
     });
   });
 

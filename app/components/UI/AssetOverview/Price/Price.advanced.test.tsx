@@ -36,7 +36,6 @@ jest.mock('../../Charts/AdvancedChart/OHLCVBar/OHLCVBar', () => {
   };
 });
 
-const mockFetchMoreHistory = jest.fn();
 const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ohlcvData: [
     { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -44,8 +43,8 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ],
   isLoading: false,
   error: undefined,
-  fetchMoreHistory: mockFetchMoreHistory,
   hasMore: false,
+  nextCursor: null,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -134,8 +133,8 @@ describe('PriceAdvanced', () => {
       ohlcvData: [],
       isLoading: true,
       error: undefined,
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
     });
     const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(queryByTestId('loading-price-diff')).not.toBeOnTheScreen();
@@ -165,8 +164,8 @@ describe('PriceAdvanced', () => {
       ohlcvData: [],
       isLoading: false,
       error: undefined,
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
     });
     const { getByTestId, queryByTestId } = render(
       <PriceAdvanced {...baseProps} />,
@@ -184,8 +183,8 @@ describe('PriceAdvanced', () => {
       ],
       isLoading: false,
       error: undefined,
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -200,8 +199,8 @@ describe('PriceAdvanced', () => {
       ],
       isLoading: false,
       error: new Error('fetch failed'),
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
     });
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -213,8 +212,8 @@ describe('PriceAdvanced', () => {
       ohlcvData: [],
       isLoading: false,
       error: undefined,
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
     });
     render(<PriceAdvanced {...baseProps} />);
 
