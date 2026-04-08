@@ -38,8 +38,6 @@ window.ohlcvPagination = {
 };
 /** Bumped on each `SET_OHLCV_DATA` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
-/** Visible-range start (ms) from `SET_OHLCV_DATA`. Applied once after the first `getBars` load. */
-window.pendingVisibleFromMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -425,7 +423,6 @@ function handleSetOHLCVData(payload) {
 
   var visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
-  window.pendingVisibleFromMs = null;
 
   var newResolution = detectResolution(window.ohlcvData);
 
