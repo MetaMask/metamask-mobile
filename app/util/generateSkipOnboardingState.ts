@@ -20,7 +20,6 @@ import AppConstants from '../core/AppConstants';
 import { getCommandQueueServerPortInApp } from './test/utils';
 import { Platform } from 'react-native';
 import { SrpProfile } from '../../tests/framework/types';
-import { isBrowserStack } from '../../tests/framework/fixtures/FixtureUtils';
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
 
@@ -30,6 +29,10 @@ const fetchWithTimeout = (url: string) =>
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
+
+const isBrowserStackLocalAndIOS =
+  process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true' &&
+  Platform.OS === 'ios';
 
 export const performanceSrps = [
   process.env.ADDITIONAL_SRP_1,
@@ -86,7 +89,7 @@ async function applyVaultInitialization() {
   console.log(
     `[E2E - generateSkipOnboardingState] Command queue server port: ${port}`,
   );
-  const protocol = isBrowserStack() && Platform.OS === 'ios' ? 'https' : 'http';
+  const protocol = isBrowserStackLocalAndIOS ? 'https' : 'http';
 
   for (const host of hosts) {
     const testUrl = `${protocol}://${host}:${port}/srp-profile-type.json`;
