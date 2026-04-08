@@ -31,7 +31,7 @@ export async function getStxMetricsProperties({
       transactionMeta.chainId,
     );
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      getState(),
+      state,
       transactionMeta.chainId,
     );
 
