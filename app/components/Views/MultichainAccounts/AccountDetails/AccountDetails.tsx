@@ -7,23 +7,25 @@ import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accou
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import PrivateKeyAccountDetails from './AccountTypes/PrivateKeyAccountDetails';
 import HardwareAccountDetails from './AccountTypes/HardwareAccountDetails';
 import { isHardwareAccount } from '../../../../util/address';
 import SnapAccountDetails from './AccountTypes/SnapAccountDetails';
 
-interface AccountDetailsRouteParams {
-  account: InternalAccount;
+interface AccountDetailsProps {
+  route: {
+    params: {
+      account: InternalAccount;
+    };
+  };
 }
 
-export const AccountDetails = () => {
-  const route =
-    useRoute<RouteProp<{ params: AccountDetailsRouteParams }, 'params'>>();
+export const AccountDetails = (props: AccountDetailsProps) => {
   const navigation = useNavigation();
   const {
     account: { address },
-  } = route.params;
+  } = props.route.params;
   const account: InternalAccount | undefined = useSelector((state: RootState) =>
     getMemoizedInternalAccountByAddress(state, address),
   );

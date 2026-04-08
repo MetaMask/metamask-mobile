@@ -733,7 +733,7 @@ const MultichainAccountDetails = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
-        component={AccountDetails}
+        component={AccountDetails as ScreenComponent}
         initialParams={route?.params}
       />
       <Stack.Screen
@@ -760,7 +760,7 @@ const MultichainAccountGroupDetails = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-        component={AccountGroupDetails}
+        component={AccountGroupDetails as ScreenComponent}
         initialParams={route?.params}
       />
       <Stack.Screen
@@ -773,7 +773,7 @@ const MultichainAccountGroupDetails = () => {
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
-        component={WalletDetails}
+        component={WalletDetails as ScreenComponent}
         initialParams={route?.params}
         options={{
           headerShown: false,

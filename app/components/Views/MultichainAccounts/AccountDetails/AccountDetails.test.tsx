@@ -35,6 +35,13 @@ jest.mock('../../confirmations/hooks/7702/useEIP7702Networks', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
 
 const mockAddress = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const mockAccount = createMockInternalAccount(
@@ -44,24 +51,11 @@ const mockAccount = createMockInternalAccount(
   EthAccountType.Eoa,
 );
 
-let mockRouteParams: { account: InternalAccount } = {
-  account: mockAccount,
-};
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-  useRoute: () => ({
-    params: mockRouteParams,
-  }),
-}));
-
 const renderWithAccount = (account: InternalAccount | undefined) => {
-  mockRouteParams = {
-    account: account || mockAccount,
+  const mockRoute = {
+    params: {
+      account: account || mockAccount,
+    },
   };
 
   // Create proper state that includes the account in the AccountsController
@@ -80,7 +74,7 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
 
   return renderWithProvider(
     <SafeAreaProvider>
-      <AccountDetails />
+      <AccountDetails route={mockRoute} />
     </SafeAreaProvider>,
     {
       state: {
@@ -112,7 +106,6 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
 describe('AccountDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { account: mockAccount };
   });
 
   it('displays account name and address when account is defined', () => {
@@ -133,13 +126,15 @@ describe('AccountDetails', () => {
       EthAccountType.Eoa,
     );
 
-    mockRouteParams = {
-      account: nonExistentAccount,
+    const mockRoute = {
+      params: {
+        account: nonExistentAccount,
+      },
     };
 
     renderWithProvider(
       <SafeAreaProvider>
-        <AccountDetails />
+        <AccountDetails route={mockRoute} />
       </SafeAreaProvider>,
       {
         state: {
