@@ -604,7 +604,8 @@ generateAndroidBinary() {
 		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+		# BrowserStack builds target real ARM devices, so skip x86_64-only restriction.
+		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
 			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
 			if [ "${CI:-false}" = "true" ] ; then
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
@@ -1061,10 +1062,18 @@ if [ "$PLATFORM" != "expo-update" ]; then
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-	# Build for simulator
-	export IS_SIM_BUILD="true"
+	if [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ]; then
+		# Build for simulator (local/CI emulator). BrowserStack builds target real devices, so skip this.
+		export IS_SIM_BUILD="true"
+	fi
 	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
+fi
+
+# BrowserStack builds target real devices: override IS_SIM_BUILD=true that loadBuildConfig may
+# have set from the generic main-e2e config (which uses IS_SIM_BUILD=true for emulators).
+if [ "${IS_BROWSERSTACK_BUILD:-false}" = "true" ]; then
+	export IS_SIM_BUILD="false"
 fi
 
 if [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
