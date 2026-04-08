@@ -55,10 +55,8 @@ export function useAutomaticGasFeeTokenSelect() {
 
   const shouldSelect =
     Boolean(firstGasFeeTokenAddress) &&
-    ((!checked &&
-      isGaslessSupported &&
-      hasInsufficientBalance &&
-      !selectedGasFeeToken) ||
+    !checked &&
+    ((isGaslessSupported && hasInsufficientBalance && !selectedGasFeeToken) ||
       hasSelectedGasFeeTokenNotInList);
 
   useEffect(() => {
