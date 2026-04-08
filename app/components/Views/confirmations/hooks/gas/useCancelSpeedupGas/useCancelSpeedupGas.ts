@@ -3,6 +3,7 @@ import {
   GasFeeEstimateLevel,
   isEIP1559Transaction,
   SPEED_UP_RATE,
+  TransactionStatus,
   UserFeeLevel,
   TransactionStatus,
   type FeeMarketEIP1559Values,

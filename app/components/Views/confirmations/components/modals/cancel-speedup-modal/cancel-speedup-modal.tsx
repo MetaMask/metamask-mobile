@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import {
   isEIP1559Transaction,
@@ -243,10 +243,8 @@ export function CancelSpeedupModal({
   }, []);
 
   const close = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      onClose();
-    });
-  }, [onClose]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const effectiveConfirmDisabled = confirmDisabled || !isInitialGasReady;
 
@@ -275,58 +273,56 @@ export function CancelSpeedupModal({
   ];
 
   return (
-    <>
-      <Modal
-        isVisible={isVisible}
-        animationIn="slideInUp"
-        animationOut="slideOutDown"
-        style={modalStyle.bottom}
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        useNativeDriver
-        onBackdropPress={onClose}
-        onBackButtonPress={onClose}
-        onSwipeComplete={onClose}
-        swipeDirection="down"
-        propagateSwipe
+    <Modal
+      isVisible={isVisible}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={modalStyle.bottom}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      useNativeDriver
+      onBackdropPress={onClose}
+      onBackButtonPress={onClose}
+    >
+      <BottomSheet
+        ref={bottomSheetRef}
+        shouldNavigateBack={false}
+        onClose={onClose}
+        style={styles.bottomSheetDialogSheet}
       >
-        <BottomSheet
-          ref={bottomSheetRef}
-          shouldNavigateBack={false}
-          style={styles.bottomSheetDialogSheet}
-        >
-          <HeaderCompactStandard title={title} onClose={close} />
-          <Box style={tw.style('px-3')}>
-            <ScrollView>
-              <Box gap={4}>
-                <InfoSection>
-                  <NetworkFeeRow
-                    fiat={networkFeeFiat}
-                    native={networkFeeNative}
-                    symbol={nativeTokenSymbol}
-                    chainId={chainId}
-                    onEditPress={
-                      isTransactionModifiable ? openGasModal : undefined
-                    }
-                  />
-                  <SpeedRow transactionId={tx?.id} />
-                </InfoSection>
-                <Description text={description} />
-              </Box>
-            </ScrollView>
-            <BottomSheetFooter
-              buttonsAlignment={ButtonsAlignment.Vertical}
-              buttonPropsArray={buttons}
-              style={tw.style('px-0')}
-            />
+        <HeaderCompactStandard title={title} onClose={close} />
+        <Box style={tw.style('px-3')}>
+          <Box gap={4}>
+            <InfoSection>
+              <NetworkFeeRow
+                fiat={networkFeeFiat}
+                native={networkFeeNative}
+                symbol={nativeTokenSymbol}
+                chainId={chainId}
+                onEditPress={
+                  isTransactionModifiable
+                    ? isTransactionModifiable
+                      ? openGasModal
+                      : undefined
+                    : undefined
+                }
+              />
+              <SpeedRow transactionId={tx?.id} />
+            </InfoSection>
+            <Description text={description} />
           </Box>
-        </BottomSheet>
-      </Modal>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Vertical}
+            buttonPropsArray={buttons}
+            style={tw.style('px-0')}
+          />
+        </Box>
+      </BottomSheet>
       {gasModalVisible && tx?.id && (
         <GasFeeModalTransactionProvider transactionId={tx.id}>
           <GasFeeModal setGasModalVisible={setGasModalVisible} />
         </GasFeeModalTransactionProvider>
       )}
-    </>
+    </Modal>
   );
 }

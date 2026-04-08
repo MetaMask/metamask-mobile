@@ -13,7 +13,11 @@ import {
   getBlockExplorerName,
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
+  getHexEvmChainId,
 } from '../../../util/networks';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
@@ -41,6 +45,8 @@ jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(),
   findBlockExplorerForNonEvmChainId: jest.fn(),
   findBlockExplorerForRpc: jest.fn(),
+  findBlockExplorerUrlForChain: jest.fn(),
+  getHexEvmChainId: jest.fn(),
   isMainnetByChainId: jest.fn(),
 }));
 
@@ -198,6 +204,13 @@ const mockFindBlockExplorerForRpc =
   findBlockExplorerForRpc as jest.MockedFunction<
     typeof findBlockExplorerForRpc
   >;
+const mockFindBlockExplorerUrlForChain =
+  findBlockExplorerUrlForChain as jest.MockedFunction<
+    typeof findBlockExplorerUrlForChain
+  >;
+const mockGetHexEvmChainId = getHexEvmChainId as jest.MockedFunction<
+  typeof getHexEvmChainId
+>;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
 >;

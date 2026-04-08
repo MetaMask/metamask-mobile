@@ -275,6 +275,45 @@ describe('CancelSpeedupModal', () => {
     });
   });
 
+  it('does not show edit gas when transaction is not modifiable', () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isTransactionModifiable: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    expect(queryByTestId('cancel-speedup-edit-gas')).toBeNull();
+  });
+
+  it('dismisses gas modal when transaction becomes non-modifiable', async () => {
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isTransactionModifiable: true,
+    });
+
+    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} />,
+      { state: baseState },
+    );
+
+    fireEvent.press(getByTestId('cancel-speedup-edit-gas'));
+    expect(getByTestId('gas-fee-modal')).toBeOnTheScreen();
+
+    mockedUseCancelSpeedupGas.mockReturnValue({
+      ...defaultGasValues,
+      isTransactionModifiable: false,
+    });
+    rerender(<CancelSpeedupModal {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(queryByTestId('gas-fee-modal')).toBeNull();
+    });
+  });
+
   it('does not call onConfirm when isInitialGasReady is false', () => {
     mockedUseCancelSpeedupGas.mockReturnValue({
       ...defaultGasValues,

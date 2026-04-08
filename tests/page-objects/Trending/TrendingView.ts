@@ -205,9 +205,9 @@ class TrendingView {
       `section-header-view-all-${id}`,
     );
 
-    // Trending tokens is at the top of the feed; scroll up to find it.
-    // All other sections (stocks, perps, predictions, sites) are below.
-    const direction = sectionTitle === 'Trending tokens' ? 'up' : 'down';
+    // Predictions is at the top of the feed; scroll up to find it.
+    // All other sections (tokens, perps, stocks, sites) are below.
+    const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
 
     // Use generic scroll method
     await this.scrollToElementInFeed(

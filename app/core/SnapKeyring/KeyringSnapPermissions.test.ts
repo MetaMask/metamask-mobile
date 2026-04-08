@@ -18,8 +18,8 @@ describe('keyringSnapPermissionsBuilder', () => {
   const mockController = new SubjectMetadataController({
     subjectCacheLimit: 100,
     messenger: {
-      registerActionHandler: jest.fn(),
       registerMethodActionHandlers: jest.fn(),
+      registerActionHandler: jest.fn(),
       registerInitialEventPayload: jest.fn(),
       publish: jest.fn(),
       // TODO: Replace `any` with type

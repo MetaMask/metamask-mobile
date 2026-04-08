@@ -1,6 +1,7 @@
 import {
   TransactionStatus,
   GasFeeEstimateLevel,
+  TransactionStatus,
   UserFeeLevel,
   type FeeMarketEIP1559Values,
   type GasPriceValue,
@@ -129,6 +130,7 @@ describe('useCancelSpeedupGas', () => {
     expect(result.current.networkFeeFiat).toBeNull();
     expect(result.current.nativeTokenSymbol).toBe('ETH');
     expect(result.current.isInitialGasReady).toBe(false);
+    expect(result.current.isTransactionModifiable).toBe(false);
   });
 
   it('returns empty result when tx has no txParams', () => {

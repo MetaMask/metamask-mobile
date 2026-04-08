@@ -2,7 +2,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 import WalletView from '../wallet/WalletView';
-import { Utilities } from '../../framework';
+import { asDetoxElement, Utilities } from '../../framework';
 
 class SuccessImportAccountView {
   get container(): DetoxElement {
@@ -34,7 +34,9 @@ class SuccessImportAccountView {
     // Workaround to dismiss the success modal
     await device.pressBack();
     await device.tap();
-    await Utilities.waitForElementToBeVisible(WalletView.container); // Ensure we are back to Wallet view
+    await Utilities.waitForElementToBeVisible(
+      asDetoxElement(WalletView.container),
+    );
     await WalletView.tapIdenticon();
   }
 }
