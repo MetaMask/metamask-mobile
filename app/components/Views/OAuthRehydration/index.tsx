@@ -99,6 +99,7 @@ import { getSocialAccountType } from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
+import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 
 const FOX_IMAGE_SIZE = Device.isIos() ? 175 : 150;
 const foxImageStyle = {
@@ -106,13 +107,6 @@ const foxImageStyle = {
   width: FOX_IMAGE_SIZE,
   height: FOX_IMAGE_SIZE,
 };
-
-interface OAuthRehydrationRouteParams {
-  locked: boolean;
-  oauthLoginSuccess: boolean;
-  onboardingTraceCtx?: TraceContext;
-  isSeedlessPasswordOutdated?: boolean;
-}
 
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;

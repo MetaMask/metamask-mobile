@@ -19,6 +19,8 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
+  /** Lifetime bonus claimed in human-readable USD (e.g. "221.59"); null while loading. */
+  lifetimeBonusClaimed: string | null;
   hasPendingClaim: boolean;
   isClaiming: boolean;
   /** Set when the last claim attempt failed (e.g. no reward data, network). */
@@ -34,6 +36,7 @@ export interface MerklClaimData {
 
 const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
   claimableReward: null,
+  lifetimeBonusClaimed: null,
   hasPendingClaim: false,
   isClaiming: false,
   error: null,
@@ -99,10 +102,14 @@ export const useMerklBonusClaim = (
 
   const eligibleAsset = isEligible ? asset : undefined;
 
-  const { claimableReward, hasClaimedBefore, rewardsFetchVersion } =
-    useMerklRewards({
-      asset: eligibleAsset,
-    });
+  const {
+    claimableReward,
+    lifetimeBonusClaimed,
+    hasClaimedBefore,
+    rewardsFetchVersion,
+  } = useMerklRewards({
+    asset: eligibleAsset,
+  });
   const { hasPendingClaim } = usePendingMerklClaim();
   const {
     claimRewards,
@@ -184,6 +191,7 @@ export const useMerklBonusClaim = (
         !isClaimLocked && isClaimableBonusAboveThreshold(claimableReward)
           ? claimableReward
           : null,
+      lifetimeBonusClaimed,
       hasPendingClaim,
       claimRewards: claimRewardsWithSessionLock,
       isClaiming,
@@ -192,6 +200,7 @@ export const useMerklBonusClaim = (
   }, [
     isEligible,
     claimableReward,
+    lifetimeBonusClaimed,
     hasPendingClaim,
     claimRewardsWithSessionLock,
     isClaiming,
