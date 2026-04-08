@@ -6817,7 +6817,8 @@
     "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
     "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
     "token_warning_modal_suspicious_title": "Suspicious token",
-    "token_warning_modal_malicious_title": "Malicious token"
+    "token_warning_modal_malicious_title": "Malicious token",
+    "price_impact_fiat_alert": "You will lose {{priceImpactFiat}} on this trade"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
