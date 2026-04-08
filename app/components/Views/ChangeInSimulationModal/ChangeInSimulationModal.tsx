@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { RouteProp, useRoute } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -39,16 +38,11 @@ const createStyles = () =>
     },
   });
 
-interface ChangeInSimulationModalRouteParams {
-  onProceed: () => void;
-  onReject: () => void;
-}
-
-const ChangeInSimulationModal = () => {
-  const route =
-    useRoute<
-      RouteProp<{ params: ChangeInSimulationModalRouteParams }, 'params'>
-    >();
+const ChangeInSimulationModal = ({
+  route,
+}: {
+  route: { params: { onProceed: () => void; onReject: () => void } };
+}) => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { onProceed, onReject } = route.params;

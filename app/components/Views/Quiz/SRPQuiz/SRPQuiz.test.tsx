@@ -9,12 +9,10 @@ import {
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
 } from './SrpQuizModal.testIds';
-import SRPQuiz from './SRPQuiz';
+import SRPQuiz, { SRPQuizProps } from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { Linking } from 'react-native';
-
-let mockRouteParams: { keyringId?: string } = {};
 
 const mockNavigate = jest.fn();
 
@@ -27,9 +25,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
-  useRoute: () => ({
-    params: mockRouteParams,
-  }),
 }));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -37,11 +32,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const renderSRPQuiz = (
-  routeParams: { keyringId?: string } = {},
+  props: SRPQuizProps,
   completeQuiz: boolean = true,
   hasVault: boolean = false,
 ) => {
-  mockRouteParams = routeParams;
   const mockStore = configureMockStore();
   const initialState = {
     engine: {
@@ -58,7 +52,7 @@ const renderSRPQuiz = (
     <SafeAreaProvider initialMetrics={initialMetrics}>
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
-          <SRPQuiz />
+          <SRPQuiz {...props} />
         </ThemeContext.Provider>
       </Provider>
     </SafeAreaProvider>,
@@ -95,14 +89,15 @@ const renderSRPQuiz = (
 };
 
 describe('SRPQuiz', () => {
-  beforeEach(() => {
-    mockRouteParams = {};
-  });
-
   it('passes the keyringId to the SRPQuiz', async () => {
     const keyringId = '123';
+    const props = {
+      route: {
+        params: { keyringId },
+      },
+    };
 
-    renderSRPQuiz({ keyringId }, true);
+    renderSRPQuiz(props, true);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -118,7 +113,12 @@ describe('SRPQuiz', () => {
 
   it('should navigate to the learn more article of social login when the learn more button is pressed', async () => {
     const keyringId = '123';
-    const { getByText } = renderSRPQuiz({ keyringId }, true, true);
+    const props = {
+      route: {
+        params: { keyringId },
+      },
+    };
+    const { getByText } = renderSRPQuiz(props, true, true);
 
     const learnMoreButton = getByText(strings('srp_security_quiz.learn_more'));
     fireEvent.press(learnMoreButton);
