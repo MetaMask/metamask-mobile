@@ -30,8 +30,9 @@ const mockUseHomepageSparklines = jest.fn(() => ({ sparklines: {} }));
 jest.mock(
   '../../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
   () => ({
-    useHomepageSparklines: (...args: unknown[]) =>
-      mockUseHomepageSparklines(...args),
+    useHomepageSparklines: (
+      ...args: Parameters<typeof mockUseHomepageSparklines>
+    ) => mockUseHomepageSparklines(...args),
   }),
 );
 
