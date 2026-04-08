@@ -20,6 +20,7 @@ import { publishPerformanceScenarioToSentry } from '../../reporters/providers/se
 import CommandQueueServer from '../fixtures/CommandQueueServer';
 import { PlatformDetector } from '../PlatformLocator';
 import { createLogger, LogLevel } from '../logger';
+import { isBrowserStack } from '../fixtures/FixtureUtils';
 
 const logger = createLogger({
   name: 'Playwright TestFixture',
@@ -130,6 +131,12 @@ export const test = base.extend<TestLevelFixtures>({
     }
     const server = new CommandQueueServer();
     server.setServerPort(FALLBACK_COMMAND_QUEUE_SERVER_PORT);
+    if (isBrowserStack() && currentDeviceDetails.platform === 'ios') {
+      server.enableHttps(
+        'tests/framework/fixtures/certs/server.crt',
+        'tests/framework/fixtures/certs/server.key',
+      );
+    }
     await server.start();
     server.setSrpProfile(srpProfile);
 

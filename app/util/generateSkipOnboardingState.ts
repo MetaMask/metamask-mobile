@@ -20,6 +20,7 @@ import AppConstants from '../core/AppConstants';
 import { getCommandQueueServerPortInApp } from './test/utils';
 import { Platform } from 'react-native';
 import { SrpProfile } from '../../tests/framework/types';
+import { isBrowserStack } from '../../tests/framework/fixtures/FixtureUtils';
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
 
@@ -85,9 +86,10 @@ async function applyVaultInitialization() {
   console.log(
     `[E2E - generateSkipOnboardingState] Command queue server port: ${port}`,
   );
+  const protocol = isBrowserStack() && Platform.OS === 'ios' ? 'https' : 'http';
 
   for (const host of hosts) {
-    const testUrl = `http://${host}:${port}/srp-profile-type.json`;
+    const testUrl = `${protocol}://${host}:${port}/srp-profile-type.json`;
     // eslint-disable-next-line no-console
     console.log(
       `[E2E - generateSkipOnboardingState] Trying command queue server at: ${testUrl}`,

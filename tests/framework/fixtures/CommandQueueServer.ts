@@ -1,4 +1,10 @@
 import Koa, { Context } from 'koa';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import https from 'https';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import http from 'http';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import fs from 'fs';
 import { createLogger, LogLevel } from '../logger';
 import { E2ECommandTypes, Resource, ServerStatus, SrpProfile } from '../types';
 import PortManager, { ResourceType } from '../PortManager';
@@ -19,12 +25,18 @@ export interface CommandQueueItem {
   args: Record<string, unknown>;
 }
 
+interface HttpsOptions {
+  certPath: string;
+  keyPath: string;
+}
+
 class CommandQueueServer implements Resource {
   private _app: Koa;
-  private _server: ReturnType<Koa['listen']> | undefined;
+  private _server: http.Server | https.Server | undefined;
   private _queue: CommandQueueItem[];
   private _exportedState: Record<string, unknown> | null;
   private _srpProfile: SrpProfile;
+  private _httpsOptions: HttpsOptions | undefined;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -109,6 +121,14 @@ class CommandQueueServer implements Resource {
     this._serverPort = port;
   }
 
+  enableHttps(certPath: string, keyPath: string): void {
+    this._httpsOptions = { certPath, keyPath };
+  }
+
+  get isHttps(): boolean {
+    return this._httpsOptions !== undefined;
+  }
+
   // Start the fixture server
   async start(): Promise<void> {
     if (this._serverStatus === ServerStatus.STARTED) {
@@ -123,8 +143,22 @@ class CommandQueueServer implements Resource {
     };
 
     await new Promise<void>((resolve, reject) => {
-      logger.info('Starting command queue server on port', this._serverPort);
-      this._server = this._app.listen(options);
+      logger.info(
+        `Starting command queue server (${this._httpsOptions ? 'HTTPS' : 'HTTP'}) on port`,
+        this._serverPort,
+      );
+
+      if (this._httpsOptions) {
+        const sslOptions = {
+          key: fs.readFileSync(this._httpsOptions.keyPath),
+          cert: fs.readFileSync(this._httpsOptions.certPath),
+        };
+        this._server = https
+          .createServer(sslOptions, this._app.callback())
+          .listen(options);
+      } else {
+        this._server = this._app.listen(options);
+      }
       if (!this._server) {
         logger.error(
           '❌ Failed to start command queue server on port',
