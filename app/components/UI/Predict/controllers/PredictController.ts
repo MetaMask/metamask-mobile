@@ -75,6 +75,7 @@ import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  GetSeriesParams,
   OrderPreview,
   PlaceOrderParams,
   PredictAccountMeta,
@@ -354,6 +355,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getBalance',
   'getConnectionStatus',
   'getMarket',
+  'getMarketSeries',
   'getMarkets',
   'getPositions',
   'getPriceHistory',
@@ -684,6 +686,10 @@ export class PredictController extends BaseController<
         }
       },
     );
+  }
+
+  async getMarketSeries(params: GetSeriesParams): Promise<PredictMarket[]> {
+    return this.provider.getMarketSeries(params);
   }
 
   async getPriceHistory(

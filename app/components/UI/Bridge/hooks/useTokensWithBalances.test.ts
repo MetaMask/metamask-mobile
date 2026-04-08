@@ -130,6 +130,12 @@ describe('useTokensWithBalances', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('handles undefined token arrays', () => {
+      const { result } = renderHook(() => useTokensWithBalances(undefined, {}));
+
+      expect(result.current).toEqual([]);
+    });
+
     it('handles multiple tokens with partial balance data', () => {
       const token1AssetId =
         'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;

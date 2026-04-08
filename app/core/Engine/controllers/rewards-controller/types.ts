@@ -165,7 +165,7 @@ export interface CampaignDto {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoCampaignStepState = {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
 };
 
@@ -656,7 +656,7 @@ export type CampaignParticipantStatusState = {
 
 export interface OndoCampaignStep {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
 }
 

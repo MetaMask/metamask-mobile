@@ -211,6 +211,7 @@ export default {
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
+    MUSD_LEARN_MORE: 'https://support.metamask.io/manage-crypto/tokens/musd',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
