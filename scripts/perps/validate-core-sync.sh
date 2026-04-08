@@ -223,6 +223,38 @@ compute_source_checksum() {
 
 step_conflict_check() {
   local sync_state="$CORE_PATH/packages/perps-controller/.sync-state.json"
+
+  # Check freshness vs origin/main BEFORE looking at sync state.
+  # If someone else committed to packages/perps-controller on main while
+  # this branch was in review, we need to merge main first — otherwise
+  # the sync will silently overwrite their work. Hard-fail in that case.
+  (
+    cd "$CORE_PATH"
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+      echo "OK: Fetching origin/main to check freshness..."
+      if git fetch origin main --quiet 2>/dev/null; then
+        local behind_count
+        behind_count=$(git rev-list --count HEAD..origin/main -- packages/perps-controller/ 2>/dev/null || echo "0")
+        if (( behind_count > 0 )); then
+          echo "FAIL: Current branch is behind origin/main by $behind_count commit(s) touching packages/perps-controller/"
+          echo "FAIL: Someone committed perps-controller changes to main after this branch started."
+          echo "FAIL: Merge or rebase origin/main before syncing, e.g.:"
+          echo "FAIL:   cd $CORE_PATH && git merge origin/main"
+          echo ""
+          echo "Offending commits:"
+          git log HEAD..origin/main --oneline -- packages/perps-controller/ | sed 's/^/  /'
+          exit 1
+        else
+          echo "OK: Current branch is current with origin/main for perps-controller"
+        fi
+      else
+        echo "WARN: Could not fetch origin/main (offline?) — skipping freshness check"
+      fi
+    else
+      echo "WARN: No origin/main ref in core repo — skipping freshness check"
+    fi
+  ) || return 1
+
   if [[ ! -f "$sync_state" ]]; then
     echo "OK: No previous sync state — first sync"
     return 0
@@ -335,8 +367,16 @@ step_eslint_fix() {
   progress "  ├─ Running --suppress-all"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --suppress-all || true
 
-  progress "  └─ Running --prune-suppressions"
+  progress "  ├─ Running --prune-suppressions"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --prune-suppressions || true
+
+  # Prettier formats eslint-suppressions.json differently than eslint
+  # writes it (trailing newline, key quoting), so run prettier afterwards
+  # to keep core's lint:misc:check happy.
+  if [[ -f "$supp_file" ]]; then
+    progress "  └─ Running prettier on eslint-suppressions.json"
+    yarn prettier --write eslint-suppressions.json > /dev/null 2>&1 || true
+  fi
 
   # Count suppressions
   if [[ -f "$supp_file" ]]; then
