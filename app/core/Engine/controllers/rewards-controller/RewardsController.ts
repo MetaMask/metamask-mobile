@@ -27,6 +27,8 @@ import {
   type CampaignLeaderboardPositionDto,
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
+  type PaginatedOndoGmActivityDto,
+  type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -122,6 +124,9 @@ const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
+
+// Campaign activity cache threshold (first page only)
+const ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -223,6 +228,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  ondoCampaignActivity: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -256,6 +267,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   ondoCampaignLeaderboard: {},
   ondoCampaignLeaderboardPositions: {},
   ondoCampaignPortfolio: {},
+  ondoCampaignActivity: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -351,6 +363,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'convertToSeasonStatusDto',
   'estimatePoints',
   'getActivePointsBoosts',
+  'getActivityIfChanged',
+  'getActivityLastUpdated',
   'getActualSubscriptionId',
   'getCampaignParticipantStatus',
   'getCampaigns',
@@ -363,6 +377,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOffDeviceSubscriptionAccounts',
   'getOndoCampaignLeaderboard',
   'getOndoCampaignLeaderboardPosition',
+  'getOndoCampaignActivity',
   'getOndoCampaignPortfolioPosition',
   'getOptInStatus',
   'getPerpsDiscountForAccount',
@@ -377,6 +392,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getUnlockedRewards',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
+  'hasActivityChanged',
   'hasPointsEventsChanged',
   'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
@@ -3690,6 +3706,178 @@ export class RewardsController extends BaseController<
       },
     });
     return result;
+  }
+
+  /**
+   * Get paginated activity for an Ondo GM campaign.
+   * First page is cached for 1 minute; subsequent pages are always fetched fresh.
+   * When `forceFresh` is true the cache is bypassed but a last-updated check
+   * avoids redundant fetches if the server data hasn't changed.
+   * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
+   * @returns Paginated activity entries.
+   */
+  async getOndoCampaignActivity(params: {
+    campaignId: string;
+    subscriptionId: string;
+    cursor: string | null;
+    forceFresh?: boolean;
+  }): Promise<PaginatedOndoGmActivityDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { has_more: false, cursor: null, results: [] };
+    }
+
+    const { campaignId, subscriptionId, cursor, forceFresh } = params;
+
+    if (cursor) {
+      return this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:getOndoCampaignActivity',
+            campaignId,
+            subscriptionId,
+            cursor,
+          ) as Promise<PaginatedOndoGmActivityDto>,
+        subscriptionId,
+      );
+    }
+
+    if (forceFresh) {
+      return this.#withAuthRetry(
+        () => this.getActivityIfChanged(campaignId, subscriptionId),
+        subscriptionId,
+      );
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<PaginatedOndoGmActivityDto>({
+      key,
+      ttl: ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignActivity[k];
+        if (!cached) {
+          return undefined;
+        }
+        return {
+          payload: {
+            results: cached.results as PaginatedOndoGmActivityDto['results'],
+            has_more: cached.has_more,
+            cursor: cached.cursor,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign activity via API call',
+          );
+          const activity = await this.getActivityIfChanged(
+            campaignId,
+            subscriptionId,
+          );
+          return activity;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignActivity[k] = {
+            results: payload.results,
+            has_more: payload.has_more,
+            cursor: payload.cursor,
+            lastFetched: Date.now(),
+          } as OndoGmActivityState;
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Fetch the first page of activity only if the server data has changed
+   * since the last cached entry. Falls back to cached data when unchanged.
+   */
+  async getActivityIfChanged(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PaginatedOndoGmActivityDto> {
+    const key = `${subscriptionId}:${campaignId}`;
+
+    const hasChanged = await this.hasActivityChanged(
+      campaignId,
+      subscriptionId,
+    );
+
+    if (!hasChanged) {
+      const cached = this.state.ondoCampaignActivity[key];
+      return cached
+        ? {
+            results: cached.results as PaginatedOndoGmActivityDto['results'],
+            has_more: cached.has_more,
+            cursor: cached.cursor,
+          }
+        : { has_more: false, cursor: null, results: [] };
+    }
+
+    return (await this.messenger.call(
+      'RewardsDataService:getOndoCampaignActivity',
+      campaignId,
+      subscriptionId,
+      null,
+    )) as PaginatedOndoGmActivityDto;
+  }
+
+  /**
+   * Get the last-updated timestamp for Ondo GM campaign activity.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The last-updated date, or null if no activity exists.
+   */
+  async getActivityLastUpdated(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<Date | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
+    Logger.log('RewardsController: Getting campaign activity last updated', {
+      campaignId,
+      subscriptionId,
+    });
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getOndoCampaignActivityLastUpdated',
+          campaignId,
+          subscriptionId,
+        ),
+      subscriptionId,
+    );
+  }
+
+  /**
+   * Check if campaign activity has changed since the last fetch.
+   * Compares the server's last-updated timestamp against the most recent
+   * cached entry's timestamp.
+   * @returns true if fresh data should be fetched.
+   */
+  async hasActivityChanged(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<boolean> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return false;
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const cached = this.state.ondoCampaignActivity[key];
+
+    const cachedLatestTimestamp = cached?.results?.[0]?.timestamp;
+    if (!cachedLatestTimestamp) return true;
+
+    const lastUpdated = await this.getActivityLastUpdated(
+      campaignId,
+      subscriptionId,
+    );
+    return lastUpdated
+      ? lastUpdated.toISOString() !== cachedLatestTimestamp
+      : true;
   }
 
   /**
