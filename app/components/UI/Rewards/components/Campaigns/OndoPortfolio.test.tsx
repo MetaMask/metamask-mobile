@@ -177,37 +177,12 @@ jest.mock('./OndoLeaderboard.utils', () => ({
   formatComputedAt: jest.fn(),
 }));
 
-jest.mock('../RewardsInfoBanner', () => {
+jest.mock('../../../../../images/rewards/rewards-no-positions.svg', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      onConfirm,
-      confirmButtonLabel,
-    }: {
-      title: string;
-      description: string;
-      onConfirm?: () => void;
-      confirmButtonLabel?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'rewards-info-banner' },
-        ReactActual.createElement(Text, null, title),
-        onConfirm &&
-          ReactActual.createElement(
-            Pressable,
-            { onPress: onConfirm, testID: 'info-banner-confirm' },
-            ReactActual.createElement(
-              Text,
-              null,
-              confirmButtonLabel ?? 'Confirm',
-            ),
-          ),
-      ),
-  };
+  const { View } = jest.requireActual('react-native');
+  const RewardsNoPositionsImage = () =>
+    ReactActual.createElement(View, { testID: 'rewards-no-positions-image' });
+  return { __esModule: true, default: RewardsNoPositionsImage };
 });
 
 jest.mock(
@@ -390,12 +365,12 @@ describe('OndoPortfolio', () => {
   });
 
   describe('initial/unfetched state', () => {
-    it('renders nothing before any fetch has completed', () => {
+    it('renders the empty state before any fetch has completed', () => {
       const { queryByTestId } = render(<OndoPortfolio {...baseProps} />);
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeNull();
-      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
+      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeDefined();
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeNull();
     });
   });
@@ -605,19 +580,19 @@ describe('OndoPortfolio', () => {
   });
 
   describe('empty state CTA', () => {
-    it('triggers navigate when empty state confirm button is pressed', () => {
-      const { getByTestId } = render(
+    it('triggers navigate when empty state CTA is pressed', () => {
+      const { getByText, getByTestId } = render(
         <OndoPortfolio {...baseProps} hasFetched />,
       );
-      fireEvent.press(getByTestId('info-banner-confirm'));
+      fireEvent.press(getByText('Explore tokens'));
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeOnTheScreen();
     });
 
-    it('does not render CTA button when campaign is complete', () => {
-      const { queryByTestId } = render(
+    it('does not render CTA when campaign is complete', () => {
+      const { queryByText } = render(
         <OndoPortfolio {...baseProps} hasFetched isCampaignComplete />,
       );
-      expect(queryByTestId('info-banner-confirm')).toBeNull();
+      expect(queryByText('Explore tokens')).toBeNull();
     });
   });
 

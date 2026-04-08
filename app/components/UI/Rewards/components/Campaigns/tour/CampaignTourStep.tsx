@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import RewardsThemeImageComponent from '../../ThemeImageComponent/RewardsThemeImageComponent';
 import type { OndoCampaignTourStepDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import { documentToPlainText } from '../../ContentfulRichText/ContentfulRichText';
 
 export const CAMPAIGN_TOUR_STEP_TEST_IDS = {
   CONTAINER: 'campaign-tour-step-container',
@@ -52,14 +53,14 @@ const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {
           twClassName="text-center"
           testID={CAMPAIGN_TOUR_STEP_TEST_IDS.TITLE}
         >
-          {step.title}
+          {documentToPlainText(step.title)}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           twClassName="mt-2 text-center text-text-alternative"
           testID={CAMPAIGN_TOUR_STEP_TEST_IDS.DESCRIPTION}
         >
-          {step.description}
+          {documentToPlainText(step.description)}
         </Text>
       </Box>
     </ScrollView>

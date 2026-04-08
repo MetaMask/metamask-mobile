@@ -251,5 +251,51 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
   );
 };
 
-export { isDocument };
+// Returns a fresh RegExp each call so stateful `lastIndex` never leaks between uses.
+// Constructed via new RegExp() to avoid the no-control-regex lint rule firing on
+// intentional control-character matching (U+0000–U+001F, U+007F, etc.).
+const UNWANTED_CHARS_PATTERN =
+  '[\u0000-\u001F\u007F\u0080-\u009F\u200B-\u200F\u2028\u2029\uFEFF\uFFFC-\uFFFD]+';
+const UNWANTED_CHARS_RE = () => new RegExp(UNWANTED_CHARS_PATTERN, 'g');
+
+/**
+ * Recursively extracts plain text from a Contentful rich text document or node.
+ * If the value is already a string, it is returned as-is.
+ * Returns an empty string for null/undefined/non-object values.
+ */
+function documentToPlainText(value: unknown): string {
+  if (typeof value === 'string')
+    return value
+      .replace(UNWANTED_CHARS_RE(), ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  if (value === null || value === undefined || typeof value !== 'object')
+    return '';
+
+  const node = value as {
+    nodeType?: unknown;
+    value?: unknown;
+    content?: unknown[];
+  };
+
+  if (node.nodeType === 'text' && typeof node.value === 'string') {
+    return node.value
+      .replace(UNWANTED_CHARS_RE(), ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  if (Array.isArray(node.content)) {
+    return node.content
+      .map(documentToPlainText)
+      .join(' ')
+      .replace(/[\n\r\u2028\u2029]+/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  return '';
+}
+
+export { isDocument, documentToPlainText };
 export default ContentfulRichText;

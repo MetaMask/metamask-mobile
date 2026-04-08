@@ -213,7 +213,6 @@ export type ThemeImageState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
-  depositCutoffDate?: string;
 };
 
 /**
@@ -700,7 +699,6 @@ export interface OndoCampaignHowItWorks {
 
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
-  depositCutoffDate?: string;
 }
 
 export type CampaignDetails = OndoHoldingDetails;

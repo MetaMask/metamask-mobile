@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import CampaignCTA, { CAMPAIGN_CTA_TEST_IDS } from './CampaignCTA';
+import OndoCampaignCTA from './OndoCampaignCTA';
+import { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 import {
   type CampaignDto,
   CampaignType,
@@ -55,11 +56,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.open_position': 'Open Position',
-
-      'rewards.campaign_details.entries_closed_title': 'Entries closed',
-      'rewards.campaign_details.entries_closed_description':
-        'You missed the opt-in window',
+      'rewards.campaign_details.ondo.open_position': 'Open Position',
+      'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
+      'rewards.campaign_details.ondo.entries_closed_description':
+        'You missed the opt-in window. Check back for more campaigns in the future.',
     };
     return map[key] ?? key;
   },
@@ -85,7 +85,17 @@ const defaultProps = {
   campaignId: 'campaign-1',
 };
 
-describe('CampaignCTA', () => {
+const notOptedIn = {
+  status: { optedIn: false, participantCount: 0 } as const,
+  isLoading: false,
+};
+
+const optedIn = {
+  status: { optedIn: true, participantCount: 1 } as const,
+  isLoading: false,
+};
+
+describe('OndoCampaignCTA', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
@@ -96,20 +106,10 @@ describe('CampaignCTA', () => {
     jest.useRealTimers();
   });
 
-  const notOptedIn = {
-    status: { optedIn: false, participantCount: 0 } as const,
-    isLoading: false,
-  };
-
-  const optedIn = {
-    status: { optedIn: true, participantCount: 1 } as const,
-    isLoading: false,
-  };
-
   describe('visibility', () => {
     it('renders nothing when campaign is not active (upcoming)', () => {
       const { queryByTestId } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign({
             startDate: '2026-01-01T00:00:00.000Z',
             endDate: '2026-12-31T23:59:59.999Z',
@@ -122,24 +122,9 @@ describe('CampaignCTA', () => {
       expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
-    it('renders nothing when campaign is complete', () => {
-      const { queryByTestId } = render(
-        <CampaignCTA
-          campaign={buildCampaign({
-            startDate: '2024-01-01T00:00:00.000Z',
-            endDate: '2025-01-01T00:00:00.000Z',
-          })}
-          participantStatus={notOptedIn}
-          {...defaultProps}
-        />,
-      );
-
-      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
-    });
-
     it('renders nothing while participant status is loading', () => {
       const { queryByTestId } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign()}
           participantStatus={{ status: null, isLoading: true }}
           {...defaultProps}
@@ -148,46 +133,13 @@ describe('CampaignCTA', () => {
 
       expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
-  });
 
-  describe('not opted in, before deposit cutoff', () => {
-    it('renders the opt-in CTA button', () => {
+    it('renders "Entries closed" button when campaign is complete', () => {
       const { getByTestId, getByText } = render(
-        <CampaignCTA
-          campaign={buildCampaign()}
-          participantStatus={notOptedIn}
-          {...defaultProps}
-        />,
-      );
-
-      expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
-      expect(getByText('Join Campaign')).toBeOnTheScreen();
-    });
-
-    it('opens the opt-in sheet when the button is pressed', () => {
-      const { getByTestId, queryByTestId } = render(
-        <CampaignCTA
-          campaign={buildCampaign()}
-          participantStatus={notOptedIn}
-          {...defaultProps}
-        />,
-      );
-
-      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
-      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
-      expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-    });
-  });
-
-  describe('not opted in, past deposit cutoff', () => {
-    it('renders a disabled button with "Entries closed" text', () => {
-      const { getByTestId, getByText } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: '2025-08-01T00:00:00.000Z',
-            },
+            startDate: '2024-01-01T00:00:00.000Z',
+            endDate: '2025-01-01T00:00:00.000Z',
           })}
           participantStatus={notOptedIn}
           {...defaultProps}
@@ -198,70 +150,47 @@ describe('CampaignCTA', () => {
       expect(getByText('Entries closed')).toBeOnTheScreen();
     });
 
-    it('shows the entries-closed toast', () => {
-      render(
-        <CampaignCTA
+    it('shows the entries-closed toast when the button is pressed on a complete campaign', () => {
+      const { getByTestId } = render(
+        <OndoCampaignCTA
           campaign={buildCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: '2025-08-01T00:00:00.000Z',
-            },
+            startDate: '2024-01-01T00:00:00.000Z',
+            endDate: '2025-01-01T00:00:00.000Z',
           })}
           participantStatus={notOptedIn}
           {...defaultProps}
         />,
       );
 
+      fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+
       expect(mockEntriesClosed).toHaveBeenCalledWith(
         'Entries closed',
-        'You missed the opt-in window',
+        'You missed the opt-in window. Check back for more campaigns in the future.',
       );
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('opted in, past deposit cutoff, no positions', () => {
-    it('renders nothing when deposit cutoff has passed and user has no positions', () => {
-      const { queryByTestId } = render(
-        <CampaignCTA
-          campaign={buildCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: '2025-08-01T00:00:00.000Z',
-            },
-          })}
-          participantStatus={optedIn}
+  describe('not opted in', () => {
+    it('delegates to CampaignCTA and renders the opt-in button', () => {
+      const { getByTestId, getByText } = render(
+        <OndoCampaignCTA
+          campaign={buildCampaign()}
+          participantStatus={notOptedIn}
           {...defaultProps}
-          hasPositions={false}
-        />,
-      );
-
-      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
-    });
-
-    it('still renders swap button when deposit cutoff passed but user has positions', () => {
-      const { getByTestId } = render(
-        <CampaignCTA
-          campaign={buildCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: '2025-08-01T00:00:00.000Z',
-            },
-          })}
-          participantStatus={optedIn}
-          {...defaultProps}
-          hasPositions
         />,
       );
 
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeOnTheScreen();
+      expect(getByText('Join Campaign')).toBeOnTheScreen();
     });
   });
 
   describe('opted in, no portfolio positions', () => {
     it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign()}
           participantStatus={optedIn}
           {...defaultProps}
@@ -273,9 +202,9 @@ describe('CampaignCTA', () => {
       expect(getByText('Open Position')).toBeOnTheScreen();
     });
 
-    it('navigates to RWA asset selector view when pressed', () => {
+    it('navigates to RWA asset selector in open_position mode when pressed', () => {
       const { getByTestId } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign()}
           participantStatus={optedIn}
           {...defaultProps}
@@ -294,7 +223,7 @@ describe('CampaignCTA', () => {
   describe('opted in, with portfolio positions', () => {
     it('renders the "Open Position" button', () => {
       const { getByTestId, getByText } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign()}
           participantStatus={optedIn}
           {...defaultProps}
@@ -308,7 +237,7 @@ describe('CampaignCTA', () => {
 
     it('navigates to RWA asset selector in swap mode when pressed', () => {
       const { getByTestId } = render(
-        <CampaignCTA
+        <OndoCampaignCTA
           campaign={buildCampaign()}
           participantStatus={optedIn}
           {...defaultProps}
