@@ -788,6 +788,13 @@ const Onboarding = () => {
             track(MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED, {
               account_type: accountType,
             });
+            if (socialLoginTraceCtx.current) {
+              endTrace({
+                name: TraceName.OnboardingSocialLoginAttempt,
+                data: { success: false },
+              });
+              socialLoginTraceCtx.current = undefined;
+            }
             return;
           }
 

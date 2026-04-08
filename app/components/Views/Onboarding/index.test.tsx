@@ -78,6 +78,7 @@ import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { AccountType } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { endTrace, TraceName } from '../../../util/trace';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -1441,6 +1442,7 @@ describe('Onboarding', () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockClear();
       mockAnalytics.trackEvent.mockClear();
+      (endTrace as jest.Mock).mockClear();
 
       const stateWithBlockingFlag = {
         ...mockInitialState,
@@ -1518,6 +1520,12 @@ describe('Onboarding', () => {
           name: 'Wallet Google Ios Warning Viewed',
         }),
       );
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          data: { success: false },
+        }),
+      );
     });
 
     it('blocks Google login on iOS < 17.4 import flow with rehydration sheet when googleLoginIosUnsupportedBlockingEnabled is true', async () => {
@@ -1528,6 +1536,7 @@ describe('Onboarding', () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockClear();
       mockAnalytics.trackEvent.mockClear();
+      (endTrace as jest.Mock).mockClear();
 
       const stateWithBlockingFlag = {
         ...mockInitialState,
@@ -1603,6 +1612,12 @@ describe('Onboarding', () => {
       expect(mockAnalytics.trackEvent).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Wallet Google Ios Warning Viewed',
+        }),
+      );
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          data: { success: false },
         }),
       );
     });
