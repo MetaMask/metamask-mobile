@@ -179,6 +179,7 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
@@ -361,6 +362,9 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        // ClientController must be initialized before AssetsController
+        // because AssetsController listens to ClientController:stateChange.
+        ClientController: clientControllerInit,
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
@@ -421,6 +425,7 @@ export class Engine {
     const rampsController = controllersByName.RampsController;
     const aiDigestController = controllersByName.AiDigestController;
     const cardController = controllersByName.CardController;
+    const clientController = controllersByName.ClientController;
     const complianceService = controllersByName.ComplianceService;
     const complianceController = controllersByName.ComplianceController;
 
@@ -583,6 +588,7 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       CardController: cardController,
+      ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
     };
@@ -1358,6 +1364,7 @@ export default {
       TransactionPayController,
       RampsController,
       AiDigestController,
+      ClientController,
       ComplianceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
@@ -1430,6 +1437,7 @@ export default {
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
       CardController: CardController.state,
+      ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
