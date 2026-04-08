@@ -44,6 +44,9 @@ import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -62,14 +65,18 @@ function getRedesignedConfirmationsHeaderOptions({
     : { header: () => null };
 }
 
-const PerpsConfirmScreen = () => {
-  const { params } =
+const PerpsConfirmScreen = (
+  props: React.ComponentProps<typeof Confirm> & {
+    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
+  },
+) => {
+  const params =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
-    params?.showPerpsHeader ??
+    params?.params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return <Confirm disableSafeArea={!showPerpsHeader} />;
+  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {
@@ -414,7 +421,7 @@ const PerpsScreenStack = () => {
 
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={PerpsConfirmScreen}
+            component={PerpsConfirmScreen as ScreenComponent}
             options={({ route }) =>
               getRedesignedConfirmationsHeaderOptions(route.params)
             }
