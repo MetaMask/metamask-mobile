@@ -14,6 +14,11 @@ jest.mock('../actions/legalNotices');
 jest.mock('../core');
 jest.mock('../actions/multiSrp');
 jest.mock('../store');
+// Prevents the real ./test/utils from trying to read a missing config file when
+// jest.requireActual loads the module in beforeAll.
+jest.mock('./test/utils', () => ({
+  getCommandQueueServerPortInApp: jest.fn().mockReturnValue(8080),
+}));
 jest.mock('../actions/settings', () => ({
   ...jest.requireActual('../actions/settings'),
   setLockTime: jest.fn((lockTime: number) => ({
@@ -27,6 +32,7 @@ let applyVaultInitialization: () => Promise<null>;
 let VAULT_INITIALIZED_KEY: string;
 let predefinedPassword: string | undefined;
 let additionalSrps: (string | undefined)[] | undefined;
+let mmConnectSrps: (string | undefined)[] | undefined;
 
 // Type the mocked modules
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
@@ -54,6 +60,7 @@ describe('generateSkipOnboardingState', () => {
     VAULT_INITIALIZED_KEY = actualModule.VAULT_INITIALIZED_KEY;
     predefinedPassword = actualModule.predefinedPassword;
     additionalSrps = actualModule.performanceSrps;
+    mmConnectSrps = actualModule.mmConnectSrps;
   });
 
   beforeEach(() => {
@@ -99,6 +106,23 @@ describe('generateSkipOnboardingState', () => {
       // Then it should be an array with 20 slots for environment variables
       expect(Array.isArray(additionalSrps)).toBe(true);
       expect(additionalSrps).toHaveLength(20);
+    });
+
+    it('exports mmConnectSrps as an array with 1 SRP slot', () => {
+      // Given the mmConnectSrps export
+      // When checking its structure
+      // Then it should be an array with 1 slot (MM_CONNECT_SRP_1 env var)
+      expect(Array.isArray(mmConnectSrps)).toBe(true);
+      expect(mmConnectSrps).toHaveLength(1);
+    });
+
+    it('exports mmConnectSrps values as string or undefined', () => {
+      // Given the mmConnectSrps array
+      // When checking each value type
+      // Then each should be either a string or undefined
+      mmConnectSrps?.forEach((srp) => {
+        expect(typeof srp === 'string' || srp === undefined).toBe(true);
+      });
     });
   });
 
@@ -224,7 +248,7 @@ describe('generateSkipOnboardingState', () => {
         // Given the additionalSrps array with 20 slots
         // When checking each value type
         // Then each should be either a string or undefined
-        additionalSrps.forEach((srp) => {
+        additionalSrps?.forEach((srp) => {
           expect(typeof srp === 'string' || srp === undefined).toBe(true);
         });
       });
@@ -261,6 +285,13 @@ describe('generateSkipOnboardingState', () => {
       // When checking additionalSrps type
       // Then it should be an array
       expect(Array.isArray(additionalSrps)).toBe(true);
+    });
+
+    it('exports mmConnectSrps as an array', () => {
+      // Given the module exports
+      // When checking mmConnectSrps type
+      // Then it should be an array
+      expect(Array.isArray(mmConnectSrps)).toBe(true);
     });
   });
 });
