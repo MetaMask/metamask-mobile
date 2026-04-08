@@ -73,6 +73,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},
@@ -899,6 +900,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "CardController": {
         "activeProviderId": "baanx",
+        "cardHomeDataStatus": "idle",
         "cardholderAccounts": [],
         "isAuthenticated": false,
         "providerData": {},

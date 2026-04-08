@@ -239,6 +239,156 @@ describe('BaanxProvider', () => {
       );
     });
 
+    it('builds kyc_pending alert for UNVERIFIED verification', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'UNVERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).toContainEqual(
+        expect.objectContaining({ type: 'kyc_pending' }),
+      );
+    });
+
+    it('builds card_provisioning alert when verified with no card but has assets', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              { network: 'linea', chainId: '59144', tokens: { USDC: {} } },
+            ],
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '100',
+              allowance: '500',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([
+            {
+              id: 1,
+              address: '0xwallet',
+              currency: 'USDC',
+              network: 'linea',
+              priority: 1,
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.alerts).toContainEqual(
+        expect.objectContaining({ type: 'card_provisioning' }),
+      );
+      expect(result.actions).toHaveLength(0);
+    });
+
+    it('returns no actions when verified with no card but has assets (provisioning)', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              { network: 'linea', chainId: '59144', tokens: { USDC: {} } },
+            ],
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '100',
+              allowance: '500',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        if (path === '/v1/wallet/external/priority') {
+          return Promise.resolve([
+            {
+              id: 1,
+              address: '0xwallet',
+              currency: 'USDC',
+              network: 'linea',
+              priority: 1,
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.actions).toHaveLength(0);
+    });
+
     it('builds enable_card action when verified but funding inactive', async () => {
       service.get.mockImplementation((path: string) => {
         if (path === '/v1/delegation/chain/config') {
@@ -296,6 +446,39 @@ describe('BaanxProvider', () => {
 
       const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
 
+      expect(result.actions).toContainEqual(
+        expect.objectContaining({ type: 'enable_card' }),
+      );
+    });
+
+    it('returns enable_card when verified with card but no assets', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).not.toBeNull();
+      expect(result.primaryAsset).toBeNull();
       expect(result.actions).toContainEqual(
         expect.objectContaining({ type: 'enable_card' }),
       );
@@ -1261,7 +1444,7 @@ describe('BaanxProvider', () => {
       );
     });
 
-    it('returns no actions when card is null', async () => {
+    it('returns enable_card when verified with no card and no assets', async () => {
       service.get.mockImplementation((path: string) => {
         if (path === '/v1/delegation/chain/config') {
           return Promise.resolve({ networks: [] });
@@ -1273,6 +1456,31 @@ describe('BaanxProvider', () => {
           return Promise.resolve({
             id: 'user-1',
             verificationState: 'VERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.actions).toContainEqual(
+        expect.objectContaining({ type: 'enable_card' }),
+      );
+    });
+
+    it('returns no actions when card is null and user is not verified', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'PENDING',
           });
         }
         return Promise.resolve([]);

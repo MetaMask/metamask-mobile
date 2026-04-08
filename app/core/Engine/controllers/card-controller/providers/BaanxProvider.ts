@@ -1235,8 +1235,15 @@ export class BaanxProvider implements ICardProvider {
   ): CardAlert[] {
     const alerts: CardAlert[] = [];
 
-    if (account?.verificationStatus === 'PENDING') {
+    if (
+      account?.verificationStatus === 'PENDING' ||
+      account?.verificationStatus === 'UNVERIFIED'
+    ) {
       alerts.push({ type: 'kyc_pending', dismissable: false });
+    }
+
+    if (account?.verificationStatus === 'VERIFIED' && !card && asset !== null) {
+      alerts.push({ type: 'card_provisioning', dismissable: false });
     }
 
     if (card && card.status === CardStatus.FROZEN) {
@@ -1259,11 +1266,16 @@ export class BaanxProvider implements ICardProvider {
     card: CardDetails | null,
     account: CardAccountStatus | null,
   ): CardAction[] {
-    if (!card) return [];
+    if (!card) {
+      if (account?.verificationStatus === 'VERIFIED' && !asset) {
+        return [{ type: 'enable_card' }];
+      }
+      return [];
+    }
 
     if (
       account?.verificationStatus === 'VERIFIED' &&
-      asset?.status === FundingAssetStatus.Inactive
+      (!asset || asset.status === FundingAssetStatus.Inactive)
     ) {
       return [{ type: 'enable_card' }];
     }
