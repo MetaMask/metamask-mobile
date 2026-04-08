@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, screen } from '@testing-library/react-native';
 import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
 
 // Override the global rive-react-native mock so tests can manually trigger
@@ -82,11 +82,18 @@ describe('FoxLoader', () => {
     mockIsE2E = false;
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = render(
+  it('renders the container, static fox, and Rive wrapper', () => {
+    render(
       <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(screen.getByTestId('fox-loader-container')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('fox-loader-animation-wrapper'),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('fox-loader-static-fox')).toBeOnTheScreen();
+    expect(screen.getByTestId('fox-loader-rive-wrapper')).toBeOnTheScreen();
+    expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
   });
 
   it('calls onAnimationComplete when Rive reaches ExitState', () => {
