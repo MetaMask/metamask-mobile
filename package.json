@@ -165,6 +165,10 @@
     ]
   },
   "resolutions": {
+    "@metamask/design-system-react-native": "npm:@metamask-previews/design-system-react-native@0.14.0-preview.4ce710b",
+    "@metamask/design-system-shared": "npm:@metamask-previews/design-system-shared@0.7.0-preview.4ce710b",
+    "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b",
+    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
