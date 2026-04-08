@@ -55,3 +55,9 @@ export const selectMusdConversionEducationSeen = (state: RootState) =>
  */
 export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
   state.user?.musdConversionAssetDetailCtasSeen ?? {};
+
+/**
+ * Selects the token overview chart type preference
+ */
+export const selectTokenOverviewChartType = (state: RootState) =>
+  state.user?.tokenOverviewChartType;
