@@ -13,6 +13,7 @@ import {
 } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import Logger from '../../../../../util/Logger';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   buildQuoteWithRedirectUrl,
@@ -24,6 +25,7 @@ import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
+import { getProviderBuyLimit } from '../../utils/providerLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -405,6 +407,62 @@ function BuildQuote() {
   );
 
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
+  const hasAmount = amountAsNumber > 0;
+
+  const selectedProviderBuyLimit = useMemo(
+    () =>
+      getProviderBuyLimit(
+        selectedProvider,
+        userRegion?.country?.currency,
+        selectedPaymentMethod?.id,
+      ),
+    [
+      selectedProvider,
+      selectedPaymentMethod?.id,
+      userRegion?.country?.currency,
+    ],
+  );
+
+  const amountLimitError = useMemo(() => {
+    if (!hasAmount || !selectedProviderBuyLimit) {
+      return null;
+    }
+
+    if (
+      selectedProviderBuyLimit.minAmount != null &&
+      amountAsNumber < selectedProviderBuyLimit.minAmount
+    ) {
+      return `Minimum purchase is ${formatCurrency(
+        selectedProviderBuyLimit.minAmount,
+        currency,
+        {
+          currencyDisplay: 'narrowSymbol',
+        },
+      )}`;
+    }
+
+    if (
+      selectedProviderBuyLimit.maxAmount != null &&
+      amountAsNumber > selectedProviderBuyLimit.maxAmount
+    ) {
+      return `Maximum purchase is ${formatCurrency(
+        selectedProviderBuyLimit.maxAmount,
+        currency,
+        {
+          currencyDisplay: 'narrowSymbol',
+        },
+      )}`;
+    }
+
+    return null;
+  }, [
+    amountAsNumber,
+    currency,
+    formatCurrency,
+    hasAmount,
+    selectedProviderBuyLimit,
+  ]);
+  const isQuoteAmountSettled = debouncedPollingAmount === amountAsNumber;
 
   const quoteFetchEnabled = !!(
     walletAddress &&
@@ -412,7 +470,9 @@ function BuildQuote() {
     selectedProvider &&
     selectedToken?.assetId &&
     tokenStateIsSettled &&
-    debouncedPollingAmount > 0
+    isQuoteAmountSettled &&
+    debouncedPollingAmount > 0 &&
+    !amountLimitError
   );
 
   /*
@@ -829,10 +889,11 @@ function BuildQuote() {
     handleWidgetProviderContinue,
   ]);
 
-  const hasAmount = amountAsNumber > 0;
-
   const canContinue =
-    hasAmount && !selectedQuoteLoading && selectedQuote !== null;
+    hasAmount &&
+    !amountLimitError &&
+    !selectedQuoteLoading &&
+    selectedQuote !== null;
 
   const hasNoQuotes =
     hasAmount &&
@@ -843,8 +904,34 @@ function BuildQuote() {
 
   const providerQuoteError = useMemo(() => {
     if (!hasNoQuotes || !quotesResponse?.error?.length) return undefined;
-    return quotesResponse.error[0]?.error;
+    const firstError = quotesResponse.error[0];
+    // The API may include an error message string; if not, fall back to
+    // the provider-specific "no quotes" message below.
+    const errorMessage = firstError?.error;
+    Logger.log(
+      `[Ramp] providerQuoteError: provider=${firstError?.provider} message=${errorMessage ?? 'none'} hasNoQuotes=${hasNoQuotes} rawError=${JSON.stringify(firstError)}`,
+    );
+    return errorMessage;
   }, [hasNoQuotes, quotesResponse?.error]);
+
+  const inlineQuoteError = amountLimitError ?? providerQuoteError ?? null;
+  const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
+  const amountInputHasError = Boolean(
+    rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
+  );
+
+  useEffect(() => {
+    if (quotesResponse) {
+      Logger.log(
+        `[Ramp] quotesResponse: success=${quotesResponse.success?.length ?? 0} errors=${quotesResponse.error?.length ?? 0}`,
+      );
+      if (quotesResponse.error?.length) {
+        Logger.log(
+          `[Ramp] Quote errors: ${JSON.stringify(quotesResponse.error.map((e) => ({ provider: e.provider, error: e.error })))}`,
+        );
+      }
+    }
+  }, [quotesResponse]);
 
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {
@@ -889,9 +976,7 @@ function BuildQuote() {
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Regular}
                     color={
-                      rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.ErrorDefault
-                        : undefined
+                      amountInputHasError ? TextColor.ErrorDefault : undefined
                     }
                     twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     numberOfLines={1}
@@ -913,9 +998,7 @@ function BuildQuote() {
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Regular}
                       color={
-                        rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.ErrorDefault
-                          : undefined
+                        amountInputHasError ? TextColor.ErrorDefault : undefined
                       }
                       twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     >
@@ -937,6 +1020,15 @@ function BuildQuote() {
                 />
               </View>
             </View>
+            {inlineQuoteError ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.ErrorDefault}
+                style={styles.limitErrorText}
+              >
+                {inlineQuoteError}
+              </Text>
+            ) : null}
 
             {quoteFetchError && (
               <BannerAlert
@@ -961,30 +1053,22 @@ function BuildQuote() {
                         )?.url
                       }
                     />
-                  ) : hasNoQuotes ? (
+                  ) : hasGenericNoQuotes ? (
                     <TruncatedError
-                      error={
-                        providerQuoteError ||
-                        strings('fiat_on_ramp.encountered_error')
-                      }
-                      errorDetails={
-                        providerQuoteError ? undefined : noQuotesErrorMessage
-                      }
-                      showChangeProvider={!providerQuoteError}
+                      error={noQuotesErrorMessage}
+                      showChangeProvider
                       amount={amountAsNumber}
                     />
-                  ) : (
-                    selectedProvider && (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        style={styles.poweredByText}
-                      >
-                        {strings('fiat_on_ramp.powered_by_provider', {
-                          provider: selectedProvider.name,
-                        })}
-                      </Text>
-                    )
-                  )}
+                  ) : inlineQuoteError ? null : selectedProvider ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      style={styles.poweredByText}
+                    >
+                      {strings('fiat_on_ramp.powered_by_provider', {
+                        provider: selectedProvider.name,
+                      })}
+                    </Text>
+                  ) : null}
                   <Button
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}

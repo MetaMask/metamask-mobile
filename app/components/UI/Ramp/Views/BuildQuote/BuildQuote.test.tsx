@@ -181,7 +181,7 @@ jest.mock('../../../../hooks/useFormatters', () => ({
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: (value: number) => value,
+  useDebouncedValue: jest.fn((value: number) => value),
 }));
 
 jest.mock('../../hooks/useBlinkingCursor', () => ({
@@ -209,6 +209,10 @@ const mockUseParams = jest.requireMock(
 const mockUseAnalytics = jest.requireMock(
   '../../../../hooks/useAnalytics/useAnalytics',
 ).useAnalytics as jest.Mock;
+
+const mockUseDebouncedValue = jest.requireMock(
+  '../../../../hooks/useDebouncedValue',
+).useDebouncedValue as jest.Mock;
 
 const mockDeviceIsAndroid = jest.requireMock('../../../../../util/device')
   .isAndroid as jest.Mock;
@@ -315,6 +319,39 @@ const USER_REGION = {
   regionCode: 'us-ca',
 };
 
+const buildProviderWithLimits = (limits: {
+  minAmount: number;
+  maxAmount: number;
+  feeFixedRate?: number;
+  feeDynamicRate?: number;
+}) => ({
+  ...WIDGET_PROVIDER,
+  limits: {
+    fiat: {
+      usd: {
+        [SELECTED_PAYMENT_METHOD.id]: {
+          feeFixedRate: 0,
+          feeDynamicRate: 0,
+          ...limits,
+        },
+      },
+    },
+  },
+});
+
+const defaultQuotesHookResult = (options?: unknown) =>
+  options
+    ? {
+        data: { success: [WIDGET_PROVIDER_QUOTE] },
+        loading: false,
+        error: null,
+      }
+    : {
+        data: null,
+        loading: false,
+        error: null,
+      };
+
 describe('isBailedOrderStatus', () => {
   it('returns true for Precreated, IdExpired, Unknown', () => {
     expect(isBailedOrderStatus(RampsOrderStatus.Precreated)).toBe(true);
@@ -358,31 +395,33 @@ describe('createBuildQuoteNavDetails', () => {
 
 const mockSetSelectedProvider = jest.fn();
 
+const buildRampsControllerResult = (overrides = {}) => ({
+  userRegion: USER_REGION,
+  providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+  selectedProvider: WIDGET_PROVIDER,
+  setSelectedProvider: mockSetSelectedProvider,
+  selectedToken: SELECTED_TOKEN,
+  paymentMethods: [SELECTED_PAYMENT_METHOD],
+  getBuyWidgetData: mockGetBuyWidgetData,
+  addPrecreatedOrder: mockAddPrecreatedOrder,
+  addOrder: mockAddOrder,
+  getOrderFromCallback: mockGetOrderFromCallback,
+  paymentMethodsLoading: false,
+  paymentMethodsFetching: false,
+  paymentMethodsStatus: 'success',
+  selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+  ...overrides,
+});
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
-    mockUseRampsController.mockReturnValue({
-      userRegion: USER_REGION,
-      providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
-      selectedProvider: WIDGET_PROVIDER,
-      setSelectedProvider: mockSetSelectedProvider,
-      selectedToken: SELECTED_TOKEN,
-      paymentMethods: [SELECTED_PAYMENT_METHOD],
-      getBuyWidgetData: mockGetBuyWidgetData,
-      addPrecreatedOrder: mockAddPrecreatedOrder,
-      addOrder: mockAddOrder,
-      getOrderFromCallback: mockGetOrderFromCallback,
-      paymentMethodsLoading: false,
-      paymentMethodsFetching: false,
-      paymentMethodsStatus: 'success',
-      selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-    });
-    mockUseRampsQuotes.mockReturnValue({
-      data: { success: [WIDGET_PROVIDER_QUOTE] },
-      loading: false,
-      error: null,
-    });
+    mockUseRampsController.mockReturnValue(buildRampsControllerResult());
+    mockUseDebouncedValue.mockImplementation((value: number) => value);
+    mockUseRampsQuotes.mockImplementation((options) =>
+      defaultQuotesHookResult(options),
+    );
     mockUseTransakController.mockReturnValue({
       checkExistingToken: mockCheckExistingToken,
       getBuyQuote: mockGetBuyQuote,
@@ -699,6 +738,147 @@ describe('BuildQuote', () => {
     });
   });
 
+  describe('client-side buy limits', () => {
+    it('shows a below-min inline error and skips quote fetching', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 120,
+        maxAmount: 1000,
+      });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Minimum purchase is $120.00')).toBeTruthy();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('shows an above-max inline error and skips quote fetching', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 10,
+        maxAmount: 80,
+      });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText('Maximum purchase is $80.00')).toBeTruthy();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
+          continueButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('fetches quotes normally when the amount is within provider limits', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 50,
+        maxAmount: 200,
+      });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('waits for the debounced amount to settle before refetching after returning to a valid range', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 10,
+        maxAmount: 200,
+      });
+      let debouncedAmount = 100;
+      mockUseDebouncedValue.mockImplementation(() => debouncedAmount);
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { getByTestId, getByText, queryByText, rerender } =
+        renderWithProvider(<BuildQuote />, {
+          state: initialRootState,
+        });
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+
+      fireEvent.press(getByTestId('keypad-trigger-string'));
+
+      expect(getByText('Maximum purchase is $200.00')).toBeTruthy();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      debouncedAmount = 250;
+      rerender(<BuildQuote />);
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      fireEvent.press(getByTestId('keypad-trigger-back'));
+
+      expect(queryByText('Maximum purchase is $200.00')).toBeNull();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+
+      debouncedAmount = 10;
+      rerender(<BuildQuote />);
+
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 10,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+  });
+
   describe('quoteFetchError', () => {
     it('tracks RAMPS_QUOTE_ERROR and shows BannerAlert when quote fetch fails', () => {
       mockUseRampsQuotes.mockReturnValue({
@@ -743,7 +923,7 @@ describe('BuildQuote', () => {
       expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
     });
 
-    it('shows generic no-quotes error when quotes response has errors without messages', () => {
+    it('shows generic no-quotes error via TruncatedError when quotes response has errors without messages', () => {
       mockUseRampsQuotes.mockReturnValue({
         data: {
           success: [],
@@ -753,11 +933,15 @@ describe('BuildQuote', () => {
         error: null,
       });
 
-      const { getByText } = renderWithProvider(<BuildQuote />, {
+      const { getByText, getByLabelText } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
-      expect(getByText(/encountered an error/i)).toBeTruthy();
+      expect(
+        getByText(/problem fetching quotes|No providers available/i),
+      ).toBeTruthy();
+      // Generic errors still use TruncatedError with info icon
+      expect(getByLabelText('View error details')).toBeTruthy();
     });
 
     it('disables continue button when provider returns a limit error', () => {
@@ -781,12 +965,13 @@ describe('BuildQuote', () => {
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
       expect(
-        continueButton.props.disabled ??
+        continueButton.props.isDisabled ??
+          continueButton.props.disabled ??
           continueButton.props.accessibilityState?.disabled,
       ).toBe(true);
     });
 
-    it('hides change-provider option when provider returns a limit error', () => {
+    it('renders provider limit error as plain text without info icon', () => {
       mockUseRampsQuotes.mockReturnValue({
         data: {
           success: [],
@@ -801,20 +986,16 @@ describe('BuildQuote', () => {
         error: null,
       });
 
-      const { getByLabelText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      fireEvent.press(getByLabelText('View error details'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          params: expect.objectContaining({
-            showChangeProvider: false,
-          }),
-        }),
+      const { getByText, queryByLabelText } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
       );
+
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
+      // Provider limit errors are plain text — no info icon or modal
+      expect(queryByLabelText('View error details')).toBeNull();
     });
 
     it('shows change-provider option for generic errors without provider message', () => {
@@ -843,7 +1024,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('does not pass error details to modal for provider limit errors', () => {
+    it('does not navigate to error details modal for provider limit errors', () => {
       mockUseRampsQuotes.mockReturnValue({
         data: {
           success: [],
@@ -858,18 +1039,15 @@ describe('BuildQuote', () => {
         error: null,
       });
 
-      const { getByLabelText } = renderWithProvider(<BuildQuote />, {
+      renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
-      fireEvent.press(getByLabelText('View error details'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
+      // No info icon to press — limit errors are plain text
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          params: expect.objectContaining({
-            errorMessage: 'Minimum order amount is $30.00 USD',
-          }),
+          screen: expect.stringContaining('Error'),
         }),
       );
     });
