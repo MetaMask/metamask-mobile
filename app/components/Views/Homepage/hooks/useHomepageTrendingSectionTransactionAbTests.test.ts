@@ -4,12 +4,10 @@ import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 import { setTransactionActiveAbTests } from '../../../../core/redux/slices/bridge';
 
 const mockDispatch = jest.fn();
-let mockSelectorReturn: unknown;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
-  useSelector: () => mockSelectorReturn,
 }));
 
 const mockTrendingAbTest = jest.fn(() => ({
@@ -24,7 +22,6 @@ jest.mock('../context/HomepageTrendingAbTestContext', () => ({
 describe('useHomepageTrendingSectionTransactionAbTests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectorReturn = undefined;
     mockTrendingAbTest.mockReturnValue({
       variantName: 'control',
       isActive: false,
@@ -66,10 +63,7 @@ describe('useHomepageTrendingSectionTransactionAbTests', () => {
     );
   });
 
-  it('clearTransactionAbTests dispatches undefined when tests are set', () => {
-    mockSelectorReturn = [
-      { key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY, value: 'trendingSections' },
-    ];
+  it('clearTransactionAbTests always dispatches undefined (idempotent at reducer)', () => {
     const { result } = renderHook(() =>
       useHomepageTrendingSectionTransactionAbTests(),
     );
@@ -81,18 +75,5 @@ describe('useHomepageTrendingSectionTransactionAbTests', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setTransactionActiveAbTests(undefined),
     );
-  });
-
-  it('clearTransactionAbTests skips dispatch when already undefined', () => {
-    mockSelectorReturn = undefined;
-    const { result } = renderHook(() =>
-      useHomepageTrendingSectionTransactionAbTests(),
-    );
-
-    act(() => {
-      result.current.clearTransactionAbTests();
-    });
-
-    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
