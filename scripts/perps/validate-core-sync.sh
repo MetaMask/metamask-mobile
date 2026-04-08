@@ -361,6 +361,18 @@ step_eslint_fix() {
 
   local supp_file="$CORE_PATH/eslint-suppressions.json"
 
+  # Snapshot the baseline per-file/per-rule suppression counts for
+  # packages/perps-controller BEFORE we touch anything, so we can tell the
+  # difference between pre-existing suppressions and new violations that the
+  # current sync is introducing.
+  local baseline_json="/tmp/perps-suppressions-baseline-$$.json"
+  if [[ -f "$supp_file" ]]; then
+    jq '[to_entries[] | select(.key | startswith("packages/perps-controller/"))] | from_entries' \
+      "$supp_file" > "$baseline_json" 2>/dev/null || echo '{}' > "$baseline_json"
+  else
+    echo '{}' > "$baseline_json"
+  fi
+
   progress "  ├─ Running --fix"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --fix || true
 
@@ -374,7 +386,7 @@ step_eslint_fix() {
   # writes it (trailing newline, key quoting), so run prettier afterwards
   # to keep core's lint:misc:check happy.
   if [[ -f "$supp_file" ]]; then
-    progress "  └─ Running prettier on eslint-suppressions.json"
+    progress "  ├─ Running prettier on eslint-suppressions.json"
     yarn prettier --write eslint-suppressions.json > /dev/null 2>&1 || true
   fi
 
@@ -384,13 +396,60 @@ step_eslint_fix() {
       '[to_entries[] | select(.key | startswith("packages/perps-controller/")) | .value | to_entries[].value.count] | add // 0' \
       "$supp_file" 2>/dev/null || echo "0")
     echo "Perps suppression count: $SUPPRESSION_COUNT"
-
-    if (( SUPPRESSION_COUNT > 20 )); then
-      echo "WARN: Suppression count ($SUPPRESSION_COUNT) is higher than expected (~7-15)"
-    fi
   else
     echo "WARN: eslint-suppressions.json not found"
     SUPPRESSION_COUNT=0
+  fi
+
+  # Per-file/per-rule delta check: hard-fail if any file's suppression count
+  # INCREASED compared to the baseline. Reducing counts is always allowed
+  # (that's what happens when a mobile fix removes a previously-suppressed
+  # violation). This is the canonical detection point for the problem that
+  # "it should have been detected locally!" — a new `'x' in y` use, a new
+  # `@typescript-eslint/*` violation, etc. will show up here BEFORE the
+  # core PR is opened.
+  progress "  └─ Checking per-file suppression delta"
+  local current_json="/tmp/perps-suppressions-current-$$.json"
+  if [[ -f "$supp_file" ]]; then
+    jq '[to_entries[] | select(.key | startswith("packages/perps-controller/"))] | from_entries' \
+      "$supp_file" > "$current_json" 2>/dev/null || echo '{}' > "$current_json"
+  else
+    echo '{}' > "$current_json"
+  fi
+
+  local delta_report
+  delta_report=$(jq -n \
+    --slurpfile baseline "$baseline_json" \
+    --slurpfile current "$current_json" \
+    '
+      ($baseline[0] // {}) as $b
+      | ($current[0] // {}) as $c
+      | [
+          ($c | to_entries[]) as $file
+          | ($file.value | to_entries[]) as $rule
+          | {
+              file: $file.key,
+              rule: $rule.key,
+              before: (($b[$file.key] // {})[$rule.key].count // 0),
+              after:  $rule.value.count
+            }
+          | select(.after > .before)
+        ]
+    ' 2>/dev/null || echo '[]')
+
+  rm -f "$baseline_json" "$current_json"
+
+  local delta_count
+  delta_count=$(echo "$delta_report" | jq 'length' 2>/dev/null || echo "0")
+  if (( delta_count > 0 )); then
+    echo "FAIL: $delta_count suppression(s) INCREASED vs baseline — this sync introduces new violations that must be fixed at source before syncing to core."
+    echo ""
+    echo "Offending entries:"
+    echo "$delta_report" | jq -r '.[] | "  - \(.file) [\(.rule)]: \(.before) → \(.after)"' 2>/dev/null || echo "$delta_report"
+    echo ""
+    echo "FAIL: Fix these violations in mobile (e.g. replace \`'x' in y\` with \`hasProperty(y, 'x')\` from \`@metamask/utils\`), then re-run the sync."
+    cd "$MOBILE_ROOT"
+    return 1
   fi
 
   cd "$MOBILE_ROOT"
