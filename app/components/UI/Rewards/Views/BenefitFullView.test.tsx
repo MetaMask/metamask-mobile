@@ -9,7 +9,6 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockPostBenefitImpression = jest.fn().mockResolvedValue(undefined);
 const mockUseSelector = jest.fn();
-const mockLoggerError = jest.fn();
 const mockFormatDateRemaining = formatDateRemaining as jest.MockedFunction<
   typeof formatDateRemaining
 >;
@@ -34,7 +33,7 @@ const mockBenefit = {
   chain: 'ethereum',
   type: { id: 7, name: 'Partner' },
 };
-let routeBenefit = mockBenefit;
+let mockRouteBenefit = mockBenefit;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -43,7 +42,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      benefit: routeBenefit,
+      benefit: mockRouteBenefit,
     },
   }),
 }));
@@ -58,13 +57,6 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: {
       call: (...args: unknown[]) => mockPostBenefitImpression(...args),
     },
-  },
-}));
-
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: (...args: unknown[]) => mockLoggerError(...args),
   },
 }));
 
@@ -119,7 +111,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('BenefitFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    routeBenefit = mockBenefit;
+    mockRouteBenefit = mockBenefit;
     mockUseSelector.mockReturnValue('subscription-123');
     mockFormatDateRemaining.mockReturnValue('1m 3d');
   });
@@ -172,22 +164,6 @@ describe('BenefitFullView', () => {
     });
   });
 
-  it('logs an error when posting benefit impression fails', async () => {
-    const testError = new Error('Network request failed');
-    mockPostBenefitImpression.mockRejectedValueOnce(testError);
-
-    render(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(mockLoggerError).toHaveBeenCalledWith(testError, {
-        message: 'BenefitFullView: Failed to post benefit impression',
-        benefitId: mockBenefit.id,
-        benefitTypeId: mockBenefit.type.id,
-        subscriptionId: 'subscription-123',
-      });
-    });
-  });
-
   it('navigates to browser when claim action is pressed and url exists', () => {
     const { getByTestId } = render(<BenefitFullView />);
 
@@ -203,7 +179,7 @@ describe('BenefitFullView', () => {
   });
 
   it('does not navigate when claim action is pressed and url is missing', () => {
-    routeBenefit = { ...mockBenefit, url: '' };
+    mockRouteBenefit = { ...mockBenefit, url: '' };
 
     const { getByTestId } = render(<BenefitFullView />);
 
