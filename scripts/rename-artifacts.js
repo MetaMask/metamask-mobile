@@ -222,22 +222,20 @@ function renameIos() {
   }
 
   // Determine build paths based on simulator vs device
-  let buildDir, deviceType, binaryExtension;
+  let buildDir, binaryExtension;
   if (isSimBuild) {
     buildDir = path.join(
       __dirname,
       `../ios/build/Build/Products/${configuration || 'Release'}-iphonesimulator`,
     );
-    deviceType = 'simulator';
     binaryExtension = '.app';
   } else {
     buildDir = path.join(__dirname, '../ios/build/output');
-    deviceType = 'device';
     binaryExtension = '.ipa';
   }
 
-  // Create new base name: metamask-{deviceType}-{environment}-{buildType}-{version}-{buildNumber}
-  const newBaseName = `metamask-${deviceType}-${environment}-${buildType}-${appVersion}-${buildNumber}`;
+  // Create new base name: metamask-{environment}-{buildType}-{version}-{buildNumber}
+  const newBaseName = `metamask-${environment}-${buildType}-${appVersion}-${buildNumber}`;
   console.log(`📝 Renaming artifacts to: ${newBaseName}`);
 
   // Rename binary (.app or .ipa)
