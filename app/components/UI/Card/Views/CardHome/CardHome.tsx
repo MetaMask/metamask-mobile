@@ -195,8 +195,9 @@ const CardHome = () => {
     (a) => a.type === 'enable_card',
   );
 
-  const hasAlertOnlyState =
-    (data?.alerts ?? []).length > 0 && (data?.actions ?? []).length === 0;
+  const hasAnyAlerts = (data?.alerts ?? []).length > 0;
+
+  const hasAlertOnlyState = hasAnyAlerts && (data?.actions ?? []).length === 0;
 
   const showSpendingLimitProgress =
     isAuthenticated &&
@@ -283,7 +284,7 @@ const CardHome = () => {
           />
         </Box>
 
-        {!hasSetupActions && (
+        {!hasSetupActions && !hasAlertOnlyState && (
           <CardBalanceDisplay
             isLoading={isLoading}
             balanceAmount={balanceAmount}
@@ -302,16 +303,18 @@ const CardHome = () => {
           />
         )}
 
-        <Box twClassName="w-full mt-4">
-          <CardActionsButtons
-            actions={data?.actions ?? []}
-            isLoading={isLoading}
-            isSwapEnabled={isSwapEnabled}
-            onAddFunds={actions.addFundsAction}
-            onChangeAsset={actions.changeAssetAction}
-            onEnableCard={actions.enableCardAction}
-          />
-        </Box>
+        {((data?.actions ?? []).length > 0 || isLoading) && (
+          <Box twClassName="w-full mt-4">
+            <CardActionsButtons
+              actions={data?.actions ?? []}
+              isLoading={isLoading}
+              isSwapEnabled={isSwapEnabled}
+              onAddFunds={actions.addFundsAction}
+              onChangeAsset={actions.changeAssetAction}
+              onEnableCard={actions.enableCardAction}
+            />
+          </Box>
+        )}
       </Box>
 
       {!isLoading && canAddToWallet && (
@@ -340,7 +343,8 @@ const CardHome = () => {
         isAuthenticated={isAuthenticated}
         isLoading={isLoading}
         hasSetupActions={hasSetupActions}
-        hasAlerts={hasAlertOnlyState}
+        hasAlertOnlyState={hasAlertOnlyState}
+        hasAnyAlerts={hasAnyAlerts}
         isFrozen={isFrozen}
         isFreezeLoading={actions.freeze.isPending || actions.unfreeze.isPending}
         isPinLoading={actions.isPinLoading}
@@ -359,6 +363,7 @@ const CardHome = () => {
         isAuthenticated={isAuthenticated}
         isLoading={isLoading}
         hasAlerts={hasAlertOnlyState}
+        hasSetupActions={hasSetupActions}
         onNavigateToCardTos={actions.navigateToCardTosPage}
         onLogout={actions.logoutAction}
       />

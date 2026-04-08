@@ -18,7 +18,6 @@ import {
 } from '../../../../../components/UI/Card/types';
 import type {
   CardFeatureFlag,
-  SupportedChain,
   SupportedToken,
 } from '../../../../../selectors/featureFlagController/card';
 import {
@@ -26,7 +25,6 @@ import {
   BALANCE_SCANNER_ABI,
   BAANX_MAX_LIMIT,
   SUPPORTED_ASSET_NETWORKS,
-  caipChainIdToNetwork,
   cardNetworkInfos,
 } from '../../../../../components/UI/Card/constants';
 import {

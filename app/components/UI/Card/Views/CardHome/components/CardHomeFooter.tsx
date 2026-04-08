@@ -10,6 +10,7 @@ interface CardHomeFooterProps {
   isAuthenticated: boolean;
   isLoading: boolean;
   hasAlerts: boolean;
+  hasSetupActions: boolean;
   onNavigateToCardTos: () => void;
   onLogout: () => void;
 }
@@ -18,6 +19,7 @@ const CardHomeFooter = ({
   isAuthenticated,
   isLoading,
   hasAlerts,
+  hasSetupActions,
   onNavigateToCardTos,
   onLogout,
 }: CardHomeFooterProps) => {
@@ -28,7 +30,7 @@ const CardHomeFooter = ({
   return (
     <>
       <Box
-        twClassName={`h-px mx-4 bg-border-muted ${hasAlerts ? 'hidden' : ''}`}
+        twClassName={`h-px mx-4 bg-border-muted ${hasAlerts || hasSetupActions ? 'hidden' : ''}`}
       />
       <TouchableOpacity
         onPress={onNavigateToCardTos}
