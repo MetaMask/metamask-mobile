@@ -90,4 +90,13 @@ describe('MoneyAccountWithdrawInfo', () => {
       ][0];
     expect(lastCall.disablePay).toBe(true);
   });
+
+  it('renders available balance as child of CustomAmountInfo', () => {
+    const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);
+
+    expect(getByTestId('money-account-withdraw-balance')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.available_balance$0.00', { exact: false }),
+    ).toBeOnTheScreen();
+  });
 });
