@@ -114,6 +114,26 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Button: ({ label, onPress, isDisabled, isLoading, children, ...props }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        {!isLoading && <Text>{label ?? children}</Text>}
+      </TouchableOpacity>
+    ),
+  };
+});
+
 describe('PerpsTPSLView', () => {
   const defaultMockReturn = {
     formState: {
@@ -466,13 +486,8 @@ describe('PerpsTPSLView', () => {
       });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      // Button may be disabled, traverse up to find and invoke onPress directly
-      let node: typeof setButton | null = setButton;
-      while (node && !node.props.onPress) {
-        node = node.parent;
-      }
       await act(async () => {
-        node?.props.onPress?.();
+        fireEvent.press(setButton);
       });
 
       expect(mockOnConfirm).toHaveBeenCalledWith(
@@ -497,13 +512,8 @@ describe('PerpsTPSLView', () => {
       renderView();
 
       const setButton = screen.getByText('perps.tpsl.set');
-      // Button may be disabled, traverse up to find and invoke onPress directly
-      let node: typeof setButton | null = setButton;
-      while (node && !node.props.onPress) {
-        node = node.parent;
-      }
       await act(async () => {
-        node?.props.onPress?.();
+        fireEvent.press(setButton);
       });
 
       expect(mockOnConfirm).toHaveBeenCalledWith(

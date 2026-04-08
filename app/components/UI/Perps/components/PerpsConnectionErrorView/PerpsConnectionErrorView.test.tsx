@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import PerpsConnectionErrorView from './PerpsConnectionErrorView';
 
 // Mock navigation
@@ -84,6 +84,34 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     },
     ButtonWidthTypes: {
       Full: 'Full',
+    },
+  };
+});
+
+// Mock design-system Button to behave like TouchableOpacity in tests
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Button: ({ label, onPress, isDisabled, isLoading, children, ...props }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        <Text>{label ?? children}</Text>
+      </TouchableOpacity>
+    ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+      Sm: 'Sm',
     },
   };
 });
@@ -194,7 +222,7 @@ describe('PerpsConnectionErrorView', () => {
     expect(mockOnRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call onRetry when button is pressed while retrying', async () => {
+  it('should not call onRetry when button is pressed while retrying', () => {
     const { getByText } = render(
       <PerpsConnectionErrorView
         error="Test error"
@@ -204,16 +232,10 @@ describe('PerpsConnectionErrorView', () => {
     );
 
     const button = getByText('perps.connection.retrying_connection');
-    // Button is disabled while loading, so traverse up to find and invoke onPress directly
-    let node: typeof button | null = button;
-    while (node && !node.props.onPress) {
-      node = node.parent;
+    if (button.parent) {
+      fireEvent.press(button.parent);
     }
-    await act(async () => {
-      node?.props.onPress?.();
-    });
 
-    // Button should still call onRetry even when loading (Button component handles this)
     expect(mockOnRetry).toHaveBeenCalledTimes(1);
   });
 
