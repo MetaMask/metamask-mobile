@@ -5,10 +5,8 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 // Internal dependencies.
 import BasicFunctionalityModal from './BasicFunctionalityModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { useNavigation } from '@react-navigation/native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
-
-/** @type {{ caller: string }} */
-let mockRouteParams;
 
 /**
  * @typedef {import('../../../../reducers').RootState} RootState
@@ -59,9 +57,6 @@ jest.mock('@react-navigation/native', () => {
       }),
       isFocused: jest.fn(() => true),
     }),
-    useRoute: () => ({
-      params: mockRouteParams,
-    }),
   };
 });
 
@@ -71,23 +66,30 @@ jest.mock('../../../../actions/settings', () => ({
 }));
 
 describe('BasicFunctionalityModal', () => {
+  const mockRoute = {
+    params: {
+      caller: 'Settings',
+    },
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { caller: 'Settings' };
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<BasicFunctionalityModal />, {
-      state: mockInitialState,
-    });
+    const { toJSON } = renderWithProvider(
+      <BasicFunctionalityModal route={mockRoute} />,
+      { state: mockInitialState },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
   // Test coverage for the new thunk action integration
   it('should call toggleBasicFunctionality thunk action when toggling', async () => {
-    const { getByText } = renderWithProvider(<BasicFunctionalityModal />, {
-      state: mockInitialState,
-    });
+    const { getByText } = renderWithProvider(
+      <BasicFunctionalityModal route={mockRoute} />,
+      { state: mockInitialState },
+    );
 
     // Find and press the turn off button (when basicFunctionality is enabled)
     const turnOffButton = getByText('Turn off');
