@@ -10,7 +10,7 @@ import {
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 interface UseCardHomeAnalyticsParams {
-  data: CardHomeData | undefined;
+  data: CardHomeData | null | undefined;
   isLoading: boolean;
   balanceFormatted: string | undefined;
   rawTokenBalance: number | undefined;

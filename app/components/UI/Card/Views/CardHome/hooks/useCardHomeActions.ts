@@ -35,7 +35,7 @@ import type { CardHomeData } from '../../../../../../core/Engine/controllers/car
 import type { CardTokenAllowance } from '../../../types';
 
 interface UseCardHomeActionsParams {
-  data: CardHomeData | undefined;
+  data: CardHomeData | null | undefined;
   legacyPriorityToken: CardTokenAllowance | null;
   isFrozen: boolean;
 }

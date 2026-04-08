@@ -17,7 +17,7 @@ import {
 } from '../../../util/buildUserAddress';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
-export function useCardProvisioning(data: CardHomeData | undefined) {
+export function useCardProvisioning(data: CardHomeData | null | undefined) {
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
 

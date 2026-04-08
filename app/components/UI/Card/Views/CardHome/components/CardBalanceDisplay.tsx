@@ -20,6 +20,7 @@ import {
 } from '../../../../Tokens/constants';
 import Engine from '../../../../../../core/Engine';
 import type { AssetBalanceInfo } from '../../../hooks/useAssetBalances';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface CardBalanceDisplayProps {
   isLoading: boolean;
@@ -82,7 +83,7 @@ const CardBalanceDisplay = ({
           variant={TextVariant.BodySm}
           twClassName={`text-text-alternative ${isLoading ? 'hidden' : ''}`}
         >
-          Available Balance
+          {strings('card.card_home.available_balance')}
         </Text>
       </Box>
       {isLoading ? (

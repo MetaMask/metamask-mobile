@@ -21,9 +21,10 @@ export const useCardHomeData = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const refetch = useCallback(() => {
-    Engine.context.CardController.fetchCardHomeData();
-  }, []);
+  const refetch = useCallback(
+    () => Engine.context.CardController.fetchCardHomeData(),
+    [],
+  );
 
   return {
     data,
