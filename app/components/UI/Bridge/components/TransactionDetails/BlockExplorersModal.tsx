@@ -18,7 +18,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { Theme } from '../../../../../util/theme/models';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -36,19 +36,21 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-interface BlockExplorersModalRouteParams {
-  evmTxMeta?: TransactionMeta;
-  multiChainTx?: Transaction;
+interface BlockExplorersModalProps {
+  route: {
+    params: {
+      evmTxMeta?: TransactionMeta;
+      multiChainTx?: Transaction;
+    };
+  };
 }
 
-const BlockExplorersModal = () => {
+const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<{ params: BlockExplorersModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
 
-  const evmTxMeta = route.params.evmTxMeta;
-  const multiChainTx = route.params.multiChainTx;
+  const evmTxMeta = props.route.params.evmTxMeta;
+  const multiChainTx = props.route.params.multiChainTx;
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,
