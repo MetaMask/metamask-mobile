@@ -36,7 +36,8 @@ const mockGetRegionByCode = (code: string) =>
 jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    signUpRegions: mockSignUpRegions,
+    allRegions: mockSignUpRegions,
+    signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
     getRegionByCode: mockGetRegionByCode,
     isLoading: false,
   })),
@@ -46,6 +47,16 @@ jest.mock('../../../../hooks/useDebouncedValue');
 // Mock utility functions
 jest.mock('../../../Ramp/Deposit/utils');
 jest.mock('../../util/validatePassword');
+
+// Mock Engine
+const mockSetUserLocation = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
+    },
+  },
+}));
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
@@ -112,17 +123,11 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             contactVerificationId: null,
             user: null,
           },
-          userCardLocation: 'international',
           ...cardState,
         },
         action = { type: '', payload: null },
       ) => {
         switch (action.type) {
-          case 'card/setUserCardLocation':
-            return {
-              ...state,
-              userCardLocation: action.payload,
-            };
           default:
             return state;
         }
@@ -403,9 +408,7 @@ describe('SignUp Component', () => {
       );
 
       expect(getByText('Canada')).toBeOnTheScreen();
-      expect(storeWithGeo.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
     it('prefills country and sets US location when geoLocation is US', () => {
@@ -417,7 +420,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithGeo.getState().card.userCardLocation).toBe('us');
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
     });
 
     it('does not set userCardLocation when geoLocation is UNKNOWN', () => {
@@ -429,9 +432,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithUnknown.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
     it('does not set userCardLocation when geoLocation does not match any available region', () => {
@@ -443,27 +444,31 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithUnsupported.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
-    it('does not pre-select country when geoLocation matches a canSignUp: false country', () => {
-      // GB exists in allRegions but has canSignUp: false — must not be pre-selected
+    it('pre-selects country when geoLocation matches a canSignUp: false country and enables waitlist mode', () => {
+      // GB exists in allRegions with canSignUp: false — now gets auto-selected and shows waitlist CTA
       const storeWithGB = createTestStore({ geoLocation: 'GB' });
 
-      const { queryByText, getByTestId } = render(
+      const { getByText, getByTestId, queryByTestId } = render(
         <Provider store={storeWithGB}>
           <SignUp />
         </Provider>,
       );
 
-      expect(queryByText('United Kingdom')).toBeNull();
-      // Continue button must remain disabled — no eligible country was selected
-      expect(getByTestId('signup-continue-button')).toBeDisabled();
-      expect(storeWithGB.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      // GB is now pre-selected
+      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      // Button is enabled (country is selected) and shows waitlist label
+      expect(getByTestId('signup-continue-button')).toBeEnabled();
+      // Country not available info text shown
+      expect(
+        getByTestId('signup-country-not-available-text'),
+      ).toBeOnTheScreen();
+      // Password field hidden in waitlist mode
+      expect(queryByTestId('signup-password-input')).toBeNull();
+      // GB maps to 'international' location
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
     it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {
@@ -474,7 +479,8 @@ describe('SignUp Component', () => {
 
       const firstGetRegionByCode = jest.fn(mockGetRegionByCode);
       mockUseRegions.mockReturnValue({
-        signUpRegions: mockSignUpRegions,
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
         getRegionByCode: firstGetRegionByCode,
         isLoading: false,
       });
@@ -492,7 +498,8 @@ describe('SignUp Component', () => {
       // Simulate background refetch: new function identity, same data
       const secondGetRegionByCode = jest.fn(mockGetRegionByCode);
       mockUseRegions.mockReturnValue({
-        signUpRegions: mockSignUpRegions,
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
         getRegionByCode: secondGetRegionByCode,
         isLoading: false,
       });

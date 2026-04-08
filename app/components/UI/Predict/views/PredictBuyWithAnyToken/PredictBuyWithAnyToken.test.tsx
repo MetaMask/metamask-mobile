@@ -130,7 +130,6 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
     providerFee: 2,
     total: 23,
     depositFee: 3,
-    depositAmount: 4,
     rewardsFeeAmount: 5,
     totalPayForPredictBalance: 20,
   }),
@@ -258,13 +257,12 @@ jest.mock('../../components/PredictOrderRetrySheet', () => {
 jest.mock('./components/PredictPayWithAnyTokenInfo', () => {
   const { Text } = jest.requireActual('react-native');
   return function MockPredictPayWithAnyTokenInfo({
-    depositAmount,
+    currentValue,
   }: {
-    depositAmount: number;
+    currentValue: number;
+    isInputFocused: boolean;
   }) {
-    return (
-      <Text testID="predict-pay-with-any-token-info">{depositAmount}</Text>
-    );
+    return <Text testID="predict-pay-with-any-token-info">{currentValue}</Text>;
   };
 });
 
@@ -364,27 +362,6 @@ describe('PredictBuyWithAnyToken', () => {
     renderWithProvider(<PredictBuyWithAnyToken />);
 
     expect(screen.queryByTestId('predict-pay-with-row')).not.toBeOnTheScreen();
-  });
-
-  it('disables the pay with row when token selection is unavailable and forwards the confirm action', () => {
-    mockCanSelectToken = false;
-    mockErrorMessage = 'Insufficient balance';
-
-    renderWithProvider(<PredictBuyWithAnyToken />);
-
-    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
-      'disabled-true',
-    );
-    expect(screen.getByTestId('predict-buy-error')).toHaveTextContent(
-      'Insufficient balance',
-    );
-    expect(
-      screen.getByTestId('predict-pay-with-any-token-info'),
-    ).toHaveTextContent('4');
-
-    fireEvent.press(screen.getByTestId('predict-buy-action-button'));
-
-    expect(mockHandleConfirm).toHaveBeenCalledTimes(1);
   });
 
   it('does not reset user input change while preview calculation is still running', () => {

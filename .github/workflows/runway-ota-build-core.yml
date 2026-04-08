@@ -32,11 +32,6 @@ on:
         required: false
         type: string
         default: main-rc
-      upload_testflight:
-        description: 'If true and platform is ios, upload IPA to TestFlight after trigger-build'
-        required: false
-        type: boolean
-        default: false
       create_production_ota_tag:
         description: 'If true, create OTA release tag after production trigger-ota (callers: *production* only)'
         required: false
@@ -71,14 +66,6 @@ jobs:
       ota_version: ${{ steps.decide.outputs.ota_version }}
       pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
     steps:
-      - name: Debug ref context
-        run: |
-          echo "github.ref_name = ${{ github.ref_name }}"
-          echo "github.ref      = ${{ github.ref }}"
-          echo "inputs.source_branch = ${{ inputs.source_branch }}"
-          echo "resolved ref (source_branch || github.ref_name) = ${{ inputs.source_branch || github.ref_name }}"
-          echo "resolved ref (source_branch || github.ref)      = ${{ inputs.source_branch || github.ref }}"
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -119,8 +106,9 @@ jobs:
           RELEASE_TAG="v${VERSION}"
           echo "base_ref=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
 
-          # Extract OTA_VERSION from line 9 (format: export const OTA_VERSION: string = 'vX.Y.Z';)
-          extract_ota() { sed -n '9p' "$1" | sed "s/.*'\\([^']*\\)'.*/\1/"; }
+          # Parse OTA_VERSION from the export line (do not use a fixed line number — comment block length changes).
+          extract_ota() { grep -E '^export const OTA_VERSION' "$1" | sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p"; }
+          extract_ota_from_git_show() { grep -E '^export const OTA_VERSION' | sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p"; }
 
           # OTA_VERSION from current ref
           CURRENT_OTA=$(extract_ota app/constants/ota.ts)
@@ -129,10 +117,10 @@ jobs:
           # Ref to compare against for detecting bump: use release tag if it exists, else main
           if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
             COMPARE_REF="$RELEASE_TAG"
-            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | extract_ota_from_git_show || echo "")
           else
             COMPARE_REF="main"
-            BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+            BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | extract_ota_from_git_show || echo "")
             echo "Release tag ${RELEASE_TAG} not found; comparing OTA_VERSION to ${COMPARE_REF} to detect bump"
           fi
 
@@ -144,13 +132,12 @@ jobs:
             echo "No OTA version bump (base: $BASE_OTA, current: $CURRENT_OTA) → will trigger build"
           fi
 
-  trigger-ota:
-    name: Trigger OTA update
+  # Reusable workflows must be job-level `uses:` (not a step). Steps only support actions (action.yml).
+  validate-ota-pr:
+    name: Validate PR for OTA
     needs: decide
     if: needs.decide.outputs.ota_bump == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      release_tag: ${{ steps.release_tag.outputs.release_tag }}
     steps:
       - name: Validate PR number
         run: |
@@ -161,20 +148,18 @@ jobs:
           fi
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
-      - name: Trigger Push OTA Update workflow
-        uses: ./.github/workflows/push-eas-update.yml
-        with:
-          pr_number: ${{ needs.decide.outputs.pr_number }}
-          base_branch: ${{ needs.decide.outputs.base_ref }}
-          message: ${{ needs.decide.outputs.ota_version }}
-          channel: ${{ inputs.ota_channel }}
-          platform: ${{ inputs.platform }}
-
-      - name: Export release tag for OTA follow-up jobs
-        id: release_tag
-        run: |
-          # Tag name must match OTA_VERSION (app/constants/ota.ts), not package.json semver
-          echo "release_tag=${{ needs.decide.outputs.ota_version }}" >> "$GITHUB_OUTPUT"
+  trigger-ota:
+    name: Trigger OTA update
+    needs: [decide, validate-ota-pr]
+    if: needs.decide.outputs.ota_bump == 'true'
+    uses: ./.github/workflows/push-eas-update.yml
+    with:
+      pr_number: ${{ needs.decide.outputs.pr_number }}
+      base_branch: ${{ needs.decide.outputs.base_ref }}
+      message: ${{ needs.decide.outputs.ota_version }}
+      channel: ${{ inputs.ota_channel }}
+      platform: ${{ inputs.platform }}
+    secrets: inherit
 
   trigger-build:
     name: Trigger build mobile app
@@ -191,26 +176,25 @@ jobs:
 
   create-ota-production-tag:
     name: Create OTA production release tag
-    needs: [trigger-ota]
+    needs: [decide, trigger-ota]
     if: ${{ inputs.create_production_ota_tag == true }}
     uses: ./.github/workflows/runway-create-ota-production-tag.yml
     with:
-      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
+      tag_name: ${{ needs.decide.outputs.ota_version }}
       checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [decide, trigger-build]
-    if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
+    if: ${{ inputs.platform == 'ios' }}
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
-      source_branch: ${{ inputs.source_branch || github.ref_name }}
       environment: ${{ inputs.environment }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_branch: ${{ inputs.source_branch || github.ref_name }}
       build_name: ${{ inputs.build_name }}
-      summary_logical_source_branch: ${{ inputs.source_branch || github.ref_name }}
-      summary_build_ref: ${{ needs.trigger-build.outputs.checkout_ref }}
-      summary_build_version: ${{ needs.trigger-build.outputs.semantic_version }}
-      summary_android_version_code: ${{ needs.trigger-build.outputs.android_version_code }}
-      summary_built_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+      build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
+      build_version: ${{ needs.trigger-build.outputs.semantic_version }}
+      build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
     secrets: inherit

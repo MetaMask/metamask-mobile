@@ -45,8 +45,8 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // to allow progressive right-scrolling through the horizontal list
         const quickActionSections = [
           TrendingViewSelectorsText.SECTION_TOKENS,
-          TrendingViewSelectorsText.SECTION_STOCKS,
           TrendingViewSelectorsText.SECTION_PERPS,
+          TrendingViewSelectorsText.SECTION_STOCKS,
           TrendingViewSelectorsText.SECTION_PREDICTIONS,
           TrendingViewSelectorsText.SECTION_SITES,
         ];
@@ -69,8 +69,18 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         }
 
         // Define the sections to visit in feed order (top to bottom) for reliable
-        // progressive downward scrolling: tokens → stocks → perps → predictions → sites
+        // progressive downward scrolling: predictions → tokens → perps → stocks → sites
         const sectionsConfig = [
+          {
+            section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
+            itemId: '1',
+            itemTitle: 'Will Bitcoin hit $100k?',
+            verifyItemVisible: () => TrendingView.verifyPredictionVisible('1'),
+            tapItem: () => TrendingView.tapPredictionRow('1'),
+            verifyDetailsVisible: () =>
+              TrendingView.verifyPredictionDetailsVisible(),
+            tapBack: () => TrendingView.tapBackFromPredictionDetails(),
+          },
           {
             section: TrendingViewSelectorsText.SECTION_TOKENS,
             itemId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -88,6 +98,15 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             tapBack: () => TrendingView.tapBackFromTokenDetails(),
           },
           {
+            section: TrendingViewSelectorsText.SECTION_PERPS,
+            itemId: 'BTC',
+            itemTitle: 'BTC',
+            verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
+            tapItem: () => TrendingView.tapPerpRow('BTC'),
+            verifyDetailsVisible: () => TrendingView.verifyPerpDetailsVisible(),
+            tapBack: () => TrendingView.tapBackFromPerpDetails(),
+          },
+          {
             section: TrendingViewSelectorsText.SECTION_STOCKS,
             itemId: RWA_STOCK_ASSET_ID,
             itemTitle: 'Ondo US Dollar Yield (Ondo Tokenized)',
@@ -99,25 +118,6 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
                 'Ondo US Dollar Yield (Ondo Tokenized)',
               ),
             tapBack: () => TrendingView.tapBackFromTokenDetails(),
-          },
-          {
-            section: TrendingViewSelectorsText.SECTION_PERPS,
-            itemId: 'BTC',
-            itemTitle: 'BTC',
-            verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
-            tapItem: () => TrendingView.tapPerpRow('BTC'),
-            verifyDetailsVisible: () => TrendingView.verifyPerpDetailsVisible(),
-            tapBack: () => TrendingView.tapBackFromPerpDetails(),
-          },
-          {
-            section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
-            itemId: '1',
-            itemTitle: 'Will Bitcoin hit $100k?',
-            verifyItemVisible: () => TrendingView.verifyPredictionVisible('1'),
-            tapItem: () => TrendingView.tapPredictionRow('1'),
-            verifyDetailsVisible: () =>
-              TrendingView.verifyPredictionDetailsVisible(),
-            tapBack: () => TrendingView.tapBackFromPredictionDetails(),
           },
           {
             section: TrendingViewSelectorsText.SECTION_SITES,

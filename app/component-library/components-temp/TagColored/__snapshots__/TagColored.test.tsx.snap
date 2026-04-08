@@ -20,7 +20,7 @@ exports[`TagColored renders with default props and matches snapshot 1`] = `
     style={
       {
         "color": "#66676a",
-        "fontFamily": "Geist-Bold",
+        "fontFamily": "Geist-SemiBold",
         "fontSize": 12,
         "fontWeight": "bold",
         "letterSpacing": 0.25,

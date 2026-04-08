@@ -177,7 +177,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -660,7 +660,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -1143,7 +1143,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -1626,7 +1626,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -2109,7 +2109,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -2581,7 +2581,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -3053,7 +3053,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -3536,7 +3536,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -4019,7 +4019,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
@@ -4502,7 +4502,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-Bold",
+          "fontFamily": "Geist-SemiBold",
           "fontSize": 40,
           "letterSpacing": 0,
           "lineHeight": 40,
