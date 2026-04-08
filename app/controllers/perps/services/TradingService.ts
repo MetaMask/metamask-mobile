@@ -1,3 +1,4 @@
+import { hasProperty } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
@@ -1516,7 +1517,7 @@ export class TradingService {
 
       this.#deps.debugLogger.log('[closePositions] Batch method check', {
         providerType: provider.protocolId,
-        hasBatchMethod: 'closePositions' in provider,
+        hasBatchMethod: hasProperty(provider, 'closePositions'),
         providerKeys: Object.keys(provider).filter((key) =>
           key.includes('close'),
         ),
