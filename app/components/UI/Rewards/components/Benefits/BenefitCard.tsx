@@ -28,11 +28,11 @@ const BenefitCard = ({ benefit, now }: Props) => {
   const tw = useTailwind();
 
   const remainingTime = useMemo(() => {
-    if (benefit.validTo == null) {
+    if (benefit.actionDate == null) {
       return null;
     }
-    return formatDateRemaining(benefit.validTo, now);
-  }, [benefit.validTo, now]);
+    return formatDateRemaining(benefit.actionDate, now);
+  }, [benefit.actionDate, now]);
 
   return (
     <TouchableOpacity

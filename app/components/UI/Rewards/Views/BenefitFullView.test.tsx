@@ -132,6 +132,10 @@ describe('BenefitFullView', () => {
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
     expect(getByText('1m 3d')).toBeOnTheScreen();
+    expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+      mockBenefit.actionDate,
+      expect.any(Number),
+    );
     expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.title_claim');
     expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.action');
   });

@@ -111,8 +111,8 @@ describe('BenefitCard', () => {
   });
 
   describe('remaining time', () => {
-    it('formats and renders remaining time when validTo exists', () => {
-      const benefit = createBenefit({ validTo: '2026-09-01T00:00:00Z' });
+    it('formats and renders remaining time when actionDate exists', () => {
+      const benefit = createBenefit({ actionDate: '2026-09-01T00:00:00Z' });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
 
       expect(mockFormatDateRemaining).toHaveBeenCalledTimes(1);
@@ -123,9 +123,9 @@ describe('BenefitCard', () => {
       expect(getByText('1m 3d')).toBeOnTheScreen();
     });
 
-    it('does not call formatter and hides remaining time when validTo is null', () => {
+    it('does not call formatter and hides remaining time when actionDate is null', () => {
       const benefit = createBenefit({
-        validTo: null as unknown as SubscriptionBenefitDto['validTo'],
+        actionDate: null as unknown as SubscriptionBenefitDto['actionDate'],
       });
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
 
