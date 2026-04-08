@@ -7,26 +7,23 @@ Generic A/B testing guidance for MetaMask Mobile.
 Use these two mechanisms together:
 
 1. **Exposure event (automatic):** `Experiment Viewed`
-2. **Business events context (automatic on allowlisted shared tracking paths):** `active_ab_tests`
+2. **Business events context (automatic on allowlisted events):** `active_ab_tests`
+
+- Events sent through `analytics.trackEvent`, `useAnalytics().trackEvent`, or the `trackEvent()` util in `app/core/Engine/utils/analytics.ts` are auto-enriched. If an event bypasses those wrappers, attach `active_ab_tests` manually. See example below in the "Concrete Example" section.
 
 `ab_tests` is legacy and should not be used for new payload additions.
 
 ## References
 
 - [Remote Feature Flags Documentation](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md)
-- [Perps A/B Testing Guide](./perps/perps-ab-testing.md)
 
 ## Agent Skill Entrypoint
 
-Use these entrypoints:
+For agent workflows, this document is the SSOT. Supporting entrypoints:
 
-- SSOT policy + execution standard: this document
-- Codex skill entrypoint: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
-- Claude skill entrypoint: `.claude/skills/ab-testing-implementation/SKILL.md`
-- Claude command entrypoint: `.claude/commands/create-ab-test.md`
-- Cursor command entrypoint: `.cursor/commands/create-ab-test.md`
+- Codex skill: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+- Claude skill: `.claude/skills/ab-testing-implementation/SKILL.md`
 - Compliance check: `bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
-- If no files are staged, the checker automatically falls back to changed working-tree files.
 
 ## Agent Execution Standard (SSOT)
 
@@ -42,7 +39,7 @@ rg -n "Experiment Viewed|EXPERIMENT_VIEWED" app
 2. Keep test config centralized in a dedicated config module (`abTestConfig.ts` pattern).
 3. Use `useABTest(flagKey, variants)` and normalize unresolved assignments to `control`.
 4. Do not manually emit `Experiment Viewed` when using `useABTest`.
-5. For business events, declare allowlisted event names in the test config module and let the shared analytics wrappers inject `active_ab_tests` automatically when the assignment is active.
+5. For business events, follow the path defined in Current Analytics Standard: use allowlisted registry-based injection on the shared wrapper path, or attach `active_ab_tests` manually on the custom tracker path.
 6. Do not add new payloads under `ab_tests`.
    - Compliance checker behavior is strict at diff-line level: adding any `ab_tests:` line in changed code fails by default.
    - For rare legacy touchpoints that cannot be migrated in the same change, use `LEGACY_AB_TEST_ALLOWED` on the line and include rationale in PR/agent output.
@@ -108,8 +105,8 @@ const { variant, variantName, isActive } = useABTest(
   {
     experimentName: 'Button Color Test',
     variationNames: {
-      control: 'Control',
-      treatment: 'Treatment',
+      control: 'Green button color',
+      treatment: 'Blue button color',
     },
   },
 );
@@ -136,7 +133,7 @@ Behavior:
 
 - Fallback is always `control` when flag is missing/invalid.
 - `isActive` is `true` only when flag value matches a defined variant.
-- When active, the hook emits `Experiment Viewed` once per `experiment_id + variation_id` per app session.
+- When active, the hook automatically emits `Experiment Viewed` once per `experiment_id + variation_id` per app session.
 
 ---
 
@@ -158,15 +155,7 @@ You do not need to manually track this event when using `useABTest`.
 
 ## Business Event Instrumentation (`active_ab_tests`)
 
-For feature/business events (page view, click, submit, conversion), use the shared `active_ab_tests` payload. New code should declare which events are attributable in the test config module, add that mapping to the shared analytics registry, and let the analytics wrappers inject the active assignments automatically for those allowlisted events.
-
-Shape:
-
-```typescript
-active_ab_tests: Array<{ key: string; value: string }>;
-```
-
-Analytics mapping example:
+For feature/business events (page view, click, submit, conversion): declare attributable event names in the test config module, add that mapping to the shared analytics registry, and let the wrappers inject active assignments automatically.
 
 ```typescript
 import { EVENT_NAME } from '../core/Analytics/MetaMetrics.events';
@@ -177,20 +166,6 @@ export const FEATURE_AB_TEST_ANALYTICS_MAPPING = {
   eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
 } as const;
 ```
-
-When one of those events is tracked through the shared wrappers, the A/B context is injected automatically:
-
-```typescript
-trackEvent(
-  createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED)
-    .addProperties({
-      view: 'details',
-    })
-    .build(),
-);
-```
-
-Do not add new payloads under `ab_tests`.
 
 ---
 
@@ -222,7 +197,7 @@ Implication:
 ## Migration from legacy `ab_tests`
 
 1. Remove per-test `ab_tests.*` emits from business events.
-2. Replace manual business-event A/B payload wiring with an allowlisted analytics mapping on the shared tracking path and add that mapping to the shared analytics registry.
+2. Replace manual business-event A/B payload wiring with the correct path from Current Analytics Standard: registry-based auto-injection (or manual property addition for events that don't use shared analytics wrappers)
 3. Keep `Experiment Viewed` exposure sourced from `useABTest` (do not manually emit duplicates).
 4. Validate no payload contains `ab_tests.<experiment_key>`.
 5. Validate each `active_ab_tests` item always contains both `key` and `value` strings.
@@ -292,13 +267,15 @@ Use default targeting rule to serve this variation value.
 
 ---
 
-## SWAPS4135 Example
+## Concrete Example
 
 - Flag key: `swapsSWAPS4135AbtestNumpadQuickAmounts`
 - `Experiment Viewed`:
   - `experiment_id = "swapsSWAPS4135AbtestNumpadQuickAmounts"`
   - `variation_id = "control" | "treatment"`
-- Business events:
+- Business events use mixed attribution paths:
+  - `SWAP_PAGE_VIEWED` is allowlisted and auto-enriched through the shared wrappers.
+  - `Unified SwapBridge Input Changed` bypasses the shared wrappers because it exists in the bridge controller, so it still attaches `active_ab_tests` manually.
 
 ```typescript
 export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING = {
@@ -308,6 +285,23 @@ export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING = {
 } as const;
 
 trackEvent(createEventBuilder(EVENT_NAME.SWAP_PAGE_VIEWED).build());
+
+/* trackUnifiedSwapBridgeEvent() calls AnalyticsController:trackEvent directly, rather
+than using a shared analytics wrapper, so active_ab_tests must be added manually */
+Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+  UnifiedSwapBridgeEventName.InputChanged,
+  {
+    input: 'token_amount_source',
+    ...(isActive && {
+      active_ab_tests: [
+        {
+          key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
+          value: variantName,
+        },
+      ],
+    }),
+  },
+);
 ```
 
 ---
@@ -365,7 +359,7 @@ Consumption pattern:
 1. Resolve assignment via `useABTest(FEATURE_AB_TEST_KEY, FEATURE_VARIANTS)`.
 2. Normalize unknown/fallback assignments to `control` and use the chosen variant map for rendering.
 3. If UI state changes available options, select from an alternate variant map (`*_ALT_STATE`) with the same variant key.
-4. Export `FEATURE_AB_TEST_ANALYTICS_MAPPING` from the same config module and include it in the shared analytics registry (`app/util/analytics/abTestAnalyticsRegistry.ts`) so the analytics wrappers know which business events should receive `active_ab_tests`.
+4. Export `FEATURE_AB_TEST_ANALYTICS_MAPPING` from the same config module and include it in the shared analytics registry (`app/util/analytics/abTestAnalyticsRegistry.ts`).
 
 Example: feature/UI consumption
 
@@ -417,7 +411,7 @@ This standard keeps flag key, variant labels, UI behavior, and business-event at
 - [ ] `useABTest` added in feature component
 - [ ] Relevant business events listed in the config module analytics mapping
 - [ ] Analytics mapping added to `app/util/analytics/abTestAnalyticsRegistry.ts`
-- [ ] Shared tracking path is used for attributed events so `active_ab_tests` can be injected automatically
+- [ ] Each attributed business event uses the correct path: shared wrapper + registry, or manual `active_ab_tests` on a custom tracker (see "Concrete Example" section)
 
 ---
 
@@ -430,7 +424,7 @@ No. Use `active_ab_tests`.
 No, not when using `useABTest`. The hook emits it automatically for active assignments.
 
 **Q: Do I manually attach `active_ab_tests` to every event?**  
-No for new code on shared tracking paths. Export an allowlisted analytics mapping from the test config module, add it to `app/util/analytics/abTestAnalyticsRegistry.ts`, and let the analytics wrappers inject `active_ab_tests` automatically.
+No. Use registry-based auto-injection on the shared wrapper path, and manual `active_ab_tests` only on the custom tracker path (see "Concrete Example" section).
 
 **Q: What is the fallback variant?**  
 `control`.
