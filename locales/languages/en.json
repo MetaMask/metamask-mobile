@@ -6245,6 +6245,20 @@
     },
     "footer": {
       "add_money": "Add money"
+    },
+    "convert_stablecoins": {
+      "title": "Convert your stablecoins",
+      "description_prefix": "Get a ",
+      "description_bonus": "3% annualized bonus",
+      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
+      "tag_dollar_backed": "Dollar-backed",
+      "tag_no_lockups": "No lockups",
+      "tag_no_fee": "No MetaMask fee",
+      "tag_daily_bonus": "Daily bonus",
+      "convert_cta": "Convert to mUSD",
+      "learn_more": "Learn more",
+      "swap": "Swap",
+      "buy": "Buy"
     }
   },
   "stake": {
