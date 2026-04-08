@@ -9317,4 +9317,57 @@ describe('PredictController', () => {
       });
     });
   });
+
+  describe('getMarketSeries', () => {
+    it('delegates the params to the provider', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      };
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue([]);
+
+        await controller.getMarketSeries(params);
+
+        expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('returns the provider result', async () => {
+      const params = {
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      };
+      const mockMarkets = [
+        {
+          id: 'series-market-1',
+          title: 'BTC Up or Down 5m',
+          series: {
+            id: '10684',
+            slug: 'btc-up-or-down-5m',
+            title: 'BTC Up or Down 5m',
+            recurrence: '5m',
+          },
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketSeries = jest
+          .fn()
+          .mockResolvedValue(mockMarkets);
+
+        const result = await controller.getMarketSeries(params);
+
+        expect(result).toEqual(mockMarkets);
+      });
+    });
+  });
 });

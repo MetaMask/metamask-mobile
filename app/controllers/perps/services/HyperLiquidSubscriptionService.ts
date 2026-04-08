@@ -1,4 +1,5 @@
 import type { CaipAccountId } from '@metamask/utils';
+import { hasProperty } from '@metamask/utils';
 import type {
   ISubscription,
   AllMidsWsEvent,
@@ -2583,9 +2584,9 @@ export class HyperLiquidSubscriptionService {
             const isPerpsContext = (
               event: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent,
             ): event is ActiveAssetCtxWsEvent =>
-              'funding' in event.ctx &&
-              'openInterest' in event.ctx &&
-              'oraclePx' in event.ctx;
+              hasProperty(event.ctx, 'funding') &&
+              hasProperty(event.ctx, 'openInterest') &&
+              hasProperty(event.ctx, 'oraclePx');
 
             const { ctx } = data;
 
@@ -2904,7 +2905,7 @@ export class HyperLiquidSubscriptionService {
         // Use cached meta to map ctxs array indices to symbols (no REST API call!)
         validatedMeta.universe.forEach((asset, index) => {
           const ctx = data.ctxs[index];
-          if (ctx && 'funding' in ctx) {
+          if (ctx && hasProperty(ctx, 'funding')) {
             // This is a perps context
             const ctxPrice = ctx.midPx ?? ctx.markPx;
             const openInterestUSD = calculateOpenInterestUSD(
