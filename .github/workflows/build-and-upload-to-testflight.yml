@@ -71,14 +71,15 @@ jobs:
     needs: [prepare-build-branch, build]
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
+      source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
       environment: ${{ inputs.environment }}
       testflight_group: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
-      source_branch: ${{ inputs.source_branch }}
-      build_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
       build_name: main-${{ inputs.environment }}
-      build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
-      build_version: ${{ needs.build.outputs.semantic_version }}
-      build_number: ${{ needs.build.outputs.ios_version_code }}
+      summary_logical_source_branch: ${{ inputs.source_branch }}
+      summary_build_ref: ${{ needs.prepare-build-branch.outputs.build_branch }}
+      summary_build_version: ${{ needs.build.outputs.semantic_version }}
+      summary_android_version_code: ${{ needs.build.outputs.android_version_code }}
+      summary_built_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
     secrets: inherit
 
   cleanup-build-branch:

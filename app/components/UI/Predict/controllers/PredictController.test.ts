@@ -18,7 +18,6 @@ import {
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
-import { endTrace, trace } from '../../../../util/trace';
 import {
   addTransaction,
   addTransactionBatch,
@@ -52,13 +51,6 @@ jest.mock('../providers/polymarket/PolymarketProvider');
 jest.mock('../../../../util/transaction-controller', () => ({
   addTransaction: jest.fn(),
   addTransactionBatch: jest.fn(),
-}));
-
-jest.mock('../../../../util/trace', () => ({
-  ...jest.requireActual('../../../../util/trace'),
-  __esModule: true,
-  trace: jest.fn(),
-  endTrace: jest.fn(),
 }));
 
 // Default mock values for messenger actions
@@ -256,7 +248,6 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
-      getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
@@ -606,67 +597,6 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
-      });
-    });
-
-    describe('getCarouselMarkets', () => {
-      it('returns markets from provider', async () => {
-        const mockMarkets = [{ id: 'carousel-1' }, { id: 'carousel-2' }];
-
-        await withController(async ({ controller }) => {
-          mockPolymarketProvider.getCarouselMarkets.mockResolvedValue(
-            mockMarkets as any,
-          );
-
-          const result = await controller.getCarouselMarkets();
-
-          expect(result).toEqual(mockMarkets as any);
-          expect(mockPolymarketProvider.getCarouselMarkets).toHaveBeenCalled();
-        });
-      });
-
-      it('updates state on success', async () => {
-        await withController(async ({ controller }) => {
-          controller.updateStateForTesting((state) => {
-            state.lastError = 'Previous error';
-          });
-          mockPolymarketProvider.getCarouselMarkets.mockResolvedValue([]);
-
-          await controller.getCarouselMarkets();
-
-          expect(controller.state.lastError).toBeNull();
-          expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-        });
-      });
-
-      it('updates lastError on failure and throws', async () => {
-        const errorMessage = 'Carousel failed';
-
-        await withController(async ({ controller }) => {
-          mockPolymarketProvider.getCarouselMarkets.mockRejectedValue(
-            new Error(errorMessage),
-          );
-
-          await expect(controller.getCarouselMarkets()).rejects.toThrow(
-            errorMessage,
-          );
-          expect(controller.state.lastError).toBe(errorMessage);
-        });
-      });
-
-      it('returns empty array when provider method is not available', async () => {
-        await withController(async ({ controller }) => {
-          (
-            mockPolymarketProvider as unknown as {
-              getCarouselMarkets?: () => Promise<unknown[]>;
-            }
-          ).getCarouselMarkets = undefined;
-
-          const result = await controller.getCarouselMarkets();
-
-          expect(result).toEqual([]);
-          expect(controller.state.lastError).toBeNull();
-        });
       });
     });
   });
@@ -7124,9 +7054,6 @@ describe('PredictController', () => {
   });
 
   describe('getBalance - caching behavior', () => {
-    const mockTrace = jest.mocked(trace);
-    const mockEndTrace = jest.mocked(endTrace);
-
     beforeEach(() => {
       jest.useFakeTimers();
     });
@@ -7147,38 +7074,6 @@ describe('PredictController', () => {
           // Assert
           expect(result).toBe(1500);
           expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
-        },
-        {
-          state: {
-            balances: {
-              '0x1234567890123456789012345678901234567890':
-                createMockPredictBalance({
-                  balance: 1500,
-                  validUntil: now + 500,
-                }),
-            },
-          },
-        },
-      );
-    });
-
-    it('ends trace with cached balance metadata when cache entry is still valid', async () => {
-      const now = Date.now();
-      jest.setSystemTime(now);
-
-      await withController(
-        async ({ controller }) => {
-          const result = await controller.getBalance({});
-
-          expect(result).toBe(1500);
-          expect(mockPolymarketProvider.getBalance).not.toHaveBeenCalled();
-          expect(mockTrace).toHaveBeenCalledTimes(1);
-          expect(mockEndTrace).toHaveBeenCalledWith(
-            expect.objectContaining({
-              id: `getBalance-${now}`,
-              data: { success: true, cached: true },
-            }),
-          );
         },
         {
           state: {

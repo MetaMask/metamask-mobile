@@ -6,8 +6,6 @@ import NetworkList, {
   getAllNetworks,
   getNetworkTypeById,
   findBlockExplorerForRpc,
-  findBlockExplorerUrlForChain,
-  getHexEvmChainId,
   compareRpcUrls,
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
@@ -43,17 +41,13 @@ import {
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
-import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import {
   MOCK_SOLANA_ACCOUNT,
   MOCK_ACCOUNT_BIP122_P2WPKH,
   MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET,
 } from '../test/accountsControllerTestUtils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import {
-  BASE_MAINNET_BLOCK_EXPLORER,
-  LINEA_MAINNET_BLOCK_EXPLORER,
-} from '../../constants/urls';
 import {
   selectMultichainNetworkControllerState,
   selectSelectedNonEvmNetworkChainId,
@@ -293,58 +287,6 @@ describe('network-utils', () => {
       expect(
         findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock),
       ).toBe(undefined);
-    });
-  });
-
-  describe('getHexEvmChainId', () => {
-    it('returns hex chain id for CAIP-2 eip155', () => {
-      expect(getHexEvmChainId('eip155:59144')).toBe(CHAIN_IDS.LINEA_MAINNET);
-      expect(getHexEvmChainId('eip155:1')).toBe('0x1');
-    });
-
-    it('returns the same hex id when already hex', () => {
-      expect(getHexEvmChainId(CHAIN_IDS.LINEA_MAINNET)).toBe(
-        CHAIN_IDS.LINEA_MAINNET,
-      );
-    });
-
-    it('returns undefined for non-EVM CAIP chains', () => {
-      expect(getHexEvmChainId(SolScope.Mainnet)).toBeUndefined();
-    });
-
-    it('normalizes eip155 reference when reference is already hex', () => {
-      expect(getHexEvmChainId('eip155:0x1')).toBe('0x1');
-    });
-
-    it('normalizes decimal CAIP reference (Polygon)', () => {
-      expect(getHexEvmChainId('eip155:137')).toBe('0x89');
-    });
-  });
-
-  describe('findBlockExplorerUrlForChain', () => {
-    it('resolves Linea mainnet from CAIP without network config', () => {
-      expect(findBlockExplorerUrlForChain('eip155:59144', {})).toBe(
-        LINEA_MAINNET_BLOCK_EXPLORER,
-      );
-    });
-
-    it('resolves Base mainnet from hex without network config', () => {
-      expect(findBlockExplorerUrlForChain(CHAIN_IDS.BASE, {})).toBe(
-        BASE_MAINNET_BLOCK_EXPLORER,
-      );
-    });
-
-    it('uses network configuration block explorer for non-built-in chains', () => {
-      const configs = {
-        '0x999': {
-          blockExplorerUrls: ['https://custom-scan.test'],
-          chainId: '0x999',
-          defaultBlockExplorerUrlIndex: 0,
-        },
-      };
-      expect(findBlockExplorerUrlForChain('0x999', configs)).toBe(
-        'https://custom-scan.test',
-      );
     });
   });
 

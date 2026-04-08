@@ -1,22 +1,29 @@
 import React, {
   useEffect,
+  useRef,
   useState,
   useMemo,
   useCallback,
-  useContext,
-  useRef,
 } from 'react';
 import {
+  View,
   SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
+  TextInput,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import OldButton, {
+  ButtonVariants,
+  ButtonSize as OldButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -45,8 +52,9 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
+  DENY_PIN_ERROR_ANDROID,
 } from '../Login/constants';
-import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -59,6 +67,8 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useStyles } from '../../../component-library/hooks/useStyles';
+import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -71,23 +81,18 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
-  TextField,
   Label,
-  Text,
-  TextColor,
-  TextVariant,
+  FontWeight,
+  TextColor as DSTextColor,
 } from '@metamask/design-system-react-native';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
+import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -97,15 +102,8 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import { analytics } from '../../../util/analytics/analytics';
 import { getSocialAccountType } from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
-import { ThemeContext } from '../../../util/theme';
-import Device from '../../../util/device';
 
-const FOX_IMAGE_SIZE = Device.isIos() ? 175 : 150;
-const foxImageStyle = {
-  alignSelf: 'center' as const,
-  width: FOX_IMAGE_SIZE,
-  height: FOX_IMAGE_SIZE,
-};
+const EmptyRecordConstant = {};
 
 interface OAuthRehydrationRouteParams {
   locked: boolean;
@@ -123,10 +121,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const dispatch = useDispatch();
+
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
-  const tw = useTailwind();
-  const { colors, themeAppearance } = useContext(ThemeContext);
+
+  const fieldRef = useRef<TextInput>(null);
 
   const route =
     useRoute<RouteProp<{ params: OAuthRehydrationRouteParams }, 'params'>>();
@@ -153,7 +152,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
+
   const navigation = useNavigation();
+  const {
+    styles,
+    theme: { themeAppearance },
+  } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
@@ -496,7 +500,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       }
 
       const isBiometricCancellation =
-        isBiometricUnlockCancelledByUser(loginError);
+        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+        );
 
       if (isBiometricCancellation) {
         setBiometryChoice(false);
@@ -733,6 +741,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       await onRehydrateLogin();
     }
     setPassword('');
+    fieldRef.current?.clear();
   };
 
   const toggleWarningModal = () => {
@@ -745,57 +754,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       },
     });
   };
-
-  const renderPasswordField = () => (
-    <TextField
-      placeholder={strings('login.password_placeholder')}
-      testID={LoginViewSelectors.PASSWORD_INPUT}
-      returnKeyType={'done'}
-      autoCapitalize="none"
-      secureTextEntry
-      onChangeText={handlePasswordChange}
-      value={password}
-      onSubmitEditing={handleLogin}
-      keyboardAppearance={themeAppearance}
-      isDisabled={disabledInput}
-      isError={!!error}
-    />
-  );
-
-  const renderHelperText = () =>
-    !!error && (
-      <HelpText
-        severity={HelpTextSeverity.Error}
-        testID={LoginViewSelectors.PASSWORD_ERROR}
-      >
-        {error}
-      </HelpText>
-    );
-
-  const renderFooterAction = () =>
-    isSeedlessPasswordOutdated ? (
-      <Button
-        variant={ButtonVariant.Tertiary}
-        size={ButtonSize.Lg}
-        testID={LoginViewSelectors.RESET_WALLET}
-        onPress={toggleWarningModal}
-        isDisabled={loading}
-        twClassName="self-center my-3.5"
-      >
-        {strings('login.forgot_password')}
-      </Button>
-    ) : (
-      <Button
-        variant={ButtonVariant.Tertiary}
-        size={ButtonSize.Lg}
-        onPress={handleUseOtherMethod}
-        isDisabled={finalLoading}
-        testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
-        twClassName="self-center mt-6"
-      >
-        {strings('login.other_methods')}
-      </Button>
-    );
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -803,88 +761,83 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
     >
       <ThrowErrorIfNeeded />
-      <SafeAreaView
-        style={[
-          tw.style('flex-1'),
-          { backgroundColor: colors.background.default },
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
-        ]}
-      >
+      <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           resetScrollToCoords={{ x: 0, y: 0 }}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-1')}
+          style={styles.wrapper}
+          contentContainerStyle={styles.scrollContentContainer}
           extraScrollHeight={Platform.OS === 'android' ? -200 : 0}
           enableResetScrollToCoords={false}
         >
-          <Box
-            testID={LoginViewSelectors.CONTAINER}
-            alignItems={BoxAlignItems.Center}
-            paddingHorizontal={6}
-            twClassName="flex-1 w-full"
-          >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              twClassName="w-full flex-1 mt-2.5"
-            >
+          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+            <View style={styles.oauthContentWrapper}>
               <Image
                 source={METAMASK_NAME}
-                style={[
-                  tw.style('w-20 h-10 self-center mt-2.5'),
-                  { tintColor: colors.icon.default },
-                ]}
+                style={styles.metamaskName}
                 resizeMode="contain"
                 resizeMethod={'auto'}
               />
 
               <TouchableOpacity
-                style={tw.style('self-center mt-12')}
+                style={styles.foxWrapper}
                 delayLongPress={10 * 1000}
                 onLongPress={handleDownloadStateLogs}
                 activeOpacity={1}
               >
                 <Image
                   source={FOX_LOGO}
-                  style={foxImageStyle}
+                  style={styles.image}
                   resizeMethod={'auto'}
                 />
               </TouchableOpacity>
 
               <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-                twClassName="my-6 text-center"
+                variant={TextVariant.DisplayMD}
+                color={TextColor.Default}
+                style={styles.title}
                 testID={LoginViewSelectors.TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
 
-              <Box gap={2} twClassName="w-full">
+              <View style={styles.field}>
                 <Label
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
+                  color={DSTextColor.TextDefault}
+                  style={styles.label}
                 >
                   {strings('login.password')}
                 </Label>
-                {renderPasswordField()}
-              </Box>
+                <TextField
+                  placeholder={strings('login.password_placeholder')}
+                  testID={LoginViewSelectors.PASSWORD_INPUT}
+                  returnKeyType={'done'}
+                  autoCapitalize="none"
+                  secureTextEntry
+                  ref={fieldRef}
+                  onChangeText={handlePasswordChange}
+                  value={password}
+                  onSubmitEditing={handleLogin}
+                  keyboardAppearance={themeAppearance || undefined}
+                  isDisabled={disabledInput}
+                  isError={!!error}
+                />
+              </View>
 
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="self-start gap-y-0.5"
-              >
-                {renderHelperText()}
-              </Box>
+              <View style={styles.helperTextContainer}>
+                {!!error && (
+                  <HelpText
+                    severity={HelpTextSeverity.Error}
+                    variant={TextVariant.BodyMD}
+                    testID={LoginViewSelectors.PASSWORD_ERROR}
+                  >
+                    {error}
+                  </HelpText>
+                )}
+              </View>
 
-              <Box
-                alignItems={BoxAlignItems.Center}
-                twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
-                pointerEvents="box-none"
-              >
+              <View style={styles.ctaWrapperRehydration}>
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
@@ -898,11 +851,36 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 >
                   {strings('login.unlock_button')}
                 </Button>
+              </View>
 
-                {renderFooterAction()}
-              </Box>
-            </Box>
-          </Box>
+              {isSeedlessPasswordOutdated ? (
+                <OldButton
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={toggleWarningModal}
+                  testID={LoginViewSelectors.RESET_WALLET}
+                  label={strings('login.forgot_password')}
+                  isDisabled={loading}
+                  size={OldButtonSize.Lg}
+                />
+              ) : (
+                <View style={styles.footer}>
+                  <TouchableOpacity
+                    onPress={handleUseOtherMethod}
+                    disabled={finalLoading}
+                    testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMDMedium}
+                      color={TextColor.Primary}
+                    >
+                      {strings('login.other_methods')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
       </SafeAreaView>

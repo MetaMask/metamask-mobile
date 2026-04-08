@@ -69,16 +69,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const selectedAddress = connectedAccounts?.[0];
-    const dappOrigin = useMemo(() => {
-      if (!activeUrl) {
-        return '';
-      }
-      try {
-        return new URLParse(activeUrl).origin;
-      } catch {
-        return '';
-      }
-    }, [activeUrl]);
     const {
       styles,
       theme: { colors, themeAppearance },
@@ -148,7 +138,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           <AccountRightButton
             selectedAddress={selectedAddress}
             onPress={handleAccountRightButtonPress}
-            dappOrigin={dappOrigin}
           />
         );
       }
@@ -173,7 +162,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       onCancelInput,
       styles.cancelButton,
       styles.cancelButtonText,
-      dappOrigin,
     ]);
 
     useImperativeHandle(ref, () => ({

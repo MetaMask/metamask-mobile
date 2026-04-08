@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { Alert } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
@@ -75,8 +75,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
     isOptedIn: jest.fn().mockResolvedValue(true),
   },
 }));
-
-jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
 jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
@@ -407,19 +405,16 @@ describe('OAuthRehydration', () => {
 
     it('clears password field after login attempt', async () => {
       mockUnlockWallet.mockRejectedValue(new Error('Invalid password'));
-      const { getByTestId, queryByDisplayValue } = renderWithProvider(
-        <OAuthRehydration />,
-      );
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
       fireEvent.changeText(passwordInput, 'wrongPassword');
-
       await act(async () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
       await waitFor(() => {
-        expect(queryByDisplayValue('wrongPassword')).toBeNull();
+        expect(passwordInput.props.value).toBe('');
       });
     });
   });
@@ -767,52 +762,6 @@ describe('OAuthRehydration', () => {
     });
   });
 
-  describe('Platform configuration', () => {
-    let originalPlatform: string;
-    let originalStatusBarHeight: number | undefined;
-
-    beforeEach(() => {
-      originalPlatform = Platform.OS;
-      originalStatusBarHeight = StatusBar.currentHeight;
-    });
-
-    afterEach(() => {
-      Object.defineProperty(Platform, 'OS', {
-        value: originalPlatform,
-        writable: true,
-      });
-      StatusBar.currentHeight = originalStatusBarHeight;
-    });
-
-    it('applies Android-specific layout spacing and status bar padding', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
-      StatusBar.currentHeight = 42;
-
-      const { UNSAFE_root } = renderWithProvider(<OAuthRehydration />);
-      const safeAreaView = UNSAFE_root.findByType(SafeAreaView);
-      const keyboardAwareScrollView = UNSAFE_root.findByProps({
-        extraScrollHeight: -200,
-      });
-      const ctaWrapper = UNSAFE_root.findByProps({
-        twClassName: 'w-full mt-4 gap-4',
-      });
-
-      expect(safeAreaView.props.style).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            backgroundColor: expect.any(String),
-          }),
-          { paddingTop: 42 },
-        ]),
-      );
-      expect(keyboardAwareScrollView.props.extraScrollHeight).toBe(-200);
-      expect(ctaWrapper).toBeDefined();
-    });
-  });
-
   describe('Analytics tracking', () => {
     it('tracks login screen view on mount', () => {
       renderWithProvider(<OAuthRehydration />);
@@ -983,23 +932,6 @@ describe('OAuthRehydration', () => {
     it('does not track REHYDRATION_PASSWORD_FAILED when iOS biometric is cancelled', async () => {
       mockUnlockWallet.mockRejectedValue(
         new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
-      );
-      mockTrackOnboarding.mockClear();
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
-      await enterPasswordAndSubmit(getByTestId, 'password123');
-
-      expect(Logger.error).not.toHaveBeenCalled();
-      const rehydrationFailedCalls = mockTrackOnboarding.mock.calls.filter(
-        (call) =>
-          call[0]?.properties?.name ===
-          MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED.category,
-      );
-      expect(rehydrationFailedCalls).toHaveLength(0);
-    });
-
-    it('does not track REHYDRATION_PASSWORD_FAILED when Android keychain reports user cancel', async () => {
-      mockUnlockWallet.mockRejectedValue(
-        new Error('code: 10, msg: Fingerprint operation canceled by user'),
       );
       mockTrackOnboarding.mockClear();
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);

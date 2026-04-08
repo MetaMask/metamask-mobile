@@ -41,9 +41,7 @@ const SectionCarrousel: React.FC<SectionCarrouselProps> = ({
         renderItem={({ item, index }) => {
           const isLastItem = index === displayData.length - 1;
           return (
-            <Box
-              style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}
-            >
+            <Box style={tw.style({ width: CARD_WIDTH, height: CARD_HEIGHT })}>
               <Box
                 borderColor={BoxBorderColor.BorderDefault}
                 twClassName={`rounded-2xl overflow-hidden ${!isLastItem ? 'pr-4' : ''}`}

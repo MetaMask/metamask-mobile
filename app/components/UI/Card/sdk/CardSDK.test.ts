@@ -174,17 +174,76 @@ describe('CardSDK', () => {
 
   describe('constructor', () => {
     it('initializes with correct card feature flag and chain ID', () => {
+      expect(cardSDK.isCardEnabled).toBe(true);
       expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
     });
   });
 
+  describe('isCardEnabled', () => {
+    it('returns true when card is enabled for the chain', () => {
+      expect(cardSDK.isCardEnabled).toBe(true);
+    });
+
+    it('returns false when card is disabled for the chain', () => {
+      const disabledCardFeatureFlag: CardFeatureFlag = {
+        constants: {
+          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        },
+        chains: {
+          'eip155:59144': {
+            enabled: false,
+            tokens: [],
+          },
+        },
+      };
+
+      const disabledCardholderSDK = new CardSDK({
+        cardFeatureFlag: disabledCardFeatureFlag,
+      });
+
+      expect(disabledCardholderSDK.isCardEnabled).toBe(false);
+    });
+
+    it('returns false when chain is not configured', () => {
+      const emptyCardFeatureFlag: CardFeatureFlag = {};
+
+      const noChainCardholderSDK = new CardSDK({
+        cardFeatureFlag: emptyCardFeatureFlag,
+      });
+
+      expect(noChainCardholderSDK.isCardEnabled).toBe(false);
+    });
+  });
+
   describe('getSupportedTokensByChainId', () => {
-    it('returns supported tokens', () => {
+    it('returns supported tokens when card is enabled', () => {
       expect(cardSDK.getSupportedTokensByChainId('eip155:59144')).toEqual(
         mockSupportedTokens,
       );
+    });
+
+    it('returns empty array when card is disabled', () => {
+      const disabledCardFeatureFlag: CardFeatureFlag = {
+        constants: {
+          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        },
+        chains: {
+          'eip155:59144': {
+            enabled: false,
+            tokens: mockSupportedTokens,
+          },
+        },
+      };
+
+      const disabledCardholderSDK = new CardSDK({
+        cardFeatureFlag: disabledCardFeatureFlag,
+      });
+
+      expect(
+        disabledCardholderSDK.getSupportedTokensByChainId('eip155:59144'),
+      ).toEqual([]);
     });
 
     it('returns empty array when tokens array is undefined', () => {
@@ -568,7 +627,7 @@ describe('CardSDK', () => {
   describe('getSupportedTokensAllowances', () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
 
-    it('returns empty array when the chain has no supported tokens', async () => {
+    it('throws error when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         constants: {
           onRampApiUrl: '',
@@ -585,9 +644,9 @@ describe('CardSDK', () => {
         cardFeatureFlag: disabledCardFeatureFlag,
       });
 
-      const result =
-        await disabledCardholderSDK.getSupportedTokensAllowances(testAddress);
-      expect(result).toEqual([]);
+      await expect(
+        disabledCardholderSDK.getSupportedTokensAllowances(testAddress),
+      ).rejects.toThrow('Card feature is not enabled for this chain');
     });
 
     it('returns empty array when no supported tokens', async () => {
@@ -646,7 +705,7 @@ describe('CardSDK', () => {
     const testAddress = '0x1234567890123456789012345678901234567890';
     const nonZeroBalanceTokens = [mockSupportedTokens[0].address as string];
 
-    it('returns null when the chain has no supported tokens to match', async () => {
+    it('throws error when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
         chains: {
           'eip155:59144': {
@@ -660,11 +719,12 @@ describe('CardSDK', () => {
         cardFeatureFlag: disabledCardFeatureFlag,
       });
 
-      const result = await disabledCardholderSDK.getPriorityToken(
-        testAddress,
-        nonZeroBalanceTokens,
-      );
-      expect(result).toBeNull();
+      await expect(
+        disabledCardholderSDK.getPriorityToken(
+          testAddress,
+          nonZeroBalanceTokens,
+        ),
+      ).rejects.toThrow('Card feature is not enabled for this chain');
     });
 
     it('returns the matching token when only one token has non-zero balance', async () => {

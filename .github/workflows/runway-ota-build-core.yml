@@ -71,6 +71,14 @@ jobs:
       ota_version: ${{ steps.decide.outputs.ota_version }}
       pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
     steps:
+      - name: Debug ref context
+        run: |
+          echo "github.ref_name = ${{ github.ref_name }}"
+          echo "github.ref      = ${{ github.ref }}"
+          echo "inputs.source_branch = ${{ inputs.source_branch }}"
+          echo "resolved ref (source_branch || github.ref_name) = ${{ inputs.source_branch || github.ref_name }}"
+          echo "resolved ref (source_branch || github.ref)      = ${{ inputs.source_branch || github.ref }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -91,10 +99,9 @@ jobs:
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
           # Try same-repo head first, then owner:branch (required by API when listing pulls)
-          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
-          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
           if [[ -z "$PR_NUMBER" ]]; then
-            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
           fi
 
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
@@ -136,12 +143,13 @@ jobs:
             echo "No OTA version bump (base: $BASE_OTA, current: $CURRENT_OTA) → will trigger build"
           fi
 
-  # Reusable workflows must be job-level `uses:` (not a step). Steps only support actions (action.yml).
-  validate-ota-pr:
-    name: Validate PR for OTA
+  trigger-ota:
+    name: Trigger OTA update
     needs: decide
     if: needs.decide.outputs.ota_bump == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.release_tag.outputs.release_tag }}
     steps:
       - name: Validate PR number
         run: |
@@ -152,18 +160,32 @@ jobs:
           fi
           echo "Using PR #${{ needs.decide.outputs.pr_number }}"
 
-  trigger-ota:
-    name: Trigger OTA update
-    needs: [decide, validate-ota-pr]
-    if: needs.decide.outputs.ota_bump == 'true'
-    uses: ./.github/workflows/push-eas-update.yml
-    with:
-      pr_number: ${{ needs.decide.outputs.pr_number }}
-      base_branch: ${{ needs.decide.outputs.base_ref }}
-      message: ${{ needs.decide.outputs.ota_version }}
-      channel: ${{ inputs.ota_channel }}
-      platform: ${{ inputs.platform }}
-    secrets: inherit
+      - name: Trigger Push OTA Update workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const ref = '${{ inputs.source_branch || github.ref_name }}'.replace(/^refs\/heads\//, '');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'push-eas-update.yml',
+              ref: ref,
+              inputs: {
+                pr_number: '${{ needs.decide.outputs.pr_number }}',
+                base_branch: '${{ needs.decide.outputs.base_ref }}',
+                message: '${{ needs.decide.outputs.ota_version }}',
+                channel: '${{ inputs.ota_channel }}',
+                platform: '${{ inputs.platform }}'
+              }
+            });
+            core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
+
+      - name: Export release tag for OTA follow-up jobs
+        id: release_tag
+        run: |
+          # Tag name must match OTA_VERSION (app/constants/ota.ts), not package.json semver
+          echo "release_tag=${{ needs.decide.outputs.ota_version }}" >> "$GITHUB_OUTPUT"
 
   trigger-build:
     name: Trigger build mobile app
@@ -180,11 +202,11 @@ jobs:
 
   create-ota-production-tag:
     name: Create OTA production release tag
-    needs: [decide, trigger-ota]
+    needs: [trigger-ota]
     if: ${{ inputs.create_production_ota_tag == true }}
     uses: ./.github/workflows/runway-create-ota-production-tag.yml
     with:
-      tag_name: ${{ needs.decide.outputs.ota_version }}
+      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
       checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
@@ -194,11 +216,12 @@ jobs:
     if: ${{ inputs.platform == 'ios' && inputs.upload_testflight }}
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
-      environment: ${{ inputs.environment }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
-      build_branch: ${{ inputs.source_branch || github.ref_name }}
+      environment: ${{ inputs.environment }}
       build_name: ${{ inputs.build_name }}
-      build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
-      build_version: ${{ needs.trigger-build.outputs.semantic_version }}
-      build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
+      summary_logical_source_branch: ${{ inputs.source_branch || github.ref_name }}
+      summary_build_ref: ${{ needs.trigger-build.outputs.checkout_ref }}
+      summary_build_version: ${{ needs.trigger-build.outputs.semantic_version }}
+      summary_android_version_code: ${{ needs.trigger-build.outputs.android_version_code }}
+      summary_built_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
     secrets: inherit

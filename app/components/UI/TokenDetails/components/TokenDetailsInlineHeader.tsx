@@ -22,24 +22,23 @@ const inlineHeaderStyles = (params: {
     container: {
       backgroundColor: colors.background.default,
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      alignSelf: 'stretch',
-      paddingVertical: 8,
-      paddingHorizontal: 4,
+      height: 48,
+      gap: 16,
       marginTop: insets.top,
     },
-    backButtonHitArea: {
-      width: 40,
-      height: 40,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 10,
-      flexShrink: 0,
+    leftButton: {
+      marginLeft: 16,
+    },
+    rightButton: {
+      marginRight: 16,
     },
     rightPlaceholder: {
+      marginRight: 16,
       width: 24,
+    },
+    spacer: {
+      flex: 1,
     },
   });
 };
@@ -55,16 +54,17 @@ export const TokenDetailsInlineHeader = ({
   const { styles } = useStyles(inlineHeaderStyles, { insets });
   return (
     <View style={styles.container}>
-      <View style={styles.backButtonHitArea}>
-        <ButtonIcon
-          onPress={onBackPress}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          testID="back-arrow-button"
-        />
-      </View>
+      <ButtonIcon
+        style={styles.leftButton}
+        onPress={onBackPress}
+        size={ButtonIconSize.Md}
+        iconName={IconName.ArrowLeft}
+        testID="back-arrow-button"
+      />
+      <View style={styles.spacer} />
       {onOptionsPress ? (
         <ButtonIcon
+          style={styles.rightButton}
           onPress={onOptionsPress}
           size={ButtonIconSize.Lg}
           iconName={IconName.MoreVertical}

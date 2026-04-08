@@ -80,15 +80,6 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
     children,
 }));
 jest.mock('./components/Sections/SectionTypes/SectionCard', () => () => null);
-jest.mock(
-  './components/Sections/SectionTypes/SectionCarrousel',
-  () => () => null,
-);
-jest.mock('../../UI/Predict/components/PredictMarket', () => () => null);
-jest.mock(
-  '../../UI/Predict/components/PredictMarketSkeleton',
-  () => () => null,
-);
 jest.mock('fuse.js', () =>
   jest.fn().mockImplementation(() => ({
     search: jest.fn().mockReturnValue([]),

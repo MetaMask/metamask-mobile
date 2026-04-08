@@ -6,6 +6,10 @@ name: Upload to TestFlight
 on:
   workflow_call:
     inputs:
+      source_branch:
+        description: 'Git ref used for the upload script changelog (usually the ref that was built)'
+        required: true
+        type: string
       environment:
         description: 'Build environment / track (exp, beta, rc)'
         required: true
@@ -15,28 +19,28 @@ on:
         required: false
         type: string
         default: 'MetaMask BETA & Release Candidates'
-      source_branch:
-        description: 'Original branch the user asked to build (e.g. main); from caller'
-        required: true
-        type: string
-      build_branch:
-        description: 'Branch that was built'
-        required: true
-        type: string
       build_name:
         description: 'Must match build.yml build_name (artifact ios-ipa-{build_name})'
         required: true
         type: string
-      build_commit_sha:
+      summary_logical_source_branch:
+        description: 'Original branch the user asked to build (e.g. main); from caller'
+        required: true
+        type: string
+      summary_build_ref:
+        description: 'Ref that was built (e.g. temp version-bump branch); from caller'
+        required: true
+        type: string
+      summary_build_version:
+        description: 'Semantic version at built commit; from build.yml semantic_version output'
+        required: true
+        type: string
+      summary_android_version_code:
+        description: 'Android versionCode at built commit; from build.yml android_version_code output'
+        required: true
+        type: string
+      summary_built_commit_sha:
         description: 'Built commit SHA; from build.yml built_commit_sha output'
-        required: true
-        type: string
-      build_version:
-        description: 'Semantic version at built commit; from build.yml semantic_version output (eg. 7.77.0)'
-        required: true
-        type: string
-      build_number:
-        description: 'The build number of the app (eg. 4134)'
         required: true
         type: string
 
@@ -56,14 +60,14 @@ jobs:
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
-            echo "| **Build branch** | \`${{ inputs.build_branch }}\` |"
+            echo "| **Source branch** | \`${{ inputs.summary_logical_source_branch }}\` |"
+            echo "| **Build ref** | \`${{ inputs.summary_build_ref }}\` |"
             echo "| **Build name** | \`${{ inputs.build_name }}\` |"
-            echo "| **Build commit SHA** | \`${{ inputs.build_commit_sha }}\` |"
-            echo "| **Build version** | \`${{ inputs.build_version }}\` |"
-            echo "| **Build number** | \`${{ inputs.build_number }}\` |"
-            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
-            echo "| **Workflow branch ref** | \`${{ github.ref_name }}\` |"
+            echo "| **Build version** | \`${{ inputs.summary_build_version }}\` |"
+            echo "| **Build number** | \`${{ inputs.summary_android_version_code }}\` |"
+            echo "| **Built commit** | \`${{ inputs.summary_built_commit_sha }}\` |"
+            echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
+            echo "| **Workflow ref** | \`${{ github.ref_name }}\` (Will fail if workflow is not run from \`main\`! Enforced by AWS secrets policy.) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   upload-ios-testflight:
@@ -154,10 +158,10 @@ jobs:
       - name: Upload to TestFlight
         run: |
           bash scripts/upload-to-testflight.sh \
-            "github_actions_main-${{ inputs.environment }}" \
+            "github_actions_main-${{ inputs.environment || 'rc' }}" \
             "${{ inputs.source_branch }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "${{ inputs.testflight_group }}"
+            "${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}"
 
       - name: Cleanup API Key
         if: always()

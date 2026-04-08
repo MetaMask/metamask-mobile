@@ -7,22 +7,12 @@ import React, {
   useRef,
 } from 'react';
 import { Linking } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  StackActions,
-} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
-  BannerBase,
   Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
-  TextColor,
   TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -36,6 +26,10 @@ import AppConstants from '../../../core/AppConstants';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import Banner, {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../component-library/components/Banners/Banner';
 import { IconName as IconNameLibrary } from '../../../component-library/components/Icons/Icon';
 import {
   ButtonIconVariant,
@@ -50,20 +44,17 @@ import {
   SRPTabView,
 } from './components';
 import { useRevealCredential, useSRPQuiz } from './hooks';
-import {
-  IRevealPrivateCredentialProps,
-  RevealPrivateCredentialRouteProp,
-  RevealSrpStage,
-} from './types';
+import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const RevealPrivateCredential = ({
+  navigation,
   cancel,
+  route,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
-  const navigation = useNavigation();
-  const route = useRoute<RevealPrivateCredentialRouteProp>();
-  const hasNavigation = !cancel;
+  const hasNavigation = !!navigation;
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const keyringId = route?.params?.keyringId;
 
@@ -77,6 +68,7 @@ const RevealPrivateCredential = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const tw = useTailwind();
 
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
@@ -151,14 +143,14 @@ const RevealPrivateCredential = ({
       return;
     }
     if (route?.params?.popToTopOnDone) {
-      navigation.dispatch(StackActions.popToTop());
+      navigation.popToTop();
       return;
     }
     if (shouldUpdateNav) {
-      navigation.dispatch(StackActions.pop());
+      navigation.pop();
       return;
     }
-    navigation.dispatch(StackActions.pop());
+    navigation.pop();
   }, [
     hasNavigation,
     shouldUpdateNav,
@@ -277,20 +269,15 @@ const RevealPrivateCredential = ({
 
   const renderWarning = () => (
     <Box testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}>
-      <BannerBase
-        startAccessory={
-          <Icon
-            name={IconName.Danger}
-            color={IconColor.ErrorDefault}
-            size={IconSize.Lg}
-          />
-        }
+      <Banner
+        variant={BannerVariant.Alert}
+        severity={BannerAlertSeverity.Error}
         title={
           <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
             {strings('reveal_credential.seed_phrase_warning_explanation')}
           </Text>
         }
-        twClassName="mt-6 border border-error-default bg-error-muted"
+        style={tw.style('text-body-sm mt-6')}
       />
     </Box>
   );
