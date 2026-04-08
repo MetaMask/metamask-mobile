@@ -30,14 +30,10 @@ import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
-import CampaignCTA from '../components/Campaigns/CampaignCTA';
-import {
-  getCampaignStatus,
-  isOptinAllowed,
-} from '../components/Campaigns/CampaignTile.utils';
+import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import { formatComputedAt } from '../components/Campaigns/OndoLeaderboard.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
@@ -100,19 +96,15 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const isOptedIn = participantStatusData?.optedIn === true;
 
-  // Single fetch point for portfolio — data is passed to both the portfolio section and
-  // used to gate the leaderboard rank section visibility
+  // Single fetch point for portfolio — only fetches when opted in
   const {
     portfolio: portfolioData,
     isLoading: isPortfolioLoading,
     hasError: hasPortfolioError,
-    hasFetched: portfolioHasFetched,
     refetch: refetchPortfolio,
   } = useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
 
   const hasPositions = Boolean(portfolioData?.positions.length);
-
-  const isOptinClosed = campaign !== null && !isOptinAllowed(campaign);
 
   const {
     tierNames,
@@ -138,7 +130,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const {
     showHowItWorksSection,
-    showCompetitionEndedBanner,
     showLeaderboardSection,
     showLeaderboardPositionSection,
     showPortfolioSection,
@@ -146,7 +137,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     if (!campaign) {
       return {
         showHowItWorksSection: false,
-        showCompetitionEndedBanner: false,
         showLeaderboardSection: false,
         showLeaderboardPositionSection: false,
         showPortfolioSection: false,
@@ -155,54 +145,18 @@ const OndoCampaignDetailsView: React.FC = () => {
 
     const showHowItWorksSection =
       Boolean(campaign.details?.howItWorks) &&
-      !isOptedIn &&
       !hasPositions &&
-      !isPortfolioLoading &&
-      getCampaignStatus(campaign) === 'active' &&
-      isOptinAllowed(campaign);
-
-    const showCompetitionEndedBanner =
-      getCampaignStatus(campaign) === 'complete' ||
-      (!isParticipantStatusLoading &&
-        isOptinClosed &&
-        (!isOptedIn ||
-          (portfolioHasFetched && !hasPositions && !hasPortfolioError)));
+      getCampaignStatus(campaign) === 'active';
 
     const showLeaderboardPositionSection = isOptedIn && hasPositions;
 
-    const showPortfolioSection =
-      isOptedIn &&
-      (!showCompetitionEndedBanner ||
-        (hasPositions && getCampaignStatus(campaign) === 'complete') ||
-        isPortfolioLoading ||
-        (hasPortfolioError && !hasPositions));
-
-    const showLeaderboardSection =
-      (showCompetitionEndedBanner &&
-        !showLeaderboardPositionSection &&
-        !showPortfolioSection) ||
-      (isOptedIn &&
-        !showCompetitionEndedBanner &&
-        !hasPositions &&
-        !isPortfolioLoading);
-
     return {
       showHowItWorksSection,
-      showCompetitionEndedBanner,
       showLeaderboardPositionSection,
-      showLeaderboardSection,
-      showPortfolioSection,
+      showPortfolioSection: isOptedIn,
+      showLeaderboardSection: !showLeaderboardPositionSection,
     };
-  }, [
-    campaign,
-    isOptedIn,
-    hasPositions,
-    isParticipantStatusLoading,
-    isOptinClosed,
-    portfolioHasFetched,
-    hasPortfolioError,
-    isPortfolioLoading,
-  ]);
+  }, [campaign, isOptedIn, hasPositions]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -270,25 +224,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       howItWorks={
                         campaign.details?.howItWorks as OndoCampaignHowItWorks
                       }
-                    />
-                  </Box>
-                </>
-              )}
-
-              {/* Competition closed banner
-                  - for when cutoff date has passed and user is not opted in
-                  - or when the campaign is complete */}
-              {showCompetitionEndedBanner && (
-                <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 py-4 gap-4">
-                    <RewardsInfoBanner
-                      title={strings(
-                        'rewards.campaign_details.competition_closed_title',
-                      )}
-                      description={strings(
-                        'rewards.campaign_details.competition_closed_description',
-                      )}
                     />
                   </Box>
                 </>
@@ -407,7 +342,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       portfolio={portfolioData}
                       isLoading={isPortfolioLoading}
                       hasError={hasPortfolioError}
-                      hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
                       campaignId={campaignId}
                       onOpenAccountPicker={setPendingPicker}
@@ -467,7 +401,7 @@ const OndoCampaignDetailsView: React.FC = () => {
         </ScrollView>
 
         {campaign && (
-          <CampaignCTA
+          <OndoCampaignCTA
             campaign={campaign}
             participantStatus={{
               status: participantStatusData,
