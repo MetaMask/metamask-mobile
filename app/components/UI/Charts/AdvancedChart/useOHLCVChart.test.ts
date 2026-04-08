@@ -188,7 +188,7 @@ describe('useOHLCVChart - query parameters', () => {
   });
 });
 
-describe('useOHLCVChart - fetchMoreHistory', () => {
+describe('useOHLCVChart - pagination metadata', () => {
   beforeEach(() => {
     nock.disableNetConnect();
   });
@@ -198,59 +198,46 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
     jest.restoreAllMocks();
   });
 
-  it('prepends older bars and advances cursor when API returns a page', async () => {
-    const older = createAPICandle({ timestamp: 100, close: 1 });
-    const newer = createAPICandle({ timestamp: 200, close: 2 });
-
-    const scope1 = arrangeNockOhlcvAPISuccessResponse(
+  it('exposes nextCursor from the API response', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
       createSuccessBody({
-        data: [newer],
         hasNext: true,
-        nextCursor: 'cursor-a',
+        nextCursor: 'cursor-abc',
       }),
-    );
-
-    const scope2 = arrangeNockOhlcvAPIStrictQueryResponse(
-      { nextCursor: 'cursor-a' },
-      createSuccessBody({ data: [older], hasNext: false, nextCursor: '' }),
     );
 
     const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasMore).toBe(true);
     });
 
-    expect(scope1.isDone()).toBe(true);
-    expect(scope2.isDone()).toBe(false);
-
-    await act(async () => {
-      result.current.fetchMoreHistory({ oldestTimestamp: 100 });
-    });
-
-    await waitFor(() => {
-      expect(result.current.ohlcvData).toHaveLength(2);
-    });
-
-    expect(result.current.ohlcvData[0]?.time).toBe(100);
-    expect(result.current.ohlcvData[1]?.time).toBe(200);
-    expect(result.current.hasMore).toBe(false);
-
-    expect(scope1.isDone()).toBe(true);
-    expect(scope2.isDone()).toBe(true);
+    expect(result.current.nextCursor).toBe('cursor-abc');
+    expect(result.current.hasMore).toBe(true);
   });
 
-  it('discards stale pagination response when time range changes mid-flight', async () => {
-    const rangeACandle = createAPICandle({ timestamp: 200, close: 2 });
-    const rangeAOlderCandle = createAPICandle({ timestamp: 100, close: 1 });
-    const rangeBCandle = createAPICandle({ timestamp: 300, close: 3 });
+  it('sets nextCursor to null when API returns empty cursor', async () => {
+    arrangeNockOhlcvAPISuccessResponse(
+      createSuccessBody({
+        hasNext: false,
+        nextCursor: '',
+      }),
+    );
 
-    // Initial load for range A
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.nextCursor).toBeNull();
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('resets nextCursor when time range changes', async () => {
     arrangeNockOhlcvAPIStrictQueryResponse(
       { timePeriod: '1d' },
       createSuccessBody({
-        data: [rangeACandle],
         hasNext: true,
         nextCursor: 'cursor-a',
       }),
@@ -265,35 +252,13 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasMore).toBe(true);
     });
 
-    // Set up a delayed response for the pagination fetch so the time range
-    // switch happens while it's in-flight.
-    const paginationScope = nock(OHLCV_HOST)
-      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
-      .query({ nextCursor: 'cursor-a' })
-      .delay(100)
-      .reply(
-        200,
-        createSuccessBody({
-          data: [rangeAOlderCandle],
-          hasNext: false,
-          nextCursor: '',
-        }),
-      );
+    expect(result.current.nextCursor).toBe('cursor-a');
 
-    // Start pagination fetch (in-flight)
-    await act(async () => {
-      result.current.fetchMoreHistory({ oldestTimestamp: 200 });
-    });
-
-    // Switch time range while pagination is in-flight — this triggers
-    // loadInitial which aborts the shared AbortController.
     arrangeNockOhlcvAPIStrictQueryResponse(
       { timePeriod: '1w' },
       createSuccessBody({
-        data: [rangeBCandle],
         hasNext: false,
         nextCursor: '',
       }),
@@ -305,45 +270,7 @@ describe('useOHLCVChart - fetchMoreHistory', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // The stale range-A bar should NOT have been prepended.
-    // Only range-B data should be present.
-    expect(result.current.ohlcvData).toHaveLength(1);
-    expect(result.current.ohlcvData[0]?.time).toBe(300);
-
-    nock.abortPendingRequests();
-    paginationScope.done();
-  });
-
-  it('does not request another page when hasMore is false', async () => {
-    const scope = arrangeNockOhlcvAPIStrictQueryResponse(
-      { timePeriod: '1d' },
-      createSuccessBody({
-        hasNext: false,
-        nextCursor: '',
-      }),
-    );
-
-    const scope2Call = arrangeNockOhlcvAPIStrictQueryResponse(
-      { timePeriod: '1d' },
-      createSuccessBody({
-        hasNext: false,
-        nextCursor: '',
-      }),
-    );
-
-    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(scope.isDone()).toBe(true);
-
-    await act(async () => {
-      result.current.fetchMoreHistory({ oldestTimestamp: 1 });
-    });
-
-    // Scope 2 never called because hasMore is false
-    expect(scope2Call.isDone()).toBe(false);
+    expect(result.current.nextCursor).toBeNull();
+    expect(result.current.hasMore).toBe(false);
   });
 });

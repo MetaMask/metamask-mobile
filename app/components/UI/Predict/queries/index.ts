@@ -18,6 +18,7 @@ import {
   predictPriceHistoryKeys,
   predictPriceHistoryOptions,
 } from './priceHistory';
+import { predictSeriesKeys, predictSeriesOptions } from './series';
 import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
@@ -55,6 +56,10 @@ export const predictQueries = {
   priceHistory: {
     keys: predictPriceHistoryKeys,
     options: predictPriceHistoryOptions,
+  },
+  series: {
+    keys: predictSeriesKeys,
+    options: predictSeriesOptions,
   },
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,

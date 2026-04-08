@@ -37,8 +37,8 @@ const mockUseOHLCVChart = jest.fn().mockReturnValue({
   ],
   isLoading: false,
   error: undefined,
-  fetchMoreHistory: jest.fn(),
   hasMore: false,
+  nextCursor: null,
 });
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
@@ -123,8 +123,8 @@ describe('Price Component', () => {
       ohlcvData: [],
       isLoading: true,
       error: undefined,
-      fetchMoreHistory: jest.fn(),
       hasMore: false,
+      nextCursor: null,
     });
     const { queryByTestId } = renderWithProviders(
       <Price {...unifiedProps} isLoading={false} />,
