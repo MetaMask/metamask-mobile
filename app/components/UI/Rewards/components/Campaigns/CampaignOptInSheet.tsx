@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { noop } from 'lodash';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -14,8 +15,8 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  BottomSheet,
 } from '@metamask/design-system-react-native';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
   type CampaignDto,
   CampaignType,
@@ -99,7 +100,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   }, [navigation]);
 
   return (
-    <BottomSheet shouldNavigateBack={false} onClose={onClose}>
+    <BottomSheet shouldNavigateBack={false} goBack={noop} onClose={onClose}>
       <Box twClassName="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box

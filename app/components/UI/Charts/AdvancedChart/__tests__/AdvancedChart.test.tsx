@@ -142,6 +142,30 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('includes pagination config in SET_OHLCV_DATA when ohlcvPagination is provided', () => {
+    const pagination = {
+      nextCursor: 'cursor-abc',
+      hasMore: true,
+      assetId: 'eip155:1/slip44:60',
+      vsCurrency: 'usd',
+    };
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} ohlcvPagination={pagination} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: MOCK_BARS, pagination },
+      }),
+    );
+  });
+
   it('sends SET_OHLCV_DATA when ohlcvSeriesKey changes even if bar count matches', () => {
     const altBars: OHLCVBar[] = [
       { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
@@ -391,63 +415,6 @@ describe('AdvancedChart', () => {
       'https://www.tradingview.com/from-bridge',
     );
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onRequestMoreHistory when WebView requests more data', () => {
-    const onRequestMoreHistory = jest.fn();
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        onRequestMoreHistory={onRequestMoreHistory}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({
-            type: 'NEED_MORE_HISTORY',
-            payload: { oldestTimestamp: 1000000 },
-          }),
-        },
-      });
-    });
-
-    expect(onRequestMoreHistory).toHaveBeenCalledTimes(1);
-  });
-
-  it('posts RESOLVE_DEFERRED_GET_BARS when API has no more history and WebView needs older bars', () => {
-    const onRequestMoreHistory = jest.fn();
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        ohlcvHasMoreHistory={false}
-        onRequestMoreHistory={onRequestMoreHistory}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onLoadEnd();
-    });
-    mockPostMessage.mockClear();
-
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({
-            type: 'NEED_MORE_HISTORY',
-            payload: { oldestTimestamp: 1000000 },
-          }),
-        },
-      });
-    });
-
-    expect(onRequestMoreHistory).not.toHaveBeenCalled();
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({ type: 'RESOLVE_DEFERRED_GET_BARS' }),
-    );
   });
 
   it('sends SET_POSITION_LINES when positionLines prop changes', () => {
