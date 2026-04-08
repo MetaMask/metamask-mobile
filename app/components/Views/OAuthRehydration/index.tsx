@@ -577,8 +577,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
       );
 
-      // run syncMarketingOptInAfterUnlock in the background
-      syncMarketingOptInAfterUnlock();
+      await syncMarketingOptInAfterUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
