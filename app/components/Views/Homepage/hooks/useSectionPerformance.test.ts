@@ -403,5 +403,38 @@ describe('useSectionPerformance', () => {
 
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
+
+    it('ends TTC with success when enabled becomes true while contentReady is already true', () => {
+      const { rerender } = renderHook(
+        ({ enabled }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady: true,
+            enabled,
+          }),
+        { initialProps: { enabled: false } },
+      );
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      rerender({ enabled: true });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: true,
+            section_id: HomeSectionNames.TOKENS,
+            content_state: 'filled',
+          }),
+        }),
+      );
+    });
   });
 });

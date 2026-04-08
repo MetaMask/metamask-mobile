@@ -73,6 +73,7 @@ export const useSectionPerformance = ({
     if (!enabled) return;
 
     ttcTraceId.current = uuidv4();
+    ttcEnded.current = false;
     trace({
       name: TraceName.HomepageSectionTimeToContent,
       op: TraceOperation.HomepageSectionPerformance,
@@ -104,7 +105,7 @@ export const useSectionPerformance = ({
 
   // Time to Content — end span when content is ready
   useEffect(() => {
-    if (contentReady && ttcStarted.current && !ttcEnded.current) {
+    if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {
       endTrace({
         name: TraceName.HomepageSectionTimeToContent,
         id: ttcTraceId.current,
@@ -116,7 +117,7 @@ export const useSectionPerformance = ({
       });
       ttcEnded.current = true;
     }
-  }, [contentReady, sectionId, contentState]);
+  }, [enabled, contentReady, sectionId, contentState]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
