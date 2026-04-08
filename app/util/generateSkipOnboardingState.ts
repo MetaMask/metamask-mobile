@@ -28,8 +28,6 @@ const fetchWithTimeout = (url: string) =>
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
-const isTestBuild = process.env.IS_TEST_BUILD === 'true';
-
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
 export const performanceSrps = [
@@ -62,7 +60,7 @@ export const mmConnectSrps = [process.env.MM_CONNECT_SRP_1];
  * This should be called during EngineService startup
  */
 async function applyVaultInitialization() {
-  if (!isTestBuild) {
+  if (process.env.IS_TEST_BUILD !== 'true') {
     return null;
   }
 
@@ -134,11 +132,9 @@ async function applyVaultInitialization() {
   const srpsToImport =
     srpProfile === SrpProfile.PERFORMANCE ? performanceSrps : mmConnectSrps;
 
-  if (
-    predefinedPassword &&
-    !(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY))
-  ) {
-    await Authentication.newWalletAndKeychain(predefinedPassword, {
+  const password = process.env.PREDEFINED_PASSWORD;
+  if (password && !(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY))) {
+    await Authentication.newWalletAndKeychain(password, {
       currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
     });
 

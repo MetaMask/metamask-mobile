@@ -6,6 +6,9 @@ import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import { store } from '../store';
 import { setLockTime } from '../actions/settings';
 import AppConstants from '../core/AppConstants';
+import { SrpProfile } from '../../tests/framework';
+import { Platform } from 'react-native';
+import { getCommandQueueServerPortInApp } from './test/utils';
 
 // Mock all dependencies
 jest.mock('../store/storage-wrapper');
@@ -292,6 +295,193 @@ describe('generateSkipOnboardingState', () => {
       // When checking mmConnectSrps type
       // Then it should be an array
       expect(Array.isArray(mmConnectSrps)).toBe(true);
+    });
+  });
+
+  describe('applyVaultInitialization - host resolution and SRP profile selection', () => {
+    // IS_TEST_BUILD and PREDEFINED_PASSWORD are read at runtime inside the function,
+    // so setting them here is sufficient — no module reload needed.
+    beforeAll(() => {
+      process.env.IS_TEST_BUILD = 'true';
+      process.env.PREDEFINED_PASSWORD = 'test-password';
+    });
+
+    afterAll(() => {
+      delete process.env.IS_TEST_BUILD;
+      delete process.env.PREDEFINED_PASSWORD;
+    });
+
+    let debugSpy: jest.SpyInstance;
+    beforeEach(() => {
+      debugSpy = jest.spyOn(console, 'debug').mockImplementation(jest.fn());
+    });
+
+    describe('hosts construction', () => {
+      it('should only include localhost for iOS', async () => {
+        // Arrange
+        Platform.OS = 'ios';
+        const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({ srpProfile: SrpProfile.PERFORMANCE }),
+        } as Response);
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert - only localhost should be tried
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(fetchSpy).toHaveBeenCalledWith(
+          expect.stringContaining('localhost'),
+          expect.any(Object),
+        );
+      });
+
+      it('should include localhost, 10.0.2.2, and bs-local.com for Android', async () => {
+        // Arrange
+        Platform.OS = 'android';
+        const fetchSpy = jest
+          .spyOn(global, 'fetch')
+          .mockRejectedValueOnce(new Error('Connection refused')) // localhost fails
+          .mockRejectedValueOnce(new Error('Connection refused')) // 10.0.2.2 fails
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ srpProfile: SrpProfile.PERFORMANCE }),
+          } as Response); // bs-local.com succeeds
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert - all three hosts should be tried
+        expect(fetchSpy).toHaveBeenCalledTimes(3);
+        expect(fetchSpy).toHaveBeenNthCalledWith(
+          1,
+          expect.stringContaining('localhost'),
+          expect.any(Object),
+        );
+        expect(fetchSpy).toHaveBeenNthCalledWith(
+          2,
+          expect.stringContaining('10.0.2.2'),
+          expect.any(Object),
+        );
+        expect(fetchSpy).toHaveBeenNthCalledWith(
+          3,
+          expect.stringContaining('bs-local.com'),
+          expect.any(Object),
+        );
+      });
+    });
+
+    describe('command queue server port', () => {
+      it('should use port from getCommandQueueServerPortInApp', async () => {
+        // Arrange
+        const mockPort = 12345;
+        (getCommandQueueServerPortInApp as jest.Mock).mockReturnValue(mockPort);
+        const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({ srpProfile: SrpProfile.PERFORMANCE }),
+        } as Response);
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert
+        expect(getCommandQueueServerPortInApp).toHaveBeenCalled();
+        expect(fetchSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`:${mockPort}/`),
+          expect.any(Object),
+        );
+      });
+    });
+
+    describe('for loop - host iteration and SRP profile resolution', () => {
+      it('should return null when srpProfile is ONBOARDING', async () => {
+        // Arrange
+        jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({ srpProfile: SrpProfile.ONBOARDING }),
+        } as Response);
+
+        // Act
+        const result = await applyVaultInitialization();
+
+        // Assert
+        expect(result).toBeNull();
+      });
+
+      it('should fallback to next host when fetch fails', async () => {
+        // Arrange
+        Platform.OS = 'android';
+        const fetchSpy = jest
+          .spyOn(global, 'fetch')
+          .mockRejectedValueOnce(new Error('ECONNREFUSED'))
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ srpProfile: SrpProfile.PERFORMANCE }),
+          } as Response);
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert - first host failed, second succeeded
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+        expect(debugSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Failed to reach command queue server'),
+        );
+      });
+
+      it('should default to PERFORMANCE profile when srpProfile is not provided', async () => {
+        // Arrange
+        jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({ srpProfile: undefined }),
+        } as Response);
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert
+        expect(console.warn).toHaveBeenCalledWith(
+          expect.stringContaining('SRP profile type is not provided'),
+        );
+      });
+
+      it('should use performanceSrps when srpProfile is PERFORMANCE', async () => {
+        // Arrange
+        jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({ srpProfile: SrpProfile.PERFORMANCE }),
+        } as Response);
+        mockStorageWrapper.getItem.mockResolvedValue(null);
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert - vault initialization ran with PERFORMANCE profile
+        // (performanceSrps values are undefined in test env, so the loop breaks immediately,
+        // but vault init itself is verified via StorageWrapper.setItem)
+        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+          VAULT_INITIALIZED_KEY,
+          'true',
+        );
+      });
+
+      it('should use mmConnectSrps when srpProfile is not PERFORMANCE', async () => {
+        // Arrange
+        jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          json: async () => ({ srpProfile: SrpProfile.MM_CONNECT }),
+        } as Response);
+        mockStorageWrapper.getItem.mockResolvedValue(null);
+
+        // Act
+        await applyVaultInitialization();
+
+        // Assert - vault initialization ran with MM_CONNECT profile
+        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+          VAULT_INITIALIZED_KEY,
+          'true',
+        );
+      });
     });
   });
 });
