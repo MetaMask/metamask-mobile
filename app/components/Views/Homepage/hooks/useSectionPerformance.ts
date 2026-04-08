@@ -36,9 +36,9 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Captures three metrics via the existing trace/endTrace Sentry integration:
  * 1. **Time to Content** — mount until `contentReady` flips true.
  * 2. **Data Fetch Latency** — `isLoading` true→false transition (opt-in).
- * 3. **Re-render Monitoring** — breadcrumb when renders exceed threshold in a window.
+ * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
  *
- * All bookkeeping is ref-based; the hook never triggers its own re-renders.
+ * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
  */
 export const useSectionPerformance = ({
   sectionId,
@@ -162,21 +162,30 @@ export const useSectionPerformance = ({
   }, [enabled, isLoading, sectionId, contentState]);
 
   // ──────────────────────────────────────────────
-  // 3. Re-render Monitoring — runs inline every render
+  // 3. Re-render Monitoring — useEffect after commit (not during render)
+  //
+  // In development, React 18 Strict Mode runs mount effects twice (setup → cleanup
+  // → setup), which records one extra sample vs a single logical mount. Bump the
+  // effective threshold in __DEV__ so dev builds match production sensitivity.
   // ──────────────────────────────────────────────
-  if (enabled) {
+  useEffect(() => {
+    if (!enabled) return;
+
+    const effectiveReRenderThreshold = __DEV__
+      ? reRenderThreshold + 1
+      : reRenderThreshold;
+
     const now = performance.now();
     const timestamps = renderTimestamps.current;
     timestamps.push(now);
 
-    // Prune entries older than the window
     const windowStart = now - reRenderWindowMs;
     while (timestamps.length > 0 && timestamps[0] < windowStart) {
       timestamps.shift();
     }
 
     if (
-      timestamps.length > reRenderThreshold &&
+      timestamps.length > effectiveReRenderThreshold &&
       !hasLoggedExcessiveRenders.current
     ) {
       hasLoggedExcessiveRenders.current = true;
@@ -192,5 +201,7 @@ export const useSectionPerformance = ({
         },
       });
     }
-  }
+    // Intentionally every commit — do not add deps (would miss re-renders).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
 };
