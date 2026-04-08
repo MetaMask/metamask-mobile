@@ -3,7 +3,6 @@ import {
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
   TokenListState,
-  AssetListState,
 } from '@metamask/assets-controllers';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
@@ -143,26 +142,9 @@ const getStateForAssetSelector = (state: RootState) => {
   };
 };
 
-/**
- * Invokes the assets-controllers selector; on failure returns {} so the wallet UI
- * does not red-screen during brief AccountTree / internalAccounts mismatch (e.g. after unlock).
- */
-function callSelectAssetsBySelectedAccountGroup(
-  assetsState: AssetListState,
-  opts?: { filterTronStakedTokens: boolean },
-) {
-  try {
-    return opts === undefined
-      ? _selectAssetsBySelectedAccountGroup(assetsState)
-      : _selectAssetsBySelectedAccountGroup(assetsState, opts);
-  } catch {
-    return {};
-  }
-}
-
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) => _selectAssetsBySelectedAccountGroup(assetsState),
 );
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
@@ -596,7 +578,7 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
         return EMPTY_TRON_SPECIAL_ASSETS_MAP;
       }
 
-      const allAssets = callSelectAssetsBySelectedAccountGroup(assetsState, {
+      const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
         filterTronStakedTokens: false,
       });
 
