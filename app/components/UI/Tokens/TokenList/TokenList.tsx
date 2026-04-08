@@ -47,6 +47,7 @@ interface TokenListProps {
   setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
+  listFooterComponent?: React.ComponentType | React.ReactElement;
 }
 
 const TokenListComponent = ({
@@ -58,6 +59,7 @@ const TokenListComponent = ({
   setShowScamWarningModal,
   maxItems,
   isFullView = false,
+  listFooterComponent,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -238,6 +240,7 @@ const TokenListComponent = ({
           }
           extraData={{ isTokenNetworkFilterEqualCurrentNetwork, visibleKeys }}
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
+          ListFooterComponent={listFooterComponent}
         />
       </Box>
     );

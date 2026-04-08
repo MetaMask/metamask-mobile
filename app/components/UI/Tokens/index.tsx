@@ -59,6 +59,7 @@ interface TokensProps {
    * (e.g. network filter set to a chain without mUSD).
    */
   hasMusdBalanceOnAnyChain?: boolean;
+  listFooterComponent?: React.ComponentType | React.ReactElement;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -67,6 +68,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView = false,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
+      listFooterComponent,
     },
     ref,
   ) => {
@@ -257,6 +259,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
               setShowScamWarningModal={handleScamWarningModal}
               maxItems={maxItems}
               isFullView={isFullView}
+              listFooterComponent={listFooterComponent}
             />
           </>
         );
@@ -292,6 +295,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       handleScamWarningModal,
       maxItems,
       isGeoEligible,
+      listFooterComponent,
     ]);
 
     return (

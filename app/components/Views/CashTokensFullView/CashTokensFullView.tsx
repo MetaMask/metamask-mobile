@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,28 +34,6 @@ import SectionRow from '../Homepage/components/SectionRow/SectionRow';
 import { AssetType } from '../confirmations/types/token';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
-
-const BonusAndConvertSections = ({
-  conversionTokens,
-  onMaxPress,
-  onEditPress,
-  onLearnMorePress,
-}: {
-  conversionTokens: AssetType[];
-  onMaxPress: (token: AssetType) => void;
-  onEditPress: (token: AssetType) => void;
-  onLearnMorePress: () => void;
-}) => (
-  <>
-    <AssetOverviewClaimBonus asset={MUSD_MAINNET_ASSET_FOR_DETAILS} />
-    <MoneyConvertStablecoins
-      tokens={conversionTokens}
-      onMaxPress={onMaxPress}
-      onEditPress={onEditPress}
-      onLearnMorePress={onLearnMorePress}
-    />
-  </>
-);
 
 const CashTokensFullView = () => {
   const navigation = useNavigation();
@@ -125,12 +103,31 @@ const CashTokensFullView = () => {
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, []);
 
-  const sharedSectionProps = {
-    conversionTokens,
-    onMaxPress: handleConvertMaxPress,
-    onEditPress: handleConvertEditPress,
-    onLearnMorePress: handleLearnMorePress,
-  };
+  const bonusAndConvertSections = useMemo(
+    () => (
+      <>
+        <AssetOverviewClaimBonus asset={MUSD_MAINNET_ASSET_FOR_DETAILS} />
+        <MoneyConvertStablecoins
+          tokens={conversionTokens}
+          onMaxPress={handleConvertMaxPress}
+          onEditPress={handleConvertEditPress}
+          onLearnMorePress={handleLearnMorePress}
+        />
+      </>
+    ),
+    [
+      conversionTokens,
+      handleConvertMaxPress,
+      handleConvertEditPress,
+      handleLearnMorePress,
+    ],
+  );
+
+  // When rendered as FlashList footer, counteract the list's px-4 contentContainerStyle
+  const listFooter = useMemo(
+    () => <Box twClassName="-mx-4">{bonusAndConvertSections}</Box>,
+    [bonusAndConvertSections],
+  );
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
@@ -149,22 +146,18 @@ const CashTokensFullView = () => {
         {strings('homepage.sections.cash')}
       </HeaderBase>
       {hasMusdBalanceOnAnyChain ? (
-        // Tokens uses FlashList internally — cannot be nested in ScrollView.
-        // Bonus and convert sections render below in the same flex column.
-        <Box twClassName="flex-1">
-          <Tokens
-            isFullView
-            showOnlyMusd
-            hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-          />
-          <BonusAndConvertSections {...sharedSectionProps} />
-        </Box>
+        <Tokens
+          isFullView
+          showOnlyMusd
+          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+          listFooterComponent={listFooter}
+        />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
           <SectionRow>
             <CashGetMusdEmptyState isFullView />
           </SectionRow>
-          <BonusAndConvertSections {...sharedSectionProps} />
+          {bonusAndConvertSections}
         </ScrollView>
       )}
       {hasConversionTokens ? (
