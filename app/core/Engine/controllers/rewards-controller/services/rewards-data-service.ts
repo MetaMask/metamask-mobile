@@ -1514,11 +1514,9 @@ export class RewardsDataService {
       },
       subscriptionId,
     );
-
     if (!response.ok) {
       throw new Error(`Post benefit impression failed: ${response.status}`);
     }
-    return;
   }
 
   /**
