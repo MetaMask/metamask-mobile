@@ -178,40 +178,6 @@ const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   isSearchResult: true,
 };
 
-const PerpsExploreTileCard: React.FC<{
-  item: unknown;
-  index: number;
-  navigation: AppNavigationProp;
-}> = ({ item, navigation }) => {
-  const market = item as PerpsMarketData;
-  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
-  const isWatchlisted = useMemo(
-    () => (watchlistSymbols ?? []).includes(market.symbol),
-    [watchlistSymbols, market.symbol],
-  );
-  const { sparklines } = useHomepageSparklines([market.symbol]);
-
-  return (
-    <PerpsMarketTileCard
-      market={market}
-      sparklineData={sparklines[market.symbol]}
-      showFavoriteTag={isWatchlisted}
-      onPress={() => {
-        (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-          Routes.PERPS.ROOT,
-          {
-            screen: Routes.PERPS.MARKET_DETAILS,
-            params: {
-              market,
-              source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-            },
-          },
-        );
-      }}
-    />
-  );
-};
-
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
@@ -271,7 +237,35 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
-    RowItem: PerpsExploreTileCard,
+    RowItem: ({ item, index: _index, navigation }) => {
+      const market = item as PerpsMarketData;
+      const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+      const isWatchlisted = useMemo(
+        () => (watchlistSymbols ?? []).includes(market.symbol),
+        [watchlistSymbols, market.symbol],
+      );
+      const { sparklines } = useHomepageSparklines([market.symbol]);
+
+      return (
+        <PerpsMarketTileCard
+          market={market}
+          sparklineData={sparklines[market.symbol]}
+          showFavoriteTag={isWatchlisted}
+          onPress={() => {
+            (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+              Routes.PERPS.ROOT,
+              {
+                screen: Routes.PERPS.MARKET_DETAILS,
+                params: {
+                  market,
+                  source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+                },
+              },
+            );
+          }}
+        />
+      );
+    },
     OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
