@@ -39,9 +39,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
     <RCTScrollView
       contentContainerStyle={
         {
-          "flexBasis": "0%",
           "flexGrow": 1,
-          "flexShrink": 1,
         }
       }
       style={
@@ -360,9 +358,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
     <RCTScrollView
       contentContainerStyle={
         {
-          "flexBasis": "0%",
           "flexGrow": 1,
-          "flexShrink": 1,
         }
       }
       style={
@@ -681,9 +677,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
     <RCTScrollView
       contentContainerStyle={
         {
-          "flexBasis": "0%",
           "flexGrow": 1,
-          "flexShrink": 1,
         }
       }
       style={
@@ -1002,9 +996,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
     <RCTScrollView
       contentContainerStyle={
         {
-          "flexBasis": "0%",
           "flexGrow": 1,
-          "flexShrink": 1,
         }
       }
       style={
@@ -1323,9 +1315,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
     <RCTScrollView
       contentContainerStyle={
         {
-          "flexBasis": "0%",
           "flexGrow": 1,
-          "flexShrink": 1,
         }
       }
       style={
@@ -1644,9 +1634,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
     <RCTScrollView
       contentContainerStyle={
         {
-          "flexBasis": "0%",
           "flexGrow": 1,
-          "flexShrink": 1,
         }
       }
       style={

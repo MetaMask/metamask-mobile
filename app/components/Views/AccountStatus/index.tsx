@@ -190,7 +190,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       <Box twClassName="flex-1 px-4 pt-4">
         <ScrollView
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-1')}
+          contentContainerStyle={tw.style('grow')}
         >
           <Box
             alignItems={BoxAlignItems.Start}
