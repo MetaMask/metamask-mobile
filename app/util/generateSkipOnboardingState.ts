@@ -75,10 +75,9 @@ async function applyVaultInitialization() {
    * BrowserStack's local tunnel hostname. For local development,
    * standard localhost is used.
    */
-  const hosts = ['localhost'];
+  const hosts = ['localhost', 'bs-local.com'];
   if (Platform.OS === 'android') {
     hosts.push('10.0.2.2');
-    hosts.push('bs-local.com');
   }
 
   const port = getCommandQueueServerPortInApp();

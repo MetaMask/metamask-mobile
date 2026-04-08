@@ -1,4 +1,3 @@
-import { getLocalHost } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { createLogger, LogLevel } from '../logger';
 import { E2ECommandTypes, Resource, ServerStatus, SrpProfile } from '../types';
@@ -118,7 +117,7 @@ class CommandQueueServer implements Resource {
     }
 
     const options = {
-      host: getLocalHost(),
+      host: '0.0.0.0',
       port: this._serverPort,
       exclusive: true,
     };
