@@ -7,6 +7,125 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.77.7-ota.9]
+
+### Uncategorized
+
+- chore(release): sync stable to main for version 7.72.0 (#28486)
+- Improves scroll back user experience in advanced chart integration in token details page (#28451)
+- chore: revert ci changes unit tests improvements (#28474)
+- Updated app typography and font assets to align with the latest MetaMask design system semibold bold-weight migration. (#28363)
+- chore: use push EAS directly (#28362)
+- chore/modify runway ota build core workflow (#28310)
+- Chore/abstract build from upload to testflight (#28309)
+- chore: display OTA push platform in summary (#28059)
+- Import SRP screens always show BIP39 word suggestions when the keyboard is open, with no remote feature flag (#28139)
+- chore(release): sync stable to main for version 7.71.1 (#28154)
+- Fixed a bug that was causing issues with TRC20 token transfers (#27922)
+- Prevent ondo campaign opt in based on cut off date (#28000)
+- chore(release): sync stable to main for version 7.71.0 (#28023)
+
+### Added
+
+- Added compliance blocking analytics tracking (#28475)
+- Gate perps actions in compliance checks (#28034)
+- Added an A/B-tested homepage layout that keeps separate trending tokens, perpetuals, and predictions sections at the bottom when (#28021)
+  enabled by remote config.
+- Updated token overview chart visuals (direction-colored line, end dot marker, no area fill) and added an advanced OHLCV (#26465)
+  candlestick/line chart behind a remote feature flag
+- Added featured carousel to the top of the Predict feed showing curated markets from Polymarket (#28102)
+- Updated Explore page predictions section to carousel layout and added remote-configurable section ordering (#28239)
+- Card authentication and session/cardholder state are sourced from **`CardController`** and **`selectIsCardAuthenticated`** (#28414)
+  (and related selectors) instead of the Redux Card slice and Card SDK
+  auth helpers; the global **`CardVerification`** flow and legacy auth
+  utilities are removed.
+- Card authentication, user location, and cardholder membership are sourced from **`CardController`** and (#28291)
+  **`selectIsCardAuthenticated`** / related selectors instead of Redux
+  Card auth fields; global Card verification helpers and legacy auth
+  utilities are removed in favor of controller APIs.
+- Card is no longer gated by in-app feature flags; Card sign-up can open a HubSpot waitlist form in a modal for unsupported (#27935)
+  regions; legacy Card notification and enable-card deeplink paths tied to
+  flags are removed.
+- Added toast notifications and insufficient balance validation for Perps Withdraw transactions (#28271)
+- Added Apple Wallet in-app provisioning for MetaMask Card on iOS (#25744)
+- Added feature-flagged "withdraw to any token" flow for Perps, allowing users to withdraw Perps funds to any supported token via (#28265)
+  MetaMask Pay
+- Improved error messaging in Swaps/Bridge — specific, actionable error banners now appear when a quote stream ends with a (#28127)
+  known failure reason (e.g. amount too low/high, slippage out of range,
+  token not supported, geo-restricted asset).
+- Fixed Bitcoin PSBT build errors now include the underlying cause for better diagnostics (#28282)
+- Added a token safety banner and warning modal in Swaps that alerts users when the destination token is flagged as suspicious or (#27834)
+  malicious before proceeding with a swap.
+- Add trending stocks deep link routing (#27869)
+- Add Perps Withdraw confirmation flow (#28236)
+- Updates how the ramp provider is selected (#27942)
+- Added UCL soccer league support with 3-way draw predictions (#28121)
+- Added Google Wallet in-app provisioning for MetaMask Card on Android (#25742)
+- Added runway production workflows (#27887)
+- Update Earn team name to @MetaMask/earn in codeowners (#28062)
+- Add Perps Withdraw confirmation flow (#28046)
+- Added a Claim bonus action on the home Cash section when users have no mUSD but have a claimable Merkl bonus, with the (#27909)
+  amount shown in the selected fiat currency.
+- Fix stuck pending withdraw (#26537)
+- Added verified badges to swap asset picker tokens (#27878)
+- Added a success confirmation toast when users opt in to a rewards campaign. (#28033)
+- Improved analytics consistency during social login onboarding. (#28015)
+- Add Perps Withdraw transaction display and activity support (#28026)
+- Added unrealized P&L summary on the wallet homepage for Perpetuals and Predictions, and aligned the Perps home “Your positions” (#27844)
+  subtitle with the same layout.
+
+### Fixed
+
+- Fixed a brief flash of "Select payment method" before auto-selection in the buy flow (#28173)
+- Fixed token details so long asset names no longer clip the security badge, and fixed Security & Trust network labels for (#28453)
+  non-EVM chains to show the configured network name instead of the raw
+  chain id
+- Fixed Send button not showing in token details page for certain languages (#28382)
+- Fixed token details “View full history” block explorer using the wrong network when the globally selected chain did not match (#28334)
+  the token’s chain.
+- Fixed network fee edit icon not responding to taps on iOS in the cancel and speed-up transaction modal. (#28232)
+- Fixed the login screen showing a raw keychain error when users canceled fingerprint or device authentication. (#28372)
+- Fixed case-sensitive assetId mismatch that caused false "Token Not Available" modal and empty payment methods for ERC-20 tokens (#28399)
+- Fixed the Build Quote payment method pill icon using the default icon tint instead of primary blue. (#28398)
+- Fixed buy flow provider selection so only providers that support the selected asset are shown; improved quote responsiveness (#28373)
+  by aligning React Query cache with the ramps quotes TTL (15s) and
+  avoiding unnecessary `forceRefresh` on each fetch.
+- Fixed payment method icon on Buy Build Quote to match the payment selection modal (#28392)
+- Fixed duplicate payment method, provider, and token API calls during buy flow; React Query is now the single fetch owner for (#28224)
+  ramp data
+- Fixed an issue where users could not scroll the Import Token network selector with one finger on Android. (#28374)
+- Fixed a bug where the network selector icon in the In-App Browser would not correctly reflect the currently selected (#28285)
+  network for the dapp
+- Null (#28290)
+- Fixed duplicate WalletConnect relay messages when switching chains (#27978)
+- Fixed the bridge keypad staying open when no amount was entered (#28325)
+- Fixed abrupt navigation transition to Swaps and Bridge screens by adding smooth slide-from-right animation (#28347)
+- Fixed white header and footer on Ramp buy/sell screens in dark mode (#28267)
+- Fixed a bug that caused Perps to reconnect too aggressively and surface intermittent websocket connection errors. (#28258)
+- Fixed navigation screens flashing incorrect background color during transitions (#28307)
+- Fixed frequent "insufficient funds" errors in perps pay-with-any-token flow by validating relay quote totals before allowing (#28318)
+  order submission
+- Fix scroll in the "Private Key" list for Android devices (#27891)
+- Fixed OAuth rehydration so the post-unlock device authentication prompt completes before navigating to the wallet home (#27960)
+  screen
+- Fixed bottom disclaimer text overflowing on the Predict Buy Preview screen (#28212)
+- Hardware wallet no longer enters infinite loop when Ledger device disconnects or Ethereum app is closed during transaction (#28163)
+  signing
+- Derive mm*pay*\* metrics from controller state for reliable Transaction Finalized tracking (#28164)
+- Fixed homepage Predictions section so open positions and claim amounts respect privacy mode (#28203)
+- Fixed cancel/speedup initial gas is readiness (#27905)
+- Fixed an issue where opening Market Insights could pause audio already playing on the device. (#28148)
+- Fixed bridge zero-state trending scrolling when dragging from the amount area (#28103)
+- Fixed a bug where depositing into Perps from Token Details could fail if the Arbitrum network had not been added to the (#27484)
+  wallet
+- Fixed flip position fee estimate being ~2x lower than actual fee charged (#28013)
+- Fixed payment methods and provider availability for newly added tokens by refreshing providers via react-query (15min TTL) (#27958)
+  on mount and separating the provider list by token support
+- Fixed a bug that kept the swap screen scrolled down after opening Swap from a trending token details page. (#27928)
+- Fixed custom slippage input so keypad edits respect cursor placement and trailing decimals are sanitized before saving. (#27920)
+- Alert User on biometric changed (#25423)
+- Fixed limit price preset buttons (Mid, Bid, Ask, percentage) truncating one decimal place for low-price assets like XRP (#27907)
+
 ## [7.72.0]
 
 ### Added
@@ -11156,7 +11275,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.7-ota.9...HEAD
+[7.77.7-ota.9]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...v7.77.7-ota.9
 [7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
 [7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
 [7.71.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.71.0
