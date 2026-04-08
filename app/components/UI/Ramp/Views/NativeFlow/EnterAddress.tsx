@@ -66,6 +66,7 @@ const V2EnterAddress = (): JSX.Element => {
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
   const cityInputRef = useRef<TextInput>(null);
+  const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
   const stateName = userRegion?.state?.name || '';
@@ -107,12 +108,10 @@ const V2EnterAddress = (): JSX.Element => {
       formErrors.city = strings('deposit.enter_address.city_invalid');
     }
 
-    if (regionIsoCode === 'US') {
-      if (!data.state.trim()) {
-        formErrors.state = strings('deposit.enter_address.state_required');
-      } else if (!VALIDATION_REGEX.state.test(data.state)) {
-        formErrors.state = strings('deposit.enter_address.state_invalid');
-      }
+    if (!data.state.trim()) {
+      formErrors.state = strings('deposit.enter_address.state_required');
+    } else if (!VALIDATION_REGEX.state.test(data.state)) {
+      formErrors.state = strings('deposit.enter_address.state_invalid');
     }
 
     if (!data.postCode.trim()) {
@@ -286,7 +285,7 @@ const V2EnterAddress = (): JSX.Element => {
                 value={formData.city}
                 onChangeText={handleFieldChange(
                   'city',
-                  focusNextField(postCodeInputRef),
+                  focusNextField(stateInputRef),
                 )}
                 error={errors.city}
                 returnKeyType="next"
@@ -295,17 +294,25 @@ const V2EnterAddress = (): JSX.Element => {
                 ref={cityInputRef}
                 textContentType="addressCity"
                 autoCapitalize="words"
-                onSubmitEditing={focusNextField(postCodeInputRef)}
+                onSubmitEditing={focusNextField(stateInputRef)}
               />
 
               <DepositTextField
                 label={strings('deposit.enter_address.state')}
                 placeholder={strings('deposit.enter_address.state')}
                 value={formData.state}
+                onChangeText={handleFieldChange(
+                  'state',
+                  focusNextField(postCodeInputRef),
+                )}
                 error={errors.state}
+                returnKeyType="next"
                 testID={ENTER_ADDRESS_TEST_IDS.STATE_INPUT}
                 containerStyle={styles.nameInputContainer}
-                isDisabled
+                ref={stateInputRef}
+                textContentType="addressState"
+                autoCapitalize="words"
+                onSubmitEditing={focusNextField(postCodeInputRef)}
               />
             </View>
 
