@@ -19,8 +19,6 @@ import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectExploreSectionsOrder } from '../../../selectors/featureFlagController/exploreSectionsOrder';
-import { selectPerpsWatchlistMarkets } from '../../UI/Perps/selectors/perpsController';
-import { useHomepageSparklines } from '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import {
   PerpsConnectionContext,
@@ -50,7 +48,7 @@ import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
 import PerpsMarketTileCard from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
 import PerpsMarketTileCardSkeleton from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
-import SectionHorizontalScroll from './components/Sections/SectionTypes/SectionHorizontalScroll';
+import PerpsExploreSection from './components/Sections/SectionTypes/PerpsExploreSection';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
@@ -237,36 +235,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
-    RowItem: ({ item, index: _index, navigation }) => {
-      const market = item as PerpsMarketData;
-      const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
-      const isWatchlisted = useMemo(
-        () => (watchlistSymbols ?? []).includes(market.symbol),
-        [watchlistSymbols, market.symbol],
-      );
-      const { sparklines } = useHomepageSparklines([market.symbol]);
-
-      return (
-        <PerpsMarketTileCard
-          market={market}
-          sparklineData={sparklines[market.symbol]}
-          showFavoriteTag={isWatchlisted}
-          testID={`perps-market-tile-card-${market.symbol}`}
-          onPress={() => {
-            (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
-              Routes.PERPS.ROOT,
-              {
-                screen: Routes.PERPS.MARKET_DETAILS,
-                params: {
-                  market,
-                  source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-                },
+    RowItem: ({ item, index: _index, navigation }) => (
+      <PerpsMarketTileCard
+        market={item as PerpsMarketData}
+        testID={`perps-market-tile-card-${(item as PerpsMarketData).symbol}`}
+        onPress={() => {
+          (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+            Routes.PERPS.ROOT,
+            {
+              screen: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: item as PerpsMarketData,
+                source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
               },
-            );
-          }}
-        />
-      );
-    },
+            },
+          );
+        }}
+      />
+    ),
     OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
@@ -294,7 +280,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    Section: SectionHorizontalScroll,
+    Section: PerpsExploreSection,
     useSectionData: (searchQuery) => {
       const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();

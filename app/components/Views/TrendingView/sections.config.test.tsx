@@ -85,7 +85,7 @@ jest.mock(
   () => () => null,
 );
 jest.mock(
-  './components/Sections/SectionTypes/SectionHorizontalScroll',
+  './components/Sections/SectionTypes/PerpsExploreSection',
   () => () => null,
 );
 jest.mock('../../UI/Predict/components/PredictMarket', () => () => null);
@@ -101,15 +101,6 @@ jest.mock(
   '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton',
   () => () => null,
 );
-jest.mock('../../UI/Perps/selectors/perpsController', () => ({
-  selectPerpsWatchlistMarkets: jest.fn(),
-}));
-jest.mock(
-  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
-  () => ({
-    useHomepageSparklines: jest.fn(() => ({ sparklines: {} })),
-  }),
-);
 jest.mock('fuse.js', () =>
   jest.fn().mockImplementation(() => ({
     search: jest.fn().mockReturnValue([]),
@@ -117,7 +108,6 @@ jest.mock('fuse.js', () =>
 );
 
 import { SECTIONS_CONFIG } from './sections.config';
-import SectionHorizontalScroll from './components/Sections/SectionTypes/SectionHorizontalScroll';
 import { renderHook } from '@testing-library/react-native';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 
