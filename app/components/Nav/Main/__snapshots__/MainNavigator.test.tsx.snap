@@ -5,9 +5,6 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   initialRouteName="Home"
   screenOptions={
     {
-      "cardStyle": {
-        "backgroundColor": "#ffffff",
-      },
       "headerShown": false,
     }
   }
@@ -401,9 +398,6 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   initialRouteName="Home"
   screenOptions={
     {
-      "cardStyle": {
-        "backgroundColor": "#ffffff",
-      },
       "headerShown": false,
     }
   }
@@ -797,9 +791,6 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   initialRouteName="Home"
   screenOptions={
     {
-      "cardStyle": {
-        "backgroundColor": "#ffffff",
-      },
       "headerShown": false,
     }
   }
