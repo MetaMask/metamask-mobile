@@ -48,10 +48,12 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   }
 };
 
-const BuildType = buildTypeMapping(
-  AppConstants.METAMASK_BUILD_TYPE || 'main',
-  AppConstants.IS_DEV,
-);
+const BuildType =
+  (process.env.OAUTH_BUILD_TYPE as keyof typeof OAUTH_CONFIG) ||
+  buildTypeMapping(
+    AppConstants.METAMASK_BUILD_TYPE || 'main',
+    AppConstants.IS_DEV,
+  );
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
