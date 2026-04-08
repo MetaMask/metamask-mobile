@@ -19,6 +19,8 @@ import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectExploreSectionsOrder } from '../../../selectors/featureFlagController/exploreSectionsOrder';
+import { selectPerpsWatchlistMarkets } from '../../UI/Perps/selectors/perpsController';
+import { useHomepageSparklines } from '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import {
   PerpsConnectionContext,
@@ -46,6 +48,9 @@ import { useRwaTokens } from '../../UI/Trending/hooks/useRwaTokens/useRwaTokens'
 import SectionCarrousel from './components/Sections/SectionTypes/SectionCarrousel';
 import PredictMarket from '../../UI/Predict/components/PredictMarket';
 import PredictMarketSkeleton from '../../UI/Predict/components/PredictMarketSkeleton';
+import PerpsMarketTileCard from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
+import PerpsMarketTileCardSkeleton from '../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
+import SectionHorizontalScroll from './components/Sections/SectionTypes/SectionHorizontalScroll';
 
 export type SectionId = 'predictions' | 'tokens' | 'perps' | 'stocks' | 'sites';
 
@@ -173,6 +178,40 @@ const SEARCH_TOKENS_FILTER_CONTEXT: TrendingFilterContext = {
   isSearchResult: true,
 };
 
+const PerpsExploreTileCard: React.FC<{
+  item: unknown;
+  index: number;
+  navigation: AppNavigationProp;
+}> = ({ item, navigation }) => {
+  const market = item as PerpsMarketData;
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+  const isWatchlisted = useMemo(
+    () => (watchlistSymbols ?? []).includes(market.symbol),
+    [watchlistSymbols, market.symbol],
+  );
+  const { sparklines } = useHomepageSparklines([market.symbol]);
+
+  return (
+    <PerpsMarketTileCard
+      market={market}
+      sparklineData={sparklines[market.symbol]}
+      showFavoriteTag={isWatchlisted}
+      onPress={() => {
+        (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
+          Routes.PERPS.ROOT,
+          {
+            screen: Routes.PERPS.MARKET_DETAILS,
+            params: {
+              market,
+              source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+            },
+          },
+        );
+      }}
+    />
+  );
+};
+
 export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
   tokens: {
     id: 'tokens',
@@ -232,7 +271,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     },
     getItemIdentifier: (item) =>
       (item as Partial<PerpsMarketData>).symbol ?? '',
-    RowItem: ({ item, index: _index, navigation }) => (
+    RowItem: PerpsExploreTileCard,
+    OverrideRowItemSearch: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
         onPress={() => {
@@ -251,14 +291,15 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         compact
       />
     ),
-    // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
-    Skeleton: TrendingTokensSkeleton,
+
+    Skeleton: PerpsMarketTileCardSkeleton,
+    OverrideSkeletonSearch: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
       <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),
-    Section: SectionCard,
+    Section: SectionHorizontalScroll,
     useSectionData: (searchQuery) => {
       const connectionContext = useContext(PerpsConnectionContext);
       const { markets, isLoading, refresh, isRefreshing } = usePerpsMarkets();
@@ -266,7 +307,11 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
       const filteredMarkets = useMemo(() => {
         if (connectionContext?.error) return [];
         if (!searchQuery) {
-          return markets;
+          return [...markets].sort(
+            (a, b) =>
+              (parseFloat(b.change24hPercent) || 0) -
+              (parseFloat(a.change24hPercent) || 0),
+          );
         }
         const filteredByQuery = filterMarketsByQuery(markets, searchQuery);
         return fuseSearch(filteredByQuery, searchQuery, PERPS_FUSE_OPTIONS);
