@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { cardQueries } from '../queries';
@@ -64,20 +64,12 @@ export const useCardAuth = () => {
     retry: false,
   });
 
-  const resetToLogin = useCallback(() => {
-    setCurrentStep(LOGIN_STEP);
-    initiate.reset();
-    submit.reset();
-    stepAction.reset();
-  }, [initiate, submit, stepAction]);
-
   return {
     currentStep,
     initiate,
     submit,
     stepAction,
     logout,
-    resetToLogin,
     getErrorMessage: getCardProviderErrorMessage,
   };
 };

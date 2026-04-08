@@ -1026,7 +1026,6 @@ describe('AccountConnect', () => {
       const mockStateWithoutWC2 = {
         ...mockInitialState,
         sdk: {
-          v2Connections: {},
           wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
         },
       };
@@ -1073,7 +1072,6 @@ describe('AccountConnect', () => {
       const mockStateWithWC2 = {
         ...mockInitialState,
         sdk: {
-          v2Connections: {},
           wc2Metadata: { id: 'mock-wc2-id' }, // Non-empty to trigger WalletConnect branch
         },
       };
@@ -1120,7 +1118,6 @@ describe('AccountConnect', () => {
       const mockStateWithoutWC2 = {
         ...mockInitialState,
         sdk: {
-          v2Connections: {},
           wc2Metadata: { id: '' }, // Empty to avoid WalletConnect branch
         },
       };
@@ -1161,7 +1158,6 @@ describe('AccountConnect', () => {
     const mockMaliciousState = {
       ...mockInitialState,
       sdk: {
-        v2Connections: {},
         wc2Metadata: {
           id: 'mock-wc2-id',
           url: 'https://malicious-dapp.com',
@@ -1282,7 +1278,6 @@ describe('AccountConnect', () => {
       const cleanState = {
         ...mockInitialState,
         sdk: {
-          v2Connections: {},
           wc2Metadata: {
             id: 'mock-wc2-id',
             url: 'https://clean-dapp.com',
@@ -1330,7 +1325,6 @@ describe('AccountConnect', () => {
       const verifiedState = {
         ...mockInitialState,
         sdk: {
-          v2Connections: {},
           wc2Metadata: {
             id: 'mock-wc2-id',
             url: 'https://safe-dapp.com',
@@ -1360,7 +1354,6 @@ describe('AccountConnect', () => {
       const nonWcState = {
         ...mockInitialState,
         sdk: {
-          v2Connections: {},
           wc2Metadata: {
             id: '',
             url: '',

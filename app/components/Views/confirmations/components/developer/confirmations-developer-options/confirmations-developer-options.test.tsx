@@ -316,7 +316,7 @@ describe('ConfirmationsDeveloperOptions', () => {
           },
           {
             params: {
-              to: MOCK_PROXY_ADDRESS,
+              to: MOCK_POLYGON_USDCE,
               data: MOCK_TRANSFER_DATA,
             },
             type: TransactionType.moneyAccountWithdraw,

@@ -4,7 +4,6 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
   FontWeight,
@@ -13,7 +12,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
-import { formatUTCDate } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
 
 export const CAMPAIGN_STATUS_TEST_IDS = {
@@ -22,7 +20,7 @@ export const CAMPAIGN_STATUS_TEST_IDS = {
   STATUS_LABEL: 'campaign-status-label',
   DATE_LABEL: 'campaign-status-date-label',
   HOW_IT_WORKS_TITLE: 'campaign-status-how-it-works-title',
-  DEPOSIT_WINDOW: 'campaign-status-deposit-window',
+  HOW_IT_WORKS_DESCRIPTION: 'campaign-status-how-it-works-description',
 } as const;
 
 interface CampaignStatusProps {
@@ -48,22 +46,7 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
       : campaign.image?.lightModeUrl;
 
   const howItWorksTitle = campaign.details?.howItWorks?.title;
-  const depositWindowLabel = useMemo(() => {
-    const rawDate = campaign.details?.depositCutoffDate;
-    if (!rawDate) return null;
-    const cutoff = new Date(rawDate);
-    const formatted = formatUTCDate(rawDate.split('T')[0], undefined, {
-      weekday: 'short',
-      month: 'long',
-      day: 'numeric',
-      year: undefined,
-    });
-    return cutoff < new Date()
-      ? strings('rewards.campaign_status.deposit_closed_on', {
-          date: formatted,
-        })
-      : strings('rewards.campaign_status.deposit_closes', { date: formatted });
-  }, [campaign.details?.depositCutoffDate]);
+  const howItWorksDescription = campaign.details?.howItWorks?.description;
 
   return (
     <Box twClassName="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
@@ -80,21 +63,30 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          twClassName="gap-1"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 bg-success-muted rounded px-1.5"
+            twClassName="gap-1"
             testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}
           >
             <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
             >
               {statusLabel}
             </Text>
+            {optedIn && (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                ({strings('rewards.campaign.entered')})
+              </Text>
+            )}
           </Box>
 
           <Box
@@ -103,7 +95,10 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
             twClassName="gap-1"
             testID={CAMPAIGN_STATUS_TEST_IDS.DATE_LABEL}
           >
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              •
+            </Text>
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
               {dateLabel}
             </Text>
           </Box>
@@ -119,25 +114,14 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
           </Text>
         ) : null}
 
-        {depositWindowLabel ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="rounded-xl bg-muted px-3 py-2"
-            testID={CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW}
+        {howItWorksDescription ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-alternative"
+            testID={CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-            >
-              {strings('rewards.campaign_status.deposit_window')}
-            </Text>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {depositWindowLabel}
-            </Text>
-          </Box>
+            {howItWorksDescription}
+          </Text>
         ) : null}
       </Box>
     </Box>

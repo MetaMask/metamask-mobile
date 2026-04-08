@@ -122,7 +122,7 @@ describe('usePredictPaymentToken', () => {
   });
 
   describe('resetSelectedPaymentToken', () => {
-    it('calls setSelectedPaymentToken with null', () => {
+    it('calls selectPaymentToken with null to reset token and transition state', () => {
       const { result } = renderHook(() => usePredictPaymentToken());
 
       act(() => {
@@ -130,7 +130,7 @@ describe('usePredictPaymentToken', () => {
       });
 
       expect(
-        jest.mocked(Engine.context.PredictController.setSelectedPaymentToken),
+        jest.mocked(Engine.context.PredictController.selectPaymentToken),
       ).toHaveBeenCalledWith(null);
     });
   });

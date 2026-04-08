@@ -41,7 +41,6 @@ export {
   GalileoCardAdapter,
   // Wallet provider adapters
   type IWalletProviderAdapter,
-  AppleWalletAdapter,
   GoogleWalletAdapter,
 } from './adapters';
 

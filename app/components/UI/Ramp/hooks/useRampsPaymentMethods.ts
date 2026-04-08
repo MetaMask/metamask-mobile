@@ -53,11 +53,8 @@ export interface UseRampsPaymentMethodsResult {
 }
 
 /**
- * Hook to get payment methods via React Query.
- *
- * The query fires only when a provider is selected (provider change is the
- * sole trigger). Token and fiat are passed to the API call but are NOT part
- * of the query key, so changing them does not cause a refetch.
+ * Hook to get payment methods state from RampsController.
+ * This hook assumes Engine is already initialized.
  *
  * @returns Payment methods state.
  */
@@ -67,17 +64,25 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
+  const tokenSupportedByProvider = selectedProvider?.supportedCryptoCurrencies
+    ? selectedProvider.supportedCryptoCurrencies[
+        selectedToken?.assetId ?? ''
+      ] === true
+    : true;
+
   const queryEnabled = Boolean(
     userRegion?.regionCode &&
       userRegion?.country?.currency &&
-      selectedProvider?.id,
+      selectedToken?.assetId &&
+      selectedProvider?.id &&
+      tokenSupportedByProvider,
   );
 
   const paymentMethodsQuery = useQuery({
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: selectedToken?.assetId?.toLowerCase() ?? '', // lowercase for API; not in the query key
+      assetId: selectedToken?.assetId ?? '',
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,
@@ -85,13 +90,9 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
 
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>
-      (
-        Engine.context.RampsController as {
-          setSelectedPaymentMethod: (
-            pm?: PaymentMethod | string | null,
-          ) => void;
-        }
-      ).setSelectedPaymentMethod(paymentMethod),
+      Engine.context.RampsController.setSelectedPaymentMethod(
+        paymentMethod?.id,
+      ),
     [],
   );
 

@@ -81,18 +81,6 @@ jest.mock('./Views/OndoCampaignDetailsView', () => {
   };
 });
 
-jest.mock('./Views/OndoCampaignRwaSelectorView', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOndoCampaignRwaSelectorView() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'ondo-campaign-rwa-selector-view' },
-      ReactActual.createElement(Text, null, 'Ondo Campaign RWA Selector View'),
-    );
-  };
-});
-
 jest.mock('./Views/SeasonOneCampaignDetailsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -493,18 +481,6 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Rendering should not throw even with the new screens registered
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
-      });
-    });
-
-    it('registers REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR route when subscription exists', async () => {
-      // The RWA selector screen is registered inside the subscriptionId-guarded block
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-
-      // Rendering should not throw with the new screen registered
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {

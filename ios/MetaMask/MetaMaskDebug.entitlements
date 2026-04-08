@@ -24,7 +24,5 @@
 		<string>merchant.io.metamask</string>
 		<string>merchant.io.metamask-test</string>
 	</array>
-	<key>com.apple.developer.payment-pass-provisioning</key>
-	<true/>
 </dict>
 </plist>
