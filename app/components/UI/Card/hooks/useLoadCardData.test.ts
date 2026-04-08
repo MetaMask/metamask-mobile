@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useLoadCardData from './useLoadCardData';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
@@ -139,7 +139,7 @@ describe('useLoadCardData', () => {
 
     mockIsAuthenticated = false;
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectIsAuthenticatedCard) return mockIsAuthenticated;
+      if (selector === selectIsCardAuthenticated) return mockIsAuthenticated;
       return () => ({ address: mockSelectedAddress });
     });
 

@@ -506,7 +506,6 @@ exports[`SsnInfoModal Component renders correctly and matches snapshot 1`] = `
                                           "color": "#131416",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },

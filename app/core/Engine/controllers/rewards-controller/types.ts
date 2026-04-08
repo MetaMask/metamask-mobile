@@ -165,7 +165,7 @@ export interface CampaignDto {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoCampaignStepState = {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
 };
 
@@ -500,6 +500,107 @@ export type OndoGmPortfolioState = {
 };
 
 /**
+ * Activity entry type for Ondo GM campaign transactions.
+ */
+export type ActivityEntryType =
+  | 'DEPOSIT'
+  | 'REBALANCE'
+  | 'WITHDRAW'
+  | 'EXTERNAL_OUTFLOW';
+
+/**
+ * Token metadata within an activity entry.
+ */
+export interface ActivityTokenDto {
+  /**
+   * CAIP-19 asset type identifier
+   * @example 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da'
+   */
+  tokenAsset: string;
+
+  /** @example 'AAPLon' */
+  tokenSymbol: string;
+
+  /** @example 'Apple Inc.' */
+  tokenName: string;
+}
+
+/**
+ * DTO for a single activity entry from GET /ondo-gm/:campaignId/activity/me
+ */
+export interface OndoGmActivityEntryDto {
+  /** @example 'DEPOSIT' */
+  type: ActivityEntryType;
+
+  /** Source token */
+  srcToken: ActivityTokenDto;
+
+  /** Destination token, null for withdrawals */
+  destToken: ActivityTokenDto | null;
+
+  /**
+   * Recipient wallet address (only set for EXTERNAL_OUTFLOW events)
+   * @example '0x1234567890abcdef1234567890abcdef12345678'
+   */
+  destAddress: string | null;
+
+  /**
+   * Signed USD value (6 decimals). Positive for deposits, negative for withdrawals. Null for rebalances.
+   * @example '125.000000'
+   */
+  usdAmount: string | null;
+
+  /**
+   * Block timestamp (ISO 8601 UTC)
+   * @example '2026-03-28T14:30:00.000Z'
+   */
+  timestamp: string;
+}
+
+/**
+ * Paginated response for Ondo GM campaign activity
+ */
+export interface PaginatedOndoGmActivityDto {
+  has_more: boolean;
+  cursor: string | null;
+  results: OndoGmActivityEntryDto[];
+}
+
+/**
+ * Serializable state for token metadata within an activity entry.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActivityTokenState = {
+  tokenAsset: string;
+  tokenSymbol: string;
+  tokenName: string;
+};
+
+/**
+ * Serializable state for a single activity entry (mirrors {@link OndoGmActivityEntryDto}).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmActivityEntryState = {
+  type: string;
+  srcToken: ActivityTokenState;
+  destToken: ActivityTokenState | null;
+  destAddress: string | null;
+  usdAmount: string | null;
+  timestamp: string;
+};
+
+/**
+ * Cached activity page (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmActivityState = {
+  results: OndoGmActivityEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
+};
+
+/**
  * State for cached leaderboard data in the controller
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -555,7 +656,7 @@ export type CampaignParticipantStatusState = {
 
 export interface OndoCampaignStep {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
 }
 
@@ -1586,6 +1687,13 @@ export type RewardsControllerState = {
    */
   ondoCampaignPortfolio: {
     [compositeId: string]: OndoGmPortfolioState;
+  };
+  /**
+   * Ondo campaign activity keyed by compositeId (subscriptionId:campaignId).
+   * First-page results are cached for 1 minute; pagination pages are not cached.
+   */
+  ondoCampaignActivity: {
+    [compositeId: string]: OndoGmActivityState;
   };
   /**
    * History of points estimates for Customer Support diagnostics.

@@ -5,10 +5,11 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../Engine';
 import {
+  selectIsCardAuthenticated,
   selectCardholderAccounts,
-  selectIsAuthenticatedCard,
-} from '../../../redux/slices/card';
+} from '../../../../selectors/cardController';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
+import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
 /**
  * Card home deeplink handler
@@ -40,22 +41,28 @@ export const handleCardHome = () => {
   try {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const hasCardLinkedAccount = cardholderAccounts.length > 0;
 
     if (isAuthenticated || hasCardLinkedAccount) {
       if (hasCardLinkedAccount && !isAuthenticated) {
-        const firstCardholderAddress = cardholderAccounts[0];
+        const firstCardholderAddress = cardholderAccounts
+          .map((id) =>
+            isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
+          )
+          .find(Boolean);
         DevLogger.log(
           '[handleCardHome] Switching to first cardholder account:',
           firstCardholderAddress,
         );
 
         try {
-          Engine.setSelectedAddress(firstCardholderAddress);
-          DevLogger.log(
-            '[handleCardHome] Successfully switched to cardholder account',
-          );
+          if (firstCardholderAddress) {
+            Engine.setSelectedAddress(firstCardholderAddress);
+            DevLogger.log(
+              '[handleCardHome] Successfully switched to cardholder account',
+            );
+          }
         } catch (switchError) {
           DevLogger.log(
             '[handleCardHome] Error switching account:',

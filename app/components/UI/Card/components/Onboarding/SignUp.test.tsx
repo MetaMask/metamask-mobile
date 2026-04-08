@@ -48,6 +48,16 @@ jest.mock('../../../../hooks/useDebouncedValue');
 jest.mock('../../../Ramp/Deposit/utils');
 jest.mock('../../util/validatePassword');
 
+// Mock Engine
+const mockSetUserLocation = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
+    },
+  },
+}));
+
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
@@ -113,17 +123,11 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             contactVerificationId: null,
             user: null,
           },
-          userCardLocation: 'international',
           ...cardState,
         },
         action = { type: '', payload: null },
       ) => {
         switch (action.type) {
-          case 'card/setUserCardLocation':
-            return {
-              ...state,
-              userCardLocation: action.payload,
-            };
           default:
             return state;
         }
@@ -404,9 +408,7 @@ describe('SignUp Component', () => {
       );
 
       expect(getByText('Canada')).toBeOnTheScreen();
-      expect(storeWithGeo.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
     it('prefills country and sets US location when geoLocation is US', () => {
@@ -418,7 +420,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithGeo.getState().card.userCardLocation).toBe('us');
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
     });
 
     it('does not set userCardLocation when geoLocation is UNKNOWN', () => {
@@ -430,9 +432,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithUnknown.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
     it('does not set userCardLocation when geoLocation does not match any available region', () => {
@@ -444,9 +444,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithUnsupported.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
     it('pre-selects country when geoLocation matches a canSignUp: false country and enables waitlist mode', () => {
@@ -469,10 +467,8 @@ describe('SignUp Component', () => {
       ).toBeOnTheScreen();
       // Password field hidden in waitlist mode
       expect(queryByTestId('signup-password-input')).toBeNull();
-      // userCardLocation dispatched for GB
-      expect(storeWithGB.getState().card.userCardLocation).toBe(
-        'international',
-      );
+      // GB maps to 'international' location
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
     it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {

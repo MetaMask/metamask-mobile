@@ -27,9 +27,9 @@ import {
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
 import {
+  selectIsCardAuthenticated,
   selectIsCardholder,
-  selectIsAuthenticatedCard,
-} from '../../../../../core/redux/slices/card';
+} from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
@@ -111,7 +111,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   // Card check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardholder = useSelector(selectIsCardholder);
-  const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticatedCard = useSelector(selectIsCardAuthenticated);
   const cardSubtitle =
     isCardholder || isAuthenticatedCard
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')

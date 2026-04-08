@@ -1,6 +1,15 @@
 import { BigNumber } from 'bignumber.js';
 import type { OndoGmPortfolioPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
+// Re-export shared helpers so existing consumers keep working
+export {
+  formatPercentChange as formatPnlPercent,
+  isPercentChangeNonNegative as isPnlNonNegative,
+  getChainHex,
+  shortenAddress,
+  getAssetReference,
+} from '../../utils/formatUtils';
+
 /**
  * Merges positions that share the same CAIP-19 `tokenAsset` by summing numeric fields.
  * Recomputes average cost per unit and unrealized PnL percent from merged totals when possible.
@@ -51,31 +60,4 @@ export function groupPortfolioPositionsByAsset(
   }
 
   return Array.from(map.values());
-}
-
-/**
- * Formats a PnL percent string (e.g. "0.0775") as "+7.75%" / "-5.00%".
- * Returns '' for non-parseable values (e.g. "—").
- */
-export function formatPnlPercent(pnlPercent: string): string {
-  try {
-    const n = new BigNumber(pnlPercent);
-    if (n.isNaN()) return '';
-    const percentage = n.multipliedBy(100);
-    const sign = percentage.gte(0) ? '+' : '';
-    return `${sign}${percentage.toFixed(2)}%`;
-  } catch {
-    return '';
-  }
-}
-
-/**
- * Returns true if the given PnL percent string represents a non-negative value.
- */
-export function isPnlNonNegative(pnlPercent: string): boolean {
-  try {
-    return new BigNumber(pnlPercent).gte(0);
-  } catch {
-    return false;
-  }
 }
