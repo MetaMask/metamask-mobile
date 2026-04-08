@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useComponentSize, useStyles } from '../../../../../hooks';
+import { useStyles } from '../../../../../hooks';
 import BadgeBase from '../../foundation/BadgeBase';
 import Avatar, { AvatarVariant } from '../../../../Avatars/Avatar';
 
@@ -21,30 +21,13 @@ import {
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BadgeNetwork/README.md}
  */
-const BadgeNetwork = ({
-  style,
-  name,
-  imageSource,
-  size = DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
-  isScaled = true,
-}: BadgeNetworkProps) => {
-  const { size: containerSize, onLayout: onLayoutContainerSize } =
-    useComponentSize();
-  const { styles } = useStyles(styleSheet, {
-    style,
-    containerSize,
-    size,
-    isScaled,
-  });
+const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
+  const { styles } = useStyles(styleSheet, { style });
   return (
-    <BadgeBase
-      style={styles.base}
-      testID={BADGENETWORK_TEST_ID}
-      onLayout={onLayoutContainerSize}
-    >
+    <BadgeBase style={styles.base} testID={BADGENETWORK_TEST_ID}>
       <Avatar
         variant={AvatarVariant.Network}
-        size={size}
+        size={DEFAULT_BADGENETWORK_NETWORKICON_SIZE}
         name={name}
         imageSource={imageSource}
         style={styles.networkIcon}

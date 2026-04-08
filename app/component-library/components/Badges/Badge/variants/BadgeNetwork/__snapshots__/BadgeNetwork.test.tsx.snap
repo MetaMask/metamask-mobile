@@ -2,18 +2,7 @@
 
 exports[`BadgeNetwork should render BadgeNetwork 1`] = `
 <View
-  onLayout={[Function]}
-  style={
-    {
-      "alignItems": "center",
-      "aspectRatio": 1,
-      "height": "50%",
-      "justifyContent": "center",
-      "maxHeight": 24,
-      "minHeight": 8,
-      "opacity": 0,
-    }
-  }
+  style={{}}
   testID="badgenetwork"
 >
   <View
@@ -22,9 +11,9 @@ exports[`BadgeNetwork should render BadgeNetwork 1`] = `
         "alignItems": "center",
         "backgroundColor": "#ffffff",
         "borderColor": "#ffffff",
-        "borderRadius": 8,
-        "borderWidth": 2,
-        "height": 32,
+        "borderRadius": 4,
+        "borderWidth": 1,
+        "height": 16,
         "justifyContent": "center",
         "overflow": "hidden",
         "shadowColor": "#0000001a",
@@ -34,12 +23,7 @@ exports[`BadgeNetwork should render BadgeNetwork 1`] = `
         },
         "shadowOpacity": 1,
         "shadowRadius": 4,
-        "transform": [
-          {
-            "scale": 1,
-          },
-        ],
-        "width": 32,
+        "width": 16,
       }
     }
   >
@@ -49,8 +33,8 @@ exports[`BadgeNetwork should render BadgeNetwork 1`] = `
       source={1}
       style={
         {
-          "height": 32,
-          "width": 32,
+          "height": 16,
+          "width": 16,
         }
       }
       testID="network-avatar-image"
