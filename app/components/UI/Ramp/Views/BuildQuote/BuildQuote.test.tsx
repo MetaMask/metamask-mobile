@@ -1387,8 +1387,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Powered by MoonPay')).toBeTruthy();
-      expect(queryByText("We've encountered an error")).toBeNull();
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
     });
 
     it('shows no-quotes error when quote provider does not match selected provider', () => {
@@ -1404,7 +1404,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText("We've encountered an error")).toBeTruthy();
+      expect(getByText("We've encountered an error")).toBeOnTheScreen();
     });
 
     it('shows no-quotes error when quotes response has no entries', () => {
@@ -1418,7 +1418,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText("We've encountered an error")).toBeTruthy();
+      expect(getByText("We've encountered an error")).toBeOnTheScreen();
     });
 
     it('does not show error when quotes are still loading', () => {
@@ -1432,7 +1432,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(queryByText("We've encountered an error")).toBeNull();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
     });
 
     it('continue button is disabled when no matching quote', () => {
@@ -1476,8 +1476,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Powered by MoonPay')).toBeTruthy();
-      expect(queryByText("We've encountered an error")).toBeNull();
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
     });
 
     it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
@@ -1505,8 +1505,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Powered by MoonPay')).toBeTruthy();
-      expect(queryByText("We've encountered an error")).toBeNull();
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
     });
 
     it('finds matching quote even if it is not the first in the array', () => {
@@ -1525,8 +1525,8 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Powered by MoonPay')).toBeTruthy();
-      expect(queryByText("We've encountered an error")).toBeNull();
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+      expect(queryByText("We've encountered an error")).not.toBeOnTheScreen();
     });
   });
 });
