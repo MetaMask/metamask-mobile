@@ -17,11 +17,11 @@ const mockStrings = jest.fn((key: string) => {
   return translations[key] || key;
 });
 
-type TestBenefit = {
+interface TestBenefit {
   id: number;
   longTitle: string;
   shortDescription: string;
-};
+}
 
 let mockBenefits: TestBenefit[] = [];
 

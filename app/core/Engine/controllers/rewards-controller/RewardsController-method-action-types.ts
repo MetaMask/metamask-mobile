@@ -602,6 +602,31 @@ export type RewardsControllerGetSeasonOneLineaRewardTokensAction = {
 };
 
 /**
+ * Get benefits details with caching
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param limit - The maximum number of items requested
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerGetBenefitsAction = {
+  type: `RewardsController:getBenefits`;
+  handler: RewardsController['getBenefits'];
+};
+
+/**
+ * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @param benefitId - The specific benefit ID that was impressed
+ * @param benefitType - The type of the benefit that was impressed
+ * @returns Promise<SubscriptionBenefitsState> - The benefits data
+ */
+export type RewardsControllerPostBenefitImpressionAction = {
+  type: `RewardsController:postBenefitImpression`;
+  handler: RewardsController['postBenefitImpression'];
+};
+
+/**
  * Apply a referral code to an existing subscription.
  *
  * @param referralCode - The referral code to apply.
@@ -647,19 +672,6 @@ export type RewardsControllerInvalidateReferralDetailsCacheAction = {
   type: `RewardsController:invalidateReferralDetailsCache`;
   handler: RewardsController['invalidateReferralDetailsCache'];
 };
-
-export interface RewardsControllerGetBenefitsAction {
-  type: 'RewardsController:getBenefits';
-  handler: RewardsController['getBenefits'];
-}
-
-/**
- * Action for getting benefits of an existing subscription
- */
-export interface RewardsControllerPostBenefitImpressionAction {
-  type: 'RewardsController:postBenefitImpression';
-  handler: RewardsController['postBenefitImpression'];
-}
 
 /**
  * Invalidate cached data for a subscription
@@ -732,9 +744,9 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetActivityLastUpdatedAction
   | RewardsControllerHasActivityChangedAction
   | RewardsControllerClaimRewardAction
+  | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
   | RewardsControllerPostBenefitImpressionAction
-  | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
