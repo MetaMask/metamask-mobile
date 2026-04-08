@@ -7,6 +7,8 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../flows/wallet.flow';
 import Assertions from '../../../framework/Assertions';
 import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const TOKEN = 'Bitcoin';
 
@@ -16,6 +18,12 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
+            homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
+          });
+        },
       },
       async () => {
         await loginToApp();

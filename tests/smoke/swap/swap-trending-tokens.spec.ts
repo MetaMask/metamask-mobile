@@ -156,6 +156,12 @@ const withBridgeFixtures = async (run: () => Promise<void>) => {
         await setupSwapsTrendingTokensMock(mockServer);
         await setupTrendingTokensMock(mockServer);
         await setupQuoteFallbackMock(mockServer);
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: /^https:\/\/digest\.api\.cx\.metamask\.io\/api\/v1\/asset-summary/,
+          response: {},
+          responseCode: 200,
+        });
       },
     },
     run,
