@@ -3,7 +3,7 @@
 # Runway iOS RC Workflow
 #
 # Triggered from Runway to either:
-# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
+# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts is bumped), or
 # - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
 #
 # When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
@@ -34,5 +34,13 @@ jobs:
     with:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
-      upload_testflight: true
+    secrets: inherit
+
+  slack-notification:
+    name: Slack RC Notification
+    needs: runway-rc
+    if: success()
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit

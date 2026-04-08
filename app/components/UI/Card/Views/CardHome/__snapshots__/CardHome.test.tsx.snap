@@ -934,7 +934,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     ]
                                   }
                                 >
-                                  Available Balance
+                                  card.card_home.available_balance
                                 </Text>
                               </View>
                             </View>
@@ -2210,7 +2210,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     ]
                                   }
                                 >
-                                  Available Balance
+                                  card.card_home.available_balance
                                 </Text>
                               </View>
                             </View>

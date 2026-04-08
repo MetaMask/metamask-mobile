@@ -1,4 +1,12 @@
 import { IconName } from '@metamask/design-system-react-native';
+import {
+  type CaipAssetType,
+  type CaipChainId,
+  type Hex,
+  isCaipAssetType,
+  parseCaipAssetType,
+  parseCaipChainId,
+} from '@metamask/utils';
 import I18n from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
@@ -186,4 +194,112 @@ const emailRegex =
 export const validateEmail = (email: string): boolean => {
   if (!email || email.split('@').length !== 2) return false;
   return emailRegex.test(email);
+};
+
+// ── Percent / rate formatting ───────────────────────────────────────────
+
+/**
+ * Formats a decimal ratio (number or string) as a signed percentage.
+ * Handles both `number` inputs (e.g. leaderboard rate-of-return)
+ * and `string` inputs (e.g. portfolio PnL percent).
+ *
+ * @example formatPercentChange(0.15)    // '+15.00%'
+ * @example formatPercentChange('-0.05') // '-5.00%'
+ * @example formatPercentChange('—')     // ''
+ */
+export const formatPercentChange = (value: string | number): string => {
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (Number.isNaN(num)) return '';
+  const percentage = num * 100;
+  const sign = percentage >= 0 ? '+' : '';
+  return `${sign}${percentage.toFixed(2)}%`;
+};
+
+/**
+ * Returns true when the given decimal ratio represents a non-negative value.
+ */
+export const isPercentChangeNonNegative = (value: string | number): boolean => {
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  return !Number.isNaN(num) && num >= 0;
+};
+
+// ── Timestamp formatting ────────────────────────────────────────────────
+
+/**
+ * Formats an ISO 8601 timestamp to `HH:MM:SS`.
+ * Returns '' for null or unparseable values.
+ */
+export const formatComputedAt = (isoString: string | null): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  const h = date.getHours().toString().padStart(2, '0');
+  const m = date.getMinutes().toString().padStart(2, '0');
+  const s = date.getSeconds().toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
+};
+
+// ── CAIP-19 / address helpers ───────────────────────────────────────────
+
+/**
+ * Parses a CAIP-19 asset identifier into its components.
+ * Returns `null` for invalid or unparseable identifiers.
+ */
+export const parseCaip19 = (
+  caip19: string,
+): {
+  namespace: string;
+  chainId: string;
+  assetReference: string;
+} | null => {
+  if (!isCaipAssetType(caip19 as CaipAssetType)) return null;
+  try {
+    const parsed = parseCaipAssetType(caip19 as CaipAssetType);
+    const chain = parseCaipChainId(parsed.chainId as CaipChainId);
+    return {
+      namespace: chain.namespace,
+      chainId: chain.reference,
+      assetReference: parsed.assetReference,
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Extracts a hex chain ID from a CAIP-19 asset identifier.
+ * Returns `undefined` for non-EIP-155 or unparseable identifiers.
+ */
+export const getChainHex = (caip19: string): Hex | undefined => {
+  const parsed = parseCaip19(caip19);
+  if (!parsed || parsed.namespace !== 'eip155') return undefined;
+  return `0x${parseInt(parsed.chainId, 10).toString(16)}` as Hex;
+};
+
+/**
+ * Extracts the asset reference (contract address) from a CAIP-19 identifier.
+ * Falls back to the raw string when parsing fails.
+ */
+export const getAssetReference = (caip19: string): string => {
+  const parsed = parseCaip19(caip19);
+  return parsed?.assetReference ?? caip19;
+};
+
+/**
+ * Converts a CAIP chain ID (e.g. "eip155:1") to a hex chain ID (e.g. "0x1").
+ * For non-EVM chains the CAIP chain ID is returned as-is cast to Hex.
+ */
+export const caipChainIdToHex = (caipChainId: CaipChainId): Hex => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+  return namespace === 'eip155'
+    ? (`0x${Number(reference).toString(16)}` as Hex)
+    : (caipChainId as Hex);
+};
+
+/**
+ * Abbreviates an address / asset reference to `0xAbCd...1234` form.
+ */
+export const shortenAddress = (address: string): string => {
+  if (address.length <= 10) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
