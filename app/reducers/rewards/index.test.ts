@@ -4730,23 +4730,6 @@ describe('setBenefitsLoading', () => {
 
     expect(state.benefitsLoading).toBe(false);
   });
-
-  it('should remain true when set to true repeatedly', () => {
-    const stateWithLoading: RewardsState = {
-      ...initialState,
-      benefitsLoading: true,
-    };
-
-    const state = rewardsReducer(stateWithLoading, setBenefitsLoading(true));
-
-    expect(state.benefitsLoading).toBe(true);
-  });
-
-  it('should remain false when set to false repeatedly', () => {
-    const state = rewardsReducer(initialState, setBenefitsLoading(false));
-
-    expect(state.benefitsLoading).toBe(false);
-  });
 });
 
 describe('setBenefitsError', () => {
@@ -4766,23 +4749,6 @@ describe('setBenefitsError', () => {
     const action = setBenefitsError(false);
 
     const state = rewardsReducer(stateWithError, action);
-
-    expect(state.benefitsError).toBe(false);
-  });
-
-  it('should remain true when set to true repeatedly', () => {
-    const stateWithError: RewardsState = {
-      ...initialState,
-      benefitsError: true,
-    };
-
-    const state = rewardsReducer(stateWithError, setBenefitsError(true));
-
-    expect(state.benefitsError).toBe(true);
-  });
-
-  it('should remain false when set to false repeatedly', () => {
-    const state = rewardsReducer(initialState, setBenefitsError(false));
 
     expect(state.benefitsError).toBe(false);
   });

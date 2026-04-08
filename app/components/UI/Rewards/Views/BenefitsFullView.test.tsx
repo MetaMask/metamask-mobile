@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import BenefitsFullView from './BenefitsFullView';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
@@ -271,12 +271,17 @@ describe('BenefitsFullView', () => {
     mockGetAllBenefits.mockImplementationOnce(() => deferred.promise);
     const { UNSAFE_getByType } = render(<BenefitsFullView />);
 
-    fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+    const refreshControl = UNSAFE_getByType(RefreshControl);
+    fireEvent(refreshControl, 'refresh');
     await waitFor(() => {
       expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(true);
     });
 
-    deferred.reject(new Error('refresh failed'));
+    await act(async () => {
+      deferred.reject(new Error());
+      await refreshControl.props.onRefresh().catch(() => undefined);
+    });
+
     await waitFor(() => {
       expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
     });
