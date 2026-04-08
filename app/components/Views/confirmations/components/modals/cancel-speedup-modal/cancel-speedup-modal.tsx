@@ -299,13 +299,7 @@ export function CancelSpeedupModal({
                 native={networkFeeNative}
                 symbol={nativeTokenSymbol}
                 chainId={chainId}
-                onEditPress={
-                  isTransactionModifiable
-                    ? isTransactionModifiable
-                      ? openGasModal
-                      : undefined
-                    : undefined
-                }
+                onEditPress={isTransactionModifiable ? openGasModal : undefined}
               />
               <SpeedRow transactionId={tx?.id} />
             </InfoSection>
