@@ -7543,6 +7543,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.4ce710b, @metamask/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b":
+  version: 0.4.1-preview.4ce710b
+  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.4ce710b"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^8.0.0
+    react: ^18.2.0
+  checksum: 10/80a995781453dfab14bab39875c49b1f70fa68bead663feb1203e0ee1036906bcac73e696c87cb703c76ca8088774eeb2e775ea8f90d287849b1c070111530d7
+  languageName: node
+  linkType: hard
+
 "@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b, @metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b":
   version: 8.3.0-preview.4ce710b
   resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b"
@@ -8144,18 +8156,6 @@ __metadata:
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
   checksum: 10/c165b4ff6d057af9c1dd6d196edddee34adb972c4ca8e45cadfeebcd6b447d119b88047ab417cfb9a583d8c0a06849949560335237d340b638ed9703e7e88ccd
-  languageName: node
-  linkType: hard
-
-"@metamask/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b":
-  version: 0.4.1-preview.4ce710b
-  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.4ce710b"
-  dependencies:
-    twrnc: "npm:^4.5.1"
-  peerDependencies:
-    "@metamask/design-tokens": ^8.0.0
-    react: ^18.2.0
-  checksum: 10/80a995781453dfab14bab39875c49b1f70fa68bead663feb1203e0ee1036906bcac73e696c87cb703c76ca8088774eeb2e775ea8f90d287849b1c070111530d7
   languageName: node
   linkType: hard
 
@@ -35455,6 +35455,8 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/design-system-shared": "npm:0.7.0-preview.4ce710b"
+    "@metamask-previews/design-system-twrnc-preset": "npm:0.4.1-preview.4ce710b"
     "@metamask-previews/design-tokens": "npm:8.3.0-preview.4ce710b"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
