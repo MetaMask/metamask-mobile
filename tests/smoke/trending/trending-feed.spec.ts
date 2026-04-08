@@ -10,7 +10,10 @@ import {
   TRENDING_API_MOCKS,
   RWA_STOCK_ASSET_ID,
 } from '../../api-mocking/mock-responses/trending-api-mocks';
-import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import {
+  setupMockEvents,
+  setupMockRequest,
+} from '../../api-mocking/helpers/mockHelpers';
 import {
   remoteFeatureFlagTrendingTokensEnabled,
   remoteFeatureFlagPredictEnabled,
@@ -26,6 +29,13 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
 
     // Setup API mocks using centralized definition
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: /^https:\/\/digest\.api\.cx\.metamask\.io\/api\/v1\/asset-summary/,
+      response: {},
+      responseCode: 200,
+    });
   };
 
   it('Navigate to all sections full views via View All and return to feed', async () => {

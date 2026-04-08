@@ -246,6 +246,13 @@ export async function setupMusdMocks(
     responseCode: 200,
   });
 
+  await setupMockRequest(mockServer, {
+    url: /^https:\/\/digest\.api\.cx\.metamask\.io\/api\/v1\/asset-summary/,
+    response: {},
+    requestMethod: 'GET',
+    responseCode: 200,
+  });
+
   await mockRelayQuoteMainnetMusd(mockServer);
   await mockRelayStatus(mockServer);
 }
