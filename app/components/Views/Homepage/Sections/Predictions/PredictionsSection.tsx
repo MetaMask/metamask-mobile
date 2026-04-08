@@ -530,6 +530,8 @@ const PredictionsSectionPositionsOnly = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
+    const { clearTransactionAbTests } =
+      useHomepageTrendingSectionTransactionAbTests();
     const {
       isPredictEnabled,
       queryClient,
@@ -540,6 +542,7 @@ const PredictionsSectionPositionsOnly = forwardRef<
     } = usePredictionsCommonSetup({
       sectionNameOverride,
       titleOverride,
+      onBeforeNavigate: clearTransactionAbTests,
     });
     const {
       privacyMode,

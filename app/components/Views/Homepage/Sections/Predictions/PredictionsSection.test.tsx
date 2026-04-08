@@ -726,6 +726,50 @@ describe('PredictionsSection', () => {
       });
     });
 
+    it('clears staged tx AB tests when View All is pressed from positions-only', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: mockActivePositions,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Predictions'));
+
+      expect(mockClearTransactionAbTests).toHaveBeenCalled();
+      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
+    });
+
+    it('clears staged tx AB tests when a position row is pressed from positions-only', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: mockActivePositions,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Test Position 1'));
+
+      expect(mockClearTransactionAbTests).toHaveBeenCalled();
+      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
+    });
+
     it('returns null when no positions after loading', () => {
       mockUsePredictPositionsForHomepage.mockReturnValue({
         positions: [],
