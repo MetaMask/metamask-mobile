@@ -21,6 +21,7 @@ interface BrowserStackLocalTunnel {
 export class BrowserStackProvider extends BaseServiceProvider {
   private api: BrowserStackAPI;
   private static localTunnel: BrowserStackLocalTunnel | null = null;
+  private static tunnelStartPromise: Promise<void> | null = null;
 
   constructor(project: ProjectConfig) {
     super(project, 'BrowserStackProvider');
@@ -33,11 +34,16 @@ export class BrowserStackProvider extends BaseServiceProvider {
   async globalSetup(): Promise<void> {
     await super.globalSetup?.();
 
-    if (
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true' &&
-      !BrowserStackProvider.localTunnel
-    ) {
-      await this.startLocalTunnel();
+    if (process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true') {
+      if (!BrowserStackProvider.localTunnel) {
+        if (!BrowserStackProvider.tunnelStartPromise) {
+          // Assign synchronously before any await so concurrent callers
+          // from Promise.all() see it and wait on the same promise instead
+          // of racing past the !localTunnel check and starting a second tunnel.
+          BrowserStackProvider.tunnelStartPromise = this.startLocalTunnel();
+        }
+        await BrowserStackProvider.tunnelStartPromise;
+      }
     }
 
     this.logger.info('BrowserStack global setup complete');
