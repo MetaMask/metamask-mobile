@@ -28,6 +28,7 @@ describe('resolvePredictFeatureFlags', () => {
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
+      predictUpDownEnabled: false,
     });
   });
 
