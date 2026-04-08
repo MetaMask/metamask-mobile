@@ -27,11 +27,9 @@ import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
-import {
-  setContactVerificationId,
-  setUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { setContactVerificationId } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -113,9 +111,11 @@ const SignUp = () => {
     if (matchedRegion) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matchedRegion);
-      dispatch(setUserCardLocation(mapCountryToLocation(matchedRegion.key)));
+      Engine.context.CardController.setUserLocation(
+        mapCountryToLocation(matchedRegion.key),
+      );
     }
-  }, [allRegions.length, geoLocation, dispatch, getRegionByCode]);
+  }, [allRegions.length, geoLocation, getRegionByCode]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -244,7 +244,9 @@ const SignUp = () => {
     resetEmailVerificationSend();
     setOnValueChange((region) => {
       setSelectedCountry(region);
-      dispatch(setUserCardLocation(mapCountryToLocation(region.key)));
+      Engine.context.CardController.setUserLocation(
+        mapCountryToLocation(region.key),
+      );
     });
 
     navigation.navigate(
@@ -259,7 +261,6 @@ const SignUp = () => {
     selectedCountry?.key,
     resetEmailVerificationSend,
     isLoadingRegistrationSettings,
-    dispatch,
   ]);
 
   useEffect(() => () => clearOnValueChange(), []);

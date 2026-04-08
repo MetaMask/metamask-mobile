@@ -86,6 +86,7 @@ describe('CashGetMusdEmptyState', () => {
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
+      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -224,6 +225,7 @@ describe('CashGetMusdEmptyState', () => {
   it('shows Claim bonus secondary button when claimable reward exists', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '12.34',
+      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -244,6 +246,7 @@ describe('CashGetMusdEmptyState', () => {
   it('hides Claim bonus button when no claimable reward', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: null,
+      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,
@@ -260,6 +263,7 @@ describe('CashGetMusdEmptyState', () => {
   it('calls claimRewards and tracks analytics when Claim bonus is pressed', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '1.00',
+      lifetimeBonusClaimed: null,
       hasPendingClaim: false,
       isClaiming: false,
       error: null,

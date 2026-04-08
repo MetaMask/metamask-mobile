@@ -2,12 +2,16 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useLinkAccountAddress } from './useLinkAccountAddress';
 import Engine from '../../../../core/Engine';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import {
+  MetaMetricsEvents,
+  IMetaMetricsEvent,
+} from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { deriveAccountMetricProps } from '../utils';
 import useRewardsToast from './useRewardsToast';
 import { strings } from '../../../../../locales/i18n';
 import { formatAddress } from '../../../../util/address';
-import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine', () => ({
@@ -16,14 +20,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_ACCOUNT_LINKING_STARTED: 'Rewards Account Linking Started',
-    REWARDS_ACCOUNT_LINKING_COMPLETED: 'Rewards Account Linking Completed',
-    REWARDS_ACCOUNT_LINKING_FAILED: 'Rewards Account Linking Failed',
-  },
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../utils', () => ({
   deriveAccountMetricProps: jest.fn(),
@@ -53,7 +50,7 @@ describe('useLinkAccountAddress', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockUseMetrics = jest.mocked(useMetrics);
+  const mockUseAnalytics = jest.mocked(useAnalytics);
   const mockDeriveAccountMetricProps = jest.mocked(deriveAccountMetricProps);
   const mockUseRewardsToast = jest.mocked(useRewardsToast);
   const mockStrings = jest.mocked(strings);
@@ -106,11 +103,13 @@ describe('useLinkAccountAddress', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup useMetrics mock
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as never);
+    // Setup useAnalytics mock
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup useRewardsToast mock
     mockUseRewardsToast.mockReturnValue({
