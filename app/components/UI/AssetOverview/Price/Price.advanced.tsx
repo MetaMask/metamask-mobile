@@ -18,6 +18,7 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
+import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
@@ -188,10 +189,18 @@ const PriceAdvanced = ({
     [createEventBuilder, timeRange, trackEvent],
   );
 
-  const assetId = useMemo(
-    () => formatAddressToAssetId(asset.address, asset.chainId as Hex) ?? '',
-    [asset.address, asset.chainId],
-  );
+  const assetId = useMemo(() => {
+    // Normalize Polygon's native token address (0x...001010) to zero address
+    // before formatting to CAIP-19 assetId. formatAddressToAssetId will convert
+    // zero address to proper SLIP-44 format (e.g., eip155:137/slip44:966 for Polygon)
+    const normalizedAddress = normalizeTokenAddress(
+      asset.address,
+      asset.chainId as Hex,
+    );
+    return (
+      formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
+    );
+  }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
 
   /**
