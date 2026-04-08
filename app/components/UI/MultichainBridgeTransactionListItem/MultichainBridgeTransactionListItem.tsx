@@ -1,3 +1,4 @@
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -5,7 +6,6 @@ import {
   TextStyle,
   useColorScheme,
 } from 'react-native';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
@@ -46,7 +46,7 @@ const MultichainBridgeTransactionListItem = ({
 }: {
   transaction: Transaction;
   bridgeHistoryItem: BridgeHistoryItem;
-  navigation: AppNavigationProp;
+  navigation: NavigationProp<ParamListBase>;
   index?: number;
   location?: TransactionDetailLocation;
   showDestinationPerspective?: boolean;

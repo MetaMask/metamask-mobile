@@ -24,7 +24,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      getParent: () => ({
+      dangerouslyGetParent: () => ({
         pop: jest.fn(),
       }),
     }),

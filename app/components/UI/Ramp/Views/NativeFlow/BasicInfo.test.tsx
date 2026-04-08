@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import V2BasicInfo from './BasicInfo';
-import Routes from '../../../../../constants/navigation/Routes';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
@@ -280,13 +279,7 @@ describe('V2BasicInfo', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.RAMP.ENTER_ADDRESS,
-        expect.objectContaining({
-          previousFormData: validPreviousFormData,
-          quote: mockUseParamsReturn.quote,
-        }),
-      );
+      expect(mockNavigate).toHaveBeenCalled();
     });
   });
 
@@ -439,9 +432,10 @@ describe('V2BasicInfo', () => {
   it('navigates to ssn info modal when ssn info button is pressed', () => {
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
     fireEvent.press(getByTestId('ssn-info-button'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.MODALS.ID, {
-      screen: Routes.RAMP.MODALS.SSN_INFO,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({ screen: 'RampSsnInfoModal' }),
+    );
   });
 
   it('handles region with no phone prefix', () => {

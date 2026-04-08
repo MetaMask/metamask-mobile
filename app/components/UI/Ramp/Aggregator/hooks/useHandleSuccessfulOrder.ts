@@ -38,7 +38,7 @@ function useHandleSuccessfulOrder() {
     ) => {
       handleDispatchUserWalletProtection();
       // @ts-expect-error navigation prop mismatch
-      navigation.getParent()?.pop();
+      navigation.dangerouslyGetParent()?.pop();
 
       dispatchThunk((_dispatch, getState) => {
         const state = getState();

@@ -49,7 +49,7 @@ function SettingsModal() {
       order_count: buttonClickData.order_count,
     });
     sheetRef.current?.onCloseBottomSheet();
-    navigation.getParent()?.getParent()?.goBack();
+    navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
     goToDeposit();
   }, [
     navigation,

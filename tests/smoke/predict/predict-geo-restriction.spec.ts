@@ -14,7 +14,6 @@ import {
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
-import { device } from 'detox';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_MARKET_FEEDS_MOCKS,
@@ -67,7 +66,6 @@ describe(
               description: 'Predict market list container should be visible',
             },
           );
-          await device.disableSynchronization();
           await PredictMarketList.tapCategoryTab('new');
           await Assertions.expectElementToBeVisible(
             PredictMarketList.container,
@@ -87,9 +85,6 @@ describe(
             },
           );
 
-          // Dismissing the geo modal can leave the feed scrolled or de-synced; re-select New
-          // so the first card's Yes/No row is back in view for Detox.
-          await PredictMarketList.tapCategoryTab('new');
           await PredictMarketList.tapNoBasedOnCategoryAndIndex('new', 1);
           await PredictUnavailableView.expectVisible();
           await PredictUnavailableView.tapGotIt();
@@ -127,7 +122,6 @@ describe(
           }, 'Geo Blocked events should be tracked for predict actions (Yes/No)');
 
           softAssert.throwIfErrors();
-          await device.enableSynchronization();
         },
       );
     });

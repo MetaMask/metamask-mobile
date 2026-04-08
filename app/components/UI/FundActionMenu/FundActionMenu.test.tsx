@@ -24,6 +24,9 @@ import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 // Mock dependencies
 jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),

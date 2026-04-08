@@ -1,8 +1,5 @@
 import { WalletDevice } from '@metamask/transaction-controller';
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
@@ -58,7 +55,7 @@ interface BackgroundBridgeFactory {
 class WalletConnect2Session {
   private channelId: string;
   private backgroundBridge: BackgroundBridge;
-  private navigation?: NavigationContainerRef<ParamListBase>;
+  private navigation?: NavigationContainerRef;
   private web3Wallet: IWalletKit;
   private deeplink: boolean;
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
@@ -86,7 +83,7 @@ class WalletConnect2Session {
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
-    navigation?: NavigationContainerRef<ParamListBase>;
+    navigation?: NavigationContainerRef;
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.channelId = channelId;

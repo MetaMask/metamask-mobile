@@ -16,7 +16,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 42,
+      "paddingTop": 24,
     }
   }
 >
@@ -32,7 +32,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 42,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"
@@ -1168,7 +1168,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 42,
+      "paddingTop": 24,
     }
   }
 >
@@ -1184,7 +1184,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 42,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"
@@ -1552,7 +1552,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       "flexBasis": "0%",
       "flexGrow": 1,
       "flexShrink": 1,
-      "paddingTop": 42,
+      "paddingTop": 24,
     }
   }
 >
@@ -1568,7 +1568,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
         "flexBasis": "0%",
         "flexGrow": 1,
         "flexShrink": 1,
-        "paddingTop": 42,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"

@@ -44,9 +44,6 @@ import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 const Stack = createStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ScreenComponent = React.ComponentType<any>;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -99,9 +96,9 @@ const PerpsModalStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
+          mode="modal"
           screenOptions={{
             headerShown: false,
-            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -197,9 +194,9 @@ const PerpsClosePositionBottomSheetStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
+          mode="modal"
           screenOptions={{
             headerShown: false,
-            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -421,7 +418,7 @@ const PerpsScreenStack = () => {
 
           <Stack.Screen
             name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={PerpsConfirmScreen as ScreenComponent}
+            component={PerpsConfirmScreen}
             options={({ route }) =>
               getRedesignedConfirmationsHeaderOptions(route.params)
             }

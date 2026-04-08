@@ -31,29 +31,22 @@ describe(
         },
         async () => {
           await loginToApp();
+          await navigateToSolanaTestDApp();
 
-          // Detox sync waits for the main run loop to idle; browser + WebView + snap modal
-          // often keep work pending on the main queue (see "app is busy" in CI). Disable sync
-          // for the whole dapp flow, not only the confirmation tap.
-          await device.disableSynchronization();
-          try {
-            await navigateToSolanaTestDApp();
+          await connectSolanaTestDapp();
 
-            await connectSolanaTestDapp();
+          const signMessageTest = SolanaTestDApp.getSignMessageTest();
+          await signMessageTest.signMessage();
 
-            const signMessageTest = SolanaTestDApp.getSignMessageTest();
-            await signMessageTest.signMessage();
-            await SolanaTestDApp.confirmSignMessage();
+          // Confirm the signature
+          await SolanaTestDApp.confirmSignMessage();
 
-            const signedMessage = await signMessageTest.getSignedMessage();
-            logger.debug(`signedMessage: ${signedMessage}`);
-            await Assertions.checkIfTextMatches(
-              signedMessage,
-              'Kort1JYMAf3dmzKRx4WiYXW9gSfPHzxw0flAka25ymjB4d+UZpU/trFoSPk4DM7emT1c/e6Wk0bsRcLsj/h9BQ==',
-            );
-          } finally {
-            await device.enableSynchronization();
-          }
+          const signedMessage = await signMessageTest.getSignedMessage();
+          logger.debug(`signedMessage: ${signedMessage}`);
+          await Assertions.checkIfTextMatches(
+            signedMessage,
+            'Kort1JYMAf3dmzKRx4WiYXW9gSfPHzxw0flAka25ymjB4d+UZpU/trFoSPk4DM7emT1c/e6Wk0bsRcLsj/h9BQ==',
+          );
         },
       );
     });

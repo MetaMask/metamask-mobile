@@ -2,10 +2,7 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { IWalletKit, WalletKit, WalletKitTypes } from '@reown/walletkit';
 import { Core } from '@walletconnect/core';
 import { SessionTypes } from '@walletconnect/types';
@@ -71,7 +68,7 @@ const SEEN_TOPIC_TTL_MS = 5_000;
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
-  private navigation?: NavigationContainerRef<ParamListBase>;
+  private navigation?: NavigationContainerRef;
   private web3Wallet: IWalletKit;
   private sessions: { [topic: string]: WalletConnect2Session };
   private deeplinkSessions: {
@@ -92,7 +89,7 @@ export class WC2Manager {
     deeplinkSessions: {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
-    navigation: NavigationContainerRef<ParamListBase>,
+    navigation: NavigationContainerRef,
     sessions: { [topic: string]: WalletConnect2Session } = {},
   ) {
     this.web3Wallet = web3Wallet;

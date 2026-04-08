@@ -10,7 +10,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 const mockUseDepositSDK = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToAggregator = jest.fn();
-const mockGetParent = jest.fn();
+const mockDangerouslyGetParent = jest.fn();
 const mockPop = jest.fn();
 const mockGoBack = jest.fn();
 const mockOnStateSelect = jest.fn();
@@ -39,7 +39,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
-      getParent: mockGetParent,
+      dangerouslyGetParent: mockDangerouslyGetParent,
       isFocused: jest.fn(() => true),
     }),
   };
@@ -77,7 +77,7 @@ function render(Component: React.ComponentType) {
 describe('UnsupportedStateModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetParent.mockReturnValue({
+    mockDangerouslyGetParent.mockReturnValue({
       pop: mockPop,
     });
   });
@@ -102,7 +102,7 @@ describe('UnsupportedStateModal', () => {
     const tryAnotherOptionButton = getByText('Try another option');
     fireEvent.press(tryAnotherOptionButton);
 
-    expect(mockGetParent).toHaveBeenCalled();
+    expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });

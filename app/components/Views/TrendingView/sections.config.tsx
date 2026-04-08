@@ -1,8 +1,7 @@
 import React, { PropsWithChildren, useContext, useMemo } from 'react';
 import Fuse, { type FuseOptions } from 'fuse.js';
-import type { NavigationProp } from '@react-navigation/native';
+import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -55,18 +54,18 @@ export interface SectionConfig {
   id: SectionId;
   title: string;
   icon: SectionIcon;
-  viewAllAction: (navigation: AppNavigationProp) => void;
+  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
   /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
   getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<{
     item: unknown;
     index: number;
-    navigation: AppNavigationProp;
+    navigation: NavigationProp<ParamListBase>;
   }>;
   OverrideRowItemSearch?: React.ComponentType<{
     item: unknown;
     index?: number;
-    navigation: AppNavigationProp;
+    navigation: NavigationProp<ParamListBase>;
   }>;
   Skeleton: React.ComponentType;
   OverrideSkeletonSearch?: React.ComponentType;

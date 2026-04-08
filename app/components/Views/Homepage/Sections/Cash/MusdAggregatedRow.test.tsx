@@ -110,7 +110,7 @@ describe('MusdAggregatedRow', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'Asset',
       expect.objectContaining({
-        source: TokenDetailsSource.HomeSection,
+        source: TokenDetailsSource.MobileTokenListPage,
       }),
     );
   });
@@ -160,7 +160,7 @@ describe('MusdAggregatedRow', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'Asset',
         expect.objectContaining({
-          source: TokenDetailsSource.HomeSection,
+          source: TokenDetailsSource.MobileTokenListPage,
         }),
       );
     });
@@ -173,7 +173,7 @@ describe('MusdAggregatedRow', () => {
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'Asset',
         expect.objectContaining({
-          source: TokenDetailsSource.HomeSection,
+          source: TokenDetailsSource.MobileTokenListPage,
         }),
       );
     });

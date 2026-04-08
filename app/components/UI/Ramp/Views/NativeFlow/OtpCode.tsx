@@ -257,12 +257,15 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
-              nativeFlowError: parseUserFacingError(
-                routeError,
-                strings('deposit.otp_code.error'),
-              ),
-            });
+            navigation.navigate(
+              Routes.RAMP.AMOUNT_INPUT as never,
+              {
+                nativeFlowError: parseUserFacingError(
+                  routeError,
+                  strings('deposit.otp_code.error'),
+                ),
+              } as never,
+            );
           }
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);

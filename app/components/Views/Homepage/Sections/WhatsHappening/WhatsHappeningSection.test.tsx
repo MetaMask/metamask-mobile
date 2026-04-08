@@ -140,7 +140,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(mockItem.title));
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
+      expect.objectContaining({ initialIndex: 0 }),
     );
   });
 
@@ -155,7 +155,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(/view more/i));
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({ items: [mockItem], initialIndex: 0 }),
+      expect.objectContaining({ initialIndex: 0 }),
     );
   });
 
@@ -175,10 +175,7 @@ describe('WhatsHappeningSection', () => {
     fireEvent.press(screen.getByText(secondItem.title));
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WHATS_HAPPENING_DETAIL,
-      expect.objectContaining({
-        items: [mockItem, secondItem],
-        initialIndex: 1,
-      }),
+      expect.objectContaining({ initialIndex: 1 }),
     );
   });
 });

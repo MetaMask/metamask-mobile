@@ -27,7 +27,7 @@ exports[`NavbarTitle should render correctly 1`] = `
     }
   }
 >
-  <NavbarTitleWrapper
+  <withNavigation(Connect(NavbarTitle))
     title="Test"
   />
 </ContextProvider>

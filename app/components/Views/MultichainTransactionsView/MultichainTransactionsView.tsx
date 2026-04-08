@@ -6,9 +6,8 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -42,7 +41,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Override navigation instance
    */
-  navigation?: AppNavigationProp;
+  navigation?: NavigationProp<Record<string, object | undefined>>;
   /**
    * Override selected address
    */

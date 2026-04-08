@@ -40,12 +40,12 @@ const ProtectWalletMandatoryModal = () => {
     selectSeedlessOnboardingLoginFlow,
   );
 
-  const { navigate, getState } = useNavigation();
+  const { navigate, dangerouslyGetState } = useNavigation();
 
   const passwordSet = useSelector(selectPasswordSet);
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   useEffect(() => {
-    const route = findRouteNameFromNavigatorState(getState()?.routes ?? []);
+    const route = findRouteNameFromNavigatorState(dangerouslyGetState().routes);
     if (isSeedlessOnboardingLoginFlow) {
       setShowProtectWalletModal(false);
       return;
@@ -96,7 +96,7 @@ const ProtectWalletMandatoryModal = () => {
     metrics,
     passwordSet,
     seedphraseBackedUp,
-    getState,
+    dangerouslyGetState,
     hasAnyTokenBalance,
     allTokens,
     nfts,

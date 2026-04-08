@@ -38,6 +38,10 @@ jest.mock('../../../util/networks', () => ({
   getDecimalChainId: jest.fn(() => 1),
 }));
 
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: (Component: React.ComponentType) => Component,
+}));
+
 const MOCK_ADDRESS_1 = '0x0';
 
 jest.mock('../../../core/Engine', () => ({

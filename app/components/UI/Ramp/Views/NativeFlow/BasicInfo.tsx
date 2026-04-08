@@ -186,10 +186,13 @@ const V2BasicInfo = (): JSX.Element => {
         await submitSsnDetails(ssn, quote.quoteId);
       }
 
-      navigation.navigate(Routes.RAMP.ENTER_ADDRESS, {
-        previousFormData,
-        quote,
-      });
+      navigation.navigate(
+        Routes.RAMP.ENTER_ADDRESS as never,
+        {
+          previousFormData,
+          quote,
+        } as never,
+      );
     } catch (submissionError) {
       const apiError = (
         submissionError as {
@@ -252,9 +255,12 @@ const V2BasicInfo = (): JSX.Element => {
   }, [logoutFromProvider, navigation]);
 
   const handleSsnInfoPress = useCallback(() => {
-    navigation.navigate(Routes.RAMP.MODALS.ID, {
-      screen: Routes.RAMP.MODALS.SSN_INFO,
-    });
+    navigation.navigate(
+      Routes.RAMP.MODALS.ID as never,
+      {
+        screen: Routes.RAMP.MODALS.SSN_INFO,
+      } as never,
+    );
   }, [navigation]);
 
   const focusNextField = useCallback(

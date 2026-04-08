@@ -28,10 +28,7 @@ import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
-import {
-  NavigationContainerRef,
-  ParamListBase,
-} from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -753,7 +750,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(true);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
+        mockNavigation as unknown as NavigationContainerRef;
 
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
@@ -878,7 +875,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(false);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
+        mockNavigation as unknown as NavigationContainerRef;
 
       const component = await navigateToResetForm();
       await fillResetForm(component);

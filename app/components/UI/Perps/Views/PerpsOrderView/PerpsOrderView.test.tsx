@@ -83,6 +83,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock @react-navigation/compat to prevent issues with createNavigatorFactory
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+  withNavigationFocus: jest.fn((component) => component),
+}));
+
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
