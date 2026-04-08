@@ -115,6 +115,7 @@ import {
   getEarnControllerInitMessenger,
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
+import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
@@ -151,10 +152,7 @@ import { getAnalyticsControllerMessenger } from './analytics-controller-messenge
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
-import {
-  getComplianceControllerMessenger,
-  getComplianceControllerInitMessenger,
-} from './compliance/compliance-controller-messenger';
+import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -335,6 +333,10 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
   },
+  MoneyAccountController: {
+    getMessenger: getMoneyAccountControllerMessenger,
+    getInitMessenger: noop,
+  },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
@@ -476,6 +478,6 @@ export const CONTROLLER_MESSENGERS = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
-    getInitMessenger: getComplianceControllerInitMessenger,
+    getInitMessenger: noop,
   },
 } as const;

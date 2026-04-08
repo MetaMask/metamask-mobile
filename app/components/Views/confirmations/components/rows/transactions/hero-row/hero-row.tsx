@@ -6,7 +6,7 @@ import { useIsNft } from '../../../../hooks/nft/useIsNft';
 import { HeroNft } from '../../../hero-nft';
 import { HeroToken } from '../../../hero-token';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './hero-row.styles';
 
 export function HeroRowSkeleton({
