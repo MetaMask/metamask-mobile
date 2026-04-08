@@ -251,6 +251,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
           market={market}
           sparklineData={sparklines[market.symbol]}
           showFavoriteTag={isWatchlisted}
+          testID={`perps-market-tile-card-${market.symbol}`}
           onPress={() => {
             (navigation as NavigationProp<PerpsNavigationParamList>)?.navigate(
               Routes.PERPS.ROOT,
