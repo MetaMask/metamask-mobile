@@ -36,6 +36,7 @@ jobs:
       source_branch: ${{ inputs.source_branch }}
       ota_channel: production
       build_name: main-prod
+      upload_testflight: true
       create_production_ota_tag: true
       environment: prod
     secrets: inherit

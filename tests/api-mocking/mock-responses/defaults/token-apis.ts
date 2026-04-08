@@ -18,16 +18,6 @@ const tokenAssetsRegex =
 const tokenV3AssetsRegex =
   /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/;
 
-// OHLCV advanced chart (useOHLCVChart) — path includes CAIP asset id, e.g.
-// https://price.api.cx.metamask.io/v3/ohlcv-chart/eip155:8453/erc20:0x...?timePeriod=1d&vsCurrency=usd
-const ohlcvChartRegex =
-  /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/ohlcv-chart\/.+$/;
-
-const OHLCV_CHART_EMPTY_RESPONSE = {
-  data: [],
-  hasNext: false,
-  nextCursor: '',
-};
 // Matches the single-token metadata endpoint triggered by TokensController.addToken()
 // when useEnsureMusdTokenRegistered registers mUSD at app startup for all supported chains.
 // Scoped to the mUSD token address (0xaca92e438df0b2401ff60da7e4337b687a2435da) so that
@@ -53,11 +43,6 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       urlEndpoint: tokenV3AssetsRegex,
       responseCode: 200,
       response: [],
-    },
-    {
-      urlEndpoint: ohlcvChartRegex,
-      responseCode: 200,
-      response: OHLCV_CHART_EMPTY_RESPONSE,
     },
     {
       urlEndpoint: musdTokenByAddressRegex,

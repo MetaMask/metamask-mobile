@@ -34,31 +34,6 @@ on:
           - android
         default: all
 
-  workflow_call:
-    inputs:
-      pr_number:
-        description: 'PR number to publish (uses PR branch HEAD commit)'
-        type: string
-        required: true
-      base_branch:
-        description: 'Base ref to compare fingerprints against (branch name like "main" or tag name like "v7.61.6")'
-        type: string
-        required: true
-      message:
-        description: 'EAS update message'
-        type: string
-        required: true
-      channel:
-        description: 'OTA channel to push update to (exp, rc, production)'
-        type: string
-        required: false
-        default: exp
-      platform:
-        description: 'Platform to update (all, ios, android)'
-        type: string
-        required: false
-        default: all
-
 permissions:
   contents: read
   id-token: write

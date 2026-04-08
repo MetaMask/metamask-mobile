@@ -156,7 +156,7 @@ function buildSlackMessage(options) {
     buildNumber,
     androidUrl,
     iosUrl,
-    bitriseUrl: pipelineUrl,
+    bitriseUrl,
     changelogText,
     hasChangelog,
   } = options;
@@ -233,8 +233,8 @@ function buildSlackMessage(options) {
     });
   }
 
-  // Add pipeline link
-  if (pipelineUrl) {
+  // Add Bitrise link
+  if (bitriseUrl) {
     blocks.push(
       {
         type: 'divider',
@@ -244,7 +244,7 @@ function buildSlackMessage(options) {
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|View Full Changelog>`,
+            text: `<${bitriseUrl}|View Bitrise Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|View Full Changelog>`,
           },
         ],
       },
@@ -312,7 +312,7 @@ function getSlackChannel(version) {
  */
 async function main() {
   // Validate required environment variables (fail open - just log and return)
-  const requiredEnvVars = ['SEMVER', 'SLACK_BOT_TOKEN'];
+  const requiredEnvVars = ['SEMVER', 'BUILD_NUMBER', 'SLACK_BOT_TOKEN'];
   const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
 
   if (missingVars.length > 0) {
@@ -322,12 +322,10 @@ async function main() {
   }
 
   const version = process.env.SEMVER;
-  const iosBuildNumber = process.env.IOS_BUILD_NUMBER || process.env.BUILD_NUMBER || 'N/A';
-  const androidBuildNumber = process.env.ANDROID_BUILD_NUMBER || process.env.BUILD_NUMBER || 'N/A';
-  const buildNumber = `iOS ${iosBuildNumber} / Android ${androidBuildNumber}`;
+  const buildNumber = process.env.BUILD_NUMBER;
   const androidUrl = process.env.ANDROID_PUBLIC_URL;
   const iosUrl = process.env.IOS_PUBLIC_URL;
-  const pipelineUrl = process.env.BUILD_PIPELINE_URL || process.env.BITRISE_PIPELINE_URL;
+  const bitriseUrl = process.env.BITRISE_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
 
   // TEST_CHANNEL allows overriding the channel for local testing
@@ -371,7 +369,7 @@ async function main() {
     buildNumber,
     androidUrl,
     iosUrl,
-    bitriseUrl: pipelineUrl,
+    bitriseUrl,
     changelogText,
     hasChangelog,
   });
