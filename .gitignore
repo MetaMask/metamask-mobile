@@ -1,9 +1,6 @@
 # typescript incremental build cache
 *.tsbuildinfo
 
-# task working directory (agent-local, not shipped)
-.task/
-
 # claude code worktrees (agent-local, not shipped)
 .claude/worktrees/
 
@@ -179,12 +176,14 @@ expo-env.d.ts
 # CICD
 github-tools/
 
-
 # AI coding agents development files
 *.local.md
 temp/
 /temp/
 .agent/
+.omc/
+.omx/
+.task/
 
 # Reassure performance testing
 .reassure/
