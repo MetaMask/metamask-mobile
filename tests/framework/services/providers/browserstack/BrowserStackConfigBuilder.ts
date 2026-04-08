@@ -79,6 +79,9 @@ export class BrowserStackConfigBuilder {
         'bstack:options': {
           debug: true,
           local: true,
+          ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+            ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
+            : {}),
           interactiveDebugging: true,
           networkLogsOptions: {
             captureContent: true,

@@ -132,6 +132,7 @@ jobs:
             echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
             exit 1
           fi
+          echo "BrowserStack Local Identifier: ${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}"
           echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
 
       - name: Set Test Environment
