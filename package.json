@@ -190,7 +190,7 @@
     "@ethereumjs/util@npm:^9.0.2": "patch:@ethereumjs/util@npm%3A9.1.0#~/.yarn/patches/@ethereumjs-util-npm-9.1.0-7e85509408.patch",
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
-    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.1-preview-8d73840",
+    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.1-preview-51f983e",
     "qs": "6.14.1",
     "viem": "2.31.3",
     "@metamask/core-backend": "^5.0.0",
