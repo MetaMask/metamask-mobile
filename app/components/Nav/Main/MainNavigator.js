@@ -138,6 +138,7 @@ import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/W
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
+import CampaignTourStepView from '../../UI/Rewards/Views/CampaignTourStepView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
@@ -1316,6 +1317,11 @@ const MainNavigator = () => {
         ///: END:ONLY_INCLUDE_IF
       }
       <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      <Stack.Screen
+        name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
+        component={CampaignTourStepView}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
