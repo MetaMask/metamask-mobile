@@ -1685,7 +1685,7 @@ export type RewardsControllerState = {
     [compositeId: string]: SubscriptionSeasonReferralDetailState;
   };
   subscriptionBenefits: {
-    [compositeId: string]: SubscriptionBenefitsState;
+    [subscriptionId: string]: SubscriptionBenefitsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
