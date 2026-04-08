@@ -20,14 +20,12 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseABTest = jest.fn(() => ({
+const mockTrendingAbTest = jest.fn(() => ({
   variantName: 'control',
   isActive: false,
-  variant: { separateTrending: false },
 }));
-jest.mock('../../../../hooks', () => ({
-  useABTest: (...args: unknown[]) =>
-    Reflect.apply(mockUseABTest, undefined, args),
+jest.mock('../context/HomepageTrendingAbTestContext', () => ({
+  useHomepageTrendingAbTest: () => mockTrendingAbTest(),
 }));
 
 // --- Scroll context mock ---
@@ -94,10 +92,9 @@ const defaultParams = {
 describe('useHomeViewedEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockReturnValue({
+    mockTrendingAbTest.mockReturnValue({
       variantName: 'control',
       isActive: false,
-      variant: { separateTrending: false },
     });
     scrollSubscribers = [];
     mockContextValue = {
@@ -507,10 +504,9 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('includes active_ab_tests when homepage trending AB test is active', () => {
-      mockUseABTest.mockReturnValue({
+      mockTrendingAbTest.mockReturnValue({
         variantName: 'treatment',
         isActive: true,
-        variant: { separateTrending: true },
       });
 
       renderHook(() =>

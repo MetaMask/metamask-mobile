@@ -2,12 +2,9 @@ import { useCallback, useEffect, useRef, RefObject } from 'react';
 import type { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { useABTest } from '../../../../hooks';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
-import {
-  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-} from '../abTestConfig';
+import { useHomepageTrendingAbTest } from '../context/HomepageTrendingAbTestContext';
+import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 
 export const HomeSectionNames = {
   CASH: 'cash',
@@ -78,10 +75,7 @@ const useHomeViewedEvent = ({
   } = useHomepageScrollContext();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { variantName, isActive } = useABTest(
-    HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-    HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-  );
+  const { variantName, isActive } = useHomepageTrendingAbTest();
 
   const hasFiredRef = useRef(false);
 

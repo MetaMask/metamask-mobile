@@ -2,12 +2,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { useABTest } from '../../../../hooks';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
-import {
-  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-} from '../abTestConfig';
+import { useHomepageTrendingAbTest } from '../context/HomepageTrendingAbTestContext';
+import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 
 interface UseHomeSessionSummaryParams {
   totalSectionsLoaded: number;
@@ -30,10 +27,7 @@ const useHomeSessionSummary = ({
   const { visitId, entryPoint, getViewedSectionCount } =
     useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { variantName, isActive } = useABTest(
-    HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-    HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-  );
+  const { variantName, isActive } = useHomepageTrendingAbTest();
 
   const sessionStartRef = useRef<number>(Date.now());
 
@@ -42,33 +36,29 @@ const useHomeSessionSummary = ({
     sessionStartRef.current = Date.now();
   }, [visitId]);
 
-  // Stable refs for the blur callback to avoid stale closure issues.
-  const visitIdRef = useRef(visitId);
-  const entryPointRef = useRef(entryPoint);
-  const totalSectionsLoadedRef = useRef(totalSectionsLoaded);
-  const isActiveRef = useRef(isActive);
-  const variantNameRef = useRef(variantName);
-
-  useEffect(() => {
-    visitIdRef.current = visitId;
-  }, [visitId]);
-  useEffect(() => {
-    entryPointRef.current = entryPoint;
-  }, [entryPoint]);
-  useEffect(() => {
-    totalSectionsLoadedRef.current = totalSectionsLoaded;
-  }, [totalSectionsLoaded]);
-  useEffect(() => {
-    isActiveRef.current = isActive;
-  }, [isActive]);
-  useEffect(() => {
-    variantNameRef.current = variantName;
-  }, [variantName]);
+  // Stable refs so the blur callback always reads the latest values without
+  // needing them in its dependency array (which would re-create the callback
+  // and trigger useFocusEffect cleanup → false blur events).
+  const latestRef = useRef({
+    visitId,
+    entryPoint,
+    totalSectionsLoaded,
+    isActive,
+    variantName,
+  });
+  latestRef.current = {
+    visitId,
+    entryPoint,
+    totalSectionsLoaded,
+    isActive,
+    variantName,
+  };
 
   useFocusEffect(
     useCallback(
       () => () => {
-        if (visitIdRef.current === 0) return;
+        const snap = latestRef.current;
+        if (snap.visitId === 0) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
@@ -78,14 +68,14 @@ const useHomeSessionSummary = ({
               interaction_type: 'session_summary',
               location: 'home',
               total_sections_viewed: getViewedSectionCount(),
-              total_sections_loaded: totalSectionsLoadedRef.current,
-              entry_point: entryPointRef.current,
+              total_sections_loaded: snap.totalSectionsLoaded,
+              entry_point: snap.entryPoint,
               session_time: sessionTime,
-              ...(isActiveRef.current && {
+              ...(snap.isActive && {
                 active_ab_tests: [
                   {
                     key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-                    value: variantNameRef.current,
+                    value: snap.variantName,
                   },
                 ],
               }),

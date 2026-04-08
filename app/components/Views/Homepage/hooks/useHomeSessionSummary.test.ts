@@ -28,14 +28,12 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseABTest = jest.fn(() => ({
+const mockTrendingAbTest = jest.fn(() => ({
   variantName: 'control',
   isActive: false,
-  variant: { separateTrending: false },
 }));
-jest.mock('../../../../hooks', () => ({
-  useABTest: (...args: unknown[]) =>
-    Reflect.apply(mockUseABTest, undefined, args),
+jest.mock('../context/HomepageTrendingAbTestContext', () => ({
+  useHomepageTrendingAbTest: () => mockTrendingAbTest(),
 }));
 
 // --- Scroll context mock ---
@@ -89,10 +87,9 @@ const setupFocusBlur = () => {
 describe('useHomeSessionSummary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockReturnValue({
+    mockTrendingAbTest.mockReturnValue({
       variantName: 'control',
       isActive: false,
-      variant: { separateTrending: false },
     });
     mockGetViewedSectionCount = jest.fn(() => 3);
     mockNotifySectionViewed = jest.fn();
@@ -306,10 +303,9 @@ describe('useHomeSessionSummary', () => {
     });
 
     it('includes active_ab_tests when homepage trending AB test is active', () => {
-      mockUseABTest.mockReturnValue({
+      mockTrendingAbTest.mockReturnValue({
         variantName: 'treatment',
         isActive: true,
-        variant: { separateTrending: true },
       });
       const { simulateBlur } = setupFocusBlur();
 
@@ -410,10 +406,9 @@ describe('useHomeSessionSummary', () => {
 
       let abVariantName = 'control';
       let abIsActive = false;
-      mockUseABTest.mockImplementation(() => ({
+      mockTrendingAbTest.mockImplementation(() => ({
         variantName: abVariantName,
         isActive: abIsActive,
-        variant: { separateTrending: abIsActive },
       }));
 
       const { rerender } = renderHook(() =>

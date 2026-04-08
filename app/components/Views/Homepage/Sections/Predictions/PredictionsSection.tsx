@@ -69,7 +69,7 @@ interface HomepagePredictTrendingMarketsProps {
   isLoadingMarkets: boolean;
   markets: PredictMarket[];
   /** Runs before navigating into a market from a carousel card (tag or clear tx AB tests). */
-  onBeforeMarketNavigate?: () => void;
+  onBeforeNavigate?: () => void;
 }
 
 /**
@@ -82,7 +82,7 @@ const HomepagePredictTrendingMarkets = ({
   headerTestIdKey,
   isLoadingMarkets,
   markets,
-  onBeforeMarketNavigate,
+  onBeforeNavigate,
 }: HomepagePredictTrendingMarketsProps) => {
   const tw = useTailwind();
   return (
@@ -105,7 +105,7 @@ const HomepagePredictTrendingMarkets = ({
               <PredictMarketCard
                 key={market.id}
                 market={market}
-                onBeforeNavigate={onBeforeMarketNavigate}
+                onBeforeNavigate={onBeforeNavigate}
               />
             ))}
             <ViewMoreCard onPress={onViewAll} twClassName="w-[180px] flex-1" />
@@ -241,23 +241,17 @@ const HomepagePredictPositions = ({
   </Box>
 );
 
-interface UsePredictNavigationHandlersArgs {
-  onBeforeNavigateToList?: () => void;
-  onBeforeNavigateToMarketDetails?: () => void;
-}
-
 const usePredictNavigationHandlers = ({
-  onBeforeNavigateToList,
-  onBeforeNavigateToMarketDetails,
-}: UsePredictNavigationHandlersArgs = {}) => {
+  onBeforeNavigate,
+}: { onBeforeNavigate?: () => void } = {}) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const handleViewAllPredictions = useCallback(() => {
-    onBeforeNavigateToList?.();
+    onBeforeNavigate?.();
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
     });
-  }, [navigation, onBeforeNavigateToList]);
+  }, [navigation, onBeforeNavigate]);
 
   const handleViewAllFromPositions = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -270,7 +264,7 @@ const usePredictNavigationHandlers = ({
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
-      onBeforeNavigateToMarketDetails?.();
+      onBeforeNavigate?.();
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_DETAILS,
         params: {
@@ -280,7 +274,7 @@ const usePredictNavigationHandlers = ({
         },
       });
     },
-    [navigation, onBeforeNavigateToMarketDetails],
+    [navigation, onBeforeNavigate],
   );
 
   return {
@@ -293,28 +287,24 @@ const usePredictNavigationHandlers = ({
 const usePredictionsCommonSetup = ({
   sectionNameOverride,
   titleOverride,
+  onBeforeNavigate,
 }: {
   sectionNameOverride?: HomeSectionName;
   titleOverride?: string;
+  onBeforeNavigate?: () => void;
 }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const queryClient = useQueryClient();
   const title = titleOverride ?? strings('homepage.sections.predictions');
   const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-  const { clearTransactionAbTests } =
-    useHomepageTrendingSectionTransactionAbTests();
   const { handleViewAllPredictions, handleViewAllFromPositions, handlePositionPress } =
-    usePredictNavigationHandlers({
-      onBeforeNavigateToList: clearTransactionAbTests,
-      onBeforeNavigateToMarketDetails: clearTransactionAbTests,
-    });
+    usePredictNavigationHandlers({ onBeforeNavigate });
 
   return {
     isPredictEnabled,
     queryClient,
     title,
     analyticsName,
-    clearTransactionAbTests,
     handleViewAllPredictions,
     handleViewAllFromPositions,
     handlePositionPress,
@@ -409,18 +399,20 @@ const PredictionsSectionDefault = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
+    const { clearTransactionAbTests } =
+      useHomepageTrendingSectionTransactionAbTests();
     const {
       isPredictEnabled,
       queryClient,
       title,
       analyticsName,
-      clearTransactionAbTests,
       handleViewAllPredictions,
       handleViewAllFromPositions,
       handlePositionPress,
     } = usePredictionsCommonSetup({
       sectionNameOverride,
       titleOverride,
+      onBeforeNavigate: clearTransactionAbTests,
     });
     const {
       privacyMode,
@@ -517,7 +509,7 @@ const PredictionsSectionDefault = forwardRef<
           headerTestIdKey="predictions"
           isLoadingMarkets={isLoadingMarkets}
           markets={markets}
-          onBeforeMarketNavigate={clearTransactionAbTests}
+          onBeforeNavigate={clearTransactionAbTests}
         />
       </View>
     );
@@ -562,7 +554,7 @@ const PredictionsSectionPositionsOnly = forwardRef<
     } = usePredictPositionsSectionData();
 
     const willRender = isPredictEnabled && !isLoadingPositions && hasPositions;
-    const itemCount = hasPositions ? positions.length : 0;
+    const itemCount = positions.length;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
@@ -624,7 +616,7 @@ const PredictionsSectionTrendingOnly = forwardRef<
     const { applyTagForDedicatedTrendingSection, clearTransactionAbTests } =
       useHomepageTrendingSectionTransactionAbTests();
     const { handleViewAllPredictions } = usePredictNavigationHandlers({
-      onBeforeNavigateToList: clearTransactionAbTests,
+      onBeforeNavigate: clearTransactionAbTests,
     });
 
     const {
@@ -668,7 +660,7 @@ const PredictionsSectionTrendingOnly = forwardRef<
           headerTestIdKey="trending-predictions"
           isLoadingMarkets={isLoadingMarkets}
           markets={markets}
-          onBeforeMarketNavigate={applyTagForDedicatedTrendingSection}
+          onBeforeNavigate={applyTagForDedicatedTrendingSection}
         />
       </View>
     );
