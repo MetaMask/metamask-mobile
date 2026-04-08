@@ -100,7 +100,7 @@ const CashTokensFullView = () => {
   }, [conversionTokens, initiateMaxConversion]);
 
   const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
   }, []);
 
   const bonusAndConvertSections = useMemo(
@@ -153,7 +153,7 @@ const CashTokensFullView = () => {
           listFooterComponent={listFooter}
         />
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
           <SectionRow>
             <CashGetMusdEmptyState isFullView />
           </SectionRow>

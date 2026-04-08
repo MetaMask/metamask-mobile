@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
-import { InteractionManager, View } from 'react-native';
+import { InteractionManager, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -59,7 +59,7 @@ interface TokensProps {
    * (e.g. network filter set to a chain without mUSD).
    */
   hasMusdBalanceOnAnyChain?: boolean;
-  listFooterComponent?: React.ComponentType | React.ReactElement;
+  listFooterComponent?: React.ReactElement;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
@@ -272,7 +272,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             ? strings('homepage.sections.cash_empty_description')
             : undefined;
 
-      return (
+      const emptyState = (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
           {cashEmptyDescription !== undefined ? (
             <TokensEmptyState description={cashEmptyDescription} />
@@ -281,6 +281,17 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
           )}
         </Box>
       );
+
+      if (listFooterComponent) {
+        return (
+          <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+            {emptyState}
+            {listFooterComponent}
+          </ScrollView>
+        );
+      }
+
+      return emptyState;
     }, [
       hasInitialLoad,
       isFullView,

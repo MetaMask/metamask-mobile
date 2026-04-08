@@ -47,7 +47,7 @@ interface TokenListProps {
   setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
-  listFooterComponent?: React.ComponentType | React.ReactElement;
+  listFooterComponent?: React.ReactElement;
 }
 
 const TokenListComponent = ({
@@ -215,6 +215,7 @@ const TokenListComponent = ({
             </Button>
           </Box>
         )}
+        {listFooterComponent}
       </Box>
     ) : (
       <Box twClassName={'flex-1 bg-default'}>
