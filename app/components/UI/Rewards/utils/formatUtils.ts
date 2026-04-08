@@ -7,8 +7,10 @@ import {
   parseCaipAssetType,
   parseCaipChainId,
 } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../locales/i18n';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
+import formatFiat from '../../../../util/formatFiat';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
@@ -195,6 +197,17 @@ export const validateEmail = (email: string): boolean => {
   if (!email || email.split('@').length !== 2) return false;
   return emailRegex.test(email);
 };
+
+// ── USD formatting ──────────────────────────────────────────────────────
+
+/**
+ * Formats a numeric string as a USD amount using locale-aware fiat formatting.
+ *
+ * @example formatUsd('11500.000000') // '$11,500.00'
+ * @example formatUsd(12500.5)        // '$12,500.50'
+ */
+export const formatUsd = (value: string | number): string =>
+  formatFiat(new BigNumber(value), 'USD');
 
 // ── Percent / rate formatting ───────────────────────────────────────────
 

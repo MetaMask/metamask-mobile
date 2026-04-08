@@ -6,7 +6,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
@@ -67,21 +66,8 @@ const OndoLeaderboardView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          {/* User position card */}
-          <Box twClassName="px-4 pt-4">
-            <OndoLeaderboardPosition
-              position={position}
-              isLoading={isPositionLoading}
-              hasError={hasPositionError}
-              hasFetched={positionHasFetched}
-              refetch={refetchPosition}
-              showTitle
-              computedAt={position?.computedAt}
-            />
-          </Box>
-
           {/* Full leaderboard */}
-          <Box twClassName="border-b border-border-muted mt-4" />
+
           <Box twClassName="px-4 py-4">
             <OndoLeaderboard
               tierNames={tierNames}

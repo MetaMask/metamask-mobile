@@ -8138,7 +8138,10 @@
       "retry": "Retry",
       "no_data": "No leaderboard data available",
       "no_entries_in_tier": "No participants in this tier yet",
-      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
+      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon.",
+      "tier_starter": "Bronze",
+      "tier_mid": "Silver",
+      "tier_upper": "Platinum"
     },
     "ondo_campaign_activity": {
       "title": "All activity",

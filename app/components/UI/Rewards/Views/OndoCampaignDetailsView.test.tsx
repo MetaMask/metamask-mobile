@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
 } from './OndoCampaignDetailsView';
+import { CAMPAIGN_STATS_SUMMARY_TEST_IDS } from '../components/Campaigns/CampaignStatsSummary';
 import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignOptInCta';
 import {
   type CampaignDto,
@@ -139,16 +140,20 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   };
 });
 
-const mockOndoLeaderboardPosition = jest.fn();
-jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
+const mockCampaignStatsSummary = jest.fn();
+jest.mock('../components/Campaigns/CampaignStatsSummary', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+  const { CAMPAIGN_STATS_SUMMARY_TEST_IDS: actualTestIds } = jest.requireActual(
+    '../components/Campaigns/CampaignStatsSummary',
+  );
   return {
     __esModule: true,
+    CAMPAIGN_STATS_SUMMARY_TEST_IDS: actualTestIds,
     default: (props: Record<string, unknown>) => {
-      mockOndoLeaderboardPosition(props);
+      mockCampaignStatsSummary(props);
       return ReactActual.createElement(View, {
-        testID: 'ondo-leaderboard-position',
+        testID: actualTestIds.CONTAINER,
       });
     },
   };
@@ -406,7 +411,7 @@ describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsTokenTradingOpen.mockReturnValue(true);
-    mockOndoLeaderboardPosition.mockReset();
+    mockCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
@@ -602,7 +607,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId('campaign-how-it-works')).toBeNull();
     });
 
-    it('renders OndoLeaderboardPosition when participant is opted in with positions', () => {
+    it('renders CampaignStatsSummary when user has portfolio positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -621,10 +626,12 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+      expect(
+        getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
+      ).toBeDefined();
     });
 
-    it('does not render OndoLeaderboardPosition when participant is not opted in', () => {
+    it('does not render CampaignStatsSummary when participant has no positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -636,7 +643,9 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
+      expect(
+        queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
+      ).toBeNull();
     });
   });
 
@@ -774,8 +783,8 @@ describe('OndoCampaignDetailsView', () => {
     });
   });
 
-  describe('leaderboard position', () => {
-    it('shows OndoLeaderboardPosition when participant is opted in with positions', () => {
+  describe('stats summary and leaderboard', () => {
+    it('shows CampaignStatsSummary when participant is opted in with positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -794,16 +803,20 @@ describe('OndoCampaignDetailsView', () => {
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+      expect(
+        getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
+      ).toBeDefined();
     });
 
-    it('does not show OndoLeaderboardPosition when not opted in and campaign is active', () => {
+    it('does not show CampaignStatsSummary when not opted in and campaign is active', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
+      expect(
+        queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
+      ).toBeNull();
     });
 
     it('shows OndoLeaderboard when not opted in and campaign is complete', () => {
@@ -825,7 +838,9 @@ describe('OndoCampaignDetailsView', () => {
         <OndoCampaignDetailsView />,
       );
       expect(getByTestId('ondo-leaderboard')).toBeDefined();
-      expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
+      expect(
+        queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.CONTAINER),
+      ).toBeNull();
     });
 
     it('shows OndoLeaderboard when not opted in and campaign is active', () => {
@@ -856,7 +871,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
     });
 
-    it('shows leaderboard section header when opted in with positions', () => {
+    it('shows leaderboard navigational header when leaderboard is not yet computed', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -872,6 +887,18 @@ describe('OndoCampaignDetailsView', () => {
         isLoading: false,
         hasError: false,
         hasFetched: true,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboard.mockReturnValue({
+        leaderboard: null,
+        isLoading: false,
+        hasError: false,
+        isLeaderboardNotYetComputed: true,
+        tierNames: [],
+        selectedTier: null,
+        selectedTierData: null,
+        computedAt: null,
+        setSelectedTier: jest.fn(),
         refetch: jest.fn(),
       });
       const { getByText } = render(<OndoCampaignDetailsView />);
