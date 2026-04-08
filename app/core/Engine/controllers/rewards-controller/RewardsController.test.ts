@@ -16912,6 +16912,7 @@ describe('RewardsController', () => {
         currentUsdValue: 0,
         totalUsdDeposited: 0,
         netDeposit: 0,
+        neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
@@ -17006,6 +17007,7 @@ describe('RewardsController', () => {
         currentUsdValue: 0,
         totalUsdDeposited: 0,
         netDeposit: 0,
+        neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
@@ -17017,6 +17019,7 @@ describe('RewardsController', () => {
         currentUsdValue: 0,
         totalUsdDeposited: 0,
         netDeposit: 0,
+        neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
@@ -19082,9 +19085,10 @@ describe('RewardsController', () => {
               positions: [],
               summary: {
                 totalCurrentValue: '1',
-                totalCostBasis: '1',
+                totalBookValue: '1',
                 totalUsdDeposited: '1',
                 netDeposit: '1',
+                totalCashedOut: '0',
                 portfolioPnl: '0',
                 portfolioPnlPercent: '0',
               },
@@ -19376,6 +19380,10 @@ describe('RewardsController', () => {
       currentUsdValue: 12500.5,
       totalUsdDeposited: 10000.0,
       netDeposit: 8500.0,
+      neighbors: [
+        { rank: 4, referralCode: 'NBR004', rateOfReturn: 0.16 },
+        { rank: 6, referralCode: 'NBR006', rateOfReturn: 0.14 },
+      ],
       computedAt: '2024-03-20T12:00:00.000Z',
     };
 
@@ -19539,8 +19547,8 @@ describe('RewardsController', () => {
           tokenAsset:
             'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
           units: '10',
-          costBasis: '1000.000000',
-          avgCostPerUnit: '100.000000',
+          bookPrice: '100.000000',
+          bookValue: '1000.000000',
           currentPrice: '110.000000',
           currentValue: '1100.000000',
           unrealizedPnl: '100.000000',
@@ -19549,9 +19557,10 @@ describe('RewardsController', () => {
       ],
       summary: {
         totalCurrentValue: '1100.000000',
-        totalCostBasis: '1000.000000',
+        totalBookValue: '1000.000000',
         totalUsdDeposited: '1000.000000',
         netDeposit: '1000.000000',
+        totalCashedOut: '0',
         portfolioPnl: '100.000000',
         portfolioPnlPercent: '0.1',
       },

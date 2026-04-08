@@ -3426,6 +3426,7 @@ describe('Rewards selectors', () => {
     currentUsdValue: 1000,
     totalUsdDeposited: 900,
     netDeposit: 800,
+    neighbors: [],
     computedAt: '2024-03-20T12:00:00.000Z',
   };
 
@@ -3435,8 +3436,8 @@ describe('Rewards selectors', () => {
       tokenName: string;
       tokenAsset: string;
       units: string;
-      costBasis: string;
-      avgCostPerUnit: string;
+      bookPrice: string;
+      bookValue: string;
       currentPrice: string;
       currentValue: string;
       unrealizedPnl: string;
@@ -3444,9 +3445,10 @@ describe('Rewards selectors', () => {
     }[],
     summary: {
       totalCurrentValue: '1000',
-      totalCostBasis: '900',
+      totalBookValue: '900',
       totalUsdDeposited: '900',
       netDeposit: '800',
+      totalCashedOut: '0',
       portfolioPnl: '100',
       portfolioPnlPercent: '0.1',
     },

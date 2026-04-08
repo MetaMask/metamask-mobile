@@ -365,6 +365,11 @@ export interface CampaignLeaderboardPositionDto {
   netDeposit: number;
 
   /**
+   * Neighboring entries around the user's rank (up to 1 before/after)
+   */
+  neighbors: CampaignLeaderboardEntry[];
+
+  /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
@@ -397,14 +402,16 @@ export interface OndoGmPortfolioPositionDto {
   units: string;
 
   /**
-   * @example '9040.000000'
-   */
-  costBasis: string;
-
-  /**
+   * Weighted-average book price per whole token (USD)
    * @example '200.000000'
    */
-  avgCostPerUnit: string;
+  bookPrice: string;
+
+  /**
+   * Derived book value: units * bookPrice (USD)
+   * @example '9040.000000'
+   */
+  bookValue: string;
 
   /**
    * @example '215.500000'
@@ -437,9 +444,10 @@ export interface OndoGmPortfolioSummaryDto {
   totalCurrentValue: string;
 
   /**
+   * Sum of all position book values (USD)
    * @example '9040.000000'
    */
-  totalCostBasis: string;
+  totalBookValue: string;
 
   /**
    * @example '9040.000000'
@@ -450,6 +458,12 @@ export interface OndoGmPortfolioSummaryDto {
    * @example '9040.000000'
    */
   netDeposit: string;
+
+  /**
+   * Cumulative market value already cashed out from the portfolio
+   * @example '600.000000'
+   */
+  totalCashedOut: string;
 
   /**
    * @example '700.600000'
@@ -484,8 +498,8 @@ export type OndoGmPortfolioPositionState = {
   tokenName: string;
   tokenAsset: string;
   units: string;
-  costBasis: string;
-  avgCostPerUnit: string;
+  bookPrice: string;
+  bookValue: string;
   currentPrice: string;
   currentValue: string;
   unrealizedPnl: string;
@@ -498,9 +512,10 @@ export type OndoGmPortfolioPositionState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoGmPortfolioSummaryState = {
   totalCurrentValue: string;
-  totalCostBasis: string;
+  totalBookValue: string;
   totalUsdDeposited: string;
   netDeposit: string;
+  totalCashedOut: string;
   portfolioPnl: string;
   portfolioPnlPercent: string;
 };
@@ -649,6 +664,7 @@ export type CampaignLeaderboardPositionFoundState = {
   currentUsdValue: number;
   totalUsdDeposited: number;
   netDeposit: number;
+  neighbors: { rank: number; referralCode: string; rateOfReturn: number }[];
   computedAt: string;
   lastFetched: number;
 };

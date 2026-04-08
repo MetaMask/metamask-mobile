@@ -68,6 +68,7 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   currentUsdValue: 12500.5,
   totalUsdDeposited: 10000.0,
   netDeposit: 8500.0,
+  neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 

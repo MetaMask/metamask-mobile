@@ -87,6 +87,7 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   computedAt: '2024-03-20T12:00:00.000Z',
   totalInTier: 150,
   netDeposit: 8500.0,
+  neighbors: [],
 };
 
 const baseProps = {

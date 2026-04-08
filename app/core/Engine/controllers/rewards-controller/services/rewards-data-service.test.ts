@@ -4542,6 +4542,10 @@ describe('RewardsDataService', () => {
       currentUsdValue: 12500.5,
       totalUsdDeposited: 10000.0,
       netDeposit: 8500.0,
+      neighbors: [
+        { rank: 4, referralCode: 'NBR004', rateOfReturn: 0.16 },
+        { rank: 6, referralCode: 'NBR006', rateOfReturn: 0.14 },
+      ],
       computedAt: '2024-03-20T12:00:00.000Z',
     };
 
@@ -4609,8 +4613,8 @@ describe('RewardsDataService', () => {
           tokenAsset:
             'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
           units: '10',
-          costBasis: '1000.000000',
-          avgCostPerUnit: '100.000000',
+          bookPrice: '100.000000',
+          bookValue: '1000.000000',
           currentPrice: '110.000000',
           currentValue: '1100.000000',
           unrealizedPnl: '100.000000',
@@ -4619,9 +4623,10 @@ describe('RewardsDataService', () => {
       ],
       summary: {
         totalCurrentValue: '1100.000000',
-        totalCostBasis: '1000.000000',
+        totalBookValue: '1000.000000',
         totalUsdDeposited: '1000.000000',
         netDeposit: '1000.000000',
+        totalCashedOut: '0',
         portfolioPnl: '100.000000',
         portfolioPnlPercent: '0.1',
       },

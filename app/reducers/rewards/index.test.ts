@@ -2593,6 +2593,7 @@ describe('rewardsReducer', () => {
         currentUsdValue: 12500.5,
         totalUsdDeposited: 10000,
         netDeposit: 8500,
+        neighbors: [],
         computedAt: '2024-03-20T12:00:00.000Z',
       };
       const persistedRewardsState: RewardsState = {
@@ -2633,9 +2634,10 @@ describe('rewardsReducer', () => {
         positions: [],
         summary: {
           totalCurrentValue: '1',
-          totalCostBasis: '1',
+          totalBookValue: '1',
           totalUsdDeposited: '1',
           netDeposit: '1',
+          totalCashedOut: '0',
           portfolioPnl: '0',
           portfolioPnlPercent: '0',
         },
@@ -5039,6 +5041,7 @@ const mockPosition: CampaignLeaderboardPositionDto = {
   currentUsdValue: 5063,
   totalUsdDeposited: 5000,
   netDeposit: 4800,
+  neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 
@@ -5046,9 +5049,10 @@ const mockPortfolio: OndoGmPortfolioDto = {
   positions: [],
   summary: {
     totalCurrentValue: '5063',
-    totalCostBasis: '5000',
+    totalBookValue: '5000',
     totalUsdDeposited: '5000',
     netDeposit: '4800',
+    totalCashedOut: '0',
     portfolioPnl: '63',
     portfolioPnlPercent: '0.0126',
   },

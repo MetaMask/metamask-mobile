@@ -3592,6 +3592,7 @@ export class RewardsController extends BaseController<
             currentUsdValue: cached.currentUsdValue,
             totalUsdDeposited: cached.totalUsdDeposited,
             netDeposit: cached.netDeposit,
+            neighbors: cached.neighbors,
             computedAt: cached.computedAt,
           },
           lastFetched: cached.lastFetched,
@@ -3626,6 +3627,7 @@ export class RewardsController extends BaseController<
               currentUsdValue: payload.currentUsdValue,
               totalUsdDeposited: payload.totalUsdDeposited,
               netDeposit: payload.netDeposit,
+              neighbors: payload.neighbors,
               computedAt: payload.computedAt,
               lastFetched: Date.now(),
             };
