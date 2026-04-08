@@ -75,6 +75,7 @@ import {
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
+  GetSeriesParams,
   OrderPreview,
   PlaceOrderParams,
   PredictAccountMeta,
@@ -354,6 +355,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getBalance',
   'getConnectionStatus',
   'getMarket',
+  'getMarketSeries',
   'getMarkets',
   'getPositions',
   'getPriceHistory',
@@ -686,6 +688,10 @@ export class PredictController extends BaseController<
     );
   }
 
+  async getMarketSeries(params: GetSeriesParams): Promise<PredictMarket[]> {
+    return this.provider.getMarketSeries(params);
+  }
+
   async getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]> {
@@ -970,6 +976,18 @@ export class PredictController extends BaseController<
           { error: error instanceof Error ? error.message : String(error) },
         );
       }
+
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUBMITTED,
+        amountUsd: params.preview?.maxAmountSpent,
+        analyticsProperties: params.analyticsProperties,
+        sharePrice: params.preview?.sharePrice,
+        orderType: params.preview.orderType,
+        paymentTokenAddress:
+          params.preview.side === Side.BUY
+            ? this.state.selectedPaymentToken?.address
+            : undefined,
+      });
 
       this.messenger.publish('PredictController:transactionStatusChanged', {
         type: 'order',
@@ -1577,12 +1595,8 @@ export class PredictController extends BaseController<
   }
 
   public selectPaymentToken(token: AssetType | null): void {
-    if (!token) {
-      return;
-    }
-
     const isBalanceToken =
-      token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
+      !token || token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
 
     this.setSelectedPaymentToken(
       isBalanceToken
