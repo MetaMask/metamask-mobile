@@ -146,6 +146,24 @@ function renameAndroid() {
     console.log(`⚠️  APK not found: ${oldApk}`);
   }
 
+  // Instrumentation / Detox test APK (assemble*AndroidTest — see scripts/build.sh)
+  const testApkDir = path.join(
+    __dirname,
+    `../android/app/build/outputs/apk/androidTest/${appFlavor}/${buildConfig}`,
+  );
+  const oldTestApk = path.join(
+    testApkDir,
+    `app-${appFlavor}-${buildConfig}-androidTest.apk`,
+  );
+  if (fs.existsSync(oldTestApk)) {
+    const newTestApk = path.join(testApkDir, `${newBaseName}-androidTest.apk`);
+    fs.copyFileSync(oldTestApk, newTestApk);
+    console.log(`✅ Renamed Android test APK: ${newTestApk}`);
+    setGithubOutput('android_test_apk_path', newTestApk);
+  } else {
+    console.log(`⚠️  Android test APK not found: ${oldTestApk}`);
+  }
+
   // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
