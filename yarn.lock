@@ -7532,7 +7532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/design-system-shared@npm:0.7.0-preview.4ce710b":
+"@metamask-previews/design-system-shared@npm:0.7.0-preview.4ce710b, @metamask-previews/design-system-shared@npm:@metamask-previews/design-system-shared@0.7.0-preview.4ce710b":
   version: 0.7.0-preview.4ce710b
   resolution: "@metamask-previews/design-system-shared@npm:0.7.0-preview.4ce710b"
   dependencies:
@@ -7543,7 +7543,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.4ce710b, @metamask/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b":
+"@metamask-previews/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b, @metamask/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b":
   version: 0.4.1-preview.4ce710b
   resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.4.1-preview.4ce710b"
   dependencies:
@@ -7555,7 +7555,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b, @metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b":
+"@metamask-previews/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b, @metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b":
   version: 8.3.0-preview.4ce710b
   resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b"
   checksum: 10/3e1322cb89d2054a9ef1b88a16bb5ba254cb0d0de055d5e8cdd50bbf62d468db30cdb7a6d425a1ddb06893e3dce8acc85ff592f384e4605c9145dc6736aa2181
@@ -35455,9 +35455,9 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/design-system-shared": "npm:0.7.0-preview.4ce710b"
-    "@metamask-previews/design-system-twrnc-preset": "npm:0.4.1-preview.4ce710b"
-    "@metamask-previews/design-tokens": "npm:8.3.0-preview.4ce710b"
+    "@metamask-previews/design-system-shared": "npm:@metamask-previews/design-system-shared@0.7.0-preview.4ce710b"
+    "@metamask-previews/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b"
+    "@metamask-previews/design-tokens": "npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.0.0"
@@ -35484,9 +35484,9 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^0.15.0"
-    "@metamask/design-system-react-native": "npm:^0.13.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.4.1"
-    "@metamask/design-tokens": "npm:^8.3.0"
+    "@metamask/design-system-react-native": "npm:@metamask-previews/design-system-react-native@0.14.0-preview.4ce710b"
+    "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.4.1-preview.4ce710b"
+    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
