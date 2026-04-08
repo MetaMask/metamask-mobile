@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
@@ -13,10 +13,8 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -33,6 +31,10 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { RootState } from '../../../../../reducers';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
+import useTokenBalance from '../../../TokenDetails/hooks/useTokenBalance';
+import TagBase, {
+  TagSeverity,
+} from '../../../../../component-library/base-components/TagBase';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -43,13 +45,17 @@ interface AssetOverviewClaimBonusProps {
 const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   asset,
 }) => {
-  const { claimableReward, hasPendingClaim, isClaiming, claimRewards } =
-    useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
+  const {
+    claimableReward,
+    lifetimeBonusClaimed,
+    hasPendingClaim,
+    isClaiming,
+    claimRewards,
+  } = useMerklBonusClaim(asset, EVENT_LOCATIONS.ASSET_OVERVIEW);
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Used to prevent duplicate presses of the claim button.
   const isClaimPressedRef = useRef(false);
   const isLoading = isClaiming || hasPendingClaim;
 
@@ -62,6 +68,50 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
+
+  // Use live balance from Redux store — route params may be stale.
+  const { balance: liveBalance } = useTokenBalance(asset);
+
+  // State derivation
+  const balance = parseFloat(liveBalance || asset.balance) || 0;
+  const hasBalance = balance > 0;
+  const hasClaimable = claimableReward !== null;
+
+  // Estimated annual bonus: token balance × APY% (mUSD is 1:1 with USD)
+  const estimatedAnnualBonus = useMemo(
+    () => balance * (MUSD_CONVERSION_APY / 100),
+    [balance],
+  );
+  const formattedAnnualBonus = hasBalance
+    ? `+$${estimatedAnnualBonus.toFixed(2)}`
+    : '+$0.00';
+
+  // Lifetime bonus
+  const formattedLifetimeBonus = lifetimeBonusClaimed
+    ? `+$${lifetimeBonusClaimed}`
+    : '+$0.00';
+
+  // CTA state
+  const { ctaLabel, ctaDisabled } = useMemo(() => {
+    if (hasClaimable) {
+      return {
+        ctaLabel: strings('earn.claim_amount_bonus', {
+          amount: claimableReward,
+        }),
+        ctaDisabled: false,
+      };
+    }
+    if (hasBalance) {
+      return {
+        ctaLabel: strings('earn.accruing_next_bonus'),
+        ctaDisabled: true,
+      };
+    }
+    return {
+      ctaLabel: strings('earn.no_accruing_bonus'),
+      ctaDisabled: true,
+    };
+  }, [hasClaimable, hasBalance, claimableReward]);
 
   const handleTermsPress = useCallback(() => {
     trackEvent(
@@ -76,23 +126,30 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, [createEventBuilder, trackEvent]);
 
+  const handleLearnMorePress = useCallback(() => {
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, []);
+
   const handleInfoPress = useCallback(() => {
     trackEvent(
       createEventBuilder(EVENT_NAME.TOOLTIP_OPENED)
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
-          tooltip_name: 'claim_bonus_info',
-          related_text: 'Claimable bonus',
+          tooltip_name: 'your_bonus_info',
+          related_text: 'Your bonus',
         })
         .build(),
     );
 
     openTooltipModal(
-      strings('earn.claimable_bonus'),
+      strings('earn.your_bonus'),
       <Text variant={TextVariant.BodyMd}>
-        {strings('earn.claimable_bonus_tooltip_with_percentage', {
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          {strings('earn.your_bonus_tooltip_your_bonus')}
+        </Text>
+        {strings('earn.your_bonus_tooltip_your_bonus_desc', {
           percentage: MUSD_CONVERSION_APY,
-        })}{' '}
+        })}
         <Text
           variant={TextVariant.BodyMd}
           onPress={handleTermsPress}
@@ -100,14 +157,31 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         >
           {strings('earn.musd_conversion.education.terms_apply')}
         </Text>
+        {'\n\n'}
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          {strings('earn.your_bonus_tooltip_annual_bonus')}
+        </Text>
+        {strings('earn.your_bonus_tooltip_annual_bonus_desc')}
+        {'\n\n'}
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          {strings('earn.your_bonus_tooltip_lifetime_bonus')}
+        </Text>
+        {strings('earn.your_bonus_tooltip_lifetime_bonus_desc')}
       </Text>,
       undefined,
-      strings('earn.sounds_good'),
+      strings('earn.learn_more'),
+      handleLearnMorePress,
     );
-  }, [openTooltipModal, handleTermsPress, trackEvent, createEventBuilder]);
+  }, [
+    openTooltipModal,
+    handleTermsPress,
+    handleLearnMorePress,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleClaimPress = useCallback(() => {
-    if (isClaimPressedRef.current || isLoading) return;
+    if (isClaimPressedRef.current || isLoading || ctaDisabled) return;
     isClaimPressedRef.current = true;
 
     trackEvent(
@@ -115,7 +189,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
         .addProperties({
           location: EVENT_LOCATIONS.ASSET_OVERVIEW,
           action_type: 'claim_bonus',
-          button_text: strings('earn.claim'),
+          button_text: ctaLabel,
           network_chain_id: asset.chainId,
           network_name: network?.name,
           asset_symbol: asset.symbol,
@@ -125,6 +199,8 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     claimRewards();
   }, [
     isLoading,
+    ctaDisabled,
+    ctaLabel,
     trackEvent,
     createEventBuilder,
     asset.chainId,
@@ -133,96 +209,104 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
     claimRewards,
   ]);
 
-  if (!claimableReward) {
-    return null;
-  }
-
   return (
-    <Box
-      twClassName="px-4"
-      testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER}
-    >
-      {/* Divider */}
-      <Box twClassName="h-px bg-border-muted my-4" />
+    <Box testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CONTAINER}>
+      {/* Top divider — full-width */}
+      <Box twClassName="h-px bg-border-muted my-5" />
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="pt-3 pb-4"
-      >
+      {/* Content with horizontal padding */}
+      <Box twClassName="px-4">
+        {/* Header row: "Your bonus" + info icon | "3% bonus" tag */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="flex-1"
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-3"
+          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.SECTION_HEADER}
         >
           <Box
+            flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="h-10 w-10 rounded-full bg-muted mr-4"
+            twClassName="gap-1"
           >
-            <Icon name={IconName.MoneyBag} size={IconSize.Lg} />
-          </Box>
-
-          <Box twClassName="flex-1">
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="mb-1"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="mr-1"
-              >
-                {strings('earn.claimable_bonus')}
-              </Text>
-              <ButtonIcon
-                iconName={IconName.Info}
-                size={ButtonIconSize.Sm}
-                iconProps={{ color: IconColor.IconDefault }}
-                onPress={handleInfoPress}
-                testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}
-              />
-            </Box>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.PrimaryDefault}
-            >
-              {strings('earn.percentage_bonus_on_linea', {
-                percentage: MUSD_CONVERSION_APY,
-              })}
+            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+              {strings('earn.your_bonus')}
             </Text>
+            <ButtonIcon
+              iconName={IconName.Info}
+              size={ButtonIconSize.Sm}
+              iconProps={{ color: IconColor.IconDefault }}
+              onPress={handleInfoPress}
+              testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}
+            />
           </Box>
+          <TagBase
+            severity={TagSeverity.Success}
+            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
+          >
+            {strings('earn.percentage_bonus', {
+              percentage: String(MUSD_CONVERSION_APY),
+            })}
+          </TagBase>
         </Box>
 
+        {/* Row 1: Estimated annual bonus */}
         <Box
+          flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2"
+          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_ROW}
         >
+          <Text variant={TextVariant.BodyMd}>
+            {strings('earn.estimated_annual_bonus')}
+          </Text>
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-default"
-            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIMABLE_AMOUNT}
+            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.ANNUAL_BONUS_VALUE}
           >
-            ${claimableReward}
+            {formattedAnnualBonus}
           </Text>
         </Box>
+
+        {/* Row 2: Lifetime bonus claimed */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2"
+          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_ROW}
+        >
+          <Text variant={TextVariant.BodyMd}>
+            {strings('earn.lifetime_bonus_claimed')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.LIFETIME_VALUE}
+          >
+            {formattedLifetimeBonus}
+          </Text>
+        </Box>
+
+        {/* CTA Button */}
+        <Button
+          testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON}
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          twClassName="w-full mt-4 mb-3"
+          onPress={handleClaimPress}
+          isDisabled={ctaDisabled || isLoading}
+          isLoading={isLoading}
+        >
+          {ctaLabel}
+        </Button>
       </Box>
 
-      <Button
-        testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.CLAIM_BUTTON}
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        twClassName="w-full"
-        onPress={handleClaimPress}
-        isDisabled={isLoading}
-        isLoading={isLoading}
-      >
-        {strings('earn.claim')}
-      </Button>
+      {/* Bottom divider — full-width */}
+      <Box twClassName="h-px bg-border-muted my-5" />
     </Box>
   );
 };

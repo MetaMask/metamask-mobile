@@ -3227,6 +3227,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictTabFeaturedCarousel: {
+    name: 'predictTabFeaturedCarousel',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictTradingEnabled: {
     name: 'predictTradingEnabled',
     type: FeatureFlagType.Remote,
@@ -3505,6 +3516,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  tokenDetailsAdvancedCharts: {
+    name: 'tokenDetailsAdvancedCharts',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.73',
+    },
     status: FeatureFlagStatus.Active,
   },
 
