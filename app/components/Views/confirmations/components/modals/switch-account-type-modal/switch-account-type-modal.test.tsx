@@ -36,22 +36,21 @@ const MOCK_NETWORK = {
 } as unknown as EIP7702NetworkConfiguration;
 
 const mockGoBack = jest.fn();
-
-let mockRouteAddress: string | undefined =
-  '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: jest.fn(),
     goBack: mockGoBack,
   }),
-  useRoute: () => ({
-    key: 'ConfirmationSwitchAccountType',
-    name: 'ConfirmationSwitchAccountType',
-    params: { address: mockRouteAddress },
-  }),
 }));
+
+const createMockRoute = (
+  address = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+) => ({
+  params: { address: address as `0x${string}` },
+  key: 'ConfirmationSwitchAccountType',
+  name: 'ConfirmationSwitchAccountType' as const,
+});
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -100,7 +99,6 @@ const MOCK_NETWORK_MAINNET = {
 describe('Switch Account Type Modal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteAddress = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
   });
 
   describe('rendering', () => {
@@ -111,9 +109,10 @@ describe('Switch Account Type Modal', () => {
         networkSupporting7702Present: true,
       });
 
-      const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-        state: MOCK_STATE,
-      });
+      const { getByText } = renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute()} />,
+        { state: MOCK_STATE },
+      );
       expect(getByText('Account 1')).toBeOnTheScreen();
       expect(getByText('Sepolia')).toBeOnTheScreen();
     });
@@ -126,7 +125,7 @@ describe('Switch Account Type Modal', () => {
       });
 
       const { getByText, queryByText } = renderWithProvider(
-        <SwitchAccountTypeModal />,
+        <SwitchAccountTypeModal route={createMockRoute()} />,
         { state: MOCK_STATE },
       );
 
@@ -144,9 +143,10 @@ describe('Switch Account Type Modal', () => {
         networkSupporting7702Present: true,
       });
 
-      const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-        state: MOCK_STATE,
-      });
+      const { getByText } = renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute()} />,
+        { state: MOCK_STATE },
+      );
 
       expect(getByText('Account 1')).toBeOnTheScreen();
       expect(getByText('Sepolia')).toBeOnTheScreen();
@@ -161,7 +161,7 @@ describe('Switch Account Type Modal', () => {
       });
 
       const { getByTestId, queryByText } = renderWithProvider(
-        <SwitchAccountTypeModal />,
+        <SwitchAccountTypeModal route={createMockRoute()} />,
         { state: MOCK_STATE },
       );
 
@@ -181,40 +181,52 @@ describe('Switch Account Type Modal', () => {
         networkSupporting7702Present: true,
       });
 
-      const { getByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-        state: MOCK_STATE,
-      });
+      const { getByText } = renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute()} />,
+        { state: MOCK_STATE },
+      );
 
       // Should render the account that matches the address
       expect(getByText('Account 1')).toBeOnTheScreen();
     });
 
     it('does not display account name when address does not match any account', () => {
-      mockRouteAddress = '0x0000000000000000000000000000000000000001';
+      const unknownAddress = '0x0000000000000000000000000000000000000001';
       jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
         pending: false,
         network7702List: [MOCK_NETWORK],
         networkSupporting7702Present: true,
       });
 
-      const { queryByText } = renderWithProvider(<SwitchAccountTypeModal />, {
-        state: MOCK_STATE,
-      });
+      const { queryByText } = renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute(unknownAddress)} />,
+        { state: MOCK_STATE },
+      );
 
       // Account name should not be displayed since address doesn't match any account
       expect(queryByText('Account 1')).toBeNull();
     });
 
     it('displays fallback when no address is available from route or selected account', () => {
-      mockRouteAddress = undefined;
       jest.spyOn(Networks7702, 'useEIP7702Networks').mockReturnValue({
         pending: false,
         network7702List: [],
         networkSupporting7702Present: false,
       });
 
+      // Create route with undefined address param
+      const routeWithNoAddress = {
+        params: { address: undefined },
+        key: 'ConfirmationSwitchAccountType',
+        name: 'ConfirmationSwitchAccountType' as const,
+      };
+
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-        <SwitchAccountTypeModal />,
+        <SwitchAccountTypeModal
+          route={
+            routeWithNoAddress as unknown as ReturnType<typeof createMockRoute>
+          }
+        />,
         { state: MOCK_STATE },
       );
 
@@ -234,9 +246,10 @@ describe('Switch Account Type Modal', () => {
         networkSupporting7702Present: true,
       });
 
-      const { getByTestId } = renderWithProvider(<SwitchAccountTypeModal />, {
-        state: MOCK_STATE,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute()} />,
+        { state: MOCK_STATE },
+      );
 
       fireEvent.press(getByTestId('switch-account-goback'));
 
@@ -250,9 +263,10 @@ describe('Switch Account Type Modal', () => {
         networkSupporting7702Present: true,
       });
 
-      const { getByTestId } = renderWithProvider(<SwitchAccountTypeModal />, {
-        state: MOCK_STATE,
-      });
+      const { getByTestId } = renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute()} />,
+        { state: MOCK_STATE },
+      );
 
       const backButton = getByTestId('switch-account-goback');
       fireEvent.press(backButton);
@@ -272,9 +286,13 @@ describe('Switch Account Type Modal', () => {
           networkSupporting7702Present: true,
         });
 
-      renderWithProvider(<SwitchAccountTypeModal />, { state: MOCK_STATE });
+      const testAddress = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
+      renderWithProvider(
+        <SwitchAccountTypeModal route={createMockRoute(testAddress)} />,
+        { state: MOCK_STATE },
+      );
 
-      expect(mockUseEIP7702Networks).toHaveBeenCalledWith(mockRouteAddress);
+      expect(mockUseEIP7702Networks).toHaveBeenCalledWith(testAddress);
     });
   });
 });

@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 
 import Avatar, {
   AvatarSize,
@@ -34,14 +34,14 @@ interface SwitchAccountTypeModalParamList {
   [key: string]: object | undefined;
 }
 
-const SwitchAccountTypeModal = () => {
-  const route =
-    useRoute<
-      RouteProp<
-        SwitchAccountTypeModalParamList,
-        'ConfirmationSwitchAccountType'
-      >
-    >();
+interface SwitchAccountTypeModalProps {
+  route: RouteProp<
+    SwitchAccountTypeModalParamList,
+    'ConfirmationSwitchAccountType'
+  >;
+}
+
+const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const selectedAccountAddress =

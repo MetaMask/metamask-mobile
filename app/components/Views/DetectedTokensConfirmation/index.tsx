@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -54,16 +53,16 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface DetectedTokensConfirmationRouteParams {
-  isHidingAll?: boolean;
-  onConfirm: () => void;
+interface Props {
+  route: {
+    params: {
+      isHidingAll?: boolean;
+      onConfirm: () => void;
+    };
+  };
 }
 
-const DetectedTokensConfirmation = () => {
-  const route =
-    useRoute<
-      RouteProp<{ params: DetectedTokensConfirmationRouteParams }, 'params'>
-    >();
+const DetectedTokensConfirmation = ({ route }: Props) => {
   const { onConfirm, isHidingAll } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
