@@ -20,6 +20,8 @@ import {
   SAMPLE_ACTIONLISTITEM_PROPS,
 } from './ActionListItem.constants';
 
+const DESCRIPTION_TEXT = 'Test Description';
+
 describe('ActionListItem', () => {
   const mockOnPress = jest.fn();
 
@@ -28,50 +30,55 @@ describe('ActionListItem', () => {
   });
 
   describe('Rendering', () => {
-    it('should render correctly with basic props', () => {
-      const { toJSON } = render(
+    it('renders with basic props', () => {
+      const { getByTestId } = render(
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
           onPress={mockOnPress}
+          testID={ACTIONLISTITEM_TESTID}
         />,
       );
-      expect(toJSON()).toMatchSnapshot();
+
+      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeOnTheScreen();
     });
 
-    it('should render with string label', () => {
-      const testLabel = 'Test Label';
+    it('renders string label', () => {
       const { getByText } = render(
-        <ActionListItem label={testLabel} onPress={mockOnPress} />,
+        <ActionListItem label="Test Label" onPress={mockOnPress} />,
       );
-      expect(getByText(testLabel)).toBeTruthy();
+
+      expect(getByText('Test Label')).toBeOnTheScreen();
     });
 
-    it('should render with string description', () => {
-      const testDescription = 'Test Description';
+    it('renders string description', () => {
       const { getByText } = render(
         <ActionListItem
           label="Test Label"
-          description={testDescription}
+          description={DESCRIPTION_TEXT}
           onPress={mockOnPress}
         />,
       );
-      expect(getByText(testDescription)).toBeTruthy();
+
+      expect(getByText(DESCRIPTION_TEXT)).toBeOnTheScreen();
     });
 
-    it('should render with React node label', () => {
+    it('renders ReactNode label', () => {
       const customLabel = (
         <Text variant={TextVariant.BodyMd}>Custom Label</Text>
       );
+
       const { getByText } = render(
         <ActionListItem label={customLabel} onPress={mockOnPress} />,
       );
-      expect(getByText('Custom Label')).toBeTruthy();
+
+      expect(getByText('Custom Label')).toBeOnTheScreen();
     });
 
-    it('should render with React node description', () => {
+    it('renders ReactNode description', () => {
       const customDescription = (
         <Text variant={TextVariant.BodySm}>Custom Description</Text>
       );
+
       const { getByText } = render(
         <ActionListItem
           label="Test Label"
@@ -79,18 +86,20 @@ describe('ActionListItem', () => {
           onPress={mockOnPress}
         />,
       );
-      expect(getByText('Custom Description')).toBeTruthy();
+
+      expect(getByText('Custom Description')).toBeOnTheScreen();
     });
 
-    it('should render without description when not provided', () => {
-      const { queryByText } = render(
+    it('renders label without description when description is not provided', () => {
+      const { getByText, queryByText } = render(
         <ActionListItem label="Test Label" onPress={mockOnPress} />,
       );
-      // Should only have the label text, no description
-      expect(queryByText('Test Label')).toBeTruthy();
+
+      expect(getByText('Test Label')).toBeOnTheScreen();
+      expect(queryByText(DESCRIPTION_TEXT)).toBeNull();
     });
 
-    it('should render with icon when iconName is provided', () => {
+    it('renders icon when iconName is provided', () => {
       const { getByTestId } = render(
         <ActionListItem
           label="Test Label"
@@ -99,13 +108,15 @@ describe('ActionListItem', () => {
           testID={ACTIONLISTITEM_TESTID}
         />,
       );
-      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeTruthy();
+
+      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeOnTheScreen();
     });
 
-    it('should render with start accessory', () => {
+    it('renders start accessory', () => {
       const testAccessory = (
         <Icon name={IconName.Security} testID="start-accessory" />
       );
+
       const { getByTestId } = render(
         <ActionListItem
           label="Test Label"
@@ -113,13 +124,15 @@ describe('ActionListItem', () => {
           onPress={mockOnPress}
         />,
       );
-      expect(getByTestId('start-accessory')).toBeTruthy();
+
+      expect(getByTestId('start-accessory')).toBeOnTheScreen();
     });
 
-    it('should render with end accessory', () => {
+    it('renders end accessory', () => {
       const testAccessory = (
         <Icon name={IconName.ArrowRight} testID="end-accessory" />
       );
+
       const { getByTestId } = render(
         <ActionListItem
           label="Test Label"
@@ -127,50 +140,46 @@ describe('ActionListItem', () => {
           onPress={mockOnPress}
         />,
       );
-      expect(getByTestId('end-accessory')).toBeTruthy();
+
+      expect(getByTestId('end-accessory')).toBeOnTheScreen();
     });
 
-    it('should prioritize startAccessory over iconName when both are provided', () => {
+    it('renders startAccessory instead of iconName when both are provided', () => {
       const testAccessory = (
         <Icon name={IconName.Security} testID="start-accessory" />
       );
-      const { getByTestId } = render(
+
+      const { getByTestId, queryByTestId } = render(
         <ActionListItem
           label="Test Label"
           iconName={IconName.Setting}
           startAccessory={testAccessory}
+          iconProps={{ testID: 'icon-from-iconName' }}
           onPress={mockOnPress}
         />,
       );
 
-      // Should show the start accessory
-      expect(getByTestId('start-accessory')).toBeTruthy();
-
-      // Icon from iconName should not be rendered when startAccessory is present
-      // This test validates the priority logic in renderStartContent
+      expect(getByTestId('start-accessory')).toBeOnTheScreen();
+      expect(queryByTestId('icon-from-iconName')).toBeNull();
     });
 
-    it('should apply labelTextProps to string label', () => {
-      const testLabel = 'Test Label';
-      const labelTextProps = {
-        variant: TextVariant.HeadingSm,
-        color: TextColor.PrimaryDefault,
-        fontWeight: FontWeight.Bold,
-      };
-
+    it('applies labelTextProps to string label', () => {
       const { getByText } = render(
         <ActionListItem
-          label={testLabel}
-          labelTextProps={labelTextProps}
+          label="Test Label"
+          labelTextProps={{
+            variant: TextVariant.HeadingSm,
+            color: TextColor.PrimaryDefault,
+            fontWeight: FontWeight.Bold,
+          }}
           onPress={mockOnPress}
         />,
       );
 
-      const labelElement = getByText(testLabel);
-      expect(labelElement).toBeTruthy();
+      expect(getByText('Test Label')).toBeOnTheScreen();
     });
 
-    it('should not apply labelTextProps to ReactNode label', () => {
+    it('renders ReactNode label as-is when labelTextProps are provided', () => {
       const customLabel = (
         <Text variant={TextVariant.BodySm} testID="custom-label">
           Custom Label
@@ -188,32 +197,27 @@ describe('ActionListItem', () => {
         />,
       );
 
-      // The custom label should still be rendered as-is
-      expect(getByTestId('custom-label')).toBeTruthy();
+      expect(getByTestId('custom-label')).toBeOnTheScreen();
     });
 
-    it('should apply descriptionTextProps to string description', () => {
-      const testDescription = 'Test Description';
-      const descriptionTextProps = {
-        variant: TextVariant.BodyXs,
-        color: TextColor.TextMuted,
-        fontWeight: FontWeight.Regular,
-      };
-
+    it('applies descriptionTextProps to string description', () => {
       const { getByText } = render(
         <ActionListItem
           label="Test Label"
-          description={testDescription}
-          descriptionTextProps={descriptionTextProps}
+          description="Test Description"
+          descriptionTextProps={{
+            variant: TextVariant.BodyXs,
+            color: TextColor.TextMuted,
+            fontWeight: FontWeight.Regular,
+          }}
           onPress={mockOnPress}
         />,
       );
 
-      const descriptionElement = getByText(testDescription);
-      expect(descriptionElement).toBeTruthy();
+      expect(getByText('Test Description')).toBeOnTheScreen();
     });
 
-    it('should not apply descriptionTextProps to ReactNode description', () => {
+    it('renders ReactNode description as-is when descriptionTextProps are provided', () => {
       const customDescription = (
         <Text variant={TextVariant.BodyLg} testID="custom-description">
           Custom Description
@@ -232,56 +236,44 @@ describe('ActionListItem', () => {
         />,
       );
 
-      // The custom description should still be rendered as-is
-      expect(getByTestId('custom-description')).toBeTruthy();
+      expect(getByTestId('custom-description')).toBeOnTheScreen();
     });
 
-    it('should apply iconProps to icon when iconName is provided', () => {
-      const iconProps = {
-        size: IconSize.Lg,
-        testID: 'custom-icon',
-      };
-
+    it('applies iconProps to icon when iconName is provided', () => {
       const { getByTestId } = render(
         <ActionListItem
           label="Test Label"
           iconName={IconName.Setting}
-          iconProps={iconProps}
+          iconProps={{ size: IconSize.Lg, testID: 'custom-icon' }}
           onPress={mockOnPress}
         />,
       );
 
-      expect(getByTestId('custom-icon')).toBeTruthy();
+      expect(getByTestId('custom-icon')).toBeOnTheScreen();
     });
 
-    it('should not render icon when startAccessory is provided, even with iconProps', () => {
+    it('omits icon from iconName when startAccessory and iconProps are both provided', () => {
       const startAccessory = (
         <Icon name={IconName.Security} testID="start-accessory" />
       );
-      const iconProps = {
-        size: IconSize.Lg,
-        testID: 'icon-from-props',
-      };
 
       const { getByTestId, queryByTestId } = render(
         <ActionListItem
           label="Test Label"
           iconName={IconName.Setting}
           startAccessory={startAccessory}
-          iconProps={iconProps}
+          iconProps={{ size: IconSize.Lg, testID: 'icon-from-props' }}
           onPress={mockOnPress}
         />,
       );
 
-      // Start accessory should be rendered
-      expect(getByTestId('start-accessory')).toBeTruthy();
-      // Icon should not be rendered due to startAccessory priority
+      expect(getByTestId('start-accessory')).toBeOnTheScreen();
       expect(queryByTestId('icon-from-props')).toBeNull();
     });
   });
 
   describe('Interactions', () => {
-    it('should call onPress when pressed', () => {
+    it('calls onPress when pressed', () => {
       const { getByTestId } = render(
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
@@ -291,10 +283,11 @@ describe('ActionListItem', () => {
       );
 
       fireEvent.press(getByTestId(ACTIONLISTITEM_TESTID));
+
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call onPress when disabled', () => {
+    it('does not call onPress when disabled', () => {
       const { getByTestId } = render(
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
@@ -305,10 +298,11 @@ describe('ActionListItem', () => {
       );
 
       fireEvent.press(getByTestId(ACTIONLISTITEM_TESTID));
+
       expect(mockOnPress).not.toHaveBeenCalled();
     });
 
-    it('should handle onPressIn and onPressOut events', () => {
+    it('fires onPressIn and onPressOut callbacks', () => {
       const mockOnPressIn = jest.fn();
       const mockOnPressOut = jest.fn();
 
@@ -321,33 +315,18 @@ describe('ActionListItem', () => {
           testID={ACTIONLISTITEM_TESTID}
         />,
       );
-
       const component = getByTestId(ACTIONLISTITEM_TESTID);
 
       fireEvent(component, 'pressIn');
-      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
-
       fireEvent(component, 'pressOut');
+
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
       expect(mockOnPressOut).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Accessibility', () => {
-    it('should be accessible by default', () => {
-      const { getByTestId } = render(
-        <ActionListItem
-          {...SAMPLE_ACTIONLISTITEM_PROPS}
-          onPress={mockOnPress}
-          testID={ACTIONLISTITEM_TESTID}
-        />,
-      );
-
-      const component = getByTestId(ACTIONLISTITEM_TESTID);
-      expect(component).toBeTruthy();
-      // Pressable components should be accessible by default
-    });
-
-    it('should pass through accessibility props', () => {
+    it('passes through accessibilityLabel prop', () => {
       const { getByTestId } = render(
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
@@ -357,15 +336,14 @@ describe('ActionListItem', () => {
         />,
       );
 
-      const component = getByTestId(ACTIONLISTITEM_TESTID);
-      expect(component.props.accessibilityLabel).toBe(
+      expect(getByTestId(ACTIONLISTITEM_TESTID).props.accessibilityLabel).toBe(
         'Custom accessibility label',
       );
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle empty string label', () => {
+    it('renders with empty string label', () => {
       const { getByTestId } = render(
         <ActionListItem
           label=""
@@ -373,10 +351,11 @@ describe('ActionListItem', () => {
           testID={ACTIONLISTITEM_TESTID}
         />,
       );
-      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeTruthy();
+
+      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeOnTheScreen();
     });
 
-    it('should handle empty string description', () => {
+    it('renders with empty string description', () => {
       const { getByTestId } = render(
         <ActionListItem
           label="Test Label"
@@ -385,10 +364,11 @@ describe('ActionListItem', () => {
           testID={ACTIONLISTITEM_TESTID}
         />,
       );
-      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeTruthy();
+
+      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeOnTheScreen();
     });
 
-    it('should handle all props together', () => {
+    it('renders all props together', () => {
       const startAccessory = (
         <Icon name={IconName.Security} testID="start-accessory" />
       );
@@ -407,11 +387,11 @@ describe('ActionListItem', () => {
         />,
       );
 
-      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeTruthy();
-      expect(getByTestId('start-accessory')).toBeTruthy();
-      expect(getByTestId('end-accessory')).toBeTruthy();
-      expect(getByText('Complex Label')).toBeTruthy();
-      expect(getByText('Complex Description')).toBeTruthy();
+      expect(getByTestId(ACTIONLISTITEM_TESTID)).toBeOnTheScreen();
+      expect(getByTestId('start-accessory')).toBeOnTheScreen();
+      expect(getByTestId('end-accessory')).toBeOnTheScreen();
+      expect(getByText('Complex Label')).toBeOnTheScreen();
+      expect(getByText('Complex Description')).toBeOnTheScreen();
     });
   });
 });
