@@ -305,7 +305,7 @@ describe('ManualBackupStep1', () => {
       const opts = setOptions.mock.calls[0][0];
       expect(opts.headerShown).toBeUndefined();
       expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBe('');
+      expect(opts.headerTitle).toBeNull();
     });
 
     it('shows header with back button for settings backup flow', () => {
@@ -318,7 +318,7 @@ describe('ManualBackupStep1', () => {
       const opts = setOptions.mock.calls[0][0];
       expect(opts.headerShown).toBeUndefined();
       expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBe('');
+      expect(opts.headerTitle).toBeNull();
     });
   });
 

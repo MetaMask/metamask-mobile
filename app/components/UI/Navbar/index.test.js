@@ -224,7 +224,7 @@ describe('Navbar', () => {
         false,
       );
 
-      expect(options.headerTitle).toBe('');
+      expect(options.headerTitle).toBeNull();
     });
   });
 

@@ -170,7 +170,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                       "fontWeight": "600",
                     }
                   }
-                />
+                >
+                  ImportFromSecretRecoveryPhrase
+                </Text>
               </View>
               <View
                 collapsable={false}
