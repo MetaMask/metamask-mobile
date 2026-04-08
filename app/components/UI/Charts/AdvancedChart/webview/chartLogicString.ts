@@ -47,6 +47,8 @@ window.ohlcvPagination = {
 };
 /** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
+/** Visible-range start (ms) from \`SET_OHLCV_DATA\`. Applied once after the first \`getBars\` load. */
+window.pendingVisibleFromMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -220,10 +222,7 @@ function handleMessage(event) {
     var message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (
-      !window.isChartReady &&
-      message.type !== 'SET_OHLCV_DATA'
-    ) {
+    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
       window.pendingMessages.push(message);
       return;
     }
@@ -433,7 +432,29 @@ function handleSetOHLCVData(payload) {
     };
   }
 
+  var visibleFromMs = payload.visibleFromMs != null ? payload.visibleFromMs : null;
+  window.pendingVisibleFromMs = null;
+
   var newResolution = detectResolution(window.ohlcvData);
+
+  function scheduleVisibleRangeAfterDataLoad(chart) {
+    if (visibleFromMs == null) return;
+    var sub = chart.onDataLoaded();
+    sub.subscribe(null, function onLoaded() {
+      sub.unsubscribe(null, onLoaded);
+      var fromSec = Math.floor(visibleFromMs / 1000);
+      var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+      var toSec = lastBar ? Math.ceil(lastBar.time / 1000) : Math.ceil(Date.now() / 1000);
+      try {
+        chart.setVisibleRange(
+          { from: fromSec, to: toSec },
+          { percentRightMargin: 5 }
+        );
+      } catch (e) {
+        // setVisibleRange can fail if chart is mid-teardown
+      }
+    });
+  }
 
   if (window.chartWidget && window.isChartReady) {
     var previousResolution = window.currentResolution;
@@ -446,6 +467,7 @@ function handleSetOHLCVData(payload) {
           try {
             chart.resetData();
             beginDeferredLayoutSettleAfterOhlcvReload();
+            scheduleVisibleRangeAfterDataLoad(chart);
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
@@ -455,6 +477,7 @@ function handleSetOHLCVData(payload) {
         try {
           chart.resetData();
           beginDeferredLayoutSettleAfterOhlcvReload();
+          scheduleVisibleRangeAfterDataLoad(chart);
         } catch (e) {
           abortDeferredLayoutSettleAndNotify();
           return;
