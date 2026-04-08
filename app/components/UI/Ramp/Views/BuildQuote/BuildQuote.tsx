@@ -13,7 +13,6 @@ import {
 } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import Logger from '../../../../../util/Logger';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   buildQuoteWithRedirectUrl,
@@ -432,26 +431,22 @@ function BuildQuote() {
       selectedProviderBuyLimit.minAmount != null &&
       amountAsNumber < selectedProviderBuyLimit.minAmount
     ) {
-      return `Minimum purchase is ${formatCurrency(
-        selectedProviderBuyLimit.minAmount,
-        currency,
-        {
+      return strings('fiat_on_ramp.min_purchase_limit', {
+        amount: formatCurrency(selectedProviderBuyLimit.minAmount, currency, {
           currencyDisplay: 'narrowSymbol',
-        },
-      )}`;
+        }),
+      });
     }
 
     if (
       selectedProviderBuyLimit.maxAmount != null &&
       amountAsNumber > selectedProviderBuyLimit.maxAmount
     ) {
-      return `Maximum purchase is ${formatCurrency(
-        selectedProviderBuyLimit.maxAmount,
-        currency,
-        {
+      return strings('fiat_on_ramp.max_purchase_limit', {
+        amount: formatCurrency(selectedProviderBuyLimit.maxAmount, currency, {
           currencyDisplay: 'narrowSymbol',
-        },
-      )}`;
+        }),
+      });
     }
 
     return null;
@@ -905,13 +900,7 @@ function BuildQuote() {
   const providerQuoteError = useMemo(() => {
     if (!hasNoQuotes || !quotesResponse?.error?.length) return undefined;
     const firstError = quotesResponse.error[0];
-    // The API may include an error message string; if not, fall back to
-    // the provider-specific "no quotes" message below.
-    const errorMessage = firstError?.error;
-    Logger.log(
-      `[Ramp] providerQuoteError: provider=${firstError?.provider} message=${errorMessage ?? 'none'} hasNoQuotes=${hasNoQuotes} rawError=${JSON.stringify(firstError)}`,
-    );
-    return errorMessage;
+    return firstError?.error;
   }, [hasNoQuotes, quotesResponse?.error]);
 
   const inlineQuoteError = amountLimitError ?? providerQuoteError ?? null;
@@ -919,19 +908,6 @@ function BuildQuote() {
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
   );
-
-  useEffect(() => {
-    if (quotesResponse) {
-      Logger.log(
-        `[Ramp] quotesResponse: success=${quotesResponse.success?.length ?? 0} errors=${quotesResponse.error?.length ?? 0}`,
-      );
-      if (quotesResponse.error?.length) {
-        Logger.log(
-          `[Ramp] Quote errors: ${JSON.stringify(quotesResponse.error.map((e) => ({ provider: e.provider, error: e.error })))}`,
-        );
-      }
-    }
-  }, [quotesResponse]);
 
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {

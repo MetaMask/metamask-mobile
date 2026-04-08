@@ -755,7 +755,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Minimum purchase is $120.00')).toBeTruthy();
+      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
@@ -782,7 +782,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Maximum purchase is $80.00')).toBeTruthy();
+      expect(getByText('Maximum purchase is $80.00')).toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
@@ -851,7 +851,7 @@ describe('BuildQuote', () => {
 
       fireEvent.press(getByTestId('keypad-trigger-string'));
 
-      expect(getByText('Maximum purchase is $200.00')).toBeTruthy();
+      expect(getByText('Maximum purchase is $200.00')).toBeOnTheScreen();
       expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
 
       debouncedAmount = 250;
@@ -1005,7 +1005,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
     });
 
     it('shows generic no-quotes error via TruncatedError when quotes response has errors without messages', () => {
@@ -1024,9 +1024,9 @@ describe('BuildQuote', () => {
 
       expect(
         getByText(/problem fetching quotes|No providers available/i),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       // Generic errors still use TruncatedError with info icon
-      expect(getByLabelText('View error details')).toBeTruthy();
+      expect(getByLabelText('View error details')).toBeOnTheScreen();
     });
 
     it('disables continue button when provider returns a limit error', () => {
@@ -1078,7 +1078,7 @@ describe('BuildQuote', () => {
         },
       );
 
-      expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
       // Provider limit errors are plain text — no info icon or modal
       expect(queryByLabelText('View error details')).toBeNull();
     });
@@ -1160,7 +1160,7 @@ describe('BuildQuote', () => {
         state: initialRootState,
       });
 
-      expect(getByText('Minimum order amount is $30.00 USD')).toBeTruthy();
+      expect(getByText('Minimum order amount is $30.00 USD')).toBeOnTheScreen();
       expect(queryByText('Amount too low for this provider')).toBeNull();
     });
 
