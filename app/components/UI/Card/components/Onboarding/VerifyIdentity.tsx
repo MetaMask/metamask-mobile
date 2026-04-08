@@ -56,12 +56,12 @@ const VerifyIdentity = () => {
       iOSFont: {
         regular: 'Geist-Regular',
         medium: 'Geist-Medium',
-        bold: 'Geist-Bold',
+        bold: 'Geist-SemiBold',
       },
       androidFont: {
         regular: 'Geist-Regular',
         medium: 'Geist-Medium',
-        bold: 'Geist-Bold',
+        bold: 'Geist-SemiBold',
       },
     }),
     [colors],
