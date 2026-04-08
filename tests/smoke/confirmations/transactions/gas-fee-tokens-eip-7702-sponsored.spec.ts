@@ -86,12 +86,16 @@ const SIMULATION_RESPONSE = {
 };
 
 const setupCommonMocks = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
-    response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
-    responseCode: 200,
-  });
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
+      responseCode: 200,
+    },
+    1000,
+  );
 
   // Mock infura_simulateTransactions
   await setupMockPostRequest(
@@ -110,12 +114,7 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
     SIMULATION_RESPONSE,
     {
       statusCode: 200,
-      ignoreFields: [
-        'id',
-        'params.0.blockOverrides',
-        'params.0.transactions',
-        'params.0.suggestFees',
-      ],
+      ignoreFields: ['id', 'params'],
       priority: 1000,
     },
   );
