@@ -31,10 +31,6 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
-jest.mock('../../../../../selectors/transactionController', () => ({
-  ...jest.requireActual('../../../../../selectors/transactionController'),
-  selectLastWithdrawTokenByType: jest.fn(),
-}));
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
