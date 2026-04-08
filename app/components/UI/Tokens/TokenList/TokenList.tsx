@@ -241,7 +241,13 @@ const TokenListComponent = ({
           }
           extraData={{ isTokenNetworkFilterEqualCurrentNetwork, visibleKeys }}
           contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-          ListFooterComponent={listFooterComponent}
+          ListFooterComponent={
+            isFullView && listFooterComponent ? (
+              <Box twClassName="-mx-4">{listFooterComponent}</Box>
+            ) : (
+              listFooterComponent
+            )
+          }
         />
       </Box>
     );

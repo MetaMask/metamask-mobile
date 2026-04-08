@@ -123,12 +123,6 @@ const CashTokensFullView = () => {
     ],
   );
 
-  // When rendered as FlashList footer, counteract the list's px-4 contentContainerStyle
-  const listFooter = useMemo(
-    () => <Box twClassName="-mx-4">{bonusAndConvertSections}</Box>,
-    [bonusAndConvertSections],
-  );
-
   return (
     <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
       <HeaderBase
@@ -150,7 +144,7 @@ const CashTokensFullView = () => {
           isFullView
           showOnlyMusd
           hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
-          listFooterComponent={listFooter}
+          listFooterComponent={bonusAndConvertSections}
         />
       ) : (
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
