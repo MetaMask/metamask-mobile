@@ -183,44 +183,15 @@ async function connectToChannel({
           res,
         );
         authorized = true;
-
-        if (anonId) {
-          DevLogger.log(
-            `[MM SDK Analytics] event=wallet_connection_user_approved anonId=${anonId}`,
-          );
-          analytics.trackEvent(
-            AnalyticsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.WALLET_CONNECTION_USER_APPROVED,
-            )
-              .addProperties({
-                transport_type: 'socket_relay',
-                sdk_version: originatorInfo?.apiVersion,
-              })
-              .addSensitiveProperties({ anon_id: anonId })
-              .build(),
-          );
-        }
       } catch (error) {
         DevLogger.log(
           `SDKConnect::connectToChannel - checkPermissions - error`,
           error,
         );
-        if (anonId) {
-          DevLogger.log(
-            `[MM SDK Analytics] event=wallet_connection_user_rejected anonId=${anonId}`,
-          );
-          analytics.trackEvent(
-            AnalyticsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.WALLET_CONNECTION_USER_REJECTED,
-            )
-              .addProperties({
-                transport_type: 'socket_relay',
-                sdk_version: originatorInfo?.apiVersion,
-              })
-              .addSensitiveProperties({ anon_id: anonId })
-              .build(),
-          );
-        }
+        // User approval/rejection is already tracked by the MetaMetrics
+        // CONNECT_REQUEST_COMPLETED / CONNECT_REQUEST_CANCELLED events
+        // (with source: 'sdk') fired by the permission-system UI.
+
         // first needs to connect without key exchange to send the event
         await instance.state.connected[id].remote.reject({ channelId: id });
         // Send rejection event without awaiting
