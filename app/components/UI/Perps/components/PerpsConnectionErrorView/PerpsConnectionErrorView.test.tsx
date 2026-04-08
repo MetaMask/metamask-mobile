@@ -93,8 +93,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Button: ({ label, onPress, isDisabled, isLoading, children, ...props }: any) => (
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
       <TouchableOpacity
         onPress={onPress}
         disabled={isDisabled}
@@ -236,6 +243,7 @@ describe('PerpsConnectionErrorView', () => {
       fireEvent.press(button.parent);
     }
 
+    // Button should still call onRetry even when loading (Button component handles this)
     expect(mockOnRetry).toHaveBeenCalledTimes(1);
   });
 

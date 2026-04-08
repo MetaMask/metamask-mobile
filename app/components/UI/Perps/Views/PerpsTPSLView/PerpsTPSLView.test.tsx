@@ -119,8 +119,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     ...actual,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Button: ({ label, onPress, isDisabled, isLoading, children, ...props }: any) => (
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
       <TouchableOpacity
         onPress={onPress}
         disabled={isDisabled}
