@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { RefreshControl } from 'react-native';
 import BenefitsFullView from './BenefitsFullView';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
@@ -9,7 +10,7 @@ const mockUseSelector = jest.fn();
 const mockStrings = jest.fn((key: string) => {
   const translations: Record<string, string> = {
     'rewards.benefits.title': 'Benefits',
-    'rewards.benefits.list_header': 'Exclusive benefits',
+    'rewards.benefits.list_header': 'Available',
     'rewards.benefits.empty-list': 'You don’t have any benefits right now.',
     'rewards.benefits.powered_by': 'Powered by',
   };
@@ -161,7 +162,8 @@ jest.mock('react-native', () => {
       ListFooterComponent ?? null,
       ReactActual.createElement(Pressable, {
         testID: 'trigger-refresh',
-        onPress: () => refreshControl?.props?.onRefresh?.(),
+        onPress: () =>
+          refreshControl?.props?.onRefresh?.().catch?.(() => undefined),
       }),
     );
 
@@ -176,6 +178,16 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('BenefitsFullView', () => {
+  const createDeferred = <T,>() => {
+    let resolve!: (value: T | PromiseLike<T>) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockBenefits = [];
@@ -205,7 +217,7 @@ describe('BenefitsFullView', () => {
     expect(
       getByText('You don’t have any benefits right now.'),
     ).toBeOnTheScreen();
-    expect(queryByText('Exclusive benefits')).toBeNull();
+    expect(queryByText('Available')).toBeNull();
     expect(queryByText('Powered by')).toBeNull();
   });
 
@@ -218,7 +230,7 @@ describe('BenefitsFullView', () => {
 
     const { getByText, queryByText } = render(<BenefitsFullView />);
 
-    expect(getByText('Exclusive benefits')).toBeOnTheScreen();
+    expect(getByText('Available')).toBeOnTheScreen();
     expect(getByText('Benefit One')).toBeOnTheScreen();
     expect(getByText('Benefit Two')).toBeOnTheScreen();
     expect(getByText('Powered by')).toBeOnTheScreen();
@@ -229,12 +241,44 @@ describe('BenefitsFullView', () => {
 
   it('calls getAllBenefits on pull-to-refresh', async () => {
     const { UNSAFE_getByType } = render(<BenefitsFullView />);
-    const { RefreshControl } = require('react-native');
     const refreshControl = UNSAFE_getByType(RefreshControl);
     fireEvent(refreshControl, 'refresh');
 
     await waitFor(() => {
       expect(mockGetAllBenefits).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('sets refreshing true while refresh request is pending', async () => {
+    const deferred = createDeferred<void>();
+    mockGetAllBenefits.mockImplementationOnce(() => deferred.promise);
+    const { UNSAFE_getByType } = render(<BenefitsFullView />);
+
+    fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+
+    await waitFor(() => {
+      expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(true);
+    });
+
+    deferred.resolve(undefined);
+    await waitFor(() => {
+      expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
+    });
+  });
+
+  it('sets refreshing back to false when refresh request fails', async () => {
+    const deferred = createDeferred<void>();
+    mockGetAllBenefits.mockImplementationOnce(() => deferred.promise);
+    const { UNSAFE_getByType } = render(<BenefitsFullView />);
+
+    fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
+    await waitFor(() => {
+      expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(true);
+    });
+
+    deferred.reject(new Error('refresh failed'));
+    await waitFor(() => {
+      expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
     });
   });
 });

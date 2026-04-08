@@ -16052,6 +16052,7 @@ describe('RewardsController', () => {
           "pointsEvents": {},
           "seasonStatuses": {},
           "seasons": {},
+          "subscriptionBenefits": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
           "unlockedRewards": {},

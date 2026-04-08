@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { TouchableOpacity } from 'react-native';
 import BenefitCard from './BenefitCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
@@ -125,7 +126,7 @@ describe('BenefitCard', () => {
 
     it('does not call formatter and hides remaining time when actionDate is null', () => {
       const benefit = createBenefit({
-        actionDate: null as unknown as SubscriptionBenefitDto['actionDate'],
+        actionDate: null,
       });
       const { queryByText } = render(<BenefitCard benefit={benefit} />);
 
@@ -167,9 +168,7 @@ describe('BenefitCard', () => {
       const benefit = createBenefit();
       const { UNSAFE_getByType } = render(<BenefitCard benefit={benefit} />);
 
-      const touchable = UNSAFE_getByType(
-        require('react-native').TouchableOpacity,
-      );
+      const touchable = UNSAFE_getByType(TouchableOpacity);
       expect(touchable.props.activeOpacity).toBe(0.7);
     });
 

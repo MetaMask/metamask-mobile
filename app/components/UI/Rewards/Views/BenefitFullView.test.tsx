@@ -4,6 +4,7 @@ import BenefitFullView from './BenefitFullView';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { formatDateRemaining } from '../utils/formatUtils';
+import Logger from '../../../../util/Logger';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -111,6 +112,13 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => mockStrings(key),
 }));
 
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 describe('BenefitFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -201,5 +209,64 @@ describe('BenefitFullView', () => {
     const { queryByText } = render(<BenefitFullView />);
 
     expect(queryByText('1m 3d')).toBeNull();
+  });
+
+  it('does not format remaining time when actionDate is null', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      actionDate: null as unknown as string,
+    };
+
+    const { queryByText } = render(<BenefitFullView />);
+
+    expect(mockFormatDateRemaining).not.toHaveBeenCalled();
+    expect(queryByText('1m 3d')).toBeNull();
+  });
+
+  it('renders benefit image from thumbnail', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      thumbnail: 'https://cdn.example.com/thumbnail.png',
+    };
+    const { getByTestId } = render(<BenefitFullView />);
+
+    const image = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE);
+    expect(image.props.source).toEqual({
+      uri: 'https://cdn.example.com/thumbnail.png',
+    });
+  });
+
+  it('logs error when posting benefit impression fails', async () => {
+    const postBenefitError = new Error('post impression failed');
+    mockPostBenefitImpression.mockRejectedValueOnce(postBenefitError);
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(postBenefitError, {
+        message: 'BenefitFullView: Failed to post benefit impression',
+        benefitId: mockBenefit.id,
+        benefitTypeId: mockBenefit.type.id,
+        subscriptionId: 'subscription-123',
+      });
+    });
+  });
+
+  it('normalizes unknown impression errors to default Error', async () => {
+    mockPostBenefitImpression.mockRejectedValueOnce('unknown');
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error('Failed to post benefit impression'),
+        {
+          message: 'BenefitFullView: Failed to post benefit impression',
+          benefitId: mockBenefit.id,
+          benefitTypeId: mockBenefit.type.id,
+          subscriptionId: 'subscription-123',
+        },
+      );
+    });
   });
 });
