@@ -33,6 +33,8 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
+import { useComplianceGate } from '../../Compliance';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -281,38 +283,50 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     useState(false);
   const { track } = usePerpsEventTracking();
 
+  // Compliance gate
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
+
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
     resetNavigationLockRef.current?.();
   }, []);
 
-  const handleLongPress = useCallback(() => {
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-    handlePerpsAction?.('long');
-  }, [isEligible, track, handlePerpsAction]);
+  const handleLongPress = useCallback(
+    () =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+        handlePerpsAction?.('long');
+      }),
+    [gate, isEligible, track, handlePerpsAction],
+  );
 
-  const handleShortPress = useCallback(() => {
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-    handlePerpsAction?.('short');
-  }, [isEligible, track, handlePerpsAction]);
+  const handleShortPress = useCallback(
+    () =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+        handlePerpsAction?.('short');
+      }),
+    [gate, isEligible, track, handlePerpsAction],
+  );
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
@@ -662,7 +676,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 py-2 pr-[8px] pl-4"
+            twClassName="gap-4 py-2 pl-4 pr-[16px]"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -679,64 +693,72 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <AssetLogo asset={token} />
             </BadgeWrapper>
 
-            <Box twClassName="flex-1">
+            <Box twClassName="min-w-0 flex-1">
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="gap-1.5"
+                twClassName="max-w-full min-w-0 gap-1.5 self-stretch"
               >
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  color={TextColor.TextDefault}
-                  numberOfLines={1}
-                >
-                  {token.name || token.symbol}
-                </Text>
+                <Box twClassName="min-w-0 shrink grow-0">
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.TextDefault}
+                    numberOfLines={1}
+                  >
+                    {token.name || token.symbol}
+                  </Text>
+                </Box>
                 {securityBadge && securityBadge.label === null && (
-                  <TouchableOpacity
-                    onPress={handleSecurityBadgePress}
-                    testID="security-badge-verified"
-                  >
-                    <Icon
-                      name={securityBadge.icon}
-                      size={IconSize.Md}
-                      color={securityBadge.iconColor}
-                    />
-                  </TouchableOpacity>
-                )}
-                {securityBadge && securityBadge.label !== null && (
-                  <TouchableOpacity
-                    onPress={handleSecurityBadgePress}
-                    testID={
-                      securityData?.resultType === 'Malicious'
-                        ? 'security-badge-malicious'
-                        : 'security-badge-warning'
-                    }
-                  >
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
+                  <Box twClassName="shrink-0">
+                    <TouchableOpacity
+                      onPress={handleSecurityBadgePress}
+                      testID="security-badge-verified"
                     >
                       <Icon
                         name={securityBadge.icon}
-                        size={IconSize.Sm}
+                        size={IconSize.Md}
                         color={securityBadge.iconColor}
                       />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={securityBadge.textColor}
-                        fontWeight={FontWeight.Medium}
-                        numberOfLines={1}
-                        twClassName="overflow-hidden text-center"
+                    </TouchableOpacity>
+                  </Box>
+                )}
+                {securityBadge && securityBadge.label !== null && (
+                  <Box twClassName="shrink-0">
+                    <TouchableOpacity
+                      onPress={handleSecurityBadgePress}
+                      testID={
+                        securityData?.resultType === 'Malicious'
+                          ? 'security-badge-malicious'
+                          : 'security-badge-warning'
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName={`rounded min-w-[22px] px-1.5 gap-1 ${securityBadge.bg}`}
                       >
-                        {securityBadge.label}
-                      </Text>
-                    </Box>
-                  </TouchableOpacity>
+                        <Icon
+                          name={securityBadge.icon}
+                          size={IconSize.Sm}
+                          color={securityBadge.iconColor}
+                        />
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={securityBadge.textColor}
+                          fontWeight={FontWeight.Medium}
+                          numberOfLines={1}
+                          twClassName="overflow-hidden text-center"
+                        >
+                          {securityBadge.label}
+                        </Text>
+                      </Box>
+                    </TouchableOpacity>
+                  </Box>
                 )}
                 {!token.name && isStockToken(token as BridgeToken) && (
-                  <StockBadge token={token as BridgeToken} />
+                  <Box twClassName="shrink-0">
+                    <StockBadge token={token as BridgeToken} />
+                  </Box>
                 )}
               </Box>
               {token.name ? (
@@ -828,7 +850,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {useNewLayout ? (
             <TokenDetailsActions
               hasPerpsMarket={hasPerpsMarket}
-              hasBalance={balance != null && Number(balance) > 0}
+              hasBalance={Boolean(balance) && balance !== '0'}
               isBuyable={isBuyable}
               isNativeCurrency={token.isETH || token.isNative || false}
               token={token}
