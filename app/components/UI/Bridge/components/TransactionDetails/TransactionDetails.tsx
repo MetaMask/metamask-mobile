@@ -44,6 +44,7 @@ import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -178,6 +179,11 @@ export const BridgeTransactionDetails = (
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
+
+  const fromAddress = evmTxMeta?.txParams?.from;
+  const isHardwareWallet = Boolean(
+    fromAddress && isHardwareAccount(fromAddress),
+  );
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,
@@ -390,7 +396,7 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {evmTxMeta?.isGasFeeSponsored ? (
+          {evmTxMeta?.isGasFeeSponsored && !isHardwareWallet ? (
             <PaidByMetaMask />
           ) : (
             <>
