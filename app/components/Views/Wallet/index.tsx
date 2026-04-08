@@ -129,10 +129,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -326,9 +323,6 @@ const WalletTokensTabView = forwardRef<
   WalletTokensTabViewProps
 >((props, ref) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   // With BIP-44 multichain accounts, perps is enabled for both EVM and non-EVM networks
   const isPerpsEnabled = isPerpsFlagEnabled;
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
@@ -580,9 +574,7 @@ const WalletTokensTabView = forwardRef<
         key={tabsKey}
         ref={tabsListRef}
         onChangeTab={handleTabChange}
-        tabsListContentTwClassName={
-          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
-        }
+        tabsListContentTwClassName={'!flex-initial'}
       >
         {tabsToRender}
       </TabsList>
@@ -1032,9 +1024,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
@@ -1043,9 +1032,7 @@ const Wallet = ({
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
-  // Enable parent scroll when homepage redesign or sections feature flags are enabled
-  const shouldEnableParentScroll =
-    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
+  const shouldEnableParentScroll = true;
 
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(() => {
