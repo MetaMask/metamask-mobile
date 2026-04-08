@@ -15,7 +15,7 @@ export function deduplicateSeriesMarkets(
       return true;
     }
 
-    const { slug } = market.series as NonNullable<typeof market.series>;
+    const { slug } = market.series;
     if (seenSlugs.has(slug)) {
       return false;
     }
