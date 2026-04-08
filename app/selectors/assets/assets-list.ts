@@ -20,6 +20,7 @@ import { formatWithThreshold } from '../../util/assets';
 import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { selectTokenSortConfig } from '../preferencesController';
+import { selectHideZeroBalanceTokens } from '../settings';
 import { createDeepEqualSelector } from '../util';
 import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
 import {
@@ -427,15 +428,19 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       selectAssetsBySelectedAccountGroup,
       (_state: RootState, chainIds: string[]) => chainIds,
       selectStakedAssets,
+      selectHideZeroBalanceTokens,
     ],
-    (bip44Assets, chainIds, stakedAssets) => {
+    (bip44Assets, chainIds, stakedAssets, hideZeroBalance) => {
       const allowedIds = buildAllowedNetworkIdSet(chainIds);
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
-          ),
+          chainAssets.filter((asset) => {
+            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
+              return false;
+            return true;
+          }),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
