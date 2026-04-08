@@ -241,6 +241,15 @@ const usePredictNavigationHandlers = () => {
     });
   }, [navigation]);
 
+  const handleViewAllFromPositions = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      },
+    });
+  }, [navigation]);
+
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
       navigation.navigate(Routes.PREDICT.ROOT, {
@@ -255,7 +264,11 @@ const usePredictNavigationHandlers = () => {
     [navigation],
   );
 
-  return { handleViewAllPredictions, handlePositionPress };
+  return {
+    handleViewAllPredictions,
+    handleViewAllFromPositions,
+    handlePositionPress,
+  };
 };
 
 const usePredictPositionsSectionData = () => {
@@ -333,8 +346,11 @@ const PredictionsSectionDefault = forwardRef<
     const queryClient = useQueryClient();
     const title = titleOverride ?? strings('homepage.sections.predictions');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { handleViewAllPredictions, handlePositionPress } =
-      usePredictNavigationHandlers();
+    const {
+      handleViewAllPredictions,
+      handleViewAllFromPositions,
+      handlePositionPress,
+    } = usePredictNavigationHandlers();
     const {
       privacyMode,
       positions,
@@ -397,7 +413,7 @@ const PredictionsSectionDefault = forwardRef<
         <View ref={sectionViewRef} onLayout={onLayout}>
           <HomepagePredictPositions
             title={title}
-            onViewAll={handleViewAllPredictions}
+            onViewAll={handleViewAllFromPositions}
             privacyMode={privacyMode}
             isLoadingPositions={isLoadingPositions}
             positions={positions}
@@ -447,7 +463,7 @@ const PredictionsSectionPositionsOnly = forwardRef<
     const queryClient = useQueryClient();
     const title = titleOverride ?? strings('homepage.sections.predictions');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { handleViewAllPredictions, handlePositionPress } =
+    const { handleViewAllFromPositions, handlePositionPress } =
       usePredictNavigationHandlers();
     const {
       privacyMode,
@@ -494,7 +510,7 @@ const PredictionsSectionPositionsOnly = forwardRef<
       <View ref={sectionViewRef} onLayout={onLayout}>
         <HomepagePredictPositions
           title={title}
-          onViewAll={handleViewAllPredictions}
+          onViewAll={handleViewAllFromPositions}
           privacyMode={privacyMode}
           isLoadingPositions={isLoadingPositions}
           positions={positions}
