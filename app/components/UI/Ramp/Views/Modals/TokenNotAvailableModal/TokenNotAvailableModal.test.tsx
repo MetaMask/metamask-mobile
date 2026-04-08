@@ -58,9 +58,14 @@ let mockSelectedToken: unknown = {
   symbol: 'USDC',
 };
 
-jest.mock('../../../hooks/useRampsController', () => ({
-  useRampsController: () => ({
+jest.mock('../../../hooks/useRampsProviders', () => ({
+  useRampsProviders: () => ({
     selectedProvider: mockSelectedProvider,
+  }),
+}));
+
+jest.mock('../../../hooks/useRampsTokens', () => ({
+  useRampsTokens: () => ({
     selectedToken: mockSelectedToken,
   }),
 }));

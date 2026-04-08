@@ -166,13 +166,26 @@ export const usePopularTokens = ({
             signal: abortController.signal,
           },
         );
-        const popularAssets: PopularToken[] = await response.json();
+        if (response.ok === false) {
+          throw new Error(
+            `Failed to fetch popular tokens with status ${response.status}`,
+          );
+        }
 
-        // Store in cache with current timestamp
-        popularTokensCache.set(cacheKey, {
-          data: popularAssets,
-          timestamp: Date.now(),
-        });
+        const popularAssetsResponse: unknown = await response.json();
+        const isValidTopLevelPayload = Array.isArray(popularAssetsResponse);
+        const popularAssets: PopularToken[] = isValidTopLevelPayload
+          ? popularAssetsResponse
+          : [];
+
+        if (isValidTopLevelPayload) {
+          // Cache only valid top-level API payloads so malformed responses do
+          // not suppress retries for the full cache TTL.
+          popularTokensCache.set(cacheKey, {
+            data: popularAssets,
+            timestamp: Date.now(),
+          });
+        }
 
         if (!isCancelled) {
           setPopularTokens(popularAssets);

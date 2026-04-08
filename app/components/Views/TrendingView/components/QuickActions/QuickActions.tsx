@@ -15,9 +15,9 @@ import LocalIcon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useSectionsArray,
   SectionId,
   type SectionIcon,
+  useQuickActionsSectionsArray,
 } from '../../sections.config';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 import { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -59,7 +59,7 @@ interface QuickActionsProps {
 const QuickActions: React.FC<QuickActionsProps> = ({ emptySections }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const sectionsArray = useSectionsArray();
+  const sectionsArray = useQuickActionsSectionsArray();
 
   const visibleSections = sectionsArray.filter((s) => !emptySections.has(s.id));
 

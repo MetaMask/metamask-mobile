@@ -189,7 +189,6 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
-import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -1037,7 +1036,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -1420,12 +1418,10 @@ const Wallet = ({
                       >
                         <AddressCopy hitSlop={touchAreaSlop} />
                       </View>
-                      {shouldDisplayCardButton && (
-                        <CardButton
-                          onPress={handleCardPress}
-                          touchAreaSlop={touchAreaSlop}
-                        />
-                      )}
+                      <CardButton
+                        onPress={handleCardPress}
+                        touchAreaSlop={touchAreaSlop}
+                      />
                       {isNotificationsFeatureEnabled() ? (
                         <BadgeWrapper
                           position={BadgeWrapperPosition.TopRight}

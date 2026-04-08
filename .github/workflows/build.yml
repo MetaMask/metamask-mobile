@@ -172,8 +172,8 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: GitHub-hosted macOS
-    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
+    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
+    runs-on: ${{ matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     steps:
       - name: Validate version-bump commit
@@ -265,9 +265,9 @@ jobs:
 
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
-        env:
-          XCODE_VERSION: '16.3'
-        run: sudo xcode-select -s "/Applications/Xcode_$XCODE_VERSION.app"
+        run: |
+          sudo xcodes select 26.3
+          xcodebuild -version
 
       # TapAndPay SDK Setup (Android only)
       - name: Clone TapAndPay SDK
@@ -358,7 +358,7 @@ jobs:
             security delete-keychain "$KEYCHAIN_PATH" || true
           fi
 
-      # Signing: uses role + secret from builds.yml (skip for dev builds - main-dev, flask-dev, qa-dev use debug/simulator)
+      # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev / qa-dev)
       - name: Configure signing certificates
         if: needs.prepare.outputs.signing_aws_role != ''
         uses: ./.github/actions/configure-signing
@@ -408,7 +408,7 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts (zips simulator .app and .xcarchive; writes ios_deploy_path / ios_archive_path / android_*_path outputs)
+      # Rename build artifacts (ios_simulator_path / ios_ipa_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
@@ -420,19 +420,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          path: ${{ steps.rename.outputs.ios_simulator_path }}
           if-no-files-found: error
 
       - name: Upload iOS IPA
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa-${{ inputs.build_name }}
-          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          path: ${{ steps.rename.outputs.ios_ipa_path }}
           if-no-files-found: error
 
       - name: Upload iOS xcarchive
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-xcarchive-${{ inputs.build_name }}
@@ -440,14 +440,14 @@ jobs:
           if-no-files-found: error
 
       - name: Upload iOS sourcemap
-        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
           if-no-files-found: warn
 
-      # Dev builds (CONFIGURATION=Debug): APK only
+      # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
       - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
@@ -455,6 +455,14 @@ jobs:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
+
+      - name: Upload Android test APK (dev)
+        if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_test_apk_path }}
+          if-no-files-found: warn
 
       # Release builds: APK and AAB as separate artifacts
       - name: Upload Android APK (release)
@@ -499,16 +507,17 @@ jobs:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
       - name: Read metadata from tree at built ref
         id: meta
         run: |
           REF="${{ needs.prepare.outputs.checkout_ref_for_setup }}"
-          ANDROID_VERSION_CODE=$(awk '/versionCode[[:space:]]/{print $2; exit}' android/app/build.gradle | tr -d '\r')
-          IOS_VERSION_CODE=$(sed -n 's/.*CURRENT_PROJECT_VERSION = \([0-9][0-9]*\);/\1/p' ios/MetaMask.xcodeproj/project.pbxproj | head -1)
           {
             echo "checkout_ref=$REF"
             echo "built_commit_sha=$(git rev-parse HEAD)"
-            echo "semantic_version=$(node -p "require('./package.json').version")"
-            echo "android_version_code=$ANDROID_VERSION_CODE"
-            echo "ios_version_code=$IOS_VERSION_CODE"
           } >> "$GITHUB_OUTPUT"
+          ./scripts/get-build-metadata.sh --ci
