@@ -224,3 +224,16 @@ bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-complianc
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## Learned User Preferences
+
+- Use `jest.mocked(<function>)` instead of casting with `(fn as jest.Mock)` when configuring mocks in tests
+- In component tests, prefer `.toBeOnTheScreen()` over `.toBeTruthy()` on `queryBy*` results; assert mocks were called with expected arguments rather than just `toBeDefined()`
+- When implementing from an attached plan, follow it as specified without editing the plan file; mark todos in_progress in order and complete all before stopping
+- If a plan fails to generate, fix the issue and proceed with implementation rather than stopping
+- After completing feature or bug work, create a new git branch, commit, and push when asked
+- For PR code reviews, provide specific actionable comments on individual code lines rather than vague overviews
+
+## Learned Workspace Facts
+
+- On Android with targetSdk 35 and Android 15 edge-to-edge, use `SafeAreaView` from `react-native-safe-area-context` (not from `react-native`) or apply `marginTop` from insets to prevent headers overlapping the status bar
