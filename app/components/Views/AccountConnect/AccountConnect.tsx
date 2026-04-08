@@ -409,18 +409,19 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
-          .addProperties({
-            number_of_accounts: accountsLength,
-            source: eventSource,
-            chain_id_list: chainIds,
-            referrer: channelIdOrHostname,
-            ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { anon_id: anonId } : {}),
-          })
-          .build(),
-      );
+      const eventBuilder = createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
+      ).addProperties({
+        number_of_accounts: accountsLength,
+        source: eventSource,
+        chain_id_list: chainIds,
+        referrer: channelIdOrHostname,
+        ...getApiAnalyticsProperties(isMultichainRequest),
+      });
+      if (anonId) {
+        eventBuilder.addSensitiveProperties({ anon_id: anonId });
+      }
+      trackEvent(eventBuilder.build());
     },
     [
       accountsLength,
@@ -517,21 +518,21 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
-          .addProperties({
-            number_of_accounts: accountsLength,
-            number_of_accounts_connected: connectedAccountLength,
-            // TODO: Fix this. Not accurate
-            account_type: getAddressAccountType(activeAddress),
-            source: eventSource,
-            chain_id_list: selectedChainIds,
-            referrer,
-            ...getApiAnalyticsProperties(isMultichainRequest),
-            ...(anonId ? { anon_id: anonId } : {}),
-          })
-          .build(),
-      );
+      const eventBuilder = createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
+      ).addProperties({
+        number_of_accounts: accountsLength,
+        number_of_accounts_connected: connectedAccountLength,
+        account_type: getAddressAccountType(activeAddress),
+        source: eventSource,
+        chain_id_list: selectedChainIds,
+        referrer,
+        ...getApiAnalyticsProperties(isMultichainRequest),
+      });
+      if (anonId) {
+        eventBuilder.addSensitiveProperties({ anon_id: anonId });
+      }
+      trackEvent(eventBuilder.build());
       let labelOptions: ToastOptions['labelOptions'] = [];
 
       if (connectedAccountLength >= 1) {

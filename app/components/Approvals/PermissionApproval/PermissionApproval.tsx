@@ -71,17 +71,18 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     const isMultichainRequest =
       !approvalRequest?.requestData?.metadata?.isEip1193Request;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
-        .addProperties({
-          number_of_accounts: totalAccounts,
-          source: eventSource,
-          chain_id_list: chainIds,
-          ...getApiAnalyticsProperties(isMultichainRequest),
-          ...(anonId ? { anon_id: anonId } : {}),
-        })
-        .build(),
-    );
+    const eventBuilder = createEventBuilder(
+      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+    ).addProperties({
+      number_of_accounts: totalAccounts,
+      source: eventSource,
+      chain_id_list: chainIds,
+      ...getApiAnalyticsProperties(isMultichainRequest),
+    });
+    if (anonId) {
+      eventBuilder.addSensitiveProperties({ anon_id: anonId });
+    }
+    trackEvent(eventBuilder.build());
 
     props.navigation.navigate(
       ...createAccountConnectNavDetails({
