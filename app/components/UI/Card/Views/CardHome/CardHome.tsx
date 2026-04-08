@@ -50,11 +50,7 @@ import { AddToWalletButton } from '../../pushProvisioning/components/AddToWallet
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_BALANCE_LOADING_UPPERCASE,
-  TOKEN_RATE_UNDEFINED,
-} from '../../../Tokens/constants';
+import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -281,7 +277,9 @@ const CardHome = () => {
             onImageError={actions.onCardDetailsImageError}
             cardType={data?.card?.type}
             cardStatus={data?.card?.status}
-            walletAddress={data?.primaryAsset?.walletAddress}
+            walletAddress={
+              isAuthenticated ? data?.primaryAsset?.walletAddress : undefined
+            }
           />
         </Box>
 

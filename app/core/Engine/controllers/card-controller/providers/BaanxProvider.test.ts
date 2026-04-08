@@ -819,14 +819,20 @@ describe('BaanxProvider', () => {
       });
 
       const result = await provider.getCardDetailsView(AUTH_TOKENS, {
-        customCss: '.card { color: red }',
+        customCss: {
+          card: 'color: red',
+        },
       });
 
       expect(result.url).toBe('https://secure.view/card');
       expect(result.token).toBe('view-token-123');
       expect(service.post).toHaveBeenCalledWith(
         '/v1/card/details/token',
-        { customCss: '.card { color: red }' },
+        {
+          customCss: {
+            card: 'color: red',
+          },
+        },
         AUTH_TOKENS,
       );
     });

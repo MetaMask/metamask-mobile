@@ -133,8 +133,8 @@ const mockPriorityToken = {
   address: '0x123...',
   symbol: 'USDC',
   decimals: 6,
-  availableBalance: '500000000',
-  allowance: '500000000',
+  availableBalance: '250000000',
+  allowance: '250000000',
   totalAllowance: '500000000',
   name: 'USD Coin',
   caipChainId: 'eip155:1',
@@ -144,12 +144,12 @@ const mockPriorityToken = {
   stagingTokenAddress: null,
 };
 
-// CardFundingAsset version — balance matches allowance (both '500000000')
+// CardFundingAsset version — balance is remaining amount, allowance is total cap.
 const mockPrimaryAsset = {
   address: '0x123...',
   symbol: 'USDC',
   decimals: 6,
-  balance: '500000000',
+  balance: '250000000',
   allowance: '500000000',
   name: 'USD Coin',
   chainId: 'eip155:1',
@@ -159,6 +159,7 @@ const mockPrimaryAsset = {
 };
 
 const mockCurrentAddress = '0x789';
+const truncatedCardAddress = '0x78...x789';
 
 const mockSelectedInternalAccount = {
   address: mockCurrentAddress,
@@ -1056,6 +1057,39 @@ describe('CardHome Component', () => {
     expect(screen.getByText('••••••••••••')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('does not render wallet address on the card image when unauthenticated', async () => {
+    // Given: unauthenticated user with primary asset wallet address
+    setupMockSelectors({ isAuthenticated: false });
+
+    // When: component renders
+    const { toJSON, UNSAFE_root } = render();
+
+    // Then: card image should not include the wallet address
+    await waitFor(() => {
+      expect(toJSON()).toBeDefined();
+    });
+    expect(
+      UNSAFE_root.findAllByProps({ address: truncatedCardAddress }),
+    ).toHaveLength(0);
+  });
+
+  it('renders wallet address on the card image when authenticated', async () => {
+    // Given: authenticated user with primary asset wallet address
+    setupMockSelectors({ isAuthenticated: true });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    // When: component renders
+    const { toJSON, UNSAFE_root } = render();
+
+    // Then: card image should include the wallet address
+    await waitFor(() => {
+      expect(toJSON()).toBeDefined();
+    });
+    expect(
+      UNSAFE_root.findAllByProps({ address: truncatedCardAddress }),
+    ).not.toHaveLength(0);
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
@@ -4133,6 +4167,16 @@ describe('CardHome Component', () => {
 
     describe('Unfreeze action (card is frozen)', () => {
       beforeEach(() => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.FROZEN,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
         mockUseCardFreeze.mockReturnValue({
           freeze: {
             isError: false,

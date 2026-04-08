@@ -375,7 +375,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   "color": "#131416",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
-                                  "fontWeight": 600,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
                                 },
@@ -428,7 +427,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 }
                               >
                                 <RNSVGSvgView
-                                  address="0x78...x789"
                                   align="xMidYMid"
                                   bbHeight="100%"
                                   bbWidth="100%"
@@ -728,55 +726,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                         }
                                       />
                                     </RNSVGGroup>
-                                    <RNSVGText
-                                      content={null}
-                                      dx={[]}
-                                      dy={[]}
-                                      fill={
-                                        {
-                                          "payload": 4294967295,
-                                          "type": 0,
-                                        }
-                                      }
-                                      font={
-                                        {
-                                          "fontSize": "40px",
-                                          "fontWeight": 800,
-                                        }
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      rotate={[]}
-                                      x={
-                                        [
-                                          40,
-                                        ]
-                                      }
-                                      y={
-                                        [
-                                          500,
-                                        ]
-                                      }
-                                    >
-                                      <RNSVGTSpan
-                                        content="0x78...x789"
-                                        dx={[]}
-                                        dy={[]}
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                        font={{}}
-                                        rotate={[]}
-                                        x={[]}
-                                        y={[]}
-                                      />
-                                    </RNSVGText>
                                     <RNSVGDefs>
                                       <RNSVGClipPath
                                         fill={
@@ -926,7 +875,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                         "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
-                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       },
@@ -1041,7 +989,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                           "flexWrap": "wrap",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -1129,7 +1076,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                           "flexWrap": "wrap",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -1195,7 +1141,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                             "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           },
@@ -1213,7 +1158,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                             "color": "#66676a",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           },
@@ -1651,7 +1595,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   "color": "#131416",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
-                                  "fontWeight": 600,
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
                                 },
@@ -1704,7 +1647,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 }
                               >
                                 <RNSVGSvgView
-                                  address="0x78...x789"
                                   align="xMidYMid"
                                   bbHeight="100%"
                                   bbWidth="100%"
@@ -2004,55 +1946,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                         }
                                       />
                                     </RNSVGGroup>
-                                    <RNSVGText
-                                      content={null}
-                                      dx={[]}
-                                      dy={[]}
-                                      fill={
-                                        {
-                                          "payload": 4294967295,
-                                          "type": 0,
-                                        }
-                                      }
-                                      font={
-                                        {
-                                          "fontSize": "40px",
-                                          "fontWeight": 800,
-                                        }
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      rotate={[]}
-                                      x={
-                                        [
-                                          40,
-                                        ]
-                                      }
-                                      y={
-                                        [
-                                          500,
-                                        ]
-                                      }
-                                    >
-                                      <RNSVGTSpan
-                                        content="0x78...x789"
-                                        dx={[]}
-                                        dy={[]}
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                        font={{}}
-                                        rotate={[]}
-                                        x={[]}
-                                        y={[]}
-                                      />
-                                    </RNSVGText>
                                     <RNSVGDefs>
                                       <RNSVGClipPath
                                         fill={
@@ -2202,7 +2095,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                         "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
-                                        "fontWeight": 400,
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
                                       },
@@ -2317,7 +2209,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                           "flexWrap": "wrap",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -2405,7 +2296,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                           "flexWrap": "wrap",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                           "textAlign": "center",
@@ -2471,7 +2361,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                             "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                           },
@@ -2489,7 +2378,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                             "color": "#66676a",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 14,
-                                            "fontWeight": 400,
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           },

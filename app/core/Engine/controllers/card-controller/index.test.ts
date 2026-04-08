@@ -58,6 +58,7 @@ describe('cardControllerInit', () => {
 
   it('uses persisted state when provided', () => {
     const persistedState: CardControllerState = {
+      ...defaultCardControllerState,
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,

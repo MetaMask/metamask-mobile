@@ -634,6 +634,8 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
