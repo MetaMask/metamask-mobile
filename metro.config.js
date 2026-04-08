@@ -109,7 +109,19 @@ module.exports = function (baseConfig) {
         resolveRequest: (context, moduleName, platform) => {
           // Redirect @metamask-previews/* imports to their @metamask/* counterparts
           // so there is only one module instance per package (shared React context).
-          if (moduleName.startsWith('@metamask-previews/')) {
+          // Only redirect packages that actually exist under @metamask/ in node_modules.
+          // @metamask/design-system-shared is a new package with no @metamask/ release yet,
+          // so it must stay as @metamask-previews/design-system-shared.
+          const previewToMetaMaskRedirects = [
+            '@metamask-previews/design-system-react-native',
+            '@metamask-previews/design-system-twrnc-preset',
+            '@metamask-previews/design-tokens',
+          ];
+          if (
+            previewToMetaMaskRedirects.some(
+              (pkg) => moduleName === pkg || moduleName.startsWith(pkg + '/'),
+            )
+          ) {
             return context.resolveRequest(
               context,
               moduleName.replace('@metamask-previews/', '@metamask/'),
