@@ -38,12 +38,9 @@ const BenefitCard = ({ benefit, now }: Props) => {
     <TouchableOpacity
       style={tw.style('bg-section rounded-lg p-4 h-[154px]')}
       onPress={() =>
-        NavigationService.navigation.navigate(
-          Routes.REWARD_BENEFIT_FULL_VIEW,
-          {
-            benefit,
-          },
-        )
+        NavigationService.navigation.navigate(Routes.REWARD_BENEFIT_FULL_VIEW, {
+          benefit,
+        })
       }
       activeOpacity={0.7}
     >

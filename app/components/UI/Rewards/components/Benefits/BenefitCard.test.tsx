@@ -97,7 +97,9 @@ describe('BenefitCard', () => {
       });
       const { getByTestId } = render(<BenefitCard benefit={benefit} />);
 
-      const image = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE);
+      const image = getByTestId(
+        REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE,
+      );
 
       expect(image).toBeOnTheScreen();
       expect(image.props.source).toEqual({
@@ -148,7 +150,9 @@ describe('BenefitCard', () => {
       });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
 
-      fireEvent.press(getByText(strings('rewards.benefits.test_navigate_title')));
+      fireEvent.press(
+        getByText(strings('rewards.benefits.test_navigate_title')),
+      );
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -163,7 +167,9 @@ describe('BenefitCard', () => {
       const benefit = createBenefit();
       const { UNSAFE_getByType } = render(<BenefitCard benefit={benefit} />);
 
-      const touchable = UNSAFE_getByType(require('react-native').TouchableOpacity);
+      const touchable = UNSAFE_getByType(
+        require('react-native').TouchableOpacity,
+      );
       expect(touchable.props.activeOpacity).toBe(0.7);
     });
 

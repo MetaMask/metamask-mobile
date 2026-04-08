@@ -155,7 +155,9 @@ describe('BenefitsPreview', () => {
 
       expect(getByTestId('benefits-preview-skeleton')).toBeOnTheScreen();
       expect(queryByTestId('benefit-card-1')).toBeNull();
-      expect(queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS)).toBeNull();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS),
+      ).toBeNull();
     });
   });
 

@@ -100,8 +100,7 @@ const BenefitFullView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('px-4 gap-6')}
         >
-          <Box
-            twClassName="w-full rounded-lg overflow-hidden">
+          <Box twClassName="w-full rounded-lg overflow-hidden">
             <Image
               source={{ uri: benefit.thumbnail }}
               style={tw.style('w-full h-[248px]')}

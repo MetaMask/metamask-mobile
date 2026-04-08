@@ -6929,7 +6929,10 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await controller.getBenefits(mockSubscriptionId, mockLimit);
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
 
       expect(result).toEqual(cachedState);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -6950,7 +6953,10 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(apiBenefits);
 
-      const result = await controller.getBenefits(mockSubscriptionId, mockLimit);
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getBenefits',
@@ -6984,7 +6990,10 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(freshFromApi);
 
-      const result = await controller.getBenefits(mockSubscriptionId, mockLimit);
+      const result = await controller.getBenefits(
+        mockSubscriptionId,
+        mockLimit,
+      );
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getBenefits',
@@ -7008,13 +7017,13 @@ describe('RewardsController', () => {
 
       await controller.getBenefits(mockSubscriptionId, mockLimit);
 
-      expect(
-        controller.state.subscriptionBenefits[mockSubscriptionId],
-      ).toEqual({
-        benefits: apiBenefits,
-        limit: mockLimit,
-        lastFetched: 123,
-      });
+      expect(controller.state.subscriptionBenefits[mockSubscriptionId]).toEqual(
+        {
+          benefits: apiBenefits,
+          limit: mockLimit,
+          lastFetched: 123,
+        },
+      );
     });
 
     it('logs and rethrows when the benefits API call fails', async () => {

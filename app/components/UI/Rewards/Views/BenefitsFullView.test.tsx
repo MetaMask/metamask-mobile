@@ -157,7 +157,7 @@ jest.mock('react-native', () => {
               renderItem({ item }),
             ),
           )
-        : ListEmptyComponent ?? null,
+        : (ListEmptyComponent ?? null),
       ListFooterComponent ?? null,
       ReactActual.createElement(Pressable, {
         testID: 'trigger-refresh',
@@ -202,7 +202,9 @@ describe('BenefitsFullView', () => {
   it('renders empty state when there are no benefits', () => {
     const { getByText, queryByText } = render(<BenefitsFullView />);
 
-    expect(getByText('You don’t have any benefits right now.')).toBeOnTheScreen();
+    expect(
+      getByText('You don’t have any benefits right now.'),
+    ).toBeOnTheScreen();
     expect(queryByText('Exclusive benefits')).toBeNull();
     expect(queryByText('Powered by')).toBeNull();
   });
