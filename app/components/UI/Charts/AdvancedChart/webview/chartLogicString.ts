@@ -220,10 +220,7 @@ function handleMessage(event) {
     var message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (
-      !window.isChartReady &&
-      message.type !== 'SET_OHLCV_DATA'
-    ) {
+    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
       window.pendingMessages.push(message);
       return;
     }
@@ -2846,7 +2843,7 @@ function createVolumeStudy(useOverlay) {
       'volume ma.display': 0,
       'volume.color.0': theme.errorColor,
       'volume.color.1': theme.successColor,
-      'volume.transparency': 0,
+      'volume.transparency': useOverlay ? 70 : 0,
     };
     var promise = useOverlay
       ? chart.createStudy('Volume', true, false, {}, inputs, {
