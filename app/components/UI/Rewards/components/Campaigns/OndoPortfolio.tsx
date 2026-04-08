@@ -150,7 +150,6 @@ interface OndoPortfolioProps {
   portfolio: OndoGmPortfolioDto | null;
   isLoading: boolean;
   hasError: boolean;
-  hasFetched: boolean;
   refetch: () => Promise<void>;
   campaignId: string;
   onOpenAccountPicker: (config: AccountPickerConfig) => void;

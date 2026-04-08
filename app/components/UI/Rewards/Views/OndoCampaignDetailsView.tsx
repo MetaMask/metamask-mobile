@@ -101,7 +101,6 @@ const OndoCampaignDetailsView: React.FC = () => {
     portfolio: portfolioData,
     isLoading: isPortfolioLoading,
     hasError: hasPortfolioError,
-    hasFetched: portfolioHasFetched,
     refetch: refetchPortfolio,
   } = useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
 
@@ -343,7 +342,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       portfolio={portfolioData}
                       isLoading={isPortfolioLoading}
                       hasError={hasPortfolioError}
-                      hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
                       campaignId={campaignId}
                       onOpenAccountPicker={setPendingPicker}
