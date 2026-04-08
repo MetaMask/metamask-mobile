@@ -126,6 +126,7 @@ const defaultParams = {
   isInsufficientBalance: false,
   maxBetAmount: 100,
   isPayFeesLoading: false,
+  isInputFocused: false,
 };
 
 describe('usePredictBuyError', () => {
@@ -226,6 +227,19 @@ describe('usePredictBuyError', () => {
       expect(result.current.errorMessage).toBe(
         'Insufficient payment token balance',
       );
+    });
+
+    it('suppresses pay token balance alert while input is focused', () => {
+      mockIsPredictBalanceSelected = false;
+      mockInsufficientPayTokenBalanceAlert = {
+        message: 'Insufficient payment token balance',
+      };
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({ ...defaultParams, isInputFocused: true }),
+      );
+
+      expect(result.current.errorMessage).toBeUndefined();
     });
 
     it('returns undefined when activeOrder has no error', () => {
