@@ -37,7 +37,6 @@ const config = {
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
-  snapshotSerializers: ['enzyme-to-json/serializer'],
   // Disable coverage collection for Reassure runs to avoid OOM
   collectCoverage: !isReassureRun && process.env.NODE_ENV !== 'production',
   collectCoverageFrom: !isReassureRun

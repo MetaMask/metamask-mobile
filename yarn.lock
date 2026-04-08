@@ -27155,17 +27155,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"enzyme-to-json@npm:3.3.5":
-  version: 3.3.5
-  resolution: "enzyme-to-json@npm:3.3.5"
-  dependencies:
-    lodash: "npm:^4.17.4"
-  peerDependencies:
-    enzyme: ^3.0.0
-  checksum: 10/635552e432ab5291f6c221577b66c69b11eb104be4ce5a1f0c82377791c94050a81bb99df6f99dcad0261133627722f782848f18eaaa30e1b2b663a5a71852a7
-  languageName: node
-  linkType: hard
-
 "enzyme@npm:3.9.0":
   version: 3.9.0
   resolution: "enzyme@npm:3.9.0"
@@ -35693,7 +35682,6 @@ __metadata:
     eciesjs: "npm:0.4.17"
     enzyme: "npm:3.9.0"
     enzyme-adapter-react-16: "npm:1.10.0"
-    enzyme-to-json: "npm:3.3.5"
     esbuild: "npm:^0.25.10"
     esbuild-register: "npm:^3.6.0"
     eslint: "npm:^8.44.0"
