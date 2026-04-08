@@ -81,7 +81,6 @@ const PredictTabView = forwardRef<TabRefreshHandle, PredictTabViewProps>(
           <ConditionalScrollView
             isScrollEnabled={false}
             scrollViewProps={{
-              testID: PredictTabViewSelectorsIDs.SCROLL_VIEW,
               refreshControl: (
                 <RefreshControl
                   refreshing={isRefreshing}

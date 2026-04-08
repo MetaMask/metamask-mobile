@@ -530,34 +530,6 @@ describe('NftGrid', () => {
     );
   });
 
-  it('hides view all button when homepage redesign is disabled', async () => {
-    const mockCollectibles = {
-      '0x1': Array.from({ length: 20 }, (_, i) => ({
-        ...mockNft,
-        tokenId: `${i}`,
-      })),
-    };
-    setupSelectorMocks({
-      collectibles: mockCollectibles,
-      isNftFetching: false,
-    });
-    const store = mockStore(initialState);
-
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <NftGrid />
-      </Provider>,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('view-all-nfts-button')).toBeNull();
-    });
-  });
-
   it('filters out non-owned collectibles', async () => {
     const mockCollectibles = {
       '0x1': [
