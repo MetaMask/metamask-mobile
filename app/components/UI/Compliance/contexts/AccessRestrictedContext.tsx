@@ -12,6 +12,12 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import AccessRestrictedModal from '../AccessRestrictedModal';
+import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 interface AccessRestrictedContextType {
   showAccessRestrictedModal: () => void;
@@ -31,11 +37,16 @@ export const AccessRestrictedProvider = ({
 }: AccessRestrictedProviderProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const navigation = useNavigation();
+  const { track } = usePerpsEventTracking();
 
   const showAccessRestrictedModal = useCallback(() => {
     notificationAsync(NotificationFeedbackType.Warning);
     setIsVisible(true);
-  }, []);
+    track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF,
+    });
+  }, [track]);
 
   const hideAccessRestrictedModal = useCallback(() => {
     setIsVisible(false);

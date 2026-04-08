@@ -7940,4 +7940,91 @@ describe('PolymarketProvider', () => {
       });
     });
   });
+
+  describe('getMarketSeries', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('calls the series events endpoint with the requested params', async () => {
+      const provider = createProvider();
+      const mockEvents = [{ id: 'event-1' }];
+      const parsedMarkets = [{ id: 'market-1' }];
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEvents),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('series_id=10684'),
+      );
+      expect(requestUrl.origin + requestUrl.pathname).toBe(
+        'https://gamma-api.polymarket.com/events',
+      );
+      expect(requestUrl.searchParams.get('series_id')).toBe('10684');
+      expect(requestUrl.searchParams.get('end_date_min')).toBe(
+        '2026-04-06T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('end_date_max')).toBe(
+        '2026-04-07T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('limit')).toBe('10');
+      expect(requestUrl.searchParams.get('order')).toBe('endDate');
+      expect(requestUrl.searchParams.get('ascending')).toBe('true');
+    });
+
+    it('returns an empty array when the API returns no events', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      expect(result).toEqual([]);
+      expect(mockParsePolymarketEvents).not.toHaveBeenCalled();
+    });
+
+    it('uses the default limit when one is not provided', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: 'event-1' }]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(requestUrl.searchParams.get('limit')).toBe('50');
+    });
+  });
 });
