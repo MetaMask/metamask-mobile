@@ -9,12 +9,15 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
+import {
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
@@ -115,43 +118,44 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     <View style={styles.container}>
       <TouchableOpacity
         onPress={openModal}
-        style={styles.selector}
+        style={styles.row}
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
-        {selectedAddress && accountName ? (
-          <>
-            <Avatar
-              variant={AvatarVariant.Account}
-              type={accountAvatarType}
-              accountAddress={selectedAddress}
-              size={AvatarSize.Sm}
-            />
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('confirm.label.to')}
+        </Text>
+        <View style={styles.valueContainer}>
+          {selectedAddress && accountName ? (
+            <>
+              <Avatar
+                variant={AvatarVariant.Account}
+                type={accountAvatarType}
+                accountAddress={selectedAddress}
+                size={AvatarSize.Sm}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                numberOfLines={1}
+                ellipsizeMode="middle"
+                twClassName="shrink"
+              >
+                {accountName}
+              </Text>
+            </>
+          ) : (
             <Text
-              variant={TextVariant.BodyMD}
-              numberOfLines={1}
-              ellipsizeMode="middle"
-              style={styles.accountText}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
             >
-              {accountName}
-            </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={theme.colors.icon.alternative}
-            />
-          </>
-        ) : (
-          <>
-            <Text variant={TextVariant.BodyMD} style={styles.placeholderText}>
               {strings('transaction.recipient_address')}
             </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={theme.colors.icon.alternative}
-            />
-          </>
-        )}
+          )}
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
+        </View>
       </TouchableOpacity>
       <Modal
         visible={isModalVisible}
@@ -162,7 +166,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text variant={TextVariant.HeadingMD}>
+            <Text variant={TextVariant.HeadingMd}>
               {strings('bridge.select_recipient')}
             </Text>
             <TouchableOpacity onPress={closeModal}>
