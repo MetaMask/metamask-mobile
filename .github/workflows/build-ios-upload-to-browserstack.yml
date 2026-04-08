@@ -115,6 +115,7 @@ jobs:
           fi
           
           # Set environment variables for with-SRP build
+          # E2E_MOCK_OAUTH_EMAIL overrides request email_id (default newuser+e2e@web3auth.io).
           ENV_VARS='[
             {
               "mapped_to": "ADDITIONAL_SRP_1",
@@ -129,6 +130,21 @@ jobs:
             {
               "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
               "value": "true",
+              "is_expand": true
+            },
+            {
+              "mapped_to": "E2E_MOCK_OAUTH",
+              "value": "true",
+              "is_expand": true
+            },
+            {
+              "mapped_to": "E2E_BYOA_AUTH_SECRET",
+              "value": "'"${{ secrets.E2E_BYOA_AUTH_SECRET }}"'",
+              "is_expand": true
+            },
+            {
+              "mapped_to": "E2E_MOCK_OAUTH_EMAIL",
+              "value": "'"${{ secrets.E2E_MOCK_OAUTH_EMAIL }}"'",
               "is_expand": true
             },
             {
