@@ -1067,7 +1067,7 @@ describe('polymarket utils', () => {
       icon: 'https://example.com/icon.png',
       closed: false,
       tags: [],
-      series: [{ recurrence: 'daily' }],
+      series: [{ id: '1', slug: 'test', title: 'Test', recurrence: 'daily' }],
       markets: [
         {
           conditionId: 'market-1',
@@ -1108,7 +1108,14 @@ describe('polymarket utils', () => {
         image: 'https://example.com/icon.png',
         status: 'open',
         recurrence: 'daily',
+        series: {
+          id: '1',
+          slug: 'test',
+          title: 'Test',
+          recurrence: 'daily',
+        },
         endDate: undefined,
+        game: undefined,
         category: mockCategory,
         tags: [],
         outcomes: [
@@ -1120,6 +1127,7 @@ describe('polymarket utils', () => {
             description: 'A test event',
             image: 'https://example.com/market-icon.png',
             groupItemTitle: 'Weather',
+            groupItemThreshold: undefined,
             status: 'open',
             volume: 1000,
             resolutionStatus: 'unresolved',
@@ -2473,7 +2481,7 @@ describe('polymarket utils', () => {
       icon: 'https://example.com/icon.png',
       closed: false,
       tags: [],
-      series: [{ recurrence: 'daily' }],
+      series: [{ id: '1', slug: 'test', title: 'Test', recurrence: 'daily' }],
       markets: [
         {
           conditionId: 'market-1',
@@ -3918,6 +3926,90 @@ describe('polymarket utils', () => {
     it('includes all necessary approval calls', () => {
       const calls = getAllowanceCalls({ address: mockAddress });
       expect(calls.length).toBe(6);
+    });
+  });
+
+  describe('parsePolymarketEvents - series metadata', () => {
+    const mockCategory: PredictCategory = 'trending';
+
+    const createMockEvent = (
+      overrides: Partial<PolymarketApiEvent> = {},
+    ): PolymarketApiEvent => ({
+      id: 'series-event-1',
+      slug: 'series-event',
+      title: 'Series Event',
+      description: 'Series event description',
+      icon: 'https://example.com/series-icon.png',
+      closed: false,
+      tags: [],
+      series: [],
+      markets: [
+        {
+          conditionId: 'series-market-1',
+          question: 'Will BTC move up?',
+          description: 'Series event description',
+          icon: 'https://example.com/market-icon.png',
+          image: 'https://example.com/market-image.png',
+          groupItemTitle: 'Crypto',
+          closed: false,
+          volumeNum: 1000,
+          liquidity: 500,
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomes: '["Yes", "No"]',
+          outcomePrices: '["0.6", "0.4"]',
+          negRisk: true,
+          orderPriceMinTickSize: 0.01,
+          status: 'open',
+          active: true,
+          resolvedBy: '0x0000000000000000000000000000000000000000',
+          umaResolutionStatus: 'unresolved',
+        },
+      ],
+      liquidity: 1000000,
+      volume: 1000000,
+      ...overrides,
+    });
+
+    it('maps the first series item onto the parsed market', () => {
+      const series = {
+        id: '10684',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down 5m',
+        recurrence: '5m',
+      };
+      const event = createMockEvent({ series: [series] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toEqual(series);
+    });
+
+    it('omits series when the event series array is empty', () => {
+      const event = createMockEvent({ series: [] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toBeUndefined();
+    });
+
+    it('uses the first series item when multiple series are present', () => {
+      const firstSeries = {
+        id: '10684',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down 5m',
+        recurrence: '5m',
+      };
+      const secondSeries = {
+        id: '10685',
+        slug: 'eth-up-or-down-15m',
+        title: 'ETH Up or Down 15m',
+        recurrence: '15m',
+      };
+      const event = createMockEvent({ series: [firstSeries, secondSeries] });
+
+      const result = parsePolymarketEvents([event], mockCategory);
+
+      expect(result[0].series).toEqual(firstSeries);
     });
   });
 });
