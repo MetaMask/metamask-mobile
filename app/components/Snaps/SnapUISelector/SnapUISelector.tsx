@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import {
-  Label,
-  FontWeight,
-  ButtonBase,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Label, FontWeight } from '@metamask/design-system-react-native';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { Box } from '../../UI/Box/Box';
 import { FlexDirection } from '../../UI/Box/box.types';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../hooks/useStyles';
 import stylesheet from './SnapUISelector.styles';
-import { ScrollView, ViewStyle } from 'react-native';
+import { View, ScrollView, ViewStyle } from 'react-native';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import { State } from '@metamask/snaps-sdk';
@@ -55,20 +53,26 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
     onSelect(value);
   };
 
-  return (
-    <Box>
-      <ButtonBase
-        isFullWidth
-        twClassName="justify-start"
-        onPress={handlePress}
-        style={styles.modalButton}
-        isDisabled={disabled}
-        testID="snap-ui-renderer__selector-item"
-      >
-        {children}
-      </ButtonBase>
+  const buttonContent = (
+    <>
+      {children}
       {selected && <Box style={styles.selectedPill} />}
-    </Box>
+    </>
+  );
+
+  return (
+    // TODO: Migrate to ButtonBase from @metamask/design-system-react-native once it supports
+    // custom flex layouts inside children. The new ButtonBase wraps non-string children in an
+    // unsized intermediate <View>, which breaks SnapUICard's flex: 1 + justifyContent: spaceBetween
+    // layout (right-side value text collapses to center instead of aligning right).
+    <ButtonBase
+      label={buttonContent}
+      width={ButtonWidthTypes.Full}
+      onPress={handlePress}
+      style={styles.modalButton}
+      isDisabled={disabled}
+      testID="snap-ui-renderer__selector-item"
+    />
   );
 };
 
@@ -140,16 +144,14 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
       <Box style={style} flexDirection={FlexDirection.Column}>
         {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
         <ButtonBase
-          isFullWidth
-          twClassName="justify-between"
+          width={ButtonWidthTypes.Full}
+          label={inlineButtonLabel}
           isDisabled={disabled}
           endIconName={IconName.ArrowDown}
           onPress={handleModalOpen}
           style={styles.button}
           testID={testID}
-        >
-          {inlineButtonLabel}
-        </ButtonBase>
+        />
         {error && (
           <HelpText severity={HelpTextSeverity.Error} style={styles.helpText}>
             {error}
@@ -161,7 +163,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
         onCancel={handleModalClose}
         avoidKeyboard
       >
-        <Box style={styles.modal}>
+        <View style={styles.modal}>
           <BottomSheetHeader onBack={handleModalClose}>
             {title}
           </BottomSheetHeader>
@@ -184,7 +186,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
               ))}
             </Box>
           </ScrollView>
-        </Box>
+        </View>
       </ApprovalModal>
     </>
   );
