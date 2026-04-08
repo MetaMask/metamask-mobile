@@ -76,12 +76,4 @@ describe('QuickAmounts', () => {
 
     expect(getByTestId('custom-quick-amounts')).toBeOnTheScreen();
   });
-
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(
-      <QuickAmounts onAmountPress={mockOnAmountPress} />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
 });

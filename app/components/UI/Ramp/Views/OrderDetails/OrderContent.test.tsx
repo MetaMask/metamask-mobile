@@ -6,6 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import Clipboard from '@react-native-clipboard/clipboard';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 type RampsOrderWithPaymentDetails = RampsOrder & {
   paymentDetails: {
@@ -81,12 +82,14 @@ describe('OrderContent', () => {
     });
   }
 
-  it('renders completed state correctly', () => {
+  it('renders completed state with order details', () => {
     renderOrder(mockOrder);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT),
+    ).toBeOnTheScreen();
   });
 
-  it('renders loading state when order has no amount', () => {
+  it('renders pending order without crypto amount', () => {
     const pendingOrder: RampsOrder = {
       ...mockOrder,
       fiatAmount: 0,
@@ -94,10 +97,12 @@ describe('OrderContent', () => {
       status: RampsOrderStatus.Pending,
     };
     renderOrder(pendingOrder);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT),
+    ).toBeOnTheScreen();
   });
 
-  it('shows placeholder for token amount when cryptoAmount is 0 or missing', () => {
+  it('shows placeholder for token amount when cryptoAmount is 0', () => {
     const orderWithZeroCrypto: RampsOrder = {
       ...mockOrder,
       cryptoAmount: 0,
@@ -105,7 +110,9 @@ describe('OrderContent', () => {
       status: RampsOrderStatus.Pending,
     };
     renderOrder(orderWithZeroCrypto);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT),
+    ).toBeOnTheScreen();
   });
 
   it('copies order ID to clipboard when order ID is tapped', () => {

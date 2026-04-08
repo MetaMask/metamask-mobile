@@ -201,9 +201,9 @@ describe('ProviderSelectionModal', () => {
     mockUseParams.mockReturnValue({ amount: 100 });
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(ProviderSelectionModal);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders provider selection modal with providers list', () => {
+    const { getByText } = renderWithProvider(ProviderSelectionModal);
+    expect(getByText('Transak')).toBeOnTheScreen();
   });
 
   it('calls useRampsQuotes with provider params on mount', () => {

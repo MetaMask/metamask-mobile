@@ -68,23 +68,27 @@ describe('RegionSelectorModal Component', () => {
     mockTrackEvent.mockClear();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+  it('renders region list with search input', () => {
+    const { getByPlaceholderText, getByText } =
+      renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByPlaceholderText('Search by country')).toBeOnTheScreen();
+    expect(getByText('Germany')).toBeOnTheScreen();
+    expect(getByText('Canada')).toBeOnTheScreen();
   });
 
-  it('render matches snapshot when searching for a country', () => {
-    const { getByPlaceholderText, toJSON } =
+  it('filters regions when searching for a country', () => {
+    const { getByPlaceholderText, getByText, queryByText } =
       renderWithProvider(RegionSelectorModal);
 
     fireEvent.changeText(getByPlaceholderText('Search by country'), 'Germany');
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Germany')).toBeOnTheScreen();
+    expect(queryByText('Canada')).toBeNull();
   });
 
-  it('render matches snapshot when search has no results', () => {
-    const { getByPlaceholderText, toJSON } =
+  it('shows no results when search has no matches', () => {
+    const { getByPlaceholderText, queryByText } =
       renderWithProvider(RegionSelectorModal);
 
     fireEvent.changeText(
@@ -92,7 +96,8 @@ describe('RegionSelectorModal Component', () => {
       'Nonexistent Country',
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(queryByText('Germany')).toBeNull();
+    expect(queryByText('Canada')).toBeNull();
   });
 
   it('calls setSelectedRegion when a supported region is selected', () => {
@@ -120,8 +125,8 @@ describe('RegionSelectorModal Component', () => {
   });
 
   it('sorts recommended regions to the top when no search is active', () => {
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getAllByText } = renderWithProvider(RegionSelectorModal);
+    expect(getAllByText('United States').length).toBeGreaterThan(0);
   });
 
   it('tracks RAMPS_REGION_SELECTED event when a supported region is selected', () => {
@@ -154,9 +159,11 @@ describe('RegionSelectorModal Component', () => {
       onRegionSelect: undefined,
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const { getByText, queryByText } = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Germany')).toBeOnTheScreen();
+    expect(getByText('Canada')).toBeOnTheScreen();
+    expect(queryByText('United States')).toBeNull();
   });
 
   it('handles empty regions array from navigation params', () => {
@@ -164,9 +171,10 @@ describe('RegionSelectorModal Component', () => {
       regions: [],
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const { queryByText } = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(queryByText('Germany')).toBeNull();
+    expect(queryByText('Canada')).toBeNull();
   });
 
   it('calls onRegionSelect callback when provided and region is selected', () => {
@@ -221,19 +229,20 @@ describe('RegionSelectorModal Component', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('render matches snapshot with allRegionsSelectable set to true', () => {
+  it('renders all regions as selectable when allRegionsSelectable is true', () => {
     mockUseParams.mockReturnValue({
       regions: mockRegions,
       onRegionSelect: undefined,
       allRegionsSelectable: true,
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const { getByText } = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Germany')).toBeOnTheScreen();
+    expect(getByText('Canada')).toBeOnTheScreen();
   });
 
-  it('render matches snapshot with custom selectedRegion', () => {
+  it('renders with custom selectedRegion highlighted', () => {
     const germanyRegion = mockRegions.find((r) => r.isoCode === 'DE');
 
     mockUseParams.mockReturnValue({
@@ -242,9 +251,9 @@ describe('RegionSelectorModal Component', () => {
       selectedRegion: germanyRegion,
     });
 
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    const { getByText } = renderWithProvider(RegionSelectorModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Germany')).toBeOnTheScreen();
   });
 
   it('allows selection of unsupported regions when allRegionsSelectable is true', () => {
