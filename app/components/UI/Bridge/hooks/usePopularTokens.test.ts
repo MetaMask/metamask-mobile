@@ -71,7 +71,8 @@ describe('usePopularTokens', () => {
           headers: {
             'Content-Type': 'application/json',
             // Initial fetch may not have a bearer token
-            Authorization: 'Bearer ',
+            'Client-Version': expect.any(String),
+            'X-Client-Id': 'mobile',
           },
           body: JSON.stringify({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
