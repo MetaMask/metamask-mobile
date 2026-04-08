@@ -100,13 +100,14 @@ describe('toCardTokenAllowance', () => {
   });
 
   describe('field passthrough', () => {
-    it('maps all required fields from CardFundingAsset', () => {
+    it('maps remaining allowance to allowance and total cap to totalAllowance', () => {
       const asset = makeAsset({
         address: '0xaddr',
         decimals: 18,
         symbol: 'ETH',
         name: 'Ether',
         chainId: 'eip155:1' as `eip155:${number}`,
+        balance: '123',
         allowance: '999',
         walletAddress: '0xowner',
       });
@@ -116,7 +117,8 @@ describe('toCardTokenAllowance', () => {
       expect(result.symbol).toBe('ETH');
       expect(result.name).toBe('Ether');
       expect(result.caipChainId).toBe('eip155:1');
-      expect(result.allowance).toBe('999');
+      expect(result.allowance).toBe('123');
+      expect(result.totalAllowance).toBe('999');
       expect(result.walletAddress).toBe('0xowner');
     });
   });

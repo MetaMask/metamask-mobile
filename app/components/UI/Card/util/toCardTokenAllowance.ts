@@ -18,7 +18,7 @@ export function toCardTokenAllowance(
     caipChainId: asset.chainId,
     allowanceState:
       STATUS_TO_ALLOWANCE_STATE[asset.status] ?? AllowanceState.NotEnabled,
-    allowance: asset.allowance ?? '0',
+    allowance: asset.balance ?? '0',
     totalAllowance: asset.allowance ?? '0',
     availableBalance:
       asset.balance && asset.balance !== '0' ? asset.balance : undefined,
