@@ -7543,6 +7543,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b, @metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b":
+  version: 8.3.0-preview.4ce710b
+  resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b"
+  checksum: 10/3e1322cb89d2054a9ef1b88a16bb5ba254cb0d0de055d5e8cdd50bbf62d468db30cdb7a6d425a1ddb06893e3dce8acc85ff592f384e4605c9145dc6736aa2181
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.5.0":
   version: 0.5.0
   resolution: "@metamask/7715-permission-types@npm:0.5.0"
@@ -8149,13 +8156,6 @@ __metadata:
     "@metamask/design-tokens": ^8.0.0
     react: ^18.2.0
   checksum: 10/80a995781453dfab14bab39875c49b1f70fa68bead663feb1203e0ee1036906bcac73e696c87cb703c76ca8088774eeb2e775ea8f90d287849b1c070111530d7
-  languageName: node
-  linkType: hard
-
-"@metamask/design-tokens@npm:@metamask-previews/design-tokens@8.3.0-preview.4ce710b":
-  version: 8.3.0-preview.4ce710b
-  resolution: "@metamask-previews/design-tokens@npm:8.3.0-preview.4ce710b"
-  checksum: 10/3e1322cb89d2054a9ef1b88a16bb5ba254cb0d0de055d5e8cdd50bbf62d468db30cdb7a6d425a1ddb06893e3dce8acc85ff592f384e4605c9145dc6736aa2181
   languageName: node
   linkType: hard
 
@@ -35455,6 +35455,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/design-tokens": "npm:8.3.0-preview.4ce710b"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^7.0.0"

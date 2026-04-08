@@ -219,6 +219,7 @@
     "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/hw-app-eth": "^6.42.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
+    "@metamask-previews/design-tokens": "8.3.0-preview.4ce710b",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.0",
     "@metamask/account-tree-controller": "^7.0.0",
