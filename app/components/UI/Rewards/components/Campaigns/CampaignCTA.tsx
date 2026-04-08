@@ -26,6 +26,7 @@ interface CampaignCTAProps {
     'status' | 'isLoading'
   >;
   hasPositions: boolean;
+  campaignId: string;
 }
 
 /**
@@ -42,17 +43,24 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
   campaign,
   participantStatus,
   hasPositions,
+  campaignId,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   const navigation = useNavigation();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const onOpenPosition = useCallback(() => {
-    navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never);
-  }, [navigation]);
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
+      mode: 'open_position',
+      campaignId,
+    });
+  }, [navigation, campaignId]);
   const onSwapAssets = useCallback(() => {
-    navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW as never);
-  }, [navigation]);
+    navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
+      mode: 'swap',
+      campaignId,
+    });
+  }, [navigation, campaignId]);
 
   const isActive =
     !participantStatus?.isLoading &&
@@ -121,6 +129,11 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
     );
   }
 
+  // Deposit window closed — can swap existing positions but cannot open new ones
+  if (!optinAllowed && !hasPositions) {
+    return null;
+  }
+
   if (hasPositions) {
     return (
       <Box twClassName="px-4 pt-2">
@@ -131,7 +144,7 @@ const CampaignCTA: React.FC<CampaignCTAProps> = ({
           onPress={onSwapAssets}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {strings('rewards.campaign_details.swap_ondo_assets')}
+          {strings('rewards.campaign_details.open_position')}
         </Button>
       </Box>
     );

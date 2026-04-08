@@ -169,7 +169,6 @@ export function resolveLineChromeOptions(
 
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
-  | 'RESOLVE_DEFERRED_GET_BARS'
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
@@ -184,12 +183,20 @@ export type WebViewToRNMessageType =
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'CROSSHAIR_MOVE'
-  | 'NEED_MORE_HISTORY'
   | 'ERROR'
   | 'DEBUG';
 
+export interface OHLCVPaginationConfig {
+  nextCursor: string | null;
+  hasMore: boolean;
+  assetId: string;
+  vsCurrency: string;
+}
+
 export interface SetOHLCVDataPayload {
   data: OHLCVBar[];
+  /** When provided, the WebView fetches older pages directly instead of round-tripping via RN. */
+  pagination?: OHLCVPaginationConfig;
 }
 
 export interface AddIndicatorPayload {
@@ -224,7 +231,6 @@ export type SetLineChromePayload = ResolvedLineChromeOptions;
 
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
-  | { type: 'RESOLVE_DEFERRED_GET_BARS'; payload?: Record<string, never> }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
@@ -252,10 +258,6 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
-export interface NeedMoreHistoryPayload {
-  oldestTimestamp: number;
-}
-
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -269,7 +271,6 @@ export type WebViewToRNMessage =
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
-  | { type: 'NEED_MORE_HISTORY'; payload: NeedMoreHistoryPayload }
   | { type: 'ERROR'; payload: ErrorPayload }
   | { type: 'DEBUG'; payload: { message: string } };
 
@@ -307,15 +308,6 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         type,
         payload: {
           message: typeof obj.message === 'string' ? obj.message : String(obj),
-        },
-      };
-
-    case 'NEED_MORE_HISTORY':
-      return {
-        type,
-        payload: {
-          oldestTimestamp:
-            typeof obj.oldestTimestamp === 'number' ? obj.oldestTimestamp : 0,
         },
       };
 
@@ -390,8 +382,7 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
  * Generic AdvancedChart component props.
  *
  * Composable API: each consumer uses only the props it needs.
- * - Token Details: ohlcvData, indicators, chartType
- * - Perps: ohlcvData, positionLines, onRequestMoreHistory, onRealtimeUpdate, onCrosshairMove
+ * - Token Details: ohlcvData, ohlcvPagination, indicators, chartType
  */
 export interface AdvancedChartProps {
   /** OHLCV data to display (required) */
@@ -405,21 +396,14 @@ export interface AdvancedChartProps {
   /** Chart height in pixels */
   height?: number;
 
-  /** Latest bar for real-time streaming (Perps). When this changes the WebView receives a tick. */
+  /** Latest bar for real-time streaming. When this changes the WebView receives a tick. */
   realtimeBar?: OHLCVBar;
   /**
-   * Called when the user scrolls to the left edge and more history is needed.
-   * Receives the oldest bar timestamp (ms) currently held by the chart so
-   * consumers can use it directly as the `endTime` for their next fetch,
-   * without having to independently track their own oldest candle.
+   * Pagination config for WebView-side direct fetching. The WebView's datafeed
+   * fetches older pages from the Price API directly in `getBars` using the cursor,
+   * without round-tripping through RN.
    */
-  onRequestMoreHistory?: (params: { oldestTimestamp: number }) => void;
-  /**
-   * When false, the Price API has no older page (`hasNext: false`). On `NEED_MORE_HISTORY`, RN
-   * tells the WebView to resolve the deferred `getBars` with `noData` so the chart can finish init.
-   * Omit or leave undefined for consumers that always paginate (e.g. Perps) or handle history elsewhere.
-   */
-  ohlcvHasMoreHistory?: boolean;
+  ohlcvPagination?: OHLCVPaginationConfig;
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];

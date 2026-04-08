@@ -763,6 +763,16 @@ export const parsePolymarketEvents = (
         ? event.description
         : (event.markets?.[0]?.description ?? event.description);
 
+      const seriesData =
+        event.series?.length > 0
+          ? {
+              id: event.series[0].id,
+              slug: event.series[0].slug,
+              title: event.series[0].title,
+              recurrence: event.series[0].recurrence,
+            }
+          : undefined;
+
       return {
         id: event.id,
         slug: event.slug,
@@ -783,6 +793,7 @@ export const parsePolymarketEvents = (
         liquidity: event.liquidity,
         volume: event.volume,
         game,
+        ...(seriesData && { series: seriesData }),
       };
     },
   );
