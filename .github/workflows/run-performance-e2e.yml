@@ -206,8 +206,8 @@ jobs:
           echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
           echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
 
-  trigger-android-dual-versions:
-    name: Trigger Android Dual Versions and Extract BrowserStack URLs
+  trigger-android-build:
+    name: Trigger Android Build and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     needs: [determine-branch-name]
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
@@ -217,8 +217,8 @@ jobs:
       is_test_build: ${{ inputs.is_test_build || true }}
     secrets: inherit
 
-  trigger-ios-dual-versions:
-    name: Trigger iOS Dual Versions and Extract BrowserStack URLs
+  trigger-ios-build:
+    name: Trigger iOS Build and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     needs: [determine-branch-name]
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
@@ -238,19 +238,19 @@ jobs:
     needs:
       [
         read-device-matrix,
-        trigger-android-dual-versions,
+        trigger-android-build,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.apk-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && (needs.trigger-android-build.result == 'skipped' || needs.trigger-android-build.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-build.outputs.apk-browserstack-url != '')
     with:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.apk-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.apk-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-android-build.outputs.apk-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
+      app_version: ${{ needs.trigger-android-build.outputs.apk-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
@@ -261,19 +261,19 @@ jobs:
     needs:
       [
         read-device-matrix,
-        trigger-ios-dual-versions,
+        trigger-ios-build,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.ipa-browserstack-url != '')
+    if: always() && !failure() && !cancelled() && (needs.trigger-ios-build.result == 'skipped' || needs.trigger-ios-build.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-build.outputs.ipa-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
-      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.ipa-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
-      app_version: ${{ needs.trigger-ios-dual-versions.outputs.ipa-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-ios-build.outputs.ipa-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
+      app_version: ${{ needs.trigger-ios-build.outputs.ipa-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
@@ -299,20 +299,20 @@ jobs:
     needs:
       [
         read-device-matrix,
-        trigger-android-dual-versions,
+        trigger-android-build,
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.apk-browserstack-url != '')
+    if: always() && !cancelled() && (needs.trigger-android-build.result == 'skipped' || needs.trigger-android-build.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-build.outputs.apk-browserstack-url != '')
     with:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.apk-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.apk-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-android-build.outputs.apk-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-build.outputs.apk-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
     secrets: inherit
@@ -323,20 +323,20 @@ jobs:
     needs:
       [
         read-device-matrix,
-        trigger-ios-dual-versions,
+        trigger-ios-build,
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.ipa-browserstack-url != '')
+    if: always() && !cancelled() && (needs.trigger-ios-build.result == 'skipped' || needs.trigger-ios-build.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-build.outputs.ipa-browserstack-url != '')
     with:
       platform: ios
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
-      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.ipa-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
-      app_version: ${{ needs.trigger-ios-dual-versions.outputs.ipa-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-ios-build.outputs.ipa-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
+      app_version: ${{ needs.trigger-ios-build.outputs.ipa-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
@@ -383,20 +383,20 @@ jobs:
     needs:
       [
         read-device-matrix,
-        trigger-android-dual-versions,
+        trigger-android-build,
         fetch-rn-playground-apk-upload-to-browserstack,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.apk-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
+    if: always() && !cancelled() && (needs.trigger-android-build.result == 'skipped' || needs.trigger-android-build.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-build.outputs.apk-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
     with:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.apk-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.apk-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.trigger-android-build.outputs.apk-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-build.outputs.apk-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       browserstack_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-browserstack.outputs.browserstack-playground-url }}
