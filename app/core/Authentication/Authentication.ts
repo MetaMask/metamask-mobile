@@ -20,6 +20,7 @@ import {
   setCompletedOnboarding,
   clearAccountType,
   clearSeedlessOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
 } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -1550,6 +1551,9 @@ class AuthenticationService {
     ReduxService.store.dispatch(setCompletedOnboarding(false));
     ReduxService.store.dispatch(clearAccountType());
     ReduxService.store.dispatch(clearSeedlessOnboarding());
+    ReduxService.store.dispatch(
+      setPendingSocialLoginMarketingConsentBackfill(null),
+    );
   };
 
   /**
