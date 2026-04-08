@@ -1,10 +1,17 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { Box } from '../../../../../UI/Box/Box';
+import { AlignItems } from '../../../../../UI/Box/box.types';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
+const HARDCODED_BALANCE = '$0.00';
 
 export function MoneyAccountWithdrawInfo() {
   useNavbar(strings('confirm.title.money_account_withdraw'));
@@ -15,6 +22,19 @@ export function MoneyAccountWithdrawInfo() {
     <CustomAmountInfo
       currency={MONEY_ACCOUNT_CURRENCY}
       disablePay={!canSelectWithdrawToken}
-    />
+    >
+      <MoneyAccountWithdrawBalance />
+    </CustomAmountInfo>
+  );
+}
+
+function MoneyAccountWithdrawBalance() {
+  return (
+    <Box alignItems={AlignItems.center} testID="money-account-withdraw-balance">
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Alternative}
+      >{`${strings('confirm.available_balance')}${HARDCODED_BALANCE}`}</Text>
+    </Box>
   );
 }

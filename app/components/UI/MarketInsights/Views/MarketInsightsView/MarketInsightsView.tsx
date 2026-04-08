@@ -68,7 +68,7 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
 import {
