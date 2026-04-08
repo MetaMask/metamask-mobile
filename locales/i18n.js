@@ -26,6 +26,38 @@ import tr from './languages/tr';
 import vi from './languages/vi';
 import zh from './languages/zh';
 
+const LEGACY_PERCENT_INTERPOLATION_REGEX = /%\{\{([^}]+)\}\}/g;
+
+/**
+ * Normalizes legacy percent-prefixed interpolation tokens so i18n-js does not
+ * parse `%{{param}}` as an invalid `%{` placeholder.
+ *
+ * `%{{percentage}}` -> `%%{percentage}`
+ *
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+export function normalizeLegacyPercentInterpolation(value) {
+  if (typeof value === 'string') {
+    return value.replace(LEGACY_PERCENT_INTERPOLATION_REGEX, '%%{$1}');
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeLegacyPercentInterpolation);
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [
+        key,
+        normalizeLegacyPercentInterpolation(nestedValue),
+      ]),
+    );
+  }
+
+  return value;
+}
+
 export const supportedTranslations = {
   de,
   el,
@@ -50,7 +82,7 @@ export const I18nEvents = new EventEmitter();
 I18n.fallbacks = true;
 I18n.defaultLocale = 'en';
 // Define the supported translations
-I18n.translations = supportedTranslations;
+I18n.translations = normalizeLegacyPercentInterpolation(supportedTranslations);
 // If language selected get locale
 getUserPreferableLocale();
 
