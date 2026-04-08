@@ -37,7 +37,7 @@ const mockSetSelectedPaymentToken = Engine.context.PerpsController
   ?.setSelectedPaymentToken as jest.Mock;
 
 function setupDefaults({
-  payToken = null,
+  payToken = undefined,
   selectedPaymentToken = null,
   defaultPayToken = null,
   pendingConfig = undefined,
@@ -128,7 +128,7 @@ describe('useInitPerpsPaymentToken', () => {
 
   it('applies pending config payment token when it differs from current', () => {
     setupDefaults({
-      payToken: null,
+      payToken: undefined,
       selectedPaymentToken: null,
       pendingConfig: {
         selectedPaymentToken: {
@@ -159,7 +159,7 @@ describe('useInitPerpsPaymentToken', () => {
       description: 'DAI',
     };
     setupDefaults({
-      payToken: { address: '0xdai', chainId: '0x1' } as ReturnType<
+      payToken: { address: '0xdai', chainId: '0x1' } as unknown as ReturnType<
         typeof useTransactionPayToken
       >['payToken'],
       selectedPaymentToken: { address: '0xdai', chainId: '0x1' },
@@ -186,7 +186,7 @@ describe('useInitPerpsPaymentToken', () => {
       description: 'DAI',
     };
     setupDefaults({
-      payToken: null,
+      payToken: undefined,
       selectedPaymentToken: null,
       pendingConfig: { selectedPaymentToken: pendingToken },
     });
