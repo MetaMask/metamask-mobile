@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -36,23 +36,16 @@ import { useTransactionMetadataRequest } from '../../../../Views/confirmations/h
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  selectPendingTradeConfiguration,
 } from '@metamask/perps-controller';
 import {
   PERPS_BALANCE_CHAIN_ID,
   PERPS_BALANCE_PLACEHOLDER_ADDRESS,
 } from '../../constants/perpsConfig';
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
-import {
-  useIsPerpsBalanceSelected,
-  usePerpsPayWithToken,
-} from '../../hooks/useIsPerpsBalanceSelected';
+import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import { usePerpsSelector } from '../../hooks/usePerpsSelector';
-import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
-import Engine from '../../../../../core/Engine';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -110,116 +103,9 @@ export const PerpsPayRow = ({
   const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { track } = usePerpsEventTracking();
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const matchesPerpsBalance = useIsPerpsBalanceSelected();
-  const pendingConfig = usePerpsSelector((state) =>
-    selectPendingTradeConfiguration(state, initialAsset),
-  );
-  const selectedPaymentToken = usePerpsPayWithToken();
-  const defaultPayTokenWhenNoPerpsBalance =
-    useDefaultPayWithTokenWhenNoPerpsBalance();
-
-  const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;
-
-  // Track which pending config we've already applied so we don't overwrite the user's
-  // in-session token selection. Apply pending config only on initial load or when
-  // switching asset; otherwise switching tokens in the Pay With modal would flip back.
-  const appliedPendingTokenRef = useRef<
-    { address: string; chainId: string } | null | undefined
-  >(undefined);
-  const prevInitialAssetRef = useRef(initialAsset);
-  if (prevInitialAssetRef.current !== initialAsset) {
-    prevInitialAssetRef.current = initialAsset;
-    appliedPendingTokenRef.current = undefined;
-  }
-
-  // When pending config has no selected token: either set Perps balance (null)
-  // or preselect the allowlist token with highest USD balance when user has no perps balance.
-  useEffect(() => {
-    if (
-      pendingConfigSelectedPaymentToken != null ||
-      appliedPendingTokenRef.current != null
-    )
-      return;
-
-    const defaultToken = defaultPayTokenWhenNoPerpsBalance;
-    if (defaultToken != null) {
-      appliedPendingTokenRef.current = {
-        address: defaultToken.address,
-        chainId: defaultToken.chainId,
-      };
-      setPayToken({
-        address: defaultToken.address as Hex,
-        chainId: defaultToken.chainId as Hex,
-      });
-      Engine.context.PerpsController?.setSelectedPaymentToken?.({
-        description: defaultToken.description,
-        address: defaultToken.address as Hex,
-        chainId: defaultToken.chainId as Hex,
-      });
-
-      return;
-    }
-
-    if (appliedPendingTokenRef.current === null) return;
-    appliedPendingTokenRef.current = null;
-    Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
-  }, [
-    pendingConfigSelectedPaymentToken,
-    defaultPayTokenWhenNoPerpsBalance,
-    setPayToken,
-  ]);
-
-  useEffect(
-    () => () => {
-      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
-    },
-    [initialAsset],
-  );
-
-  useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken) return;
-
-    const pendingAddr = pendingConfigSelectedPaymentToken.address;
-    const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
-    const alreadyApplied =
-      appliedPendingTokenRef.current !== undefined &&
-      (appliedPendingTokenRef.current === null
-        ? false
-        : appliedPendingTokenRef.current.address === pendingAddr &&
-          appliedPendingTokenRef.current.chainId === pendingChainId);
-    if (alreadyApplied) return;
-
-    appliedPendingTokenRef.current = {
-      address: pendingAddr,
-      chainId: pendingChainId,
-    };
-
-    if (
-      payToken?.address !== pendingAddr ||
-      payToken?.chainId !== pendingChainId ||
-      selectedPaymentToken?.address !== pendingAddr ||
-      selectedPaymentToken?.chainId !== pendingChainId
-    ) {
-      setPayToken({
-        address: pendingAddr as Hex,
-        chainId: pendingChainId as Hex,
-      });
-
-      Engine.context.PerpsController?.setSelectedPaymentToken?.({
-        description: pendingConfigSelectedPaymentToken.description,
-        address: pendingAddr as Hex,
-        chainId: pendingChainId as Hex,
-      });
-    }
-  }, [
-    initialAsset,
-    payToken,
-    pendingConfigSelectedPaymentToken,
-    setPayToken,
-    selectedPaymentToken,
-  ]);
 
   const {
     txParams: { from },
