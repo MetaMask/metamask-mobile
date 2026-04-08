@@ -18,13 +18,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
+import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoActivityRow from '../components/Campaigns/OndoActivityRow';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useGetOndoCampaignActivity } from '../hooks/useGetOndoCampaignActivity';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useOndoAccountPicker } from '../hooks/useOndoAccountPicker';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -41,6 +44,9 @@ const OndoCampaignPortfolioView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route = useRoute<RouteProp<PortfolioRouteParams>>();
   const { campaignId } = route.params;
+
+  const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
+    useOndoAccountPicker(campaignId);
 
   const { campaigns } = useRewardCampaigns();
   const campaign = useMemo(
@@ -149,6 +155,8 @@ const OndoCampaignPortfolioView: React.FC = () => {
             hasError={hasPortfolioError}
             hasFetched={portfolioHasFetched}
             refetch={refetchPortfolio}
+            campaignId={campaignId}
+            onOpenAccountPicker={setPendingPicker}
           />
         </Box>
 
@@ -175,6 +183,8 @@ const OndoCampaignPortfolioView: React.FC = () => {
     hasPortfolioError,
     portfolioHasFetched,
     refetchPortfolio,
+    campaignId,
+    setPendingPicker,
     isActivityLoading,
     activityEntries,
     tw,
@@ -211,6 +221,14 @@ const OndoCampaignPortfolioView: React.FC = () => {
           }
           showsVerticalScrollIndicator={false}
         />
+        {pendingPicker && (
+          <OndoAccountPickerSheet
+            pendingPicker={pendingPicker}
+            sheetRef={sheetRef}
+            onClose={() => setPendingPicker(null)}
+            onGroupSelect={handleGroupSelect}
+          />
+        )}
       </SafeAreaView>
     </ErrorBoundary>
   );
