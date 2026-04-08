@@ -113,9 +113,7 @@ describe('PerpsPayRow', () => {
   });
 
   it('renders pay with label', () => {
-    const { getByText } = renderWithProvider(
-      <PerpsPayRow initialAsset="BTC" />,
-    );
+    const { getByText } = renderWithProvider(<PerpsPayRow />);
 
     expect(getByText('confirm.label.pay_with')).toBeOnTheScreen();
   });
@@ -123,9 +121,7 @@ describe('PerpsPayRow', () => {
   it('renders perps balance label when perps balance is selected', () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(true);
 
-    const { getByTestId } = renderWithProvider(
-      <PerpsPayRow initialAsset="BTC" />,
-    );
+    const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
     expect(
       getByTestId(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
@@ -139,9 +135,7 @@ describe('PerpsPayRow', () => {
       setPayToken: jest.fn(),
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
-    const { getByTestId } = renderWithProvider(
-      <PerpsPayRow initialAsset="BTC" />,
-    );
+    const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
     expect(
       getByTestId(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
@@ -149,9 +143,7 @@ describe('PerpsPayRow', () => {
   });
 
   it('navigates to pay with modal when row is pressed and not hardware account', () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsPayRow initialAsset="BTC" />,
-    );
+    const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
     fireEvent.press(getByTestId(ConfirmationRowComponentIDs.PAY_WITH));
 
@@ -173,9 +165,7 @@ describe('PerpsPayRow', () => {
   it('does not navigate when hardware account', () => {
     mockIsHardwareAccount.mockReturnValue(true);
 
-    const { getByTestId } = renderWithProvider(
-      <PerpsPayRow initialAsset="BTC" />,
-    );
+    const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
     fireEvent.press(getByTestId(ConfirmationRowComponentIDs.PAY_WITH));
 
@@ -198,9 +188,7 @@ describe('PerpsPayRow', () => {
   });
 
   it('renders with embedded style when embeddedInStack is true', () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsPayRow initialAsset="BTC" embeddedInStack />,
-    );
+    const { getByTestId } = renderWithProvider(<PerpsPayRow embeddedInStack />);
 
     expect(getByTestId(ConfirmationRowComponentIDs.PAY_WITH)).toBeOnTheScreen();
   });

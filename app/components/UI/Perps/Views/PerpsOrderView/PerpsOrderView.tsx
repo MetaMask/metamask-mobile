@@ -149,7 +149,6 @@ import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/tran
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
-import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 
 // Navigation params interface
@@ -1487,7 +1486,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
-                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>

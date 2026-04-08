@@ -90,13 +90,11 @@ export interface PerpsPayRowProps {
   onPayWithInfoPress?: () => void;
   /** When true, row is stacked below another box (e.g. TP/SL); parent provides background and border radius */
   embeddedInStack?: boolean;
-  initialAsset: string;
 }
 
 export const PerpsPayRow = ({
   onPayWithInfoPress,
   embeddedInStack = false,
-  initialAsset,
 }: PerpsPayRowProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
