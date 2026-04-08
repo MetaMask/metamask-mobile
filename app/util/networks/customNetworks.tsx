@@ -388,6 +388,7 @@ export const NETWORK_CHAIN_ID: {
   readonly ROOTSTOCK_TESTNET: '0x1f';
   readonly TEMPO_TESTNET: '0xa5bf';
   readonly CHILIZ: '0x15b38';
+  readonly WAN: '0x378';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -432,6 +433,7 @@ export const NETWORK_CHAIN_ID: {
   ROOTSTOCK_TESTNET: '0x1f',
   TEMPO_TESTNET: '0xa5bf',
   CHILIZ: '0x15b38',
+  WAN: '0x378',
   ...CHAIN_IDS,
 };
 
@@ -481,4 +483,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ROOTSTOCK_TESTNET]: require('../../images/rootstock.png'),
   [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
+  [NETWORK_CHAIN_ID.WAN]: require('../../images/wanchain.png'),
 };
