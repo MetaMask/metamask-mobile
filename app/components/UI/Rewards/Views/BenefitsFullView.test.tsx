@@ -272,14 +272,14 @@ describe('BenefitsFullView', () => {
     const { UNSAFE_getByType } = render(<BenefitsFullView />);
 
     const refreshControl = UNSAFE_getByType(RefreshControl);
-    fireEvent(refreshControl, 'refresh');
+    const refreshPromise = refreshControl.props.onRefresh();
     await waitFor(() => {
       expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(true);
     });
 
     await act(async () => {
       deferred.reject(new Error());
-      await refreshControl.props.onRefresh().catch(() => undefined);
+      await refreshPromise.catch(() => undefined);
     });
 
     await waitFor(() => {
