@@ -877,6 +877,91 @@ describe('BuildQuote', () => {
         providers: ['moonpay'],
       });
     });
+
+    it('treats amount equal to minAmount as valid (inclusive lower bound)', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 50,
+        maxAmount: 200,
+      });
+      mockUseParams.mockReturnValue({ amount: 50 });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(/Minimum purchase/)).toBeNull();
+      expect(queryByText(/Maximum purchase/)).toBeNull();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 50,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('treats amount equal to maxAmount as valid (inclusive upper bound)', () => {
+      const providerWithLimits = buildProviderWithLimits({
+        minAmount: 50,
+        maxAmount: 200,
+      });
+      mockUseParams.mockReturnValue({ amount: 200 });
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [providerWithLimits, NATIVE_PROVIDER],
+          selectedProvider: providerWithLimits,
+        }),
+      );
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(/Minimum purchase/)).toBeNull();
+      expect(queryByText(/Maximum purchase/)).toBeNull();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 200,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
+
+    it('does not crash when provider has no limits field', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({
+          providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
+          selectedProvider: WIDGET_PROVIDER,
+        }),
+      );
+
+      const { queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText(/Minimum purchase/)).toBeNull();
+      expect(queryByText(/Maximum purchase/)).toBeNull();
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
+    });
   });
 
   describe('quoteFetchError', () => {
