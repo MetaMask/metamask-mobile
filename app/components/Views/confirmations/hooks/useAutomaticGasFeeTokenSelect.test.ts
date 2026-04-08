@@ -141,6 +141,10 @@ describe('useAutomaticGasFeeTokenSelect', () => {
       gasFeeTokens: [
         {
           // When a gasFeeToken is available but is not the same as `selectedGasFeeToken`.
+          tokenAddress: NATIVE_TOKEN_ADDRESS,
+        } as unknown as GasFeeToken,
+        {
+          // When a gasFeeToken is available but is not the same as `selectedGasFeeToken`.
           tokenAddress: '0x9876543210000000000000000000000000000000',
         } as unknown as GasFeeToken,
       ],

@@ -38,27 +38,25 @@ export function getChainIdFromNetworkClientId(
     const { chainId } = networkConfig;
     return chainId;
   } catch (err) {
-    console.warn('Unable to get chain id from neworkClientId', networkClientId);
+    Logger.log('Unable to get chain id from neworkClientId', networkClientId);
     return undefined;
   }
 }
 
-async function addTempoTransaction(
-  transaction: TransactionParams,
-  options: Parameters<BaseTransactionController['addTransaction']>[1],
-): Promise<Result> {
-  const chainId = getChainIdFromNetworkClientId(options.networkClientId);
-  if (!chainId) {
-    throw new Error(
-      `No network config found for networkClientId: ${options.networkClientId}`,
-    );
-  }
+async function addTempoTransaction({
+  transaction,
+  options,
+  chainId,
+}: {
+  transaction: TransactionParams;
+  options: Parameters<BaseTransactionController['addTransaction']>[1];
+  chainId: Hex;
+}): Promise<Result> {
   const { KeyringController, TransactionController } = Engine.context;
   const isEip7702SupportedByAccount = await accountSupports7702(
     transaction.from,
     KeyringController as Parameters<typeof accountSupports7702>[1],
   );
-
   // Classic transaction, we simply set pathUSD as default
   // and add excludeNativeTokenForFee to signal to ignore native.
   // We enter this flow is dApp non-0x76 txs as well as send flow.
@@ -123,7 +121,7 @@ export async function addTransaction(
 ) {
   const chainId = getChainIdFromNetworkClientId(opts.networkClientId);
   if (chainId && isTempoChain(chainId)) {
-    return await addTempoTransaction(transaction, opts);
+    return await addTempoTransaction({ transaction, options: opts, chainId });
   }
 
   const { TransactionController } = Engine.context;

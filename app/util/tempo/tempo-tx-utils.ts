@@ -74,8 +74,7 @@ export function isTempoChain(chainId: Hex) {
 export function getTempoExtraOptionsForChain(
   chainId: Hex,
 ): { gasFeeToken: Hex; excludeNativeTokenForFee: true } | {} {
-  const tempoConfigForChain =
-    isTempoChain(chainId) && TEMPO_CONFIG.perChainConfig[chainId];
+  const tempoConfigForChain = TEMPO_CONFIG.perChainConfig[chainId];
   if (!tempoConfigForChain) {
     return {};
   }

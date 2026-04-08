@@ -126,7 +126,9 @@ describe('SelectedGasFeeToken', () => {
       pressTokenButton: () =>
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token')),
       expectModalToOpen: () => {
-        expect(renderResult.queryByTestId('gas-fee-token-modal')).toBeNull();
+        expect(
+          renderResult.queryByTestId('gas-fee-token-modal'),
+        ).not.toBeOnTheScreen();
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token'));
         expect(
           renderResult.getByTestId('gas-fee-token-modal'),
@@ -134,7 +136,9 @@ describe('SelectedGasFeeToken', () => {
       },
       expectModalNotToOpen: () => {
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token'));
-        expect(renderResult.queryByTestId('gas-fee-token-modal')).toBeNull();
+        expect(
+          renderResult.queryByTestId('gas-fee-token-modal'),
+        ).not.toBeOnTheScreen();
       },
     };
   };
@@ -184,7 +188,7 @@ describe('SelectedGasFeeToken', () => {
 
   it('does not render the arrow icon when no gas fee tokens are available', () => {
     const { queryByTestId } = setupTest();
-    expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
+    expect(queryByTestId('selected-gas-fee-token-arrow')).not.toBeOnTheScreen();
   });
 
   it('does not render arrow icon if only one gas fee token and `excludeNativeTokenForFee` is set', () => {
@@ -199,7 +203,7 @@ describe('SelectedGasFeeToken', () => {
       ] as unknown as GasFeeToken[],
       excludeNativeTokenForFee: true,
     });
-    expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
+    expect(queryByTestId('selected-gas-fee-token-arrow')).not.toBeOnTheScreen();
   });
 
   it('still renders the arrow icon if two non-native gas fee tokens and `excludeNativeTokenForFee` is set', () => {
@@ -265,7 +269,7 @@ describe('SelectedGasFeeToken', () => {
 
       // Close modal
       fireEvent.press(getByTestId('close-button'));
-      expect(queryByTestId('gas-fee-token-modal')).toBeNull();
+      expect(queryByTestId('gas-fee-token-modal')).not.toBeOnTheScreen();
     });
 
     describe('Future native token', () => {
@@ -356,7 +360,9 @@ describe('SelectedGasFeeToken', () => {
         estimationFailed: true,
       });
 
-      expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
+      expect(
+        queryByTestId('selected-gas-fee-token-arrow'),
+      ).not.toBeOnTheScreen();
     });
 
     it('opens modal when estimation has not failed and gas fee tokens are supported', () => {

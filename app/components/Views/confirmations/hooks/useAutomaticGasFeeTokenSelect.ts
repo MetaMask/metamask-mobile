@@ -23,10 +23,13 @@ export function useAutomaticGasFeeTokenSelect() {
   } = transactionMeta;
 
   const [first, second] = gasFeeTokens || [];
-  const firstGasFeeTokenAddress =
-    !isSmartTransaction && first?.tokenAddress === NATIVE_TOKEN_ADDRESS
-      ? second?.tokenAddress
-      : first?.tokenAddress;
+  const shouldSkipNativeToken =
+    first?.tokenAddress === NATIVE_TOKEN_ADDRESS &&
+    (!isSmartTransaction || excludeNativeTokenForFee);
+
+  const firstGasFeeTokenAddress = shouldSkipNativeToken
+    ? second?.tokenAddress
+    : first?.tokenAddress;
 
   const selectFirstToken = useCallback(() => {
     if (!transactionId || !firstGasFeeTokenAddress) {
