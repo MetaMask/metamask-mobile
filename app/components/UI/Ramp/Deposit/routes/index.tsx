@@ -3,7 +3,7 @@ import {
   createStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
 import { DepositNavigationParams } from '../types';
@@ -72,9 +72,11 @@ const getAnimationOptions = ({
   return { animationEnabled };
 };
 
-const MainRoutes = () => {
-  const route =
-    useRoute<RouteProp<{ params: DepositNavigationParams }, 'params'>>();
+interface MainRoutesProps {
+  route: RouteProp<{ params: DepositNavigationParams }, 'params'>;
+}
+
+const MainRoutes = ({ route }: MainRoutesProps) => {
   const parentParams = route.params;
 
   return (
