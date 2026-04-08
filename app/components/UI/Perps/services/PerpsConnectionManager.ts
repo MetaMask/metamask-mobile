@@ -25,6 +25,7 @@ import {
   PERPS_ERROR_CODES,
   wait,
   TradingReadinessCache,
+  withPerpsConnectionAttemptContext,
   type ReconnectOptions,
 } from '@metamask/perps-controller';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
@@ -34,7 +35,6 @@ import {
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
-import { withPerpsConnectionAttemptContext } from '../../../../util/perpsConnectionAttemptContext';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 interface ConnectOptions {
