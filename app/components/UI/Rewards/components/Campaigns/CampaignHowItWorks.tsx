@@ -15,7 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getIconName } from '../../utils/formatUtils';
 import ContentfulRichText, {
   isDocument,
-  documentToPlainText
+  documentToPlainText,
 } from '../ContentfulRichText/ContentfulRichText';
 
 export const CAMPAIGN_HOW_IT_WORKS_TEST_IDS = {
