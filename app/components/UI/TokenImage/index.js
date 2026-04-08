@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import isUrl from 'is-url';
-import { connect, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
 import { isIPFSUri } from '../../../util/general';
 
@@ -49,4 +49,4 @@ TokenImage.propTypes = {
   iconStyle: PropTypes.object,
 };
 
-export default connect()(TokenImage);
+export default TokenImage;
