@@ -33,7 +33,6 @@ import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 import ErrorDetailsModal from '../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { clearStackNavigatorOptions } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 
 interface DepositParamList {
   [key: string]:
@@ -44,6 +43,14 @@ interface DepositParamList {
     | DepositNavigationParams
     | undefined;
 }
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+  },
+  animationEnabled: false,
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
