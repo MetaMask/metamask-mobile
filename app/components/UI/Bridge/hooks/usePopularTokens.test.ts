@@ -16,6 +16,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+const mockedEngine = jest.requireMock('../../../../core/Engine');
+
 const mockPopularTokens = [
   createMockPopularToken({
     symbol: 'TEST',
@@ -33,6 +35,9 @@ describe('usePopularTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearPopularTokensCache();
+    mockedEngine.context.AuthenticationController.getBearerToken.mockResolvedValue(
+      'mock-bearer-token',
+    );
   });
 
   afterEach(() => {
@@ -104,7 +109,6 @@ describe('usePopularTokens', () => {
     });
 
     it('falls back to an empty array for malformed responses', async () => {
-      const mockedEngine = jest.requireMock('../../../../core/Engine');
       mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
         new Promise(() => undefined),
       );
@@ -128,7 +132,6 @@ describe('usePopularTokens', () => {
     });
 
     it('does not cache malformed top-level responses', async () => {
-      const mockedEngine = jest.requireMock('../../../../core/Engine');
       mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
         new Promise(() => undefined),
       );
