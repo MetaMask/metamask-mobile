@@ -141,14 +141,6 @@ const initialState = {
   },
 };
 
-// Mock the feature flag selector to return true
-jest.mock(
-  '../../../selectors/featureFlagController/importSrpWordSuggestion',
-  () => ({
-    selectImportSrpWordSuggestionEnabledFlag: () => true,
-  }),
-);
-
 describe('ImportNewSecretRecoveryPhrase', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -250,7 +242,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -286,7 +278,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -313,7 +305,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
+    expect(importButton).toBeDisabled();
   });
 
   it('disables import button when SRP length is invalid', async () => {
@@ -332,7 +324,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
+    expect(importButton).toBeDisabled();
   });
 
   it('shows clear button after pasting SRP', async () => {
@@ -409,7 +401,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -455,7 +447,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -566,7 +558,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -609,7 +601,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -650,7 +642,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -691,7 +683,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -765,7 +757,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(true);
+      expect(importButton).toBeDisabled();
     });
 
     it('handles empty string in textarea', async () => {

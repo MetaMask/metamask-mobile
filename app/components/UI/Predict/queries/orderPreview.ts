@@ -1,4 +1,4 @@
-import { queryOptions, keepPreviousData } from '@tanstack/react-query';
+import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import type { OrderPreview, PreviewOrderParams } from '../types';
 
@@ -24,7 +24,7 @@ export const predictOrderPreviewOptions = ({
   size,
   positionId,
 }: PreviewOrderParams) =>
-  queryOptions({
+  queryOptions<OrderPreview, Error>({
     queryKey: predictOrderPreviewKeys.detail({
       marketId,
       outcomeId,
@@ -43,5 +43,5 @@ export const predictOrderPreviewOptions = ({
         positionId,
       }),
     retry: false,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });

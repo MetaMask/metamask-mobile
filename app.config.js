@@ -70,10 +70,10 @@ module.exports = {
         fonts: [
           './app/fonts/Geist-Regular.otf',
           './app/fonts/Geist-Medium.otf',
-          './app/fonts/Geist-Bold.otf',
+          './app/fonts/Geist-SemiBold.otf',
           './app/fonts/Geist-RegularItalic.otf',
           './app/fonts/Geist-MediumItalic.otf',
-          './app/fonts/Geist-BoldItalic.otf',
+          './app/fonts/Geist-SemiBoldItalic.otf',
           './app/fonts/MMSans-Regular.otf',
           './app/fonts/MMSans-Medium.otf',
           './app/fonts/MMSans-Bold.otf',

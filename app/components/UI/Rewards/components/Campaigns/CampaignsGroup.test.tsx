@@ -16,7 +16,6 @@ const createTestCampaign = (
   endDate: '2027-12-31T23:59:59.999Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
   featured: true,
   ...overrides,

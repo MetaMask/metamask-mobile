@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
@@ -53,8 +53,11 @@ export interface UseRampsPaymentMethodsResult {
 }
 
 /**
- * Hook to get payment methods state from RampsController.
- * This hook assumes Engine is already initialized.
+ * Hook to get payment methods via React Query.
+ *
+ * The query fires only when a provider is selected (provider change is the
+ * sole trigger). Token and fiat are passed to the API call but are NOT part
+ * of the query key, so changing them does not cause a refetch.
  *
  * @returns Payment methods state.
  */
@@ -64,25 +67,17 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
-  const tokenSupportedByProvider = selectedProvider?.supportedCryptoCurrencies
-    ? selectedProvider.supportedCryptoCurrencies[
-        selectedToken?.assetId ?? ''
-      ] === true
-    : true;
-
   const queryEnabled = Boolean(
     userRegion?.regionCode &&
       userRegion?.country?.currency &&
-      selectedToken?.assetId &&
-      selectedProvider?.id &&
-      tokenSupportedByProvider,
+      selectedProvider?.id,
   );
 
   const paymentMethodsQuery = useQuery({
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
       fiat: userRegion?.country?.currency ?? '',
-      assetId: selectedToken?.assetId ?? '',
+      assetId: selectedToken?.assetId?.toLowerCase() ?? '', // lowercase for API; not in the query key
       providerId: selectedProvider?.id ?? '',
     }),
     enabled: queryEnabled,
@@ -90,17 +85,48 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
 
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>
-      Engine.context.RampsController.setSelectedPaymentMethod(
-        paymentMethod?.id,
-      ),
+      (
+        Engine.context.RampsController as {
+          setSelectedPaymentMethod: (
+            pm?: PaymentMethod | string | null,
+          ) => void;
+        }
+      ).setSelectedPaymentMethod(paymentMethod),
     [],
+  );
+
+  useEffect(() => {
+    const methods = paymentMethodsQuery.data;
+    if (!methods || methods.length === 0) return;
+
+    let target: PaymentMethod | null = null;
+
+    if (selectedPaymentMethod) {
+      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
+    }
+
+    if (!target) {
+      target = methods[0];
+    }
+
+    if (target.id !== selectedPaymentMethod?.id) {
+      setSelectedPaymentMethod(target);
+    }
+  }, [
+    paymentMethodsQuery.data,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+  ]);
+
+  const isAutoSelecting = Boolean(
+    paymentMethodsQuery.data?.length && !selectedPaymentMethod,
   );
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
       return 'idle';
     }
-    if (paymentMethodsQuery.isPending) {
+    if (paymentMethodsQuery.isLoading) {
       return 'loading';
     }
     if (paymentMethodsQuery.isError) {
@@ -109,7 +135,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     return 'success';
   }, [
     paymentMethodsQuery.isError,
-    paymentMethodsQuery.isPending,
+    paymentMethodsQuery.isLoading,
     queryEnabled,
   ]);
 
@@ -117,7 +143,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     paymentMethods: paymentMethodsQuery.data ?? [],
     selectedPaymentMethod,
     setSelectedPaymentMethod,
-    isLoading: status === 'loading',
+    isLoading: status === 'loading' || isAutoSelecting,
     isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',

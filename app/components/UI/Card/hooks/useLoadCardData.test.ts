@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useLoadCardData from './useLoadCardData';
-import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import useCardDetails from './useCardDetails';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import useGetCardExternalWalletDetails from './useGetCardExternalWalletDetails';
@@ -25,8 +25,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
-
-jest.mock('./isBaanxLoginEnabled');
 jest.mock('./useCardDetails');
 jest.mock('./useGetPriorityCardToken');
 jest.mock('./useGetCardExternalWalletDetails');
@@ -39,8 +37,6 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(),
 }));
 
-const mockUseIsBaanxLoginEnabled =
-  useIsBaanxLoginEnabled as jest.MockedFunction<typeof useIsBaanxLoginEnabled>;
 const mockUseCardDetails = useCardDetails as jest.MockedFunction<
   typeof useCardDetails
 >;
@@ -142,13 +138,10 @@ describe('useLoadCardData', () => {
     });
 
     mockIsAuthenticated = false;
-    mockUseSelector.mockImplementation(() => {
-      const callIndex = mockUseSelector.mock.calls.length;
-      if (callIndex % 2 === 1) return mockIsAuthenticated;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsCardAuthenticated) return mockIsAuthenticated;
       return () => ({ address: mockSelectedAddress });
     });
-
-    mockUseIsBaanxLoginEnabled.mockReturnValue(true);
 
     mockUseGetDelegationSettings.mockReturnValue({
       data: mockDelegationSettings,
@@ -352,7 +345,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
 
     it('refetches only on-chain priority token in unauthenticated mode', async () => {
@@ -479,7 +471,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.isAuthenticated).toBe(true);
-      expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
   });
 
@@ -601,14 +592,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
-    });
-
-    it('handles Baanx login disabled state', () => {
-      mockUseIsBaanxLoginEnabled.mockReturnValue(false);
-
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.isBaanxLoginEnabled).toBe(false);
     });
   });
 

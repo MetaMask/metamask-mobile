@@ -80,7 +80,6 @@ const createTestCampaign = (
   endDate: futureDate.toISOString(),
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
   featured: true,
   ...overrides,

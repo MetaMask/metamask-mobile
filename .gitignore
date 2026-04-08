@@ -1,8 +1,11 @@
 # typescript incremental build cache
-.tsbuildinfo
+*.tsbuildinfo
 
 # task working directory (agent-local, not shipped)
 .task/
+
+# claude code worktrees (agent-local, not shipped)
+.claude/worktrees/
 
 # osx
 .DS_Store
@@ -44,6 +47,7 @@ android/app/.project
 android/app/bin/
 android/app/gradle*
 android/app/_build*
+android/libs
 .cxx/
 
 # if we ever want to add google services

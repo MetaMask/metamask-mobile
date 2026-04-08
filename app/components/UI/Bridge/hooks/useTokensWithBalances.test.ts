@@ -169,6 +169,18 @@ describe('useTokensWithBalances', () => {
         isDestination: false,
       });
     });
+
+    it('preserves isVerified property from API token', () => {
+      const mockToken = createMockPopularToken({
+        isVerified: true,
+      });
+
+      const { result } = renderHook(() =>
+        useTokensWithBalances([mockToken], {}),
+      );
+
+      expect(result.current[0].isVerified).toBe(true);
+    });
   });
 
   describe('accountType property', () => {

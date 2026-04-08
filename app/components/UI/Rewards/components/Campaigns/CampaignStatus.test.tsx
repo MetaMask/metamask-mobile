@@ -25,6 +25,22 @@ jest.mock('./CampaignTile.utils', () => ({
   }),
 }));
 
+jest.mock('../../utils/formatUtils', () => ({
+  ...jest.requireActual('../../utils/formatUtils'),
+  formatUTCDate: jest.fn((_date: string) => 'Fri, April 16'),
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, string | number>) => {
+    const translations: Record<string, string> = {
+      'rewards.campaign_status.deposit_window': 'Deposit Window',
+      'rewards.campaign_status.deposit_closes': `Closes ${params?.date ?? ''}`,
+      'rewards.campaign_status.deposit_closed_on': `Closed on ${params?.date ?? ''}`,
+    };
+    return translations[key] ?? key;
+  },
+}));
+
 const createTestCampaign = (overrides = {}): CampaignDto => ({
   id: 'campaign-1',
   type: CampaignType.ONDO_HOLDING,
@@ -33,7 +49,6 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   endDate: '2027-12-31T23:59:59.999Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
   featured: true,
   ...overrides,
@@ -58,12 +73,9 @@ describe('CampaignStatus', () => {
 
   it('renders campaign image', () => {
     const campaign = createTestCampaign({
-      details: {
-        image: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
-        howItWorks: { title: '', description: '', phases: [] },
+      image: {
+        lightModeUrl: 'https://example.com/light.png',
+        darkModeUrl: 'https://example.com/dark.png',
       },
     });
     const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
@@ -89,10 +101,6 @@ describe('CampaignStatus', () => {
   it('renders howItWorks title when available', () => {
     const campaign = createTestCampaign({
       details: {
-        image: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
         howItWorks: {
           title: 'How it works',
           description: 'Description',
@@ -117,10 +125,6 @@ describe('CampaignStatus', () => {
   it('does not render howItWorks title when title is empty', () => {
     const campaign = createTestCampaign({
       details: {
-        image: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
         howItWorks: { title: '', description: '', phases: [] },
       },
     });
@@ -130,48 +134,46 @@ describe('CampaignStatus', () => {
     ).toBeNull();
   });
 
-  it('renders howItWorks description when available', () => {
+  it('renders deposit window with "Closes" when cutoff is in the future', () => {
     const campaign = createTestCampaign({
       details: {
-        image: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
-        howItWorks: {
-          title: 'How it works',
-          description: 'Hold ONDO tokens to earn rewards',
-          phases: [],
-        },
+        howItWorks: { title: '', description: '', phases: [] },
+        depositCutoffDate: '2099-12-31T00:00:00.000Z',
       },
     });
     const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(
-      getByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION),
-    ).toHaveTextContent('Hold ONDO tokens to earn rewards');
+    const depositWindow = getByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW);
+    expect(depositWindow).toBeDefined();
+    expect(depositWindow).toHaveTextContent(/Deposit Window/);
+    expect(depositWindow).toHaveTextContent(/Closes Fri, April 16/);
   });
 
-  it('does not render howItWorks description when details is null', () => {
-    const campaign = createTestCampaign({ details: null });
-    const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(
-      queryByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION),
-    ).toBeNull();
-  });
-
-  it('does not render howItWorks description when description is empty', () => {
+  it('renders deposit window with "Closed on" when cutoff is in the past', () => {
     const campaign = createTestCampaign({
       details: {
-        image: {
-          lightModeUrl: 'https://example.com/light.png',
-          darkModeUrl: 'https://example.com/dark.png',
-        },
+        howItWorks: { title: '', description: '', phases: [] },
+        depositCutoffDate: '2000-01-01T00:00:00.000Z',
+      },
+    });
+    const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
+    const depositWindow = getByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW);
+    expect(depositWindow).toHaveTextContent(/Closed on Fri, April 16/);
+  });
+
+  it('does not render deposit window when depositCutoffDate is absent', () => {
+    const campaign = createTestCampaign({
+      details: {
         howItWorks: { title: 'Title', description: '', phases: [] },
       },
     });
     const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(
-      queryByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_DESCRIPTION),
-    ).toBeNull();
+    expect(queryByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW)).toBeNull();
+  });
+
+  it('does not render deposit window when details is null', () => {
+    const campaign = createTestCampaign({ details: null });
+    const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
+    expect(queryByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW)).toBeNull();
   });
 
   it('calls getCampaignStatusInfo with campaign', () => {

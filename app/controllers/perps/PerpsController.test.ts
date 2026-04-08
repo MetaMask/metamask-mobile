@@ -24,8 +24,14 @@ import {
   PerpsController,
   getDefaultPerpsControllerState,
   InitializationState,
+  firstNonEmpty,
+  resolveMyxAuthConfig,
 } from './PerpsController';
 import type { PerpsControllerState } from './PerpsController';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from './constants/eventNames';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
@@ -36,6 +42,7 @@ import type {
   PerpsProviderType,
   SubscribeAccountParams,
 } from './types';
+import { PerpsAnalyticsEvent } from './types';
 
 jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
@@ -386,6 +393,16 @@ class TestablePerpsController extends PerpsController {
 
   public testHasStandaloneProvider(): boolean {
     return this.hasStandaloneProvider();
+  }
+
+  public testRegisterMYXProvider(
+    MYXProvider: new (opts: Record<string, unknown>) => PerpsProvider,
+  ) {
+    this.registerMYXProvider(MYXProvider as never);
+  }
+
+  public testHandleMYXImportError(error: unknown) {
+    this.handleMYXImportError(error);
   }
 }
 
@@ -798,6 +815,35 @@ describe('PerpsController', () => {
             }),
           }),
         }),
+      );
+    });
+
+    it('stopEligibilityMonitoring defers subsequent refreshEligibility calls', async () => {
+      // Arrange — controller without deferral
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return { remoteFeatureFlags: {} };
+        }
+        if (action === 'GeolocationController:getGeolocation') {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const testController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
+      });
+      testMockCall.mockClear();
+
+      // Act
+      testController.stopEligibilityMonitoring();
+      await testController.refreshEligibility();
+
+      // Assert — geolocation was never called
+      expect(testMockCall).not.toHaveBeenCalledWith(
+        'GeolocationController:getGeolocation',
       );
     });
   });
@@ -3273,12 +3319,14 @@ describe('PerpsController', () => {
       expect(withdrawal.success).toBe(true);
     });
 
-    it('updates withdrawal status to failed', () => {
+    it('removes withdrawal request when status is failed', () => {
       controller.updateWithdrawalStatus(mockWithdrawalId, 'failed');
 
-      const withdrawal = controller.state.withdrawalRequests[0];
-      expect(withdrawal.status).toBe('failed');
-      expect(withdrawal.success).toBe(false);
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('clears withdrawal progress when status completed', () => {
@@ -3313,6 +3361,11 @@ describe('PerpsController', () => {
 
       expect(controller.state.withdrawalProgress.progress).toBe(0);
       expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('finds withdrawal by ID', () => {
@@ -3382,6 +3435,95 @@ describe('PerpsController', () => {
       expect(withdrawal.status).toBe('completed');
       expect(withdrawal.txHash).toBeUndefined();
       expect(withdrawal.success).toBe(true);
+    });
+  });
+
+  describe('completeWithdrawalFromHistory', () => {
+    const pendingId = 'withdrawal-fifo-1';
+    const txHash = '0xfifoabc';
+    const completedPayload = {
+      txHash,
+      amount: '25',
+      timestamp: 1_700_000_000_000,
+      asset: 'USDC',
+    };
+
+    beforeEach(() => {
+      markControllerAsInitialized();
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [
+          {
+            id: pendingId,
+            timestamp: Date.now(),
+            amount: '25',
+            asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
+            success: false,
+            status: 'pending',
+            source: 'hyperliquid',
+          },
+        ];
+        state.withdrawInProgress = true;
+        state.lastCompletedWithdrawalTimestamp = 1_699_000_000_000;
+        state.lastCompletedWithdrawalTxHashes = ['0xexisting'];
+        state.lastUpdateTimestamp = 99_999;
+      });
+    });
+
+    it('does not mutate FIFO guards or emit analytics when withdrawal id is unknown', () => {
+      const snapshot = {
+        withdrawalRequests: [...controller.state.withdrawalRequests],
+        lastCompletedWithdrawalTimestamp:
+          controller.state.lastCompletedWithdrawalTimestamp,
+        lastCompletedWithdrawalTxHashes: [
+          ...controller.state.lastCompletedWithdrawalTxHashes,
+        ],
+        withdrawInProgress: controller.state.withdrawInProgress,
+        lastUpdateTimestamp: controller.state.lastUpdateTimestamp,
+      };
+
+      controller.completeWithdrawalFromHistory('unknown-withdrawal-id', {
+        ...completedPayload,
+        txHash: '0xstale',
+      });
+
+      expect(controller.state.withdrawalRequests).toEqual(
+        snapshot.withdrawalRequests,
+      );
+      expect(controller.state.lastCompletedWithdrawalTimestamp).toBe(
+        snapshot.lastCompletedWithdrawalTimestamp,
+      );
+      expect(controller.state.lastCompletedWithdrawalTxHashes).toEqual(
+        snapshot.lastCompletedWithdrawalTxHashes,
+      );
+      expect(controller.state.withdrawInProgress).toBe(
+        snapshot.withdrawInProgress,
+      );
+      expect(controller.state.lastUpdateTimestamp).toBe(
+        snapshot.lastUpdateTimestamp,
+      );
+      expect(mockInfrastructure.metrics.trackPerpsEvent).not.toHaveBeenCalled();
+    });
+
+    it('removes the request, updates FIFO guards, and tracks completion when id matches', () => {
+      controller.completeWithdrawalFromHistory(pendingId, completedPayload);
+
+      expect(controller.state.withdrawalRequests).toHaveLength(0);
+      expect(controller.state.lastCompletedWithdrawalTimestamp).toBe(
+        completedPayload.timestamp,
+      );
+      expect(controller.state.lastCompletedWithdrawalTxHashes).toEqual([
+        '0xexisting',
+        txHash,
+      ]);
+      expect(controller.state.withdrawInProgress).toBe(false);
+      expect(mockInfrastructure.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: 25,
+        }),
+      );
     });
   });
 
@@ -4551,6 +4693,17 @@ describe('PerpsController', () => {
       providers.set('myx', mockMYXProvider as any);
       myxController.testSetProviders(providers);
 
+      // Mock init on the reinit call inside switchProvider.
+      // Dynamic import() rejects in Jest (no --experimental-vm-modules),
+      // so MYX can't register via #createProviders. Mock init to
+      // simulate successful reinitialization while preserving our
+      // manually-injected MYX provider in the map.
+      jest.spyOn(myxController, 'init').mockImplementationOnce(async () => {
+        myxController.testUpdate((state) => {
+          state.initializationState = InitializationState.Initialized;
+        });
+      });
+
       const result = await myxController.switchProvider('myx');
 
       expect(result.success).toBe(true);
@@ -4642,6 +4795,59 @@ describe('PerpsController', () => {
 
       // The init path should detect MYX is not available and fall back
       expect(controller.state.activeProvider).toBe('hyperliquid');
+    });
+
+    it('registerMYXProvider creates and registers the MYX provider', () => {
+      // Arrange
+      const mockMYXInstance = createMockHyperLiquidProvider();
+      const MockMYXConstructor = jest.fn(() => mockMYXInstance);
+
+      // Act
+      controller.testRegisterMYXProvider(
+        MockMYXConstructor as unknown as new (
+          opts: Record<string, unknown>,
+        ) => PerpsProvider,
+      );
+
+      // Assert
+      const providers = controller.testGetProviders();
+      expect(providers.get('myx')).toBe(mockMYXInstance);
+      expect(MockMYXConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ isTestnet: false }),
+      );
+    });
+
+    it('handleMYXImportError logs debug for MODULE_NOT_FOUND errors', () => {
+      // Arrange — Node sets code: 'MODULE_NOT_FOUND' on missing modules
+      const moduleError = Object.assign(
+        new Error('Cannot find module ./providers/MYXProvider'),
+        { code: 'MODULE_NOT_FOUND' },
+      );
+
+      // Act
+      controller.testHandleMYXImportError(moduleError);
+
+      // Assert
+      expect(mockInfrastructure.debugLogger.log).toHaveBeenCalledWith(
+        'PerpsController: MYX provider module not available, skipping registration',
+      );
+    });
+
+    it('handleMYXImportError routes runtime errors to logError', () => {
+      // Act — error without MODULE_NOT_FOUND code goes to Sentry
+      controller.testHandleMYXImportError(new Error('Invalid auth config'));
+
+      // Assert
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Invalid auth config' }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'createProviders.myx',
+            }),
+          }),
+        }),
+      );
     });
   });
 
@@ -5673,5 +5879,95 @@ describe('PerpsController', () => {
       expect(hlEntry?.data).toHaveLength(1);
       expect(hlEntry?.data[0].symbol).toBe('BTC');
     });
+  });
+});
+
+describe('firstNonEmpty', () => {
+  it('returns the first non-empty string', () => {
+    expect(firstNonEmpty('', undefined, 'hello', 'world')).toBe('hello');
+  });
+
+  it('returns empty string when all values are empty or undefined', () => {
+    expect(firstNonEmpty('', undefined, '')).toBe('');
+  });
+
+  it('returns the first value if it is non-empty', () => {
+    expect(firstNonEmpty('first', 'second')).toBe('first');
+  });
+
+  it('skips empty strings and returns the fallback', () => {
+    expect(firstNonEmpty('', 'fallback')).toBe('fallback');
+  });
+});
+
+describe('resolveMyxAuthConfig', () => {
+  it('uses testnet credentials on testnet', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: 'main-app',
+      apiSecretMainnet: 'main-secret',
+      brokerAddressMainnet: '0xMainBroker',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, true);
+
+    // Assert
+    expect(result.appId).toBe('test-app');
+    expect(result.apiSecret).toBe('test-secret');
+    expect(result.brokerAddress).toBe('0xTestBroker');
+  });
+
+  it('uses mainnet credentials on mainnet', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: 'main-app',
+      apiSecretMainnet: 'main-secret',
+      brokerAddressMainnet: '0xMainBroker',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, false);
+
+    // Assert
+    expect(result.appId).toBe('main-app');
+    expect(result.apiSecret).toBe('main-secret');
+    expect(result.brokerAddress).toBe('0xMainBroker');
+  });
+
+  it('falls back to testnet credentials when mainnet are empty', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: '',
+      apiSecretMainnet: '',
+      brokerAddressMainnet: '',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, false);
+
+    // Assert
+    expect(result.appId).toBe('test-app');
+    expect(result.apiSecret).toBe('test-secret');
+    expect(result.brokerAddress).toBe('0xTestBroker');
+  });
+
+  it('returns empty strings when no credentials are set', () => {
+    // Act
+    const result = resolveMyxAuthConfig({}, true);
+
+    // Assert
+    expect(result.appId).toBe('');
+    expect(result.apiSecret).toBe('');
+    expect(result.brokerAddress).toBe('');
   });
 });

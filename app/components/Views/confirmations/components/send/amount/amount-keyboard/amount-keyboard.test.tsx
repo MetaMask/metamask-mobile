@@ -159,9 +159,7 @@ describe('Amount', () => {
     } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByRole } = renderComponent(undefined, '');
-    expect(
-      getByRole('button', { name: 'Next' }).props.style.backgroundColor,
-    ).toEqual(mockTheme.colors.text.muted);
+    expect(getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {

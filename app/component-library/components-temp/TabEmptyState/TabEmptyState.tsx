@@ -14,6 +14,12 @@ import {
 
 import type { TabEmptyStateProps } from './TabEmptyState.types';
 
+/**
+ * @deprecated Please update your code to use `TabEmptyState` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/TabEmptyState/README.md}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
   icon,
   description,

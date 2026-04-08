@@ -481,6 +481,7 @@ const PerpsTransactionsView: React.FC = () => {
       )}
 
       <FlashList
+        testID="perps-transactions-flash-list"
         ref={flashListRef}
         data={flatListData}
         renderItem={renderListItem}

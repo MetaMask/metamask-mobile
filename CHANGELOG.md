@@ -7,6 +7,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.71.1]
+
+### Changed
+
+- Pointed Market Insights digest fallback URL at the production endpoint when `DIGEST_API_URL` is not set at build time (#28098)
+
+## [7.71.0]
+
+### Added
+
+- Added backend-provided intent typedData for signing intent swap txs (#25913)
+- Added Security & Trust section to Token Details page showing risk level, contract security features, buy/sell tax, token distribution, and official links powered by Blockaid (#27073)
+- Added a "Withdraw" button to the unstaked TRX banner so users can claim TRX that has completed the lock period (#27076)
+- Added handling for aggregated balance on the new home page (#27172)
+- Added LD flags to consume price impact threshold (#27196)
+- Added Segment event tracking for mUSD Quick Convert flow and enriched generic Transaction\* events for mUSD conversion transactions (#27305)
+- Improved bridge/swap quote expiry experience; expired quotes now remain visible inline with a prompt to refresh, replacing a separate modal flow (#27340)
+- Added support for ramps providers such as PayPal, Robinhood & Coinbase that use a different checkout browser (#27364)
+- Added authentication for transaction submission to sentinel and transaction API (#27410)
+- Added skeleton loading indicator to NFT grid items while images are loading (#27413)
+- Embedded the metal card checkout flow into the Card onboarding/sign-up flow (#27420)
+- Added attention badge on Card button (#27425)
+- Added a new tab for users to see their NFTs and fixed NFT flicker on that view (#27437)
+- Added press opacity feedback to NFT grid items (#27488)
+- Applied a minimum $0.01 threshold for showing the "Claim bonus" CTA for Merkl rewards so that amounts below the threshold show the 3% bonus label instead (#27522)
+- Updated Predict withdraw to default to the user’s last used destination token before falling back to the remote preferred token (#27532)
+- Enabled campaigns view under feature flag (#27556)
+- Redirected buy deeplinks to the new Ramps Buy flow when Ramps Unified V2 is enabled; deprecated cash deposit deeplinks (#27557)
+- Restored mUSD claimable bonus claim section on asset overview screen (#27567)
+- Added campaign opt-in flow with details and mechanics screens in the Rewards section (#27619)
+- Updated Ramp buy flow modal headers and typography to use shared compact header and design system components (#27627)
+- Migrated Card authentication to CardController with new `useCardAuth` hook for controller-based auth flow (#27656)
+- Extracted Card supported-country check into `selectIsUserInSupportedCardCountry` selector (#27695)
+- Updated mUSD aggregated balance row to redirect to the Cash tokens list when the user holds mUSD on any network (#27703)
+
+### Changed
+
+- Removed deprecated payment request (#27519)
+- Updated earn balance row layout (logo size, badge size, balance/percentage placement) and added privacy mode support for StakingBalance and EarnLendingBalance (#27457)
+- Refactored Card onboarding to use the `useRegions` hook instead of Redux `selectedCountry` for region/country data (#27539)
+- Adjusted spacing in homepage (#27637)
+
+### Fixed
+
+- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the token selection screen (#27277)
+- Fixed false "Token Not Available" errors during Buy flow when payment methods are still loading after provider change; fixed missing "Token Not Available" modal in home buy flow; fixed crash when navigating back from "Token Not Available" modal in token info buy flow (#27448)
+- Fixed token row display on homepage to show price and variation separated by a dot for consistency with token list items (#27449)
+- Fixed stop loss banner rendering issue (#27458)
+- Fixed Order Details screen displaying excessive decimal places for crypto amounts after ramp purchases (#27469)
+- Fixed remove network confirmation header casing to sentence case (#27480)
+- Fixed the custom network header trash icon color to match other trash icons in the app (#27481)
+- Fixed a bug where the RPC URL field in network details could appear focused after blur and had inconsistent typography between states (#27482)
+- Fixed RAMP_INTERNAL_BUILD default for OTA push (#27507)
+- Fixed a bug where Perps activity could appear blank after reopening the Activity screen from Perps home (#27509)
+- Fixed universal link handling for redirect-oauth (#27511)
+- Fixed Network Details so network name is required and no longer labeled optional (#27541)
+- Fixed onboarding import button text being invisible in dark mode; ensured both CTAs have proper contrast in dark mode (#27550)
+- Removed a stale feature-flag gate so the Networks menu item is always available (#27591)
+- Fixed MegaETH explorer button to display "View on Megaeth Explorer" instead of "View on Megaeth" (#27592)
+- Fixed padding in security screen header (#27621)
+- Fixed TokenList crash when switching networks (#27655)
+- Fixed miscategorization of BRENTOIL and other non-crypto instruments appearing in the "Explore Crypto" section on Perps Home (#27699)
+
+## [7.70.1]
+
+### Fixed
+
+- Fixed stale perpetuals data and missing 24h price change after returning from background (#27530)
+- Fixed a bug where closing positions on HIP-3 markets (e.g., xyz:BRENTOIL) failed with "Asset ID not found" when navigating via the Perps tab (#27854)
+
 ## [7.70.0]
 
 ### Added
@@ -11008,7 +11078,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...HEAD
+[7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
+[7.71.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.71.0
+[7.70.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...v7.70.1
 [7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...v7.70.0
 [7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.3...v7.69.0

@@ -56,7 +56,6 @@
       "cardholderAccounts": [],
       "geoLocation": "UNKNOWN",
       "hasViewedCardButton": false,
-      "isAuthenticated": false,
       "isDaimoDemo": false,
       "isLoaded": false,
       "lastFetchedByAddress": {},
@@ -66,8 +65,7 @@
         "onboardingId": null,
         "selectedCountry": null
       },
-      "priorityTokensByAddress": {},
-      "userCardLocation": "international"
+      "priorityTokensByAddress": {}
     },
     "collectibles": {
       "favorites": {},
@@ -747,6 +745,17 @@
         "totalAccounts": 0,
         "wasInterrupted": false
       },
+      "ondoCampaignLeaderboard": null,
+      "ondoCampaignLeaderboardError": false,
+      "ondoCampaignLeaderboardLoading": false,
+      "ondoCampaignLeaderboardPositions": {},
+      "ondoCampaignLeaderboardSelectedTier": null,
+      "ondoCampaignPortfolio": {},
+      "campaignParticipantStatuses": {},
+      "campaigns": [],
+      "campaignsError": false,
+      "campaignsHasLoaded": false,
+      "campaignsLoading": false,
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "geoLocation": null,
@@ -780,7 +789,10 @@
       "snapshotsLoading": false,
       "unlockedRewardError": false,
       "unlockedRewardLoading": false,
-      "unlockedRewards": null
+      "unlockedRewards": null,
+      "versionGuardError": false,
+      "versionGuardLoading": false,
+      "versionGuardMinimumMobileVersion": null
     },
     "rpcEvents": {
       "signingEvent": {

@@ -55,8 +55,72 @@ jest.mock('./RegionSelectorModal', () => ({
 
 import { useCardSDK } from '../../sdk';
 
+jest.mock('@metamask/design-system-react-native', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const React = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  return {
+    Box: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(View, { testID, ...props }, children),
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children || label),
+      ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+    TextVariant: {
+      BodySm: 'BodySm',
+      BodyMd: 'BodyMd',
+      HeadingMd: 'HeadingMd',
+    },
+    Icon: ({ ...props }: Record<string, unknown>) =>
+      React.createElement(View, props),
+    IconName: {
+      ArrowDown: 'arrow-down',
+    },
+    IconSize: {
+      Sm: 'sm',
+      Md: 'md',
+    },
+    Label: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(Text, props, children),
+  };
+});
+
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
@@ -89,25 +153,44 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-// Default card state (no selectedCountry - useRegions provides userCountry)
+// Default card state
 const defaultCardState = {
   onboarding: {
     contactVerificationId: 'test-verification-id',
   },
-  userCardLocation: null,
 };
 
-// Create test store with country object format
-const createTestStore = (initialState = {}) =>
-  configureStore({
+// Create test store — pass { cardLocation: 'us' | 'international' } to control the
+// controller-based location that SetPhoneNumber reads via selectCardUserLocation.
+const createTestStore = (
+  initialState: {
+    cardLocation?: string;
+    onboarding?: Record<string, unknown>;
+    [key: string]: unknown;
+  } = {},
+) => {
+  const { cardLocation = 'international', ...cardState } = initialState;
+  return configureStore({
     reducer: {
+      engine: (
+        state = {
+          backgroundState: {
+            CardController: {
+              activeProviderId: 'baanx',
+              providerData: {
+                baanx: { location: cardLocation },
+              },
+            },
+          },
+        },
+      ) => state,
       card: (
         state = {
           ...defaultCardState,
-          ...initialState,
+          ...cardState,
           onboarding: {
             ...defaultCardState.onboarding,
-            ...(initialState as typeof defaultCardState).onboarding,
+            ...(cardState.onboarding ?? {}),
           },
         },
         action = { type: '', payload: null },
@@ -119,18 +202,19 @@ const createTestStore = (initialState = {}) =>
       },
     },
   });
+};
 
 // Helper to create store with US user location
 const createUsUserStore = (overrides = {}) =>
   createTestStore({
-    userCardLocation: 'us',
+    cardLocation: 'us',
     ...overrides,
   });
 
 // Helper to create store with international user location
 const createInternationalUserStore = (overrides = {}) =>
   createTestStore({
-    userCardLocation: 'international',
+    cardLocation: 'international',
     onboarding: {
       contactVerificationId: 'test-verification-id',
     },
@@ -771,7 +855,7 @@ describe('SetPhoneNumber Component', () => {
     });
 
     it('navigates to sign up when invalid contact verification ID error occurs', async () => {
-      const mockSendPhoneVerification = jest
+      const mockSendPhoneVerificationConflict = jest
         .fn()
         .mockRejectedValue(
           new CardError(
@@ -783,7 +867,7 @@ describe('SetPhoneNumber Component', () => {
       const mockReset = jest.fn();
 
       (usePhoneVerificationSend as jest.Mock).mockReturnValue({
-        sendPhoneVerification: mockSendPhoneVerification,
+        sendPhoneVerification: mockSendPhoneVerificationConflict,
         reset: mockReset,
         isLoading: false,
         isError: false,
@@ -812,7 +896,7 @@ describe('SetPhoneNumber Component', () => {
       });
 
       await waitFor(() => {
-        expect(mockSendPhoneVerification).toHaveBeenCalled();
+        expect(mockSendPhoneVerificationConflict).toHaveBeenCalled();
       });
 
       await waitFor(
@@ -1229,7 +1313,7 @@ describe('SetPhoneNumber Component', () => {
       expect(regionKeys).toContain('GB');
     });
 
-    it('navigates to region selector with all regions when userCardLocation is null', () => {
+    it('navigates to region selector with all regions when location defaults to international', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SetPhoneNumber />

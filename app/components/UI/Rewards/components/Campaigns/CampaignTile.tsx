@@ -25,6 +25,7 @@ import {
 import {
   getCampaignStatusInfo,
   isCampaignTypeSupported,
+  isOptinAllowed,
 } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -53,10 +54,6 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
 
-  const { status: participantStatus } = useGetCampaignParticipantStatus(
-    campaign.id,
-  );
-
   const participantCount = useSelector(
     selectCampaignParticipantCount(campaign.id),
   );
@@ -64,9 +61,15 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const {
     status: campaignStatus,
     statusLabel,
-    dateLabel,
-    dateLabelIcon,
+    /* dateLabel,
+    dateLabelIcon, */
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
+
+  const { status: participantStatus } = useGetCampaignParticipantStatus(
+    campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
+      ? campaign.id
+      : undefined,
+  );
 
   const isInteractive =
     campaignStatus !== 'upcoming' &&
@@ -74,8 +77,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
 
   const backgroundImageUrl =
     colorScheme === 'dark'
-      ? campaign.details?.image?.darkModeUrl
-      : campaign.details?.image?.lightModeUrl;
+      ? campaign.image?.darkModeUrl
+      : campaign.image?.lightModeUrl;
 
   const handlePress = () => {
     if (!isInteractive) return;
@@ -123,18 +126,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
             twClassName="gap-1"
             testID="campaign-tile-date-label"
           >
-            <Icon
-              name={dateLabelIcon}
-              size={IconSize.Sm}
-              color={IconColor.OverlayInverse}
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-            >
-              {dateLabel}
-            </Text>
+            {/* removed content for now; will be moved to bottom half of card instead */}
           </Box>
           <Box>
             <Box>
@@ -189,7 +181,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                     </Text>
                   </Box>
                 ) : campaignStatus === 'active' &&
-                  participantStatus?.optedIn !== true ? (
+                  participantStatus?.optedIn !== true &&
+                  isOptinAllowed(campaign) ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}

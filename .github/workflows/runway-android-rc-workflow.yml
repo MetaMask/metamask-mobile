@@ -1,0 +1,47 @@
+##############################################################################################
+#
+# Runway Android RC Workflow
+#
+# Triggered from Runway to either:
+# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
+# - Build the mobile app (when there is no OTA version bump).
+#
+# When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# Version bump: skipped here — run Runway iOS RC first on the same branch so it performs the bump.
+#
+##############################################################################################
+name: Runway Android RC
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA (Build workflow source_branch).
+          Empty uses the branch selected in the "Use workflow from" UI.
+        required: false
+        type: string
+
+permissions:
+  contents: write # required by build.yml (update-build-version job)
+  pull-requests: read
+  actions: write
+  id-token: write # required by build.yml
+
+jobs:
+  runway-rc:
+    uses: ./.github/workflows/runway-ota-build-core.yml
+    with:
+      platform: android
+      source_branch: ${{ inputs.source_branch }}
+      skip_version_bump: true
+    secrets: inherit
+
+  slack-notification:
+    name: Slack RC Notification
+    needs: runway-rc
+    if: success()
+    uses: ./.github/workflows/slack-rc-notification.yml
+    with:
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+    secrets: inherit

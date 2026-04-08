@@ -9,6 +9,9 @@ import { Dispatch } from 'redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
@@ -27,10 +30,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Button, {
+import OldButton, {
   ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
+  ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { IconName as CLibIconName } from '../../../component-library/components/Icons/Icon';
 
@@ -192,9 +194,9 @@ const SRPErrorScreen = ({
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('wallet_creation_error.error_report')}
               </Text>
-              <Button
+              <OldButton
                 variant={ButtonVariants.Link}
-                size={ButtonSize.Sm}
+                size={OldButtonSize.Sm}
                 label={
                   copied
                     ? strings('wallet_creation_error.copied')
@@ -218,21 +220,23 @@ const SRPErrorScreen = ({
 
         <Box twClassName="w-full pt-4 pb-6">
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('wallet_creation_error.send_error_report')}
+            isFullWidth
             onPress={handleSendErrorReport}
             style={tw.style('mb-4')}
-          />
+          >
+            {strings('wallet_creation_error.send_error_report')}
+          </Button>
 
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('wallet_creation_error.try_again')}
+            isFullWidth
             onPress={handleTryAgain}
-          />
+          >
+            {strings('wallet_creation_error.try_again')}
+          </Button>
         </Box>
       </ScrollView>
     </SafeAreaView>

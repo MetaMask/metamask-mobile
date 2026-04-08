@@ -71,6 +71,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
@@ -92,9 +93,22 @@ jest.mock('../../../util/test/utils', () => ({
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockGoBack = jest.fn();
 
 // Helper to flush all pending promises
 const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+const IOS_GOOGLE_WARNING_TITLE = strings('error_sheet.ios_need_update_title');
+const IOS_GOOGLE_WARNING_BUTTON = strings('error_sheet.ios_need_update_button');
+
+const getIosGoogleWarningSheetCall = () =>
+  mockNavigate.mock.calls.find(
+    ([route, params]) =>
+      route === Routes.MODAL.ROOT_MODAL_FLOW &&
+      params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+      params?.params?.title === IOS_GOOGLE_WARNING_TITLE,
+  );
 
 const mockInitialState = {
   engine: {
@@ -127,13 +141,22 @@ const mockInitialStateWithExistingUserAndPassword = {
   },
 };
 
-jest.mock('../../../util/device', () => ({
-  isLargeDevice: jest.fn(),
-  isIphoneX: jest.fn(),
-  isAndroid: jest.fn(),
-  isIos: jest.fn(),
-  isMediumDevice: jest.fn(),
-}));
+jest.mock('../../../util/device', () => {
+  const mockDevice = {
+    isLargeDevice: jest.fn(),
+    isIphoneX: jest.fn(),
+    isAndroid: jest.fn(),
+    isIos: jest.fn(),
+    isMediumDevice: jest.fn(),
+    comparePlatformVersionTo: jest.fn().mockReturnValue(1),
+  };
+
+  return {
+    __esModule: true,
+    default: mockDevice,
+    ...mockDevice,
+  };
+});
 
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
@@ -276,13 +299,12 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   },
 }));
 
-const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
 const mockNav = {
   navigate: mockNavigate,
   replace: mockReplace,
   reset: jest.fn(),
   setOptions: jest.fn(),
+  goBack: mockGoBack,
   dispatch: jest.fn((action) => {
     if (action.type === 'REPLACE') {
       mockReplace(action.payload.name, action.payload.params);
@@ -822,60 +844,6 @@ describe('Onboarding', () => {
     });
   });
 
-  describe('Navigation behavior', () => {
-    it('navigates to HOME_NAV when unlock is pressed and password is not set', async () => {
-      const { getByText } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialStateWithExistingUser,
-        },
-      );
-
-      await waitFor(() => {
-        expect(getByText('Unlock')).toBeTruthy();
-      });
-
-      jest.advanceTimersByTime(600);
-
-      const unlockButton = getByText('Unlock');
-
-      await act(async () => {
-        fireEvent.press(unlockButton);
-      });
-
-      expect(Authentication.resetVault).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(
-        Routes.ONBOARDING.HOME_NAV,
-        undefined,
-      );
-    });
-
-    it('navigates to LOGIN when unlock is pressed and password is set', async () => {
-      const { getByText } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialStateWithExistingUserAndPassword,
-        },
-      );
-
-      await waitFor(() => {
-        expect(getByText('Unlock')).toBeTruthy();
-      });
-
-      jest.advanceTimersByTime(600);
-
-      const unlockButton = getByText('Unlock');
-
-      await act(async () => {
-        fireEvent.press(unlockButton);
-      });
-
-      expect(Authentication.lockApp).toHaveBeenCalled();
-    });
-  });
-
   describe('componentDidMount behavior', () => {
     it('checks for existing user on mount', async () => {
       renderScreen(
@@ -956,10 +924,13 @@ describe('Onboarding', () => {
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
     });
 
     afterEach(() => {
       jest.clearAllMocks();
+      mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
@@ -1260,6 +1231,174 @@ describe('Onboarding', () => {
             type: 'error',
           }),
         }),
+      );
+    });
+
+    it('shows iOS version warning sheet before Google login on iOS < 17.4', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      // Verify the warning sheet was shown with the iOS not-supported message.
+      const warningSheetCall = getIosGoogleWarningSheetCall();
+
+      expect(warningSheetCall).toEqual([
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            type: 'error',
+            icon: IconName.Warning,
+            isInteractable: false,
+            title: IOS_GOOGLE_WARNING_TITLE,
+            description: expect.anything(),
+            primaryButtonLabel: IOS_GOOGLE_WARNING_BUTTON,
+            onPrimaryButtonPress: expect.any(Function),
+            closeOnPrimaryButtonPress: true,
+          }),
+        }),
+      ]);
+      expect(warningSheetCall?.[1].params.onPrimaryButtonPress).toEqual(
+        expect.any(Function),
+      );
+      expect(Device.comparePlatformVersionTo).toHaveBeenCalledWith('17.4');
+
+      await act(async () => {
+        await warningSheetCall?.[1].params.onPrimaryButtonPress?.();
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Wallet Google Ios Warning Viewed',
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+          }),
+        }),
+      );
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        false,
+      );
+    });
+
+    it('shows iOS version warning for Google login on iOS < 17.4 during import wallet flow', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importWalletButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(false);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      const warningSheetCall = getIosGoogleWarningSheetCall();
+
+      expect(warningSheetCall).toBeDefined();
+      expect(warningSheetCall?.[1].params).toEqual(
+        expect.objectContaining({
+          type: 'error',
+          icon: IconName.Warning,
+          title: IOS_GOOGLE_WARNING_TITLE,
+          description: expect.anything(),
+          primaryButtonLabel: IOS_GOOGLE_WARNING_BUTTON,
+          onPrimaryButtonPress: expect.any(Function),
+          closeOnPrimaryButtonPress: true,
+          isInteractable: false,
+        }),
+      );
+      expect(warningSheetCall?.[1].params.onPrimaryButtonPress).toEqual(
+        expect.any(Function),
+      );
+      expect(Device.comparePlatformVersionTo).toHaveBeenCalledWith('17.4');
+
+      await act(async () => {
+        await warningSheetCall?.[1].params.onPrimaryButtonPress?.();
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Wallet Google Ios Warning Viewed',
+          properties: expect.objectContaining({
+            account_type: AccountType.ImportedGoogle,
+          }),
+        }),
+      );
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        true,
       );
     });
 

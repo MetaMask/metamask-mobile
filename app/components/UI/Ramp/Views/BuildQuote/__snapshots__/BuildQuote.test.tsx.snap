@@ -126,9 +126,8 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -157,7 +156,6 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                   "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 },
@@ -298,16 +296,20 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
               <View>
                 <Text
                   accessibilityRole="text"
-                  adjustsFontSizeToFit={true}
                   numberOfLines={1}
                   style={
-                    {
-                      "color": "#ca3542",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 24,
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 60,
+                        "fontWeight": "normal",
+                        "letterSpacing": 0,
+                        "lineHeight": 70,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
                   }
                   testID="amount-input"
                 >
@@ -318,6 +320,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                   collapsable={false}
                   style={
                     {
+                      "height": 66,
                       "opacity": 1,
                     }
                   }
@@ -326,74 +329,62 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderRadius": 100,
-                    "flexDirection": "row",
-                    "padding": 8,
-                  }
-                }
                 testID="build-quote-payment-pill"
               >
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#131416"
-                    fill="currentColor"
-                    height={16}
-                    name="Card"
+                <View>
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "fontSize": 16,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
                     }
-                    width={16}
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginLeft": 8,
-                      "marginRight": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
                 >
                   Debit/Credit Card
                 </Text>
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
+                <View>
                   <SvgMock
-                    color="#131416"
                     fill="currentColor"
-                    height={16}
                     name="ArrowDown"
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 16,
+                          "width": 16,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={16}
                   />
                 </View>
               </TouchableOpacity>
@@ -416,19 +407,23 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                 numberOfLines={1}
                 onTextLayout={[Function]}
                 style={
-                  {
-                    "0": {
-                      "flexShrink": 1,
+                  [
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     },
-                    "1": {
-                      "opacity": 0,
-                    },
-                    "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
+                    [
+                      {
+                        "flexShrink": 1,
+                      },
+                      {
+                        "opacity": 0,
+                      },
+                    ],
+                  ]
                 }
               >
                 An unexpected error occurred.
@@ -447,17 +442,18 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                 onPress={[Function]}
               >
                 <SvgMock
-                  color="#ca3542"
                   fill="currentColor"
-                  height={16}
                   name="Info"
                   style={
-                    {
-                      "height": 16,
-                      "width": 16,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "height": 16,
+                        "width": 16,
+                      },
+                      undefined,
+                    ]
                   }
-                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -534,7 +530,6 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when quote is n
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -832,9 +827,8 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -863,7 +857,6 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                   "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 },
@@ -1004,16 +997,20 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
               <View>
                 <Text
                   accessibilityRole="text"
-                  adjustsFontSizeToFit={true}
                   numberOfLines={1}
                   style={
-                    {
-                      "color": "#ca3542",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 24,
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 60,
+                        "fontWeight": "normal",
+                        "letterSpacing": 0,
+                        "lineHeight": 70,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
                   }
                   testID="amount-input"
                 >
@@ -1024,6 +1021,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                   collapsable={false}
                   style={
                     {
+                      "height": 66,
                       "opacity": 1,
                     }
                   }
@@ -1032,74 +1030,62 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderRadius": 100,
-                    "flexDirection": "row",
-                    "padding": 8,
-                  }
-                }
                 testID="build-quote-payment-pill"
               >
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#131416"
-                    fill="currentColor"
-                    height={16}
-                    name="Card"
+                <View>
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "fontSize": 16,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
                     }
-                    width={16}
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginLeft": 8,
-                      "marginRight": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
                 >
                   Debit/Credit Card
                 </Text>
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
+                <View>
                   <SvgMock
-                    color="#131416"
                     fill="currentColor"
-                    height={16}
                     name="ArrowDown"
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 16,
+                          "width": 16,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={16}
                   />
                 </View>
               </TouchableOpacity>
@@ -1122,19 +1108,23 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                 numberOfLines={1}
                 onTextLayout={[Function]}
                 style={
-                  {
-                    "0": {
-                      "flexShrink": 1,
+                  [
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     },
-                    "1": {
-                      "opacity": 0,
-                    },
-                    "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
+                    [
+                      {
+                        "flexShrink": 1,
+                      },
+                      {
+                        "opacity": 0,
+                      },
+                    ],
+                  ]
                 }
               >
                 Network error
@@ -1153,17 +1143,18 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                 onPress={[Function]}
               >
                 <SvgMock
-                  color="#ca3542"
                   fill="currentColor"
-                  height={16}
                   name="Info"
                   style={
-                    {
-                      "height": 16,
-                      "width": 16,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "height": 16,
+                        "width": 16,
+                      },
+                      undefined,
+                    ]
                   }
-                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -1240,7 +1231,6 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakChe
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -1538,9 +1528,8 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -1569,7 +1558,6 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                   "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 },
@@ -1710,16 +1698,20 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
               <View>
                 <Text
                   accessibilityRole="text"
-                  adjustsFontSizeToFit={true}
                   numberOfLines={1}
                   style={
-                    {
-                      "color": "#ca3542",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 24,
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 60,
+                        "fontWeight": "normal",
+                        "letterSpacing": 0,
+                        "lineHeight": 70,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
                   }
                   testID="amount-input"
                 >
@@ -1730,6 +1722,7 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                   collapsable={false}
                   style={
                     {
+                      "height": 66,
                       "opacity": 1,
                     }
                   }
@@ -1738,74 +1731,62 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderRadius": 100,
-                    "flexDirection": "row",
-                    "padding": 8,
-                  }
-                }
                 testID="build-quote-payment-pill"
               >
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#131416"
-                    fill="currentColor"
-                    height={16}
-                    name="Card"
+                <View>
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "fontSize": 16,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
                     }
-                    width={16}
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginLeft": 8,
-                      "marginRight": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
                 >
                   Debit/Credit Card
                 </Text>
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
+                <View>
                   <SvgMock
-                    color="#131416"
                     fill="currentColor"
-                    height={16}
                     name="ArrowDown"
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 16,
+                          "width": 16,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={16}
                   />
                 </View>
               </TouchableOpacity>
@@ -1828,19 +1809,23 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                 numberOfLines={1}
                 onTextLayout={[Function]}
                 style={
-                  {
-                    "0": {
-                      "flexShrink": 1,
+                  [
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     },
-                    "1": {
-                      "opacity": 0,
-                    },
-                    "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
+                    [
+                      {
+                        "flexShrink": 1,
+                      },
+                      {
+                        "opacity": 0,
+                      },
+                    ],
+                  ]
                 }
               >
                 Routing failed
@@ -1859,17 +1844,18 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                 onPress={[Function]}
               >
                 <SvgMock
-                  color="#ca3542"
                   fill="currentColor"
-                  height={16}
                   name="Info"
                   style={
-                    {
-                      "height": 16,
-                      "width": 16,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "height": 16,
+                        "width": 16,
+                      },
+                      undefined,
+                    ]
                   }
-                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -1946,7 +1932,6 @@ exports[`BuildQuote handleNativeProviderContinue sets rampsError when transakRou
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2244,9 +2229,8 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2275,7 +2259,6 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                   "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 },
@@ -2416,16 +2399,20 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
               <View>
                 <Text
                   accessibilityRole="text"
-                  adjustsFontSizeToFit={true}
                   numberOfLines={1}
                   style={
-                    {
-                      "color": "#ca3542",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 24,
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 60,
+                        "fontWeight": "normal",
+                        "letterSpacing": 0,
+                        "lineHeight": 70,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
                   }
                   testID="amount-input"
                 >
@@ -2436,6 +2423,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                   collapsable={false}
                   style={
                     {
+                      "height": 66,
                       "opacity": 1,
                     }
                   }
@@ -2444,74 +2432,62 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderRadius": 100,
-                    "flexDirection": "row",
-                    "padding": 8,
-                  }
-                }
                 testID="build-quote-payment-pill"
               >
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#131416"
-                    fill="currentColor"
-                    height={16}
-                    name="Card"
+                <View>
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "fontSize": 16,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
                     }
-                    width={16}
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginLeft": 8,
-                      "marginRight": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
                 >
                   Debit/Credit Card
                 </Text>
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
+                <View>
                   <SvgMock
-                    color="#131416"
                     fill="currentColor"
-                    height={16}
                     name="ArrowDown"
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 16,
+                          "width": 16,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={16}
                   />
                 </View>
               </TouchableOpacity>
@@ -2534,19 +2510,23 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                 numberOfLines={1}
                 onTextLayout={[Function]}
                 style={
-                  {
-                    "0": {
-                      "flexShrink": 1,
+                  [
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     },
-                    "1": {
-                      "opacity": 0,
-                    },
-                    "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
+                    [
+                      {
+                        "flexShrink": 1,
+                      },
+                      {
+                        "opacity": 0,
+                      },
+                    ],
+                  ]
                 }
               >
                 No widget URL available for provider
@@ -2565,17 +2545,18 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                 onPress={[Function]}
               >
                 <SvgMock
-                  color="#ca3542"
                   fill="currentColor"
-                  height={16}
                   name="Info"
                   style={
-                    {
-                      "height": 16,
-                      "width": 16,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "height": 16,
+                        "width": 16,
+                      },
+                      undefined,
+                    ]
                   }
-                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -2652,7 +2633,6 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2950,9 +2930,8 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -2981,7 +2960,6 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                   "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 },
@@ -3122,16 +3100,20 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
               <View>
                 <Text
                   accessibilityRole="text"
-                  adjustsFontSizeToFit={true}
                   numberOfLines={1}
                   style={
-                    {
-                      "color": "#ca3542",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 24,
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 60,
+                        "fontWeight": "normal",
+                        "letterSpacing": 0,
+                        "lineHeight": 70,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
                   }
                   testID="amount-input"
                 >
@@ -3142,6 +3124,7 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                   collapsable={false}
                   style={
                     {
+                      "height": 66,
                       "opacity": 1,
                     }
                   }
@@ -3150,74 +3133,62 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderRadius": 100,
-                    "flexDirection": "row",
-                    "padding": 8,
-                  }
-                }
                 testID="build-quote-payment-pill"
               >
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#131416"
-                    fill="currentColor"
-                    height={16}
-                    name="Card"
+                <View>
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "fontSize": 16,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
                     }
-                    width={16}
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginLeft": 8,
-                      "marginRight": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
                 >
                   Debit/Credit Card
                 </Text>
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
+                <View>
                   <SvgMock
-                    color="#131416"
                     fill="currentColor"
-                    height={16}
                     name="ArrowDown"
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 16,
+                          "width": 16,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={16}
                   />
                 </View>
               </TouchableOpacity>
@@ -3240,19 +3211,23 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                 numberOfLines={1}
                 onTextLayout={[Function]}
                 style={
-                  {
-                    "0": {
-                      "flexShrink": 1,
+                  [
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     },
-                    "1": {
-                      "opacity": 0,
-                    },
-                    "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
+                    [
+                      {
+                        "flexShrink": 1,
+                      },
+                      {
+                        "opacity": 0,
+                      },
+                    ],
+                  ]
                 }
               >
                 Network request failed
@@ -3271,17 +3246,18 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                 onPress={[Function]}
               >
                 <SvgMock
-                  color="#ca3542"
                   fill="currentColor"
-                  height={16}
                   name="Info"
                   style={
-                    {
-                      "height": 16,
-                      "width": 16,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "height": 16,
+                        "width": 16,
+                      },
+                      undefined,
+                    ]
                   }
-                  width={16}
                 />
               </TouchableOpacity>
             </View>
@@ -3358,7 +3334,6 @@ exports[`BuildQuote handleWidgetProviderContinue sets rampsError when getBuyWidg
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -3656,9 +3631,8 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Bold",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
-                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },
@@ -3687,7 +3661,6 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
                   "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
-                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 },
@@ -3828,16 +3801,20 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
               <View>
                 <Text
                   accessibilityRole="text"
-                  adjustsFontSizeToFit={true}
                   numberOfLines={1}
                   style={
-                    {
-                      "color": "#ca3542",
-                      "fontFamily": "Geist-Bold",
-                      "fontSize": 24,
-                      "letterSpacing": 0,
-                      "lineHeight": 32,
-                    }
+                    [
+                      {
+                        "color": "#ca3542",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 60,
+                        "fontWeight": "normal",
+                        "letterSpacing": 0,
+                        "lineHeight": 70,
+                        "textAlign": "center",
+                      },
+                      undefined,
+                    ]
                   }
                   testID="amount-input"
                 >
@@ -3848,6 +3825,7 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
                   collapsable={false}
                   style={
                     {
+                      "height": 66,
                       "opacity": 1,
                     }
                   }
@@ -3856,74 +3834,62 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "center",
-                    "backgroundColor": "#b4b4b528",
-                    "borderRadius": 100,
-                    "flexDirection": "row",
-                    "padding": 8,
-                  }
-                }
                 testID="build-quote-payment-pill"
               >
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#131416"
-                    fill="currentColor"
-                    height={16}
-                    name="Card"
+                <View>
+                  <Text
+                    allowFontScaling={false}
+                    selectable={false}
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "fontSize": 16,
+                        },
+                        undefined,
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
                     }
-                    width={16}
-                  />
+                  >
+                    
+                  </Text>
                 </View>
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginLeft": 8,
-                      "marginRight": 4,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
                 >
                   Debit/Credit Card
                 </Text>
-                <View
-                  style={
-                    {
-                      "padding": 4,
-                    }
-                  }
-                >
+                <View>
                   <SvgMock
-                    color="#131416"
                     fill="currentColor"
-                    height={16}
                     name="ArrowDown"
                     style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 16,
+                          "width": 16,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={16}
                   />
                 </View>
               </TouchableOpacity>
@@ -3991,13 +3957,16 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#131416",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
+                [
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 14,
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  },
+                  undefined,
+                ]
               }
             >
               Powered by MoonPay
@@ -4075,7 +4044,6 @@ exports[`BuildQuote quoteFetchError tracks RAMPS_QUOTE_ERROR and shows BannerAle
                       "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
-                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",

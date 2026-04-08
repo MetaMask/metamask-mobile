@@ -148,7 +148,6 @@ const createTestCampaign = (
     endDate: nextMonth.toISOString(),
     termsAndConditions: null,
     excludedRegions: [],
-    statusLabel: 'Active',
     details: null,
     featured: true,
     ...overrides,

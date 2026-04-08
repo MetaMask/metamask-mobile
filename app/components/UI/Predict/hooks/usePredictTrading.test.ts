@@ -18,6 +18,10 @@ jest.mock('../../../../core/Engine', () => ({
       getBalance: jest.fn(),
       deposit: jest.fn(),
       payWithAnyTokenConfirmation: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
+      previewOrder: jest.fn(),
+      prepareWithdraw: jest.fn(),
+      depositWithConfirmation: jest.fn(),
     },
   },
 }));
@@ -227,39 +231,178 @@ describe('usePredictTrading', () => {
     });
   });
 
-  describe('payWithAnyTokenConfirmation', () => {
-    it('calls PredictController.payWithAnyTokenConfirmation and returns result', async () => {
+  describe('initPayWithAnyToken', () => {
+    it('calls PredictController.initPayWithAnyToken and returns result', async () => {
       const mockResult = {
         success: true,
         response: { batchId: 'batch-123' },
       };
 
       (
-        Engine.context.PredictController
-          .payWithAnyTokenConfirmation as jest.Mock
+        Engine.context.PredictController.initPayWithAnyToken as jest.Mock
       ).mockResolvedValue(mockResult);
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.payWithAnyTokenConfirmation();
+      const response = await result.current.initPayWithAnyToken();
 
       expect(
-        Engine.context.PredictController.payWithAnyTokenConfirmation,
+        Engine.context.PredictController.initPayWithAnyToken,
       ).toHaveBeenCalled();
       expect(response).toEqual(mockResult);
     });
 
-    it('throws error when PredictController.payWithAnyTokenConfirmation fails', async () => {
-      const mockError = new Error('Failed to pay with any token');
+    it('throws error when PredictController.initPayWithAnyToken fails', async () => {
+      const mockError = new Error('Failed to initialize pay with any token');
       (
-        Engine.context.PredictController
-          .payWithAnyTokenConfirmation as jest.Mock
+        Engine.context.PredictController.initPayWithAnyToken as jest.Mock
       ).mockRejectedValue(mockError);
       const { result } = renderHook(() => usePredictTrading());
 
-      await expect(
-        result.current.payWithAnyTokenConfirmation(),
-      ).rejects.toThrow('Failed to pay with any token');
+      await expect(result.current.initPayWithAnyToken()).rejects.toThrow(
+        'Failed to initialize pay with any token',
+      );
+    });
+  });
+
+  describe('previewOrder', () => {
+    it('calls PredictController.previewOrder and returns result', async () => {
+      const mockPreviewResult = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        timestamp: Date.now(),
+        side: Side.BUY,
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 180,
+        slippage: 0.01,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+      };
+
+      (
+        Engine.context.PredictController.previewOrder as jest.Mock
+      ).mockResolvedValue(mockPreviewResult);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        side: Side.BUY,
+        size: 100,
+      };
+
+      const response = await result.current.previewOrder(params);
+
+      expect(
+        Engine.context.PredictController.previewOrder,
+      ).toHaveBeenCalledWith(params);
+      expect(response).toEqual(mockPreviewResult);
+    });
+
+    it('throws error when PredictController.previewOrder fails', async () => {
+      const mockError = new Error('Failed to preview order');
+      (
+        Engine.context.PredictController.previewOrder as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        side: Side.BUY,
+        size: 100,
+      };
+
+      await expect(result.current.previewOrder(params)).rejects.toThrow(
+        'Failed to preview order',
+      );
+    });
+  });
+
+  describe('prepareWithdraw', () => {
+    it('calls PredictController.prepareWithdraw and returns result', async () => {
+      const mockWithdrawResult = {
+        txMeta: { id: 'tx-withdraw-123', hash: '0xwithdraw123' },
+        success: true,
+        amount: 500,
+      };
+
+      (
+        Engine.context.PredictController.prepareWithdraw as jest.Mock
+      ).mockResolvedValue(mockWithdrawResult);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {};
+
+      const response = await result.current.prepareWithdraw(params);
+
+      expect(
+        Engine.context.PredictController.prepareWithdraw,
+      ).toHaveBeenCalledWith(params);
+      expect(response).toEqual(mockWithdrawResult);
+    });
+
+    it('throws error when PredictController.prepareWithdraw fails', async () => {
+      const mockError = new Error('Failed to prepare withdraw');
+      (
+        Engine.context.PredictController.prepareWithdraw as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {};
+
+      await expect(result.current.prepareWithdraw(params)).rejects.toThrow(
+        'Failed to prepare withdraw',
+      );
+    });
+  });
+
+  describe('deposit', () => {
+    it('calls PredictController.depositWithConfirmation and returns result', async () => {
+      const mockDepositResult = {
+        txMeta: { id: 'tx-deposit-456', hash: '0xdeposit456' },
+        success: true,
+        depositedAmount: 1000,
+      };
+
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue(mockDepositResult);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {};
+
+      const response = await result.current.deposit(params);
+
+      expect(
+        Engine.context.PredictController.depositWithConfirmation,
+      ).toHaveBeenCalledWith(params);
+      expect(response).toEqual(mockDepositResult);
+    });
+
+    it('throws error when PredictController.depositWithConfirmation fails', async () => {
+      const mockError = new Error('Failed to deposit');
+      (
+        Engine.context.PredictController.depositWithConfirmation as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {};
+
+      await expect(result.current.deposit(params)).rejects.toThrow(
+        'Failed to deposit',
+      );
     });
   });
 
@@ -271,8 +414,9 @@ describe('usePredictTrading', () => {
       const initialClaim = result.current.claim;
       const initialGetBalance = result.current.getBalance;
       const initialPreviewOrder = result.current.previewOrder;
-      const initialPayWithAnyTokenConfirmation =
-        result.current.payWithAnyTokenConfirmation;
+      const initialPrepareWithdraw = result.current.prepareWithdraw;
+      const initialDeposit = result.current.deposit;
+      const initialInitPayWithAnyToken = result.current.initPayWithAnyToken;
 
       rerender({});
 
@@ -280,8 +424,10 @@ describe('usePredictTrading', () => {
       expect(result.current.claim).toBe(initialClaim);
       expect(result.current.getBalance).toBe(initialGetBalance);
       expect(result.current.previewOrder).toBe(initialPreviewOrder);
-      expect(result.current.payWithAnyTokenConfirmation).toBe(
-        initialPayWithAnyTokenConfirmation,
+      expect(result.current.prepareWithdraw).toBe(initialPrepareWithdraw);
+      expect(result.current.deposit).toBe(initialDeposit);
+      expect(result.current.initPayWithAnyToken).toBe(
+        initialInitPayWithAnyToken,
       );
     });
   });

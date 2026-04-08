@@ -1,12 +1,11 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   FontWeight,
-  Text,
   TextVariant,
+  Text,
+  Button,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
@@ -107,20 +106,22 @@ const CardMessageBox = ({
         >
           {onDismiss && (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               onPress={onDismiss}
-              label={strings('card.card_spending_limit.dismiss')}
               testID="dismiss-button"
-            />
+            >
+              {strings('card.card_spending_limit.dismiss')}
+            </Button>
           )}
           {config.confirmButtonLabel && onConfirm ? (
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               onPress={onConfirm}
-              loading={onConfirmLoading}
-              label={config.confirmButtonLabel}
+              isLoading={onConfirmLoading}
               testID="confirm-button"
-            />
+            >
+              {config.confirmButtonLabel}
+            </Button>
           ) : null}
         </View>
       </View>

@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
@@ -13,6 +13,7 @@ import {
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
+  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -29,7 +30,12 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
-import AppConstants from '../../../../../core/AppConstants';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
+import type { TokenWarningModalParams } from '../TokenWarningModal';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -50,6 +56,7 @@ export const SwapsConfirmButton = ({
   });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const tokenWarning = useSelector(selectDestTokenWarning);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -146,19 +153,34 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    const priceImpact = !activeQuote?.quote.priceData?.priceImpact
-      ? // Default to zero to bypass swap friction.
-        // This callback is always called when active quote exists,
-        // thus this check is not expected to be used, but we introduce
-        // it regardless as a defensive mechanism.
-        0
-      : Number.parseFloat(activeQuote.quote.priceData.priceImpact);
+    if (tokenWarning) {
+      const params: TokenWarningModalParams = {
+        warningType:
+          tokenWarning.type as TokenWarningModalParams['warningType'],
+        description: tokenWarning.description,
+        mode: TokenWarningModalMode.Execution,
+        location,
+      };
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params,
+      });
+      return;
+    }
+
+    // Default to zero to bypass swap friction.
+    // This callback is always called when active quote exists,
+    // thus this check is not expected to be used, but we introduce
+    // it regardless as a defensive mechanism.
+    const priceImpact = parsePriceImpact(
+      activeQuote?.quote.priceData?.priceImpact,
+    );
 
     if (
-      Number.isFinite(priceImpact) &&
-      priceImpact >=
-        (bridgeFeatureFlags?.priceImpactThreshold?.error ??
-          AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
+      exceedsPriceImpactErrorThreshold(
+        priceImpact,
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      )
     ) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
@@ -213,14 +235,15 @@ export const SwapsConfirmButton = ({
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      size={ButtonSize.Lg}
-      loading={buttonIsInLoadingState}
-      label={label}
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
       isDisabled={needsNewQuote ? false : isSubmitDisabled}
-    />
+    >
+      {label}
+    </Button>
   );
 };
