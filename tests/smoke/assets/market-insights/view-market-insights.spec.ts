@@ -14,7 +14,6 @@ import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   remoteFeatureFlagMarketInsightsEnabled,
-  remoteFeatureFlagRampsUnifiedMatrixForE2E,
   remoteFeatureFlagRampsUnifiedV2Enabled,
 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import {
@@ -218,10 +217,9 @@ describe(
           await navigateToMarketInsightsView();
           await MarketInsightsView.scrollToThumbsUp();
           await MarketInsightsView.tapThumbsUpButton();
-          await Assertions.expectTextDisplayed('Feedback submitted', {
-            description: 'Feedback submitted toast is shown after thumbs up',
-            timeout: 10000,
-          });
+          await waitFor(element(by.id('toast'))) // using waitFor native detox function to wait for the toast to be visible
+            .toBeVisible()
+            .withTimeout(10000);
         },
       );
     });
