@@ -2,17 +2,12 @@
 
 exports[`PermissionsSummary should render correctly 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -1137,17 +1132,12 @@ exports[`PermissionsSummary should render correctly 1`] = `
 
 exports[`PermissionsSummary should render correctly for network switch 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -1857,17 +1847,12 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
 
 exports[`PermissionsSummary should render only the account permissions card when showAccountsOnly is true 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": 325,
@@ -2521,17 +2506,12 @@ exports[`PermissionsSummary should render only the account permissions card when
 
 exports[`PermissionsSummary should render only the network permissions card when showPermissionsOnly is true 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": 325,
@@ -3097,17 +3077,12 @@ exports[`PermissionsSummary should render only the network permissions card when
 
 exports[`PermissionsSummary should render the tab view when both showAccountsOnly and showPermissionsOnly are false 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -4232,17 +4207,12 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
 
 exports[`PermissionsSummary should render with the correct initial tab based on tabIndex prop 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,

@@ -339,7 +339,6 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                           [
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#ffffff",
                               "display": "flex",
                             },
                             undefined,

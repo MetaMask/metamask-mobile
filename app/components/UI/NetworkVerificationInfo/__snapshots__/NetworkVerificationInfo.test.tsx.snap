@@ -59,7 +59,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     onGestureHandlerStateChange={[Function]}
     style={
       {
-        "backgroundColor": "#ffffff",
         "paddingHorizontal": 16,
       }
     }
@@ -598,7 +597,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     onGestureHandlerStateChange={[Function]}
     style={
       {
-        "backgroundColor": "#ffffff",
         "paddingHorizontal": 16,
       }
     }
