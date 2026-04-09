@@ -49,7 +49,7 @@ export const handleSendMessage = async ({
             sdk_version: connection.originatorInfo?.apiVersion,
             rpc_method: method,
           })
-          .addSensitiveProperties({ anon_id: anonId })
+          .addSensitiveProperties({ remote_session_id: anonId })
           .build(),
       );
     }

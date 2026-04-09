@@ -66,7 +66,7 @@ enum EVENT_NAME {
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
-  REMOTE_CONNECT_REQUEST_RECEIVED = 'Remote Connect Request Received',
+  REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
 
   // Remote connection RPC events (all remote transports)
   REMOTE_CONNECTION_RPC_REQUEST_RECEIVED = 'Remote Connection RPC Request Received',
@@ -783,8 +783,8 @@ const events = {
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
 
   // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
-  REMOTE_CONNECT_REQUEST_RECEIVED: generateOpt(
-    EVENT_NAME.REMOTE_CONNECT_REQUEST_RECEIVED,
+  REMOTE_CONNECTION_REQUEST_RECEIVED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_RECEIVED,
   ),
 
   // Remote connection RPC events (all remote transports)

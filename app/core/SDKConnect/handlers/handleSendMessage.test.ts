@@ -88,7 +88,7 @@ describe('handleSendMessage', () => {
             rpc_method: 'eth_sendTransaction',
           }),
           sensitiveProperties: expect.objectContaining({
-            anon_id: 'test-anon-id',
+            remote_session_id: 'test-anon-id',
           }),
         }),
       );
@@ -102,7 +102,7 @@ describe('handleSendMessage', () => {
         expect.objectContaining({
           name: 'Remote Connection RPC Request Rejected',
           sensitiveProperties: expect.objectContaining({
-            anon_id: 'test-anon-id',
+            remote_session_id: 'test-anon-id',
           }),
         }),
       );

@@ -76,17 +76,17 @@ async function connectToChannel({
 
   if (anonId) {
     DevLogger.log(
-      `[MM SDK Analytics] event=Remote Connect Request Received anonId=${anonId}`,
+      `[MM SDK Analytics] event=Remote Connection Request Received anonId=${anonId}`,
     );
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.REMOTE_CONNECT_REQUEST_RECEIVED,
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
       )
         .addProperties({
           transport_type: 'socket_relay',
           sdk_version: originatorInfo?.apiVersion,
         })
-        .addSensitiveProperties({ anon_id: anonId })
+        .addSensitiveProperties({ remote_session_id: anonId })
         .build(),
     );
   }

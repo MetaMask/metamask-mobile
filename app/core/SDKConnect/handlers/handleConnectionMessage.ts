@@ -82,7 +82,7 @@ export const handleConnectionMessage = async ({
           rpc_method: message.method,
           wallet_version: version,
         })
-        .addSensitiveProperties({ anon_id: anonId })
+        .addSensitiveProperties({ remote_session_id: anonId })
         .build(),
     );
   }
