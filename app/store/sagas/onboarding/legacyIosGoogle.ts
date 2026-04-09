@@ -13,7 +13,7 @@ const promptIosGoogleWarningSheet = async function () {
 };
 
 export function* promptIosGoogleWarningSheetSaga() {
-  if (Device.isIos() && Device.comparePlatformVersionTo('17.4') > 0) {
+  if (Device.isIos() && Device.comparePlatformVersionTo('17.4') < 0) {
     yield take(UserActionType.LOGIN);
 
     // delay to ensure the navigation to wallet home screen is processed
