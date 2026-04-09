@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../util/theme';
-import AccountSelector, { ACCOUNT_SELECTOR_TEST_IDS } from './AccountSelector';
+import AccountSelector, {
+  ACCOUNT_SELECTOR_TEST_IDS,
+  AccountSelectorSkeleton,
+} from './AccountSelector';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -31,8 +34,14 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID?: string;
     twClassName?: string;
   }) => <RNText {...props}>{children}</RNText>;
+  const MockSkeleton = (props: {
+    height?: number;
+    width?: number;
+    twClassName?: string;
+  }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
   return {
     Text: MockText,
+    Skeleton: MockSkeleton,
     TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
     TextColor: { TextAlternative: 'TextAlternative' },
   };
@@ -256,5 +265,25 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId('account-group-group-1'));
 
     expect(queryByTestId(ACCOUNT_SELECTOR_TEST_IDS.MODAL)).toBeNull();
+  });
+
+  it('renders custom label when label prop is provided', () => {
+    const { getByText, queryByText } = render(
+      <AccountSelector
+        label="From"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(queryByText('confirm.label.to')).toBeNull();
+  });
+});
+
+describe('AccountSelectorSkeleton', () => {
+  it('renders skeleton with correct testID', () => {
+    const { getByTestId } = render(<AccountSelectorSkeleton />);
+
+    expect(getByTestId('account-selector-skeleton')).toBeOnTheScreen();
   });
 });

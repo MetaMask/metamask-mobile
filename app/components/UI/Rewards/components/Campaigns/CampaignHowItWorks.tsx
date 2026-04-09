@@ -15,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { getIconName } from '../../utils/formatUtils';
 import ContentfulRichText, {
   isDocument,
+  documentToPlainText,
 } from '../ContentfulRichText/ContentfulRichText';
 
 export const CAMPAIGN_HOW_IT_WORKS_TEST_IDS = {
@@ -64,7 +65,7 @@ const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({
             fontWeight={FontWeight.Medium}
             testID={`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-${stepIndex}`}
           >
-            {step.title}
+            {documentToPlainText(step.title)}
           </Text>
           {isDocument(step.description) && (
             <ContentfulRichText
