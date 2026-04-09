@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { TokenIcon } from '../../token-icon';
+import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
@@ -130,6 +130,7 @@ export function PayWithRow() {
           <TokenIcon
             address={displayToken.address}
             chainId={displayToken.chainId}
+            variant={TokenIconVariant.Row}
           />
           <Text
             variant={TextVariant.BodyMd}
