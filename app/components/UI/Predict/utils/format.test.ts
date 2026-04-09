@@ -1392,6 +1392,10 @@ describe('format utils', () => {
   });
 
   describe('formatMarketEndDate', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('formats valid ISO date string to readable format', () => {
       jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
         () =>
@@ -1407,14 +1411,8 @@ describe('format utils', () => {
       expect(result).toBe('April 9, 1:45 PM');
     });
 
-    it('returns empty string for invalid date string', () => {
+    it('returns empty string for an unparseable date string', () => {
       const result = formatMarketEndDate('not-a-date');
-
-      expect(result).toBe('');
-    });
-
-    it('returns empty string for completely unparseable input', () => {
-      const result = formatMarketEndDate('invalid-date-format');
 
       expect(result).toBe('');
     });

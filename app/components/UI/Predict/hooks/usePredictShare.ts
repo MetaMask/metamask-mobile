@@ -1,7 +1,5 @@
-import React, { useCallback, useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { Share } from 'react-native';
-import { Box, IconName, IconSize } from '@metamask/design-system-react-native';
-import Icon from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
@@ -10,6 +8,7 @@ import { useTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
 import { PredictShareStatus } from '../constants/eventNames';
 import { strings } from '../../../../../locales/i18n';
+import { buildShareCopiedToastOptions } from './usePredictShare.utils';
 
 interface UsePredictShareParams {
   marketId?: string;
@@ -47,29 +46,12 @@ const usePredictShare = ({ marketId, marketSlug }: UsePredictShareParams) => {
         if (
           result.activityType === 'com.apple.UIKit.activity.CopyToPasteboard'
         ) {
-          return toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              {
-                label: strings('predict.toasts.copied_to_clipboard'),
-                isBold: true,
-              },
-            ],
-            iconName: IconName.Confirmation,
-            backgroundColor: 'transparent',
-            iconColor: colors.success.default,
-            hasNoTimeout: false,
-            customBottomOffset: -50,
-            startAccessory: (
-              <Box twClassName="items-center justify-center align-center pr-[12px]">
-                <Icon
-                  name={IconName.Confirmation}
-                  color={colors.success.default}
-                  size={IconSize.Lg}
-                />
-              </Box>
-            ),
-          });
+          return toastRef?.current?.showToast(
+            buildShareCopiedToastOptions({
+              label: strings('predict.toasts.copied_to_clipboard'),
+              successColor: colors.success.default,
+            }),
+          );
         }
       } else {
         throw new Error('Failed to share');

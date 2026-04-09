@@ -42,7 +42,10 @@ import PredictDetailsContentSkeleton from '../../components/PredictDetailsConten
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
 import { isCryptoUpDown } from '../../utils/cryptoUpDown';
-import { selectPredictUpDownEnabledFlag , selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
+import {
+  selectPredictUpDownEnabledFlag,
+  selectPredictFeeCollectionFlag,
+} from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';

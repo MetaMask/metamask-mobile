@@ -430,13 +430,6 @@ export const estimateLineCount = (text: string | undefined): number => {
 };
 
 /**
- * Formats a game start time into separate date and time strings for display.
- * Uses locale-aware formatting via Intl.DateTimeFormat.
- * @param startTime - ISO 8601 datetime string (e.g., "2026-02-08T20:30:00Z")
- * @returns Object with formatted date ("Sun, Feb 8") and time ("3:30 PM")
- * @example formatGameStartTime("2026-02-08T20:30:00Z") => { date: "Sun, Feb 8", time: "3:30 PM" }
- */
-/**
  * Formats a market end date into a user-friendly date/time string
  * using the user's local timezone.
  * @param endDate - ISO 8601 datetime string (e.g., "2026-04-09T19:45:00Z")
@@ -458,6 +451,13 @@ export const formatMarketEndDate = (endDate: string): string => {
   }).format(dateObj);
 };
 
+/**
+ * Formats a game start time into separate date and time strings for display.
+ * Uses locale-aware formatting via Intl.DateTimeFormat.
+ * @param startTime - ISO 8601 datetime string (e.g., "2026-02-08T20:30:00Z")
+ * @returns Object with formatted date ("Sun, Feb 8") and time ("3:30 PM")
+ * @example formatGameStartTime("2026-02-08T20:30:00Z") => { date: "Sun, Feb 8", time: "3:30 PM" }
+ */
 export const formatGameStartTime = (
   startTime: string | undefined,
 ): { date: string; time: string } => {
