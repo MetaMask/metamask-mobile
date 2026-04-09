@@ -33,6 +33,7 @@ jest.mock('../../token-icon/', () => ({
   TokenIcon: (props: TokenIconProps) => (
     <MockText>{`${props.address} ${props.chainId}`}</MockText>
   ),
+  TokenIconVariant: { Default: 'default', Row: 'row', Hero: 'hero' },
 }));
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
