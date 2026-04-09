@@ -286,7 +286,7 @@ const PriceAdvanced = ({
   const displayPrice = crosshairData?.close ?? currentPrice;
 
   const displayDiff = useMemo(() => {
-    if (!dynamicComparePrice) return null;
+    if (dynamicComparePrice === null) return null;
     if (crosshairData) {
       return crosshairData.close - dynamicComparePrice;
     }

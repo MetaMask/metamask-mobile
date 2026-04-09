@@ -410,4 +410,47 @@ describe('PriceAdvanced', () => {
     // Should now show 2.94% based on new OHLCV data (105 - 102) / 102 * 100
     expect(getByText(/2\.94%/)).toBeOnTheScreen();
   });
+
+  it('displays price diff when dynamicComparePrice is 0', () => {
+    // Edge case: when the starting price is 0, the price diff should still be displayed
+    // This tests the fix for the falsy check bug (0 should not be treated as null)
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+    mockUseOHLCVChart.mockReturnValueOnce({
+      ohlcvData: [
+        {
+          time: oneDayAgo,
+          open: 0, // Starting price is 0
+          high: 1,
+          low: 0,
+          close: 0.5,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 0.5,
+          high: 10,
+          low: 0.5,
+          close: 10,
+          volume: 1,
+        },
+      ],
+      isLoading: false,
+      error: undefined,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    const { getByText, getByTestId } = render(
+      <PriceAdvanced {...baseProps} currentPrice={10} />,
+    );
+
+    // Should display the price diff (10 - 0 = +10)
+    expect(getByText(/\+\$10\.00/)).toBeOnTheScreen();
+    // Should display 0% because of division by zero guard
+    expect(getByText(/0%/)).toBeOnTheScreen();
+    // Should display the time range label
+    expect(getByTestId('price-label')).toBeOnTheScreen();
+  });
 });
