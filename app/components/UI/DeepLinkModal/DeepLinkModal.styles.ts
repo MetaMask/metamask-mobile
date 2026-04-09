@@ -10,7 +10,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       paddingHorizontal: 16,
       alignItems: 'center',
-      backgroundColor: colors.background.default,
     },
     box: {
       marginTop: 24,

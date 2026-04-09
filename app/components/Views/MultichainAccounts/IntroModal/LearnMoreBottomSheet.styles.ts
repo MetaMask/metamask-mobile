@@ -6,9 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
-      backgroundColor: colors.background.default,
-    },
+    container: {},
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
