@@ -34,7 +34,6 @@ import Utilities from '../../framework/Utilities';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 
 /*
 Test Scenario: Claim winning positions
@@ -122,6 +121,9 @@ describe(SmokePredictions('Claim winnings:'), () => {
         await PredictHelpers.setPortugalLocation();
         await loginToApp();
 
+        // Claim button is animated - disabling sync on iOS to prevent test hang
+        await device.disableSynchronization();
+
         await WalletView.tapClaimButton();
 
         await postClaimMocks(mockServer);
@@ -157,8 +159,12 @@ describe(SmokePredictions('Claim winnings:'), () => {
           description:
             'Wallet screen should be visible after returning from activity',
         });
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
+        await WalletView.scrollAndTapPredictionsSection('down', {
+          overshootSwipe: {
+            direction: 'down',
+            percentage: 0.15,
+          },
+        });
         await Assertions.expectTextDisplayed('$48.16');
 
         // Verify analytics events

@@ -51,7 +51,9 @@ function renderWithProvider(
           },
         },
         card: {
+          cardholderAccounts: [],
           hasViewedCardButton: false,
+          isLoaded: false,
           ...cardState,
         },
       },

@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -69,18 +69,21 @@ const createStyles = (
       justifyContent: 'center',
     },
   });
-interface SDKSessionModalRouteParams {
-  channelId?: string;
-  icon?: string;
-  urlOrTitle: string;
-  version?: string;
-  platform?: string;
-  isV2?: boolean;
+interface SDKSEssionMoodalProps {
+  route: {
+    params: {
+      channelId?: string;
+      icon?: string;
+      urlOrTitle: string;
+      version?: string;
+      platform?: string;
+      isV2?: boolean;
+    };
+  };
 }
 
-const SDKSessionModal = () => {
-  const { params } =
-    useRoute<RouteProp<{ params: SDKSessionModalRouteParams }, 'params'>>();
+const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
+  const { params } = route;
   const { channelId, icon, urlOrTitle, version, platform, isV2 } = params;
 
   const sheetRef = useRef<BottomSheetRef>(null);

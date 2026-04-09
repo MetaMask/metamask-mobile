@@ -844,6 +844,60 @@ describe('Onboarding', () => {
     });
   });
 
+  describe('Navigation behavior', () => {
+    it('navigates to HOME_NAV when unlock is pressed and password is not set', async () => {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialStateWithExistingUser,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Unlock')).toBeTruthy();
+      });
+
+      jest.advanceTimersByTime(600);
+
+      const unlockButton = getByText('Unlock');
+
+      await act(async () => {
+        fireEvent.press(unlockButton);
+      });
+
+      expect(Authentication.resetVault).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.HOME_NAV,
+        undefined,
+      );
+    });
+
+    it('navigates to LOGIN when unlock is pressed and password is set', async () => {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialStateWithExistingUserAndPassword,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('Unlock')).toBeTruthy();
+      });
+
+      jest.advanceTimersByTime(600);
+
+      const unlockButton = getByText('Unlock');
+
+      await act(async () => {
+        fireEvent.press(unlockButton);
+      });
+
+      expect(Authentication.lockApp).toHaveBeenCalled();
+    });
+  });
+
   describe('componentDidMount behavior', () => {
     it('checks for existing user on mount', async () => {
       renderScreen(

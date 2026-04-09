@@ -12,7 +12,6 @@ jest.mock('react-redux', () => ({
         wc2Metadata: {
           id: '',
         },
-        v2Connections: {},
       },
     } as RootState),
   ),
@@ -44,7 +43,6 @@ describe('useOriginSource', () => {
       wc2Metadata: {
         id: '',
       },
-      v2Connections: {},
     },
   } as RootState;
 
@@ -69,58 +67,6 @@ describe('useOriginSource', () => {
     expect(result.current).toBe(SourceType.SDK);
   });
 
-  it('should return MM_CONNECT source for UUID origin present in v2Connections', () => {
-    const v2Uuid = 'aabbccdd-1122-3344-5566-778899aabbcc';
-    const v2State = {
-      ...mockState,
-      sdk: {
-        ...mockState.sdk,
-        v2Connections: {
-          [v2Uuid]: { id: v2Uuid, isV2: true },
-        },
-      },
-    } as unknown as RootState;
-
-    mockSelector.mockImplementation((selector: (state: RootState) => unknown) =>
-      selector(v2State),
-    );
-
-    const { result } = renderHook(() => useOriginSource({ origin: v2Uuid }));
-    expect(result.current).toBe(SourceType.MM_CONNECT);
-  });
-
-  it('should prefer MM_CONNECT over SDK when UUID exists in both stores', () => {
-    // UUID '123e4567-...' is recognized by the V1 SDKConnect mock above.
-    // When it also appears in v2Connections, V2 should win.
-    const sharedUuid = '123e4567-e89b-12d3-a456-426614174000';
-    const v2State = {
-      ...mockState,
-      sdk: {
-        ...mockState.sdk,
-        v2Connections: {
-          [sharedUuid]: { id: sharedUuid, isV2: true },
-        },
-      },
-    } as unknown as RootState;
-
-    mockSelector.mockImplementation((selector: (state: RootState) => unknown) =>
-      selector(v2State),
-    );
-
-    const { result } = renderHook(() =>
-      useOriginSource({ origin: sharedUuid }),
-    );
-    expect(result.current).toBe(SourceType.MM_CONNECT);
-  });
-
-  it('should not return MM_CONNECT for UUID origin not in v2Connections', () => {
-    const unknownUuid = 'aabbccdd-1122-3344-5566-000000000000';
-    const { result } = renderHook(() =>
-      useOriginSource({ origin: unknownUuid }),
-    );
-    expect(result.current).toBe(SourceType.IN_APP_BROWSER);
-  });
-
   it('should return SDK source for SDK_REMOTE_ORIGIN', () => {
     const { result } = renderHook(() =>
       useOriginSource({
@@ -131,10 +77,10 @@ describe('useOriginSource', () => {
   });
 
   it('should return WALLET_CONNECT source when WC metadata is present', () => {
+    // Mock WalletConnect metadata
     const wcState = {
       ...mockState,
       sdk: {
-        ...mockState.sdk,
         wc2Metadata: {
           id: 'some-wc-id',
         },

@@ -95,6 +95,7 @@ function PaymentSelectionModal() {
             assetId,
             providers: selectedProvider ? [selectedProvider.id] : undefined,
             paymentMethods: paymentMethodIds,
+            forceRefresh: true,
           }
         : null,
     [
@@ -218,18 +219,7 @@ function PaymentSelectionModal() {
         </ScrollView>
       );
     }
-    // Filter out payment methods that have no available quote once quotes
-    // have loaded. This avoids showing dead-end options to the user.
-    const visiblePaymentMethods =
-      !quotesLoading && quotes
-        ? paymentMethods.filter((pm) =>
-            quotes.success?.some(
-              (q) => q.quote?.paymentMethod === pm.id && !isCustomAction(q),
-            ),
-          )
-        : paymentMethods;
-
-    if (visiblePaymentMethods.length === 0) {
+    if (paymentMethods.length === 0) {
       return (
         <ScrollView
           style={styles.list}
@@ -245,7 +235,7 @@ function PaymentSelectionModal() {
     return (
       <FlatList
         style={styles.list}
-        data={visiblePaymentMethods}
+        data={paymentMethods}
         renderItem={renderPaymentMethod}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
