@@ -7482,6 +7482,7 @@ describe('PredictController', () => {
           expect(status).toEqual({
             sportsConnected: false,
             marketConnected: false,
+            rtdsConnected: false,
           });
         });
       });
@@ -7493,6 +7494,7 @@ describe('PredictController', () => {
           expect(status).toEqual({
             sportsConnected: false,
             marketConnected: false,
+            rtdsConnected: false,
           });
         });
       });
