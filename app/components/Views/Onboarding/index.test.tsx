@@ -1442,7 +1442,6 @@ describe('Onboarding', () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockClear();
       mockAnalytics.trackEvent.mockClear();
-      (endTrace as jest.Mock).mockClear();
 
       const stateWithBlockingFlag = {
         ...mockInitialState,
@@ -1520,10 +1519,12 @@ describe('Onboarding', () => {
           name: 'Wallet Google Ios Warning Viewed',
         }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.OnboardingSocialLoginAttempt,
-          data: { success: false },
+          name: MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+          }),
         }),
       );
     });
@@ -1536,7 +1537,6 @@ describe('Onboarding', () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockClear();
       mockAnalytics.trackEvent.mockClear();
-      (endTrace as jest.Mock).mockClear();
 
       const stateWithBlockingFlag = {
         ...mockInitialState,
@@ -1614,10 +1614,12 @@ describe('Onboarding', () => {
           name: 'Wallet Google Ios Warning Viewed',
         }),
       );
-      expect(endTrace).toHaveBeenCalledWith(
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.OnboardingSocialLoginAttempt,
-          data: { success: false },
+          name: MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.ImportedGoogle,
+          }),
         }),
       );
     });

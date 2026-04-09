@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { Dimensions, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Svg, { Path } from 'react-native-svg';
 import { strings } from '../../../../../locales/i18n';
@@ -41,6 +42,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import { setTokenOverviewChartType } from '../../../../actions/user';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
 
@@ -124,9 +127,10 @@ const PriceAdvanced = ({
   comparePrice,
   isLoading,
 }: PriceAdvancedProps) => {
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const [chartType, setChartType] = useState<ChartType>(ChartType.Line);
+  const chartType = useSelector(selectTokenOverviewChartType);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -168,8 +172,8 @@ const PriceAdvanced = ({
         })
         .build(),
     );
-    setChartType(next);
-  }, [chartType, createEventBuilder, trackEvent]);
+    dispatch(setTokenOverviewChartType(next));
+  }, [chartType, createEventBuilder, trackEvent, dispatch]);
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -225,6 +229,12 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
+  // This is to make sure we show only data relevant to selected timeframe even if api returns a lot more data than that
+  const visibleFromMs = useMemo(() => {
+    const lastBar = ohlcvData[ohlcvData.length - 1];
+    if (!lastBar) return undefined;
+    return lastBar.time - config.durationMs;
+  }, [ohlcvData, config.durationMs]);
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -346,6 +356,7 @@ const PriceAdvanced = ({
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
               onCrosshairMove={handleCrosshairMove}
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}

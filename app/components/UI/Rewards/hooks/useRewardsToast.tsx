@@ -103,7 +103,7 @@ const useRewardsToast = (): {
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
-        iconColor: theme.colors.icon.muted,
+        iconColor: theme.colors.icon.default,
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Warning,
         labelOptions: getRewardsToastLabels(title),
@@ -121,7 +121,7 @@ const useRewardsToast = (): {
     [
       theme.colors.success.default,
       theme.colors.error.default,
-      theme.colors.icon.muted,
+      theme.colors.icon.default,
       toastRef,
     ],
   );

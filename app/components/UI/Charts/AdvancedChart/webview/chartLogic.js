@@ -421,7 +421,36 @@ function handleSetOHLCVData(payload) {
     };
   }
 
+  var visibleFromMs =
+    payload.visibleFromMs != null ? payload.visibleFromMs : null;
+
   var newResolution = detectResolution(window.ohlcvData);
+
+  function scheduleVisibleRangeAfterDataLoad(chart) {
+    if (visibleFromMs == null) return;
+    var capturedGeneration = window.ohlcvGeneration;
+    var sub = chart.onDataLoaded();
+    sub.subscribe(null, function onLoaded() {
+      sub.unsubscribe(null, onLoaded);
+      // Discard stale callback if user switched timeframes before load completed
+      if (capturedGeneration !== window.ohlcvGeneration) {
+        return;
+      }
+      var fromSec = Math.floor(visibleFromMs / 1000);
+      var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+      var toSec = lastBar
+        ? Math.ceil(lastBar.time / 1000)
+        : Math.ceil(Date.now() / 1000);
+      try {
+        chart.setVisibleRange(
+          { from: fromSec, to: toSec },
+          { percentRightMargin: 5 },
+        );
+      } catch (e) {
+        // setVisibleRange can fail if chart is mid-teardown
+      }
+    });
+  }
 
   if (window.chartWidget && window.isChartReady) {
     var previousResolution = window.currentResolution;
@@ -434,6 +463,7 @@ function handleSetOHLCVData(payload) {
           try {
             chart.resetData();
             beginDeferredLayoutSettleAfterOhlcvReload();
+            scheduleVisibleRangeAfterDataLoad(chart);
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
@@ -443,6 +473,7 @@ function handleSetOHLCVData(payload) {
         try {
           chart.resetData();
           beginDeferredLayoutSettleAfterOhlcvReload();
+          scheduleVisibleRangeAfterDataLoad(chart);
         } catch (e) {
           abortDeferredLayoutSettleAndNotify();
           return;

@@ -4,11 +4,12 @@ import { Theme } from '../../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      borderRadius: 9999,
-      backgroundColor: params.theme.colors.background.muted,
-      paddingVertical: 8,
-      paddingLeft: 9,
-      paddingRight: 16,
+      paddingHorizontal: 16,
+    },
+
+    skeletonContainer: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
     },
 
     spinner: {
@@ -32,6 +33,10 @@ const styleSheet = (params: { theme: Theme }) =>
     skeletonCircle: {
       marginLeft: -1,
       borderRadius: 99,
+    },
+
+    disabled: {
+      opacity: 0.5,
     },
   });
 

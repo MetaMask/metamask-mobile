@@ -515,7 +515,7 @@ const Onboarding = () => {
                 onboardingTraceCtx: onboardingTraceCtx.current,
               },
             )
-          : navigation.navigate('Rehydrate', {
+          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: onboardingTraceCtx.current,
@@ -763,13 +763,6 @@ const Onboarding = () => {
         });
       }
 
-      socialLoginTraceCtx.current = trace({
-        name: TraceName.OnboardingSocialLoginAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: { ...getTraceTags(store.getState()), provider },
-        parentContext: onboardingTraceCtx.current,
-      });
-
       const action = async () => {
         // prompt for ios google login not supported below iOS 17.4
         if (
@@ -788,13 +781,6 @@ const Onboarding = () => {
             track(MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED, {
               account_type: accountType,
             });
-            if (socialLoginTraceCtx.current) {
-              endTrace({
-                name: TraceName.OnboardingSocialLoginAttempt,
-                data: { success: false },
-              });
-              socialLoginTraceCtx.current = undefined;
-            }
             return;
           }
 
@@ -803,6 +789,14 @@ const Onboarding = () => {
             account_type: accountType,
           });
         }
+
+        socialLoginTraceCtx.current = trace({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: { ...getTraceTags(store.getState()), provider },
+          parentContext: onboardingTraceCtx.current,
+        });
+
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {

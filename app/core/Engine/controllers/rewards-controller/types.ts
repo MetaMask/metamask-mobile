@@ -165,8 +165,25 @@ export interface CampaignDto {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoCampaignStepState = {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourActionsState = {
+  next?: boolean;
+  skip?: boolean;
+};
+
+/**
+ * Serializable version of OndoCampaignTourStepDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTourStepDtoState = {
+  title: string;
+  description: string;
+  image: ThemeImageState | null;
+  actions: OndoCampaignTourActionsState | null;
 };
 
 /**
@@ -178,6 +195,7 @@ export type OndoCampaignHowItWorksState = {
   description: string;
   steps: OndoCampaignStepState[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDtoState[];
 };
 
 /**
@@ -195,7 +213,6 @@ export type ThemeImageState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
-  depositCutoffDate?: string;
 };
 
 /**
@@ -656,8 +673,20 @@ export type CampaignParticipantStatusState = {
 
 export interface OndoCampaignStep {
   title: string;
-  description: string;
+  description: Json | null;
   iconName: string;
+}
+
+export interface OndoCampaignTourActions {
+  next?: boolean;
+  skip?: boolean;
+}
+
+export interface OndoCampaignTourStepDto {
+  title: string;
+  description: string;
+  image: ThemeImage | null;
+  actions: OndoCampaignTourActions | null;
 }
 
 export interface OndoCampaignHowItWorks {
@@ -665,11 +694,11 @@ export interface OndoCampaignHowItWorks {
   description: string;
   steps: OndoCampaignStep[];
   notes?: Json | null;
+  tour?: OndoCampaignTourStepDto[];
 }
 
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
-  depositCutoffDate?: string;
 }
 
 export type CampaignDetails = OndoHoldingDetails;

@@ -1,9 +1,14 @@
 import { useSelector } from 'react-redux';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { EthAccountType } from '@metamask/keyring-api';
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectAssetsByAccountGroupId,
+} from '../../../../../selectors/assets/assets-list';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -12,9 +17,37 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
 import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import type { RootState } from '../../../../../reducers';
 
 const EMPTY_CACHE = {} as ReturnType<typeof selectERC20TokensByChain>;
 const selectEmptyCache = () => EMPTY_CACHE;
+
+function useFromAccountGroupAssets() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const fromAddress = transactionMeta?.txParams?.from as string | undefined;
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+
+  const accountGroupId = useMemo(() => {
+    if (!fromAddress) return undefined;
+    const internalAccountId = Object.keys(internalAccountsById).find(
+      (id) =>
+        internalAccountsById[id].address.toLowerCase() ===
+        fromAddress.toLowerCase(),
+    );
+    if (!internalAccountId) return undefined;
+    return accountToGroupMap[internalAccountId]?.id;
+  }, [fromAddress, internalAccountsById, accountToGroupMap]);
+
+  const selectOverrideAssets = useCallback(
+    (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
+    [accountGroupId],
+  );
+
+  const overrideAssets = useSelector(selectOverrideAssets);
+  return accountGroupId ? overrideAssets : undefined;
+}
 
 export function useAccountTokens({
   includeNoBalance = false,
@@ -25,7 +58,9 @@ export function useAccountTokens({
   includeAllTokens?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
 } = {}): AssetType[] {
-  const assets = useSelector(selectAssetsBySelectedAccountGroup);
+  const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
+  const fromAccountAssets = useFromAccountGroupAssets();
+  const assets = fromAccountAssets ?? globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
   const tokensChainsCache = useSelector(
     includeAllTokens ? selectERC20TokensByChain : selectEmptyCache,
