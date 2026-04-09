@@ -57,6 +57,12 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
+    mockSelectMoneyHomeScreenEnabledFlag(state),
+}));
+
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -100,16 +106,6 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
   });
 
-  it('navigates to Cash tokens full view when row is pressed', () => {
-    renderWithProvider(<MusdAggregatedRow />);
-
-    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WALLET.CASH_TOKENS_FULL_VIEW,
-    );
-  });
-
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '10',
@@ -141,12 +137,8 @@ describe('MusdAggregatedRow', () => {
   });
 
   describe('handleTokenRowPress', () => {
-    it('navigates to Cash tokens full view when row is pressed', () => {
-      mockUseMusdBalance.mockReturnValueOnce({
-        tokenBalanceAggregated: '1800.5',
-        fiatBalanceAggregatedFormatted: '$1,800.50',
-        hasMusdBalanceOnAnyChain: true,
-      });
+    it('navigates to Cash tokens full view when Money Home is disabled', () => {
+      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
 
       renderWithProvider(<MusdAggregatedRow />);
 
@@ -155,6 +147,16 @@ describe('MusdAggregatedRow', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
       );
+    });
+
+    it('navigates to Money Home when Money Home is enabled', () => {
+      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
+      renderWithProvider(<MusdAggregatedRow />);
+
+      fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
     });
   });
 
