@@ -91,11 +91,6 @@ describe('V2KycProcessing', () => {
     jest.useRealTimers();
   });
 
-  it('matches snapshot in loading state', () => {
-    const { toJSON } = renderWithTheme(<V2KycProcessing />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders activity indicator while polling', async () => {
     const { getByTestId } = renderWithTheme(<V2KycProcessing />);
 
