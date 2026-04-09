@@ -64,8 +64,10 @@ function TransactionFeeRow({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
+  const hasQuotes = Boolean(quotes?.length);
+
   const feeTotalUsd = useMemo(() => {
-    if (!totals?.fees) return '';
+    if (!totals?.fees || !hasQuotes) return '';
 
     const metaMask = totals.fees.metaMask.usd ?? 0;
     const provider = totals.fees.provider.usd;
@@ -78,11 +80,9 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [totals, formatFiat]);
+  }, [totals, formatFiat, hasQuotes]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
-
-  const hasQuotes = Boolean(quotes?.length);
 
   return (
     <AlertRow
