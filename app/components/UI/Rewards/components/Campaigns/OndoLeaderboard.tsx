@@ -1,10 +1,15 @@
-import React, { useMemo } from 'react';
-import { FlatList, ListRenderItemInfo } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { FlatList, ListRenderItemInfo, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -12,26 +17,28 @@ import {
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
-import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
-
-const ListSeparator = () => <Box twClassName="border-b border-border-muted" />;
+import {
+  formatRateOfReturn,
+  formatTierDisplayName,
+} from './OndoLeaderboard.utils';
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'campaign-leaderboard-container',
   TIER_TOGGLE: 'campaign-leaderboard-tier-toggle',
   LIST: 'campaign-leaderboard-list',
   ENTRY_ROW: 'campaign-leaderboard-entry-row',
-  COMPUTED_AT: 'campaign-leaderboard-computed-at',
   LOADING: 'campaign-leaderboard-loading',
   ERROR: 'campaign-leaderboard-error',
   EMPTY: 'campaign-leaderboard-empty',
   NOT_YET_COMPUTED: 'campaign-leaderboard-not-yet-computed',
 } as const;
+
+const MAX_ENTRIES_LIMIT = 20;
 
 interface CampaignLeaderboardProps {
   tierNames: string[];
@@ -39,13 +46,14 @@ interface CampaignLeaderboardProps {
   onTierChange: (tier: string) => void;
   entries: CampaignLeaderboardEntry[];
   totalParticipants: number;
-  computedAt: string | null;
   isLoading: boolean;
   hasError: boolean;
   isLeaderboardNotYetComputed?: boolean;
   onRetry?: () => void;
   currentUserReferralCode?: string | null;
   showTitle?: boolean;
+  /** Limit entries shown. Values above 20 are ignored (all entries shown). */
+  maxEntries?: number;
 }
 
 /**
@@ -59,7 +67,7 @@ const LeaderboardEntryRow: React.FC<{
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="py-3 px-4"
+    twClassName={`py-1 ${isCurrentUser ? 'bg-background-muted' : ''}`}
     testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
   >
     <Box
@@ -69,17 +77,11 @@ const LeaderboardEntryRow: React.FC<{
     >
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={isCurrentUser ? FontWeight.Bold : FontWeight.Medium}
-        color={isCurrentUser ? TextColor.SuccessDefault : undefined}
-        twClassName="w-8"
+        twClassName="w-8 text-text-alternative"
       >
-        #{entry.rank}
+        #{String(entry.rank).padStart(2, '0')}
       </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={isCurrentUser ? FontWeight.Bold : undefined}
-        color={isCurrentUser ? TextColor.SuccessDefault : undefined}
-      >
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {entry.referralCode}
       </Text>
     </Box>
@@ -147,7 +149,6 @@ const LeaderboardSkeleton: React.FC = () => {
               </Box>
               <Skeleton style={tw.style('h-5 w-16 rounded')} />
             </Box>
-            {i < 10 && <Box twClassName="border-b border-border-muted" />}
           </Box>
         ))}
       </Box>
@@ -166,25 +167,45 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   onTierChange,
   entries,
   totalParticipants,
-  computedAt,
   isLoading,
   hasError,
   isLeaderboardNotYetComputed = false,
   onRetry,
   currentUserReferralCode,
   showTitle = true,
+  maxEntries,
 }) => {
-  const tabs = useMemo(
+  const navigation = useNavigation();
+
+  const visibleEntries = useMemo(() => {
+    if (maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT) {
+      return entries.slice(0, maxEntries);
+    }
+    return entries;
+  }, [entries, maxEntries]);
+
+  const selectedTierLabel = selectedTier
+    ? formatTierDisplayName(selectedTier)
+    : '';
+
+  const tierOptions = useMemo(
     () =>
       tierNames.map((name) => ({
         key: name,
-        label: name.toUpperCase(),
-        content: null,
+        value: name,
+        label: formatTierDisplayName(name),
       })),
     [tierNames],
   );
 
-  const selectedIndex = selectedTier ? tierNames.indexOf(selectedTier) : 0;
+  const openTierSelector = useCallback(() => {
+    navigation.navigate(Routes.MODAL.REWARDS_SELECT_SHEET, {
+      title: strings('rewards.ondo_campaign_leaderboard.select_tier'),
+      options: tierOptions,
+      selectedValue: selectedTier,
+      onSelect: onTierChange,
+    });
+  }, [navigation, tierOptions, selectedTier, onTierChange]);
 
   const renderEntry = ({
     item,
@@ -255,51 +276,35 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         </Text>
       )}
 
-      {/* Tier selector + last updated */}
-      {tabs.length > 1 ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 -mx-4"
+      {/* Tier selector */}
+      {tierNames.length > 1 ? (
+        <Pressable
+          onPress={openTierSelector}
+          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
         >
-          <Box twClassName="flex-1">
-            <TabsBar
-              tabs={tabs}
-              activeIndex={selectedIndex}
-              onTabPress={(index) => onTierChange(tierNames[index])}
-              testID={CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1 mb-4 self-start"
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {selectedTierLabel}
+            </Text>
+            <Icon
+              name={IconName.SwapVertical}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
             />
           </Box>
-          {computedAt ? (
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              twClassName="pr-4"
-              testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
-            >
-              {strings('rewards.ondo_campaign_leaderboard.updated_at', {
-                time: formatComputedAt(computedAt),
-              })}
-            </Text>
-          ) : null}
-        </Box>
-      ) : computedAt ? (
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="mb-4"
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
-        >
-          {strings('rewards.ondo_campaign_leaderboard.updated_at', {
-            time: formatComputedAt(computedAt),
-          })}
-        </Text>
+        </Pressable>
       ) : null}
 
       {/* Error banner when has error but no data to display */}
       {hasError && !isLoading && entries.length === 0 && (
         <Box
-          twClassName="bg-error-muted rounded-lg p-3 mb-4"
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
@@ -326,27 +331,14 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         </Box>
       )}
 
-      {/* Total participants */}
-      <Box twClassName="mb-2">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.ondo_campaign_leaderboard.total_participants', {
-            count: totalParticipants.toLocaleString(),
-          })}
-        </Text>
-      </Box>
-
       {/* Leaderboard list */}
-      {entries.length > 0 ? (
-        <Box
-          twClassName="bg-muted rounded-xl overflow-hidden"
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.LIST}
-        >
+      {visibleEntries.length > 0 ? (
+        <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.LIST}>
           <FlatList
-            data={entries}
+            data={visibleEntries}
             renderItem={renderEntry}
             keyExtractor={keyExtractor}
             scrollEnabled={false}
-            ItemSeparatorComponent={ListSeparator}
           />
         </Box>
       ) : (
@@ -360,6 +352,15 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           </Text>
         </Box>
       )}
+
+      {/* Total participants */}
+      <Box twClassName="mt-2">
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('rewards.ondo_campaign_leaderboard.total_participants', {
+            count: totalParticipants.toLocaleString(),
+          })}
+        </Text>
+      </Box>
     </Box>
   );
 };

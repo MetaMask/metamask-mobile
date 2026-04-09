@@ -852,7 +852,18 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('ondo-leaderboard')).toBeDefined();
     });
 
-    it('does not show leaderboard section header when campaign is complete and not opted in', () => {
+    it('always shows leaderboard title and navigation arrow when campaign exists', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      const { getByText } = render(<OndoCampaignDetailsView />);
+      expect(
+        getByText('rewards.ondo_campaign_leaderboard.title'),
+      ).toBeDefined();
+    });
+
+    it('shows leaderboard title when campaign is complete and not opted in', () => {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const yesterday = new Date();
@@ -866,40 +877,6 @@ describe('OndoCampaignDetailsView', () => {
             endDate: yesterday.toISOString(),
           }),
         ],
-      });
-      const { queryByText } = render(<OndoCampaignDetailsView />);
-      expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
-    });
-
-    it('shows leaderboard navigational header when leaderboard is not yet computed', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [createTestCampaign()],
-      });
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: { optedIn: true, participantCount: 1 },
-        isLoading: false,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      mockUseGetOndoPortfolioPosition.mockReturnValue({
-        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
-        isLoading: false,
-        hasError: false,
-        hasFetched: true,
-        refetch: jest.fn(),
-      });
-      mockUseGetOndoLeaderboard.mockReturnValue({
-        leaderboard: null,
-        isLoading: false,
-        hasError: false,
-        isLeaderboardNotYetComputed: true,
-        tierNames: [],
-        selectedTier: null,
-        selectedTierData: null,
-        computedAt: null,
-        setSelectedTier: jest.fn(),
-        refetch: jest.fn(),
       });
       const { getByText } = render(<OndoCampaignDetailsView />);
       expect(

@@ -31,7 +31,6 @@ import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerShe
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
 import CampaignStatsSummary from '../components/Campaigns/CampaignStatsSummary';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
-import { formatComputedAt } from '../components/Campaigns/OndoLeaderboard.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
@@ -99,18 +98,6 @@ const OndoCampaignDetailsView: React.FC = () => {
   const hasPositions = Boolean(portfolioData?.positions.length);
 
   const {
-    tierNames,
-    selectedTier,
-    selectedTierData,
-    computedAt,
-    setSelectedTier,
-    isLoading: isLeaderboardLoading,
-    hasError: hasLeaderboardError,
-    isLeaderboardNotYetComputed,
-    refetch: refetchLeaderboard,
-  } = useGetOndoLeaderboard(campaignId);
-
-  const {
     position: leaderboardPosition,
     isLoading: isLeaderboardPositionLoading,
     hasError: hasLeaderboardPositionError,
@@ -118,6 +105,19 @@ const OndoCampaignDetailsView: React.FC = () => {
   } = useGetOndoLeaderboardPosition(
     isOptedIn && hasPositions ? campaignId : undefined,
   );
+
+  const {
+    tierNames,
+    selectedTier,
+    selectedTierData,
+    setSelectedTier,
+    isLoading: isLeaderboardLoading,
+    hasError: hasLeaderboardError,
+    isLeaderboardNotYetComputed,
+    refetch: refetchLeaderboard,
+  } = useGetOndoLeaderboard(campaignId, {
+    defaultTier: leaderboardPosition?.projectedTier,
+  });
 
   const {
     showHowItWorksSection,
@@ -222,7 +222,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showStatsSummarySection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <CampaignStatsSummary
                       leaderboardPosition={leaderboardPosition}
@@ -244,7 +243,6 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showPortfolioSection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <Pressable
                       onPress={() =>
@@ -265,27 +263,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                           )}
                         </Text>
                         <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                        {portfolioData?.computedAt &&
-                          portfolioData.positions.length > 0 && (
-                            <Box
-                              twClassName="flex-1"
-                              alignItems={BoxAlignItems.End}
-                            >
-                              <Text
-                                variant={TextVariant.BodyXs}
-                                color={TextColor.TextAlternative}
-                              >
-                                {strings(
-                                  'rewards.ondo_campaign_portfolio.updated_at',
-                                  {
-                                    time: formatComputedAt(
-                                      portfolioData.computedAt,
-                                    ),
-                                  },
-                                )}
-                              </Text>
-                            </Box>
-                          )}
                       </Box>
                     </Pressable>
                     <OndoPortfolio
@@ -305,29 +282,26 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showLeaderboardSection && (
                 <>
-                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
-                    {isLeaderboardNotYetComputed && (
-                      <Pressable
-                        onPress={() =>
-                          navigation.navigate(
-                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
-                            { campaignId },
-                          )
-                        }
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
+                          { campaignId },
+                        )
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2 mb-4"
                       >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          twClassName="gap-2 mb-4"
-                        >
-                          <Text variant={TextVariant.HeadingMd}>
-                            {strings('rewards.ondo_campaign_leaderboard.title')}
-                          </Text>
-                          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                        </Box>
-                      </Pressable>
-                    )}
+                        <Text variant={TextVariant.HeadingMd}>
+                          {strings('rewards.ondo_campaign_leaderboard.title')}
+                        </Text>
+                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                      </Box>
+                    </Pressable>
                     <OndoLeaderboard
                       showTitle={false}
                       tierNames={tierNames}
@@ -337,11 +311,11 @@ const OndoCampaignDetailsView: React.FC = () => {
                       totalParticipants={
                         selectedTierData?.totalParticipants ?? 0
                       }
-                      computedAt={computedAt}
                       isLoading={isLeaderboardLoading}
                       hasError={hasLeaderboardError}
                       isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
                       onRetry={refetchLeaderboard}
+                      maxEntries={5}
                     />
                   </Box>
                 </>

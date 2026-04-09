@@ -5,6 +5,11 @@ import OndoLeaderboard, {
 } from './OndoLeaderboard';
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return { ...actual };
@@ -13,47 +18,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
-
-jest.mock(
-  '../../../../../component-library/components-temp/Tabs/TabsBar',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        tabs,
-        activeIndex,
-        onTabPress,
-        testID,
-      }: {
-        tabs: { key: string; label: string }[];
-        activeIndex: number;
-        onTabPress: (index: number) => void;
-        testID?: string;
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID },
-          tabs.map((tab, idx) =>
-            ReactActual.createElement(
-              Pressable,
-              {
-                key: tab.key,
-                onPress: () => onTabPress(idx),
-                testID: `tab-${tab.key}`,
-              },
-              ReactActual.createElement(
-                Text,
-                { style: idx === activeIndex ? { fontWeight: 'bold' } : {} },
-                tab.label,
-              ),
-            ),
-          ),
-        ),
-    };
-  },
-);
 
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -101,6 +65,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.error_loading_description':
         'Please try again',
       'rewards.ondo_campaign_leaderboard.retry': 'Retry',
+      'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
+      'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
+      'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+      'rewards.ondo_campaign_leaderboard.select_tier': 'Select Tier',
     };
     return translations[key] || key;
   },
@@ -129,7 +97,6 @@ const defaultProps = {
     }),
   ],
   totalParticipants: 150,
-  computedAt: '2024-03-20T12:00:00.000Z',
   isLoading: false,
   hasError: false,
   onRetry: jest.fn(),
@@ -256,25 +223,7 @@ describe('OndoLeaderboard', () => {
       expect(queryByText('Leaderboard')).toBeNull();
     });
 
-    it('renders computed at timestamp', () => {
-      const { getByTestId } = render(<OndoLeaderboard {...defaultProps} />);
-
-      expect(
-        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
-      ).toBeDefined();
-    });
-
-    it('does not render computed at when null', () => {
-      const { queryByTestId } = render(
-        <OndoLeaderboard {...defaultProps} computedAt={null} />,
-      );
-
-      expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
-      ).toBeNull();
-    });
-
-    it('renders tier tabs when multiple tiers', () => {
+    it('renders tier selector when multiple tiers', () => {
       const { getByTestId } = render(<OndoLeaderboard {...defaultProps} />);
 
       expect(
@@ -282,7 +231,7 @@ describe('OndoLeaderboard', () => {
       ).toBeDefined();
     });
 
-    it('does not render tier tabs when single tier', () => {
+    it('does not render tier selector when single tier', () => {
       const { queryByTestId } = render(
         <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
       );
@@ -292,24 +241,34 @@ describe('OndoLeaderboard', () => {
       ).toBeNull();
     });
 
-    it('renders computed at timestamp for single-tier leaderboard', () => {
-      const { getByTestId } = render(
-        <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
+    it('displays the selected tier display name in the selector', () => {
+      const { getByText } = render(
+        <OndoLeaderboard {...defaultProps} selectedTier="MID" />,
       );
 
-      expect(
-        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
-      ).toBeDefined();
+      expect(getByText('Silver')).toBeDefined();
     });
 
-    it('calls onTierChange when tab is pressed', () => {
+    it('navigates to select sheet when pressed', () => {
       const onTierChange = jest.fn();
       const { getByTestId } = render(
         <OndoLeaderboard {...defaultProps} onTierChange={onTierChange} />,
       );
 
-      fireEvent.press(getByTestId('tab-MID'));
-      expect(onTierChange).toHaveBeenCalledWith('MID');
+      fireEvent.press(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.TIER_TOGGLE));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RewardsSelectSheet',
+        expect.objectContaining({
+          title: 'Select Tier',
+          options: [
+            { key: 'STARTER', value: 'STARTER', label: 'Bronze' },
+            { key: 'MID', value: 'MID', label: 'Silver' },
+            { key: 'UPPER', value: 'UPPER', label: 'Platinum' },
+          ],
+          selectedValue: 'STARTER',
+          onSelect: onTierChange,
+        }),
+      );
     });
 
     it('renders total participants count', () => {
@@ -339,15 +298,15 @@ describe('OndoLeaderboard', () => {
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
       ).toBeDefined();
 
-      expect(getByText('#1')).toBeDefined();
+      expect(getByText('#01')).toBeDefined();
       expect(getByText('AAA111')).toBeDefined();
       expect(getByText('+20.00%')).toBeDefined();
 
-      expect(getByText('#2')).toBeDefined();
+      expect(getByText('#02')).toBeDefined();
       expect(getByText('BBB222')).toBeDefined();
       expect(getByText('+15.00%')).toBeDefined();
 
-      expect(getByText('#3')).toBeDefined();
+      expect(getByText('#03')).toBeDefined();
       expect(getByText('CCC333')).toBeDefined();
       expect(getByText('-5.00%')).toBeDefined();
     });
@@ -382,6 +341,74 @@ describe('OndoLeaderboard', () => {
 
       expect(
         getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
+      ).toBeDefined();
+    });
+  });
+
+  describe('maxEntries', () => {
+    const manyEntries = Array.from({ length: 10 }, (_, i) =>
+      createMockEntry({
+        rank: i + 1,
+        referralCode: `USER${i + 1}`,
+        rateOfReturn: 0.1 - i * 0.01,
+      }),
+    );
+
+    it('limits visible entries when maxEntries is provided', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={manyEntries}
+          maxEntries={3}
+        />,
+      );
+
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-1`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-4`),
+      ).toBeNull();
+    });
+
+    it('shows all entries when maxEntries exceeds 20', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={manyEntries}
+          maxEntries={25}
+        />,
+      );
+
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-10`),
+      ).toBeDefined();
+    });
+
+    it('shows all entries when maxEntries is not provided', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard {...defaultProps} entries={manyEntries} />,
+      );
+
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-10`),
+      ).toBeDefined();
+    });
+
+    it('shows all entries when maxEntries is exactly 20', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={manyEntries}
+          maxEntries={20}
+        />,
+      );
+
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-10`),
       ).toBeDefined();
     });
   });

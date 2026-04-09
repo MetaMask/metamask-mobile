@@ -29,24 +29,25 @@ const OndoLeaderboardView: React.FC = () => {
   const { campaignId } = route.params;
 
   const {
-    tierNames,
-    selectedTier,
-    selectedTierData,
-    computedAt,
-    setSelectedTier,
-    isLoading: isLeaderboardLoading,
-    hasError: hasLeaderboardError,
-    isLeaderboardNotYetComputed,
-    refetch: refetchLeaderboard,
-  } = useGetOndoLeaderboard(campaignId);
-
-  const {
     position,
     isLoading: isPositionLoading,
     hasError: hasPositionError,
     hasFetched: positionHasFetched,
     refetch: refetchPosition,
   } = useGetOndoLeaderboardPosition(campaignId);
+
+  const {
+    tierNames,
+    selectedTier,
+    selectedTierData,
+    setSelectedTier,
+    isLoading: isLeaderboardLoading,
+    hasError: hasLeaderboardError,
+    isLeaderboardNotYetComputed,
+    refetch: refetchLeaderboard,
+  } = useGetOndoLeaderboard(campaignId, {
+    defaultTier: position?.projectedTier,
+  });
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
@@ -75,7 +76,6 @@ const OndoLeaderboardView: React.FC = () => {
               onTierChange={setSelectedTier}
               entries={selectedTierData?.entries ?? []}
               totalParticipants={selectedTierData?.totalParticipants ?? 0}
-              computedAt={computedAt}
               isLoading={isLeaderboardLoading}
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}

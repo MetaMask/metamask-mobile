@@ -20,6 +20,7 @@ import {
   parseCaip19,
   caipChainIdToHex,
   shortenAddress,
+  formatUsd,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -70,6 +71,15 @@ const mockGetIntlNumberFormatter = jest.fn((_locale: string) => ({
 
 jest.mock('../../../../util/intl', () => ({
   getIntlNumberFormatter: mockGetIntlNumberFormatter,
+}));
+
+jest.mock('../../../../util/formatFiat', () => ({
+  __esModule: true,
+  default: (amount: { toFixed: (dp: number) => string }) =>
+    `$${Number(amount.toFixed(2)).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`,
 }));
 
 describe('formatUtils', () => {
@@ -1372,6 +1382,36 @@ describe('formatUtils', () => {
 
     it('returns strings of length 10 unchanged', () => {
       expect(shortenAddress('0x12345678')).toBe('0x12345678');
+    });
+  });
+
+  describe('formatUsd', () => {
+    it('formats a string with decimals', () => {
+      expect(formatUsd('11500.000000')).toBe('$11,500.00');
+    });
+
+    it('formats a number', () => {
+      expect(formatUsd(12500.5)).toBe('$12,500.50');
+    });
+
+    it('formats zero', () => {
+      expect(formatUsd('0')).toBe('$0.00');
+    });
+
+    it('formats a small decimal value', () => {
+      expect(formatUsd('0.99')).toBe('$0.99');
+    });
+
+    it('formats a large value', () => {
+      expect(formatUsd('1000000.00')).toBe('$1,000,000.00');
+    });
+
+    it('formats a negative value', () => {
+      expect(formatUsd('-500.75')).toBe('$-500.75');
+    });
+
+    it('formats an integer string', () => {
+      expect(formatUsd('100')).toBe('$100.00');
     });
   });
 });
