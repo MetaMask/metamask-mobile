@@ -457,15 +457,12 @@ function BuildQuote() {
     hasAmount,
     selectedProviderBuyLimit,
   ]);
-  const isQuoteAmountSettled = debouncedPollingAmount === amountAsNumber;
-
   const quoteFetchEnabled = !!(
     walletAddress &&
     selectedPaymentMethod &&
     selectedProvider &&
     selectedToken?.assetId &&
     tokenStateIsSettled &&
-    isQuoteAmountSettled &&
     debouncedPollingAmount > 0 &&
     !amountLimitError
   );
@@ -915,6 +912,41 @@ function BuildQuote() {
       })
     : strings('fiat_on_ramp.no_quotes_available');
 
+  const actionSectionMessage = (() => {
+    if (rampsError) {
+      return (
+        <TruncatedError
+          error={rampsError}
+          providerName={selectedProvider?.name}
+          providerSupportUrl={
+            selectedProvider?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.SUPPORT,
+            )?.url
+          }
+        />
+      );
+    }
+    if (hasGenericNoQuotes) {
+      return (
+        <TruncatedError
+          error={noQuotesErrorMessage}
+          showChangeProvider
+          amount={amountAsNumber}
+        />
+      );
+    }
+    if (!inlineQuoteError && selectedProvider) {
+      return (
+        <Text variant={TextVariant.BodySm} style={styles.poweredByText}>
+          {strings('fiat_on_ramp.powered_by_provider', {
+            provider: selectedProvider.name,
+          })}
+        </Text>
+      );
+    }
+    return null;
+  })();
+
   return (
     <>
       <HeaderCompactStandard
@@ -1019,32 +1051,7 @@ function BuildQuote() {
             <View style={styles.actionSection}>
               {hasAmount ? (
                 <>
-                  {rampsError ? (
-                    <TruncatedError
-                      error={rampsError}
-                      providerName={selectedProvider?.name}
-                      providerSupportUrl={
-                        selectedProvider?.links?.find(
-                          (link) => link.name === PROVIDER_LINKS.SUPPORT,
-                        )?.url
-                      }
-                    />
-                  ) : hasGenericNoQuotes ? (
-                    <TruncatedError
-                      error={noQuotesErrorMessage}
-                      showChangeProvider
-                      amount={amountAsNumber}
-                    />
-                  ) : inlineQuoteError ? null : selectedProvider ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      style={styles.poweredByText}
-                    >
-                      {strings('fiat_on_ramp.powered_by_provider', {
-                        provider: selectedProvider.name,
-                      })}
-                    </Text>
-                  ) : null}
+                  {actionSectionMessage}
                   <Button
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}

@@ -820,7 +820,7 @@ describe('BuildQuote', () => {
       });
     });
 
-    it('waits for the debounced amount to settle before refetching after returning to a valid range', () => {
+    it('keeps quote fetch enabled while debounce settles after returning to a valid range', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 10,
         maxAmount: 200,
@@ -861,8 +861,18 @@ describe('BuildQuote', () => {
 
       fireEvent.press(getByTestId('keypad-trigger-back'));
 
+      // Amount 10 is valid — quote fetch stays enabled with
+      // stale debounced params so the UI does not flash.
       expect(queryByText('Maximum purchase is $200.00')).toBeNull();
-      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
+      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 250,
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        redirectUrl:
+          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+        paymentMethods: ['/payments/debit-credit-card'],
+        providers: ['moonpay'],
+      });
 
       debouncedAmount = 10;
       rerender(<BuildQuote />);

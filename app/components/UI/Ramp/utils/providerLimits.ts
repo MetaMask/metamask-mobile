@@ -22,9 +22,7 @@ export function getProviderBuyLimit(
     return undefined;
   }
 
-  const providerWithBuyLimits = provider as ProviderWithBuyLimits;
+  const limits = (provider as ProviderWithBuyLimits).limits;
 
-  return providerWithBuyLimits.limits?.fiat?.[fiatCurrency.toLowerCase()]?.[
-    paymentMethodId
-  ];
+  return limits?.fiat?.[fiatCurrency.toLowerCase()]?.[paymentMethodId];
 }
