@@ -24,6 +24,14 @@ export {
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
 
 /**
+ * Truncates a number to 2 decimal places without rounding up.
+ * Uses BigNumber to avoid IEEE 754 floating-point errors
+ * (e.g. `Math.floor(10.29 * 100) / 100` = 10.28).
+ */
+export const truncateToTwoDecimals = (value: number): number =>
+  new BigNumber(value).decimalPlaces(2, BigNumber.ROUND_DOWN).toNumber();
+
+/**
  * Formats a fee value as USD currency with appropriate decimal places
  * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
  * @returns Formatted currency string with variable decimals based on configured ranges
