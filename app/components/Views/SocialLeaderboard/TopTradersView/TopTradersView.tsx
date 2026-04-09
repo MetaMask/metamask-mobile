@@ -27,6 +27,7 @@ import {
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import type { NetworkFilterSelection } from '../../Homepage/Sections/TopTraders/types';
 import type { CaipChainId } from '@metamask/utils';
+import Routes from '../../../../constants/navigation/Routes';
 
 const SKELETON_COUNT = 5;
 const SKELETON_KEYS = Array.from(
@@ -69,6 +70,19 @@ const TopTradersView = () => {
   const handleNetworkBottomSheetClose = useCallback(() => {
     setShowNetworkBottomSheet(false);
   }, []);
+
+  const handleTraderPress = useCallback(
+    (traderId: string, traderName: string) => {
+      navigation.navigate(
+        Routes.SOCIAL_LEADERBOARD.PROFILE as never,
+        {
+          traderId,
+          traderName,
+        } as never,
+      );
+    },
+    [navigation],
+  );
 
   const selectedNetworkCaip = selectedNetwork
     ? ([selectedNetwork] as CaipChainId[])
@@ -133,6 +147,7 @@ const TopTradersView = () => {
                 key={trader.id}
                 trader={trader}
                 onFollowPress={toggleFollow}
+                onTraderPress={handleTraderPress}
               />
             ))}
       </ScrollView>
