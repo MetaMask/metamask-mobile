@@ -5,19 +5,37 @@
  * extension and any future consumer can import them directly.
  * No mobile-specific imports — safe to sync to Core.
  *
- * Intl.NumberFormat instances are cached via createFormatters (assets-controllers),
- * which uses getCachedNumberFormat internally.
+ * Intl.NumberFormat instances are cached in a module-level Map keyed by
+ * serialized options, avoiding repeated construction costs.
  */
-import { createFormatters } from '@metamask/assets-controllers';
-
 import {
   DECIMAL_PRECISION_CONFIG,
   FUNDING_RATE_CONFIG,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
 
-// Module-level cached formatters (en-US). createFormatters caches internally.
-const _fmt = createFormatters({ locale: 'en-US' });
+// Module-level Intl.NumberFormat cache (keyed by serialized options).
+const _fmtCache = new Map<string, Intl.NumberFormat>();
+
+function _formatCurrency(
+  value: number,
+  currency: string,
+  opts: { minimumFractionDigits: number; maximumFractionDigits: number },
+): string {
+  const key = `${currency}:${opts.minimumFractionDigits}:${opts.maximumFractionDigits}`;
+  let formatter = _fmtCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      currencyDisplay: 'narrowSymbol',
+      minimumFractionDigits: opts.minimumFractionDigits,
+      maximumFractionDigits: opts.maximumFractionDigits,
+    });
+    _fmtCache.set(key, formatter);
+  }
+  return formatter.format(value);
+}
 
 /**
  * Internal equivalent of the mobile formatWithThreshold utility.
@@ -46,11 +64,11 @@ function _formatWithThreshold(
     currencyDisplay: 'narrowSymbol' as const,
   };
   if (amount === 0) {
-    return _fmt.formatCurrency(0, options.currency, formatOpts);
+    return _formatCurrency(0, options.currency, formatOpts);
   }
   return Math.abs(amount) < threshold
-    ? `<${_fmt.formatCurrency(threshold, options.currency, formatOpts)}`
-    : _fmt.formatCurrency(amount, options.currency, formatOpts);
+    ? `<${_formatCurrency(threshold, options.currency, formatOpts)}`
+    : _formatCurrency(amount, options.currency, formatOpts);
 }
 
 /**
@@ -542,7 +560,7 @@ export const formatPnl = (pnl: string | number): string => {
     return PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
   }
 
-  const formatted = _fmt.formatCurrency(Math.abs(value), 'USD', {
+  const formatted = _formatCurrency(Math.abs(value), 'USD', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

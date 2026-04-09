@@ -10,25 +10,6 @@ import {
   PRICE_THRESHOLD,
 } from './perpsFormatters';
 
-// createFormatters uses Intl.NumberFormat under the hood — let it run for real
-// but stub the import so the module-level call resolves synchronously.
-jest.mock('@metamask/assets-controllers', () => ({
-  createFormatters: (_opts: { locale: string }) => ({
-    formatCurrency: (
-      value: number,
-      currency: string,
-      opts: { minimumFractionDigits: number; maximumFractionDigits: number },
-    ) =>
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: opts.minimumFractionDigits,
-        maximumFractionDigits: opts.maximumFractionDigits,
-        currencyDisplay: 'narrowSymbol',
-      }).format(value),
-  }),
-}));
-
 describe('PRICE_THRESHOLD', () => {
   it('exports expected boundary values', () => {
     expect(PRICE_THRESHOLD.VERY_HIGH).toBe(100_000);
