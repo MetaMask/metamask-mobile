@@ -70,6 +70,7 @@ import {
   selectOndoCampaignLeaderboardPositionById,
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
+  selectOndoCampaignActivityById,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -82,6 +83,7 @@ import {
   CampaignType,
   SeasonWayToEarnDto,
   PointsEventDto,
+  OndoGmActivityEntryDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -3738,6 +3740,58 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
       ).toEqual(mockPortfolio);
+    });
+  });
+
+  describe('selectOndoCampaignActivityById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when activity does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: {},
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns activity entries for specified subscription and campaign', () => {
+      const mockEntries: OndoGmActivityEntryDto[] = [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: null,
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ];
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': mockEntries },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockEntries);
     });
   });
 });

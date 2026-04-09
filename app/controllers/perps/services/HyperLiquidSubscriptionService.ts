@@ -1,4 +1,5 @@
 import type { CaipAccountId } from '@metamask/utils';
+import { hasProperty } from '@metamask/utils';
 import type {
   ISubscription,
   AllMidsWsEvent,
@@ -731,6 +732,15 @@ export class HyperLiquidSubscriptionService {
         // This ensures consistency with raw SDK order processing which uses triggerPx
         const tpslPrice = order.triggerPrice ?? order.price;
         if (order.isTrigger && tpslPrice) {
+          // When UsePositionBoundTpsl is enabled, only position-bound TP/SL orders
+          // should be shown on positions — skip normalTpsl children of limit orders
+          if (
+            TP_SL_CONFIG.UsePositionBoundTpsl &&
+            order.isPositionTpsl !== true
+          ) {
+            return;
+          }
+
           const isTakeProfit = order.detailedOrderType?.includes('Take Profit');
           const isStop = order.detailedOrderType?.includes('Stop');
 
@@ -2583,9 +2593,9 @@ export class HyperLiquidSubscriptionService {
             const isPerpsContext = (
               event: ActiveAssetCtxWsEvent | ActiveSpotAssetCtxWsEvent,
             ): event is ActiveAssetCtxWsEvent =>
-              'funding' in event.ctx &&
-              'openInterest' in event.ctx &&
-              'oraclePx' in event.ctx;
+              hasProperty(event.ctx, 'funding') &&
+              hasProperty(event.ctx, 'openInterest') &&
+              hasProperty(event.ctx, 'oraclePx');
 
             const { ctx } = data;
 
@@ -2904,7 +2914,7 @@ export class HyperLiquidSubscriptionService {
         // Use cached meta to map ctxs array indices to symbols (no REST API call!)
         validatedMeta.universe.forEach((asset, index) => {
           const ctx = data.ctxs[index];
-          if (ctx && 'funding' in ctx) {
+          if (ctx && hasProperty(ctx, 'funding')) {
             // This is a perps context
             const ctxPrice = ctx.midPx ?? ctx.markPx;
             const openInterestUSD = calculateOpenInterestUSD(

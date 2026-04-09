@@ -884,9 +884,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -1041,7 +1040,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       undefined,
                                       undefined,
                                       {
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                       },
                                       undefined,
                                       undefined,
@@ -1477,9 +1476,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -1858,7 +1856,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -2518,9 +2516,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -2910,9 +2907,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -3104,7 +3100,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "fontFamily": "Geist-Bold",
+                                              "fontFamily": "Geist-SemiBold",
                                             },
                                             undefined,
                                             undefined,
@@ -3337,7 +3333,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           style={
                                                             {
                                                               "color": "#457a39",
-                                                              "fontFamily": "Geist-Bold",
+                                                              "fontFamily": "Geist-SemiBold",
                                                               "fontSize": 12,
                                                               "fontWeight": "bold",
                                                               "letterSpacing": 0.25,
@@ -3637,7 +3633,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           style={
                                                             {
                                                               "color": "#4459ff",
-                                                              "fontFamily": "Geist-Bold",
+                                                              "fontFamily": "Geist-SemiBold",
                                                               "fontSize": 12,
                                                               "fontWeight": "bold",
                                                               "letterSpacing": 0.25,
@@ -3669,7 +3665,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           style={
                                                             {
                                                               "color": "#457a39",
-                                                              "fontFamily": "Geist-Bold",
+                                                              "fontFamily": "Geist-SemiBold",
                                                               "fontSize": 12,
                                                               "fontWeight": "bold",
                                                               "letterSpacing": 0.25,
@@ -4280,9 +4276,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -4691,9 +4686,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
+                                          "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
-                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -4848,7 +4842,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                       undefined,
                                       undefined,
                                       {
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                       },
                                       undefined,
                                       undefined,
@@ -5000,7 +4994,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     style={
                                                       {
                                                         "color": "#4459ff",
-                                                        "fontFamily": "Geist-Bold",
+                                                        "fontFamily": "Geist-SemiBold",
                                                         "fontSize": 12,
                                                         "fontWeight": "bold",
                                                         "letterSpacing": 0.25,
@@ -5032,7 +5026,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     style={
                                                       {
                                                         "color": "#457a39",
-                                                        "fontFamily": "Geist-Bold",
+                                                        "fontFamily": "Geist-SemiBold",
                                                         "fontSize": 12,
                                                         "fontWeight": "bold",
                                                         "letterSpacing": 0.25,
@@ -5434,9 +5428,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -5861,7 +5854,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -6109,9 +6102,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -6536,7 +6528,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -6784,9 +6776,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -7211,7 +7202,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -7459,9 +7450,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -7886,7 +7876,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
+                                        "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -8134,9 +8124,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   [
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
+                                      "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
-                                      "fontWeight": 400,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     },
@@ -8251,7 +8240,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
           },
           undefined,
           undefined,
@@ -8361,7 +8350,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
           },
           undefined,
           undefined,
@@ -8471,7 +8460,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
           },
           undefined,
           undefined,
@@ -8581,7 +8570,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
           },
           undefined,
           undefined,
@@ -8691,7 +8680,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "Geist-Bold",
+            "fontFamily": "Geist-SemiBold",
           },
           undefined,
           undefined,
