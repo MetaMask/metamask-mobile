@@ -132,6 +132,7 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+  AppConstants.DEEPLINKS.ORIGIN_BRAZE,
 ] as string[];
 
 /**
