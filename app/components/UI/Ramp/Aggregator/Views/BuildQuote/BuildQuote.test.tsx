@@ -523,8 +523,8 @@ describe('BuildQuote View', () => {
       };
       render(BuildQuote);
       expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
-      ).toBe(true);
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
+      ).toBeDisabled();
       expect(
         screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
       ).not.toBeOnTheScreen();
@@ -575,8 +575,8 @@ describe('BuildQuote View', () => {
       };
       render(BuildQuote);
       expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
-      ).toBe(true);
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
+      ).toBeDisabled();
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toBeOnTheScreen();
@@ -646,8 +646,8 @@ describe('BuildQuote View', () => {
       };
       render(BuildQuote);
       expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
-      ).toBe(true);
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
+      ).toBeDisabled();
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toBeOnTheScreen();
@@ -712,8 +712,8 @@ describe('BuildQuote View', () => {
       };
       render(BuildQuote);
       expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
-      ).toBe(true);
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
+      ).toBeDisabled();
       expect(
         screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
       ).toBeOnTheScreen();
