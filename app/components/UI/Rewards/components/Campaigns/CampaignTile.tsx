@@ -25,7 +25,6 @@ import {
 import {
   getCampaignStatusInfo,
   isCampaignTypeSupported,
-  isOptinAllowed,
 } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -65,11 +64,12 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     dateLabelIcon, */
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
-  const { status: participantStatus } = useGetCampaignParticipantStatus(
-    campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
-      ? campaign.id
-      : undefined,
-  );
+  const { status: participantStatus, isLoading: isParticipantStatusLoading } =
+    useGetCampaignParticipantStatus(
+      campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
+        ? campaign.id
+        : undefined,
+    );
 
   const isInteractive =
     campaignStatus !== 'upcoming' &&
@@ -80,15 +80,28 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       ? campaign.image?.darkModeUrl
       : campaign.image?.lightModeUrl;
 
+  const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
+  const shouldShowTour =
+    hasTour &&
+    !isParticipantStatusLoading &&
+    participantStatus?.optedIn !== true &&
+    campaignStatus === 'active';
+
   const handlePress = () => {
     if (!isInteractive) return;
 
     if (onPress) {
       onPress();
     } else if (campaign.type === CampaignType.ONDO_HOLDING) {
-      navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-        campaignId: campaign.id,
-      });
+      if (shouldShowTour) {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+          campaignId: campaign.id,
+        });
+      }
     } else if (campaign.type === CampaignType.SEASON_1) {
       navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
         campaignId: campaign.id,
@@ -181,8 +194,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                     </Text>
                   </Box>
                 ) : campaignStatus === 'active' &&
-                  participantStatus?.optedIn !== true &&
-                  isOptinAllowed(campaign) ? (
+                  participantStatus?.optedIn !== true ? (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}

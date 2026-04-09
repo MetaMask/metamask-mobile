@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Transaksi {{index}}",
     "transaction": "Transaksi",
     "available_balance": "Saldo tersedia: ",
-    "available_perps_balance": "Saldo Perp yang tersedia: ",
     "edit_amount_done": "Lanjutkan",
     "deposit_edit_amount_done": "Tambahkan dana",
     "deposit_edit_amount_predict_withdraw": "Tarik",
