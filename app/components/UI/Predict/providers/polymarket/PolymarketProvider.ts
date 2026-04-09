@@ -174,6 +174,11 @@ export class PolymarketProvider implements PredictProvider {
     return filterSupportedLeagues(liveSportsLeagues);
   }
 
+  #hasExtendedMarketsForLeague(league: string): boolean {
+    const { extendedSportsMarketsLeagues } = this.#getFeatureFlags();
+    return extendedSportsMarketsLeagues.includes(league);
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
