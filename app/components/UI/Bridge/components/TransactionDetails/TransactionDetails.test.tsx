@@ -224,7 +224,7 @@ describe('BridgeTransactionDetails', () => {
       { state: mockState },
     );
 
-    expect(queryByTestId('paid-by-metamask')).toBeNull();
+    expect(queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
   });
 
   it('shows "Paid by MetaMask" when gas is sponsored and sender is not a hardware wallet', () => {
@@ -247,6 +247,6 @@ describe('BridgeTransactionDetails', () => {
       { state: mockState },
     );
 
-    expect(getByTestId('paid-by-metamask')).toBeTruthy();
+    expect(getByTestId('paid-by-metamask')).toBeOnTheScreen();
   });
 });
