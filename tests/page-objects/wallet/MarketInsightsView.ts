@@ -77,6 +77,12 @@ class MarketInsightsView {
       elemDescription: 'Tap Market Insights thumbs up button',
     });
   }
+
+  async expectThumbsUpButtonVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.thumbsUpButton, {
+      description: 'Market Insights thumbs up button is visible',
+    });
+  }
 }
 
 export default new MarketInsightsView();
