@@ -4,12 +4,13 @@ import { Theme } from '../../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
+      paddingBottom: 10,
     },
 
     skeletonContainer: {
       paddingVertical: 12,
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
     },
 
     spinner: {
