@@ -103,7 +103,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Cash')).toBeNull();
+    expect(queryByText('Money')).toBeNull();
   });
 
   it('returns null when geo is ineligible', () => {
@@ -113,7 +113,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Cash')).toBeNull();
+    expect(queryByText('Money')).toBeNull();
   });
 
   it('renders Money title when enabled', () => {
