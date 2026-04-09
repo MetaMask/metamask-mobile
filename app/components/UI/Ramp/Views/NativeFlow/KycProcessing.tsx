@@ -51,6 +51,7 @@ const V2KycProcessing = () => {
     null,
   );
   const [userDetailsError, setUserDetailsError] = useState<string | null>(null);
+  const [isContinueLoading, setIsContinueLoading] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -139,6 +140,7 @@ const V2KycProcessing = () => {
 
   const handleContinue = useCallback(async () => {
     if (!quote) return;
+    setIsContinueLoading(true);
     try {
       await routeAfterAuthentication(quote);
     } catch (routeError) {
@@ -146,6 +148,8 @@ const V2KycProcessing = () => {
         message: 'V2KycProcessing::handleContinue error',
         quote,
       });
+    } finally {
+      setIsContinueLoading(false);
     }
   }, [routeAfterAuthentication, quote]);
 
@@ -194,6 +198,7 @@ const V2KycProcessing = () => {
               onPress={handleContinue}
               variant={ButtonVariant.Primary}
               isFullWidth
+              isLoading={isContinueLoading}
             >
               {strings('deposit.kyc_processing.error_button')}
             </Button>
@@ -238,6 +243,7 @@ const V2KycProcessing = () => {
               onPress={handleContinue}
               variant={ButtonVariant.Primary}
               isFullWidth
+              isLoading={isContinueLoading}
             >
               {strings('deposit.kyc_processing.success_button')}
             </Button>

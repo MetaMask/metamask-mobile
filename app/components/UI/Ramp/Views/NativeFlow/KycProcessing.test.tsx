@@ -294,6 +294,82 @@ describe('V2KycProcessing', () => {
     });
   });
 
+  it('shows loading state on continue button while routeAfterAuthentication is in progress', async () => {
+    let resolveRoute: () => void;
+    mockRouteAfterAuthentication.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRoute = resolve;
+        }),
+    );
+    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'APPROVED', type: 'SIMPLE' },
+    });
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.success_button'),
+      ).toBeOnTheScreen();
+    });
+
+    // Press continue — button should enter loading state
+    await act(async () => {
+      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
+    });
+
+    // Resolve the pending routeAfterAuthentication
+    await act(async () => {
+      resolveRoute();
+    });
+
+    // After resolving, routeAfterAuthentication should have been called
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockBuyQuote);
+  });
+
+  it('clears loading state when routeAfterAuthentication fails', async () => {
+    mockRouteAfterAuthentication.mockRejectedValue(new Error('Route failed'));
+    mockGetAdditionalRequirements.mockResolvedValue({ formsRequired: [] });
+    mockGetUserDetails.mockResolvedValue({
+      kyc: { status: 'APPROVED', type: 'SIMPLE' },
+    });
+
+    const { getByText } = renderWithTheme(<V2KycProcessing />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.success_button'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.kyc_processing.success_button'));
+    });
+
+    // Button should still be visible after error (loading cleared)
+    await waitFor(() => {
+      expect(
+        getByText('deposit.kyc_processing.success_button'),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('does not fetch forms when buyQuote is null', async () => {
     mockBuyQuote = null;
 
