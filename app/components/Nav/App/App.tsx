@@ -1059,6 +1059,15 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
         component={MultichainAccountDetailsActions}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: importedColors.transparent },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
       />
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
@@ -1182,7 +1191,15 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
-        options={{ presentation: 'modal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: importedColors.transparent },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
       />
     </Stack.Navigator>
   );
