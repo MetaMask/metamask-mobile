@@ -35,6 +35,10 @@ const styleSheet = (params: { theme: Theme }) =>
       marginLeft: -1,
       borderRadius: 99,
     },
+
+    disabled: {
+      opacity: 0.5,
+    },
   });
 
 export default styleSheet;
