@@ -96,10 +96,7 @@ import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
-import {
-  getSocialAccountType,
-  LoginType,
-} from '../../../constants/onboarding';
+import { getSocialAccountType } from '../../../constants/onboarding';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -620,12 +617,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
-        account_type: accountType,
-        login_type: LoginType.GlobalPasswordUpdate,
-        biometrics: biometryChoice,
-      });
-
       // biometrics/passcode preference is applied only after sync succeeds
       const authData: AuthData = {
         currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -654,12 +645,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
       }
 
-      track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
-        account_type: accountType,
-        login_type: LoginType.GlobalPasswordUpdate,
-        biometrics: biometryChoice,
-      });
-
       setLoading(false);
       setError(null);
     } catch (loginErr) {
@@ -670,13 +655,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [
     password,
     finalLoading,
-    biometryChoice,
-    track,
     handleLoginError,
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
-    accountType,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -697,9 +679,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {
-      login_type: LoginType.SeedlessRehydration,
-    });
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     return () => {

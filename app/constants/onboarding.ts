@@ -25,12 +25,6 @@ export enum AccountType {
   ImportedApple = 'imported_apple',
 }
 
-export enum LoginType {
-  Srp = 'srp',
-  SeedlessRehydration = 'seedless_rehydration',
-  GlobalPasswordUpdate = 'global_password_update',
-}
-
 const socialAccountTypeMap: Record<
   string,
   { new: AccountType; existing: AccountType }
