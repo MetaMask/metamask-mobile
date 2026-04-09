@@ -152,8 +152,8 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
-      trackWalletEvent('wallet_connection_request_received', {
-        anon_id: id,
+      trackWalletEvent('Remote Connection Request Received', {
+        remote_session_id: id,
         platform: 'mobile',
         sdk_version: conn.metadata?.sdk?.version,
         sdk_platform: conn.metadata?.sdk?.platform,
@@ -162,8 +162,8 @@ export class ConnectionRegistry {
       return;
     }
 
-    trackWalletEvent('wallet_connection_request_received', {
-      anon_id: id,
+    trackWalletEvent('Remote Connection Request Received', {
+      remote_session_id: id,
       platform: 'mobile',
       found_in_store: false,
     });
@@ -226,12 +226,12 @@ export class ConnectionRegistry {
       connReq = this.parseConnectionRequest(url);
 
       const baseProps: WalletEventProperties = {
-        anon_id: connReq.sessionRequest.id,
+        remote_session_id: connReq.sessionRequest.id,
         platform: 'mobile',
         sdk_version: connReq.metadata.sdk.version,
         sdk_platform: connReq.metadata.sdk.platform,
       };
-      trackWalletEvent('wallet_connection_request_received', baseProps);
+      trackWalletEvent('Remote Connection Request Received', baseProps);
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -273,11 +273,13 @@ export class ConnectionRegistry {
       // protocol). User rejections of wallet_createSession are tracked by
       // the existing CONNECT_REQUEST_CANCELLED MetaMetrics event (with
       // source: 'sdk_connect_v2') — no double-fire occurs.
-      trackWalletEvent('wallet_connection_request_failed', {
-        anon_id: connReq?.sessionRequest?.id ?? 'unknown',
+      trackWalletEvent('Remote Connection Request Failed', {
+        remote_session_id: connReq?.sessionRequest?.id ?? 'unknown',
         platform: 'mobile',
         sdk_version: connReq?.metadata?.sdk?.version,
         sdk_platform: connReq?.metadata?.sdk?.platform,
+        failure_reason:
+          error instanceof Error ? error.message : String(error),
       });
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);

@@ -28,7 +28,7 @@ const V2_ANALYTICS_ENDPOINT =
 const createProperties = (
   overrides: Partial<WalletEventProperties> = {},
 ): WalletEventProperties => ({
-  anon_id: 'test-anon-id',
+  remote_session_id: 'test-anon-id',
   platform: 'mobile',
   ...overrides,
 });
@@ -51,7 +51,7 @@ describe('trackWalletEvent', () => {
     mockAnalytics.isEnabled.mockReturnValue(false);
     const properties = createProperties();
 
-    trackWalletEvent('wallet_connection_request_received', properties);
+    trackWalletEvent('Remote Connection Request Received', properties);
 
     expect(fetchSpy).not.toHaveBeenCalled();
   });
@@ -59,7 +59,7 @@ describe('trackWalletEvent', () => {
   it('sends POST request with correct payload when analytics is enabled', () => {
     mockAnalytics.isEnabled.mockReturnValue(true);
     const eventName: WalletConnectionEventName =
-      'wallet_connection_request_received';
+      'Remote Connection Request Received';
     const properties = createProperties({ sdk_version: '1.0.0' });
 
     trackWalletEvent(eventName, properties);
@@ -81,7 +81,7 @@ describe('trackWalletEvent', () => {
     mockAnalytics.isEnabled.mockReturnValue(true);
     const properties = createProperties();
 
-    trackWalletEvent('wallet_connection_request_failed', properties);
+    trackWalletEvent('Remote Connection Request Failed', properties);
 
     const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
     expect(body).toHaveLength(1);
@@ -96,7 +96,7 @@ describe('trackWalletEvent', () => {
       found_in_store: true,
     });
 
-    trackWalletEvent('wallet_connection_request_failed', properties);
+    trackWalletEvent('Remote Connection Request Failed', properties);
 
     const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
     expect(body[0].properties).toStrictEqual(properties);
@@ -107,7 +107,7 @@ describe('trackWalletEvent', () => {
     const networkError = new Error('Network failure');
     fetchSpy.mockRejectedValue(networkError);
     const eventName: WalletConnectionEventName =
-      'wallet_connection_request_received';
+      'Remote Connection Request Received';
     const properties = createProperties();
 
     trackWalletEvent(eventName, properties);
@@ -125,7 +125,7 @@ describe('trackWalletEvent', () => {
     mockAnalytics.isEnabled.mockReturnValue(true);
     const properties = createProperties();
 
-    trackWalletEvent('wallet_connection_request_received', properties);
+    trackWalletEvent('Remote Connection Request Received', properties);
 
     await new Promise(process.nextTick);
 

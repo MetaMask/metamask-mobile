@@ -16,16 +16,17 @@ const V2_ANALYTICS_ENDPOINT =
  * listed here; action-level events can be added later.
  */
 export type WalletConnectionEventName =
-  | 'wallet_connection_request_received'
-  | 'wallet_connection_request_failed';
+  | 'Remote Connection Request Received'
+  | 'Remote Connection Request Failed';
 
 export interface WalletEventProperties {
-  anon_id: string;
+  remote_session_id: string;
   platform: 'mobile';
   sdk_version?: string;
   sdk_platform?: string;
   /** Only set on reconnect (handleSimpleDeeplink) flows. */
   found_in_store?: boolean;
+  failure_reason?: string;
 }
 
 interface MobileSDKConnectV2Payload {
@@ -37,7 +38,7 @@ interface MobileSDKConnectV2Payload {
 /**
  * Fire-and-forget POST to the V2 analytics relay.
  * Mirrors the dapp-side `@metamask/analytics` package format so both
- * sides land in the same Segment dataset and can be joined on `anon_id`.
+ * sides land in the same Segment dataset and can be joined on `remote_session_id`.
  */
 export function trackWalletEvent(
   eventName: WalletConnectionEventName,
