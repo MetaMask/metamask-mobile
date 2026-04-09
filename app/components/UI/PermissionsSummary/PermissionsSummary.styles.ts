@@ -18,12 +18,23 @@ const createStyles = (params: {
   const height = nonTabView ? tabHeight : bottomSheetHeight;
 
   return StyleSheet.create({
-    safeArea: {},
+    safeArea: {
+      // Provide background only when rendered as a full-screen view.
+      // BottomSheet supplies its own background.
+      backgroundColor: isRenderedAsBottomSheet
+        ? undefined
+        : colors.background.alternative,
+    },
     mainContainer: {
       paddingTop: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       height,
+      // Provide background only when rendered as a full-screen view.
+      // BottomSheet supplies its own background.
+      backgroundColor: isRenderedAsBottomSheet
+        ? undefined
+        : colors.background.alternative,
       justifyContent: isRenderedAsBottomSheet ? 'flex-start' : 'space-between',
     },
     contentContainer: {
