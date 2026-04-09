@@ -267,6 +267,8 @@ jest.mock('@metamask/perps-controller', () => ({
     PerpsBalanceTokenDescription: 'perps-balance',
     PerpsBalanceTokenSymbol: 'USD',
   },
+  formatPnl: jest.fn((value: number) => `$${value.toFixed(2)}`),
+  formatPercentage: jest.fn((value: number) => `${value.toFixed(2)}%`),
 }));
 
 // Mock child components
