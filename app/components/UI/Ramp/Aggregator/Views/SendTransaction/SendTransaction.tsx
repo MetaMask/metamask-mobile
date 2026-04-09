@@ -16,7 +16,6 @@ import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
