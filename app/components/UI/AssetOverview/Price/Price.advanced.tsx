@@ -11,6 +11,7 @@ import Svg, { Path } from 'react-native-svg';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { addCurrencySymbol } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
@@ -262,6 +263,21 @@ const PriceAdvanced = ({
     return currentPrice - dynamicComparePrice;
   }, [currentPrice, dynamicComparePrice]);
 
+  // Display values: use crosshair data when hovering, otherwise use current values
+  const displayPrice = crosshairData?.close ?? currentPrice;
+
+  const displayDiff = useMemo(() => {
+    if (!dynamicComparePrice) return null;
+    if (crosshairData) {
+      return crosshairData.close - dynamicComparePrice;
+    }
+    return dynamicPriceDiff;
+  }, [crosshairData, dynamicComparePrice, dynamicPriceDiff]);
+
+  const displayDate = crosshairData
+    ? toDateFormat(crosshairData.time)
+    : dateLabel;
+
   const { styles, theme } = useStyles(styleSheet);
 
   const hasChartData = ohlcvData.length > 1;
@@ -306,7 +322,7 @@ const PriceAdvanced = ({
                 </SkeletonPlaceholder>
               </View>
             ) : (
-              formatPriceWithSubscriptNotation(currentPrice, currentCurrency)
+              formatPriceWithSubscriptNotation(displayPrice, currentCurrency)
             )}
           </Text>
         )}
@@ -324,25 +340,25 @@ const PriceAdvanced = ({
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : dynamicPriceDiff !== null && dynamicComparePrice !== null ? (
+          ) : displayDiff !== null && dynamicComparePrice !== null ? (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
-                dynamicPriceDiff > 0
+                displayDiff > 0
                   ? TextColor.SuccessDefault
-                  : dynamicPriceDiff < 0
+                  : displayDiff < 0
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
               allowFontScaling={false}
             >
-              {dynamicPriceDiff > 0 ? '+' : ''}
-              {addCurrencySymbol(dynamicPriceDiff, currentCurrency, true)} (
-              {dynamicPriceDiff > 0 ? '+' : ''}
-              {dynamicPriceDiff === 0 || dynamicComparePrice === 0
+              {displayDiff > 0 ? '+' : ''}
+              {addCurrencySymbol(displayDiff, currentCurrency, true)} (
+              {displayDiff > 0 ? '+' : ''}
+              {displayDiff === 0 || dynamicComparePrice === 0
                 ? '0'
-                : ((dynamicPriceDiff / dynamicComparePrice) * 100).toFixed(2)}
+                : ((displayDiff / dynamicComparePrice) * 100).toFixed(2)}
               %){' '}
               <Text
                 testID="price-label"
@@ -351,7 +367,7 @@ const PriceAdvanced = ({
                 fontWeight={FontWeight.Medium}
                 allowFontScaling={false}
               >
-                {dateLabel}
+                {displayDate}
               </Text>
             </Text>
           ) : null}
