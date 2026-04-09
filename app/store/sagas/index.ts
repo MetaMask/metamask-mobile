@@ -32,9 +32,10 @@ import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import { MetaMetrics } from '../../core/Analytics';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { providerErrors } from '@metamask/rpc-errors';
+import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -46,6 +47,31 @@ function appStateListenerChannel() {
       appStateListener.remove();
     };
   });
+}
+
+/**
+ * Checks seedless password status and performs the correct auth flow.
+ */
+async function tryBiometricUnlock(): Promise<void> {
+  if (
+    await Authentication.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    })
+  ) {
+    NavigationService.navigation?.reset({
+      routes: [
+        {
+          name: Routes.ONBOARDING.REHYDRATE,
+          params: { isSeedlessPasswordOutdated: true },
+        },
+      ],
+    });
+    return;
+  }
+
+  // Prompt authentication.
+  await Authentication.unlockWallet();
 }
 
 /**
@@ -64,8 +90,7 @@ export function* appStateListenerTask() {
         yield call(async () => {
           // This is in a try catch since errors are not propogated in event channels.
           try {
-            // Prompt authentication.
-            await Authentication.unlockWallet();
+            await tryBiometricUnlock();
           } catch (error) {
             // Navigate to login.
             NavigationService.navigation?.reset({
@@ -91,6 +116,19 @@ export function* appLockStateMachine() {
   while (true) {
     yield take(UserActionType.LOCKED_APP);
 
+    // Reject any pending confirmations so the user doesn't see a stale confirmation after unlock.
+    try {
+      const { ApprovalController } = Engine.context;
+      if (ApprovalController) {
+        ApprovalController.clearRequests(providerErrors.userRejectedRequest());
+      }
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to reject pending approvals on app lock',
+      );
+    }
+
     // Navigate to lock screen.
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
 
@@ -104,7 +142,7 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
-    yield call(Authentication.unlockWallet);
+    yield call(tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
@@ -283,13 +321,6 @@ export function* startAppServices() {
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
-  // Configure MetaMetrics
-  try {
-    yield call(MetaMetrics.getInstance().configure);
-  } catch (err) {
-    Logger.error(err as Error, 'Error configuring MetaMetrics');
-  }
-
   // Apply vault initialization
   yield call(applyVaultInitialization);
 
@@ -312,6 +343,11 @@ export function* rootSaga() {
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
+
+  // Send one-time analytics backfill for migrated social login users after
+  // persisted state has been rehydrated and app services are available.
+  yield fork(backfillSocialLoginMarketingConsentSaga);
+
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   yield fork(handleSnapsRegistry);
   ///: END:ONLY_INCLUDE_IF

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import { act, fireEvent } from '@testing-library/react-native';
 import { TrxScope } from '@metamask/keyring-api';
 import React from 'react';
@@ -93,6 +93,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      isFocused: jest.fn(() => true),
     }),
     useRoute: () => ({
       params: {

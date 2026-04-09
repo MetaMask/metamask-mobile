@@ -1,5 +1,7 @@
+import { createSelector } from 'reselect';
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
+import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -51,6 +53,9 @@ export const selectSeasonTiers = (state: RootState) =>
 
 export const selectSeasonActivityTypes = (state: RootState) =>
   state.rewards.seasonActivityTypes;
+
+export const selectSeasonWaysToEarn = (state: RootState) =>
+  state.rewards.seasonWaysToEarn;
 
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
@@ -148,11 +153,128 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
-// Snapshots selectors
-export const selectSnapshots = (state: RootState) => state.rewards.snapshots;
+// Campaigns selectors
+export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
 
-export const selectSnapshotsLoading = (state: RootState) =>
-  state.rewards.snapshotsLoading;
+export const selectCampaignsLoading = (state: RootState) =>
+  state.rewards.campaignsLoading;
 
-export const selectSnapshotsError = (state: RootState) =>
-  state.rewards.snapshotsError;
+export const selectCampaignsError = (state: RootState) =>
+  state.rewards.campaignsError;
+
+export const selectCampaignsHasLoaded = (state: RootState) =>
+  state.rewards.campaignsHasLoaded;
+
+// Campaign participant status selectors
+export const selectCampaignParticipantStatuses = (state: RootState) =>
+  state.rewards.campaignParticipantStatuses;
+
+export const selectCampaignParticipantStatusById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses?.[campaignId] ?? null)
+      : null;
+
+export const selectCampaignParticipantCount =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses?.[campaignId]
+          ?.participantCount ?? null)
+      : null;
+
+// Version guard selectors
+export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
+  state.rewards.versionGuardMinimumMobileVersion;
+
+export const selectVersionGuardLoading = (state: RootState) =>
+  state.rewards.versionGuardLoading;
+
+export const selectVersionGuardError = (state: RootState) =>
+  state.rewards.versionGuardError;
+
+/**
+ * Returns true when the current app version is below the minimum required
+ * by the rewards backend, meaning the user must update to use Rewards.
+ * Returns false when requirements have not been fetched yet.
+ */
+export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
+  const minVersion = state.rewards.versionGuardMinimumMobileVersion;
+  if (!minVersion) return false;
+  return !hasMinimumRequiredVersion(minVersion);
+};
+
+// Campaign leaderboard selectors
+export const selectOndoCampaignLeaderboard = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard;
+
+export const selectOndoCampaignLeaderboardLoading = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardLoading;
+
+export const selectOndoCampaignLeaderboardError = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardError;
+
+export const selectOndoCampaignLeaderboardSelectedTier = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardSelectedTier;
+
+// Stable fallbacks to avoid returning new references from input selectors
+const EMPTY_TIERS: Record<string, never> = {};
+const EMPTY_ENTRIES: never[] = [];
+
+export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard?.tiers ?? EMPTY_TIERS;
+
+export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard?.computedAt ?? null;
+
+export const selectOndoCampaignLeaderboardTierNames = createSelector(
+  selectOndoCampaignLeaderboardTiers,
+  (tiers) => Object.keys(tiers),
+);
+
+export const selectOndoCampaignLeaderboardEntriesByTier =
+  (tierName: string | null) => (state: RootState) =>
+    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
+      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].entries
+      : EMPTY_ENTRIES;
+
+export const selectOndoCampaignLeaderboardTotalParticipantsByTier =
+  (tierName: string | null) => (state: RootState) =>
+    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
+      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].totalParticipants
+      : 0;
+
+// Campaign leaderboard position selectors
+export const selectOndoCampaignLeaderboardPositions = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardPositions;
+
+export const selectOndoCampaignLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId &&
+    campaignId &&
+    state.rewards.ondoCampaignLeaderboardPositions
+      ? (state.rewards.ondoCampaignLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+export const selectOndoCampaignPortfolio = (state: RootState) =>
+  state.rewards.ondoCampaignPortfolio;
+
+export const selectOndoCampaignPortfolioById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignPortfolio
+      ? (state.rewards.ondoCampaignPortfolio[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+export const selectOndoCampaignActivityById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignActivity
+      ? (state.rewards.ondoCampaignActivity[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;

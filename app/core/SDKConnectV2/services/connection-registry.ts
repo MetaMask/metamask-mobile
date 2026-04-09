@@ -11,13 +11,26 @@ import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
-import logger from './logger';
+import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { decompressPayloadB64 } from '../utils/compression-utils';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+
+/**
+ * Hard cap on the number of simultaneous active connections.
+ *
+ * Without a cap every deeplink adds a connection that persists for the full
+ * DEFAULT_SESSION_TTL (30 days). Over that window connections accumulate
+ * freely, amplifying startup reconnection bursts, chain-change fan-out, and
+ * stale BackgroundBridge listeners.
+ *
+ * When the limit is reached the oldest connection (earliest `expiresAt`) is
+ * evicted before the new one is created.
+ */
+export const MAX_CONNECTIONS = 20;
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -75,7 +88,32 @@ export class ConnectionRegistry {
 
     await Promise.allSettled(promises);
 
+    await this.trimToCapacity();
+
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+  }
+
+  /**
+   * Trims connections down to {@link MAX_CONNECTIONS} after a cold-start
+   * resume. Oldest connections (earliest `expiresAt`) are evicted first.
+   */
+  private async trimToCapacity(): Promise<void> {
+    if (this.connections.size <= MAX_CONNECTIONS) return;
+
+    const sorted = Array.from(this.connections.values()).sort(
+      (a, b) => a.info.expiresAt - b.info.expiresAt,
+    );
+
+    const excess = sorted.slice(0, sorted.length - MAX_CONNECTIONS);
+
+    for (const conn of excess) {
+      try {
+        logger.debug('Trimming excess connection on startup:', conn.id);
+        await this.disconnect(conn.id);
+      } catch (error) {
+        logger.error('Failed to trim excess connection:', conn.id, error);
+      }
+    }
   }
 
   /**
@@ -89,7 +127,7 @@ export class ConnectionRegistry {
 
   public async handleMwpDeeplink(url: string): Promise<void> {
     if (!this.isMwpDeeplink(url)) {
-      throw new Error(`Invalid MWP deeplink: ${url}`);
+      throw new Error(`Invalid MWP deeplink: ${redactUrl(url)}`);
     }
 
     try {
@@ -164,15 +202,21 @@ export class ConnectionRegistry {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
-    logger.debug('Handling connect deeplink:', url);
+    logger.debug('Handling connect deeplink:', redactUrl(url));
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
 
     try {
       const connReq = this.parseConnectionRequest(url);
-      // Prevent external connections from using internal origins
-      // This is an external connection (SDK V2), so block any internal origin
+
+      // Defense-in-depth: block connections whose self-reported dapp metadata
+      // matches a known internal origin. This check is currently redundant
+      // because isConnectionRequest() validates dapp.url as a valid https://
+      // URL, which can never equal plain-string INTERNAL_ORIGINS values like
+      // 'metamask'. It remains as a safety net in case that upstream
+      // validation is ever relaxed. See isConnectionRequest() for the
+      // primary security boundary.
       if (
         INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
         INTERNAL_ORIGINS.includes(connReq.metadata.dapp.name)
@@ -181,8 +225,9 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      connInfo = this.toConnectionInfo(connReq);
+      await this.evictIfAtCapacity();
 
+      connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -194,13 +239,39 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      logger.debug('Handled connect deeplink.', connInfo);
+      logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
-      logger.error('Failed to handle connect deeplink:', error, url);
+      logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+    }
+  }
+
+  /**
+   * If the number of active connections has reached {@link MAX_CONNECTIONS},
+   * evict the oldest connection (earliest `expiresAt`) to make room.
+   *
+   * Because every connection is created with the same TTL, the smallest
+   * `expiresAt` reliably identifies the connection that was established
+   * first.
+   */
+  private async evictIfAtCapacity(): Promise<void> {
+    if (this.connections.size < MAX_CONNECTIONS) return;
+
+    const oldest = Array.from(this.connections.values()).reduce((a, b) =>
+      a.info.expiresAt <= b.info.expiresAt ? a : b,
+    );
+
+    try {
+      logger.debug(
+        'Connection cap reached, evicting oldest connection:',
+        oldest.id,
+      );
+      await this.disconnect(oldest.id);
+    } catch (error) {
+      logger.error('Failed to evict oldest connection:', oldest.id, error);
     }
   }
 
@@ -240,6 +311,10 @@ export class ConnectionRegistry {
     const compressionFlag = parsed.searchParams.get('c');
     const jsonString =
       compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
+
+    if (jsonString.length > 1024 * 1024) {
+      throw new Error('Decompressed payload too large (max 1MB).');
+    }
 
     const connReq: unknown = JSON.parse(jsonString);
 

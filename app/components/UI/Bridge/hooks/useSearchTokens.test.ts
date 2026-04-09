@@ -9,6 +9,14 @@ import {
 
 global.fetch = jest.fn();
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+    },
+  },
+}));
+
 describe('useSearchTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -37,7 +45,9 @@ describe('useSearchTokens', () => {
 
   describe('searching', () => {
     it('fetches search results when searchTokens is called', async () => {
-      const mockResponse = createMockSearchResponse();
+      const mockResponse = createMockSearchResponse({
+        data: [createMockPopularToken({ symbol: 'SRCH', isVerified: true })],
+      });
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         json: async () => mockResponse,
       });
@@ -51,11 +61,17 @@ describe('useSearchTokens', () => {
       await waitFor(() => expect(result.current.isSearchLoading).toBe(false));
 
       expect(result.current.searchResults).toEqual(mockResponse.data);
+      expect(result.current.searchResults[0].isVerified).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/getTokens/search'),
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            // Initial fetch may not have a bearer token
+            'Client-Version': expect.any(String),
+            'X-Client-Id': 'mobile',
+          },
           body: expect.stringContaining('test query'),
         }),
       );
@@ -114,6 +130,27 @@ describe('useSearchTokens', () => {
         }),
       );
     });
+
+    it('falls back to an empty array for malformed responses', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => ({
+          pageInfo: {
+            hasNextPage: false,
+          },
+        }),
+      });
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('test query');
+      });
+
+      await waitFor(() => expect(result.current.isSearchLoading).toBe(false));
+
+      expect(result.current.searchResults).toEqual([]);
+      expect(result.current.searchCursor).toBeUndefined();
+    });
   });
 
   describe('debouncing', () => {
@@ -165,7 +202,7 @@ describe('useSearchTokens', () => {
   describe('pagination', () => {
     it('handles pagination with cursor', async () => {
       const firstPage = createMockPaginatedResponse({
-        data: [createMockPopularToken({ symbol: 'FIRST' })],
+        data: [createMockPopularToken({ symbol: 'FIRST', isVerified: true })],
         cursor: 'cursor123',
       });
       const secondPage = createMockSearchResponse({
@@ -194,6 +231,7 @@ describe('useSearchTokens', () => {
 
       expect(result.current.searchResults[0].symbol).toBe('FIRST');
       expect(result.current.searchResults[1].symbol).toBe('SECOND');
+      expect(result.current.searchResults[0].isVerified).toBe(true);
     });
 
     it('sets isLoadingMore for pagination requests', async () => {

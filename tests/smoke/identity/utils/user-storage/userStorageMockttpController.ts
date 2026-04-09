@@ -4,7 +4,7 @@ import {
   getDecodedProxiedURL,
   getSrpIdentifierFromHeaders,
 } from '../helpers';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { EventEmitter } from 'events';
 import { CompletedRequest, Mockttp } from 'mockttp';
 import {

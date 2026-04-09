@@ -2,17 +2,28 @@ import NavigationService from '../../../../NavigationService';
 import { setContentPreviewToken } from '../../../../../actions/notification/helpers';
 import { navigateToHomeUrl } from '../handleHomeUrl';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../../actions/notification/helpers');
 
 describe('navigateToHomeUrl', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
 
   const arrangeMocks = () => {
     const mockNavigate = jest.fn();
+    const mockSetParams = jest.fn();
     NavigationService.navigation = {
       navigate: mockNavigate,
+      setParams: mockSetParams,
     } as unknown as typeof NavigationService.navigation;
 
     const mockSetContentPreviewToken = jest.mocked(setContentPreviewToken);
@@ -20,6 +31,7 @@ describe('navigateToHomeUrl', () => {
     return {
       mockNavigate,
       mockSetContentPreviewToken,
+      mockSetParams,
     };
   };
 
@@ -39,11 +51,14 @@ describe('navigateToHomeUrl', () => {
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('falls back to navigated to home sceen when no homePath', () => {
+  it('navigates to home screen with openNetworkSelector param when requested', () => {
     const mocks = arrangeMocks();
-    navigateToHomeUrl({ homePath: undefined });
+    navigateToHomeUrl({ homePath: 'home?openNetworkSelector=true' });
 
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+    expect(mocks.mockSetParams).toHaveBeenCalledWith({
+      openNetworkSelector: true,
+    });
   });
 });

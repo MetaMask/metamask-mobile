@@ -1,13 +1,11 @@
 import {
   CardFeatureFlag,
-  CardSupportedCountries,
   SupportedChain,
   SupportedToken,
   selectCardFeatureFlag,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-  selectCardExperimentalSwitch,
   selectMetalCardCheckoutFeatureFlag,
+  selectGalileoAppleWalletProvisioningEnabled,
+  selectGalileoGoogleWalletProvisioningEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -320,340 +318,6 @@ describe('selectCardFeatureFlag', () => {
   });
 });
 
-describe('selectCardSupportedCountries', () => {
-  it('returns default supported countries when feature flag state is empty', () => {
-    const result = selectCardSupportedCountries(
-      mockedEmptyFlagsState,
-    ) as CardSupportedCountries;
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-    expect(result.GB).toBe(true);
-    expect(result.US).toBeUndefined();
-  });
-
-  it('returns default supported countries when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectCardSupportedCountries(
-      mockedUndefinedFlagsState,
-    ) as CardSupportedCountries;
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-  });
-
-  it('returns custom supported countries when defined in remote flags', () => {
-    const customCountries: CardSupportedCountries = {
-      US: true,
-      CA: true,
-      GB: false,
-    };
-
-    const stateWithCustomCountries = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardSupportedCountries: customCountries,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardSupportedCountries(
-      stateWithCustomCountries,
-    ) as CardSupportedCountries;
-
-    expect(result).toEqual(customCountries);
-    expect(result.US).toBe(true);
-    expect(result.CA).toBe(true);
-    expect(result.GB).toBe(false);
-  });
-
-  it('handles null cardSupportedCountries by returning default', () => {
-    const stateWithNullCountries = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardSupportedCountries: null,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardSupportedCountries(stateWithNullCountries);
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-  });
-});
-
-describe('selectDisplayCardButtonFeatureFlag', () => {
-  const mockedValidatedVersionGatedFeatureFlag =
-    validatedVersionGatedFeatureFlag as jest.MockedFunction<
-      typeof validatedVersionGatedFeatureFlag
-    >;
-
-  it('returns false when feature flag state is empty', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectDisplayCardButtonFeatureFlag(mockedEmptyFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when RemoteFeatureFlagController state is undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectDisplayCardButtonFeatureFlag(
-      mockedUndefinedFlagsState,
-    );
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true when feature flag is enabled and version requirement is met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-    const stateWithDisplayCardButton = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: true,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(
-      stateWithDisplayCardButton,
-    );
-
-    expect(result).toBe(true);
-    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
-      enabled: true,
-      minimumVersion: '7.0.0',
-    });
-  });
-
-  it('returns false when feature flag is disabled', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithDisabledFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: false,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(stateWithDisabledFlag);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when version requirement is not met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithVersionGate = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: true,
-                minimumVersion: '99.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(stateWithVersionGate);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const stateWithMalformedFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              displayCardButton: {
-                enabled: 'true', // Invalid type
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectDisplayCardButtonFeatureFlag(stateWithMalformedFlag);
-
-    expect(result).toBe(false);
-  });
-});
-
-describe('selectCardExperimentalSwitch', () => {
-  const mockedValidatedVersionGatedFeatureFlag =
-    validatedVersionGatedFeatureFlag as jest.MockedFunction<
-      typeof validatedVersionGatedFeatureFlag
-    >;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns false when feature flag state is empty', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectCardExperimentalSwitch(mockedEmptyFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when RemoteFeatureFlagController state is undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const result = selectCardExperimentalSwitch(mockedUndefinedFlagsState);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns true when feature flag is enabled and version requirement is met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-    const stateWithExperimentalSwitch = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch2: {
-                enabled: true,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithExperimentalSwitch);
-
-    expect(result).toBe(true);
-    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
-      enabled: true,
-      minimumVersion: '7.0.0',
-    });
-  });
-
-  it('returns false when feature flag is disabled', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithDisabledSwitch = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch2: {
-                enabled: false,
-                minimumVersion: '7.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithDisabledSwitch);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when version requirement is not met', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-    const stateWithVersionGate = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch2: {
-                enabled: true,
-                minimumVersion: '99.0.0',
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithVersionGate);
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
-    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
-
-    const stateWithMalformedFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardExperimentalSwitch2: {
-                enabled: 'true', // Invalid type
-              },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardExperimentalSwitch(stateWithMalformedFlag);
-
-    expect(result).toBe(false);
-  });
-});
-
 describe('selectMetalCardCheckoutFeatureFlag', () => {
   const mockedValidatedVersionGatedFeatureFlag =
     validatedVersionGatedFeatureFlag as jest.MockedFunction<
@@ -783,6 +447,288 @@ describe('selectMetalCardCheckoutFeatureFlag', () => {
     } as any;
 
     const result = selectMetalCardCheckoutFeatureFlag(stateWithMalformedFlag);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectGalileoAppleWalletProvisioningEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns false when feature flag state is empty', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectGalileoAppleWalletProvisioningEnabled(
+      mockedEmptyFlagsState,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectGalileoAppleWalletProvisioningEnabled(
+      mockedUndefinedFlagsState,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const stateWithAppleWalletProvisioning = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoAppleWalletInAppProvisioningEnabled: {
+                enabled: true,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectGalileoAppleWalletProvisioningEnabled(
+      stateWithAppleWalletProvisioning,
+    );
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithDisabledFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoAppleWalletInAppProvisioningEnabled: {
+                enabled: false,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectGalileoAppleWalletProvisioningEnabled(
+      stateWithDisabledFlag,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithVersionGate = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoAppleWalletInAppProvisioningEnabled: {
+                enabled: true,
+                minimumVersion: '99.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result =
+      selectGalileoAppleWalletProvisioningEnabled(stateWithVersionGate);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const stateWithMalformedFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoAppleWalletInAppProvisioningEnabled: {
+                enabled: 'true', // Invalid type
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectGalileoAppleWalletProvisioningEnabled(
+      stateWithMalformedFlag,
+    );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectGalileoGoogleWalletProvisioningEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns false when feature flag state is empty', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectGalileoGoogleWalletProvisioningEnabled(
+      mockedEmptyFlagsState,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectGalileoGoogleWalletProvisioningEnabled(
+      mockedUndefinedFlagsState,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const stateWithGoogleWalletProvisioning = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoGoogleWalletInAppProvisioningEnabled: {
+                enabled: true,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectGalileoGoogleWalletProvisioningEnabled(
+      stateWithGoogleWalletProvisioning,
+    );
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithDisabledFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoGoogleWalletInAppProvisioningEnabled: {
+                enabled: false,
+                minimumVersion: '7.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectGalileoGoogleWalletProvisioningEnabled(
+      stateWithDisabledFlag,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    const stateWithVersionGate = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoGoogleWalletInAppProvisioningEnabled: {
+                enabled: true,
+                minimumVersion: '99.0.0',
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result =
+      selectGalileoGoogleWalletProvisioningEnabled(stateWithVersionGate);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when validatedVersionGatedFeatureFlag returns undefined', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const stateWithMalformedFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              galileoGoogleWalletInAppProvisioningEnabled: {
+                enabled: 'true', // Invalid type
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const result = selectGalileoGoogleWalletProvisioningEnabled(
+      stateWithMalformedFlag,
+    );
 
     expect(result).toBe(false);
   });

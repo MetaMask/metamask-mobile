@@ -7,17 +7,13 @@ import {
   StyleProp,
 } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
-import Label from '../../../../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import { Label } from '@metamask/design-system-react-native';
+import Text from '../../../../../../component-library/components/Texts/Text';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { Theme } from '../../../../../../util/theme/models';
 
-interface DepositTextFieldProps extends Omit<TextFieldProps, 'size'> {
+interface DepositTextFieldProps extends TextFieldProps {
   label: string | React.ReactNode;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
@@ -49,15 +45,11 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
     return (
       <View style={[styles.field, containerStyle]}>
         {typeof label === 'string' ? (
-          <Label variant={TextVariant.BodyMD} style={styles.label}>
-            {label}
-          </Label>
+          <Label style={styles.label}>{label}</Label>
         ) : (
           <View style={styles.label}>{label}</View>
         )}
         <TextField
-          size={TextFieldSize.Lg}
-          placeholderTextColor={theme.colors.text.muted}
           keyboardAppearance={theme.themeAppearance}
           style={style}
           ref={ref}

@@ -11,12 +11,11 @@
 
 ## E2E Framework Structure
 
-- **Regression Testing Scenarios (`e2e/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`e2e/smoke/`)** - Smoke Test files organized by feature
+- **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
+- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
-- **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
-- **Page Objects (`e2e/pages/`)**: Page Object Model implementation
-- **Selectors (`e2e/selectors/`)**: Element selectors organized by feature
+- **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
+- **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
 
@@ -33,11 +32,10 @@
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
 - `tests/smoke/` - Smoke Test files organized by feature
 - `tests/regression/` - Regression Test files organized by feature
-- `e2e/pages/` - Page Object classes following POM pattern
-- `e2e/selectors/` - Element selectors (avoid direct use in tests)
+- `tests/page-objects/` - Page Object classes following POM pattern
+- `tests/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
-- `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
-- `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
+- `tests/framework/fixtures/` - Test fixtures and data
 
 ## E2E Testing Best Practices
 
@@ -112,19 +110,19 @@ await Gestures.tap(loadingButton, {
 ## E2E Test Examples and Patterns
 
 - **ALWAYS** use `withFixtures` - every test must use this pattern
-- **Framework Migration**: Use TypeScript framework (`tests/framework/`), not legacy JavaScript (`e2e/utils/`)
+- **Framework Migration**: Use TypeScript framework (`tests/framework/`)
 - **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
 - **Page Objects**: Mandatory pattern - no direct element access in test specs
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `e2e/.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check `.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 
 ```typescript
 import { SmokeE2E } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../tests/flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
@@ -315,3 +313,12 @@ await Utilities.executeWithRetry(
 - [ ] Tests work on both iOS and Android platforms
 - [ ] Test names are descriptive without 'should' prefix
 - [ ] Uses FixtureBuilder for test data setup
+
+## Existing tooling
+
+| Tool                 | Type              | Current use          | When to use                                                                                                         | Notes and Limitations                                                                                                                                                                                                                                                                         |
+| -------------------- | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component View Tests | White box testing | UI integration tests | - When following a full user flow is not needed <br> - When we want to test individual component and view rendering | - Does **not** require builds <br> - Low cost (faster runtime) <br> - Fast feedback loop                                                                                                                                                                                                      |
+| Detox                | Grey box testing  | E2E                  | - When we want to test user flows <br> - Run on PR basis                                                            | - High cost <br> - Low tool (detox) maintenance <br> - JS/TS based test files <br> - Handles deeply nested elements better (easier to find and locate elements) <br> - Uses emulators/simulators <br> - Allows runs with local Builds <br> - Can't be used with real devices (cloud included) |
+| Maestro              | Black box testing | TBD                  | TBD                                                                                                                 | - **Still in experimentation phase (!)** <br> - Struggles with deeply nested elements <br> - YAML based spec files <br> - Allows runs with local builds <br> - Can run on real devices (cloud) but can't be used with real devices                                                            |
+| Appium               | Black box testing | Performance tests    | - When we want to test user flows as a end user <br> - When we want to measure and report performance stats         | - High cost <br> - Struggles with deeply nested <br> - Uses a Cloud provider for real device testing elements <br> - Does not allow runs with local builds                                                                                                                                    |

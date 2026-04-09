@@ -3,6 +3,7 @@ import {
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
+import type { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { NetworkToCaipChainId } from '../../NetworkMultiSelector/NetworkMultiSelector.constants';
@@ -123,3 +124,17 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     }),
   },
 ];
+
+/**
+ * Networks supported for RWA (Real World Asset) tokens.
+ */
+export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
+  TRENDING_NETWORKS_LIST.filter((n) =>
+    [NetworkToCaipChainId.ETHEREUM, NetworkToCaipChainId.BNB].includes(
+      n.caipChainId as NetworkToCaipChainId,
+    ),
+  );
+
+export const RWA_CHAIN_IDS: CaipChainId[] = RWA_NETWORKS_LIST.map(
+  (n) => n.caipChainId,
+);

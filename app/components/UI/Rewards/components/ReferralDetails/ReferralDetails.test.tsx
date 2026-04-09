@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import ReferralDetails from './ReferralDetails';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -21,20 +21,6 @@ jest.mock('./ReferralInfoSection', () => {
       Text,
       { testID: 'referral-info-section' },
       'ReferralInfoSection',
-    );
-  };
-});
-jest.mock('./ReferralStatsSection', () => {
-  const mockReact = jest.requireActual('react');
-  const { Text } = jest.requireActual('@metamask/design-system-react-native');
-  return function MockReferralStatsSection(props: object) {
-    return mockReact.createElement(
-      Text,
-      {
-        testID: 'referral-stats-section',
-        'data-testid': `stats-${JSON.stringify(props)}`,
-      },
-      'ReferralStatsSection',
     );
   };
 });
@@ -129,17 +115,15 @@ const mockUseReferralDetails = jest.requireMock(
   '../../hooks/useReferralDetails',
 ).useReferralDetails;
 
-// Mock useMetrics hook
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    REWARDS_PAGE_BUTTON_CLICKED: 'rewards_page_button_clicked',
-  },
-}));
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
 
-const mockUseMetrics = jest.requireMock(
-  '../../../../hooks/useMetrics',
-).useMetrics;
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
+const mockUseAnalytics = jest.mocked(useAnalytics);
 
 // Type for Redux selector functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -151,6 +135,17 @@ describe('ReferralDetails', () => {
 
   const renderComponent = (props = {}) =>
     render(<ReferralDetails {...props} />);
+
+  const mockSeasonWaysToEarn = [
+    {
+      id: 'referral-way',
+      type: 'referrals',
+      specificContent: {
+        referralPointsTitle: 'Earned from referrals',
+        totalReferralsTitle: 'Referrals',
+      },
+    },
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -175,6 +170,8 @@ describe('ReferralDetails', () => {
           return false;
         case 'selectSeasonStartDate':
           return '2024-01-01';
+        case 'selectSeasonWaysToEarn':
+          return mockSeasonWaysToEarn;
         default:
           // Default fallback values
           if (selector.name === 'selectReferralCode') return 'REFER123';
@@ -185,6 +182,8 @@ describe('ReferralDetails', () => {
           if (selector.name === 'selectReferralDetailsError') return false;
           if (selector.name === 'selectSeasonStatusError') return false;
           if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
+          if (selector.name === 'selectSeasonWaysToEarn')
+            return mockSeasonWaysToEarn;
           return null;
       }
     });
@@ -193,16 +192,15 @@ describe('ReferralDetails', () => {
       fetchReferralDetails: jest.fn(),
     });
 
-    // Mock useMetrics hook return value
+    // Mock useAnalytics hook return value
     const mockTrackEvent = jest.fn();
-    const mockCreateEventBuilder = jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    }));
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
+    const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     (mockClipboard.setString as jest.Mock).mockClear();
     (mockShare.open as jest.Mock).mockResolvedValue(undefined);
@@ -215,7 +213,9 @@ describe('ReferralDetails', () => {
 
       // Assert
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -250,64 +250,14 @@ describe('ReferralDetails', () => {
   });
 
   describe('props passing to child components', () => {
-    it('passes loading state to ReferralStatsSection when referral details are loading', () => {
-      // Arrange
-      const earnedPoints = 2000;
-      const refereeCount = 8;
-      const detailsLoading = true;
-
-      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectBalanceRefereePortion')
-          return earnedPoints;
-        if (selector.name === 'selectReferralCount') return refereeCount;
-        if (selector.name === 'selectReferralDetailsLoading')
-          return detailsLoading;
-        if (selector.name === 'selectReferralCode') return 'TEST123';
-        if (selector.name === 'selectReferralDetailsError') return false;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
-        return null;
-      });
-
-      // Act
-      const { getByTestId } = renderComponent();
+    it('renders ReferralStatsSection', () => {
+      // Arrange & Act
+      renderComponent();
 
       // Assert
-      const statsElement = getByTestId('referral-stats-section');
-      const propsString = statsElement.props['data-testid'];
-      const props = JSON.parse(propsString.replace('stats-', ''));
-      expect(props.earnedPointsFromReferees).toBe(earnedPoints);
-      expect(props.refereeCount).toBe(refereeCount);
-      expect(props.earnedPointsFromRefereesLoading).toBe(true);
-      expect(props.refereeCountLoading).toBe(true);
-      expect(props.refereeCountError).toBe(false);
-    });
-
-    it('passes error state to ReferralStatsSection when referral details error occurs', () => {
-      // Arrange
-      const detailsError = true;
-      const detailsLoading = false;
-
-      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectReferralDetailsLoading')
-          return detailsLoading;
-        if (selector.name === 'selectReferralDetailsError') return detailsError;
-        if (selector.name === 'selectReferralCode') return 'TEST123';
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
-        return null;
-      });
-
-      // Act
-      const { getByTestId } = renderComponent();
-
-      // Assert
-      const statsElement = getByTestId('referral-stats-section');
-      const propsString = statsElement.props['data-testid'];
-      const props = JSON.parse(propsString.replace('stats-', ''));
-      expect(props.refereeCountError).toBe(true);
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
     });
 
     it('passes loading state to ReferralActionsSection when referral details are loading', () => {
@@ -493,10 +443,12 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { getByTestId } = renderComponent();
+      renderComponent();
 
       // Assert - Component should render despite loading state
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
     });
 
     it('should handle referral details loading state', () => {
@@ -535,7 +487,9 @@ describe('ReferralDetails', () => {
 
       // Assert
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
   });
@@ -579,7 +533,9 @@ describe('ReferralDetails', () => {
 
       // Assert - All child components should be present in column layout
       expect(getByTestId('referral-info-section')).toBeTruthy();
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
   });
@@ -608,7 +564,9 @@ describe('ReferralDetails', () => {
       expect(getByTestId('error-description')).toBeTruthy();
       // Other components should not be rendered
       expect(queryByTestId('referral-info-section')).toBeNull();
-      expect(queryByTestId('referral-stats-section')).toBeNull();
+      expect(
+        screen.queryByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
     });
 
@@ -658,7 +616,9 @@ describe('ReferralDetails', () => {
       expect(getByTestId('error-description')).toBeTruthy();
       expect(getByTestId('error-retry-button')).toBeTruthy();
       // Stats and actions sections should not be rendered
-      expect(queryByTestId('referral-stats-section')).toBeNull();
+      expect(
+        screen.queryByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
       // Info section should still be rendered
       expect(queryByTestId('referral-info-section')).toBeTruthy();
@@ -684,7 +644,9 @@ describe('ReferralDetails', () => {
       // Assert
       expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -708,7 +670,9 @@ describe('ReferralDetails', () => {
       // Assert
       expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
-      expect(getByTestId('referral-stats-section')).toBeTruthy();
+      expect(
+        screen.getByText('rewards.referral_stats_earned_from_referrals'),
+      ).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
     });
 
@@ -749,7 +713,9 @@ describe('ReferralDetails', () => {
 
       // Assert - All components should be findable, indicating proper accessibility
       const infoSection = getByTestId('referral-info-section');
-      const statsSection = getByTestId('referral-stats-section');
+      const statsSection = screen.getByText(
+        'rewards.referral_stats_earned_from_referrals',
+      );
       const actionsSection = getByTestId('referral-actions-section');
 
       expect(infoSection).toBeTruthy();
@@ -808,32 +774,31 @@ describe('ReferralDetails', () => {
   });
 
   describe('metrics tracking', () => {
-    it('should use the useMetrics hook', () => {
+    it('should use the useAnalytics hook', () => {
       // Act
       renderComponent();
 
       // Assert
-      expect(mockUseMetrics).toHaveBeenCalled();
+      expect(mockUseAnalytics).toHaveBeenCalled();
     });
 
     it('should have trackEvent and createEventBuilder available', () => {
       // Arrange
       const mockTrackEvent = jest.fn();
-      const mockCreateEventBuilder = jest.fn(() => ({
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue({}),
-      }));
-      mockUseMetrics.mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      });
+      const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+      mockUseAnalytics.mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
 
       // Act
       renderComponent();
 
       // Assert
-      expect(mockUseMetrics).toHaveBeenCalled();
-      const hookResult = mockUseMetrics.mock.results[0]?.value;
+      expect(mockUseAnalytics).toHaveBeenCalled();
+      const hookResult = mockUseAnalytics.mock.results[0]?.value;
       expect(hookResult).toBeDefined();
       expect(hookResult.trackEvent).toBeDefined();
       expect(hookResult.createEventBuilder).toBeDefined();

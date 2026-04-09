@@ -1,23 +1,55 @@
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
+import { merge } from 'lodash';
 
-import { SmokeWalletPlatform } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokeWalletPlatform } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_2,
+  ENTROPY_WALLET_1_ID,
 } from '../../framework/fixtures/FixtureBuilder';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import type {
+  AccountTreeControllerState,
+  Fixture,
+} from '../../framework/fixtures/types';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
+
+// EVM-only account tree to prevent Solana snap from fetching live transactions
+const EVM_ONLY_ACCOUNT_TREE = {
+  accountTree: {
+    wallets: {
+      [ENTROPY_WALLET_1_ID]: {
+        id: ENTROPY_WALLET_1_ID,
+        type: 'Entropy',
+        metadata: { name: 'Secret Recovery Phrase 1' },
+        groups: {
+          [`${ENTROPY_WALLET_1_ID}/account-1`]: {
+            id: `${ENTROPY_WALLET_1_ID}/account-1`,
+            type: 'MultipleAccount',
+            accounts: ['4d7a5e0b-b261-4aed-8126-43972b0fa0a1'],
+            metadata: { name: 'Account 1' },
+          },
+        },
+      },
+    },
+    selectedAccountGroup: `${ENTROPY_WALLET_1_ID}/account-1`,
+  },
+};
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
+
+const TRUSTED_INCOMING_SENDER_CHECKSUM = toChecksumHexAddress(
+  DEFAULT_FIXTURE_ACCOUNT_2,
+);
 
 const RESPONSE_STANDARD_MOCK = {
   hash: '0x123456',
@@ -34,7 +66,7 @@ const RESPONSE_STANDARD_MOCK = {
   methodId: null,
   value: '1230000000000000000',
   to: DEFAULT_FIXTURE_ACCOUNT,
-  from: '0x2',
+  from: TRUSTED_INCOMING_SENDER_CHECKSUM,
   isError: false,
   valueTransfers: [],
 };
@@ -48,13 +80,13 @@ const RESPONSE_STANDARD_2_MOCK = {
 
 const RESPONSE_TOKEN_TRANSFER_MOCK = {
   ...RESPONSE_STANDARD_MOCK,
-  to: '0x2',
+  to: DEFAULT_FIXTURE_ACCOUNT,
   valueTransfers: [
     {
       contractAddress: TOKEN_ADDRESS_MOCK,
       decimal: 18,
       symbol: TOKEN_SYMBOL_MOCK,
-      from: '0x2',
+      from: TRUSTED_INCOMING_SENDER_CHECKSUM,
       to: DEFAULT_FIXTURE_ACCOUNT,
       amount: '4560000000000000000',
     },
@@ -63,7 +95,7 @@ const RESPONSE_TOKEN_TRANSFER_MOCK = {
 
 const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
   ...RESPONSE_STANDARD_MOCK,
-  to: '0x2',
+  to: TRUSTED_INCOMING_SENDER_CHECKSUM,
   from: DEFAULT_FIXTURE_ACCOUNT,
 };
 
@@ -71,7 +103,9 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750,0x531&sortDirection=DESC`,
+    urlEndpoint: new RegExp(
+      `^https://accounts\\.api\\.cx\\.metamask\\.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions\\?.*sortDirection=DESC`,
+    ),
     response: {
       data:
         transactions.length > 0
@@ -91,10 +125,6 @@ function createAccountsTestSpecificMock(
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
     const mock = mockAccountsApi(transactions);
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      remoteFeatureMultichainAccountsAccountDetailsV2(false),
-    );
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: mock.urlEndpoint,
@@ -104,22 +134,61 @@ function createAccountsTestSpecificMock(
   };
 }
 
+/**
+ * Makes the sender address trusted via the address book so the incoming
+ * native transfer passes the poisoning filter.
+ *
+ * KeyringController / AccountsController merges don't work here because
+ * AccountsController reconciles against the vault on unlock (which only
+ * contains Account 1) and drops any extra accounts.  The address book is
+ * static persisted state that survives startup, and contact sync is
+ * disabled via UserStorageController flags.
+ */
+function mergeTrustedSenderForIncomingNative(fixture: Fixture): void {
+  merge(fixture.state.engine.backgroundState.UserStorageController, {
+    isBackupAndSyncEnabled: false,
+    isAccountSyncingEnabled: false,
+    isContactSyncingEnabled: false,
+  });
+
+  merge(fixture.state.engine.backgroundState.AddressBookController, {
+    addressBook: {
+      '0x1': {
+        [TRUSTED_INCOMING_SENDER_CHECKSUM]: {
+          address: TRUSTED_INCOMING_SENDER_CHECKSUM,
+          name: 'Account 2',
+          chainId: '0x1',
+        },
+      },
+    },
+  });
+}
+
 describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
 
-  it('displays standard incoming transaction', async () => {
+  it('displays incoming native transfer from another own account', async () => {
+    const fixture = new FixtureBuilder()
+      .withAccountTreeController(
+        EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+      )
+      .withNetworkEnabledMap({ eip155: { '0x1': true } })
+      .withPrivacyModePreferences(false)
+      .build();
+    mergeTrustedSenderForIncomingNative(fixture);
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPrivacyModePreferences(false).build(),
+        fixture,
         restartDevice: true,
         testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Received ETH');
       },
     );
@@ -131,6 +200,10 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
+          .withAccountTreeController(
+            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+          )
+          .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withTokens([
             {
               address: TOKEN_ADDRESS_MOCK,
@@ -148,8 +221,8 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
-        await Assertions.checkIfTextIsDisplayed('Received ABC');
+        await UnifiedTransactionsView.swipeDown();
+        await Assertions.expectTextDisplayed('Received ABC');
       },
     );
   });
@@ -157,7 +230,13 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   it('displays outgoing transactions', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPrivacyModePreferences(false).build(),
+        fixture: new FixtureBuilder()
+          .withAccountTreeController(
+            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+          )
+          .withNetworkEnabledMap({ eip155: { '0x1': true } })
+          .withPrivacyModePreferences(false)
+          .build(),
         restartDevice: true,
         testSpecificMock: createAccountsTestSpecificMock([
           RESPONSE_OUTGOING_TRANSACTION_MOCK,
@@ -166,23 +245,32 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Sent ETH');
       },
     );
   });
 
   it('displays nothing if privacyMode is enabled', async () => {
+    const fixture = new FixtureBuilder()
+      .withAccountTreeController(
+        EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+      )
+      .withNetworkEnabledMap({ eip155: { '0x1': true } })
+      .withPrivacyModePreferences(true)
+      .build();
+    mergeTrustedSenderForIncomingNative(fixture);
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPrivacyModePreferences(true).build(),
+        fixture,
         restartDevice: true,
         testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');
       },
     );
@@ -192,6 +280,10 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
+          .withAccountTreeController(
+            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+          )
+          .withNetworkEnabledMap({ eip155: { '0x1': true } })
           .withTransactions([
             {
               hash: RESPONSE_STANDARD_MOCK.hash,
@@ -210,7 +302,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');
       },
     );
@@ -219,14 +311,19 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   it.skip('displays notification', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withAccountTreeController(
+            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+          )
+          .withNetworkEnabledMap({ eip155: { '0x1': true } })
+          .build(),
         restartDevice: true,
         testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
-        await ActivitiesView.swipeDown();
+        await UnifiedTransactionsView.swipeDown();
         await Assertions.expectElementToHaveText(
           ToastModal.notificationTitle,
           'You received 1.23 ETH',

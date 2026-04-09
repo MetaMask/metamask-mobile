@@ -7,10 +7,6 @@ import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { endTrace } from '../../../../../util/trace';
 
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
-
 const mockUseDepositSdkMethodInitialState = {
   data: null,
   error: null as string | null,
@@ -857,8 +853,30 @@ describe('useDepositRouting', () => {
   });
 
   describe('handleNavigationStateChange', () => {
+    const getDepositWebviewNavigationHandler = () => {
+      const webviewCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          (call[1] as { screen?: string })?.screen === 'DepositWebviewModal',
+      );
+      if (!webviewCall) {
+        throw new Error('Deposit webview navigation was not called');
+      }
+      const params = (
+        webviewCall[1] as {
+          params?: {
+            handleNavigationStateChange?: (navState: { url: string }) => void;
+          };
+        }
+      ).params;
+      const handler = params?.handleNavigationStateChange;
+      if (!handler) {
+        throw new Error('handleNavigationStateChange was not passed');
+      }
+      return handler;
+    };
+
     it('processes order and navigates when URL contains orderId', async () => {
-      // Set payment method to non-manual bank transfer
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -867,16 +885,9 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
-      expect(handler).toBeDefined();
-
-      await handler({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
@@ -917,16 +928,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
       mockTrackEvent.mockClear();
 
-      await handler({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
@@ -951,7 +957,7 @@ describe('useDepositRouting', () => {
       );
     });
 
-    it('does not track analytics when order processing fails', async () => {
+    it('navigates to OrderProcessing before processing and does not track analytics when handleNewOrder fails', async () => {
       const mockHandleNewOrder = jest
         .fn()
         .mockRejectedValue(new Error('Processing failed'));
@@ -962,24 +968,20 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
       mockTrackEvent.mockClear();
       mockNavigate.mockClear();
 
-      await handler({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
-      expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
         orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
+      expect(mockHandleNewOrder).toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
@@ -988,16 +990,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
       jest.clearAllMocks();
 
-      await handler({
+      await handleNavigation({
         url: 'https://example.com/success?orderId=test-order-id',
       });
 
@@ -1012,23 +1009,18 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
       jest.clearAllMocks();
 
-      await handler({ url: REDIRECTION_URL });
+      await handleNavigation({ url: REDIRECTION_URL });
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('handles error when getOrder fails', async () => {
+    it('navigates to OrderProcessing before getOrder and does not complete flow when getOrder fails', async () => {
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1039,27 +1031,23 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
       jest.clearAllMocks();
 
-      await handler({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
-      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
         orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
+      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
+      expect(mockHandleNewOrder).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('handles error when getOrder returns null', async () => {
+    it('navigates to OrderProcessing before getOrder and does not complete flow when getOrder returns null', async () => {
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1070,23 +1058,19 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      const navigateCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'DepositModals' &&
-          call[1]?.params?.handleNavigationStateChange,
-      );
-      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
       jest.clearAllMocks();
 
-      await handler({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
-      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
         orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
+      expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
+      expect(mockHandleNewOrder).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });

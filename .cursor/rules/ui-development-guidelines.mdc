@@ -237,6 +237,19 @@ Always use semantic color tokens:
 | `flexDirection: 'row'`               | `flexDirection={BoxFlexDirection.Row}` |
 | Manual padding/margin                | `twClassName="p-4 m-2"`                |
 
+## Platform-Specific Gotchas
+
+### ScrollView Inside BottomSheet
+When using a `ScrollView` inside a `BottomSheet`, you **MUST** import `ScrollView` from `react-native-gesture-handler`, not from `react-native`. The standard React Native `ScrollView` will not scroll on Android within a gesture-handler-managed `BottomSheet`.
+
+```tsx
+// ✅ CORRECT - works on both iOS and Android
+import { ScrollView } from 'react-native-gesture-handler';
+
+// ❌ WRONG - will not scroll on Android inside BottomSheet
+import { ScrollView } from 'react-native';
+```
+
 ## Legacy Code Migration Guidelines
 
 ### Identifying Legacy Patterns
@@ -314,6 +327,7 @@ const tw = useTailwind();
 - [ ] No separate `.styles.ts` files for new components
 - [ ] Component props used before `twClassName` for layout
 - [ ] Interactive styles use `tw.style()` with state functions
+- [ ] `ScrollView` inside `BottomSheet` imported from `react-native-gesture-handler` (not `react-native`)
 
 ### When You See These Patterns, IMMEDIATELY Suggest Alternatives:
 - Any `import tw from 'twrnc'` → `import { useTailwind } from '@metamask/design-system-twrnc-preset'`

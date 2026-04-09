@@ -5,9 +5,9 @@ import {
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
-} from '../../controllers/selectors';
-import { InitializationState } from '../../controllers/PerpsController';
-import type { PerpsActiveProviderMode } from '../../controllers/types';
+  InitializationState,
+  type PerpsActiveProviderMode,
+} from '@metamask/perps-controller';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -56,19 +56,55 @@ const selectPerpsBalances = createSelector(
   (perpsControllerState) => perpsControllerState?.perpsBalances || {},
 );
 
+const DEFAULT_MARKET_FILTER_PREFERENCES = {
+  optionId: 'volume',
+  direction: 'desc' as const,
+};
+
+// When PerpsController state is missing or partial (e.g. before Engine init, rehydration, or minimal E2E fixtures),
+// avoid calling perps-controller selectors with undefined (they may access .length etc. on nested props).
+// Normalize return values (?? []) so we're safe even when the package returns undefined for partial state.
 const selectIsFirstTimePerpsUser = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
+  (perpsControllerState) => {
+    try {
+      return perpsControllerState
+        ? selectIsFirstTimeUser(perpsControllerState)
+        : true;
+    } catch {
+      return true;
+    }
+  },
 );
 
 const selectPerpsWatchlistMarkets = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => selectWatchlistMarkets(perpsControllerState),
+  (perpsControllerState) => {
+    try {
+      return (
+        (perpsControllerState
+          ? selectWatchlistMarkets(perpsControllerState)
+          : undefined) ?? []
+      );
+    } catch {
+      return [];
+    }
+  },
 );
 
 const selectPerpsMarketFilterPreferences = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
+  (perpsControllerState) => {
+    try {
+      return (
+        (perpsControllerState
+          ? selectMarketFilterPreferences(perpsControllerState)
+          : undefined) ?? DEFAULT_MARKET_FILTER_PREFERENCES
+      );
+    } catch {
+      return DEFAULT_MARKET_FILTER_PREFERENCES;
+    }
+  },
 );
 
 /**
@@ -79,6 +115,10 @@ const selectIsPerpsBalanceSelected = createSelector(
   (perpsControllerState) => perpsControllerState?.selectedPaymentToken == null,
 );
 
+const selectPerpsPayWithToken = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.selectedPaymentToken,
+);
 /**
  * Selects the current initialization state of the Perps controller.
  * Used by UI components to determine if operations can be performed.
@@ -98,9 +138,15 @@ const selectPerpsInitializationState = createSelector(
 
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
-  createSelector(selectPerpsControllerState, (perpsControllerState) =>
-    selectIsWatchlistMarket(perpsControllerState, symbol),
-  );
+  createSelector(selectPerpsControllerState, (perpsControllerState) => {
+    try {
+      return perpsControllerState
+        ? selectIsWatchlistMarket(perpsControllerState, symbol)
+        : false;
+    } catch {
+      return false;
+    }
+  });
 
 export {
   selectPerpsProvider,
@@ -114,4 +160,5 @@ export {
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,
+  selectPerpsPayWithToken,
 };

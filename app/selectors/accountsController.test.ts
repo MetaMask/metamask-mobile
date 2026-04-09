@@ -44,7 +44,7 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as utils from '../core/Multichain/utils';
 
 /**
@@ -72,11 +72,17 @@ const MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED =
       },
       {} as Record<string, InternalAccount>,
     );
+    const accountIdByAddress: Record<string, string> = {};
+    Object.values(accountsForInternalAccounts).forEach((account) => {
+      accountIdByAddress[account.address] = account.id;
+    });
+
     return {
       internalAccounts: {
         accounts: accountsForInternalAccounts,
         selectedAccount: Object.values(accountsForInternalAccounts)[0].id,
       },
+      accountIdByAddress,
     };
   };
 
@@ -109,6 +115,9 @@ describe('Accounts Controller Selectors', () => {
             [internalAccount1.id]: internalAccount1,
           },
           selectedAccount: 'non-existent-id',
+        },
+        accountIdByAddress: {
+          [internalAccount1.address]: internalAccount1.id,
         },
       };
       const errorMessage =

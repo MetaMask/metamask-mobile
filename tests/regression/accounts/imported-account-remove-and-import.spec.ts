@@ -1,18 +1,18 @@
 'use strict';
 
-import { RegressionAccounts } from '../../../e2e/tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../e2e/viewHelper';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../e2e/pages/wallet/AccountListBottomSheet';
-import ImportAccountView from '../../../e2e/pages/importAccount/ImportAccountView';
+import { loginToApp } from '../../flows/wallet.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import ImportAccountView from '../../page-objects/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
-import AddAccountBottomSheet from '../../../e2e/pages/wallet/AddAccountBottomSheet';
-import SuccessImportAccountView from '../../../e2e/pages/importAccount/SuccessImportAccountView';
+import AddAccountBottomSheet from '../../page-objects/wallet/AddAccountBottomSheet';
+import SuccessImportAccountView from '../../page-objects/importAccount/SuccessImportAccountView';
 import { AccountListBottomSheetSelectorsText } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
-import AccountDetails from '../../../e2e/pages/MultichainAccounts/AccountDetails';
-import DeleteAccount from '../../../e2e/pages/MultichainAccounts/DeleteAccount';
+import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
+import DeleteAccount from '../../page-objects/MultichainAccounts/DeleteAccount';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token

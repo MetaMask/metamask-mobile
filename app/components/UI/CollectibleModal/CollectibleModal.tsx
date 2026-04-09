@@ -22,7 +22,7 @@ import styles from './CollectibleModal.styles';
 import { CollectibleModalParams } from './CollectibleModal.types';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
@@ -33,7 +33,7 @@ import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNaviga
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const chainId = useSelector(selectChainId);
 
   const { contractName, collectible, source } =

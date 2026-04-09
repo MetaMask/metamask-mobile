@@ -3,7 +3,7 @@ import { Hex } from '@metamask/utils';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TokenStandard } from '../../../../components/UI/SimulationDetails/types';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { parseTokenDetailDecimals, TokenDetailsERC20 } from '../utils/token';
 
 /**
@@ -20,7 +20,7 @@ const useTrackERC20WithoutDecimalInformation = (
   tokenDetails?: TokenDetailsERC20,
   metricLocation: string = 'signature_confirmation',
 ) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
     if (chainId === undefined || tokenDetails === undefined) {

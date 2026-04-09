@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import useGetDelegationSettings from './useGetDelegationSettings';
 import { CardTokenAllowance, DelegationSettingsResponse } from '../types';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import { buildTokenListFromSettings } from '../util/buildTokenList';
 
 interface UseSpendingLimitDataReturn {
@@ -21,7 +21,7 @@ interface UseSpendingLimitDataReturn {
  */
 const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
   const { sdk } = useCardSDK();
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
 
   const {
     data: delegationSettings,
@@ -42,7 +42,6 @@ const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
                 name?: string;
               }[]
           : undefined,
-        hideSolana: true,
       }),
     [sdk, delegationSettings],
   );

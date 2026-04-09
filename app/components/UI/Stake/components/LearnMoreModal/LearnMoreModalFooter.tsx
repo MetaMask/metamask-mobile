@@ -13,7 +13,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
@@ -29,7 +30,7 @@ export const LearnMoreModalFooter = ({
   style,
 }: LearnMoreModalFooterProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const redirectToLearnMore = () => {
     navigate('Webview', {

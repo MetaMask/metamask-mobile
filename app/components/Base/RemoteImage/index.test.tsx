@@ -7,6 +7,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
 import { Dimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { mockTheme } from '../../../util/theme';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -227,6 +228,28 @@ describe('RemoteImage', () => {
     });
   });
 
+  describe('onLoad callback', () => {
+    it('calls onLoad prop when image loads successfully', async () => {
+      const mockOnLoad = jest.fn();
+
+      const { UNSAFE_getByType } = render(
+        <RemoteImage
+          source={{ uri: 'https://example.com/image.png' }}
+          onLoad={mockOnLoad}
+        />,
+      );
+
+      await act(async () => {
+        const image = UNSAFE_getByType(Image);
+        image.props.onLoad({ source: { width: 100, height: 100 } });
+      });
+
+      await waitFor(() => {
+        expect(mockOnLoad).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
   describe('Error Handling', () => {
     it('renders Identicon when image fails to load and address is provided', async () => {
       const { UNSAFE_getByType, findByTestId } = render(
@@ -307,6 +330,22 @@ describe('RemoteImage', () => {
   });
 
   describe('IPFS URL Resolution', () => {
+    it('returns null while resolving IPFS URL', () => {
+      const ipfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
+      // Mock as a promise that doesn't resolve immediately
+      mockGetFormattedIpfsUrl.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Intentionally never resolves to test loading state
+          }),
+      );
+
+      const { toJSON } = render(<RemoteImage source={{ uri: ipfsUri }} />);
+
+      // Component should return null while IPFS URL is being resolved
+      expect(toJSON()).toBeNull();
+    });
+
     it('resolves IPFS URL successfully', async () => {
       const ipfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
       const resolvedUrl =
@@ -544,7 +583,9 @@ describe('RemoteImage', () => {
     });
 
     it('renders with fadeIn but not as token image', async () => {
-      const testPlaceholderStyle = { backgroundColor: '#808080' };
+      const testPlaceholderStyle = {
+        backgroundColor: mockTheme.colors.background.alternative,
+      };
       const { UNSAFE_getByType } = render(
         <RemoteImage
           fadeIn

@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
+import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -98,26 +99,24 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
-  const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(
+    () => !hasPreloadedData('cachedPositions'),
+  );
   const hasReceivedFirstUpdate = useRef(false);
 
   // Store raw positions and price data in state
-  const [rawPositions, setRawPositions] = useState<Position[]>(EMPTY_POSITIONS);
+  const [rawPositions, setRawPositions] = useState<Position[]>(
+    () => getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
+  );
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
-  // Enrich and update positions whenever raw positions or prices change
-  useEffect(() => {
+  // Derive enriched positions synchronously to avoid one-frame flash
+  // where isInitialLoading is false but positions haven't been enriched yet
+  const positions = useMemo(() => {
     if (rawPositions.length === 0) {
-      setPositions(EMPTY_POSITIONS);
-      return;
+      return EMPTY_POSITIONS;
     }
-
-    const enrichedPositions = enrichPositionsWithLivePnL(
-      rawPositions,
-      priceData,
-    );
-    setPositions(enrichedPositions);
+    return enrichPositionsWithLivePnL(rawPositions, priceData);
   }, [rawPositions, priceData]);
 
   // Subscribe to position updates
@@ -125,6 +124,10 @@ export function usePerpsLivePositions(
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         if (newPositions === null) {
+          // Cleared on account switch — show skeleton until first update for new account
+          hasReceivedFirstUpdate.current = false;
+          setIsInitialLoading(true);
+          setRawPositions(EMPTY_POSITIONS);
           return;
         }
 

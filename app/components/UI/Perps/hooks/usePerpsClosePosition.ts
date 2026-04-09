@@ -1,7 +1,13 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { OrderResult, Position, TrackingData } from '../controllers/types';
+import Logger from '../../../../util/Logger';
+import {
+  PERPS_CONSTANTS,
+  type OrderResult,
+  type Position,
+  type TrackingData,
+} from '@metamask/perps-controller';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -51,6 +57,7 @@ export const usePerpsClosePosition = (
         marketPrice,
         slippage,
       } = params;
+      const isFullClose = size === undefined || size === '';
 
       try {
         setIsClosing(true);
@@ -66,8 +73,6 @@ export const usePerpsClosePosition = (
         const direction = isLong
           ? strings('perps.market.long')
           : strings('perps.market.short');
-
-        const isFullClose = size === undefined || size === '';
 
         if (orderType === 'market') {
           // Market closing full position
@@ -198,6 +203,38 @@ export const usePerpsClosePosition = (
           'usePerpsClosePosition: Error closing position',
           closeError,
         );
+        Logger.error(closeError, {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsClosePosition',
+            action: 'close_position',
+            operation: 'position_management',
+          },
+          context: {
+            name: 'usePerpsClosePosition',
+            data: {
+              symbol: position.symbol,
+              positionSize: position.size,
+              requestedSize: size,
+              orderType,
+              isFullClose,
+              limitPrice,
+              marketPrice,
+              trackingSource: trackingData?.source,
+              tradeAction: trackingData?.tradeAction,
+              inputMethod: trackingData?.inputMethod,
+              totalFee: trackingData?.totalFee,
+              realizedPnl: trackingData?.realizedPnl,
+              receivedAmount: trackingData?.receivedAmount,
+              rawError:
+                err instanceof Error
+                  ? undefined
+                  : err === undefined
+                    ? 'undefined'
+                    : String(err),
+            },
+          },
+        });
         setError(closeError);
 
         // Call error callback

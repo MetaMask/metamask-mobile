@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { useSitesData } from './useSitesData';
+import { useSitesData, clearSitesCache } from './useSitesData';
 import Logger from '../../../../../util/Logger';
 
 // Mock dependencies
@@ -44,6 +44,7 @@ describe('useSitesData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (fetch as jest.Mock).mockClear();
+    clearSitesCache();
   });
 
   describe('Successful Data Fetching', () => {
@@ -78,7 +79,7 @@ describe('useSitesData', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should use default limit of 200', async () => {
+    it('should use the default limit of 100', async () => {
       const mockDateNow = 1234567890;
       jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
 
@@ -92,28 +93,7 @@ describe('useSitesData', () => {
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
-          `https://portfolio.api.cx.metamask.io/explore/sites?limit=200&ts=${mockDateNow}`,
-        );
-      });
-
-      jest.restoreAllMocks();
-    });
-
-    it('should use custom limit when provided', async () => {
-      const mockDateNow = 1234567890;
-      jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
-
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ dapps: [] }),
-      });
-
-      renderHook(() => useSitesData(undefined, 50));
-
-      await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          `https://portfolio.api.cx.metamask.io/explore/sites?limit=50&ts=${mockDateNow}`,
+          `https://nft.api.cx.metamask.io/explore/sites?limit=100&ts=${mockDateNow}`,
         );
       });
 
@@ -328,35 +308,6 @@ describe('useSitesData', () => {
   });
 
   describe('Hook Lifecycle', () => {
-    it('should refetch data when limit changes', async () => {
-      (fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ dapps: [] }),
-      });
-
-      const { rerender } = renderHook(
-        ({ limit }) => useSitesData(undefined, limit),
-        {
-          initialProps: { limit: 10 },
-        },
-      );
-
-      await waitFor(() => {
-        expect(fetch).toHaveBeenCalledTimes(1);
-      });
-
-      rerender({ limit: 20 });
-
-      await waitFor(() => {
-        expect(fetch).toHaveBeenCalledTimes(2);
-      });
-
-      expect(fetch).toHaveBeenLastCalledWith(
-        expect.stringContaining('limit=20'),
-      );
-    });
-
     it('should include timestamp to prevent caching', async () => {
       const mockDateNow = 9999999999;
       jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);

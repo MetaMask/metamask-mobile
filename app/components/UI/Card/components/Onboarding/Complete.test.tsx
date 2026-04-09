@@ -39,12 +39,8 @@ jest.mock('../../../../../core/redux/slices/card', () => ({
   resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_ONBOARDING_PAGE_VIEWED: 'CARD_ONBOARDING_PAGE_VIEWED',
-    CARD_ONBOARDING_BUTTON_CLICKED: 'CARD_ONBOARDING_BUTTON_CLICKED',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../util/cardTokenVault', () => ({
@@ -118,6 +114,30 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: '400',
       Medium: '500',
       Bold: '700',
+    },
+    Button: ({
+      children,
+      testID,
+      onPress,
+      isDisabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -229,12 +249,14 @@ describe('Complete Component', () => {
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
-    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({}),
     });
-    useMetrics.mockReturnValue({
+    useAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
@@ -288,9 +310,8 @@ describe('Complete Component', () => {
     });
 
     it('displays the correct button text', () => {
-      const { getByTestId } = render(<Complete />);
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Continue');
+      const { getByText } = render(<Complete />);
+      expect(getByText('Continue')).toBeTruthy();
     });
 
     it('is not disabled', () => {
@@ -449,10 +470,9 @@ describe('Complete Component', () => {
     });
 
     it('renders translated button label', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 
@@ -482,10 +502,9 @@ describe('Complete Component', () => {
     });
 
     it('renders button with correct label', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 

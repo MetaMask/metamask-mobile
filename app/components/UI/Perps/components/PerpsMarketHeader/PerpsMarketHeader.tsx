@@ -14,8 +14,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { PerpsMarketData } from '../../controllers/types';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
@@ -108,7 +110,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 
       {/* Right Action Button */}
       {onFavoritePress ? (
-        <TouchableOpacity onPress={onFavoritePress} style={styles.moreButton}>
+        <TouchableOpacity
+          testID={PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON}
+          onPress={onFavoritePress}
+          style={styles.moreButton}
+        >
           <Icon
             name={isFavorite ? IconName.StarFilled : IconName.Star}
             size={IconSize.Lg}
@@ -117,7 +123,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </TouchableOpacity>
       ) : (
         onMorePress && (
-          <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
+          <TouchableOpacity
+            testID={PerpsMarketHeaderSelectorsIDs.MORE_BUTTON}
+            onPress={onMorePress}
+            style={styles.moreButton}
+          >
             <Icon
               name={IconName.MoreVertical}
               size={IconSize.Lg}

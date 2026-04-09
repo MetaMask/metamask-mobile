@@ -5,7 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -21,16 +21,19 @@ import {
 } from '../../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
-import { captureException } from '@sentry/react-native';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
-import type {
-  Position,
-  Order,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import {
+  OrderDirection,
+  PERPS_CONSTANTS,
+  type Order,
+  type Position,
+  type TPSLTrackingData,
+} from '@metamask/perps-controller';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
   usePerpsLivePositions,
@@ -48,7 +51,6 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import { OrderDirection } from '../../types/perps-types';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Tab content component for Position tab
@@ -220,7 +222,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);
@@ -328,9 +330,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       position,
       initialTakeProfitPrice: position.takeProfitPrice,
       initialStopLossPrice: position.stopLossPrice,
-      onConfirm: async () => {
-        // TP/SL is set directly on the position, no need to handle here
-        // The position will update via WebSocket
+      onConfirm: async (
+        _position?: Position,
+        _takeProfitPrice?: string,
+        _stopLossPrice?: string,
+        _trackingData?: TPSLTrackingData,
+      ) => {
+        // TP/SL is set directly on the position via WebSocket; callback signature matches PerpsTPSL route type
       },
     });
   }, [position, currentPrice, navigation]);
@@ -577,28 +583,32 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
         showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
 
-        // Capture exception with order context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'PerpsMarketTabs',
-              action: 'order_cancellation',
-              operation: 'order_management',
-            },
-            extra: {
-              orderContext: {
-                orderId: orderToCancel.orderId,
-                symbol: orderToCancel.symbol,
-                side: orderToCancel.side,
-                orderType: orderToCancel.orderType,
-                size: orderToCancel.size,
-                price: orderToCancel.price,
-                reduceOnly: orderToCancel.reduceOnly,
-              },
+        Logger.error(ensureError(error, 'PerpsMarketTabs.handleCancelOrder'), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'PerpsMarketTabs',
+            action: 'order_cancellation',
+            operation: 'order_management',
+          },
+          context: {
+            name: 'PerpsMarketTabs',
+            data: {
+              orderId: orderToCancel.orderId,
+              symbol: orderToCancel.symbol,
+              side: orderToCancel.side,
+              orderType: orderToCancel.orderType,
+              size: orderToCancel.size,
+              price: orderToCancel.price,
+              reduceOnly: orderToCancel.reduceOnly,
+              rawError:
+                error instanceof Error
+                  ? undefined
+                  : error === undefined
+                    ? 'undefined'
+                    : String(error),
             },
           },
-        );
+        });
       } finally {
         // Remove from UI loading state
         setCancellingOrderIds((prev) => {
@@ -621,6 +631,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'position-tab',
       tabLabel: strings('perps.market.position'),
+      testID: PerpsMarketTabsSelectorsIDs.POSITION_TAB,
       position,
       showIcon: true,
       onAutoClosePress: handleAutoClosePress,
@@ -634,6 +645,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'orders-tab',
       tabLabel: strings('perps.market.orders'),
+      testID: PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
       sortedUnfilledOrders,
       activeTPOrderId,
       activeSLOrderId,
@@ -655,6 +667,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'statistics-tab',
       tabLabel: strings('perps.market.statistics'),
+      testID: PerpsMarketTabsSelectorsIDs.STATISTICS_TAB,
       symbol,
       onTooltipPress: handleTooltipPress,
       nextFundingTime,

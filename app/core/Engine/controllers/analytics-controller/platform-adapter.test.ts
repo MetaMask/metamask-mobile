@@ -1,6 +1,6 @@
 import { createPlatformAdapter } from './platform-adapter';
 import type { SegmentClient } from '@segment/analytics-react-native';
-import MetaMetricsPrivacySegmentPlugin from '../../../Analytics/MetaMetricsPrivacySegmentPlugin';
+import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 // Mock Logger (not in global setup)
 jest.mock('../../../../util/Logger', () => ({
@@ -12,7 +12,7 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 // Mock MetaMetricsPrivacySegmentPlugin (not in global setup)
-jest.mock('../../../Analytics/MetaMetricsPrivacySegmentPlugin', () =>
+jest.mock('../../../../util/analytics/privacySegmentPlugin', () =>
   jest.fn().mockImplementation(() => ({
     type: 'enrichment',
   })),
@@ -24,7 +24,7 @@ const mockMetaMetricsPrivacySegmentPlugin =
   >;
 
 // Mock segmentPersistor (needed for getSegmentClient, but createClient is already mocked in testSetup.js)
-jest.mock('../../../Analytics/SegmentPersistor', () => ({
+jest.mock('../../../../util/analytics/SegmentPersistor', () => ({
   segmentPersistor: {
     get: jest.fn(),
     set: jest.fn(),

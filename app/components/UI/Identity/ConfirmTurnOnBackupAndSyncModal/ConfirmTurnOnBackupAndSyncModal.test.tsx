@@ -7,6 +7,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../actions/settings', () => ({
   ...jest.requireActual('../../../../actions/settings'),
@@ -60,21 +61,26 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: jest.fn(),
       }),
+      isFocused: jest.fn(() => true),
     }),
   };
 });
 
 describe('ConfirmTurnOnBackupAndSyncModal', () => {
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders the title and confirm button', () => {
+    const { getByText } = renderWithProvider(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(getByText(strings('backupAndSync.enable.title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('default_settings.sheet.buttons.turn_on')),
+    ).toBeOnTheScreen();
   });
 
   it('enables basic functionality, then backup and sync', async () => {

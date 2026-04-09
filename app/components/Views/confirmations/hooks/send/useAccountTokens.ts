@@ -1,9 +1,14 @@
 import { useSelector } from 'react-redux';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
-
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { EthAccountType } from '@metamask/keyring-api';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectAssetsByAccountGroupId,
+} from '../../../../../selectors/assets/assets-list';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -11,19 +16,71 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
+import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import type { RootState } from '../../../../../reducers';
+
+const EMPTY_CACHE = {} as ReturnType<typeof selectERC20TokensByChain>;
+const selectEmptyCache = () => EMPTY_CACHE;
+
+function useFromAccountGroupAssets() {
+  const transactionMeta = useTransactionMetadataRequest();
+  const fromAddress = transactionMeta?.txParams?.from as string | undefined;
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+
+  const accountGroupId = useMemo(() => {
+    if (!fromAddress) return undefined;
+    const internalAccountId = Object.keys(internalAccountsById).find(
+      (id) =>
+        internalAccountsById[id].address.toLowerCase() ===
+        fromAddress.toLowerCase(),
+    );
+    if (!internalAccountId) return undefined;
+    return accountToGroupMap[internalAccountId]?.id;
+  }, [fromAddress, internalAccountsById, accountToGroupMap]);
+
+  const selectOverrideAssets = useCallback(
+    (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
+    [accountGroupId],
+  );
+
+  const overrideAssets = useSelector(selectOverrideAssets);
+  return accountGroupId ? overrideAssets : undefined;
+}
 
 export function useAccountTokens({
   includeNoBalance = false,
+  includeAllTokens = false,
+  tokenFilter,
 }: {
   includeNoBalance?: boolean;
+  includeAllTokens?: boolean;
+  tokenFilter?: (chainId: string, address: string) => boolean;
 } = {}): AssetType[] {
-  const assets = useSelector(selectAssetsBySelectedAccountGroup);
+  const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
+  const fromAccountAssets = useFromAccountGroupAssets();
+  const assets = fromAccountAssets ?? globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
+  const tokensChainsCache = useSelector(
+    includeAllTokens ? selectERC20TokensByChain : selectEmptyCache,
+  );
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
     const assetsWithBalance = flatAssets.filter((asset) => {
+      if (tokenFilter) {
+        const address = asset.assetId;
+        if (
+          !asset.chainId ||
+          !address ||
+          !tokenFilter(asset.chainId, address)
+        ) {
+          return false;
+        }
+      }
+
       if (includeNoBalance) {
         return true;
       }
@@ -62,8 +119,44 @@ export function useAccountTokens({
         networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
         balanceInSelectedCurrency,
         standard: TokenStandard.ERC20 as const,
-      };
+      } as AssetType;
     });
+
+    if (includeAllTokens) {
+      let zeroFiat: string;
+      try {
+        zeroFiat = getIntlNumberFormatter(I18n.locale, {
+          style: 'currency',
+          currency: fiatCurrency,
+          minimumFractionDigits: 0,
+        }).format(0);
+      } catch {
+        zeroFiat = `0 ${fiatCurrency}`;
+      }
+
+      const getAssetKey = (chain: string, addr: string) =>
+        `${chain.toLowerCase()}:${addr.toLowerCase()}`;
+
+      const existing = new Set(
+        flatAssets.map((a) =>
+          getAssetKey(a.chainId, 'address' in a ? a.address : a.assetId),
+        ),
+      );
+
+      for (const [chainId, cache] of Object.entries(tokensChainsCache ?? {})) {
+        for (const [address, entry] of Object.entries(cache?.data ?? {})) {
+          if (existing.has(getAssetKey(chainId, address))) {
+            continue;
+          }
+          if (tokenFilter && !tokenFilter(chainId, address)) {
+            continue;
+          }
+          processedAssets.push(
+            buildNoBalanceAsset(chainId as Hex, address, entry, zeroFiat),
+          );
+        }
+      }
+    }
 
     return processedAssets.sort(
       (a, b) =>
@@ -71,5 +164,41 @@ export function useAccountTokens({
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [assets, includeNoBalance, fiatCurrency]) as unknown as AssetType[];
+  }, [
+    assets,
+    includeNoBalance,
+    includeAllTokens,
+    fiatCurrency,
+    tokensChainsCache,
+    tokenFilter,
+  ]) as unknown as AssetType[];
+}
+
+function buildNoBalanceAsset(
+  chainId: Hex,
+  address: string,
+  entry: {
+    name?: string;
+    symbol?: string;
+    decimals?: number;
+    iconUrl?: string;
+  },
+  zeroFiat: string,
+): AssetType {
+  return {
+    address,
+    chainId,
+    accountType: EthAccountType.Eoa,
+    name: entry.name ?? '',
+    symbol: entry.symbol ?? '',
+    decimals: entry.decimals ?? 18,
+    image: entry.iconUrl ?? '',
+    logo: entry.iconUrl ?? undefined,
+    balance: '0',
+    balanceInSelectedCurrency: zeroFiat,
+    isETH: false,
+    isNative: false,
+    networkBadgeSource: getNetworkBadgeSource(chainId),
+    standard: TokenStandard.ERC20,
+  };
 }

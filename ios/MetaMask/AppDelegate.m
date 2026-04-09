@@ -5,9 +5,21 @@
 
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>
+#import <BrazeKit/BrazeKit-Swift.h>
+#import "BrazeReactBridge.h"
+#import "BrazeReactUtils.h"
 
+static Braze *_braze = nil;
 
 @implementation AppDelegate
+
++ (Braze *)braze {
+  return _braze;
+}
+
++ (void)setBraze:(Braze *)braze {
+  _braze = braze;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -23,13 +35,29 @@
     foxCode = @"debug";
   }
 
-  [RNBranch.branch checkPasteboardOnInstall]; 
+  [RNBranch.branch checkPasteboardOnInstall];
  // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
+
+  // Setup Braze — credentials come from Info.plist (injected via MM_BRAZE_API_KEY_IOS / MM_BRAZE_SDK_ENDPOINT from .ios.env)
+  NSString *brazeApiKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"braze_api_key"];
+  NSString *brazeEndpoint = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"braze_sdk_endpoint"];
+  if (brazeApiKey.length > 0 && brazeEndpoint.length > 0) {
+    BRZConfiguration *configuration = [[BRZConfiguration alloc] initWithApiKey:brazeApiKey
+                                                                      endpoint:brazeEndpoint];
+    configuration.logger.level = BRZLoggerLevelInfo;
+    // push.automation handles APNs token registration and Braze-originated notification display.
+    // requestAuthorizationAtLaunch is NO so the existing permission flow (Firebase/Notifee) is preserved.
+    configuration.push.automation = [[BRZConfigurationPushAutomation alloc] initEnablingAllAutomations:YES];
+    configuration.push.automation.requestAuthorizationAtLaunch = NO;
+    Braze *braze = [BrazeReactBridge initBraze:configuration];
+    AppDelegate.braze = braze;
+    [[BrazeReactUtils sharedInstance] populateInitialPayloadFromLaunchOptions:launchOptions];
+  }
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
@@ -54,7 +82,6 @@
     return [super application:application openURL:url options:options] || [RCTLinkingManager application:application openURL:url options:options];
   #endif
   return [RNBranch application:application openURL:url options:options];
-  
 }
 
 // Universal Links

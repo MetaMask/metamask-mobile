@@ -434,3 +434,51 @@ declare module '@tommasini/react-native-scrollable-tab-view';
 declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 
 declare module 'react-native-tcp-socket';
+
+declare module '@veriff/react-native-sdk' {
+  interface VeriffResult {
+    status: string;
+    error?: string;
+  }
+
+  interface VeriffFontConfig {
+    regular?: string;
+    medium?: string;
+    bold?: string;
+  }
+
+  export interface VeriffBranding {
+    logo?: string | { uri: string };
+    background?: string;
+    onBackground?: string;
+    onBackgroundSecondary?: string;
+    onBackgroundTertiary?: string;
+    primary?: string;
+    onPrimary?: string;
+    secondary?: string;
+    onSecondary?: string;
+    outline?: string;
+    cameraOverlay?: string;
+    onCameraOverlay?: string;
+    error?: string;
+    success?: string;
+    buttonRadius?: number;
+    iOSFont?: VeriffFontConfig;
+    androidFont?: VeriffFontConfig;
+  }
+
+  interface VeriffConfig {
+    sessionUrl: string;
+    branding?: VeriffBranding;
+  }
+
+  interface VeriffSdkModule {
+    launchVeriff(config: VeriffConfig): Promise<VeriffResult>;
+    statusDone: string;
+    statusCanceled: string;
+    statusError: string;
+  }
+
+  const VeriffSdk: VeriffSdkModule;
+  export default VeriffSdk;
+}

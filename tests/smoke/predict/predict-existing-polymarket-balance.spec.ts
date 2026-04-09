@@ -1,14 +1,17 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { SmokePredictions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { POLYMARKET_COMPLETE_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import enContent from '../../../locales/languages/en.json';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
@@ -16,10 +19,11 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 const EXPECTED_BALANCE_TEXT = '$28.16';
 
 const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
+  });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };
 
@@ -54,7 +58,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
     );
   });
 
-  it('loads Wallet > Predictions tab and displays balance and positions', async () => {
+  it('loads Wallet > Predictions section and displays balance and positions', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -63,19 +67,8 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
       },
       async () => {
         await loginToApp();
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet container should be visible',
-        });
-
-        await WalletView.tapOnPredictionsTab();
-        await Assertions.expectElementToBeVisible(
-          WalletView.PredictionsTabContainer,
-          {
-            description:
-              'Predictions tab content should be visible on Wallet > Predictions',
-          },
-        );
-        await WalletView.tapOnAvailableBalance();
+        await device.disableSynchronization();
+        await WalletView.scrollAndTapPredictionsSection();
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.balanceCard,
           {

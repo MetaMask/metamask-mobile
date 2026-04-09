@@ -1,9 +1,7 @@
 import React from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import RadioButton from '../../../../../../component-library/components/RadioButton';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 
 export interface LimitOptionItemProps {
   /** Title of the option */
@@ -55,14 +53,14 @@ const LimitOptionItem: React.FC<LimitOptionItemProps> = ({
 
     {/* Input field for spending limit */}
     {showInput && isSelected && (
-      <Box twClassName="mt-3 ml-8">
+      <Box twClassName="mt-3">
         <TextField
-          size={TextFieldSize.Lg}
           value={inputValue}
           onChangeText={onInputChange}
           placeholder="0"
           keyboardType="decimal-pad"
           returnKeyType="done"
+          maxLength={12}
           testID={`${testID}-input`}
         />
       </Box>

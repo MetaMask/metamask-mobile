@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
-import type { PerpsMarketData } from '../../controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
@@ -150,7 +150,9 @@ describe('PerpsWatchlistMarkets', () => {
     // Navigation to watchlist is now handled elsewhere
 
     it('navigates to market details when market row is pressed', () => {
-      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
+      );
 
       const btcRow = screen.getByTestId('perps-market-row-BTC');
       fireEvent.press(btcRow);
@@ -161,12 +163,15 @@ describe('PerpsWatchlistMarkets', () => {
         params: {
           market: mockMarkets[0],
           initialTab: undefined,
+          source: 'perps_home',
         },
       });
     });
 
     it('passes correct market data to navigation for different markets', () => {
-      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
+      );
 
       const ethRow = screen.getByTestId('perps-market-row-ETH');
       fireEvent.press(ethRow);
@@ -177,6 +182,7 @@ describe('PerpsWatchlistMarkets', () => {
         params: {
           market: mockMarkets[1],
           initialTab: undefined,
+          source: 'perps_home',
         },
       });
     });
@@ -374,7 +380,9 @@ describe('PerpsWatchlistMarkets', () => {
     });
 
     it('handles pressing different market rows in sequence', () => {
-      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
+      );
 
       const btcRow = screen.getByTestId('perps-market-row-BTC');
       const ethRow = screen.getByTestId('perps-market-row-ETH');
@@ -385,11 +393,11 @@ describe('PerpsWatchlistMarkets', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: mockMarkets[0] },
+        params: { market: mockMarkets[0], source: 'perps_home' },
       });
       expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market: mockMarkets[1] },
+        params: { market: mockMarkets[1], source: 'perps_home' },
       });
     });
   });

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { useTheme } from '../../../util/theme';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   EDGE_THRESHOLD,
@@ -18,6 +18,7 @@ import {
   PULL_THRESHOLD,
   SCROLL_TOP_THRESHOLD,
   PULL_ACTIVATION_ZONE,
+  PULL_MOVE_ACTIVATION,
 } from './constants';
 
 const styles = StyleSheet.create({
@@ -65,8 +66,10 @@ export interface GestureWebViewWrapperProps {
  * - Right edge swipe: Navigate forward
  * - Pull-to-refresh: Reload page (when scrolled to top)
  *
- * Uses Gesture.Race with manualActivation(true) to coordinate gestures with WebView's
- * native touch handling.
+ * Uses Gesture.Simultaneous with manualActivation(true) to coordinate gestures with
+ * WebView's native touch handling. Simultaneous allows both our Pan and the Native
+ * gesture to coexist so that taps pass through while pull-to-refresh uses deferred
+ * activation.
  */
 export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   isTabActive,
@@ -82,7 +85,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   children,
 }) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const screenWidth = Dimensions.get('window').width;
 
   // Gesture state - using shared values to avoid re-renders and stale reads in worklets
@@ -90,12 +93,14 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   const pullProgress = useSharedValue(0);
   const isPulling = useSharedValue(false);
   const pullHapticTriggered = useSharedValue(false);
+  const initialTouchY = useSharedValue(0);
+  const initialTouchX = useSharedValue(0);
   const swipeStartTime = useRef<number>(0);
   const swipeProgress = useSharedValue(0);
   const swipeDirection = useSharedValue<'back' | 'forward' | null>(null);
-  const gestureType = useSharedValue<'back' | 'forward' | 'refresh' | null>(
-    null,
-  );
+  const gestureType = useSharedValue<
+    'back' | 'forward' | 'refresh' | 'pending_refresh' | null
+  >(null);
 
   // Navigation state as shared values - prevents stale reads in worklets
   // These are synced from props to ensure real-time access in UI thread
@@ -244,19 +249,53 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             stateManager.activate();
             runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
           } else if (canPullToRefresh) {
+            gestureType.value = 'pending_refresh';
+            initialTouchY.value = y;
+            initialTouchX.value = x;
+          } else {
+            stateManager.fail();
+          }
+        })
+        .onTouchesMove((event, stateManager) => {
+          'worklet';
+          if (gestureType.value !== 'pending_refresh') return;
+
+          const touch = event.allTouches[0];
+          if (!touch) {
+            gestureType.value = null;
+            stateManager.fail();
+            return;
+          }
+
+          const deltaY = touch.y - initialTouchY.value;
+          const deltaX = Math.abs(touch.x - initialTouchX.value);
+
+          if (deltaY > PULL_MOVE_ACTIVATION && deltaY > deltaX) {
             gestureType.value = 'refresh';
             isPulling.value = true;
             pullProgress.value = 0;
             pullHapticTriggered.value = false;
             stateManager.activate();
-          } else {
+          } else if (
+            deltaX > PULL_MOVE_ACTIVATION ||
+            deltaY < -PULL_MOVE_ACTIVATION
+          ) {
+            gestureType.value = null;
+            stateManager.fail();
+          }
+        })
+        .onTouchesUp((_event, stateManager) => {
+          'worklet';
+          if (gestureType.value === 'pending_refresh') {
+            gestureType.value = null;
             stateManager.fail();
           }
         })
         .onUpdate((event) => {
           'worklet';
           const currentGestureType = gestureType.value;
-          if (!currentGestureType) return;
+          if (!currentGestureType || currentGestureType === 'pending_refresh')
+            return;
 
           const swipeDistance = screenWidth * SWIPE_THRESHOLD;
 
@@ -297,8 +336,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
         .onEnd((event) => {
           'worklet';
           const currentGestureType = gestureType.value;
-          if (!currentGestureType) {
-            // Reset animations directly on UI thread
+          if (!currentGestureType || currentGestureType === 'pending_refresh') {
             swipeProgress.value = withTiming(0, { duration: 200 });
             swipeDirection.value = null;
             pullProgress.value = withTiming(0, { duration: 200 });
@@ -311,14 +349,12 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
           if (currentGestureType === 'back') {
             if (event.translationX >= swipeDistance) {
-              // Only runOnJS for callbacks that need JS thread (navigation, analytics)
               runOnJS(handleSwipeNavigation)(
                 'back',
                 event.translationX,
                 duration,
               );
             }
-            // Reset swipe animation directly on UI thread
             swipeProgress.value = withTiming(0, { duration: 200 });
             swipeDirection.value = null;
           } else if (currentGestureType === 'forward') {
@@ -336,7 +372,6 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
               pullDistanceRef.current = event.translationY;
               runOnJS(handleRefresh)();
             }
-            // Reset pull animation directly on UI thread
             pullProgress.value = withTiming(0, { duration: 200 });
             isPulling.value = false;
           }
@@ -367,10 +402,15 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   );
 
   /**
-   * Combined gesture - uses Race so our gesture takes priority when activated
+   * Combined gesture - Simultaneous allows both our Pan and the WebView's Native
+   * gesture to coexist. This is critical for deferred pull-to-refresh activation:
+   * while Pan is in BEGAN (deciding if touch is a tap vs pull), Native independently
+   * handles the touch so taps pass through to the WebView. When Pan activates for
+   * a real pull, both gestures are active but since we're at the top of the page,
+   * the WebView has nothing to scroll.
    */
   const combinedWebViewGesture = useMemo(
-    () => Gesture.Race(fullyUnifiedGesture, webViewNativeGesture),
+    () => Gesture.Simultaneous(fullyUnifiedGesture, webViewNativeGesture),
     [webViewNativeGesture, fullyUnifiedGesture],
   );
 

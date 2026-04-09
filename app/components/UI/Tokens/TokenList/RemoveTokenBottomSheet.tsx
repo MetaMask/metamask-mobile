@@ -1,5 +1,6 @@
 import {
   Box,
+  BottomSheetHeader,
   Button,
   ButtonVariant,
   Text,
@@ -11,7 +12,6 @@ import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 interface RemoveTokenBottomSheetProps {
   isVisible: boolean;

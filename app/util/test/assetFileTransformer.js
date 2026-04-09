@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs, import/no-nodejs-modules */
+/* eslint-disable import-x/no-commonjs, import-x/no-nodejs-modules */
 const path = require('path');
 
 module.exports = {

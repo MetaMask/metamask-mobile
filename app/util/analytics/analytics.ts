@@ -3,7 +3,7 @@ import {
   type AnalyticsUserTraits,
   analyticsControllerSelectors,
 } from '@metamask/analytics-controller';
-import { whenEngineReady } from '../../core/Analytics/whenEngineReady';
+import { whenEngineReady } from './whenEngineReady';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
 import {
@@ -13,6 +13,10 @@ import {
 import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import { createAnalyticsQueueManager } from './queue';
 import Logger from '../Logger';
+import {
+  enrichWithABTests,
+  getRemoteFeatureFlagsFromState,
+} from './enrichWithABTests';
 
 /**
  * Analytics helper interface
@@ -50,7 +54,18 @@ const queueManager = createAnalyticsQueueManager({
  * @param event - AnalyticsTrackingEvent to track
  */
 const trackEvent = (event: AnalyticsTrackingEvent): void => {
-  queueManager.queueOperation('trackEvent', event).catch((error) => {
+  let enrichedEvent: AnalyticsTrackingEvent;
+
+  try {
+    enrichedEvent = enrichWithABTests(
+      event,
+      getRemoteFeatureFlagsFromState(store.getState()),
+    );
+  } catch {
+    enrichedEvent = event;
+  }
+
+  queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
     Logger.log('Analytics: Unhandled error in trackEvent', error);
   });
 };

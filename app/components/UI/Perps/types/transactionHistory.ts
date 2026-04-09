@@ -1,5 +1,5 @@
 import { RouteProp } from '@react-navigation/native';
-import { PerpsNavigationParamList } from '../controllers/types';
+import type { PerpsNavigationParamList } from './navigation';
 
 export enum PerpsOrderTransactionStatus {
   Filled = 'Filled',
@@ -98,8 +98,6 @@ export type ListItem =
   | { type: 'transaction'; transaction: PerpsTransaction; id: string };
 
 export type FilterTab = 'Trades' | 'Orders' | 'Funding' | 'Deposits';
-
-export interface PerpsTransactionsViewProps {}
 
 export type PerpsPositionTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,

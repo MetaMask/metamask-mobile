@@ -1,24 +1,25 @@
 'use strict';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import TokenOverview from '../../../e2e/pages/wallet/TokenOverview';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import TestHelpers from '../../../e2e/helpers';
-import { RegressionTrade } from '../../../e2e/tags';
+import TestHelpers from '../../helpers';
+import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap from Token view'), (): void => {
-  jest.setTimeout(120000);
+  jest.setTimeout(180000);
 
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
     const FIRST_ROW: number = 0;
@@ -38,15 +39,12 @@ describe(RegressionTrade('Swap from Token view'), (): void => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
+              chainId,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
             })
-            .withDisabledSmartTransactions()
             .build();
         },
         localNodeOptions: [
@@ -57,7 +55,10 @@ describe(RegressionTrade('Swap from Token view'), (): void => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
       },
       async () => {

@@ -1,6 +1,62 @@
 import browserReducer from './index';
 import AppConstants from '../../core/AppConstants';
 
+describe('browserReducer CREATE_NEW_TAB', () => {
+  it('sets lastActiveAt when creating a new tab', () => {
+    const now = Date.now();
+    const initialState = {
+      history: [],
+      whitelist: [],
+      tabs: [],
+      favicons: [],
+      activeTab: null,
+    };
+
+    const action = {
+      type: 'CREATE_NEW_TAB',
+      url: 'https://example.com',
+      id: 42,
+    };
+
+    const newState = browserReducer(initialState, action);
+
+    expect(newState.tabs).toHaveLength(1);
+    expect(newState.tabs[0].id).toBe(42);
+    expect(newState.tabs[0].url).toBe('https://example.com');
+    expect(newState.tabs[0].lastActiveAt).toBeGreaterThanOrEqual(now);
+    expect(newState.tabs[0].lastActiveAt).toBeLessThanOrEqual(Date.now());
+  });
+});
+
+describe('browserReducer SET_ACTIVE_TAB', () => {
+  it('updates lastActiveAt for the activated tab', () => {
+    const now = Date.now();
+    const initialState = {
+      history: [],
+      whitelist: [],
+      tabs: [
+        { id: 1, url: 'https://a.com', lastActiveAt: 100 },
+        { id: 2, url: 'https://b.com', lastActiveAt: 200 },
+      ],
+      favicons: [],
+      activeTab: 1,
+    };
+
+    const action = {
+      type: 'SET_ACTIVE_TAB',
+      id: 2,
+    };
+
+    const newState = browserReducer(initialState, action);
+
+    expect(newState.activeTab).toBe(2);
+    // Tab 2 should have an updated lastActiveAt
+    expect(newState.tabs[1].lastActiveAt).toBeGreaterThanOrEqual(now);
+    // Tab 1 should keep its old lastActiveAt
+    expect(newState.tabs[0].lastActiveAt).toBe(100);
+  });
+});
+
 describe('browserReducer STORE_FAVICON_URL', () => {
   it('adds favicon in the state', () => {
     const initialState = {

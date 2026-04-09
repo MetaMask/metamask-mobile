@@ -1,9 +1,12 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
+import { Hex, toCaipAssetType } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
+import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -19,6 +22,8 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
@@ -26,6 +31,7 @@ import {
 } from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
@@ -38,23 +44,30 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { toCaipAssetType } from '@metamask/utils';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+  FontWeight as FontWeightComponent,
+  Text as TextComponent,
+  TextColor as TextColorComponent,
+  TextVariant as TextVariantComponent,
+} from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
+import AccountSelector from '../../AccountSelector';
+import { updateEditableParams } from '../../../../../../util/transaction-controller';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -72,12 +85,17 @@ export interface CustomAmountInfoProps {
    * Callback fired when user presses Done after entering an amount.
    */
   onAmountSubmit?: () => void;
+  /**
+   * When true, the confirm/continue button is disabled regardless of alert state.
+   */
+  disableConfirm?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
     children,
     currency,
+    disableConfirm,
     disablePay,
     hasMax,
     onAmountSubmit,
@@ -86,21 +104,72 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
   }) => {
     useClearConfirmationOnBackSwipe();
+
+    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
+
     useAutomaticTransactionPayToken({
       disable: disablePay,
       preferredToken,
     });
     useTransactionPayMetrics();
+    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const availableTokens = useTransactionPayAvailableTokens();
-    const hasTokens = availableTokens.length > 0;
+    const { hasTokens } = useTransactionPayAvailableTokens();
+    const fiatPayment = useTransactionPayFiatPayment();
+    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+    const transactionMeta = useTransactionMetadataRequest();
+    const transactionId = transactionMeta?.id;
 
-    const isResultReady = useIsResultReady({
-      isKeyboardVisible,
-    });
+    const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountWithdraw,
+    ]);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
+    const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
+      string | undefined
+    >(undefined);
+
+    const globalSelectedAddress = useSelector(
+      selectSelectedInternalAccountAddress,
+    );
+    const initialFromAddress =
+      (transactionMeta?.txParams?.from as string | undefined) ??
+      globalSelectedAddress;
+    const [selectedFromAddress, setSelectedFromAddress] = useState<
+      string | undefined
+    >(initialFromAddress);
+
+    const handleRecipientAccountSelected = useCallback(
+      (address: string) => {
+        if (transactionId) {
+          updateEditableParams(transactionId, { to: address as Hex });
+        }
+        setSelectedRecipientAddress(address);
+      },
+      [transactionId],
+    );
+
+    const handleFromAccountSelected = useCallback(
+      (address: string) => {
+        if (transactionId) {
+          updateEditableParams(transactionId, { from: address as Hex });
+        }
+        setSelectedFromAddress(address);
+      },
+      [transactionId],
+    );
+
+    const isRecipientMissing =
+      isMoneyAccountWithdraw && !selectedRecipientAddress;
+
+    const isResultReady = useIsResultReady({ isKeyboardVisible });
+    const quotes = useTransactionPayQuotes();
+    const isQuotesLoading = useIsTransactionPayLoading();
+    const hasQuoteResults = isQuotesLoading || Boolean(quotes?.length);
 
     const {
       amountFiat,
@@ -120,11 +189,27 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(() => {
-      updateTokenAmount();
+      if (selectedFiatPaymentMethodId && transactionId) {
+        Engine.context.TransactionPayController.updateFiatPayment({
+          transactionId,
+          callback: (fp) => {
+            fp.amountFiat = amountFiat;
+          },
+        });
+      } else {
+        updateTokenAmount();
+      }
+
       EngineService.flushState();
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
-    }, [onAmountSubmit, updateTokenAmount]);
+    }, [
+      amountFiat,
+      onAmountSubmit,
+      selectedFiatPaymentMethodId,
+      transactionId,
+      updateTokenAmount,
+    ]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
@@ -140,28 +225,64 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             onPress={handleAmountPress}
             disabled={!hasTokens}
           />
-          {overrideContent ? (
-            overrideContent(amountHuman)
-          ) : (
-            <>
-              {disablePay !== true && (
+          {overrideContent
+            ? overrideContent(amountHuman)
+            : disablePay !== true && (
                 <PayTokenAmount
                   amountHuman={amountHuman}
                   disabled={!hasTokens}
                 />
               )}
-              {children}
-              {disablePay !== true && hasTokens && <PayWithRow />}
+          {!overrideContent && children}
+        </Box>
+        <Box gap={16}>
+          <AlertMessage alertMessage={alertMessage} />
+          {!overrideContent && (
+            <>
+              {isMoneyAccountDeposit && !hasTokens && (
+                <TextComponent
+                  variant={TextVariantComponent.BodyMd}
+                  fontWeight={FontWeightComponent.Medium}
+                  color={TextColorComponent.ErrorDefault}
+                  style={styles.noFundsText}
+                >
+                  {strings('confirm.no_funds_use_different_account')}
+                </TextComponent>
+              )}
+              {isMoneyAccountDeposit && (
+                <AccountSelector
+                  label={strings('confirm.label.from')}
+                  selectedAddress={selectedFromAddress}
+                  onAccountSelected={handleFromAccountSelected}
+                />
+              )}
+              {isMoneyAccountWithdraw && (
+                <AccountSelector
+                  selectedAddress={selectedRecipientAddress}
+                  onAccountSelected={handleRecipientAccountSelected}
+                />
+              )}
+              {!isResultReady && disablePay !== true && hasTokens && (
+                <PayWithRow />
+              )}
             </>
           )}
-        </Box>
-        <Box gap={25}>
-          <AlertMessage alertMessage={alertMessage} />
           {isResultReady && (
             <Box>
-              <BridgeFeeRow />
-              <BridgeTimeRow />
-              <TotalRow />
+              {!overrideContent && disablePay !== true && hasTokens && (
+                <PayWithRow />
+              )}
+              {hasQuoteResults && (
+                <>
+                  <BridgeFeeRow />
+                  <BridgeTimeRow />
+                  {canSelectWithdrawToken ? (
+                    <ReceiveRow inputAmountUsd={amountFiat} />
+                  ) : (
+                    <TotalRow />
+                  )}
+                </>
+              )}
               <PercentageRow />
             </Box>
           )}
@@ -176,6 +297,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
+              hidePercentageButtons={Boolean(selectedFiatPaymentMethodId)}
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}
@@ -186,7 +308,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             />
           )}
           {!hasTokens && <BuySection />}
-          {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
+          {!isKeyboardVisible && (
+            <ConfirmButton
+              alertTitle={alertTitle}
+              disableConfirm={disableConfirm || isRecipientMissing}
+            />
+          )}
         </Box>
       </Box>
     );
@@ -201,9 +328,11 @@ export function CustomAmountInfoSkeleton() {
       <Box style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
-        <PayWithRowSkeleton />
       </Box>
-      <DepositKeyboardSkeleton />
+      <Box>
+        <PayWithRowSkeleton />
+        <DepositKeyboardSkeleton />
+      </Box>
     </Box>
   );
 }
@@ -255,37 +384,40 @@ function BuySection() {
         </Text>
       )}
       <Button
-        label={strings('confirm.custom_amount.buy_button')}
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         onPress={handleBuyPress}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         size={ButtonSize.Lg}
-      />
+      >
+        {strings('confirm.custom_amount.buy_button')}
+      </Button>
     </Box>
   );
 }
 
 function ConfirmButton({
   alertTitle,
-}: Readonly<{ alertTitle: string | undefined }>) {
+  disableConfirm,
+}: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useTransactionConfirm();
-  const disabled = hasBlockingAlerts || isLoading;
+  const disabled = hasBlockingAlerts || isLoading || Boolean(disableConfirm);
   const buttonLabel = useButtonLabel();
 
   return (
     <Button
       style={[disabled && styles.disabledButton]}
       size={ButtonSize.Lg}
-      label={alertTitle ?? buttonLabel}
-      variant={ButtonVariants.Primary}
-      width={ButtonWidthTypes.Full}
-      disabled={disabled}
-      onPress={onConfirm}
+      variant={ButtonVariant.Primary}
+      isFullWidth
+      isDisabled={disabled}
+      onPress={() => onConfirm()}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-    />
+    >
+      {alertTitle ?? buttonLabel}
+    </Button>
   );
 }
 
@@ -307,7 +439,13 @@ function useIsResultReady({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
 
-  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+  if (
+    hasTransactionType(transaction, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+      TransactionType.moneyAccountWithdraw,
+    ])
+  ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 

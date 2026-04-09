@@ -11,12 +11,17 @@ import I18n from '../../../../../../locales/i18n';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../hooks/pay/useTransactionPayData';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -30,6 +35,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const targetTokenAddress = getTokenAddress(transaction);
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const isWithdraw = isTransactionPayWithdraw(transaction);
 
   const fiatRequests = useMemo(
     () =>
@@ -68,6 +74,23 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
     return formatAmount(I18n.locale, payTokenAmount);
   }, [amountHuman, disabled, payToken, fiatRates]);
+
+  // Don't render for withdrawal transactions - they use PayWithRow for token selection
+  if (isWithdraw) {
+    return null;
+  }
+
+  // Don't render token amount for perps and predict deposit transactions
+  const isPerpsOrPredictDeposit = hasTransactionType(transaction, [
+    TransactionType.perpsDeposit,
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.predictDeposit,
+    TransactionType.predictDepositAndOrder,
+  ]);
+
+  if (isPerpsOrPredictDeposit) {
+    return null;
+  }
 
   if (disabled) {
     return (

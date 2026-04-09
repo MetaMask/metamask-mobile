@@ -1,5 +1,8 @@
 /scripts/inpage-bridge
 /app/core/InpageBridgeWeb3.js
+/app/components/UI/Charts/AdvancedChart/webview/chartLogic.js
+/app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts
+/app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js
 /app/util/blockies.js
 __snapshots__
 android
@@ -12,5 +15,5 @@ CHANGELOG.md
 wdio
 /app/util/test/testSetup.js
 junitProperties.js
-/e2e/scripts/ai-e2e-tags-selector.ts
+/tests/scripts/ai-e2e-tags-selector.ts
 scripts/aggregate-performance-reports.mjs

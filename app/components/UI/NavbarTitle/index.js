@@ -7,12 +7,13 @@ import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import withMetricsAwareness from '../../../components/hooks/useMetrics/withMetricsAwareness';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Text, {
   TextVariant,
   TextColor,
@@ -58,10 +59,6 @@ class NavbarTitle extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
-    /**
      * Boolean that specifies if the network selected is displayed
      */
     showSelectedNetwork: PropTypes.bool,
@@ -98,9 +95,10 @@ class NavbarTitle extends PureComponent {
           screen: Routes.SHEET.NETWORK_SELECTOR,
         });
 
-        this.props.metrics.trackEvent(
-          this.props.metrics
-            .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+          )
             .addProperties({
               chain_id: getDecimalChainId(this.props.chainId),
             })
@@ -180,6 +178,11 @@ const mapStateToProps = (state) => ({
   selectedNetworkName: selectNetworkName(state),
 });
 
-export default withNavigation(
-  connect(mapStateToProps)(withMetricsAwareness(NavbarTitle)),
-);
+const ConnectedNavbarTitle = connect(mapStateToProps)(NavbarTitle);
+
+const NavbarTitleWrapper = (props) => {
+  const navigation = useNavigation();
+  return <ConnectedNavbarTitle {...props} navigation={navigation} />;
+};
+
+export default NavbarTitleWrapper;

@@ -8,10 +8,10 @@ import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNet
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID,
   ARBITRUM_TESTNET_CAIP_CHAIN_ID,
-} from '../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 

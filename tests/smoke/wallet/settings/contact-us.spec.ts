@@ -1,9 +1,8 @@
-import { RegressionWalletUX } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
+import { RegressionWalletUX } from '../../../tags';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import Assertions from '../../../framework/Assertions';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe.skip(RegressionWalletUX('Settings'), () => {
@@ -15,13 +14,8 @@ describe.skip(RegressionWalletUX('Settings'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.scrollToContactSupportButton();
-        await SettingsView.tapContactSupport();
-
-        await Assertions.expectElementToBeVisible(
-          SettingsView.contactSupportSectionTitle,
-        );
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapSupport();
       },
     );
   });

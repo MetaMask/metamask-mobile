@@ -41,6 +41,18 @@ export const getSmartTransactionsFeatureFlagsForChain = createDeepEqualSelector(
     selectSmartTransactionsFeatureFlagsForChain(featureFlagsState, chainId),
 );
 
+export const getGaslessBridgeWith7702EnabledForChain = createDeepEqualSelector(
+  selectSmartTransactionsFeatureFlagsState,
+  (_state: RootState, chainId: Hex | CaipChainId) => chainId,
+  (featureFlagsState, chainId): boolean => {
+    const featureFlags = selectSmartTransactionsFeatureFlagsForChain(
+      featureFlagsState,
+      chainId,
+    );
+    return featureFlags?.gaslessBridgeWith7702Enabled ?? false;
+  },
+);
+
 /**
  * Checks if smart transactions are enabled for the current device based on feature flags.
  * Uses device-specific flags (mobileActiveIOS, mobileActiveAndroid) with fallback to mobileActive.

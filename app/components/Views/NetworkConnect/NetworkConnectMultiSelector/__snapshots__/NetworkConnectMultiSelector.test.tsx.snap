@@ -48,7 +48,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
           testID="sheet-header-back-button"
         >
           <SvgMock
-            color="#121314"
+            color="#131416"
             fill="currentColor"
             height={20}
             name="ArrowLeft"
@@ -66,9 +66,9 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 18,
+            "color": "#131416",
+            "fontFamily": "Geist-SemiBold",
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -153,7 +153,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -253,7 +253,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                   }
                 >
                   <View
-                    pointerEvents="auto"
+                    pointerEvents="none"
                   >
                     <TouchableOpacity
                       disabled={false}
@@ -357,7 +357,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                         numberOfLines={1}
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -377,7 +377,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                 accessible={true}
                 style={
                   {
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "bottom": 0,
                     "flexDirection": "row",
                     "left": 0,
@@ -428,7 +428,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                   }
                 >
                   <View
-                    pointerEvents="auto"
+                    pointerEvents="none"
                   >
                     <TouchableOpacity
                       disabled={false}
@@ -448,7 +448,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#b7bbc8",
+                            "borderColor": "#949596",
                             "borderRadius": 4,
                             "borderWidth": 2,
                             "height": 20,
@@ -517,7 +517,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                         numberOfLines={1}
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -561,45 +561,93 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
             }
           }
         >
-          <TouchableOpacity
+          <View
+            accessibilityLabel="Update"
             accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            disabled={false}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
+            accessibilityState={
               {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
-                "borderRadius": 12,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": false,
+                "expanded": undefined,
+                "selected": undefined,
               }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#131416",
+                  "borderRadius": 12,
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "minWidth": 80,
+                  "opacity": 1,
+                  "overflow": "hidden",
+                  "paddingLeft": 16,
+                  "paddingRight": 16,
+                },
+                {
+                  "flex": 1,
+                },
+                {
+                  "transform": [
+                    {
+                      "scale": 1,
+                    },
+                  ],
+                },
+              ]
             }
             testID="multiconnect-connect-network-button"
           >
             <Text
               accessibilityRole="text"
+              ellipsizeMode="clip"
+              numberOfLines={1}
               style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
+                [
+                  {
+                    "color": "#ffffff",
+                    "flexGrow": 0,
+                    "flexShrink": 1,
+                    "flexWrap": "wrap",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                    "textAlign": "center",
+                  },
+                  undefined,
+                ]
               }
             >
               Update
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

@@ -2,7 +2,7 @@ const ReactCompilerConfig = {
   target: '18',
 };
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   ignore: [/\/ses\.cjs$/, /\/ses-hermes\.cjs$/],
   presets: ['babel-preset-expo'],
@@ -23,6 +23,14 @@ module.exports = {
       },
     ],
     'transform-inline-environment-variables',
+    [
+      'module-resolver',
+      {
+        alias: {
+          '@metamask/perps-controller': './app/controllers/perps',
+        },
+      },
+    ],
     'react-native-reanimated/plugin',
   ],
   overrides: [

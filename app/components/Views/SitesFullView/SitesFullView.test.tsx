@@ -17,15 +17,12 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useAppThemeFromContext: () => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-      primary: { default: '#037DD6' },
-      icon: { default: '#24272A' },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useAppThemeFromContext: () => mockTheme,
+  };
+});
 
 jest.mock('../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch', () => {
   const ReactNative = jest.requireActual('react-native');
@@ -373,7 +370,7 @@ describe('SitesFullView', () => {
   });
 
   describe('Data Fetching', () => {
-    it('fetches sites with limit of 100', () => {
+    it('fetches sites on mount', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -382,7 +379,7 @@ describe('SitesFullView', () => {
 
       render(<SitesFullView />);
 
-      expect(mockUseSitesData).toHaveBeenCalledWith('', 100);
+      expect(mockUseSitesData).toHaveBeenCalledWith('');
     });
 
     it('calls refetch when refresh is triggered', async () => {

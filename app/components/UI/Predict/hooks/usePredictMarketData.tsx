@@ -9,11 +9,11 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
 
 export interface UsePredictMarketDataOptions {
-  providerId?: string;
   q?: string;
   category?: PredictCategory;
   pageSize?: number;
   customQueryParams?: string;
+  refine?: (markets: PredictMarket[]) => PredictMarket[];
 }
 
 export interface UsePredictMarketDataResult {
@@ -37,8 +37,8 @@ export const usePredictMarketData = (
     category = 'trending',
     q,
     pageSize = 20,
-    providerId,
     customQueryParams,
+    refine,
   } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +99,6 @@ export const usePredictMarketData = (
             }
 
             const markets = await controller.getMarkets({
-              providerId,
               category,
               q,
               limit: pageSize,
@@ -122,18 +121,19 @@ export const usePredictMarketData = (
 
             if (isLoadMore) {
               setMarketData((prevData) => {
-                // Use a Map to efficiently deduplicate by ID
+                // Use a Set to efficiently deduplicate by ID
                 const existingIds = new Set(prevData.map((event) => event.id));
                 const newEvents = markets.filter(
                   (event) => !existingIds.has(event.id),
                 );
-                return [...prevData, ...newEvents];
+                const accumulated = [...prevData, ...newEvents];
+                return refine ? refine(accumulated) : accumulated;
               });
               setCurrentOffset((prev) => prev + pageSize);
               currentOffsetRef.current += pageSize;
             } else {
               // Replace data for initial load or refresh
-              setMarketData(markets);
+              setMarketData(refine ? refine(markets) : markets);
               setCurrentOffset(pageSize);
               currentOffsetRef.current = pageSize;
             }
@@ -175,7 +175,6 @@ export const usePredictMarketData = (
               method: 'loadMarketData',
               action: 'market_data_load',
               operation: 'data_fetching',
-              providerId,
               category,
               hasSearchQuery: !!q,
               pageSize,
@@ -192,7 +191,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, providerId, customQueryParams],
+    [category, q, pageSize, customQueryParams, refine],
   );
 
   const loadMore = useCallback(async () => {

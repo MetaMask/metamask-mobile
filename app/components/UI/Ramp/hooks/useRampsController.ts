@@ -15,6 +15,8 @@ import {
   useRampsPaymentMethods,
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
+import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
+import { useRampsOrders, type UseRampsOrdersResult } from './useRampsOrders';
 
 /**
  * Result returned by the useRampsController hook.
@@ -51,7 +53,22 @@ export interface UseRampsControllerResult {
   selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
+  paymentMethodsFetching: UseRampsPaymentMethodsResult['isFetching'];
+  paymentMethodsStatus: UseRampsPaymentMethodsResult['status'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
+
+  // Quotes
+  getQuotes: UseRampsQuotesResult['getQuotes'];
+  getBuyWidgetData: UseRampsQuotesResult['getBuyWidgetData'];
+
+  // Orders
+  orders: UseRampsOrdersResult['orders'];
+  getOrderById: UseRampsOrdersResult['getOrderById'];
+  addOrder: UseRampsOrdersResult['addOrder'];
+  addPrecreatedOrder: UseRampsOrdersResult['addPrecreatedOrder'];
+  removeOrder: UseRampsOrdersResult['removeOrder'];
+  refreshOrder: UseRampsOrdersResult['refreshOrder'];
+  getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
 }
 
 /**
@@ -93,6 +110,10 @@ export interface UseRampsControllerResult {
  *   paymentMethodsLoading,
  *   paymentMethodsError,
  *
+ *   // Quotes
+ *   getQuotes,
+ *   getBuyWidgetData,
+ *
  * } = useRampsController();
  * ```
  */
@@ -126,15 +147,27 @@ export function useRampsController(): UseRampsControllerResult {
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     isLoading: paymentMethodsLoading,
+    isFetching: paymentMethodsFetching,
+    status: paymentMethodsStatus,
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
+  const { getQuotes, getBuyWidgetData } = useRampsQuotes();
+
+  const {
+    orders,
+    getOrderById,
+    addOrder,
+    addPrecreatedOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
+  } = useRampsOrders();
+
   return {
-    // User region
     userRegion,
     setUserRegion,
 
-    // Selected provider
     selectedProvider,
     setSelectedProvider,
 
@@ -142,24 +175,34 @@ export function useRampsController(): UseRampsControllerResult {
     providersLoading,
     providersError,
 
-    // Tokens
     tokens,
     selectedToken,
     setSelectedToken,
     tokensLoading,
     tokensError,
 
-    // Countries
     countries,
     countriesLoading,
     countriesError,
 
-    // Payment methods
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     paymentMethodsLoading,
+    paymentMethodsFetching,
+    paymentMethodsStatus,
     paymentMethodsError,
+
+    getQuotes,
+    getBuyWidgetData,
+
+    orders,
+    getOrderById,
+    addOrder,
+    addPrecreatedOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
   };
 }
 

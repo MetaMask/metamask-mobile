@@ -2,6 +2,7 @@ import enContent from '../../../../../../../locales/languages/en.json';
 
 export const BuildQuoteSelectors = {
   AMOUNT_INPUT: 'amount-input',
+  AMOUNT_INPUT_CURSOR: 'amount-input-cursor',
   AMOUNT_TO_BUY_LABEL: enContent.fiat_on_ramp_aggregator.amount_to_buy,
   AMOUNT_TO_SELL_LABEL: enContent.fiat_on_ramp_aggregator.amount_to_sell,
   GET_QUOTES_BUTTON: enContent.fiat_on_ramp_aggregator.get_quotes,
@@ -13,6 +14,7 @@ export const BuildQuoteSelectors = {
   REGION_DROPDOWN: 'region-dropdown',
   ACCOUNT_PICKER: 'ramps-account-picker',
   DONE_BUTTON: enContent.fiat_on_ramp_aggregator.done,
+  CONTINUE_BUTTON: 'build-quote-continue-button',
   MIN_LIMIT_ERROR: 'min-limit-error',
   MAX_LIMIT_ERROR: 'max-limit-error',
   INSUFFICIENT_BALANCE_ERROR: 'insufficient-balance-error',

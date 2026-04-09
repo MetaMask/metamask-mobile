@@ -9,7 +9,7 @@ import {
   formatFeeRate,
   clearRewardsCaches,
 } from './usePerpsOrderFees';
-import type { FeeCalculationResult } from '../controllers/types';
+import { type FeeCalculationResult } from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 

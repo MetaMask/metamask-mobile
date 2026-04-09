@@ -110,7 +110,7 @@ import { createBuySettingsModalNavigationDetails } from '../Modals/Settings/Sett
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-interface BuildQuoteParams extends RampIntent {
+export interface BuildQuoteParams extends RampIntent {
   showBack?: boolean;
 }
 
@@ -995,6 +995,7 @@ const BuildQuote = () => {
                 amountNumber > 0 && (!amountIsValid || amountIsOverGas)
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
+              tokenSymbol={isSell ? selectedAsset?.symbol : undefined}
               onPress={onAmountInputPress}
               loading={
                 isFetchingRegions ||

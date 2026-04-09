@@ -13,9 +13,13 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,
   TransactionType.deployContract,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.predictDepositAndOrder,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
@@ -45,9 +49,13 @@ export const TRANSFER_TRANSACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
@@ -69,4 +77,29 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
  * Transaction types for which the Pay With modal hides the network filter.
  * Used when pay token selection is constrained to a single network (e.g. Perps).
  */
-export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
+export const HIDE_NETWORK_FILTER_TYPES = [
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.predictDepositAndOrder,
+];
+
+/**
+ * Post-quote transaction types that use a "Receive as" token picker
+ * instead of "Pay with" for selecting the destination token.
+ */
+export const POST_QUOTE_TRANSACTION_TYPES = [
+  TransactionType.predictWithdraw,
+  TransactionType.perpsWithdraw,
+  TransactionType.moneyAccountWithdraw,
+] as const;
+
+/**
+ * Transaction types that use user's currency instead of USD for display.
+ * mUSD is a stablecoin pegged to USD, so we convert to user's local currency.
+ */
+export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
+
+export const RELAY_DEPOSIT_TYPES = [
+  TransactionType.relayDeposit,
+  TransactionType.perpsRelayDeposit,
+  TransactionType.predictRelayDeposit,
+];

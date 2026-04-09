@@ -27,16 +27,12 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { default: '#fff' },
-      border: { default: '#ccc' },
-      text: { default: '#000' },
-      primary: { default: '#f00' },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
@@ -46,8 +42,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({

@@ -27,6 +27,10 @@ import {
   mapApiTeamToPredictTeam,
   type TeamLookup,
 } from '../../utils/gameParser';
+import {
+  isDrawCapableLeague,
+  SUPPORTED_SPORTS_LEAGUES,
+} from '../../constants/sports';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -43,8 +47,9 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
-import { SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -71,6 +76,7 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+  HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
     process.env.METAMASK_ENVIRONMENT === 'dev'
       ? 'https://predict.dev-api.cx.metamask.io'
@@ -237,6 +243,68 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   return responseData;
 };
 
+interface FeeRateResponse {
+  base_fee?: number;
+}
+
+const DEFAULT_FEE_RATE_BPS = '0';
+
+export const getFeeRateBps = async ({
+  tokenId,
+}: {
+  tokenId: string;
+}): Promise<string> => {
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  try {
+    const response = await fetch(
+      `${CLOB_ENDPOINT}/fee-rate?token_id=${tokenId}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      let errorMessage = `Request failed with status ${response.status}`;
+      const responseData = (await response.json().catch(() => undefined)) as
+        | { error?: string }
+        | undefined;
+      if (responseData?.error) {
+        errorMessage = responseData.error;
+      }
+
+      DevLogger.log('Polymarket fee-rate request failed, using zero fee', {
+        tokenId,
+        status: response.status,
+        errorMessage,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    const responseData = (await response.json()) as FeeRateResponse;
+    const baseFee = responseData.base_fee;
+    if (
+      typeof baseFee !== 'number' ||
+      !Number.isFinite(baseFee) ||
+      baseFee < 0
+    ) {
+      DevLogger.log('Polymarket fee-rate response invalid, using zero fee', {
+        tokenId,
+        baseFee,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    return Math.round(baseFee).toString();
+  } catch (error) {
+    DevLogger.log('Polymarket fee-rate request threw, using zero fee', {
+      tokenId,
+      error,
+    });
+    return DEFAULT_FEE_RATE_BPS;
+  }
+};
+
 export const generateSalt = (): Hex =>
   `0x${BigInt(Math.floor(Math.random() * 1000000)).toString(16)}`;
 
@@ -331,16 +399,26 @@ export const submitClobOrder = async ({
   headers,
   clobOrder,
   feeAuthorization,
+  executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+  const body: ClobOrderObject & {
+    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+    executor?: string;
+    allowancesTx?: { to: string; data: string };
+  } = {
     ...clobOrder,
     feeAuthorization,
+    ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -474,6 +552,17 @@ const sortOutcomeTokens = (
   return outcomeTokens;
 };
 
+const getNegRiskYesTokenTitle = (
+  market: PolymarketApiMarket,
+): string | undefined => {
+  if (!market.negRisk || !isMoneylineMarket(market) || !market.groupItemTitle) {
+    return undefined;
+  }
+  return market.groupItemTitle.toLowerCase().startsWith('draw')
+    ? 'Draw'
+    : market.groupItemTitle;
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -485,10 +574,16 @@ const parsePolymarketMarketOutcomes = (
   const outcomePrices = market.outcomePrices
     ? JSON.parse(market.outcomePrices)
     : [];
+
+  const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+
   const outcomeTokens = outcomeTokensIds.map(
     (tokenId: string, index: number) => ({
       id: tokenId,
-      title: outcomes[index],
+      title:
+        negRiskYesTitle && outcomes[index] === 'Yes'
+          ? negRiskYesTitle
+          : outcomes[index],
       price: parseFloat(outcomePrices[index]),
     }),
   );
@@ -595,12 +690,16 @@ export const parsePolymarketMarket = (
   event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: event.id,
   title: market.question,
   description: market.description,
   image: market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
+  groupItemThreshold:
+    market.groupItemThreshold != null
+      ? Number(market.groupItemThreshold)
+      : undefined,
   status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
   volume: market.volumeNum ?? 0,
   tokens: parsePolymarketMarketOutcomes(market, event),
@@ -655,13 +754,31 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      // As per Polymarket's team, we should use the first market's description
+      // rather than the event's description. The event's description is not
+      // guaranteed to be accurate. They also do this on their webbsite.
+      //
+      // However, we noticed that the above statement is not correct, at least for game events.
+      const description = game
+        ? event.description
+        : (event.markets?.[0]?.description ?? event.description);
+
+      const seriesData =
+        event.series?.length > 0
+          ? {
+              id: event.series[0].id,
+              slug: event.series[0].slug,
+              title: event.series[0].title,
+              recurrence: event.series[0].recurrence,
+            }
+          : undefined;
+
       return {
         id: event.id,
         slug: event.slug,
-        providerId: 'polymarket',
-        // TODO: remove this temporary fix for Super Bowl LX
-        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
-        description: event.description,
+        providerId: POLYMARKET_PROVIDER_ID,
+        title: event.title,
+        description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
@@ -669,13 +786,14 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
         liquidity: event.liquidity,
         volume: event.volume,
         game,
+        ...(seriesData && { series: seriesData }),
       };
     },
   );
@@ -721,7 +839,7 @@ export const parsePolymarketActivity = (
 
     const parsedActivity: PredictActivity = {
       id,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       entry:
         entryType === 'claimWinnings'
           ? { type: 'claimWinnings', timestamp, amount }
@@ -753,9 +871,15 @@ export interface GetParsedMarketsOptions extends GetMarketsParams {
   teamLookup?: PolymarketTeamLookupFn;
 }
 
-export const getParsedMarketsFromPolymarketApi = async (
+export interface FetchEventsResult {
+  events: PolymarketApiEvent[];
+  category: PredictCategory;
+  isSearch: boolean;
+}
+
+export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
-): Promise<PredictMarket[]> => {
+): Promise<FetchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   const {
@@ -763,7 +887,6 @@ export const getParsedMarketsFromPolymarketApi = async (
     q,
     limit = 20,
     offset = 0,
-    teamLookup,
     customQueryParams,
   } = params || {};
   DevLogger.log(
@@ -790,12 +913,14 @@ export const getParsedMarketsFromPolymarketApi = async (
     const active = `active=true`;
     const archived = `archived=false`;
     const closed = `closed=false`;
-    const ascending = `ascending=false`;
+    const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
+    const ascending = `ascending=${ascendingCategories.has(category)}`;
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
     const categoryTagMap: Record<PredictCategory, string> = {
       trending: '&order=volume24hr',
+      'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
       sports: '&tag_slug=sports&order=volume24hr',
       crypto: '&tag_slug=crypto&order=volume24hr',
@@ -834,13 +959,68 @@ export const getParsedMarketsFromPolymarketApi = async (
     ? eventsData
     : [];
 
+  return { events, category, isSearch: !!q };
+};
+
+export interface PolymarketCarouselItem {
+  event: PolymarketApiEvent;
+  type: string;
+  shortName: string;
+  options: PolymarketApiMarket[];
+}
+
+export const fetchCarouselFromPolymarketApi = async (): Promise<
+  PolymarketCarouselItem[]
+> => {
+  const { HOMEPAGE_CAROUSEL_ENDPOINT } = getPolymarketEndpoints();
+
+  DevLogger.log('Fetching carousel data from:', HOMEPAGE_CAROUSEL_ENDPOINT);
+
+  const response = await fetch(HOMEPAGE_CAROUSEL_ENDPOINT);
+  if (!response.ok) {
+    throw new Error('Failed to fetch carousel data');
+  }
+  const data = await response.json();
+  const rawItems: PolymarketCarouselItem[] = Array.isArray(data) ? data : [];
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    event: {
+      ...item.event,
+      markets: item.event.markets?.map((market) => ({
+        ...market,
+        outcomes: Array.isArray(market.outcomes)
+          ? JSON.stringify(market.outcomes)
+          : market.outcomes,
+        outcomePrices: Array.isArray(market.outcomePrices)
+          ? JSON.stringify(market.outcomePrices)
+          : market.outcomePrices,
+        clobTokenIds: Array.isArray(market.clobTokenIds)
+          ? JSON.stringify(market.clobTokenIds)
+          : market.clobTokenIds,
+      })),
+    },
+  }));
+
+  DevLogger.log('Carousel data received:', items.length, 'items');
+
+  return items;
+};
+
+export const getParsedMarketsFromPolymarketApi = async (
+  params?: GetParsedMarketsOptions,
+): Promise<PredictMarket[]> => {
+  const { teamLookup } = params || {};
+  const { events, category, isSearch } =
+    await fetchEventsFromPolymarketApi(params);
+
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
     sortMarketsBy: 'price',
     teamLookup,
   });
 
-  if (q) {
+  if (isSearch) {
     return parsedMarkets.filter((m) => m.outcomes.length > 0);
   }
 
@@ -895,18 +1075,58 @@ export const getPredictPositionStatus = ({
   return PredictPositionStatus.LOST;
 };
 
+const resolveNegRiskOutcomeLabel = (
+  position: PolymarketPosition,
+  teamLookup?: TeamLookup,
+): string | undefined => {
+  if (!position.negativeRisk || !position.eventSlug) {
+    return undefined;
+  }
+
+  const league = SUPPORTED_SPORTS_LEAGUES.find(
+    (l) => isDrawCapableLeague(l) && position.eventSlug?.startsWith(`${l}-`),
+  );
+
+  if (!league) {
+    return undefined;
+  }
+
+  const prefix = position.eventSlug + '-';
+  if (!position.slug.startsWith(prefix)) {
+    return undefined;
+  }
+
+  const outcomeToken = position.slug.slice(prefix.length);
+  if (!outcomeToken) {
+    return undefined;
+  }
+
+  if (outcomeToken === 'draw') {
+    return 'Draw';
+  }
+
+  if (!teamLookup) {
+    return outcomeToken.toUpperCase();
+  }
+
+  return teamLookup(league, outcomeToken)?.name ?? outcomeToken.toUpperCase();
+};
+
 export const parsePolymarketPositions = async ({
   positions,
+  teamLookup,
 }: {
   positions: PolymarketPosition[];
+  teamLookup?: TeamLookup;
 }) => {
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
       id: position.asset,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
-      outcome: position.outcome,
+      outcome:
+        resolveNegRiskOutcomeLabel(position, teamLookup) ?? position.outcome,
       outcomeTokenId: position.asset,
       outcomeIndex: position.outcomeIndex,
       negRisk: position.negativeRisk,
@@ -1002,7 +1222,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
@@ -1024,21 +1244,19 @@ export async function calculateFees({
       totalFee: 0,
       totalFeePercentage: 0,
       collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
     };
   }
 
   const totalFeePercentage =
     (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
 
-  let metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  let providerFee = userBetAmount * feeCollection.providerFee;
+  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
+  const providerFee = userBetAmount * feeCollection.providerFee;
 
-  // Round to 3 decimals
-  metamaskFee = Math.round(metamaskFee * 1000) / 1000;
-  providerFee = Math.round(providerFee * 1000) / 1000;
-
-  // Rounded to 4 decimals
-  const totalFee = metamaskFee + providerFee;
+  // Rounded to 6 decimals
+  const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
 
   return {
     metamaskFee,
@@ -1046,6 +1264,8 @@ export async function calculateFees({
     totalFee,
     totalFeePercentage,
     collector: feeCollection.collector,
+    executors: feeCollection.executors ?? [],
+    permit2Enabled: feeCollection.permit2Enabled ?? false,
   };
 }
 
@@ -1399,7 +1619,10 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const book = await getOrderBook({ tokenId: outcomeTokenId });
+  const [book, feeRateBps] = await Promise.all([
+    getOrderBook({ tokenId: outcomeTokenId }),
+    getFeeRateBps({ tokenId: outcomeTokenId }),
+  ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
@@ -1432,10 +1655,11 @@ export const previewOrder = async (
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
+      feeRateBps,
       fees: await calculateFees({
         feeCollection,
         marketId,
-        userBetAmount: size,
+        userBetAmount: makerAmount,
       }),
     };
   }
@@ -1466,6 +1690,7 @@ export const previewOrder = async (
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
+    feeRateBps,
     // no fees for sell orders
   };
 };

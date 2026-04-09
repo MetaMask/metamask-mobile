@@ -14,7 +14,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TokenDetails from './';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as reactRedux from 'react-redux';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
@@ -151,17 +151,10 @@ describe('TokenDetails', () => {
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       const SELECTOR_MOCKS = {
         selectIsEvmNetworkSelected: true,
-        selectEvmTokenMarketData: {
-          marketData:
-            mockTokenMarketDataByChainId['0x1'][
-              '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-            ],
-          metadata: {
-            decimals: 18,
-            conversionRate: 2712.15,
-            aggregators: ['Metamask', 'Coinmarketcap'],
-          },
-        },
+        selectTokenMarketData:
+          mockTokenMarketDataByChainId['0x1'][
+            '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+          ],
         selectTokenMarketDataByChainId: {},
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
@@ -242,17 +235,6 @@ describe('TokenDetails', () => {
       selectConversionRateBySymbol: mockExchangeRate,
       selectNativeCurrencyByChainId: 'ETH',
       selectMultichainAssetsRates: {},
-      selectEvmTokenMarketData: {
-        marketData:
-          mockTokenMarketDataByChainId['0x1'][
-            '0x6b175474e89094c44da98b954eedeac495271d0f'
-          ],
-        metadata: {
-          decimals: 18,
-          conversionRate: 2712.15,
-          aggregators: ['Metamask', 'Coinmarketcap'],
-        },
-      },
     } as const;
 
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
@@ -301,16 +283,10 @@ describe('TokenDetails', () => {
     const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       const SELECTOR_MOCKS = {
-        selectEvmTokenMarketData: {
-          marketData:
-            mockTokenMarketDataByChainId['0x1'][
-              '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-            ],
-          // null metadata ensures:
-          // 1. tokenList is null (no aggregators array in metadata)
-          // 2. tokenMetadata is null (so tokenMetadata condition is false)
-          metadata: null,
-        },
+        selectTokenMarketData:
+          mockTokenMarketDataByChainId['0x1'][
+            '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+          ],
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
       } as const;
@@ -408,7 +384,7 @@ describe('TokenDetails', () => {
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
       mockUseSelectorImplementation({
-        selectEvmTokenMarketData: null,
+        selectTokenMarketData: null,
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
         isEvmNetwork: true,
@@ -436,7 +412,7 @@ describe('TokenDetails', () => {
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
       mockUseSelectorImplementation({
-        selectEvmTokenMarketData: null,
+        selectTokenMarketData: null,
         isEvmNetwork: false,
       }),
     );
@@ -457,11 +433,9 @@ describe('TokenDetails', () => {
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
       mockUseSelectorImplementation({
-        selectEvmTokenMarketData: {
-          marketData: {
-            price: 0.0005,
-            marketCap: '5000000',
-          },
+        selectTokenMarketData: {
+          price: 0.0005,
+          marketCap: '5000000',
         },
         selectConversionRateBySymbol: mockExchangeRate,
         selectNativeCurrencyByChainId: 'ETH',
@@ -483,7 +457,7 @@ describe('TokenDetails', () => {
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
       mockUseSelectorImplementation({
-        selectEvmTokenMarketData: null,
+        selectTokenMarketData: null,
         multichainRates: {
           [mockSolanaToken.address]: {
             rate: 0.431111,

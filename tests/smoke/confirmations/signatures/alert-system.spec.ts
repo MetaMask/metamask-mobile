@@ -1,13 +1,14 @@
 import Assertions from '../../../framework/Assertions';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
+import Browser from '../../../page-objects/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import RequestTypes from '../../../../e2e/pages/Browser/Confirmations/RequestTypes';
-import AlertSystem from '../../../../e2e/pages/Browser/Confirmations/AlertSystem';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
-import { SmokeConfirmations } from '../../../../e2e/tags';
+import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes';
+import AlertSystem from '../../../page-objects/Browser/Confirmations/AlertSystem';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
+import { SmokeConfirmations } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import {
   buildPermissions,
   getTestDappLocalUrl,

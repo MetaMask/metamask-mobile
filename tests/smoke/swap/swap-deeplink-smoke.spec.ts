@@ -2,16 +2,17 @@
 /* eslint-disable no-console */
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../../e2e/tags';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import { asDetoxElement } from '../../framework';
+import QuoteView from '../../page-objects/swaps/QuoteView';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import DeeplinkModal from '../../../e2e/pages/swaps/Deeplink';
+import WalletView from '../../page-objects/wallet/WalletView';
+import DeeplinkModal from '../../page-objects/swaps/Deeplink';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
@@ -39,13 +40,11 @@ describe(
 
             return new FixtureBuilder()
               .withNetworkController({
-                providerConfig: {
-                  chainId,
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Localhost',
-                  ticker: 'ETH',
-                },
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
               })
               .withMetaMetricsOptIn()
               .build();
@@ -79,7 +78,7 @@ describe(
           await Assertions.expectTextDisplayed('USDC');
           await Assertions.expectTextDisplayed('USDT');
           await Assertions.expectElementToHaveText(
-            QuoteView.amountInput,
+            asDetoxElement(QuoteView.amountInput),
             '1.0',
           );
           await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
@@ -106,13 +105,11 @@ describe(
 
             return new FixtureBuilder()
               .withNetworkController({
-                providerConfig: {
-                  chainId,
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Localhost',
-                  ticker: 'ETH',
-                },
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
               })
               .withMetaMetricsOptIn()
               .build();
@@ -142,9 +139,7 @@ describe(
           await DeeplinkModal.tapContinue();
 
           // Check that we are on the quote view with default state
-          await Assertions.expectElementToBeVisible(
-            QuoteView.selectAmountLabel,
-          );
+          await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);
@@ -170,13 +165,11 @@ describe(
 
             return new FixtureBuilder()
               .withNetworkController({
-                providerConfig: {
-                  chainId,
-                  rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                  type: 'custom',
-                  nickname: 'Localhost',
-                  ticker: 'ETH',
-                },
+                chainId,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Localhost',
+                ticker: 'ETH',
               })
               .withMetaMetricsOptIn()
               .build();
@@ -206,9 +199,7 @@ describe(
           await DeeplinkModal.tapContinue();
 
           // Wait for bridge view to load after modal is dismissed
-          await Assertions.expectElementToBeVisible(
-            QuoteView.selectAmountLabel,
-          );
+          await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea);
 
           // Verify we can navigate back
           await Assertions.expectElementToBeVisible(QuoteView.backButton);

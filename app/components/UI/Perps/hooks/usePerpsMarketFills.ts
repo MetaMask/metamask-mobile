@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
-import type { OrderFill } from '../controllers/types';
+import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { ensureError } from '../../../../util/errorUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
@@ -83,7 +82,7 @@ export const usePerpsMarketFills = ({
     }
 
     try {
-      const provider = controller?.getActiveProvider();
+      const provider = controller?.getActiveProviderOrNull();
       if (!provider) {
         return;
       }
@@ -101,7 +100,7 @@ export const usePerpsMarketFills = ({
       const accountAddress = addressRef.current ?? 'unknown';
 
       // Log error to Sentry but don't fail - WebSocket fills still work
-      Logger.error(ensureError(err), {
+      Logger.error(ensureError(err, 'usePerpsMarketFills.fetchFills'), {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
         },
@@ -143,7 +142,7 @@ export const usePerpsMarketFills = ({
     for (const fill of restFills) {
       // Only add fills for the requested symbol
       if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}`;
+        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
         fillsMap.set(key, fill);
       }
     }
@@ -152,7 +151,7 @@ export const usePerpsMarketFills = ({
     for (const fill of liveFills) {
       // Only add fills for the requested symbol
       if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}`;
+        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
         fillsMap.set(key, fill);
       }
     }

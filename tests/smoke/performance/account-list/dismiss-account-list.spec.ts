@@ -1,11 +1,16 @@
-import { loginToApp } from '../../../../e2e/viewHelper';
-import { SmokePerformance } from '../../../../e2e/tags';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { SmokePerformance } from '../../../tags';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import TestHelpers from '../../../../e2e/helpers';
+import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import type {
+  UserKeyringState,
+  UserSnapState,
+  UserPermissionState,
+} from '../../../framework/fixtures/types';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
   CORE_USER_STATE,
@@ -65,9 +70,9 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
         await withFixtures(
           {
             fixture: new FixtureBuilder()
-              .withUserProfileKeyRing(_userState)
-              .withUserProfileSnapUnencryptedState(_userState)
-              .withUserProfileSnapPermissions(_userState)
+              .withUserProfileKeyRing(_userState as UserKeyringState)
+              .withUserProfileSnapUnencryptedState(_userState as UserSnapState)
+              .withUserProfileSnapPermissions(_userState as UserPermissionState)
               .withTokens(minimalTokens)
               .build(),
             restartDevice: true,

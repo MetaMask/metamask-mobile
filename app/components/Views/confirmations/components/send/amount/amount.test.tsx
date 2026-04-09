@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
 import renderWithProvider, {
@@ -8,6 +8,7 @@ import renderWithProvider, {
 import {
   ETHEREUM_ADDRESS,
   MOCK_NFT1155,
+  MOCK_NFT721,
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
@@ -27,7 +28,9 @@ jest.mock('../../../context/send-context', () => ({
 
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
-jest.mock('../../../hooks/send/useRouteParams');
+jest.mock('../../../hooks/send/useRouteParams', () => ({
+  useRouteParams: jest.fn().mockReturnValue({ isLoading: false }),
+}));
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({}),
@@ -66,18 +69,35 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    })),
+jest.mock(
+  '../../../../../../components/hooks/useAnalytics/useAnalytics',
+  () => ({
+    useAnalytics: () => ({
+      trackEvent: jest.fn(),
+      createEventBuilder: jest.fn(() => ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      })),
+    }),
   }),
-}));
+);
 
 jest.mock('../../../hooks/send/metrics/useAmountSelectionMetrics', () => ({
   useAmountSelectionMetrics: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks/useIpfsGateway', () => ({
+  __esModule: true,
+  default: () => 'https://cloudflare-ipfs.com/ipfs/',
+}));
+
+jest.mock('@metamask/assets-controllers', () => ({
+  ...jest.requireActual('@metamask/assets-controllers'),
+  getFormattedIpfsUrl: jest
+    .fn()
+    .mockResolvedValue(
+      'https://cloudflare-ipfs.com/ipfs/QmY783gjv6wcX44G3qB2G8rJQAJ63hFi7ZwGeTTVVMrCrm',
+    ),
 }));
 
 const mockSetOptions = jest.fn();
@@ -286,16 +306,38 @@ describe('Amount', () => {
     expect(queryByTestId('fiat_toggle')).toBeNull();
   });
 
-  it('display image and NFT details for NFT asset', () => {
+  it('display image and NFT details for NFT asset', async () => {
     mockUseSendContext.mockReturnValue({
       asset: MOCK_NFT1155,
       updateValue: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByTestId, getByText } = renderComponent();
-    expect(getByTestId('nft-image')).toBeTruthy();
+
+    // Wait for IPFS URL to be resolved and image to render
+    await waitFor(() => {
+      expect(getByTestId('nft-image')).toBeTruthy();
+    });
+
     expect(getByText('Doodleverse (Draw Me Closer) Pack')).toBeTruthy();
     expect(getByText('17')).toBeTruthy();
+  });
+
+  it('displays NFT image and details for ERC721 asset', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_NFT721,
+      updateValue: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByTestId, getByText, queryByText } = renderComponent();
+
+    await waitFor(() => {
+      expect(getByTestId('nft-image')).toBeTruthy();
+    });
+
+    expect(getByText('Bored Ape Yacht Club #1')).toBeTruthy();
+    // ERC721 has no ticker/symbol — display symbol must be 'NFT', not empty
+    expect(queryByText('NFT')).toBeTruthy();
   });
 
   // it('display total balance correctly for ERC20 token', () => {

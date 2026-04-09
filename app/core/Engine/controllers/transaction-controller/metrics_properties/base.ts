@@ -66,8 +66,20 @@ export function getTransactionTypeValue(
     return 'predict_withdraw';
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    return 'perps_withdraw';
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
     return 'predict_claim';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
+    return 'musd_conversion';
+  }
+
+  if (hasTransactionType(transactionMeta, [TransactionType.musdClaim])) {
+    return 'musd_claim';
   }
 
   switch (transactionType) {
@@ -83,6 +95,10 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.perpsDepositAndOrder:
       return 'perps_deposit_and_order';
+    case TransactionType.perpsRelayDeposit:
+      return 'perps_relay_deposit';
+    case TransactionType.predictRelayDeposit:
+      return 'predict_relay_deposit';
     case TransactionType.signTypedData:
       return 'eth_sign_typed_data';
     case TransactionType.relayDeposit:

@@ -1,10 +1,13 @@
+import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
-import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 
 const DEVELOPMENT = 'development';
+
+// Server APIs: GH Actions use builds.yml (apply-build-config.js sets PORTFOLIO_API_URL, etc.). Local can use .js.env or same keys.
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
@@ -13,7 +16,7 @@ export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'Google',
+  DEFAULT_SEARCH_ENGINE: 'Brave',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
@@ -30,6 +33,8 @@ export default {
   BRIDGE: {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
+    PRICE_IMPACT_WARNING_THRESHOLD: 0.05,
+    PRICE_IMPACT_ERROR_THRESHOLD: 0.25,
     // Check app/components/UI/Bridge/types.ts
     // for interface definition.
     SLIPPAGE_CONFIG: {
@@ -90,6 +95,9 @@ export default {
     },
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE: 'metamask-alternate.app.link',
+  MM_UNIVERSAL_LINK_TEST_APP_HOST: 'metamask.test-app.link',
+  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE: 'metamask-alternate.test-app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -118,6 +126,7 @@ export default {
     ORIGIN_NOTIFICATION: 'notifications',
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
     ORIGIN_PUSH_NOTIFICATION: 'push-notification',
+    ORIGIN_BRAZE: 'braze',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -203,10 +212,14 @@ export default {
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
+    MUSD_LEARN_MORE: 'https://support.metamask.io/manage-crypto/tokens/musd',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
+  DIGEST_API_URL:
+    process.env.DIGEST_API_URL || 'https://digest.api.cx.metamask.io/api/v1',
+  // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',

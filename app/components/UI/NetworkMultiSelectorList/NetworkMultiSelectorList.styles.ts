@@ -25,6 +25,9 @@ const createStyles = (params: { theme: Theme }) => {
     centeredNetworkCell: {
       alignItems: 'center',
     },
+    noNetworkFeeContainer: {
+      alignSelf: 'center',
+    },
   });
 };
 

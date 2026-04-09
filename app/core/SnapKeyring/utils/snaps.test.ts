@@ -102,7 +102,7 @@ describe('snaps utility functions', () => {
 
       const result = getSnapName(snapId, mockMessenger);
 
-      expect(mockCall).toHaveBeenCalledWith('SnapController:get', snapId);
+      expect(mockCall).toHaveBeenCalledWith('SnapController:getSnap', snapId);
       expect(stripSnapPrefix).toHaveBeenCalledWith(snapId);
       expect(result).toBe('@metamask/not-found-snap');
     });
@@ -118,7 +118,7 @@ describe('snaps utility functions', () => {
 
       const result = getSnapName(snapId, mockMessenger);
 
-      expect(mockCall).toHaveBeenCalledWith('SnapController:get', snapId);
+      expect(mockCall).toHaveBeenCalledWith('SnapController:getSnap', snapId);
       expect(result).toBe('Test Snap');
     });
 
@@ -140,7 +140,7 @@ describe('snaps utility functions', () => {
 
       const result = getSnapName(snapId, mockMessenger);
 
-      expect(mockCall).toHaveBeenCalledWith('SnapController:get', snapId);
+      expect(mockCall).toHaveBeenCalledWith('SnapController:getSnap', snapId);
       expect(getLocalizedSnapManifest).toHaveBeenCalledWith(
         mockSnap.manifest,
         'en-US',

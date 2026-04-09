@@ -15,6 +15,7 @@ import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
+import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsClosePositionView from '../Views/PerpsClosePositionView';
@@ -36,6 +37,7 @@ import ActivityView from '../../../Views/ActivityView';
 import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
+import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
@@ -60,18 +62,14 @@ function getRedesignedConfirmationsHeaderOptions({
     : { header: () => null };
 }
 
-const PerpsConfirmScreen = (
-  props: React.ComponentProps<typeof Confirm> & {
-    route: RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>;
-  },
-) => {
-  const params =
+const PerpsConfirmScreen = () => {
+  const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
-    params?.params?.showPerpsHeader ??
+    params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return <Confirm {...props} disableSafeArea={!showPerpsHeader} />;
+  return <Confirm disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {
@@ -94,9 +92,9 @@ const PerpsModalStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
+            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -134,6 +132,14 @@ const PerpsModalStack = () => {
             component={PerpsCrossMarginWarningBottomSheet}
             options={{
               title: strings('perps.crossMargin.title'),
+            }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.SELECT_PROVIDER}
+            component={PerpsSelectProviderView}
+            options={{
+              title: strings('perps.provider_selector.title'),
+              cardStyle: { backgroundColor: 'transparent' },
             }}
           />
           {/* Action Selection Modals */}
@@ -184,9 +190,9 @@ const PerpsClosePositionBottomSheetStack = () => {
     <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
-          mode="modal"
           screenOptions={{
             headerShown: false,
+            presentation: 'modal',
             cardStyle: {
               backgroundColor: 'transparent',
             },
@@ -259,7 +265,6 @@ const PerpsScreenStack = () => {
               title: strings('perps.home.markets'),
               showBalanceActions: false,
               showBottomNav: false,
-              defaultSearchVisible: false,
             }}
           />
 
@@ -393,6 +398,17 @@ const PerpsScreenStack = () => {
                 backgroundColor: 'transparent',
               },
               animationEnabled: false,
+              // Keep previous screen rendered for transparent overlay
+              detachPreviousScreen: false,
+            }}
+          />
+
+          {/* Order redirect screen - handles one-click trade from token details */}
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+            options={{
+              headerShown: false,
             }}
           />
 

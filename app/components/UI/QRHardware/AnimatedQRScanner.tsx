@@ -2,8 +2,23 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  AppState,
+  AppStateStatus,
+  Image,
+  Linking,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -20,7 +35,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Icon, {
   IconName,
   IconSize,
@@ -110,10 +125,25 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    openSettingsButton: {
+      marginTop: 24,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 40,
+      borderWidth: 1,
+      borderColor: theme.brandColors.white,
+    },
+    openSettingsText: {
+      color: theme.brandColors.white,
+      fontSize: 16,
+      textAlign: 'center',
+      ...fontStyles.normal,
     },
   });
 
-const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
+const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
 interface AnimatedQRScannerProps {
   visible: boolean;
@@ -137,11 +167,12 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(theme);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const appState = useRef(AppState.currentState);
 
   let expectedURTypes: string[];
   if (purpose === QrScanRequestType.PAIR) {
@@ -153,11 +184,42 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
   }
 
-  useEffect(() => {
-    if (!hasPermission && visible) {
-      requestPermission();
+  const refreshCameraPermission = useCallback(() => {
+    if (!visible || hasPermission) {
+      return;
     }
+
+    requestPermission();
   }, [hasPermission, requestPermission, visible]);
+
+  useEffect(() => {
+    refreshCameraPermission();
+  }, [refreshCameraPermission]);
+
+  useEffect(() => {
+    if (!visible) {
+      return undefined;
+    }
+
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        const hasReturnedToForeground =
+          /inactive|background/.test(appState.current) &&
+          nextAppState === 'active';
+
+        appState.current = nextAppState;
+
+        if (hasReturnedToForeground) {
+          refreshCameraPermission();
+        }
+      },
+    );
+
+    return () => {
+      subscription?.remove?.();
+    };
+  }, [refreshCameraPermission, visible]);
 
   const reset = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
@@ -274,13 +336,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     [purpose, styles],
   );
 
-  // Handle camera permission error
-  useEffect(() => {
-    if (visible && !hasPermission) {
-      onScanError(strings('transaction.no_camera_permission'));
-    }
-  }, [visible, hasPermission, onScanError]);
-
   return (
     <Modal
       isVisible={visible}
@@ -316,9 +371,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               </View>
 
               <View style={styles.overlay}>
-                <Text style={styles.scanningText}>{`${strings(
-                  'qr_scanner.scanning',
-                )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                {progress > 0 && (
+                  <Text style={styles.scanningText}>{`${strings(
+                    'qr_scanner.scanning',
+                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                )}
               </View>
             </View>
             {/* Close button */}
@@ -335,6 +392,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               <Text style={styles.scanningText}>
                 {strings('transaction.no_camera_permission')}
               </Text>
+              <TouchableOpacity
+                style={styles.openSettingsButton}
+                onPress={() => Linking.openSettings()}
+                testID="open-settings-button"
+              >
+                <Text style={styles.openSettingsText}>
+                  {strings('qr_scanner.open_settings')}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}

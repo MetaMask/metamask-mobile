@@ -110,6 +110,7 @@ new FixtureBuilder().build();
 ### Page Object Model (POM) Pattern
 - ALWAYS use the Page Object Model pattern for organizing test code
 - Move all element selectors to Page Objects or dedicated selector files
+- When adding one or more testID to a component or view, place it in a dedicated file next to where it is being used with the file extension `.testIds.ts`
 - Access UI elements through Page Object methods, not directly in test specs
 
 #### Page Object Structure Example:
@@ -148,6 +149,21 @@ class LoginPage {
 }
 
 export default new LoginPage();
+```
+
+### TestIDs location example:
+```typescript
+// DON'T:
+import { MyComponentSelectors } from '../../tests/selectors/Card/RecurringFeeModal.selectors';
+
+// DO:
+import { MyComponentSelectors } from './MyComponent.testIds';
+
+const MyComponent = () => {
+  return (
+    <MyComponent testID={MyComponentSelectors.CONTAINER} />
+  )
+};
 ```
 
 ### Proper Waiting and Assertions

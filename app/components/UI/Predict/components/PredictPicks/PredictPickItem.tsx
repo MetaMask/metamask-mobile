@@ -10,8 +10,8 @@ import React from 'react';
 import { PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { PREDICT_PICK_ITEM_TEST_IDS } from './PredictPickItem.testIds';
 
 interface PredictPickItemProps {
   position: PredictPosition;
@@ -24,11 +24,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
   onCashOut,
   testID,
 }) => {
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
-  const isOptimistic = currentPosition.optimistic ?? false;
+  const isOptimistic = position.optimistic ?? false;
 
   return (
     <Box
@@ -55,7 +51,7 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
                 : TextColor.SuccessDefault
             }
             twClassName="font-medium"
-            testID={`predict-picks-pnl-${position.id}`}
+            testID={`${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_PNL}-${position.id}`}
           >
             {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
           </Text>
@@ -65,9 +61,9 @@ const PredictPickItem: React.FC<PredictPickItemProps> = ({
         <Button
           variant={ButtonVariant.Secondary}
           twClassName="light:bg-muted/5"
-          onPress={() => onCashOut(currentPosition)}
+          onPress={() => onCashOut(position)}
           isDisabled={isOptimistic}
-          testID={`predict-picks-cash-out-button-${position.id}`}
+          testID={`${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${position.id}`}
         >
           <Text variant={TextVariant.BodyMd} twClassName="font-medium">
             {strings('predict.cash_out')}

@@ -12,10 +12,8 @@ import { Box } from '../../UI/Box/Box';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Label from '../../../component-library/components/Form/Label';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import { Label, FontWeight } from '@metamask/design-system-react-native';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -84,7 +82,7 @@ const MatchedAccountInfo = ({
   });
   return (
     <Box flexDirection={FlexDirection.Column}>
-      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <Box
         backgroundColor={colors.background.default}
         alignItems={AlignItems.center}
@@ -230,10 +228,9 @@ export const SnapUIAddressInput = ({
 
   return (
     <Box style={style}>
-      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <TextField
         {...props}
-        size={TextFieldSize.Lg}
         ref={inputRef}
         onFocus={handleFocus}
         onBlur={handleBlur}

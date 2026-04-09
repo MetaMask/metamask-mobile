@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   AmountInputMethod,
   AmountInputType,
@@ -8,7 +9,7 @@ import {
 } from '../../../context/send-context/send-metrics-context';
 
 export const useAmountSelectionMetrics = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     accountType,
     chainId,

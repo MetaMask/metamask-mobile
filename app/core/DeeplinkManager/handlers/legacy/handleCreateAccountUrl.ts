@@ -3,7 +3,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/multichain';
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
-import { BridgeRouteParams } from '../../../../components/UI/Bridge/Views/BridgeView';
+import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { WalletClientType } from '../../../SnapKeyring/MultichainWalletSnapClient';
 import {
   BtcScope,
@@ -77,6 +78,7 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
       sourceToken,
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
+      location: MetaMetricsSwapsEventSource.MainView,
     };
 
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {

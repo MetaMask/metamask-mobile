@@ -87,7 +87,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -131,7 +131,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flexBasis": 0,
           "flexDirection": "row",

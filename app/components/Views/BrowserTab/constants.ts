@@ -49,3 +49,11 @@ export const SCROLL_TOP_THRESHOLD = 5;
  * WebView interactions (tapping links, buttons, etc.).
  */
 export const PULL_ACTIVATION_ZONE = 50;
+
+/**
+ * Minimum downward movement in pixels before activating pull-to-refresh.
+ * This prevents taps on buttons near the top of the page from being
+ * swallowed by the gesture handler. The gesture stays in a "pending"
+ * state until the finger moves down by at least this amount.
+ */
+export const PULL_MOVE_ACTIVATION = 10;

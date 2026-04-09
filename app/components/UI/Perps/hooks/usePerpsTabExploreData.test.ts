@@ -5,7 +5,7 @@ import {
   type PerpsMarketDataWithVolumeNumber,
 } from './usePerpsMarkets';
 import { useSelector } from 'react-redux';
-import type { PerpsMarketData } from '../controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('./usePerpsMarkets', () => ({

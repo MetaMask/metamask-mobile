@@ -21,17 +21,22 @@ exports[`SrpInput renders default settings correctly 1`] = `
   onResponderTerminationRequest={[Function]}
   onStartShouldSetResponder={[Function]}
   style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
-      "borderRadius": 8,
-      "borderWidth": 1,
-      "flexDirection": "row",
-      "height": 40,
-      "opacity": 1,
-      "paddingHorizontal": 16,
-    }
+    [
+      {
+        "display": "flex",
+      },
+      {
+        "alignItems": "center",
+        "backgroundColor": "#b4b4b528",
+        "borderColor": "#b4b4b566",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+      },
+    ]
   }
   testID="textfield"
 >
@@ -39,12 +44,13 @@ exports[`SrpInput renders default settings correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "inherit",
-          "height": 38,
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "height": 46,
         },
-        {
-          "flex": 1,
-        },
+        undefined,
       ]
     }
   >
@@ -59,7 +65,7 @@ exports[`SrpInput renders default settings correctly 1`] = `
           "backgroundColor": "#ffffff",
           "borderColor": "transparent",
           "borderWidth": 1,
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "fontWeight": "400",

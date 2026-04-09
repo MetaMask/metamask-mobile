@@ -406,19 +406,10 @@ describe('captureSentryFeedback', () => {
           PreferencesController: {
             displayNftMedia: true,
             featureFlags: {},
-            identities: {
-              '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
-                address: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
-                importTime: 1720023898223,
-                name: 'Account 1',
-              },
-            },
             ipfsGateway: 'https://dweb.link/ipfs/',
             isIpfsGatewayEnabled: true,
             isMultiAccountBalancesEnabled: true,
-            lostIdentities: {},
             securityAlertsEnabled: true,
-            selectedAddress: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
             showTestNetworks: false,
             smartTransactionsOptInStatus: false,
             useNftDetection: true,

@@ -31,16 +31,18 @@ import AvatarAccount, {
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
+import { enablePushNotifications } from '../../../../actions/notification/helpers';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
 const diameter = 40;
 const spacing = 8;
@@ -59,12 +61,12 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
+export const updateUserTraitsWithCurrentCurrency = (currency) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-  metrics.addTraitsToUser(traits);
-  metrics.trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+  analytics.identify(traits);
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -73,10 +75,10 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   );
 };
 
-export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+export const updateUserTraitsWithCurrencyType = (primaryCurrency) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-  metrics.addTraitsToUser(traits);
+  analytics.identify(traits);
 };
 
 const createStyles = (colors) =>
@@ -208,9 +210,9 @@ class Settings extends PureComponent {
      */
     // appTheme: PropTypes.string,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Whether push notifications are currently enabled
      */
-    metrics: PropTypes.object,
+    isPushNotificationsEnabled: PropTypes.bool,
   };
 
   state = {
@@ -221,13 +223,20 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
+    updateUserTraitsWithCurrentCurrency(currency);
   };
 
   selectLanguage = (language) => {
     if (language === this.state.currentLanguage) return;
     setLocale(language);
     this.setState({ currentLanguage: language });
+
+    if (this.props.isPushNotificationsEnabled) {
+      enablePushNotifications().catch(() => {
+        // Best-effort: token will be refreshed on next app launch
+      });
+    }
+
     setTimeout(() => this.props.navigation.navigate('Home'), 100);
   };
 
@@ -238,7 +247,7 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
+    updateUserTraitsWithCurrencyType(primaryCurrency);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
@@ -256,6 +265,7 @@ class Settings extends PureComponent {
     this.searchEngineOptions = [
       { value: 'Google', label: 'Google', key: 'Google' },
       { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
+      { value: 'Brave', label: 'Brave', key: 'Brave' },
     ];
     this.primaryCurrencyOptions = [
       {
@@ -550,6 +560,7 @@ const mapStateToProps = (state) => ({
   avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
   // appTheme: state.user.appTheme,
 });
 
@@ -563,7 +574,4 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(Settings));
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

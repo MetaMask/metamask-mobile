@@ -91,18 +91,12 @@
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
-		<string>CentraNo1-Bold.otf</string>
-		<string>CentraNo1-BoldItalic.otf</string>
-		<string>CentraNo1-Book.otf</string>
-		<string>CentraNo1-BookItalic.otf</string>
-		<string>CentraNo1-Medium.otf</string>
-		<string>CentraNo1-MediumItalic.otf</string>
 		<string>MMPoly-Regular.otf</string>
 		<string>MMSans-Bold.otf</string>
 		<string>MMSans-Medium.otf</string>
 		<string>MMSans-Regular.otf</string>
-		<string>Geist-BoldItalic.otf</string>
-		<string>Geist-Bold.otf</string>
+		<string>Geist-SemiBoldItalic.otf</string>
+		<string>Geist-SemiBold.otf</string>
 		<string>Geist-MediumItalic.otf</string>
 		<string>Geist-Medium.otf</string>
 		<string>Geist-RegularItalic.otf</string>
@@ -135,10 +129,14 @@
 		<string>link.metamask.io</string>
 		<string>link-test.metamask.io</string>
 		<string>metamask-alternate.app.link</string>
-		<string>metamask.test.app.link</string>
-		<string>metamask-alternate.test.app.link</string>
+		<string>metamask.test-app.link</string>
+		<string>metamask-alternate.test-app.link</string>
 	</array>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+  <key>braze_api_key</key>
+	<string>$(MM_BRAZE_API_KEY_IOS)</string>
+	<key>braze_sdk_endpoint</key>
+	<string>$(MM_BRAZE_SDK_ENDPOINT)</string>
 </dict>
 </plist>

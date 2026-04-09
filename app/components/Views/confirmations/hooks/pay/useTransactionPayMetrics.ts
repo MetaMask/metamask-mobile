@@ -16,25 +16,29 @@ import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
-  useTransactionPayTotals,
 } from './useTransactionPayData';
-import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
-import { BigNumber } from 'bignumber.js';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
+/**
+ * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
+ *
+ * Core mm_pay_* properties (token, chain, use_case, fees, strategy, etc.)
+ * are derived from controller state in getMetaMaskPayProperties and do not
+ * depend on the confirmation screen lifecycle.
+ *
+ * This hook only provides properties that require live UI context:
+ * token presented, quote status, available token list size, etc.
+ */
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionPayRequiredTokens();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<BridgeToken>();
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const totals = useTransactionPayTotals();
-  const tokens = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>
@@ -51,8 +55,10 @@ export function useTransactionPayMetrics() {
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
-  const { chainId, type } = transactionMeta ?? {};
-  const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
+
+  const primaryRequiredToken = useTransactionPayRequiredTokens().find(
+    (t) => !t.skipIfBalance,
+  );
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
 
   if (!automaticPayToken.current && payToken) {
@@ -63,14 +69,6 @@ export function useTransactionPayMetrics() {
   const sensitiveProperties: Json = {};
 
   if (payToken) {
-    properties.mm_pay = true;
-    properties.mm_pay_token_selected = payToken.symbol;
-    properties.mm_pay_chain_selected = payToken.chainId;
-    properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
-
-    properties.mm_pay_transaction_step =
-      properties.mm_pay_transaction_step_total;
-
     properties.mm_pay_token_presented =
       automaticPayToken.current?.symbol ?? null;
 
@@ -86,47 +84,12 @@ export function useTransactionPayMetrics() {
       highestBalanceChainId ?? null;
   }
 
-  if (payToken && type === TransactionType.perpsDeposit) {
-    properties.mm_pay_use_case = 'perps_deposit';
-    properties.simulation_sending_assets_total_value = sendingValue;
-  }
-
   if (
     payToken &&
-    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
+    (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]) ||
+      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]))
   ) {
-    properties.mm_pay_use_case = 'predict_deposit';
     properties.simulation_sending_assets_total_value = sendingValue;
-  }
-
-  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
-
-  const nonGasQuote = quotes?.find(
-    (q) => q.request?.targetTokenAddress !== nativeTokenAddress,
-  );
-
-  if (nonGasQuote) {
-    properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
-  }
-
-  const strategy = quotes?.[0]?.strategy;
-
-  if (strategy === TransactionPayStrategy.Bridge) {
-    properties.mm_pay_strategy = 'mm_swaps_bridge';
-  }
-
-  if (strategy === TransactionPayStrategy.Relay) {
-    properties.mm_pay_strategy = 'relay';
-  }
-
-  if (totals) {
-    properties.mm_pay_network_fee_usd = new BigNumber(
-      totals.fees.sourceNetwork.estimate.usd,
-    )
-      .plus(totals.fees.targetNetwork.usd)
-      .toString(10);
-
-    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
   }
 
   const params = useDeepMemo(

@@ -1,14 +1,56 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+interface StyleSheetParams {
+  theme: Theme;
+  iconSize?: number;
+}
+
+const styleSheet = (params: StyleSheetParams) => {
+  const { theme, iconSize = 40 } = params;
   const { colors } = theme;
 
   return StyleSheet.create({
     container: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
+    },
+    // Compact mode styles
+    compactCard: {
+      paddingVertical: 8,
+    },
+    compactContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    compactLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    compactIcon: {
+      width: iconSize,
+      height: iconSize,
+      borderRadius: iconSize / 2,
+      marginRight: 12,
+    },
+    compactInfo: {
+      flex: 1,
+    },
+    compactNameRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 6,
+    },
+    compactRight: {
+      alignItems: 'flex-end',
+    },
+    tpSlSkeleton: {
+      width: 80,
+      height: 14,
+      borderRadius: 4,
+      backgroundColor: colors.background.alternative,
     },
     header: {
       flexDirection: 'row',
@@ -142,12 +184,12 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section,
     },
     detailRowFirst: {
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
     },
     detailRowLast: {
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
     },
     liquidationPriceValue: {
       flexDirection: 'row',

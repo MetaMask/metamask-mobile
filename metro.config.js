@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -10,9 +10,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
 
 const parsedArgs = parseArgs({
@@ -26,13 +26,13 @@ const parsedArgs = parseArgs({
 });
 
 const getPolyfills = () => [
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
 ];
 
 // We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
@@ -46,6 +46,15 @@ module.exports = function (baseConfig) {
   const isE2E =
     process.env.IS_TEST === 'true' ||
     process.env.METAMASK_ENVIRONMENT === 'e2e';
+
+  /**
+   * E2E Metro redirects under tests/module-mocking.
+   * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+   * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   */
+  const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
+
+  const e2eAllowsSeedlessOAuthMetroMocks = isE2E || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -87,35 +96,107 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
+          '@metamask/perps-controller': path.resolve(
+            __dirname,
+            'app/controllers/perps',
+          ),
           'base64-js': 'react-native-quick-base64',
           base64: 'react-native-quick-base64',
           'js-base64': 'react-native-quick-base64',
           buffer: '@craftzdog/react-native-buffer',
           'node:buffer': '@craftzdog/react-native-buffer',
         },
-        resolveRequest: isE2E
-          ? (context, moduleName, platform) => {
-              if (moduleName === '@sentry/react-native') {
-                return {
-                  type: 'sourceFile',
-                  filePath: path.resolve(
-                    __dirname,
-                    'tests/module-mocking/sentry/react-native.ts',
-                  ),
-                };
-              }
-              if (moduleName === '@sentry/core') {
-                return {
-                  type: 'sourceFile',
-                  filePath: path.resolve(
-                    __dirname,
-                    'tests/module-mocking/sentry/core.ts',
-                  ),
-                };
-              }
-              return context.resolveRequest(context, moduleName, platform);
+        resolveRequest: (context, moduleName, platform) => {
+          // @ecies/ciphers uses package.json "exports" subpaths that Metro
+          // can't resolve without unstable_enablePackageExports. Map them to
+          // the react-native condition targets manually.
+          // Note: require.resolve can't be used here because the package's
+          // "exports" field blocks direct dist/ access.
+          if (moduleName === '@ecies/ciphers/aes') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/aes/noble.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
+          if (moduleName === '@ecies/ciphers/chacha') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/chacha/noble.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
+          // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
+          if (
+            moduleName === 'axios' ||
+            moduleName.includes('axios/dist/node/')
+          ) {
+            return {
+              filePath: require.resolve('axios/dist/browser/axios.cjs'),
+              type: 'sourceFile',
+            };
+          }
+          if (isE2E) {
+            if (moduleName === '@sentry/react-native') {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/sentry/react-native.ts',
+                ),
+              };
             }
-          : defaultConfig.resolver.resolveRequest,
+            if (moduleName === '@sentry/core') {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/sentry/core.ts',
+                ),
+              };
+            }
+          }
+          if (e2eAllowsSeedlessOAuthMetroMocks) {
+            if (
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller',
+              ) ||
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller/index',
+              ) ||
+              moduleName === './seedless-onboarding-controller' ||
+              moduleName === '../seedless-onboarding-controller'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/seedless/index.ts',
+                ),
+              };
+            }
+            // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
+            if (
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
+              moduleName === './OAuthLoginHandlers' ||
+              moduleName === '../OAuthLoginHandlers'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                ),
+              };
+            }
+          }
+          return context.resolveRequest(context, moduleName, platform);
+        },
       },
       transformer: {
         babelTransformerPath: require.resolve('./metro.transform.js'),
@@ -143,7 +224,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
-      resetCache: true,
+      resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
   );

@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
 import {
   Image,
@@ -6,6 +5,7 @@ import {
   TextStyle,
   useColorScheme,
 } from 'react-native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
@@ -29,21 +29,32 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../util/networks';
 import { parseCaipAssetType } from '@metamask/utils';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
   bridgeHistoryItem,
   navigation,
   index,
+  location,
+  showDestinationPerspective,
 }: {
   transaction: Transaction;
   bridgeHistoryItem: BridgeHistoryItem;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   index?: number;
+  location?: TransactionDetailLocation;
+  showDestinationPerspective?: boolean;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const style = styles(colors, typography);
 
   const isSwap =
@@ -51,6 +62,21 @@ const MultichainBridgeTransactionListItem = ({
     bridgeHistoryItem.quote.destAsset.chainId;
 
   const handlePress = () => {
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: isSwap ? 'swap' : 'bridge',
+          transaction_status: transaction.status ?? 'unknown',
+          location: location ?? TransactionDetailLocation.Home,
+          chain_id_source: String(bridgeHistoryItem.quote.srcAsset.chainId),
+          chain_id_destination: String(
+            bridgeHistoryItem.quote.destAsset.chainId,
+          ),
+          monetized_primitive: MonetizedPrimitive.Swaps,
+        })
+        .build(),
+    );
+
     handleUnifiedSwapsTxHistoryItemClick({
       navigation,
       multiChainTx: transaction,
@@ -66,9 +92,10 @@ const MultichainBridgeTransactionListItem = ({
       appTheme,
       osColorScheme,
     );
-    const chainId = parseCaipAssetType(
-      bridgeHistoryItem.quote.srcAsset.assetId,
-    ).chainId;
+    const assetForBadge = showDestinationPerspective
+      ? bridgeHistoryItem.quote.destAsset
+      : bridgeHistoryItem.quote.srcAsset;
+    const chainId = parseCaipAssetType(assetForBadge.assetId).chainId;
     if (!chainId)
       return <Image source={icon} style={style.icon} resizeMode="stretch" />;
 
@@ -93,11 +120,18 @@ const MultichainBridgeTransactionListItem = ({
       bridgeHistoryItem.status.destChain?.txHash,
   );
 
+  const tokenAmount = showDestinationPerspective
+    ? bridgeHistoryItem.quote.destTokenAmount
+    : bridgeHistoryItem.quote.srcTokenAmount;
+  const tokenDecimals = showDestinationPerspective
+    ? bridgeHistoryItem.quote.destAsset.decimals
+    : bridgeHistoryItem.quote.srcAsset.decimals;
+  const tokenSymbol = showDestinationPerspective
+    ? bridgeHistoryItem.quote.destAsset.symbol
+    : bridgeHistoryItem.quote.srcAsset.symbol;
+
   const rawAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeHistoryItem.quote.srcTokenAmount,
-      bridgeHistoryItem.quote.srcAsset.decimals,
-    ),
+    ethers.utils.formatUnits(tokenAmount, tokenDecimals),
   );
 
   const displayAmount = formatAmountWithThreshold(rawAmount, 5);
@@ -144,7 +178,8 @@ const MultichainBridgeTransactionListItem = ({
               )}
             </ListItem.Body>
             <ListItem.Amount style={style.listItemAmount as TextStyle}>
-              {displayAmount} {bridgeHistoryItem.quote.srcAsset.symbol}
+              {showDestinationPerspective ? '+' : ''}
+              {displayAmount} {tokenSymbol}
             </ListItem.Amount>
           </ListItem.Content>
         </ListItem>

@@ -30,18 +30,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock(
-  '../../../../../component-library/components/Skeleton/Skeleton',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ testID }: { testID?: string }) => (
-        <ReactNative.View testID={testID || 'skeleton'} />
-      ),
-    };
-  },
-);
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Skeleton: ({ testID }: { testID?: string }) => (
+      <ReactNative.View testID={testID || 'skeleton'} />
+    ),
+  };
+});
 
 jest.mock('./PredictHomeSkeleton', () => {
   const ReactNative = jest.requireActual('react-native');

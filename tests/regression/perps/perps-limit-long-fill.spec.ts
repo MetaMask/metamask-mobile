@@ -1,18 +1,19 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { RegressionTrade } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { RegressionTrade } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
-import PerpsMarketListView from '../../../e2e/pages/Perps/PerpsMarketListView';
-import PerpsMarketDetailsView from '../../../e2e/pages/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../../e2e/pages/Perps/PerpsOrderView';
-import PerpsHomeView from '../../../e2e/pages/Perps/PerpsHomeView';
-import PerpsView from '../../../e2e/pages/Perps/PerpsView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
+import PerpsView from '../../page-objects/Perps/PerpsView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
@@ -24,7 +25,12 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+        },
         useCommandQueueServer: true,
       },
       async ({ commandQueueServer }: TestSuiteParams) => {
@@ -36,11 +42,8 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         // This is needed due to disable animations
         await device.disableSynchronization();
 
-        await PerpsHelpers.navigateToPerpsTab();
-
-        // Navigate to Perps from Actions
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPerpsButton();
+        // Navigate to Perps via homepage section (same click path as smoke perps tests)
+        await WalletView.scrollAndTapPerpsSection();
 
         // Select ETH market and tap Long
         await PerpsMarketListView.selectMarket('ETH');
@@ -83,8 +86,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         );
 
         // Navigate to ETH again to verify order is gone and position is present
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPerpsButton();
+        await WalletView.scrollAndTapPerpsSection();
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.expectNoOpenOrderVisible();
       },

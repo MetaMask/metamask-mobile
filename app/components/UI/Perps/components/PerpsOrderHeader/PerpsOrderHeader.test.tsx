@@ -2,23 +2,18 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import PerpsOrderHeader from './PerpsOrderHeader';
-import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { alternative: '#F2F4F6' },
-      border: { muted: '#D6D9DC' },
-      text: { default: '#000000' },
-      success: { default: '#00C781' },
-      error: { default: '#D73A49' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../Base/TokenIcon', () => 'TokenIcon');
 
@@ -41,10 +36,22 @@ jest.mock(
     const { TouchableOpacity } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ onPress }: { onPress: () => void }) => (
-        <TouchableOpacity testID="back-button" onPress={onPress} />
+      default: ({
+        onPress,
+        iconName,
+        testID,
+      }: {
+        onPress: () => void;
+        iconName: string;
+        testID?: string;
+      }) => (
+        <TouchableOpacity
+          testID={testID ?? 'back-button'}
+          accessibilityLabel={iconName}
+          onPress={onPress}
+        />
       ),
-      ButtonIconSizes: { Sm: 'sm' },
+      ButtonIconSizes: { Sm: 'sm', Md: 'md' },
     };
   },
 );
@@ -73,9 +80,15 @@ describe('PerpsOrderHeader', () => {
     expect(component).toBeDefined();
   });
 
+  it('uses ArrowLeft icon for back button, not Arrow2Left', () => {
+    const { getByTestId } = render(<PerpsOrderHeader {...defaultProps} />);
+    const backButton = getByTestId(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON);
+    expect(backButton.props.accessibilityLabel).toBe('ArrowLeft');
+  });
+
   it('should handle navigation back', () => {
     const { getByTestId } = render(<PerpsOrderHeader {...defaultProps} />);
-    const backButton = getByTestId(PerpsHomeViewSelectorsIDs.BACK_BUTTON);
+    const backButton = getByTestId(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON);
     fireEvent.press(backButton);
     expect(mockGoBack).toHaveBeenCalled();
   });
@@ -85,7 +98,7 @@ describe('PerpsOrderHeader', () => {
     const { getByTestId } = render(
       <PerpsOrderHeader {...defaultProps} onBack={mockOnBack} />,
     );
-    const backButton = getByTestId(PerpsHomeViewSelectorsIDs.BACK_BUTTON);
+    const backButton = getByTestId(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON);
     fireEvent.press(backButton);
     expect(mockOnBack).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();

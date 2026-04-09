@@ -1,16 +1,17 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../../e2e/tags';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import { RegressionTrade } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
-import PerpsMarketListView from '../../../e2e/pages/Perps/PerpsMarketListView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import PerpsMarketDetailsView from '../../../e2e/pages/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../../e2e/pages/Perps/PerpsOrderView';
-import PerpsView from '../../../e2e/pages/Perps/PerpsView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
+import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 // E2E environment setup - mocks auto-configure via isE2E flag
 
@@ -25,22 +26,20 @@ describe(RegressionTrade('Perps Position'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+        },
       },
       async () => {
         logger.info('💰 Using E2E mock balance - no wallet import needed');
         logger.info('🎯 Mock account: $10,000 total, $8,000 available');
         await loginToApp();
 
-        // Navigate to Perps tab using manual sync management
-        await PerpsHelpers.navigateToPerpsTab();
-
-        // Navigate to actions
-        await TabBarComponent.tapActions();
-
-        // This is needed due to disable animations on the next modal
-        await device.disableSynchronization();
-        await WalletActionsBottomSheet.tapPerpsButton();
+        // Navigate to Perps via homepage section (same click path as smoke perps tests)
+        await WalletView.scrollAndTapPerpsSection();
 
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();

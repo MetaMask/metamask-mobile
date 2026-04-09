@@ -13,14 +13,15 @@ import {
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
-import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
   market: PredictMarketType;
@@ -50,24 +51,23 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     ? PredictEventValues.ENTRY_POINT.TRENDING
     : baseEntryPoint;
 
-  const { positions, isLoading } = usePredictPositions({
+  const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
-    autoRefreshTimeout: 10000,
+    claimable: false,
+    refetchInterval: 10000,
   });
 
-  const { positions: claimablePositions } = usePredictPositions({
+  const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
     claimable: true,
   });
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
-  const { claim } = usePredictClaim({
-    providerId: market.providerId,
-  });
+  const { claim, isClaimPending } = usePredictClaim();
+  const { navigateToBuyPreview } = usePredictNavigation();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -76,31 +76,30 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
 
   const handleBetPress = useCallback(
     (token: PredictOutcomeToken) => {
+      const matchingOutcome =
+        market.outcomes.find((marketOutcome) =>
+          marketOutcome.tokens.some(
+            (marketToken) => marketToken.id === token.id,
+          ),
+        ) ?? market.outcomes?.[0];
+
       executeGuardedAction(
         () => {
           // When accessed from Carousel, we're outside the Predict navigator,
           // so we need to navigate through the ROOT first
-          if (
+          const throughRoot =
             isCarousel ||
-            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL
-          ) {
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-              params: {
-                market,
-                outcome,
-                outcomeToken: token,
-                entryPoint: resolvedEntryPoint,
-              },
-            });
-          } else {
-            navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
+
+          navigateToBuyPreview(
+            {
               market,
-              outcome,
+              outcome: matchingOutcome,
               outcomeToken: token,
               entryPoint: resolvedEntryPoint,
-            });
-          }
+            },
+            { throughRoot },
+          );
         },
         {
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -111,9 +110,8 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       executeGuardedAction,
       isCarousel,
       resolvedEntryPoint,
-      navigation,
+      navigateToBuyPreview,
       market,
-      outcome,
     ],
   );
 
@@ -142,14 +140,22 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         twClassName="w-full gap-3"
-        testID={testID ? `${testID}-skeleton` : 'footer-skeleton'}
+        testID={
+          testID
+            ? `${testID}-skeleton`
+            : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON
+        }
       >
         <Box twClassName="flex-1">
           <Skeleton
             width="100%"
             height={48}
             style={tw.style('rounded-md')}
-            testID={testID ? `${testID}-skeleton-1` : 'footer-skeleton-1'}
+            testID={
+              testID
+                ? `${testID}-skeleton-1`
+                : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON_1
+            }
           />
         </Box>
         <Box twClassName="flex-1">
@@ -157,7 +163,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
             width="100%"
             height={48}
             style={tw.style('rounded-md')}
-            testID={testID ? `${testID}-skeleton-2` : 'footer-skeleton-2'}
+            testID={
+              testID
+                ? `${testID}-skeleton-2`
+                : PREDICT_SPORT_CARD_FOOTER_TEST_IDS.FALLBACK_FOOTER_SKELETON_2
+            }
           />
         </Box>
       </Box>
@@ -171,7 +181,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           marketId={market.id}
           positions={positions}
           showSeparator
-          testID={testID ? `${testID}-picks` : undefined}
+          testID={
+            testID
+              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.PICK_SKELETON}`
+              : undefined
+          }
         />
       )}
       {hasClaimablePositions && (
@@ -179,7 +193,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           marketId={market.id}
           positions={claimablePositions}
           showSeparator
-          testID={testID ? `${testID}-picks` : undefined}
+          testID={
+            testID
+              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.PICK_SKELETON}`
+              : undefined
+          }
         />
       )}
 
@@ -190,7 +208,12 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           onBetPress={handleBetPress}
           onClaimPress={handleClaimPress}
           claimableAmount={claimableAmount}
-          testID={testID ? `${testID}-action-buttons` : undefined}
+          isClaimPending={isClaimPending}
+          testID={
+            testID
+              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.ACTION_BUTTONS}`
+              : undefined
+          }
           isCarousel={isCarousel}
         />
       )}
@@ -200,7 +223,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           market={market}
           outcome={outcome}
           onBetPress={handleBetPress}
-          testID={testID ? `${testID}-action-buttons` : undefined}
+          testID={
+            testID
+              ? `${testID}${PREDICT_SPORT_CARD_FOOTER_TEST_IDS.ACTION_BUTTONS}`
+              : undefined
+          }
           isCarousel={isCarousel}
         />
       )}

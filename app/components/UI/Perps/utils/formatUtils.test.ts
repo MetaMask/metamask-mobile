@@ -18,10 +18,12 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+} from './formatUtils';
+import {
   countSignificantFigures,
   hasExceededSignificantFigures,
   roundToSignificantFigures,
-} from './formatUtils';
+} from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 // Mock the formatWithThreshold utility
@@ -569,20 +571,20 @@ describe('formatUtils', () => {
         formatPerpsFiat(0.0000012, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.000001'); // 4 sig figs: 1,2,0,0 → rounds to $0.000001
 
-      // Very small value that rounds to 0 after 6 decimal cap
+      // Very small value below VERY_SMALL threshold (0.000001) → <$0 prefix
       expect(
         formatPerpsFiat(0.00000045, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('$0'); // Rounds to 0 with 6 decimal cap
+      ).toBe('<$0'); // Below threshold: shows <$X prefix
 
       // Edge case: exactly at 6 decimal boundary
       expect(
         formatPerpsFiat(0.000001, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.000001'); // 1 sig fig at boundary
 
-      // Example from rules-decimals.md: 0.0000004 → 0 (rounds down with cap)
+      // Example from rules-decimals.md: 0.0000004 → below threshold → <$0 prefix
       expect(
         formatPerpsFiat(0.0000004, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('$0');
+      ).toBe('<$0');
     });
 
     describe('PRICE_RANGES_UNIVERSAL boundary testing', () => {
@@ -1210,7 +1212,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.000012',
         expectedDetailed: '$0.00001234',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.000012345',
       },
       {
@@ -1218,7 +1220,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.000099',
         expectedDetailed: '$0.00009876',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.000098765',
       },
       {
@@ -1226,7 +1228,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.00005',
         expectedDetailed: '$0.00005',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.00005',
       },
       // <$0.00001 range (<$0.01: 4 sig figs)
@@ -1235,7 +1237,7 @@ describe('formatUtils', () => {
         priceRange: '<$0.00001',
         expected4SF: '$0.000001',
         expectedDetailed: '$0.00000123',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.00000123',
       },
       {
@@ -1243,7 +1245,7 @@ describe('formatUtils', () => {
         priceRange: '<$0.00001',
         expected4SF: '$0.000043',
         expectedDetailed: '$0.00004321',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.00004321',
       },
       // Edge cases

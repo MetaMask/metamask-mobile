@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useAddPopularNetwork } from './useAddPopularNetwork';
 import Engine from '../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMetrics } from '../useMetrics';
+import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -14,8 +14,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../useNetworkEnablement/useNetworkEnablement', () => ({
@@ -65,7 +65,7 @@ describe('useAddPopularNetwork', () => {
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     (useSelector as jest.Mock).mockReturnValue({});
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder.mockReturnValue({
         addProperties: jest.fn().mockReturnValue({

@@ -34,7 +34,6 @@
     "import_wallet_button": "Sincronizar ou importar carteira",
     "new_to_crypto": "A criptomoeda é uma novidade para você?",
     "start_exploring_now": "Criar nova carteira",
-    "unlock": "Desbloquear",
     "new_to_metamask": "O MetaMask é uma novidade para você?",
     "already_have_wallet": "Já tem uma carteira?",
     "optin_back_title": "Fique de olho!",
@@ -582,6 +581,7 @@
     "ok": "OK",
     "cancel": "Cancelar",
     "error": "Erro",
+    "open_settings": "Configurações",
     "attempting_to_scan_with_wallet_locked": "Parece que você está tentando escanear um código QR. Você deve destravar sua carteira para conseguir usá-la.",
     "attempting_sync_from_wallet_error": "Parece que você está tentando sincronizar com uma extensão. Para fazê-lo, você precisará excluir sua carteira atual. \n\nApós ter excluído ou reinstalado uma versão mais recente do app, selecione a opção para \"Sincronizar com a Extensão MetaMask\". Importante! Antes de excluir a sua carteira, certifique-se de ter feito uma cópia de segurança da sua Frase de Recuperação Secreta."
   },

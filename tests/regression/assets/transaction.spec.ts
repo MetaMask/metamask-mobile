@@ -1,19 +1,22 @@
-import TestHelpers from '../../../e2e/helpers';
-import { RegressionAssets } from '../../../e2e/tags';
-import RedesignedSendView from '../../../e2e/pages/Send/RedesignedSendView';
-import TransactionConfirmationView from '../../../e2e/pages/Send/TransactionConfirmView';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import TestHelpers from '../../helpers';
+import { RegressionAssets } from '../../tags';
+import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
+import TransactionConfirmationView from '../../page-objects/Send/TransactionConfirmView';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import TokenOverview from '../../../e2e/pages/wallet/TokenOverview';
-import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokenOverview from '../../page-objects/wallet/TokenOverview';
+import ToastModal from '../../page-objects/wallet/ToastModal';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  confirmationFeatureFlags,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
@@ -40,13 +43,11 @@ describe(RegressionAssets('Transaction'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withNetworkEnabledMap({
               eip155: { '0x539': true },
@@ -55,19 +56,17 @@ describe(RegressionAssets('Transaction'), () => {
         },
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            Object.assign({}, ...confirmationFeatureFlags),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...Object.assign({}, ...confirmationFeatureFlags),
+          });
         },
       },
       async () => {
         await loginToApp();
         // Scroll to top first to ensure consistent starting position
-        await WalletView.scrollToTopOfTokensList();
+        await WalletView.tapOnNewTokensSection();
 
-        // Then scroll to Ethereum with extra stability
-        await WalletView.scrollToToken(ETHEREUM_NAME);
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
 

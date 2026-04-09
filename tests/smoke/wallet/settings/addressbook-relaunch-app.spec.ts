@@ -1,11 +1,11 @@
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { RegressionWalletPlatform } from '../../../tags';
+import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
+import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
+import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import TestHelpers from '../../../../e2e/helpers';
+import TestHelpers from '../../../helpers';
 import { getFixturesServerPort } from '../../../framework/fixtures/FixtureUtils';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -28,8 +28,8 @@ describe.skip(
         async () => {
           await loginToApp();
           await device.disableSynchronization();
-          await TabBarComponent.tapSettings();
-          await SettingsView.tapContacts();
+          await TabBarComponent.tapAccountsMenu();
+          await AccountMenu.tapContacts();
           await device.enableSynchronization();
 
           await ContactsView.tapAddContactButton();
@@ -46,8 +46,8 @@ describe.skip(
           await device.disableSynchronization();
           await loginToApp();
           await device.enableSynchronization();
-          await TabBarComponent.tapSettings();
-          await SettingsView.tapContacts();
+          await TabBarComponent.tapAccountsMenu();
+          await AccountMenu.tapContacts();
           await Assertions.expectElementToBeVisible(ContactsView.container);
           await ContactsView.expectContactIsVisible('Curtis');
         },

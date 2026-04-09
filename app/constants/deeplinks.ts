@@ -14,7 +14,6 @@ export enum PROTOCOLS {
 
 export enum ACTIONS {
   RAMP = 'ramp',
-  ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   CARD_KYC_NOTIFICATION = 'card-kyc-notification',
@@ -31,8 +30,10 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  /** @deprecated Cash deposit deeplink (`metamask://deposit`, `/deposit`) is no longer handled. */
   DEPOSIT = 'deposit',
   HOME = 'home',
+  ASSET = 'asset',
   SWAP = 'swap',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
@@ -65,6 +66,7 @@ export const PREFIXES = {
   [ACTIONS.SELL_CRYPTO]: '',
   [ACTIONS.OAUTH_REDIRECT]: '',
   [ACTIONS.HOME]: '',
+  [ACTIONS.ASSET]: '',
   [ACTIONS.SWAP]: '',
   [ACTIONS.CREATE_ACCOUNT]: '',
   [ACTIONS.PERPS]: '',
@@ -74,7 +76,6 @@ export const PREFIXES = {
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
   [ACTIONS.SHIELD]: '',
-  [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',

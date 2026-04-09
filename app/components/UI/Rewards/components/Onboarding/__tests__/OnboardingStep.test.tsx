@@ -42,23 +42,12 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        muted: '#f5f5f5',
-        default: '#ffffff',
-      },
-      text: {
-        primary: '#000000',
-        alternative: '#666666',
-      },
-      border: {
-        muted: '#e0e0e0',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock rewards auth hook
 const mockOptin = jest.fn();
@@ -85,19 +74,15 @@ jest.mock('../../../hooks/useValidateReferralCode', () => ({
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
-// Mock useMetrics hook
-const mockBuilder = {
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-};
+import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../../util/test/analyticsMock';
 
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => mockBuilder),
-  }),
-  MetaMetricsEvents: {},
-}));
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../../../../components/hooks/useAnalytics/useAnalytics');
 
 // Mock Linking and PanResponder
 jest.mock('react-native', () => {
@@ -138,6 +123,11 @@ jest.mock(
 describe('OnboardingStep - Skip and Swipe Functionality', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('should render skip button when onSkip prop is provided', () => {

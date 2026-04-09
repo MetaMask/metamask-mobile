@@ -12,10 +12,13 @@ import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
+import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
+import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useTokenContractAlert } from './useTokenContractAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -34,8 +37,11 @@ function useTransactionAlerts(): Alert[] {
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
+  const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
+  const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
+  const tokenContractAlert = useTokenContractAlert();
 
   return useMemo(
     () => [
@@ -48,8 +54,11 @@ function useTransactionAlerts(): Alert[] {
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
       ...insufficientPredictBalanceAlert,
+      ...insufficientPerpsBalanceAlert,
       ...burnAddressAlert,
       ...tokenTrustSignalAlerts,
+      ...firstTimeInteractionAlert,
+      ...tokenContractAlert,
     ],
     [
       gasEstimateFailedAlert,
@@ -61,8 +70,11 @@ function useTransactionAlerts(): Alert[] {
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
       insufficientPredictBalanceAlert,
+      insufficientPerpsBalanceAlert,
       burnAddressAlert,
       tokenTrustSignalAlerts,
+      firstTimeInteractionAlert,
+      tokenContractAlert,
     ],
   );
 }

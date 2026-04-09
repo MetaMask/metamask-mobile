@@ -14,10 +14,9 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -26,7 +25,9 @@ import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
@@ -43,6 +44,12 @@ import { trace, TraceName } from '../../../../../util/trace';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  Text as DesignSystemText,
+} from '@metamask/design-system-react-native';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -60,7 +67,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { shouldShowAssetOverviewCta } = useMusdCtaVisibility();
   const dispatch = useDispatch();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -73,6 +80,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const navigation = useNavigation();
 
@@ -235,7 +243,11 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
           <AssetElement
             asset={receiptToken as TokenI}
             balance={receiptToken.balanceFiat}
-            secondaryBalance={receiptToken.balanceFormatted}
+            privacyMode={privacyMode}
+            hideSecondaryBalanceInPrivacyMode={false}
+            secondaryBalanceElement={
+              <PercentageChange value={pricePercentChange1d ?? 0} />
+            }
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -264,7 +276,14 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               >
                 {receiptToken.name}
               </Text>
-              <PercentageChange value={pricePercentChange1d ?? 0} />
+              <SensitiveText
+                variant={TextVariant.BodySM}
+                style={styles.tokenAmount}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {receiptToken.balanceFormatted}
+              </SensitiveText>
             </View>
           </AssetElement>
         )}
@@ -274,25 +293,29 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         <View style={[styles.container, styles.buttonsContainer]}>
           {Boolean(receiptToken) && (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               style={styles.button}
-              size={ButtonSize.Lg}
-              label={strings('earn.withdraw')}
+              size={ButtonSize.Md}
               onPress={handleNavigateToWithdrawalInputScreen}
               testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-            />
+            >
+              <DesignSystemText>{strings('earn.withdraw')}</DesignSystemText>
+            </Button>
           )}
           {userHasUnderlyingTokensAvailableToLend &&
             !isAssetReceiptToken &&
             isEligible && (
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 style={styles.button}
-                size={ButtonSize.Lg}
-                label={strings('earn.deposit_more')}
+                size={ButtonSize.Md}
                 onPress={handleNavigateToDepositInputScreen}
                 testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-              />
+              >
+                <DesignSystemText>
+                  {strings('earn.deposit_more')}
+                </DesignSystemText>
+              </Button>
             )}
         </View>
       )}

@@ -8,11 +8,10 @@ import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
   getBlockExplorerName,
+  findBlockExplorerUrlForChain,
   isMainNet,
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
-  findBlockExplorerForNonEvmChainId,
-  isLineaMainnetChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -26,13 +25,11 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
-  selectProviderConfig,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
@@ -43,7 +40,6 @@ import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensCon
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   selectPrimaryCurrency,
   selectAvatarAccountType,
@@ -52,22 +48,15 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../../selectors/transactionController';
-import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
-import {
-  LINEA_MAINNET_BLOCK_EXPLORER,
-  LINEA_SEPOLIA_BLOCK_EXPLORER,
-  MAINNET_BLOCK_EXPLORER,
-  SEPOLIA_BLOCK_EXPLORER,
-} from '../../../../constants/urls';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
 
 const createStyles = (colors) =>
@@ -130,10 +119,6 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Chain ID string
-     */
-    chainId: PropTypes.string,
-    /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
     transactionObject: PropTypes.object,
@@ -162,13 +147,8 @@ class TransactionDetails extends PureComponent {
     conversionRate: PropTypes.number,
     currentCurrency: PropTypes.string,
     swapsTransactions: PropTypes.object,
-    swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
 
-    /**
-     * Boolean that indicates if smart transaction should be used
-     */
-    shouldUseSmartTransaction: PropTypes.bool,
     /**
      * Avatar style to render for account icons
      */
@@ -177,7 +157,6 @@ class TransactionDetails extends PureComponent {
 
   state = {
     rpcBlockExplorer: undefined,
-    renderTxActions: true,
     updatedTransactionDetails: undefined,
   };
 
@@ -188,36 +167,13 @@ class TransactionDetails extends PureComponent {
 
   /**
    * Returns the appropriate block explorer URL for a given chain
-   * @param {string} chainId - The chain ID to get the block explorer for
    * @param {string} txChainId - The transaction chain ID
    * @param {Object} networkConfigurations - The network configurations object
    * @returns {string} The block explorer URL
    */
-  getBlockExplorerForChain = (chainId, txChainId, networkConfigurations) => {
-    // First check for network configuration block explorer
-    let blockExplorer =
-      networkConfigurations?.[txChainId]?.blockExplorerUrls[
-        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
-      ] || NO_RPC_BLOCK_EXPLORER;
-
-    // Check for default block explorers based on chain ID
-    if (isMainNet(txChainId)) {
-      blockExplorer = MAINNET_BLOCK_EXPLORER;
-    } else if (isLineaMainnetChainId(txChainId)) {
-      blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
-    } else if (txChainId === CHAIN_IDS.LINEA_SEPOLIA) {
-      blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
-    } else if (txChainId === CHAIN_IDS.SEPOLIA) {
-      blockExplorer = SEPOLIA_BLOCK_EXPLORER;
-    }
-
-    // Check for non-EVM chain block explorer
-    if (isNonEvmChainId(chainId)) {
-      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
-    }
-
-    return blockExplorer;
-  };
+  getBlockExplorerForChain = (txChainId, networkConfigurations) =>
+    findBlockExplorerUrlForChain(txChainId, networkConfigurations) ??
+    NO_RPC_BLOCK_EXPLORER;
 
   /**
    * Updates transactionDetails for multilayer fee networks (e.g. for Optimism).
@@ -234,7 +190,6 @@ class TransactionDetails extends PureComponent {
       tokens,
       primaryCurrency,
       swapsTransactions,
-      swapsTokens,
       transactions,
     } = this.props;
 
@@ -268,7 +223,6 @@ class TransactionDetails extends PureComponent {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
         txChainId: transactionObject.chainId,
       });
       this.setState({ updatedTransactionDetails: decodedTx[1] });
@@ -281,12 +235,10 @@ class TransactionDetails extends PureComponent {
   componentDidMount = () => {
     const {
       transactionObject: { chainId: txChainId },
-      chainId,
       networkConfigurations,
     } = this.props;
 
     const blockExplorer = this.getBlockExplorerForChain(
-      chainId,
       txChainId,
       networkConfigurations,
     );
@@ -324,19 +276,11 @@ class TransactionDetails extends PureComponent {
   };
 
   showSpeedUpModal = () => {
-    const { showSpeedUpModal, close } = this.props;
-    if (close) {
-      close();
-      showSpeedUpModal();
-    }
+    this.props.showSpeedUpModal?.();
   };
 
   showCancelModal = () => {
-    const { showCancelModal, close } = this.props;
-    if (close) {
-      close();
-      showCancelModal();
-    }
+    this.props.showCancelModal?.();
   };
 
   renderSpeedUpButton = () => {
@@ -375,8 +319,13 @@ class TransactionDetails extends PureComponent {
   render = () => {
     const {
       transactionObject,
-      transactionObject: { status, time, txParams, chainId: txChainId },
-      shouldUseSmartTransaction,
+      transactionObject: {
+        status,
+        time,
+        txParams,
+        chainId: txChainId,
+        isSmartTransaction,
+      },
     } = this.props;
     const chainId = txChainId;
     const hasNestedTransactions = Boolean(
@@ -384,10 +333,13 @@ class TransactionDetails extends PureComponent {
     );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
-
+    const isBridgeTransaction =
+      transactionObject?.type === TransactionType.bridge;
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
-      !shouldUseSmartTransaction;
+      !isSmartTransaction &&
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(transactionObject);
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -545,8 +497,6 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  chainId: selectChainId(state),
-  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
@@ -566,14 +516,17 @@ const mapStateToProps = (state, ownProps) => ({
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  swapsTokens: swapsControllerTokens(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
-    state,
-    ownProps.transactionObject.chainId,
-  ),
   avatarAccountType: selectAvatarAccountType(state),
 });
 
 TransactionDetails.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(withNavigation(TransactionDetails));
+const ConnectedTransactionDetails =
+  connect(mapStateToProps)(TransactionDetails);
+
+const TransactionDetailsWrapper = (props) => {
+  const navigation = useNavigation();
+  return <ConnectedTransactionDetails {...props} navigation={navigation} />;
+};
+
+export default TransactionDetailsWrapper;

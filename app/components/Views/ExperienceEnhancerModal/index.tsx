@@ -19,10 +19,8 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -30,7 +28,7 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const styles = createStyles();
-  const { trackEvent, addTraitsToUser, createEventBuilder } = useMetrics();
+  const { trackEvent, identify, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const cancelButtonProps: ButtonProps = {
@@ -41,8 +39,8 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(false));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
+      identify({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -65,8 +63,8 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(true));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+      identify({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)

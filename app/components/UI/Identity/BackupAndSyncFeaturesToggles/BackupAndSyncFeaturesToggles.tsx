@@ -20,7 +20,9 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS } from './BackupAndSyncFeaturesToggles.testIds';
 
 export const backupAndSyncFeaturesTogglesSections = [
   {
@@ -29,7 +31,7 @@ export const backupAndSyncFeaturesTogglesSections = [
     iconName: IconName.UserCircle,
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.accountSyncing,
     featureReduxSelector: selectIsAccountSyncingEnabled,
-    testID: 'toggle-accountSyncing',
+    testID: BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_ACCOUNT_SYNCING,
   },
   {
     id: 'contacts',
@@ -37,7 +39,7 @@ export const backupAndSyncFeaturesTogglesSections = [
     iconName: IconName.Book,
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.contactSyncing,
     featureReduxSelector: selectIsContactSyncingEnabled,
-    testID: 'toggle-contactSyncing',
+    testID: BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_CONTACT_SYNCING,
   },
 ];
 
@@ -51,7 +53,7 @@ const FeatureToggle = ({
   isBackupAndSyncEnabled: boolean;
 }) => {
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { setIsBackupAndSyncFeatureEnabled } = useBackupAndSync();
 
   const { colors } = theme;

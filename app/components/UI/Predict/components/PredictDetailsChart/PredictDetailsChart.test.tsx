@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictDetailsChart, { ChartSeries } from './PredictDetailsChart';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 jest.mock('react-native-svg-charts', () => ({
   LineChart: jest.fn(({ children, data, svg, ...props }) => {
@@ -69,31 +70,18 @@ jest.mock('d3-shape', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      success: {
-        default: '#28C76F',
-        muted: '#28C76F80',
-      },
-      text: {
-        default: '#000000',
-      },
-      border: {
-        muted: '#E0E0E0',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 describe('PredictDetailsChart', () => {
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome 1',
-      color: '#28C76F',
+      color: TEST_HEX_COLORS.CHART_SUCCESS,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -106,7 +94,7 @@ describe('PredictDetailsChart', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      color: '#4459FF',
+      color: TEST_HEX_COLORS.CHART_PRIMARY,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -116,7 +104,7 @@ describe('PredictDetailsChart', () => {
     },
     {
       label: 'Outcome B',
-      color: '#CA3542',
+      color: TEST_HEX_COLORS.CHART_ERROR,
       data: [
         { timestamp: 1640995200000, value: 0.3 },
         { timestamp: 1640998800000, value: 0.2 },
@@ -189,7 +177,7 @@ describe('PredictDetailsChart', () => {
 
     it('renders empty state when no data provided', () => {
       const { queryByText } = setupTest({
-        data: [{ label: 'Empty', color: '#000', data: [] }],
+        data: [{ label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] }],
         isLoading: false,
       });
 
@@ -199,7 +187,7 @@ describe('PredictDetailsChart', () => {
     it('renders custom empty label when provided', () => {
       const customLabel = 'No data available';
       const { getByText } = setupTest({
-        data: [{ label: 'Empty', color: '#000', data: [] }],
+        data: [{ label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] }],
         emptyLabel: customLabel,
       });
 
@@ -235,7 +223,7 @@ describe('PredictDetailsChart', () => {
         ...mockMultipleSeries,
         {
           label: 'Outcome C',
-          color: '#F0B034',
+          color: TEST_HEX_COLORS.CHART_WARNING,
           data: [
             { timestamp: 1640995200000, value: 0.1 },
             { timestamp: 1640998800000, value: 0.15 },
@@ -243,7 +231,7 @@ describe('PredictDetailsChart', () => {
         },
         {
           label: 'Outcome D',
-          color: '#00FF00',
+          color: TEST_HEX_COLORS.PURE_GREEN,
           data: [
             { timestamp: 1640995200000, value: 0.05 },
             { timestamp: 1640998800000, value: 0.1 },
@@ -293,7 +281,7 @@ describe('PredictDetailsChart', () => {
       const singlePointData: ChartSeries[] = [
         {
           label: 'Outcome',
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [{ timestamp: 1640995200000, value: 0.5 }],
         },
       ];
@@ -309,7 +297,7 @@ describe('PredictDetailsChart', () => {
       const emptyData: ChartSeries[] = [
         {
           label: 'Empty',
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [],
         },
       ];
@@ -333,7 +321,7 @@ describe('PredictDetailsChart', () => {
       const sameValueData: ChartSeries[] = [
         {
           label: 'Same',
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [
             { timestamp: 1640995200000, value: 0.5 },
             { timestamp: 1640998800000, value: 0.5 },
@@ -363,7 +351,7 @@ describe('PredictDetailsChart', () => {
       const largeData: ChartSeries[] = [
         {
           label: 'Large',
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [
             { timestamp: 1640995200000, value: 1000000 },
             { timestamp: 1640998800000, value: 2000000 },
@@ -379,7 +367,7 @@ describe('PredictDetailsChart', () => {
       const negativeData: ChartSeries[] = [
         {
           label: 'Negative',
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [
             { timestamp: 1640995200000, value: -0.5 },
             { timestamp: 1640998800000, value: -0.3 },
@@ -395,7 +383,7 @@ describe('PredictDetailsChart', () => {
       const largeDataset: ChartSeries[] = [
         {
           label: 'Large Dataset',
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: 1640995200000 + i * 3600000,
             value: Math.random(),
@@ -449,7 +437,7 @@ describe('PredictDetailsChart', () => {
         const longLabelSeries: ChartSeries[] = [
           {
             label: 'This is a very long outcome label that exceeds limit',
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1640995200000, value: 0.5 },
               { timestamp: 1640998800000, value: 0.6 },
@@ -457,7 +445,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Short Label',
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1640995200000, value: 0.3 },
               { timestamp: 1640998800000, value: 0.4 },
@@ -478,7 +466,7 @@ describe('PredictDetailsChart', () => {
         const specialCharSeries: ChartSeries[] = [
           {
             label: 'Outcome #1 (Test) - Result',
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1640995200000, value: 0.5 },
               { timestamp: 1640998800000, value: 0.6 },
@@ -486,7 +474,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Normal Label',
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1640995200000, value: 0.3 },
               { timestamp: 1640998800000, value: 0.4 },
@@ -523,7 +511,7 @@ describe('PredictDetailsChart', () => {
         const crossingSeries: ChartSeries[] = [
           {
             label: 'Series A',
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1, value: 0.3 },
               { timestamp: 2, value: 0.7 },
@@ -531,7 +519,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series B',
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1, value: 0.7 },
               { timestamp: 2, value: 0.3 },
@@ -550,7 +538,7 @@ describe('PredictDetailsChart', () => {
         const closeSeries: ChartSeries[] = [
           {
             label: 'Close A',
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1, value: 0.5 },
               { timestamp: 2, value: 0.501 },
@@ -558,7 +546,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Close B',
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1, value: 0.502 },
               { timestamp: 2, value: 0.503 },
@@ -586,7 +574,7 @@ describe('PredictDetailsChart', () => {
         const fullRangeSeries: ChartSeries[] = [
           {
             label: 'Full Range',
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: Array.from({ length: 50 }, (_, i) => ({
               timestamp: 1640995200000 + i * 3600000,
               value: 0.3 + (i / 50) * 0.4, // Values from 0.3 to 0.7
@@ -613,12 +601,12 @@ describe('PredictDetailsChart', () => {
         const coloredSeries: ChartSeries[] = [
           {
             label: 'Blue',
-            color: '#0000FF',
+            color: TEST_HEX_COLORS.PURE_BLUE,
             data: [{ timestamp: 1, value: 0.5 }],
           },
           {
             label: 'Red',
-            color: '#FF0000',
+            color: TEST_HEX_COLORS.PURE_RED,
             data: [{ timestamp: 1, value: 0.5 }],
           },
         ];
@@ -643,7 +631,7 @@ describe('PredictDetailsChart', () => {
         const threeSeries: ChartSeries[] = [
           {
             label: 'Series 1',
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1, value: 0.5 },
               { timestamp: 2, value: 0.6 },
@@ -651,7 +639,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series 2',
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1, value: 0.3 },
               { timestamp: 2, value: 0.4 },
@@ -659,7 +647,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series 3',
-            color: '#F0B034',
+            color: TEST_HEX_COLORS.CHART_WARNING,
             data: [
               { timestamp: 1, value: 0.2 },
               { timestamp: 2, value: 0.25 },
@@ -722,7 +710,7 @@ describe('PredictDetailsChart', () => {
           data: [
             {
               label: 'Dedup Series',
-              color: '#123456',
+              color: TEST_HEX_COLORS.EXAMPLE,
               data: axisData,
             },
           ],

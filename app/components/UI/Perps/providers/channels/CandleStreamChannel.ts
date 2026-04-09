@@ -1,11 +1,12 @@
 import Engine from '../../../../../core/Engine';
-import type { CandleData } from '../../types/perps-types';
 import {
   CandlePeriod,
   TimeDuration,
   calculateCandleCount,
-} from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+  PERPS_CONSTANTS,
+  PERFORMANCE_CONFIG,
+  type CandleData,
+} from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -105,6 +106,71 @@ abstract class StreamChannel<T> {
 
 // CandleStreamChannel - specific channel for candle data
 export class CandleStreamChannel extends StreamChannel<CandleData> {
+  // Timer handles for deferred connect so they can be cancelled on disconnect
+  private deferConnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private connectRetryCounts = new Map<string, number>();
+  private static readonly MAX_CONNECT_RETRIES = 50;
+  private readonly getIsInitialized: () => boolean;
+
+  /**
+   * @param getIsInitialized - Getter for connection initialized state.
+   * Injected to avoid circular dependency:
+   * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
+   */
+  constructor(getIsInitialized: () => boolean) {
+    super();
+    this.getIsInitialized = getIsInitialized;
+  }
+
+  public override clearCache(): void {
+    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.clear();
+    this.connectRetryCounts.clear();
+    super.clearCache();
+  }
+
+  /**
+   * Schedule a deferred connect() retry with safety checks.
+   * Aborts if no subscribers remain for the given cacheKey or max retries exceeded.
+   */
+  private deferConnect(
+    symbol: string,
+    interval: CandlePeriod,
+    cacheKey: string,
+    delayMs: number,
+  ): void {
+    const hasActiveSubscribers = Array.from(this.subscribers.values()).some(
+      (sub) => sub.cacheKey === cacheKey,
+    );
+    if (!hasActiveSubscribers) {
+      this.connectRetryCounts.delete(cacheKey);
+      return;
+    }
+
+    const retryCount = this.connectRetryCounts.get(cacheKey) ?? 0;
+    if (retryCount >= CandleStreamChannel.MAX_CONNECT_RETRIES) {
+      DevLogger.log(
+        `CandleStreamChannel: Max connect retries exceeded (${CandleStreamChannel.MAX_CONNECT_RETRIES}), giving up`,
+        { cacheKey },
+      );
+      this.connectRetryCounts.delete(cacheKey);
+      return;
+    }
+
+    this.connectRetryCounts.set(cacheKey, retryCount + 1);
+    const existingTimer = this.deferConnectTimers.get(cacheKey);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+    this.deferConnectTimers.set(
+      cacheKey,
+      setTimeout(() => {
+        this.deferConnectTimers.delete(cacheKey);
+        this.connectNow(symbol, interval, cacheKey);
+      }, delayMs),
+    );
+  }
+
   /**
    * Get cache key for a specific symbol and interval
    */
@@ -175,9 +241,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
-   * Connect to WebSocket for specific symbol and interval.
-   * Always uses YEAR_TO_DATE duration to fetch maximum candles (500) on initial load.
-   * This ensures all subscribers get the full dataset regardless of their individual duration needs.
+   * Schedule a WebSocket connection for specific symbol and interval.
+   * Always defers via a short debounce to avoid subscription churn
+   * during rapid market switching (#28141).
    */
   private connect(
     symbol: string,
@@ -189,28 +255,56 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       return;
     }
 
-    // Check if controller is reinitializing
+    let delay: number = PERFORMANCE_CONFIG.CandleConnectDebounceMs;
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(() => {
-        // Verify subscription still active before reconnecting
-        const hasActiveSubscribers = Array.from(this.subscribers.values()).some(
-          (sub) => sub.cacheKey === cacheKey,
-        );
+      delay = PERPS_CONSTANTS.ReconnectionCleanupDelayMs;
+    } else if (!this.getIsInitialized()) {
+      delay = PERFORMANCE_CONFIG.NavigationParamsDelayMs;
+    }
 
-        // Only reconnect if subscribers still exist and no connection established
-        if (hasActiveSubscribers && !this.wsSubscriptions.has(cacheKey)) {
-          this.connect(symbol, interval, cacheKey);
-        }
-      }, PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+    this.deferConnect(symbol, interval, cacheKey, delay);
+  }
+
+  /**
+   * Execute the actual WebSocket subscription (called after debounce/defer).
+   * Always uses YEAR_TO_DATE duration to fetch maximum candles (500) on initial load.
+   */
+  private connectNow(
+    symbol: string,
+    interval: CandlePeriod,
+    cacheKey: string,
+  ): void {
+    // Re-check guards: state may have changed during the debounce window
+    if (this.wsSubscriptions.has(cacheKey)) {
+      return;
+    }
+    if (
+      !this.getIsInitialized() ||
+      Engine.context.PerpsController.isCurrentlyReinitializing()
+    ) {
+      // Not ready yet — re-defer
+      this.deferConnect(
+        symbol,
+        interval,
+        cacheKey,
+        PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
       return;
     }
 
-    // Subscribe to candle updates via controller
-    // Always use YEAR_TO_DATE to fetch maximum candles (500) regardless of subscriber's duration
+    this.connectRetryCounts.delete(cacheKey);
+
+    // Use a light initial fetch to conserve rate limit budget (#28141).
+    // OneWeek provides enough candles for the visible chart area; users
+    // can lazy-load more history via fetchHistoricalCandles on scroll.
+    // When cache already has data (revisit), use an even lighter fetch.
+    const hasCachedData = this.cache.has(cacheKey);
+    const duration = hasCachedData ? TimeDuration.OneDay : TimeDuration.OneWeek;
+
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
-      duration: TimeDuration.YearToDate, // Always fetch max candles
+      duration,
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);
@@ -264,6 +358,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.disconnectAll();
       return;
     }
+    // Cancel any pending deferred connect for this cacheKey
+    const timer = this.deferConnectTimers.get(cacheKey);
+    if (timer) {
+      clearTimeout(timer);
+      this.deferConnectTimers.delete(cacheKey);
+    }
+    this.connectRetryCounts.delete(cacheKey);
     // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
     if (unsubscribe) {
@@ -359,12 +460,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
       // Fetch historical candles via controller
       const newCandleData =
-        await Engine.context.PerpsController.fetchHistoricalCandles(
+        await Engine.context.PerpsController.fetchHistoricalCandles({
           symbol,
           interval,
           limit,
           endTime,
-        );
+        });
 
       if (!newCandleData || newCandleData.candles.length === 0) {
         DevLogger.log(
@@ -418,7 +519,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
-      const errorInstance = ensureError(error);
+      const errorInstance = ensureError(
+        error,
+        'CandleStreamChannel.fetchHistoricalCandles',
+      );
 
       // Log to Sentry: fetch failures affect multiple subscribers
       Logger.error(errorInstance, {
@@ -446,6 +550,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {
+    // Cancel all deferred connect timers
+    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.clear();
+    this.connectRetryCounts.clear();
+
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);

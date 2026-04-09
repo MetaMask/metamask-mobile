@@ -8,6 +8,7 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
+  NO_RPC_BLOCK_EXPLORER,
   MEGAETH_TESTNET,
   MEGAETH_TESTNET_V2,
   MONAD_TESTNET,
@@ -343,6 +344,21 @@ export const isTestNetworkWithFaucet = (chainId) =>
  */
 export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
+/**
+ * Returns whether the network can be deleted by the user.
+ * Aligns with NetworkSelector: mainnet, Linea mainnet, and testnets cannot be removed.
+ *
+ * @param {string} chainId - The chain ID to check (e.g. '0x1', '0x89').
+ * @returns {boolean} True if the network can be deleted, false otherwise.
+ */
+export const canDeleteNetwork = (chainId) =>
+  Boolean(
+    chainId &&
+      !isTestNet(chainId) &&
+      !isMainNet(chainId) &&
+      !isLineaMainnetChainId(chainId),
+  );
+
 export function getNetworkTypeById(id) {
   if (!id) {
     throw new Error(NetworkSwitchErrorType.missingNetworkId);
@@ -414,6 +430,87 @@ export function findBlockExplorerForNonEvmChainId(chainId) {
 }
 
 /**
+ * Returns the hex EVM chain id for lookups in `networkConfigurations` (when the
+ * input is hex or CAIP-2 `eip155:*`). Returns `undefined` for non-EVM CAIP chains.
+ *
+ * @param {string} chainId
+ * @returns {string|undefined}
+ */
+export function getHexEvmChainId(chainId) {
+  if (!chainId || typeof chainId !== 'string') {
+    return undefined;
+  }
+  if (isNonEvmChainId(chainId)) {
+    return undefined;
+  }
+  if (isCaipChainId(chainId)) {
+    const { namespace, reference } = parseCaipChainId(chainId);
+    if (namespace !== KnownCaipNamespace.Eip155) {
+      return undefined;
+    }
+    return toHex(reference);
+  }
+  if (chainId.startsWith('0x')) {
+    return chainId;
+  }
+  return undefined;
+}
+
+/**
+ * Resolves the block explorer base URL for a chain, independent of the globally
+ * selected network (e.g. token details on Linea while Solana is selected).
+ *
+ * @param {string} chainId - Hex, CAIP-2, or non-EVM CAIP chain id
+ * @param {object} networkConfigurations - from `selectNetworkConfigurations`
+ * @returns {string|undefined}
+ */
+export function findBlockExplorerUrlForChain(chainId, networkConfigurations) {
+  if (!chainId) {
+    return undefined;
+  }
+  if (isNonEvmChainId(chainId)) {
+    return findBlockExplorerForNonEvmChainId(chainId);
+  }
+
+  const hexChainId = getHexEvmChainId(chainId);
+  if (!hexChainId) {
+    return undefined;
+  }
+
+  const networkConfig = networkConfigurations?.[hexChainId];
+  let blockExplorer =
+    networkConfig?.blockExplorerUrls?.[
+      networkConfig?.defaultBlockExplorerUrlIndex ?? 0
+    ];
+
+  if (isMainNet(hexChainId)) {
+    blockExplorer = MAINNET_BLOCK_EXPLORER;
+  } else if (isLineaMainnetChainId(hexChainId)) {
+    blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
+  } else if (hexChainId === CHAIN_IDS.LINEA_SEPOLIA) {
+    blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
+  } else if (hexChainId === CHAIN_IDS.SEPOLIA) {
+    blockExplorer = SEPOLIA_BLOCK_EXPLORER;
+  } else if (hexChainId === CHAIN_IDS.BASE) {
+    blockExplorer = BASE_MAINNET_BLOCK_EXPLORER;
+  }
+
+  if (!blockExplorer || blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+    const popularNetwork = PopularList.find(
+      (network) => network.chainId === hexChainId,
+    );
+    if (popularNetwork?.rpcPrefs?.blockExplorerUrl) {
+      blockExplorer = popularNetwork.rpcPrefs.blockExplorerUrl;
+    }
+  }
+
+  if (!blockExplorer || blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+    return undefined;
+  }
+  return blockExplorer;
+}
+
+/**
  * Returns block explorer for non-evm account
  *
  * @param {object} internalAccount - Internal account object
@@ -482,6 +579,15 @@ export function compareRpcUrls(rpcOne, rpcTwo) {
 }
 
 /**
+ * Hostname-to-display-name overrides for block explorers whose
+ * auto-derived name (first subdomain, capitalised) is not ideal.
+ */
+const BLOCK_EXPLORER_NAME_OVERRIDES = {
+  'megaeth.blockscout.com': 'MegaETH Explorer',
+  'explore.tempo.xyz': 'Tempo Explorer',
+};
+
+/**
  * From block explorer url, get rendereable name or undefined
  *
  * @param {string} blockExplorerUrl - block explorer url
@@ -490,6 +596,14 @@ export function getBlockExplorerName(blockExplorerUrl) {
   if (!blockExplorerUrl) return undefined;
   const hostname = new URL(blockExplorerUrl).hostname;
   if (!hostname) return undefined;
+  if (
+    Object.prototype.hasOwnProperty.call(
+      BLOCK_EXPLORER_NAME_OVERRIDES,
+      hostname,
+    )
+  ) {
+    return BLOCK_EXPLORER_NAME_OVERRIDES[hostname];
+  }
   const tempBlockExplorerName = fastSplit(hostname);
   if (!tempBlockExplorerName || !tempBlockExplorerName[0]) return undefined;
   return (
@@ -700,7 +814,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['monad-testnet']]: 'Monad Testnet',
   [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
   [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HyperEVM',
-  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'MegaEth',
+  [NETWORKS_CHAIN_ID.MEGAETH_MAINNET]: 'MegaETH',
 };
 
 // Whitelisted symbols for specific chain IDs to prevent showing warnings on Network Settings.

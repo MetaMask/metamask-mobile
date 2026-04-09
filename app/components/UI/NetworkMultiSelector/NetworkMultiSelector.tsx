@@ -36,7 +36,7 @@ import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
@@ -51,6 +51,8 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
+import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
+import { resolveNetworkDisplayName } from './NetworkMultiSelectorUtils';
 
 interface ModalState {
   showPopularNetworkModal: boolean;
@@ -94,7 +96,7 @@ const NetworkMultiSelector = ({
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
@@ -233,58 +235,13 @@ const NetworkMultiSelector = ({
   );
 
   const getNetworkName = useCallback(
-    (chainId: string | null): string => {
-      if (!chainId) return strings('network_information.unknown_network');
-
-      if (currentSelectedNetwork) {
-        if (currentSelectedNetwork.caipChainId === chainId) {
-          return currentSelectedNetwork.name;
-        }
-
-        try {
-          const parsed = parseCaipChainId(currentSelectedNetwork.caipChainId);
-          if (parsed.namespace === KnownCaipNamespace.Eip155) {
-            const networkHexChainId = toHex(parsed.reference);
-            if (networkHexChainId === chainId) {
-              return currentSelectedNetwork.name;
-            }
-          }
-        } catch {
-          // Continue to fallback logic
-        }
-      }
-
-      const isEvmChainId = chainId.startsWith('0x');
-      if (isEvmChainId) {
-        const networkConfig = networkConfigurations[chainId as Hex];
-        return (
-          networkConfig?.name || strings('network_information.unknown_network')
-        );
-      }
-
-      const nonEvmConfig = nonEvmNetworkConfigurations[chainId as CaipChainId];
-      if (nonEvmConfig) {
-        return (
-          nonEvmConfig.name || strings('network_information.unknown_network')
-        );
-      }
-
-      try {
-        const parsed = parseCaipChainId(chainId as CaipChainId);
-        if (parsed.namespace === KnownCaipNamespace.Eip155) {
-          const hexChainId = toHex(parsed.reference);
-          const networkConfig = networkConfigurations[hexChainId];
-          return (
-            networkConfig?.name ||
-            strings('network_information.unknown_network')
-          );
-        }
-      } catch {
-        // Not a valid CAIP chain ID
-      }
-
-      return strings('network_information.unknown_network');
-    },
+    (chainId: string | null): string =>
+      resolveNetworkDisplayName({
+        chainId,
+        evmNetworkConfigurations: networkConfigurations,
+        nonEvmNetworkConfigurations,
+        currentSelectedNetwork: currentSelectedNetwork ?? null,
+      }),
     [
       networkConfigurations,
       nonEvmNetworkConfigurations,
@@ -439,6 +396,13 @@ const NetworkMultiSelector = ({
     ],
   );
 
+  const renderBalancePerChain = useCallback(
+    (caipChainId: CaipChainId) => (
+      <AccountGroupBalancePerChain caipChainId={caipChainId} />
+    ),
+    [],
+  );
+
   return (
     <ScrollView
       style={styles.bodyContainer}
@@ -450,6 +414,7 @@ const NetworkMultiSelector = ({
         networks={networksToUse}
         selectedChainIds={selectedChainIds}
         onSelectNetwork={onSelectNetwork}
+        renderRightAccessory={renderBalancePerChain}
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
         areAllNetworksSelected={areAllNetworksSelectedCombined}

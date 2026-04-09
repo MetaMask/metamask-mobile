@@ -3,8 +3,8 @@ import {
   calculateMarginRequired,
   getMaxAllowedAmount,
   buildOrdersArray,
-} from './orderCalculations';
-import { ORDER_SLIPPAGE_CONFIG } from '../constants/perpsConfig';
+  ORDER_SLIPPAGE_CONFIG,
+} from '@metamask/perps-controller';
 
 describe('orderCalculations', () => {
   describe('calculatePositionSize', () => {
@@ -354,6 +354,27 @@ describe('orderCalculations', () => {
       // Assert
       expect(result).toBeGreaterThanOrEqual(0);
       expect(result).toBeLessThanOrEqual(50); // 10 * 5 leverage
+    });
+
+    it('should apply margin buffer so result is below theoretical max', () => {
+      // Arrange - case where theoretical max is 1000 (100 * 10)
+      const params = {
+        availableBalance: 100,
+        assetPrice: 50000,
+        assetSzDecimals: 6,
+        leverage: 10,
+      };
+
+      // Act
+      const result = getMaxAllowedAmount(params);
+      const theoreticalMax = params.availableBalance * params.leverage;
+
+      // Assert - buffer (0.5%) reduces max to avoid "Insufficient margin" rejections
+      expect(result).toBeGreaterThan(0);
+      expect(result).toBeLessThanOrEqual(theoreticalMax);
+      expect(result).toBeLessThanOrEqual(
+        Math.floor(theoreticalMax * (1 - 0.005)),
+      );
     });
   });
 

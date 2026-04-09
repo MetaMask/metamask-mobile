@@ -98,6 +98,36 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       BodyLg: 'BodyLg',
     },
+    Button: ({
+      children,
+      testID,
+      onPress,
+      isDisabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      isDisabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
   };
 });
 
@@ -189,20 +219,11 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
   return {
     __esModule: true,
     default: MockTextField,
-    TextFieldSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
   };
 });
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'card_button_clicked',
-    CARD_VIEWED: 'card_viewed',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 // Mock i18n strings
@@ -318,9 +339,11 @@ describe('ConfirmPhoneNumber Component', () => {
       phoneNumber: '1234567890',
     });
 
-    // Set up useMetrics mock
-    const { useMetrics } = jest.requireMock('../../../../hooks/useMetrics');
-    useMetrics.mockReturnValue({
+    // Set up useAnalytics mock
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    useAnalytics.mockReturnValue({
       trackEvent: jest.fn(),
       createEventBuilder: jest.fn(() => ({
         addProperties: jest.fn(() => ({
@@ -450,7 +473,7 @@ describe('ConfirmPhoneNumber Component', () => {
   describe('Continue Button', () => {
     it('should render continue button', () => {
       const store = createTestStore();
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -458,7 +481,7 @@ describe('ConfirmPhoneNumber Component', () => {
 
       const button = getByTestId('confirm-phone-number-continue-button');
       expect(button).toBeTruthy();
-      expect(getByTestId('button-label')).toHaveTextContent('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
 
     it('should be disabled when confirmation code is empty', () => {

@@ -6,8 +6,9 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -27,6 +28,8 @@ import MultichainBridgeTransactionListItem from '../../../components/UI/Multicha
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+
 interface MultichainTransactionsViewProps {
   /**
    * Override transactions instead of using selector
@@ -39,7 +42,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Override navigation instance
    */
-  navigation?: NavigationProp<Record<string, object | undefined>>;
+  navigation?: AppNavigationProp;
   /**
    * Override selected address
    */
@@ -64,6 +67,10 @@ interface MultichainTransactionsViewProps {
    * Scroll event handler
    */
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /**
+   * Location context for analytics tracking (home or asset_details)
+   */
+  location?: TransactionDetailLocation;
 }
 
 const MultichainTransactionsView = ({
@@ -76,6 +83,7 @@ const MultichainTransactionsView = ({
   emptyMessage,
   showDisclaimer = false,
   onScroll,
+  location,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -154,6 +162,7 @@ const MultichainTransactionsView = ({
         bridgeHistoryItem={bridgeHistoryItem}
         navigation={nav}
         index={index}
+        location={location}
       />
     ) : (
       <MultichainTransactionListItem
@@ -161,6 +170,7 @@ const MultichainTransactionsView = ({
         navigation={nav}
         index={index}
         chainId={chainId}
+        location={location}
       />
     );
   };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import type { PerpsMarketRowSkeletonProps } from './PerpsMarketRowSkeleton.types';
 import styleSheet from './PerpsMarketRowSkeleton.styles';

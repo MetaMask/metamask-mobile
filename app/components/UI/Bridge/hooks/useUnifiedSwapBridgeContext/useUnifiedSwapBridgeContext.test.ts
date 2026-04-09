@@ -13,6 +13,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectSourceToken: jest.fn(),
   selectDestToken: jest.fn(),
   selectSourceAmount: jest.fn(),
+  selectDestTokenWarning: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
@@ -49,6 +50,10 @@ describe('useUnifiedSwapBridgeContext', () => {
     '../../../../../core/redux/slices/bridge',
   ).selectSourceAmount;
 
+  const mockSelectDestTokenWarning = jest.requireMock(
+    '../../../../../core/redux/slices/bridge',
+  ).selectDestTokenWarning;
+
   const mockSelectCurrencyRates = jest.requireMock(
     '../../../../../selectors/currencyRateController',
   ).selectCurrencyRates;
@@ -69,6 +74,7 @@ describe('useUnifiedSwapBridgeContext', () => {
     jest.clearAllMocks();
     // Set default mock values
     mockSelectSourceAmount.mockReturnValue(undefined);
+    mockSelectDestTokenWarning.mockReturnValue(undefined);
     mockSelectCurrencyRates.mockReturnValue({});
     mockSelectTokenMarketData.mockReturnValue({});
     mockSelectNetworkConfigurations.mockReturnValue({});
@@ -157,12 +163,11 @@ describe('useUnifiedSwapBridgeContext', () => {
     mockSelectDestToken.mockReturnValue({ symbol: 'USDC' });
     mockSelectSourceAmount.mockReturnValue('1');
     mockSelectCurrencyRates.mockReturnValue({
-      usd: { conversionRate: 1 },
-      ETH: { conversionRate: 1 },
+      ETH: { conversionRate: 2000, usdConversionRate: 2000 },
     });
     mockSelectTokenMarketData.mockReturnValue({
       '0x1': {
-        '0x0000000000000000000000000000000000000000': { price: 2000 },
+        '0x0000000000000000000000000000000000000000': { price: 1 },
       },
     });
     mockSelectNetworkConfigurations.mockReturnValue({
@@ -177,6 +182,8 @@ describe('useUnifiedSwapBridgeContext', () => {
     );
 
     expect(result.current.usd_amount_source).toBeDefined();
+    // 1 ETH, price=1 (native), conversionRate=2000, usdConversionRate=2000
+    // tokenFiatValue = 1 * 2000 * 1 = 2000, usdAmount = 2000 * (2000/2000) = 2000
     expect(result.current.usd_amount_source).toBe(2000);
   });
 

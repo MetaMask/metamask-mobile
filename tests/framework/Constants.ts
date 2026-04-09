@@ -1,12 +1,19 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import { GanacheHardfork } from './types.ts';
-import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
+import { GanacheHardfork, RampsRegion } from './types';
+import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 
 // The RPC URL for the local node
 // This should be used in fixtures where a url is needed.
 // The port is then translated to the actual allocated port
 export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
+
+// Default implicit wait timeout for WebDriverIO element lookups (in ms).
+// Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
+export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;
+
+// Default action timeout for Playwright/WebDriverIO actions (tap, click, type, etc.) in ms.
+export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
 
 // Port Constants
 // Fallback ports - used in fixture data (app's persisted state)
@@ -32,6 +39,9 @@ export const APP_PACKAGE_IDS = {
   IOS: 'io.metamask.MetaMask',
   ANDROID: 'io.metamask',
 } as const;
+
+// Package ID for the React Native playground APK (pre-installed on the device)
+export const PLAYGROUND_PACKAGE_ID = 'com.anonymous.multichainrnplayground';
 
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
@@ -60,6 +70,15 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'dist',
 );
 
+export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'browser-playground',
+  'build',
+);
+
 /**
  * The schemes for the E2E deep links.
  * @enum {string}
@@ -85,6 +104,7 @@ export enum DappVariants {
   TEST_DAPP = 'test-dapp',
   MULTICHAIN_TEST_DAPP = 'multichain-test-dapp',
   SOLANA_TEST_DAPP = 'solana-test-dapp',
+  BROWSER_PLAYGROUND = 'browser-playground',
 }
 
 export const TestDapps = {
@@ -97,6 +117,9 @@ export const TestDapps = {
   [DappVariants.SOLANA_TEST_DAPP]: {
     dappPath: path.resolve(__dirname, DEFAULT_SOLANA_TEST_DAPP_PATH),
   },
+  [DappVariants.BROWSER_PLAYGROUND]: {
+    dappPath: path.resolve(__dirname, DEFAULT_BROWSER_PLAYGROUND_PATH),
+  },
 };
 
 export enum RampsRegionsEnum {
@@ -106,12 +129,14 @@ export enum RampsRegionsEnum {
   SPAIN = 'spain',
 }
 
-export const RampsRegions = {
+export const RampsRegions: Record<RampsRegionsEnum, RampsRegion> = {
   [RampsRegionsEnum.SAINT_LUCIA]: {
     currencies: ['/currencies/fiat/xcd'],
     emoji: '🇱🇨',
     id: '/regions/lc',
     name: 'Saint Lucia',
+    countryName: 'Saint Lucia',
+    countryIsoCode: 'LC',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -122,6 +147,8 @@ export const RampsRegions = {
     emoji: '🇫🇷',
     id: '/regions/fr',
     name: 'France',
+    countryName: 'France',
+    countryIsoCode: 'FR',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -132,6 +159,10 @@ export const RampsRegions = {
     emoji: '🇺🇸',
     id: '/regions/us-ca',
     name: 'California',
+    countryName: 'United States',
+    countryIsoCode: 'US',
+    stateName: 'California',
+    stateIsoCode: 'CA',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
@@ -142,6 +173,8 @@ export const RampsRegions = {
     emoji: '🇪🇸',
     id: '/regions/es',
     name: 'Spain',
+    countryName: 'Spain',
+    countryIsoCode: 'ES',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,

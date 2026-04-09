@@ -12,7 +12,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
@@ -27,6 +27,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
   'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
   'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
+  'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -93,8 +94,8 @@ export const PopularList = [
   {
     chainId: toHex('999'),
     nickname: 'HyperEVM',
-    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
-    failoverRpcUrls: [],
+    rpcUrl: `https://hyperevm-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
     ticker: 'HYPE',
     warning: true,
     rpcPrefs: {
@@ -178,7 +179,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('4326'),
-    nickname: 'MegaEth',
+    nickname: 'MegaETH',
     rpcUrl: `https://megaeth-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'ETH',
@@ -387,6 +388,9 @@ export const NETWORK_CHAIN_ID: {
   readonly ROOTSTOCK: '0x1e';
   readonly ROOTSTOCK_TESTNET: '0x1f';
   readonly TEMPO_TESTNET: '0xa5bf';
+  readonly TEMPO_MAINNET: '0x1079';
+  readonly CHILIZ: '0x15b38';
+  readonly STABLE_MAINNET: '0x3dc';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -430,10 +434,13 @@ export const NETWORK_CHAIN_ID: {
   ROOTSTOCK: '0x1e',
   ROOTSTOCK_TESTNET: '0x1f',
   TEMPO_TESTNET: '0xa5bf',
+  TEMPO_MAINNET: '0x1079',
+  CHILIZ: '0x15b38',
+  STABLE_MAINNET: '0x3dc',
   ...CHAIN_IDS,
 };
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
@@ -478,4 +485,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ROOTSTOCK]: require('../../images/rootstock.png'),
   [NETWORK_CHAIN_ID.ROOTSTOCK_TESTNET]: require('../../images/rootstock.png'),
   [NETWORK_CHAIN_ID.TEMPO_TESTNET]: require('../../images/tempo.png'),
+  [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
+  [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
+  [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
 };

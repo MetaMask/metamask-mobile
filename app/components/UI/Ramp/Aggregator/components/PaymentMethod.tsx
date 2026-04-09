@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../../locales/i18n';
-import { TimeDescriptions, timeToDescription } from '../utils';
+import { formatDelayFromArray } from '../utils';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import PaymentMethodBadges from './PaymentMethodBadges';
@@ -66,43 +66,6 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const renderDescription = (description: TimeDescriptions | string) => {
-  switch (description) {
-    case TimeDescriptions.instant: {
-      return strings('fiat_on_ramp_aggregator.payment_method.instant');
-    }
-    case TimeDescriptions.less_than: {
-      return strings('fiat_on_ramp_aggregator.payment_method.less_than');
-    }
-    case TimeDescriptions.separator: {
-      return '-';
-    }
-    case TimeDescriptions.minutes: {
-      return strings('fiat_on_ramp_aggregator.payment_method.minutes');
-    }
-    case TimeDescriptions.minute: {
-      return strings('fiat_on_ramp_aggregator.payment_method.minute');
-    }
-    case TimeDescriptions.hours: {
-      return strings('fiat_on_ramp_aggregator.payment_method.hours');
-    }
-    case TimeDescriptions.hour: {
-      return strings('fiat_on_ramp_aggregator.payment_method.hour');
-    }
-    case TimeDescriptions.business_days: {
-      return strings('fiat_on_ramp_aggregator.payment_method.business_days');
-    }
-    case TimeDescriptions.business_day: {
-      return strings('fiat_on_ramp_aggregator.payment_method.business_day');
-    }
-    default: {
-      return description;
-    }
-  }
-};
-const renderTime = (time: number[]) =>
-  timeToDescription(time).map(renderDescription).join(' ');
-
 const tierDescriptions = [
   strings('fiat_on_ramp_aggregator.payment_method.lowest_limit'),
   strings('fiat_on_ramp_aggregator.payment_method.medium_limit'),
@@ -140,7 +103,7 @@ const PaymentMethod: React.FC<Props> = ({
             <View style={[styles.line, compact && styles.compactLine]} />
 
             <Text variant={TextVariant.BodySM}>
-              <Feather name="clock" /> {renderTime(time)} •{' '}
+              <Feather name="clock" /> {formatDelayFromArray(time)} •{' '}
               {new Array(amountTier[1]).fill('').map((_, index) => (
                 <Text
                   key={index}

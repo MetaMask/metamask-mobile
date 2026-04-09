@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -17,7 +17,8 @@ import {
   selectNetworkConfigurationByChainId,
 } from '../../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import {
   selectPooledStakingEnabledFlag,
@@ -41,25 +42,17 @@ import BigNumber from 'bignumber.js';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 import useEarnToken from '../../../Earn/hooks/useEarnToken';
 import { EarnTokenDetails } from '../../../Earn/types/lending.types';
-
-const styles = StyleSheet.create({
-  stakeButton: {
-    flexDirection: 'row',
-  },
-  dot: {
-    marginLeft: 2,
-    marginRight: 2,
-  },
-});
-
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './StakeButton.styles';
 interface StakeButtonContentProps {
   earnToken: EarnTokenDetails;
 }
 
 // TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
 
@@ -187,10 +180,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}
     >
-      <Text variant={TextVariant.BodySMMedium} style={styles.dot}>
-        {' • '}
-      </Text>
-      <Text color={TextColor.Primary} variant={TextVariant.BodySMMedium}>
+      <Text color={TextColor.Alternative} variant={TextVariant.BodyXSMedium}>
         {renderEarnButtonText()}
       </Text>
     </TouchableOpacity>

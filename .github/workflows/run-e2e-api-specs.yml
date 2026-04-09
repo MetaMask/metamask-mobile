@@ -61,7 +61,7 @@ jobs:
         run: yarn detox --version
 
       - name: Setup Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app
 
       - name: Install applesimutils for iOS simulator control
         run: |
@@ -160,7 +160,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-specs-test-results
-          path: e2e/reports/
+          path: tests/reports/
           retention-days: 7
 
       - name: Upload API specs screenshots
@@ -168,5 +168,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-specs-screenshots
-          path: artifacts/
+          path: tests/artifacts/
           retention-days: 7

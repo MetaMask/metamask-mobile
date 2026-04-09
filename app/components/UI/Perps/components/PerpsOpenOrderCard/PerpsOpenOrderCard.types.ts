@@ -1,4 +1,4 @@
-import type { Order } from '../../controllers/types';
+import { type Order } from '@metamask/perps-controller';
 
 export interface PerpsOpenOrderCardProps {
   order: Order;

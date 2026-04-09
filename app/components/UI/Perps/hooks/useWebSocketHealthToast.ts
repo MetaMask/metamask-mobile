@@ -1,8 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { usePerpsConnection } from './usePerpsConnection';
 import Engine from '../../../../core/Engine';
-import { WebSocketConnectionState } from '../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { useWebSocketHealthToastContext } from '../components/PerpsWebSocketHealthToast';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 /** Delay before automatically attempting to reconnect after disconnection */
 const AUTO_RETRY_DELAY_MS = 10000;
@@ -34,9 +35,13 @@ export function useWebSocketHealthToast(): void {
 
   // Track the previous WebSocket state for transition detection
   const previousWsStateRef = useRef<WebSocketConnectionState | null>(null);
-  // Track if we've experienced a disconnection after being connected
-  // This is used to distinguish initial connection from reconnection
+  // Track if we've experienced a disconnection — used to gate the "back online" toast
+  // so we only show it after a real outage, not on initial connection.
   const hasExperiencedDisconnectionRef = useRef(false);
+  // Track if the current disconnect/reconnect cycle was intentional (account/network switch).
+  // isDisconnecting is cleared on the singleton before the Connected event fires, so we
+  // latch the value here when the cycle starts and clear it on Connected.
+  const isIntentionalReconnectRef = useRef(false);
   // Timer for auto-retry
   const autoRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -111,56 +116,63 @@ export function useWebSocketHealthToast(): void {
           const isNowConnected =
             newState === WebSocketConnectionState.Connected;
 
-          // Handle first callback after mount/remount
+          // Handle first callback after mount/remount.
+          // The subscription (BehaviorSubject-style) fires immediately with the current
+          // internal state, which begins as Disconnected and only becomes Connected once
+          // the WS handshake completes. We must not show a toast on this initial snapshot
+          // because we have no prior context — we don't know if this is a genuine offline
+          // state or just a stale initial value. Wait for a real state transition instead.
           if (previousWsState === null) {
             previousWsStateRef.current = newState;
-
-            // If we mount/remount and the connection is already in a problematic state,
-            // show the toast after a delay to avoid flicker on quick reconnects.
-            if (newState === WebSocketConnectionState.Disconnected) {
-              hasExperiencedDisconnectionRef.current = true;
-              scheduleShowBanner(
-                WebSocketConnectionState.Disconnected,
-                attempt,
-              );
-              // Schedule auto-retry for disconnected state
-              scheduleAutoRetry();
-            } else if (newState === WebSocketConnectionState.Connecting) {
-              hasExperiencedDisconnectionRef.current = true;
-              scheduleShowBanner(WebSocketConnectionState.Connecting, attempt);
-              // Clear auto-retry when reconnecting (connection attempt in progress)
-              clearAutoRetryTimer();
-            }
-            // If CONNECTED on mount, this is normal initial state - no toast needed
+            // If already Connected on mount, that's the happy path — no toast needed.
+            // If Disconnected/Connecting on mount, we also skip the banner here; a real
+            // state change will trigger the switch-case below once the WS settles.
             return;
           }
 
-          // Detect any transition away from CONNECTED as a disconnection event
-          if (wasWsConnected && !isNowConnected) {
+          // Read isDisconnecting directly from the singleton — always live,
+          // no React render cycle delay.
+          const isIntentionalReconnect =
+            PerpsConnectionManager.getConnectionState().isDisconnecting;
+
+          // Latch intentional reconnect flag when the cycle starts (Disconnected/Connecting).
+          // isDisconnecting is cleared on the singleton before Connected fires, so we
+          // preserve the value in a ref for the Connected handler.
+          if (isIntentionalReconnect) {
+            isIntentionalReconnectRef.current = true;
+          }
+
+          // Track any transition away from Connected so we can show "back online" later,
+          // but only for unintentional disconnects.
+          if (wasWsConnected && !isNowConnected && !isIntentionalReconnect) {
             hasExperiencedDisconnectionRef.current = true;
           }
 
           // Handle state transitions
           switch (newState) {
             case WebSocketConnectionState.Disconnected:
-              // Show disconnected toast after delay if:
-              // 1. We were previously connected (direct disconnect), OR
-              // 2. We've been trying to reconnect and gave up (max attempts reached)
-              if (wasWsConnected || hasExperiencedDisconnectionRef.current) {
-                scheduleShowBanner(
-                  WebSocketConnectionState.Disconnected,
-                  attempt,
-                );
-                // Schedule auto-retry for disconnected state
-                scheduleAutoRetry();
+              if (isIntentionalReconnect) {
+                // Intentional reconnect (account/network/provider switch) — skip offline toast.
+                // performReconnection() manages its own timeout; no auto-retry needed here.
+                clearShowBannerDelayTimer();
+                break;
               }
+              // Any post-snapshot Disconnected state is worth showing — whether it's a
+              // direct drop from Connected or a failed reconnection attempt.
+              hasExperiencedDisconnectionRef.current = true;
+              scheduleShowBanner(
+                WebSocketConnectionState.Disconnected,
+                attempt,
+              );
+              scheduleAutoRetry();
               break;
 
             case WebSocketConnectionState.Connecting:
-              // Clear auto-retry when reconnecting (connection attempt in progress)
               clearAutoRetryTimer();
-              // Show connecting toast after delay when reconnecting (after a disconnection)
-              if (hasExperiencedDisconnectionRef.current) {
+              if (!isIntentionalReconnect) {
+                // Only arm "back online", hide any existing toast, and show banner for unintentional reconnects
+                hide();
+                hasExperiencedDisconnectionRef.current = true;
                 scheduleShowBanner(
                   WebSocketConnectionState.Connecting,
                   attempt,
@@ -173,12 +185,16 @@ export function useWebSocketHealthToast(): void {
               clearShowBannerDelayTimer();
               // Clear auto-retry when connected
               clearAutoRetryTimer();
-              // Show connected toast only if we've experienced a disconnection before
-              if (hasExperiencedDisconnectionRef.current) {
+              // Show connected toast only after a real (unintentional) outage
+              if (
+                hasExperiencedDisconnectionRef.current &&
+                !isIntentionalReconnectRef.current
+              ) {
                 show(WebSocketConnectionState.Connected, attempt);
-                // Reset the flag after successful reconnection
-                hasExperiencedDisconnectionRef.current = false;
               }
+              // Reset flags after connection restored
+              hasExperiencedDisconnectionRef.current = false;
+              isIntentionalReconnectRef.current = false;
               break;
 
             default:

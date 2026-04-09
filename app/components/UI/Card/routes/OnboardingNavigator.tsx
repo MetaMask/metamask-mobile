@@ -22,7 +22,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import KYCWebview from '../components/Onboarding/KYCWebview';
 import {
   NavigationProp,
   ParamListBase,
@@ -114,6 +113,12 @@ const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
+  // Track user data fetch separately from SDK's isLoading to guard against
+  // the SDK init effect resetting isLoading mid-fetch (e.g. when fetchUserData
+  // dispatches setUserCardLocation and triggers SDK re-initialization).
+  const [isFetchingUserData, setIsFetchingUserData] = useState(
+    () => !!onboardingId && !user,
+  );
   const navigation = useNavigation();
   const route =
     useRoute<
@@ -133,7 +138,9 @@ const OnboardingNavigator: React.FC = () => {
   // when the navigator is accessed
   useEffect(() => {
     if (!isMounted && onboardingId && !user) {
-      fetchUserData();
+      fetchUserData().finally(() => setIsFetchingUserData(false));
+    } else {
+      setIsFetchingUserData(false);
     }
     setIsMounted(true);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -153,7 +160,7 @@ const OnboardingNavigator: React.FC = () => {
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
     if (cardUserPhase) {
-      if (cardUserPhase === 'ACCOUNT' || !user?.contactVerificationId) {
+      if (cardUserPhase === 'ACCOUNT') {
         return Routes.CARD.ONBOARDING.SIGN_UP;
       }
       if (cardUserPhase === 'PHONE_NUMBER') {
@@ -223,17 +230,23 @@ const OnboardingNavigator: React.FC = () => {
     return Routes.CARD.ONBOARDING.SIGN_UP;
   }, [user, cardUserPhase, onboardingId]);
 
+  // Stable primitives derived from the user object — avoids re-firing the effect
+  // when fetchUserData resolves with a new object reference but identical data.
+  const isUserLoaded = !!user;
+  const userVerificationState = user?.verificationState;
+
   // Show "keep going" modal only when a returning user resumes an incomplete flow
   // isReturningSession is determined at CardSDKProvider mount (when card flow starts),
   // not when this navigator mounts, so it correctly identifies returning users
   // Skip when deeplink navigates directly to Complete screen (e.g., KYC notification)
   useEffect(() => {
     if (
-      isReturningSession &&
+      (isReturningSession || cardUserPhase) &&
+      isUserLoaded &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
       initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
-      user?.verificationState !== 'REJECTED' &&
+      userVerificationState !== 'REJECTED' &&
       !isDeeplinkToComplete
     ) {
       hasShownKeepGoingModal.current = true;
@@ -255,12 +268,14 @@ const OnboardingNavigator: React.FC = () => {
   }, [
     isReturningSession,
     initialRouteName,
+    cardUserPhase,
     navigation,
-    user?.verificationState,
+    isUserLoaded,
+    userVerificationState,
     isDeeplinkToComplete,
   ]);
 
-  if (isLoading && !user) {
+  if ((isLoading || isFetchingUserData) && !user) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
         <ActivityIndicator testID="activity-indicator" size="large" />
@@ -293,11 +308,6 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.VERIFY_IDENTITY}
         component={VerifyIdentity}
-        options={PostEmailNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.ONBOARDING.WEBVIEW}
-        component={KYCWebview}
         options={PostEmailNavigationOptions}
       />
       <Stack.Screen

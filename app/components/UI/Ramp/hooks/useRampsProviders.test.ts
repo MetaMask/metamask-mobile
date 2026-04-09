@@ -1,5 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
@@ -12,12 +17,33 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       setSelectedProvider: jest.fn(),
+      getProviders: jest.fn().mockResolvedValue({ providers: [] }),
     },
   },
 }));
 
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQuery: jest.fn(),
+}));
+
+const mockSelectedAccountGroupAddresses: string[] = [];
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () =>
+      mockSelectedAccountGroupAddresses,
+  }),
+);
+
 jest.mock('../utils/determinePreferredProvider', () => ({
   determinePreferredProvider: jest.fn(),
+  completedOrdersFromFiatOrders: jest.fn(() => []),
+  completedOrdersFromRampsOrders: jest.fn(() => []),
 }));
 
 const emptyOrders: FiatOrder[] = [];
@@ -57,7 +83,10 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
-const createMockStore = (providersState = {}) =>
+const createMockStore = (
+  providersState = {},
+  userRegion = { regionCode: 'us', country: { currency: 'USD' } },
+) =>
   configureStore({
     reducer: {
       engine: () => ({
@@ -70,20 +99,54 @@ const createMockStore = (providersState = {}) =>
               error: null,
               ...providersState,
             },
+            userRegion,
+            orders: [],
           },
         },
+      }),
+      fiatOrders: () => ({
+        orders: [],
       }),
     },
   });
 
-const wrapper = (store: ReturnType<typeof createMockStore>) =>
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(Provider, { store } as never, children);
-  };
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+const wrapper =
+  (store: ReturnType<typeof createMockStore>) =>
+  ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      Provider,
+      { store } as never,
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      ),
+    );
 
 describe('useRampsProviders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('providers query', () => {
+    const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
+
+    it('triggers providers query when regionCode is available', () => {
+      const store = createMockStore();
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: true,
+        }),
+      );
+    });
   });
 
   describe('return value structure', () => {
@@ -175,7 +238,7 @@ describe('useRampsProviders', () => {
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[0].id);
+      ).toHaveBeenCalledWith(mockProviders[0].id, undefined);
     });
 
     it('calls Engine.context.RampsController.setSelectedProvider with null when provider is null', () => {
@@ -190,7 +253,24 @@ describe('useRampsProviders', () => {
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(null);
+      ).toHaveBeenCalledWith(null, undefined);
+    });
+
+    it('forwards options to the controller', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0], {
+          autoSelected: true,
+        });
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id, { autoSelected: true });
     });
   });
 
@@ -201,17 +281,20 @@ describe('useRampsProviders', () => {
         typeof determinePreferredProvider
       >;
 
-    it('calls determinePreferredProvider with orders and providers when providers exist and selectedProvider is null', () => {
+    it('calls determinePreferredProvider with completed orders and providers when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue(mockProviders[0]);
+      mockDeterminePreferredProvider.mockReturnValue({
+        provider: mockProviders[0],
+        autoSelected: false,
+      });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
       expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
-        emptyOrders,
+        expect.any(Array),
         mockProviders,
       );
     });
@@ -219,15 +302,32 @@ describe('useRampsProviders', () => {
     it('calls setSelectedProvider with result of determinePreferredProvider when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue(mockProviders[1]);
+      mockDeterminePreferredProvider.mockReturnValue({
+        provider: mockProviders[1],
+        autoSelected: false,
+      });
 
-      renderHook(() => useRampsProviders(), {
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
         wrapper: wrapper(store),
       });
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[1].id);
+      ).toHaveBeenCalledWith(mockProviders[1], { autoSelected: false });
+    });
+
+    it('does not call setSelectedProvider when determinePreferredProvider returns null', () => {
+      const store = createMockStore({ data: mockProviders });
+      mockGetOrders.mockReturnValue(emptyOrders);
+      mockDeterminePreferredProvider.mockReturnValue(null);
+
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
+        wrapper: wrapper(store),
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not call determinePreferredProvider when providers is empty', () => {
@@ -253,6 +353,20 @@ describe('useRampsProviders', () => {
       });
 
       expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not call determinePreferredProvider when providers is undefined', () => {
+      const store = createMockStore({ data: undefined });
+      mockDeterminePreferredProvider.mockClear();
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
     });
   });
 });

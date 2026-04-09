@@ -6,16 +6,55 @@ import type {
   RenewRefreshToken,
   RevokeRefreshToken,
 } from '@metamask/seedless-onboarding-controller/dist/types.d.cts';
+import ReduxService from '../redux';
+import Device from '../../util/device';
+import { IosGID } from './OAuthLoginHandlers/constants';
 
 export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
 export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
 export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
+
+/**
+ * Thrown when the auth server returns a non-2xx response during a token
+ * refresh attempt.  Callers can inspect `statusCode` to distinguish between
+ * permanent failures (e.g. 401 – token revoked) and transient ones (e.g. 503).
+ */
+export class RefreshTokenHttpError extends Error {
+  readonly statusCode: number;
+
+  constructor(statusCode: number, message: string) {
+    super(message);
+    this.name = 'RefreshTokenHttpError';
+    this.statusCode = statusCode;
+  }
+}
 
 interface AuthTokenHandlerInterface {
   refreshJWTToken: RefreshJWTToken;
   renewRefreshToken: RenewRefreshToken;
   revokeRefreshToken: RevokeRefreshToken;
 }
+
+/**
+ * Returns the iOS Google client ID to use for refresh-token requests.
+ *
+ * Refresh flows must keep using the client ID tied to the original login when
+ * it has been persisted in onboarding state. If no persisted value exists, this
+ * falls back to the legacy `IosGID` so existing iOS Google users can continue
+ * refreshing tokens after the supported login config changes.
+ */
+const getActiveIosGoogleClientId = () => {
+  const clientId =
+    ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
+  if (clientId) {
+    return clientId;
+  }
+  // if client id is not set, use the default legacy IosGID
+  if (!IosGID) {
+    throw new Error('IosGID is not set');
+  }
+  return IosGID;
+};
 
 class AuthTokenHandler implements AuthTokenHandlerInterface {
   /**
@@ -37,6 +76,12 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     const { connection, refreshToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection);
 
+    if (Device.isIos() && connection === AuthConnection.Google) {
+      // need to overwrite the client id for the refresh token request for backward compatible with existing ios google users
+      const clientId = getActiveIosGoogleClientId();
+      loginHandler.options.clientId = clientId;
+    }
+
     const requestData = {
       client_id: loginHandler.options.clientId,
       login_provider: connection,
@@ -57,7 +102,10 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to refresh JWT token');
+      throw new RefreshTokenHttpError(
+        response.status,
+        `Failed to refresh JWT token (HTTP ${response.status})`,
+      );
     }
 
     const refreshTokenData: AuthRefreshTokenResponse = await response.json();

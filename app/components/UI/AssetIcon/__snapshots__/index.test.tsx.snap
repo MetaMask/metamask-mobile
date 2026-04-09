@@ -4,7 +4,7 @@ exports[`AssetIcon should render correctly 1`] = `
 <View
   placeholderStyle={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
   useNativeDriver={true}
@@ -13,7 +13,7 @@ exports[`AssetIcon should render correctly 1`] = `
     fadeIn={true}
     placeholderStyle={
       {
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
       }
     }
     source={
@@ -59,7 +59,7 @@ exports[`AssetIcon should render correctly 1`] = `
             "backgroundColor": "#eee",
           },
           {
-            "backgroundColor": "#f3f5f9",
+            "backgroundColor": "#f3f3f4",
           },
         ]
       }

@@ -7,13 +7,14 @@
  *
  * Required Environment Variables:
  *   - SEMVER: The semantic version (e.g., "7.40.0")
- *   - BUILD_NUMBER: The build number
+ *   - IOS_BUILD_NUMBER: iOS build number
+ *   - ANDROID_BUILD_NUMBER: Android build number
  *   - SLACK_BOT_TOKEN: Slack Bot OAuth token for API calls
  *
  * Optional Environment Variables:
  *   - ANDROID_PUBLIC_URL: Public URL for Android APK download
  *   - IOS_PUBLIC_URL: Public URL for iOS build
- *   - BITRISE_PIPELINE_URL: URL to the Bitrise pipeline
+ *   - BUILD_PIPELINE_URL: URL to the GitHub Actions pipeline
  *   - GITHUB_REPOSITORY: Repository in format "owner/repo"
  *   - TEST_CHANNEL: Override channel for testing (e.g., "#mm-test-channel")
  */
@@ -21,7 +22,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import { parseChangelog } from '@metamask/auto-changelog';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -156,7 +157,7 @@ function buildSlackMessage(options) {
     buildNumber,
     androidUrl,
     iosUrl,
-    bitriseUrl,
+    pipelineUrl,
     changelogText,
     hasChangelog,
   } = options;
@@ -233,8 +234,8 @@ function buildSlackMessage(options) {
     });
   }
 
-  // Add Bitrise link
-  if (bitriseUrl) {
+  // Add pipeline link
+  if (pipelineUrl) {
     blocks.push(
       {
         type: 'divider',
@@ -244,7 +245,7 @@ function buildSlackMessage(options) {
         elements: [
           {
             type: 'mrkdwn',
-            text: `<${bitriseUrl}|View Bitrise Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|View Full Changelog>`,
+            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|View Full Changelog>`,
           },
         ],
       },
@@ -312,7 +313,7 @@ function getSlackChannel(version) {
  */
 async function main() {
   // Validate required environment variables (fail open - just log and return)
-  const requiredEnvVars = ['SEMVER', 'BUILD_NUMBER', 'SLACK_BOT_TOKEN'];
+  const requiredEnvVars = ['SEMVER', 'SLACK_BOT_TOKEN'];
   const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
 
   if (missingVars.length > 0) {
@@ -322,10 +323,12 @@ async function main() {
   }
 
   const version = process.env.SEMVER;
-  const buildNumber = process.env.BUILD_NUMBER;
+  const iosBuildNumber = process.env.IOS_BUILD_NUMBER || 'N/A';
+  const androidBuildNumber = process.env.ANDROID_BUILD_NUMBER || 'N/A';
+  const buildNumber = `iOS ${iosBuildNumber} / Android ${androidBuildNumber}`;
   const androidUrl = process.env.ANDROID_PUBLIC_URL;
   const iosUrl = process.env.IOS_PUBLIC_URL;
-  const bitriseUrl = process.env.BITRISE_PIPELINE_URL;
+  const pipelineUrl = process.env.BUILD_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
 
   // TEST_CHANNEL allows overriding the channel for local testing
@@ -369,7 +372,7 @@ async function main() {
     buildNumber,
     androidUrl,
     iosUrl,
-    bitriseUrl,
+    pipelineUrl,
     changelogText,
     hasChangelog,
   });

@@ -1,11 +1,7 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { ActivityIndicator } from 'react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
-import { TokenI } from '../../Tokens/types';
-import {
-  selectTokenDetailsV2Enabled,
-  selectTokenDetailsV2ButtonsEnabled,
-} from '../../../../selectors/featureFlagController/tokenDetailsV2';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -15,14 +11,19 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 
-// Mock feature flags
-const mockSelectTokenDetailsV2ButtonsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsV2Enabled: jest.fn(() => true),
-  selectTokenDetailsV2ButtonsEnabled: mockSelectTokenDetailsV2ButtonsEnabled,
+  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
 
-// Mock react-redux with proper selector handling
+const mockUseTokenDetailsABTest = jest.fn().mockReturnValue({
+  useNewLayout: true,
+  variantName: 'treatment',
+  isTestActive: true,
+});
+jest.mock('../hooks/useTokenDetailsABTest', () => ({
+  useTokenDetailsABTest: () => mockUseTokenDetailsABTest(),
+}));
+
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -30,18 +31,40 @@ jest.mock('react-redux', () => ({
     mockUseSelector(selector),
 }));
 
-// Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockRouteParams = jest.fn().mockReturnValue({
+  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  chainId: '0x1',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+  image: 'https://example.com/dai.png',
+  isETH: false,
+  isNative: false,
+  balance: '10.5',
+});
+const defaultRouteParams = {
+  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  chainId: '0x1',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+  image: 'https://example.com/dai.png',
+  isETH: false,
+  isNative: false,
+  balance: '10.5',
+};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useRoute: () => ({ params: mockRouteParams() }),
 }));
 
-// Mock all the hooks used by TokenDetails
 jest.mock('../hooks/useTokenPrice', () => ({
   useTokenPrice: () => ({
     currentPrice: 100,
@@ -49,7 +72,6 @@ jest.mock('../hooks/useTokenPrice', () => ({
     comparePrice: 95,
     prices: [],
     isLoading: false,
-    timePeriod: '1d',
     setTimePeriod: jest.fn(),
     chartNavigationButtons: ['1d', '1w', '1m'],
     currentCurrency: 'USD',
@@ -61,47 +83,88 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
 
-jest.mock('../hooks/useTokenBuyability', () => ({
-  useTokenBuyability: () => true,
+const mockUseTokenBuyability = jest.fn();
+jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseTokenBuyability(...args),
 }));
 
-const mockHandleBuyPress = jest.fn();
-const mockHandleSellPress = jest.fn();
+const mockGoToSwaps = jest.fn();
+const mockHandleStickySwapPress = jest.fn();
+const mockOnBuy = jest.fn();
+const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
-  useTokenActions: () => ({
-    onBuy: jest.fn(),
-    onSend: jest.fn(),
-    onReceive: jest.fn(),
-    goToSwaps: jest.fn(),
-    handleBuyPress: mockHandleBuyPress,
-    handleSellPress: mockHandleSellPress,
-    networkModal: null,
-  }),
+  useTokenActions: () => mockUseTokenActions(),
 }));
 
+const defaultUseTokenTransactionsReturn = {
+  transactions: [],
+  submittedTxs: [],
+  confirmedTxs: [],
+  loading: false,
+  transactionsUpdated: true,
+  selectedAddress: '0x1234',
+  conversionRate: 1,
+  currentCurrency: 'USD',
+  isNonEvmAsset: false,
+};
+
+const mockUseTokenTransactions = jest.fn();
 jest.mock('../hooks/useTokenTransactions', () => ({
-  useTokenTransactions: () => ({
-    transactions: [],
-    submittedTxs: [],
-    confirmedTxs: [],
-    loading: false,
-    transactionsUpdated: true,
-    selectedAddress: '0x1234',
-    conversionRate: 1,
-    currentCurrency: 'USD',
-    isNonEvmAsset: false,
-  }),
+  useTokenTransactions: (...args: unknown[]) =>
+    mockUseTokenTransactions(...args),
 }));
 
-// Mock child components
 jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: () => null,
 }));
 
-jest.mock('../components/AssetOverviewContent', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+let mockAutoResolveMarketInsights = true;
+let mockLatestMarketInsightsResolver:
+  | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
+  | undefined;
+
+const triggerMarketInsightsResolved = (params: {
+  isDisplayed: boolean;
+  severity: string | undefined;
+}) => {
+  act(() => {
+    mockLatestMarketInsightsResolver?.(params);
+  });
+};
+
+jest.mock('../components/AssetOverviewContent', () => {
+  const ReactLib = jest.requireActual('react');
+  const AssetOverviewContentMock = ({
+    onMarketInsightsDisplayResolved,
+    token,
+  }: {
+    onMarketInsightsDisplayResolved?: (params: {
+      isDisplayed: boolean;
+      severity: string | undefined;
+    }) => void;
+    token?: { address?: string; chainId?: string; symbol?: string };
+  }) => {
+    const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
+    ReactLib.useEffect(() => {
+      mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
+      if (!mockAutoResolveMarketInsights) {
+        return;
+      }
+      onMarketInsightsDisplayResolved?.({
+        isDisplayed: true,
+        severity: undefined,
+      });
+    }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
+
+    return null;
+  };
+
+  return {
+    __esModule: true,
+    default: AssetOverviewContentMock,
+  };
+});
 
 jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   __esModule: true,
@@ -110,7 +173,7 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
 }));
 
 jest.mock(
@@ -121,18 +184,23 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../Views/Asset', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-// Mock selectors
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurationByChainId: jest.fn(() => ({ name: 'Ethereum' })),
 }));
 
 jest.mock('../../Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUsePerpsMarketForAsset = jest.fn((_symbol: string | null) => ({
+  hasPerpsMarket: false,
+  marketData: null,
+  isLoading: false,
+  error: null,
+}));
+jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
+  usePerpsMarketForAsset: (symbol: string | null) =>
+    mockUsePerpsMarketForAsset(symbol),
 }));
 
 jest.mock('../../Earn/selectors/featureFlags', () => ({
@@ -153,41 +221,70 @@ jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampSupported: jest.fn(() => true),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isStockToken: jest.fn(() => false),
+  }),
+}));
+
+jest.mock('../../MarketInsights', () => ({
+  MarketInsightsDisclaimerBottomSheet: () => null,
+}));
+
 describe('TokenDetails', () => {
-  const defaultToken: TokenI = {
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-    chainId: '0x1',
-    symbol: 'DAI',
-    decimals: 18,
-    name: 'Dai Stablecoin',
-    image: 'https://example.com/dai.png',
-    isETH: false,
-    isNative: false,
-    balance: '10.5',
-  } as TokenI;
-
-  const defaultProps = {
-    route: {
-      params: defaultToken,
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(true);
+    mockRouteParams.mockReturnValue(defaultRouteParams);
+    mockAutoResolveMarketInsights = true;
+    mockLatestMarketInsightsResolver = undefined;
+    mockBuild.mockReturnValue({ category: 'token-details-opened' });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    mockUseTokenDetailsABTest.mockReturnValue({
+      useNewLayout: true,
+      variantName: 'treatment',
+      isTestActive: true,
+    });
+    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
+    mockUseTokenBuyability.mockReturnValue({
+      isBuyable: true,
+      isLoading: false,
+    });
+    mockUseTokenActions.mockReturnValue({
+      onBuy: mockOnBuy,
+      onSend: jest.fn(),
+      onReceive: jest.fn(),
+      goToSwaps: mockGoToSwaps,
+      handleBuyPress: jest.fn(),
+      handleSellPress: jest.fn(),
+      handleStickySwapPress: mockHandleStickySwapPress,
+      hasEligibleSwapTokens: true,
+      networkModal: null,
+    });
 
-    // Setup default useTokenBalance mock
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
       fiatBalance: '$150.00',
       tokenFormattedBalance: '1.5 ETH',
     });
 
-    // Setup default selector returns
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectTokenDetailsV2Enabled) return true;
-      if (selector === selectTokenDetailsV2ButtonsEnabled)
-        return mockSelectTokenDetailsV2ButtonsEnabled();
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
       if (selector === selectPerpsEnabledFlag) return false;
@@ -199,65 +296,212 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('Buy/Sell sticky buttons', () => {
-    it('shows sticky buttons when selectTokenDetailsV2ButtonsEnabled is true', () => {
-      const { getByTestId, getByText } = render(
-        <TokenDetails {...defaultProps} />,
-      );
+  afterEach(() => {
+    mockAutoResolveMarketInsights = true;
+    mockLatestMarketInsightsResolver = undefined;
+  });
+
+  it('renders loader when txLoading is true', () => {
+    mockUseTokenTransactions.mockReturnValue({
+      ...defaultUseTokenTransactionsReturn,
+      loading: true,
+    });
+
+    const { UNSAFE_getByType } = render(<TokenDetails />);
+
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  describe('Swap/Buy sticky buttons', () => {
+    it('shows sticky buttons when useNewLayout is true (treatment variant)', () => {
+      const { getByTestId, getByText } = render(<TokenDetails />);
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when selectTokenDetailsV2ButtonsEnabled is false', () => {
-      mockSelectTokenDetailsV2ButtonsEnabled.mockReturnValue(false);
+    it('does not show sticky buttons when useNewLayout is false (control variant)', () => {
+      mockUseTokenDetailsABTest.mockReturnValue({
+        useNewLayout: false,
+        variantName: 'control',
+        isTestActive: true,
+      });
 
-      const { queryByTestId } = render(<TokenDetails {...defaultProps} />);
+      const { queryByTestId } = render(<TokenDetails />);
 
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
-    it('shows both Buy and Sell buttons when token has balance > 0', () => {
-      mockUseTokenBalance.mockReturnValue({
-        balance: '10.5',
-        fiatBalance: '$1050.00',
-        tokenFormattedBalance: '10.5 DAI',
-      });
+    it('does not show sticky buttons when RWA token trading is not open', () => {
+      mockIsTokenTradingOpen.mockReturnValue(false);
 
-      const { getByText } = render(<TokenDetails {...defaultProps} />);
+      const { queryByTestId } = render(<TokenDetails />);
 
-      expect(getByText('Buy')).toBeOnTheScreen();
-      expect(getByText('Sell')).toBeOnTheScreen();
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
-    it('shows only Buy button when token has no balance', () => {
-      mockUseTokenBalance.mockReturnValue({
-        balance: '0',
-        fiatBalance: '$0.00',
-        tokenFormattedBalance: '0 DAI',
-      });
+    it('shows both Swap and Buy when user has eligible tokens and token is buyable', () => {
+      const { getByText } = render(<TokenDetails />);
 
-      const { getByText, queryByText } = render(
-        <TokenDetails {...defaultProps} />,
-      );
-
+      expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Sell')).toBeNull();
     });
 
-    it('shows only Buy button when token balance is undefined', () => {
-      mockUseTokenBalance.mockReturnValue({
-        balance: undefined,
-        fiatBalance: undefined,
-        tokenFormattedBalance: undefined,
+    it('passes scrollToTopOnNav when sticky Swap is pressed', () => {
+      const { getByText } = render(<TokenDetails />);
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockHandleStickySwapPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows only Swap when user has eligible tokens but token is not buyable', () => {
+      mockUseTokenBuyability.mockReturnValue({
+        isBuyable: false,
+        isLoading: false,
       });
 
-      const { getByText, queryByText } = render(
-        <TokenDetails {...defaultProps} />,
-      );
+      const { getByText, queryByText } = render(<TokenDetails />);
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(queryByText('Buy')).toBeNull();
+    });
+
+    it('shows only Buy when user has no eligible swap tokens', () => {
+      mockUseTokenActions.mockReturnValue({
+        onBuy: mockOnBuy,
+        onSend: jest.fn(),
+        onReceive: jest.fn(),
+        goToSwaps: mockGoToSwaps,
+        handleBuyPress: jest.fn(),
+        handleSellPress: jest.fn(),
+        handleStickySwapPress: mockHandleStickySwapPress,
+        hasEligibleSwapTokens: false,
+        networkModal: null,
+      });
+
+      const { getByText, queryByText } = render(<TokenDetails />);
 
       expect(getByText('Buy')).toBeOnTheScreen();
-      expect(queryByText('Sell')).toBeNull();
+      expect(queryByText('Swap')).toBeNull();
+    });
+  });
+
+  it('tracks token details opened for each token when route params change', async () => {
+    const { rerender } = render(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          token_symbol: 'DAI',
+          market_insights_displayed: true,
+          has_perps_market: false,
+        }),
+      );
+    });
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
+
+    rerender(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
+          has_perps_market: false,
+        }),
+      );
+    });
+  });
+
+  it('does not track token details opened more than once for the same token', async () => {
+    const { rerender } = render(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not flush stale pending insights after token navigation', async () => {
+    mockAutoResolveMarketInsights = false;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectNetworkConfigurationByChainId)
+        return { name: 'Ethereum' };
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+      if (selector === getRampNetworks) return [];
+      if (selector === selectDepositActiveFlag) return false;
+      if (selector === selectDepositMinimumVersionFlag) return null;
+      return undefined;
+    });
+    mockUsePerpsMarketForAsset.mockImplementation((symbol: string | null) => ({
+      hasPerpsMarket: symbol === 'USDC',
+      marketData: null,
+      isLoading: symbol === 'DAI',
+      error: null,
+    }));
+
+    const { rerender } = render(<TokenDetails />);
+
+    triggerMarketInsightsResolved({
+      isDisplayed: false,
+      severity: 'warning',
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
+
+    rerender(<TokenDetails />);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    triggerMarketInsightsResolved({
+      isDisplayed: true,
+      severity: undefined,
+    });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          market_insights_displayed: true,
+          has_perps_market: true,
+        }),
+      );
     });
   });
 });

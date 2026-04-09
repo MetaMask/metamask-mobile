@@ -13,7 +13,7 @@ import Button, {
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position } from '../../controllers/types';
+import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import styleSheet from './PerpsAdjustMarginView.styles';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
@@ -24,6 +24,7 @@ import Icon, {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
@@ -39,7 +40,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -79,10 +79,19 @@ const PerpsAdjustMarginView: React.FC = () => {
       onSuccess: () => navigation.goBack(),
       onError: (errorMessage) => {
         submittedEstimateRef.current = null;
-        Logger.error(
-          new Error(errorMessage),
-          `Failed to ${mode} margin for ${routePosition?.symbol}`,
-        );
+        Logger.error(new Error(errorMessage), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+          },
+          context: {
+            name: 'PerpsAdjustMarginView',
+            data: {
+              action: mode === 'remove' ? 'remove_margin' : 'add_margin',
+              symbol: routePosition?.symbol,
+              error: errorMessage,
+            },
+          },
+        });
       },
     });
 
@@ -339,7 +348,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   })}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
@@ -387,7 +396,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   )}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
@@ -414,6 +423,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       {!isInputFocused ? (
         <View style={styles.footer}>
           <Button
+            testID={PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -452,6 +462,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               style={styles.percentageButton}
             />
             <Button
+              testID={PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON}
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               label={strings('perps.deposit.done_button')}

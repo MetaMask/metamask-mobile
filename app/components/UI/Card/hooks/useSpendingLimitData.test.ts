@@ -60,9 +60,8 @@ const createMockSDK = (tokensByChain: Record<string, unknown[]> = {}) => ({
   }),
 });
 
-// Default mock values for selectors (order: isAuthenticated, userCardLocation)
+// Default mock value for selectIsCardAuthenticated
 let mockIsAuthenticated = true;
-let mockUserCardLocation: string | null = 'international';
 
 describe('useSpendingLimitData', () => {
   const mockFetchDelegationSettings = jest.fn();
@@ -70,15 +69,9 @@ describe('useSpendingLimitData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsAuthenticated = true;
-    mockUserCardLocation = 'international';
 
-    // useSelector is called in order: selectIsAuthenticatedCard, selectUserCardLocation
-    let selectorCallCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      selectorCallCount++;
-      if (selectorCallCount % 2 === 1) return mockIsAuthenticated;
-      return mockUserCardLocation;
-    });
+    // useSelector is called once: selectIsCardAuthenticated
+    mockUseSelector.mockImplementation(() => mockIsAuthenticated);
 
     mockUseCardSDK.mockReturnValue({
       sdk: createMockSDK(),
@@ -200,7 +193,7 @@ describe('useSpendingLimitData', () => {
       expect(networks).toContain('eip155:8453');
     });
 
-    it('filters out Solana network', () => {
+    it('includes Solana network', () => {
       mockUseGetDelegationSettings.mockReturnValue({
         data: createMockDelegationSettings({
           networks: [
@@ -231,10 +224,10 @@ describe('useSpendingLimitData', () => {
 
       const { result } = renderHook(() => useSpendingLimitData());
 
-      const hassolana = result.current.availableTokens.some((t) =>
+      const hasSolana = result.current.availableTokens.some((t) =>
         t.caipChainId.includes('solana'),
       );
-      expect(hassolana).toBe(false);
+      expect(hasSolana).toBe(true);
     });
   });
 
@@ -664,8 +657,6 @@ describe('useSpendingLimitData', () => {
     });
 
     it('handles multiple tokens across multiple networks', () => {
-      mockUserCardLocation = 'international';
-
       mockUseGetDelegationSettings.mockReturnValue({
         data: createMockDelegationSettings({
           networks: [

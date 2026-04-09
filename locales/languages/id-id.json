@@ -34,7 +34,6 @@
     "import_wallet_button": "Sinkronkan atau impor dompet",
     "new_to_crypto": "Baru menggunakan kripto?",
     "start_exploring_now": "Buat dompet baru",
-    "unlock": "Masuk",
     "new_to_metamask": "Baru menggunakan MetaMask?",
     "already_have_wallet": "Sudah punya dompet?",
     "optin_back_title": "Perhatian!",
@@ -582,6 +581,7 @@
     "ok": "Oke",
     "cancel": "Batal",
     "error": "Kesalahan",
+    "open_settings": "Pengaturan",
     "attempting_to_scan_with_wallet_locked": "Sepertinya Anda mencoba memindai kode QR, Anda perlu membuka dompet agar dapat menggunakannya.",
     "attempting_sync_from_wallet_error": "Sepertinya Anda mencoba menyinkronkan dengan ekstensi. Untuk melakukannya, Anda akan perlu menghapus dompet Anda saat ini. \n\nSetelah Anda menghapus atau menginstal ulang versi baru aplikasi, pilih opsi untuk \"Menyinkronkan dengan Ekstensi MetaMask\". Penting! Sebelum menghapus dompet, pastikan Anda telah mencadangkan Frasa Pemulihan Rahasia."
   },

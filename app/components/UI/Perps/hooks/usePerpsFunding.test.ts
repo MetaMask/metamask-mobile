@@ -3,7 +3,10 @@ import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePerpsFunding } from './usePerpsFunding';
-import type { Funding, GetFundingParams } from '../controllers/types';
+import {
+  type Funding,
+  type GetFundingParams,
+} from '@metamask/perps-controller';
 import { CaipAccountId } from '@metamask/utils';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');

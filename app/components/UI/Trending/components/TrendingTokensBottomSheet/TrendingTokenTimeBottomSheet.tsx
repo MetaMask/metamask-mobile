@@ -32,7 +32,7 @@ export interface TrendingTokenTimeBottomSheetProps {
 /**
  * Maps TimeOption to SortTrendingBy
  */
-const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
+export const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
   switch (option) {
     case TimeOption.TwentyFourHours:
       return 'h24_trending' as SortTrendingBy;
@@ -88,13 +88,6 @@ const TrendingTokenTimeBottomSheet: React.FC<
       setSelectedTime(initialSelectedTime);
     }
   }, [initialSelectedTime]);
-
-  // Open bottom sheet when isVisible becomes true
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {

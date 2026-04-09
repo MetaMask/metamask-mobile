@@ -18,6 +18,7 @@ import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalanc
 import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import {
@@ -39,7 +40,7 @@ jest.mock('../metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
-      setIsMaxAmount: jest.fn(),
+      setTransactionConfig: jest.fn(),
     },
   },
 }));
@@ -100,11 +101,14 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
+  const useTransactionPayIsPostQuoteMock = jest.mocked(
+    useTransactionPayIsPostQuote,
+  );
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
-  const setIsMaxAmountMock = jest.mocked(
-    Engine.context.TransactionPayController.setIsMaxAmount,
+  const setTransactionConfigMock = jest.mocked(
+    Engine.context.TransactionPayController.setTransactionConfig,
   );
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
@@ -134,12 +138,13 @@ describe('useTransactionCustomAmount', () => {
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});
-    usePredictBalanceMock.mockReturnValue({ balance: 0 } as never);
+    usePredictBalanceMock.mockReturnValue({ data: 0 } as never);
     useConfirmationMetricEventsMock.mockReturnValue({
       setConfirmationMetric: setConfirmationMetricMock,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     useTransactionPayTotalsMock.mockReturnValue(undefined);
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
   });
 
@@ -280,6 +285,29 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  it('sets mm_pay_quote_requested metric when isPostQuote is true even if hasSourceAmount is false', async () => {
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+    useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    setConfirmationMetricMock.mockClear();
+
+    await act(async () => {
+      result.current.updateTokenAmount();
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_quote_requested: true,
+      },
+    });
+  });
+
   it('returns default amount from params if available', async () => {
     useParamsMock.mockReturnValue({ amount: '43.21' });
 
@@ -406,12 +434,15 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('1234.56');
-      expect(setIsMaxAmountMock).toHaveBeenCalledTimes(1);
-      expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), true);
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+
+      const config = { isMaxAmount: false };
+      setTransactionConfigMock.mock.calls[0][1](config);
+      expect(config.isMaxAmount).toBe(true);
     });
 
     it('to percentage of predict balance converted to USD', async () => {
-      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
+      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
 
       const { result } = runHook({
         transactionMeta: {
@@ -427,7 +458,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('to total predict balance when selecting max', async () => {
-      usePredictBalanceMock.mockReturnValue({ balance: 4321.23 } as never);
+      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
 
       const { result } = runHook({
         transactionMeta: {
@@ -442,6 +473,48 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('8642.46');
     });
 
+    it('to percentage of perps available balance', async () => {
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {
+            availableBalance: '500.00',
+          },
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      expect(result.current.amountFiat).toBe('250');
+    });
+
+    it('returns 0 for perps withdraw when no available balance', async () => {
+      (Engine.context as Record<string, unknown>).PerpsController = {
+        state: {
+          accountState: {},
+        },
+      };
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsWithdraw,
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('0');
+    });
+
     it('sets isMax to false when percentage is not 100 and isMaxAmount is true', async () => {
       useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
@@ -451,7 +524,9 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(50);
       });
 
-      expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), false);
+      const config = { isMaxAmount: true };
+      setTransactionConfigMock.mock.calls[0][1](config);
+      expect(config.isMaxAmount).toBe(false);
     });
   });
 
@@ -464,6 +539,8 @@ describe('useTransactionCustomAmount', () => {
       result.current.updatePendingAmount('100');
     });
 
-    expect(setIsMaxAmountMock).toHaveBeenCalledWith(expect.anything(), false);
+    const config = { isMaxAmount: true };
+    setTransactionConfigMock.mock.calls[0][1](config);
+    expect(config.isMaxAmount).toBe(false);
   });
 });

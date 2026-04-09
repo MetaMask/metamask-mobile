@@ -20,6 +20,10 @@ import {
   NETWORK_FILTER_ALL,
 } from '../../hooks/send/useNetworkFilter';
 import { ScrollView } from 'react-native-gesture-handler';
+import {
+  getNetworkFilterTestId,
+  NETWORK_FILTER_ALL_TEST_ID,
+} from './network-filter.testIds';
 
 interface NetworkFilterTabProps {
   label: string;
@@ -27,6 +31,7 @@ interface NetworkFilterTabProps {
   isSelected: boolean;
   onPress: () => void;
   showIcon?: boolean;
+  testID: string;
 }
 
 const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
@@ -35,6 +40,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
   isSelected,
   onPress,
   showIcon = false,
+  testID,
 }) => {
   const tw = useTailwind();
 
@@ -49,6 +55,7 @@ const NetworkFilterTab: React.FC<NetworkFilterTabProps> = ({
         )
       }
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+      testID={testID}
     >
       {showIcon && imageSource && (
         <Box twClassName="mr-2">
@@ -123,7 +130,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
   }
 
   return (
-    <Box twClassName="px-4 py-2">
+    <Box twClassName="pl-4 py-2">
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -135,6 +142,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
           isSelected={selectedNetworkFilter === NETWORK_FILTER_ALL}
           onPress={() => setSelectedNetworkFilter(NETWORK_FILTER_ALL)}
           showIcon={false}
+          testID={NETWORK_FILTER_ALL_TEST_ID}
         />
 
         {/* Individual Network Tabs */}
@@ -146,6 +154,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
             isSelected={selectedNetworkFilter === network.chainId}
             onPress={() => setSelectedNetworkFilter(network.chainId)}
             showIcon
+            testID={getNetworkFilterTestId(network.chainId)}
           />
         ))}
       </ScrollView>

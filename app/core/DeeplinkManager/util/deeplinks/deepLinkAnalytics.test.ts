@@ -154,6 +154,14 @@ describe('deepLinkAnalytics', () => {
       expect(result.symbol).toBeUndefined();
     });
 
+    it('extracts asset properties for asset route', () => {
+      const result = extractSensitiveProperties(DeepLinkRoute.ASSET, {
+        ...mockUrlParams,
+        assetId: 'eip155:1/erc20:0x1',
+      });
+      expect(result.asset).toBe('eip155:1/erc20:0x1');
+    });
+
     it('extracts perps-specific properties including symbol and navigation', () => {
       const perpsRoute = DeepLinkRoute.PERPS;
       const result = extractSensitiveProperties(perpsRoute, mockUrlParams);
@@ -161,18 +169,6 @@ describe('deepLinkAnalytics', () => {
       expect(result.screen).toBe('markets');
       expect(result.tab).toBe('positions');
       expect(result.slippage).toBeUndefined();
-    });
-
-    it('extracts deposit-specific properties', () => {
-      const result = extractSensitiveProperties(
-        DeepLinkRoute.DEPOSIT,
-        mockUrlParams,
-      );
-
-      expect(result.provider).toBe('ramp');
-      expect(result.payment_method).toBe('card');
-      expect(result.fiat_currency).toBe('USD');
-      expect(result.fiat_quantity).toBe('100');
     });
 
     it('extracts transaction-specific properties', () => {
@@ -416,12 +412,6 @@ describe('deepLinkAnalytics', () => {
       },
     );
 
-    it('maps deposit action to DEPOSIT route', () => {
-      const depositAction = ACTIONS.DEPOSIT;
-      const result = mapSupportedActionToRoute(depositAction);
-      expect(result).toBe(DeepLinkRoute.DEPOSIT);
-    });
-
     it('maps send action to TRANSACTION route', () => {
       const sendAction = ACTIONS.SEND;
       const result = mapSupportedActionToRoute(sendAction);
@@ -455,6 +445,12 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.HOME);
     });
 
+    it('maps asset action to ASSET route', () => {
+      const assetAction = ACTIONS.ASSET;
+      const result = mapSupportedActionToRoute(assetAction);
+      expect(result).toBe(DeepLinkRoute.ASSET);
+    });
+
     it.each([
       [ACTIONS.DAPP, DeepLinkRoute.DAPP],
       [ACTIONS.WC, DeepLinkRoute.WC],
@@ -483,11 +479,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.PERPS);
     });
 
-    it('extract deposit route', () => {
+    it('maps deprecated deposit path to invalid route', () => {
       const result = extractRouteFromUrl(
         'https://link.metamask.io/deposit?provider=ramp',
       );
-      expect(result).toBe(DeepLinkRoute.DEPOSIT);
+      expect(result).toBe(DeepLinkRoute.INVALID);
     });
 
     it('extract transaction route', () => {
@@ -509,6 +505,13 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/sell?crypto=ETH',
       );
       expect(result).toBe(DeepLinkRoute.SELL);
+    });
+
+    it('extract asset route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/asset?assetId=eip155:1/erc20:0x1',
+      );
+      expect(result).toBe(DeepLinkRoute.ASSET);
     });
 
     it('extract shield route', () => {

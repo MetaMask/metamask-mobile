@@ -52,6 +52,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 describe('refreshEvmTokens', () => {
@@ -140,7 +141,7 @@ describe('refreshEvmTokens', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('should log an error if a timeout occurs', async () => {
+  it('should log a non-error message if a timeout occurs', async () => {
     jest.useFakeTimers();
 
     try {
@@ -162,12 +163,10 @@ describe('refreshEvmTokens', () => {
 
       await refreshPromise;
 
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('timed out'),
-        }),
-        'Error while refreshing tokens',
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining('performEvmTokenRefresh timed out'),
       );
+      expect(Logger.error).not.toHaveBeenCalled();
     } finally {
       jest.runOnlyPendingTimers();
       jest.useRealTimers();

@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTPSLForm } from './usePerpsTPSLForm';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 // Mock DevLogger to avoid console noise in tests
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -244,6 +244,33 @@ describe('usePerpsTPSLForm', () => {
 
         // Should not update the state with invalid format
         expect(result.current.formState.takeProfitPrice).toBe('');
+      });
+
+      it('accept 6-decimal take profit price for low-price assets like PUMP', () => {
+        // PUMP trades at ~$0.00186 — requires 6 decimal places for valid TP prices
+        const pumpParams = { ...defaultParams, currentPrice: 0.00186 };
+        const { result } = renderHook(() => usePerpsTPSLForm(pumpParams), {
+          wrapper: createWrapper(),
+        });
+
+        act(() => {
+          result.current.handlers.handleTakeProfitPriceChange('0.001234');
+        });
+
+        expect(result.current.formState.takeProfitPrice).toBe('0.001234');
+      });
+
+      it('accept 6-decimal stop loss price for low-price assets like PUMP', () => {
+        const pumpParams = { ...defaultParams, currentPrice: 0.00186 };
+        const { result } = renderHook(() => usePerpsTPSLForm(pumpParams), {
+          wrapper: createWrapper(),
+        });
+
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('0.001234');
+        });
+
+        expect(result.current.formState.stopLossPrice).toBe('0.001234');
       });
 
       it('calculate percentage when price is entered', () => {

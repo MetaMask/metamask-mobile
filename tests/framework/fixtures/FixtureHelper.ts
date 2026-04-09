@@ -1,11 +1,11 @@
 /* eslint-disable no-unsafe-finally */
-/* eslint-disable import/no-nodejs-modules */
-import FixtureServer from './FixtureServer.ts';
+/* eslint-disable import-x/no-nodejs-modules */
+import FixtureServer from './FixtureServer';
 import {
   AnvilManager,
   Hardfork,
   DEFAULT_ANVIL_PORT,
-} from '../../seeder/anvil-manager.ts';
+} from '../../seeder/anvil-manager';
 import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
@@ -14,13 +14,13 @@ import {
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
-} from './FixtureUtils.ts';
-import Utilities from '../Utilities.ts';
-import { dismissDevScreens } from '../../../e2e/viewHelper.ts';
-import TestHelpers from '../../../e2e/helpers';
-import MockServerE2E from '../../api-mocking/MockServerE2E.ts';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.ts';
-import { AnvilSeeder } from '../../seeder/anvil-seeder.ts';
+} from './FixtureUtils';
+import Utilities from '../Utilities';
+import { dismissDevScreens } from '../../flows/general.flow';
+import TestHelpers from '../../helpers';
+import MockServerE2E from '../../api-mocking/MockServerE2E';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import {
   LocalNodeConfig,
   LocalNodeOptionsInput,
@@ -32,7 +32,7 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
   TestSpecificMock,
-} from '../types.ts';
+} from '../types';
 import {
   TestDapps,
   DappVariants,
@@ -41,16 +41,27 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-} from '../Constants.ts';
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
-import FixtureBuilder from './FixtureBuilder.ts';
-import { createLogger } from '../logger.ts';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks.ts';
-import PortManager, { ResourceType } from '../PortManager.ts';
+import FixtureBuilder from './FixtureBuilder';
+import { createLogger } from '../logger';
+import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import {
+  runAnalyticsExpectations,
+  shouldRunAnalyticsExpectations,
+} from '../../helpers/analytics/runAnalyticsExpectations';
+import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
-import CommandQueueServer from './CommandQueueServer.ts';
-import DappServer from '../DappServer.ts';
-import { PlatformDetector } from '../PlatformLocator.ts';
+import type { Fixture } from './types';
+import CommandQueueServer from './CommandQueueServer';
+import DappServer from '../DappServer';
+import { PlatformDetector } from '../PlatformLocator';
+import LocalWebSocketServer from '../../websocket/server';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  setupAccountActivityMocks,
+  resetAccountActivityMockState,
+} from '../../websocket/account-activity-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -100,6 +111,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BROWSER_PLAYGROUND:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
+            dappVariant: DappVariants.BROWSER_PLAYGROUND,
           }),
         );
         break;
@@ -281,9 +303,7 @@ async function handleDappCleanup(
  * @param state - The fixture state to update
  * @returns The updated fixture state
  */
-function updateRpcUrlsWithAllocatedPorts(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
 
   const actualAnvilPort = portManager.getPort(ResourceType.ANVIL);
@@ -294,7 +314,7 @@ function updateRpcUrlsWithAllocatedPorts(
       ?.networkConfigurationsByChainId;
   if (networkConfigs) {
     for (const chainId of Object.keys(networkConfigs)) {
-      const config = networkConfigs[chainId];
+      const config = networkConfigs[chainId as `0x${string}`];
       if (config.rpcEndpoints) {
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
@@ -323,9 +343,7 @@ function updateRpcUrlsWithAllocatedPorts(
  * Updates dapp URLs in PermissionController with actual allocated ports by index.
  * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
  */
-function updateDappUrlsWithAllocatedPorts(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
   const permissionController =
     state.state?.engine?.backgroundState?.PermissionController;
@@ -366,9 +384,7 @@ function updateDappUrlsWithAllocatedPorts(
  * Replaces all occurrences of localhost:8000 with the actual mock server port.
  * This affects browser tabs and RPC endpoints that proxy through mock server.
  */
-function updateMockServerUrlsInFixture(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateMockServerUrlsInFixture(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
   const actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
 
@@ -394,11 +410,13 @@ function updateMockServerUrlsInFixture(
  */
 export const loadFixture = async (
   fixtureServer: FixtureServer,
-  { fixture }: { fixture: FixtureBuilder },
+  { fixture }: { fixture: FixtureBuilder | Fixture },
 ) => {
-  // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
-  // the app will be loaded without any fixtures and will start and go through the onboarding process.
-  let state = fixture || new FixtureBuilder({ onboarding: true }).build();
+  // Normalize FixtureBuilder → Fixture; fall back to onboarding fixture if nothing provided.
+  let state: Fixture =
+    fixture instanceof FixtureBuilder
+      ? fixture.build()
+      : (fixture ?? new FixtureBuilder({ onboarding: true }).build());
 
   // Update RPC URLs with actual allocated ports from PortManager
   state = updateRpcUrlsWithAllocatedPorts(state);
@@ -498,6 +516,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    analyticsExpectations,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -531,6 +550,7 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
   let testError: Error | null = null;
 
   try {
@@ -565,8 +585,15 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 4.5: Start WebSocket mock servers
+    await startResourceWithRetry(
+      ResourceType.ACCOUNT_ACTIVITY_WS,
+      accountActivityWsServer,
+    );
+    await setupAccountActivityMocks(accountActivityWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
-    let resolvedFixture: FixtureBuilder;
+    let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
       resolvedFixture = await fixtureOption({ localNodes });
     } else {
@@ -608,6 +635,9 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
+          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+            : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
@@ -645,6 +675,27 @@ export async function withFixtures(
         logger.error('Error in endTestfn:', endTestError);
         cleanupErrors.push(endTestError as Error);
       }
+    }
+
+    if (
+      mockServerInstance &&
+      shouldRunAnalyticsExpectations(analyticsExpectations)
+    ) {
+      try {
+        await runAnalyticsExpectations(
+          mockServerInstance.server,
+          analyticsExpectations,
+        );
+      } catch (analyticsError) {
+        logger.error('Error in analyticsExpectations:', analyticsError);
+        cleanupErrors.push(analyticsError as Error);
+      }
+    }
+
+    // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
+    // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
+    if (mockServerInstance) {
+      mockServerInstance.startDraining();
     }
 
     // Clean up all local nodes
@@ -695,6 +746,15 @@ export async function withFixtures(
       }
     }
 
+    // Clean up WebSocket servers
+    try {
+      resetAccountActivityMockState();
+      await accountActivityWsServer.stop();
+    } catch (cleanupError) {
+      logger.error('Error during WebSocket cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
     // Clean up the mock server
     if (mockServerInstance?.isStarted()) {
       try {
@@ -728,6 +788,16 @@ export async function withFixtures(
           cleanupErrors.push(cleanupError as Error);
         }
       }
+    }
+
+    // Remove the abort filter AFTER all cleanup is complete so late async
+    // "Aborted" rejections from destroyed sockets are still caught.
+    // removeAbortFilter() is async — it holds the filter active for an extra
+    // 500ms before restoring Jest's handlers to cover abort events that fire
+    // after all cleanup has completed (observed up to ~200ms on loaded CI).
+    if (mockServerInstance) {
+      logger.info('Removing abort filter after full cleanup');
+      await mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

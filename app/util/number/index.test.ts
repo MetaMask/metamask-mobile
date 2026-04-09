@@ -693,6 +693,34 @@ describe('Number utils :: addCurrencySymbol', () => {
   });
 });
 
+describe('Number utils :: addCurrencySymbol with useSubscriptNotation', () => {
+  it('formats very small USD amount with subscript notation', () => {
+    expect(addCurrencySymbol(0.00000614, 'usd', false, true)).toEqual(
+      '$0.0₅614',
+    );
+  });
+
+  it('formats very small amount for non-symbol currency', () => {
+    expect(addCurrencySymbol(0.00000614, 'xyz', false, true)).toEqual(
+      '0.0₅614 xyz',
+    );
+  });
+
+  it('falls back to normal formatting when number is not small enough', () => {
+    expect(addCurrencySymbol(0.01, 'usd', false, true)).toEqual('$0.01');
+  });
+
+  it('does not apply subscript when useSubscriptNotation is false', () => {
+    expect(addCurrencySymbol(0.00000614, 'usd', false, false)).toEqual('$0.00');
+  });
+
+  it('handles negative very small amounts with subscript notation', () => {
+    expect(addCurrencySymbol(-0.00000614, 'usd', false, true)).toEqual(
+      '-$0.0₅614',
+    );
+  });
+});
+
 describe('Number utils :: balanceToFiatNumber', () => {
   it('balanceToFiatNumber', () => {
     expect(balanceToFiatNumber(0.1, 0.1, 0.1)).toEqual(0.001);

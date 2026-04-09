@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 ///////////////////////////////////////////////////////
 // This is a generated file
 // DO NOT EDIT - Use generate-assets.js
@@ -10,6 +10,7 @@ import addcardSVG from './assets/add-card.svg';
 import addcircleSVG from './assets/add-circle.svg';
 import addsquareSVG from './assets/add-square.svg';
 import addSVG from './assets/add.svg';
+import afterhoursSVG from './assets/after-hours.svg';
 import aiSVG from './assets/ai.svg';
 import alternateemailSVG from './assets/alternate-email.svg';
 import appleSVG from './assets/apple.svg';
@@ -46,6 +47,7 @@ import calendarSVG from './assets/calendar.svg';
 import callSVG from './assets/call.svg';
 import cameraSVG from './assets/camera.svg';
 import campaignSVG from './assets/campaign.svg';
+import candlestickSVG from './assets/candlestick.svg';
 import cardposSVG from './assets/card-pos.svg';
 import cardSVG from './assets/card.svg';
 import cashSVG from './assets/cash.svg';
@@ -68,6 +70,7 @@ import confirmationSVG from './assets/confirmation.svg';
 import connectSVG from './assets/connect.svg';
 import copysuccessSVG from './assets/copy-success.svg';
 import copySVG from './assets/copy.svg';
+import corporatefareSVG from './assets/corporate-fare.svg';
 import creditcheckSVG from './assets/credit-check.svg';
 import currencyfrancSVG from './assets/currency-franc.svg';
 import currencyliraSVG from './assets/currency-lira.svg';
@@ -150,6 +153,7 @@ import mapSVG from './assets/map.svg';
 import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
+import metamaskfoxfilledSVG from './assets/metamask-fox-filled.svg';
 import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import micSVG from './assets/mic.svg';
 import minusboldSVG from './assets/minus-bold.svg';
@@ -194,6 +198,7 @@ import savingSVG from './assets/saving.svg';
 import scanbarcodeSVG from './assets/scan-barcode.svg';
 import scanfocusSVG from './assets/scan-focus.svg';
 import scanSVG from './assets/scan.svg';
+import searchfilledSVG from './assets/search-filled.svg';
 import searchSVG from './assets/search.svg';
 import securityalertSVG from './assets/security-alert.svg';
 import securitycrossSVG from './assets/security-cross.svg';
@@ -288,6 +293,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.AddCircle]: addcircleSVG,
   [IconName.AddSquare]: addsquareSVG,
   [IconName.Add]: addSVG,
+  [IconName.AfterHours]: afterhoursSVG,
   [IconName.Ai]: aiSVG,
   [IconName.AlternateEmail]: alternateemailSVG,
   [IconName.Apple]: appleSVG,
@@ -324,6 +330,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Call]: callSVG,
   [IconName.Camera]: cameraSVG,
   [IconName.Campaign]: campaignSVG,
+  [IconName.Candlestick]: candlestickSVG,
   [IconName.CardPos]: cardposSVG,
   [IconName.Card]: cardSVG,
   [IconName.Cash]: cashSVG,
@@ -346,6 +353,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Connect]: connectSVG,
   [IconName.CopySuccess]: copysuccessSVG,
   [IconName.Copy]: copySVG,
+  [IconName.CorporateFare]: corporatefareSVG,
   [IconName.CreditCheck]: creditcheckSVG,
   [IconName.CurrencyFranc]: currencyfrancSVG,
   [IconName.CurrencyLira]: currencyliraSVG,
@@ -428,6 +436,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Menu]: menuSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
+  [IconName.MetamaskFoxFilled]: metamaskfoxfilledSVG,
   [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.Mic]: micSVG,
   [IconName.MinusBold]: minusboldSVG,
@@ -472,6 +481,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ScanBarcode]: scanbarcodeSVG,
   [IconName.ScanFocus]: scanfocusSVG,
   [IconName.Scan]: scanSVG,
+  [IconName.SearchFilled]: searchfilledSVG,
   [IconName.Search]: searchSVG,
   [IconName.SecurityAlert]: securityalertSVG,
   [IconName.SecurityCross]: securitycrossSVG,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, act, waitFor } from '@testing-library/react-native';
 import PredictGameChart from './PredictGameChart';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
@@ -10,6 +11,7 @@ import {
   PredictGameStatus,
 } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock the hooks
 jest.mock('../../hooks/usePredictPriceHistory');
 jest.mock('../../hooks/useLiveMarketPrices');
@@ -70,7 +72,7 @@ const mockBaseGame = {
     id: 'team-home',
     name: 'Team B',
     abbreviation: 'TB',
-    color: '#0000FF',
+    color: TEST_HEX_COLORS.PURE_BLUE,
     alias: 'Team B',
     logo: 'https://example.com/logo-b.png',
   },
@@ -78,7 +80,7 @@ const mockBaseGame = {
     id: 'team-away',
     name: 'Team A',
     abbreviation: 'TA',
-    color: '#FF0000',
+    color: TEST_HEX_COLORS.PURE_RED,
     alias: 'Team A',
     logo: 'https://example.com/logo-a.png',
   },
@@ -98,7 +100,7 @@ const createMockMarket = (
     title: 'Test Game Market',
     description: 'Test description',
     image: 'https://example.com/image.png',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: PredictMarketStatus.OPEN,
     category: 'sports',
     tags: ['NFL'],
@@ -159,7 +161,6 @@ describe('PredictGameChart Wrapper', () => {
           marketIds: defaultTokenIds,
           interval: PredictPriceHistoryInterval.ONE_HOUR,
           fidelity: 1,
-          providerId: 'polymarket',
           enabled: true,
         }),
       );
@@ -171,25 +172,6 @@ describe('PredictGameChart Wrapper', () => {
       expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(defaultTokenIds, {
         enabled: true,
       });
-    });
-
-    it('passes custom providerId to usePredictPriceHistory', () => {
-      const marketWithCustomProvider = createMockMarket({
-        providerId: 'custom-provider',
-      });
-
-      render(
-        <PredictGameChart
-          market={marketWithCustomProvider}
-          providerId="custom-provider"
-        />,
-      );
-
-      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
-        expect.objectContaining({
-          providerId: 'custom-provider',
-        }),
-      );
     });
 
     it('disables hooks when market has no tokens', () => {
@@ -238,7 +220,7 @@ describe('PredictGameChart Wrapper', () => {
 
         expect(data).toHaveLength(2);
         expect(data[0].label).toBe('TA');
-        expect(data[0].color).toBe('#FF0000');
+        expect(data[0].color).toBe(TEST_HEX_COLORS.PURE_RED);
         expect(data[0].data).toHaveLength(3);
         expect(data[0].data[0].value).toBe(60);
       });

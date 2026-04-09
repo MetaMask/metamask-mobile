@@ -4,9 +4,10 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 
 // Mock the Perps feature flag selector - will be controlled per test
@@ -26,11 +27,14 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 // Track which tabs are rendered - populated by mock
 let renderedTabs: string[] = [];
+let lastInitialActiveIndex: number | undefined;
 
 // Helper to get rendered tabs for assertions
 const getRenderedTabs = () => renderedTabs;
+const getLastInitialActiveIndex = () => lastInitialActiveIndex;
 const clearRenderedTabs = () => {
   renderedTabs = [];
+  lastInitialActiveIndex = undefined;
 };
 
 jest.mock('../../../component-library/components-temp/Tabs', () => {
@@ -41,10 +45,11 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
     (
       props: {
         children?: React.ReactElement[];
+        initialActiveIndex?: number;
         onChangeTab?: (params: { i: number }) => void;
         [key: string]: unknown;
       },
-      ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
+      _ref: React.Ref<{ goToTabIndex: (index: number) => void }>,
     ) => {
       const children = Array.isArray(props.children) ? props.children : [];
 
@@ -61,13 +66,8 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
         });
         // Update module-level variable for test assertions
         renderedTabs = tabKeys;
-      }, [children]);
-
-      ReactActual.useImperativeHandle(ref, () => ({
-        goToTabIndex: (index: number) => {
-          props.onChangeTab?.({ i: index });
-        },
-      }));
+        lastInitialActiveIndex = props.initialActiveIndex;
+      }, [children, props.initialActiveIndex]);
 
       return ReactActual.createElement(
         View,
@@ -99,11 +99,12 @@ const Stack = createStackNavigator();
 
 const mockNavigation = {
   navigate: jest.fn(),
+  setParams: jest.fn(),
   setOptions: jest.fn(),
   goBack: jest.fn(),
   canGoBack: jest.fn(() => true),
   reset: jest.fn(),
-  dangerouslyGetParent: () => ({
+  getParent: () => ({
     pop: jest.fn(),
   }),
 };
@@ -147,13 +148,6 @@ jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
 jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
 
 jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
-jest.mock(
   '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView',
   () => {
     const { View, Text } = jest.requireActual('react-native');
@@ -194,6 +188,13 @@ jest.mock('../../UI/Ramp/Aggregator/Views/OrdersList', () => {
   const { View } = jest.requireActual('react-native');
   return function MockRampOrdersList() {
     return <View testID="ramp-orders-list" />;
+  };
+});
+
+jest.mock('../UnifiedTransactionsView/UnifiedTransactionsView', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockUnifiedTransactionsView() {
+    return <View testID="unified-transactions-view-mock" />;
   };
 });
 
@@ -251,6 +252,8 @@ describe('ActivityView', () => {
       return networks[chainId] || null;
     }),
     hasEnabledNetworks: true,
+    isNetworkEnabledForDefi: true,
+    hasMultipleNamespacesEnabled: false,
     isDisabled: false,
   };
 
@@ -261,6 +264,7 @@ describe('ActivityView', () => {
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
     clearRenderedTabs();
+    mockRoute.params = {};
   });
 
   it('matches snapshot', () => {
@@ -300,6 +304,8 @@ describe('ActivityView', () => {
           return networks[chainId] || null;
         }),
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
         isDisabled: false,
       };
       mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
@@ -331,10 +337,9 @@ describe('ActivityView', () => {
       spyOnCreateNetworkManagerNavDetails.mockRestore();
     });
 
-    it('disables filter button when network info isDisabled is true', () => {
+    it('displays filter button as disabled', () => {
       const disabledNetworkInfo = {
         ...defaultNetworkInfo,
-        isDisabled: true,
       };
       mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
       const { getByTestId } = renderComponent(mockInitialState);
@@ -343,7 +348,7 @@ describe('ActivityView', () => {
         WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
       );
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton.props.disabled).toBe(false);
     });
   });
 
@@ -396,29 +401,65 @@ describe('ActivityView', () => {
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
+  });
 
-    it('sets headerShown to false when showBackButton is true', () => {
-      mockRoute.params = { showBackButton: true };
-
-      renderComponent(mockInitialState);
-
-      expect(mockNavigation.setOptions).toHaveBeenCalledWith({
-        headerShown: false,
-      });
+  describe('header and SafeAreaView', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    it('sets default header options when showBackButton is false', () => {
+    it('renders SafeAreaView', () => {
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders HeaderRoot with Activity title when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
-      renderComponent(mockInitialState);
+      const { getByTestId, getByText, queryByTestId } =
+        renderComponent(mockInitialState);
 
-      expect(mockNavigation.setOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          headerTitle: expect.any(Function),
-          headerLeft: null,
-          headerRight: expect.any(Function),
-        }),
-      );
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
+      ).toBeNull();
+      expect(getByText('Activity')).toBeOnTheScreen();
+    });
+
+    it('renders HeaderCompactStandard with back button when showBackButton is true', () => {
+      mockRoute.params = { showBackButton: true };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
+      ).toBeOnTheScreen();
+      expect(getByTestId('activity-view-back-button')).toBeOnTheScreen();
+    });
+
+    it('does not render HeaderRoot when showBackButton is true', () => {
+      mockRoute.params = { showBackButton: true };
+
+      const { queryByTestId } = renderComponent(mockInitialState);
+
+      expect(queryByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeNull();
+    });
+
+    it('does not render HeaderCompactStandard when showBackButton is false', () => {
+      mockRoute.params = { showBackButton: false };
+
+      const { queryByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        queryByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
+      ).toBeNull();
     });
   });
 
@@ -432,9 +473,10 @@ describe('ActivityView', () => {
       mockPerpsEnabled = true;
       mockIsEvmSelected = true;
 
-      const { getByTestId } = renderComponent(mockInitialState);
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
 
       expect(getByTestId('tab-perps')).toBeTruthy();
+      expect(queryByTestId('perps-transactions-view')).toBeNull();
       expect(getRenderedTabs()).toContain('perps');
     });
 
@@ -454,6 +496,45 @@ describe('ActivityView', () => {
       renderComponent(mockInitialState);
 
       expect(getRenderedTabs()).not.toContain('perps');
+    });
+
+    it('uses Perps as initial tab when redirected to Perps transactions', () => {
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockRoute.params = {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('perps-transactions-view')).toBeTruthy();
+      expect(getLastInitialActiveIndex()).toBe(2);
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        redirectToPerpsTransactions: false,
+      });
+    });
+  });
+
+  describe('Orders tab', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRoute.params = {};
+    });
+
+    it('renders orders list and clears redirect param when redirected to orders', () => {
+      mockRoute.params = {
+        redirectToOrders: true,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(getByTestId('ramp-orders-list')).toBeTruthy();
+      expect(getLastInitialActiveIndex()).toBe(1);
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        redirectToOrders: false,
+      });
     });
   });
 

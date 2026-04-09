@@ -33,7 +33,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
@@ -66,9 +66,19 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const shouldTriggerBlurCallbackRef = useRef(true);
     const accountsLength = useSelector(selectAccountsLength);
     const networkConfigurations = useSelector(selectNetworkConfigurations);
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const selectedAddress = connectedAccounts?.[0];
+    const dappOrigin = useMemo(() => {
+      if (!activeUrl) {
+        return '';
+      }
+      try {
+        return new URLParse(activeUrl).origin;
+      } catch {
+        return '';
+      }
+    }, [activeUrl]);
     const {
       styles,
       theme: { colors, themeAppearance },
@@ -138,6 +148,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           <AccountRightButton
             selectedAddress={selectedAddress}
             onPress={handleAccountRightButtonPress}
+            dappOrigin={dappOrigin}
           />
         );
       }
@@ -162,6 +173,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       onCancelInput,
       styles.cancelButton,
       styles.cancelButtonText,
+      dappOrigin,
     ]);
 
     useImperativeHandle(ref, () => ({

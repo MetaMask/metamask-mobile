@@ -16,13 +16,17 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+  clearSeedlessOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -31,37 +35,27 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
-import {
-  WALLET_SNAP_MAP,
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from '../SnapKeyring/MultichainWalletSnapClient';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import {
-  convertMnemonicToWordlistIndices,
-  uint8ArrayToMnemonic,
-} from '../../util/mnemonic';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
   AccountImportStrategy,
-  KeyringMetadata,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
-import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
@@ -71,16 +65,33 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
+import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
-import MetaMetrics from '../Analytics/MetaMetrics';
+import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
-import { setAllowLoginWithRememberMe } from '../../actions/security';
-import { Alert } from 'react-native';
+import {
+  setAllowLoginWithRememberMe,
+  setOsAuthEnabled,
+} from '../../actions/security';
+import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { IconName } from '../../component-library/components/Icons/Icon';
-import { ReauthenticateErrorType } from './types';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import { AuthCapabilities, ReauthenticateErrorType } from './types';
+import {
+  isEnrolledAsync,
+  supportedAuthenticationTypesAsync,
+  getEnrolledLevelAsync,
+  SecurityLevel,
+  authenticateAsync,
+} from 'expo-local-authentication';
+import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
+import { IconName } from '@metamask/design-system-react-native';
+import { containsErrorMessage } from '../../util/errorHandling';
+import { ensureError } from '../../util/errorUtils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -89,6 +100,13 @@ export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
   oauth2Login?: boolean;
+}
+
+export interface CheckIsSeedlessPasswordOutdatedOptions {
+  /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
+  skipCache?: boolean;
+  /** When true, failed controller checks are reported to Sentry via {@link Logger.error}. Default: false */
+  captureSentryError?: boolean;
 }
 
 class AuthenticationService {
@@ -112,9 +130,32 @@ class AuthenticationService {
     ReduxService.store.dispatch(logIn());
   }
 
+  /**
+   * Updates the Redux state for OS authentication enabled status.
+   *
+   * @param enabled - whether OS authentication is enabled
+   */
+  updateOsAuthEnabled(enabled: boolean): void {
+    ReduxService.store.dispatch(setOsAuthEnabled(enabled));
+  }
+
   private dispatchPasswordSet(): void {
     ReduxService.store.dispatch(passwordSet());
   }
+
+  /**
+   * Clears all auth-related storage flags and resets the allow-login-with-remember-me
+   * Redux state. Centralised here so that both `storePassword` and `resetPassword`
+   * stay in sync when new flags are added in the future.
+   */
+  private clearAuthStorageFlags = async (): Promise<void> => {
+    await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+    await StorageWrapper.removeItem(PASSCODE_DISABLED);
+    await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
+    if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
+  };
 
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
@@ -155,9 +196,8 @@ class AuthenticationService {
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
 
-      // renew refresh token
-      renewSeedlessControllerRefreshTokens(password).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
+      revokePendingSeedlessRefreshTokens().catch((err) => {
+        Logger.error(err, 'Failed to revoke pending seedless OAuth tokens');
       });
     }
     password = this.wipeSensitiveData();
@@ -166,45 +206,29 @@ class AuthenticationService {
   /**
    * This method creates a new vault and restores with seed phrase and existing user data
    * @param password - password provided by user, biometric, pincode
-   * @param parsedSeed - provided seed
+   * @param seed - provided seed
    * @param clearEngine - clear the engine state before restoring vault
    */
   private newWalletVaultAndRestore = async (
     password: string,
-    parsedSeed: string,
+    seed: string,
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
-    const { KeyringController } = Engine.context;
     if (clearEngine) await Engine.resetState();
-    const parsedSeedUint8Array = mnemonicPhraseToBytes(parsedSeed);
-    await KeyringController.createNewVaultAndRestore(
+
+    const { MultichainAccountService } = Engine.context;
+
+    const mnemonic = mnemonicPhraseToBytes(seed);
+
+    await MultichainAccountService.createMultichainAccountWallet({
+      type: 'restore',
       password,
-      parsedSeedUint8Array,
-    );
-
-    if (!isMultichainAccountsState2Enabled()) {
-      Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            await this.attemptAccountDiscovery(clientType);
-          } catch (error) {
-            console.warn(
-              'Account discovery failed during wallet creation:',
-              clientType,
-              error,
-            );
-            // Store flag to retry on next unlock
-            await StorageWrapper.setItem(discoveryStorageId, TRUE);
-          }
-        }),
-      ).catch(console.error);
-    }
+      mnemonic,
+    });
 
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    seed = this.wipeSensitiveData();
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -220,23 +244,6 @@ class AuthenticationService {
     }
   };
 
-  private attemptAccountDiscovery = async (
-    clientType: WalletClientType,
-  ): Promise<void> => {
-    await this.retryAccountDiscovery(async (): Promise<void> => {
-      const primaryHdKeyringId =
-        Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(clientType, {
-        setSelectedAccount: false,
-      });
-      const { discoveryScope, discoveryStorageId } =
-        WALLET_SNAP_MAP[clientType];
-
-      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
-      await StorageWrapper.removeItem(discoveryStorageId);
-    });
-  };
-
   private attemptMultichainAccountWalletDiscovery = async (
     entropySource?: EntropySourceId,
   ): Promise<void> => {
@@ -246,48 +253,30 @@ class AuthenticationService {
   };
 
   private postLoginAsyncOperations = async (): Promise<void> => {
-    if (isMultichainAccountsState2Enabled()) {
-      // READ THIS CAREFULLY:
-      // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
-      // automatically "fix" this corrupted state, we run this method which will re-sync
-      // MetaMask accounts and Snap accounts upon login.
-      try {
-        const { MultichainAccountService } = Engine.context;
-        await MultichainAccountService.resyncAccounts();
-      } catch (error) {
-        console.warn('Failed to resync accounts:', error);
-      }
-
-      // We just re-run the same discovery here.
-      // 1. Each wallets know their highest group index and restart the discovery from
-      // there, thus acting naturally as a "retry".
-      // 2. Running the discovery every time allow to auto-discover accounts that could
-      // have been added on external wallets.
-      // 3. We run the alignment at the end of the discovery, thus, automatically
-      // creating accounts for new account providers.
-      await Promise.allSettled(
-        this.getEntropySourceIds().map(
-          async (entropySource) =>
-            await this.attemptMultichainAccountWalletDiscovery(entropySource),
-        ),
-      );
-    } else {
-      // Try to complete any pending account discovery
-      await Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-          try {
-            const isPending = await StorageWrapper.getItem(discoveryStorageId);
-            if (isPending === TRUE) {
-              await this.attemptAccountDiscovery(clientType);
-            }
-          } catch (error) {
-            console.warn('Failed to check/retry discovery:', clientType, error);
-          }
-        }),
-      );
+    // READ THIS CAREFULLY:
+    // There is is/was a bug with Snap accounts that can be desynchronized (Solana). To
+    // automatically "fix" this corrupted state, we run this method which will re-sync
+    // MetaMask accounts and Snap accounts upon login.
+    try {
+      const { MultichainAccountService } = Engine.context;
+      await MultichainAccountService.resyncAccounts();
+    } catch (error) {
+      console.warn('Failed to resync accounts:', error);
     }
+
+    // We just re-run the same discovery here.
+    // 1. Each wallets know their highest group index and restart the discovery from
+    // there, thus acting naturally as a "retry".
+    // 2. Running the discovery every time allow to auto-discover accounts that could
+    // have been added on external wallets.
+    // 3. We run the alignment at the end of the discovery, thus, automatically
+    // creating accounts for new account providers.
+    await Promise.allSettled(
+      this.getEntropySourceIds().map(
+        async (entropySource) =>
+          await this.attemptMultichainAccountWalletDiscovery(entropySource),
+      ),
+    );
   };
 
   /**
@@ -297,30 +286,14 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
     await Engine.resetState();
-    await KeyringController.createNewVaultAndKeychain(password);
 
-    if (!isMultichainAccountsState2Enabled()) {
-      Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    const { MultichainAccountService } = Engine.context;
 
-          try {
-            await this.attemptAccountDiscovery(clientType);
-          } catch (error) {
-            console.warn(
-              'Account discovery failed during wallet creation:',
-              error,
-            );
-            // Store flag to retry on next unlock
-            await StorageWrapper.setItem(discoveryStorageId, TRUE);
-          }
-        }),
-      ).catch(console.error);
-    }
+    await MultichainAccountService.createMultichainAccountWallet({
+      type: 'create',
+      password,
+    });
 
     password = this.wipeSensitiveData();
   };
@@ -412,92 +385,36 @@ class AuthenticationService {
    * @param authType - type of authentication required to fetch password from keychain
    * @protected
    */
-  protected storePassword = async (
+  storePassword = async (
     password: string,
     authType: AUTHENTICATION_TYPE,
+    fallbackToPassword?: boolean,
   ): Promise<void> => {
     try {
       // Store password in keychain with appropriate type
-      switch (authType) {
-        case AUTHENTICATION_TYPE.BIOMETRIC:
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
+      await SecureKeychain.setGenericPassword(password, authType);
 
-          // TODO: Remove this once we have a proper way to handle biometrics
-          await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      // Remove legacy authentication flags and reset remember-me state
+      await this.clearAuthStorageFlags();
 
-          break;
-        case AUTHENTICATION_TYPE.PASSCODE:
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.PASSCODE,
-          );
+      // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
+      this.updateOsAuthEnabled(
+        authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+          authType === AUTHENTICATION_TYPE.PASSCODE ||
+          authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
 
-          // TODO: Remove this once we have a proper way to handle biometrics
-          await StorageWrapper.removeItem(PASSCODE_DISABLED);
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-          break;
-        case AUTHENTICATION_TYPE.REMEMBER_ME: {
-          // Store the current auth type before switching to remember me
-          const currentAuthData = await this.checkAuthenticationMethod();
-          // Only store if we're not already on remember me
-          if (
-            currentAuthData.currentAuthType !== AUTHENTICATION_TYPE.REMEMBER_ME
-          ) {
-            await StorageWrapper.setItem(
-              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-              currentAuthData.currentAuthType,
-            );
-          }
-
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-
-          // TODO: Remove this once we have a proper way to handle biometrics
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-
-          break;
-        }
-        case AUTHENTICATION_TYPE.PASSWORD: {
-          await SecureKeychain.setGenericPassword(password, undefined);
-
-          // Password only: disable both biometrics and passcode
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-
-          // If remember me is enabled, clear the stored previous auth type
-          // because the user is disabling biometrics/passcode, so we shouldn't restore to them
-          const allowLoginWithRememberMe =
-            ReduxService.store.getState().security?.allowLoginWithRememberMe;
-          if (allowLoginWithRememberMe) {
-            await StorageWrapper.removeItem(
-              PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-            );
-          }
-          break;
-        }
-        default:
-          await SecureKeychain.setGenericPassword(password, undefined);
-
-          // Default to password behavior: disable both
-          await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-          await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
-          break;
-      }
       this.dispatchPasswordSet();
     } catch (error) {
-      throw new AuthenticationError(
-        (error as Error).message,
-        AUTHENTICATION_STORE_PASSWORD_FAILED,
-        this.authData,
-      );
+      if (fallbackToPassword) {
+        await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
+      } else {
+        throw new AuthenticationError(
+          (error as Error).message,
+          AUTHENTICATION_STORE_PASSWORD_FAILED,
+          this.authData,
+        );
+      }
     }
     password = this.wipeSensitiveData();
   };
@@ -505,6 +422,9 @@ class AuthenticationService {
   resetPassword = async () => {
     try {
       await SecureKeychain.resetGenericPassword();
+
+      await this.clearAuthStorageFlags();
+      this.updateOsAuthEnabled(false);
     } catch (error) {
       throw new AuthenticationError(
         `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${
@@ -513,31 +433,6 @@ class AuthenticationService {
         AUTHENTICATION_RESET_PASSWORD_FAILED,
         this.authData,
       );
-    }
-  };
-
-  /**
-   * store password with fallback to password authType if the storePassword with non Password authType fails
-   * it should only apply for create wallet, import wallet and reset password flows for now
-   *
-   * @param password - password to store
-   * @param authData - authentication data
-   * @returns void
-   */
-  storePasswordWithFallback = async (password: string, authData: AuthData) => {
-    try {
-      await this.storePassword(password, authData.currentAuthType);
-      this.authData = authData;
-    } catch (error) {
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD) {
-        throw error;
-      }
-      // Fall back to password authType
-      await this.storePassword(password, AUTHENTICATION_TYPE.PASSWORD);
-      this.authData = {
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        availableBiometryType: authData.availableBiometryType,
-      };
     }
   };
 
@@ -615,6 +510,36 @@ class AuthenticationService {
   };
 
   /**
+   * Request biometrics access control from the user for iOS only
+   * @param authType - type of authentication to request access control for
+   * @returns type of authentication to use after requesting access control
+   */
+  requestBiometricsAccessControlForIOS = async (
+    authType: AUTHENTICATION_TYPE,
+  ): Promise<AUTHENTICATION_TYPE> => {
+    if (
+      Platform.OS === 'ios' &&
+      (authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION)
+    ) {
+      try {
+        // Prompt user for biometrics access control
+        const result = await authenticateAsync({ disableDeviceFallback: true });
+        if (!result.success) {
+          // Fallback to use password as authentication type
+          return AUTHENTICATION_TYPE.PASSWORD;
+        }
+        return authType;
+      } catch {
+        // NOSONAR - intentional fallback to password on any biometric failure
+        return AUTHENTICATION_TYPE.PASSWORD;
+      }
+    }
+
+    return authType;
+  };
+
+  /**
    * Setting up a new wallet for new users
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
@@ -624,14 +549,13 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      // check for oauth2 login
-      if (authData.oauth2Login) {
+      if (authData.oauth2Login && !isE2EMockOAuth()) {
         await this.createAndBackupSeedPhrase(password);
       } else {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      await this.storePasswordWithFallback(password, authData);
+      await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
@@ -641,7 +565,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
+      await this.lockApp({ reset: false, navigateToLogin: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -666,7 +590,7 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-      await this.storePasswordWithFallback(password, authData);
+      await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
@@ -675,7 +599,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
+      await this.lockApp({ reset: false, navigateToLogin: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -687,6 +611,119 @@ class AuthenticationService {
   };
 
   /**
+   * Fetches the authentication capabilities of the device.
+   * Prioritizes Remember Me first, then respects legacy user choice (biometrics vs passcode),
+   * then falls back to available capabilities.
+   * iOS: "Face ID" | "Touch ID" | "Device Passcode" | "Password"
+   * Android: "Biometrics" | "Device PIN/Pattern" | "Password"
+   *
+   * @param osAuthEnabled - Whether the OS-level authentication is enabled from user settings (from user preference state in Redux)
+   * @param allowLoginWithRememberMe - Whether Remember Me is enabled from user settings (from user preference state in Redux)
+   * @returns {AuthCapabilities} - The authentication capabilities of the app.
+   */
+  getAuthCapabilities = async ({
+    osAuthEnabled,
+    allowLoginWithRememberMe,
+  }: {
+    osAuthEnabled: boolean;
+    allowLoginWithRememberMe: boolean;
+  }): Promise<AuthCapabilities> => {
+    try {
+      // Fetch all capabilities and legacy flags in parallel
+      const [
+        isBiometricsAvailable,
+        supportedBiometricTypes,
+        capabilitySecurityLevel,
+        biometryChoiceDisabled,
+        passcodeDisabled,
+      ] = await Promise.all([
+        isEnrolledAsync(),
+        supportedAuthenticationTypesAsync(),
+        getEnrolledLevelAsync(),
+        StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED),
+        StorageWrapper.getItem(PASSCODE_DISABLED),
+      ]);
+
+      // Check if passcode is available
+      // Ex on iOS - if passcode is available
+      // Ex on Android - if pincode/pattern is available
+      const passcodeAvailable = capabilitySecurityLevel >= SecurityLevel.SECRET;
+
+      // Legacy user preference selected device biometrics
+      const legacyUserChoseBiometrics =
+        passcodeDisabled === TRUE && !biometryChoiceDisabled;
+
+      // Legacy user preference selected device passcode
+      const legacyUserChosePasscode =
+        biometryChoiceDisabled === TRUE && !passcodeDisabled;
+
+      // The auth type used for keychain storage
+      const authType = getAuthType({
+        allowLoginWithRememberMe,
+        osAuthEnabled,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+      });
+
+      // Ex - "Face ID", "Device Passcode", "Password"
+      const authLabel = getAuthLabel({
+        allowLoginWithRememberMe,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+        supportedBiometricTypes,
+      });
+
+      const authDescription =
+        authLabel === 'Device Authentication'
+          ? strings('app_settings.enable_device_authentication_desc')
+          : undefined;
+
+      const authIcon = getAuthIcon({
+        supportedBiometricTypes,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+      });
+
+      // Device auth cannot be used until user changes device settings
+      const deviceAuthRequiresSettings =
+        (legacyUserChoseBiometrics && !isBiometricsAvailable) ||
+        (legacyUserChosePasscode && !passcodeAvailable) ||
+        (!isBiometricsAvailable && !passcodeAvailable);
+
+      return {
+        isBiometricsAvailable,
+        passcodeAvailable,
+        authIcon,
+        authLabel,
+        authDescription,
+        osAuthEnabled,
+        allowLoginWithRememberMe,
+        authType,
+        deviceAuthRequiresSettings,
+      };
+    } catch (error) {
+      // On error, default to no capabilities
+      return {
+        isBiometricsAvailable: false,
+        passcodeAvailable: false,
+        authIcon: IconName.Question,
+        authLabel: '',
+        authDescription: '',
+        osAuthEnabled,
+        allowLoginWithRememberMe,
+        authType: AUTHENTICATION_TYPE.PASSWORD,
+        deviceAuthRequiresSettings: true,
+      };
+    }
+  };
+
+  /**
    * Method for unlocking the wallet.
    *
    * If the user exists, it will try to derive the password from biometric credentials and navigate to the wallet if successful.
@@ -695,15 +732,18 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
+   * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @returns - void
    */
   unlockWallet = async (
     {
       password,
       authPreference,
+      onBeforeNavigate,
     }: {
       password?: string;
       authPreference?: AuthData;
+      onBeforeNavigate?: () => Promise<void>;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -717,6 +757,7 @@ class AuthenticationService {
         // User exists. Attempt to unlock wallet.
         // existing user is always false when user try to rehydrate
 
+        let fallbackToPassword = false;
         if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;
@@ -731,9 +772,21 @@ class AuthenticationService {
           if (authPreference?.oauth2Login) {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
-          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+            fallbackToPassword = true;
+          } else if (
+            await this.checkIsSeedlessPasswordOutdated({
+              skipCache: false,
+              captureSentryError: true,
+            })
+          ) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
+            // try to enable biometric/passcode as default
+            authPreference = await this.componentAuthenticationType(
+              true,
+              false,
+            );
+            fallbackToPassword = true;
           }
 
           // Unlock keyrings.
@@ -744,17 +797,25 @@ class AuthenticationService {
             await this.updateAuthPreference({
               password: passwordToUse,
               authType: authPreference.currentAuthType,
+              fallbackToPassword,
             });
           }
 
           // Perform post login operations.
           await this.dispatchLogin();
           this.dispatchPasswordSet();
-          void this.postLoginAsyncOperations();
+          this.postLoginAsyncOperations().catch(() => undefined);
+
+          // Mark user as existing after successful unlock
+          ReduxService.store.dispatch(setExistingUser(true));
+
+          if (onBeforeNavigate) {
+            await onBeforeNavigate();
+          }
 
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
-          const isMetricsEnabled = MetaMetrics.getInstance().isEnabled();
+          const isMetricsEnabled = analytics.isEnabled();
           const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
             OPTIN_META_METRICS_UI_SEEN,
           );
@@ -797,9 +858,42 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
+      let shouldResetOnLock = false;
+      // Only check for specific error messages when the thrown value is an actual
+      // Error instance; strings or other primitives should not trigger the alert.
+      if (
+        error instanceof Error &&
+        error.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+        )
+      ) {
+        shouldResetOnLock = await new Promise<boolean>((resolve) => {
+          // Alert user biometric changed
+          Alert.alert(
+            strings('login.biometric_changed'),
+            strings('login.biometric_changed_alert_desc'),
+            [
+              {
+                text: strings('login.biometric_changed_alert_confirm'),
+                onPress: async () => {
+                  resolve(true);
+                },
+              },
+            ],
+            {
+              // Prevent dismissing without confirmation, which can otherwise deadlock unlock flow.
+              cancelable: false,
+            },
+          );
+        });
+      }
+
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
       try {
-        await this.lockApp({ reset: false, navigateToLogin: false });
+        await this.lockApp({
+          reset: shouldResetOnLock,
+          navigateToLogin: false,
+        });
       } catch (lockError) {
         // Log but don't replace the original error
         Logger.error(
@@ -808,9 +902,11 @@ class AuthenticationService {
         );
       }
 
-      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
-      // handlePasswordSubmissionError(error as Error);
-      throw error;
+      if (error instanceof Error) {
+        // Track unlockWallet error as analytics.
+        trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+      }
+      throw ensureError(error, 'Unlock wallet failed');
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
@@ -845,7 +941,10 @@ class AuthenticationService {
 
     // async check seedless password outdated skip cache when app lock
     // the function swallowed the error
-    this.checkIsSeedlessPasswordOutdated(true);
+    this.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    });
 
     // Reset authentication preference.
     // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
@@ -978,16 +1077,12 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            const keyringMetadata =
+            const entropySource =
               await this.importSeedlessMnemonicToVault(mnemonicToRestore);
 
             // discover multichain accounts from imported srp
-            if (isMultichainAccountsState2Enabled()) {
-              // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-              this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
-            } else {
-              this.addMultichainAccounts([keyringMetadata]);
-            }
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(entropySource);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
@@ -1007,52 +1102,52 @@ class AuthenticationService {
   };
 
   importSeedlessMnemonicToVault = async (
-    mnemonic: string,
-  ): Promise<KeyringMetadata> => {
+    seed: string,
+  ): Promise<EntropySourceId> => {
     const isSeedlessOnboardingFlow =
       Engine.context.SeedlessOnboardingController.state.vault != null;
 
     if (!isSeedlessOnboardingFlow) {
       throw new Error('Not in seedless onboarding flow');
     }
-    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    const {
+      KeyringController,
+      SeedlessOnboardingController,
+      MultichainAccountService,
+    } = Engine.context;
 
-    const keyringMetadata = await KeyringController.addNewKeyring(
-      KeyringTypes.hd,
+    const mnemonic = mnemonicPhraseToBytes(seed);
+
+    const wallet = await MultichainAccountService.createMultichainAccountWallet(
       {
+        type: 'import',
         mnemonic,
-        numberOfAccounts: 1,
       },
     );
-
-    const id = keyringMetadata.id;
+    const entropySource = wallet.entropySource;
 
     const [newAccountAddress] = await KeyringController.withKeyring(
-      { id },
+      { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
 
     // if social backup is requested, add the seed phrase backup
-    const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
-    const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
-      seedPhraseAsBuffer,
-      wordlist,
-    );
-
     try {
       SeedlessOnboardingController.updateBackupMetadataState({
-        keyringId: id,
-        data: seedPhraseAsUint8Array,
+        keyringId: entropySource,
+        data: mnemonic,
         type: SecretType.Mnemonic,
       });
     } catch (error) {
       // handle seedless controller import error by reverting keyring controller mnemonic import
-      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
-      await KeyringController.removeAccount(newAccountAddress);
+      await MultichainAccountService.removeMultichainAccountWallet(
+        entropySource,
+        newAccountAddress,
+      );
       throw error;
     }
 
-    return keyringMetadata;
+    return entropySource;
   };
 
   addNewPrivateKeyBackup = async (
@@ -1088,7 +1183,10 @@ class AuthenticationService {
       shouldSelectAccount: true,
     },
   ): Promise<boolean> => {
-    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: true,
+    });
     if (isPasswordOutdated) {
       return false;
     }
@@ -1135,27 +1233,6 @@ class AuthenticationService {
     return true;
   };
 
-  /**
-   * Temporary function until the attempt discovery support multi srp acccount discovery
-   * Add multichain accounts to the keyring
-   *
-   * @param keyringMetadataList - List of keyring metadata
-   */
-  addMultichainAccounts = async (
-    keyringMetadataList: KeyringMetadata[],
-  ): Promise<void> => {
-    for (const keyringMetadata of keyringMetadataList) {
-      for (const clientType of Object.values(WalletClientType)) {
-        const id = keyringMetadata.id;
-        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-        const multichainClient =
-          MultichainWalletSnapFactory.createClient(clientType);
-
-        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
-      }
-    }
-  };
-
   rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
@@ -1172,19 +1249,26 @@ class AuthenticationService {
           await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+        const err = ensureError(error, 'Fetch SRPs failed');
 
-        trace({
-          name: TraceName.OnboardingFetchSrpsError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({
-          name: TraceName.OnboardingFetchSrpsError,
-        });
+        // trace only if error is not an incorrect password error
+        if (
+          !containsErrorMessage(
+            err,
+            SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+          )
+        ) {
+          trace({
+            name: TraceName.OnboardingFetchSrpsError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage: err.message },
+          });
+          endTrace({
+            name: TraceName.OnboardingFetchSrpsError,
+          });
+        }
 
-        throw error;
+        throw err;
       } finally {
         endTrace({
           name: TraceName.OnboardingFetchSrps,
@@ -1202,7 +1286,6 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1214,9 +1297,7 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const keyringMetadata =
-                  await this.importSeedlessMnemonicToVault(mnemonic);
-                keyringMetadataList.push(keyringMetadata);
+                await this.importSeedlessMnemonicToVault(mnemonic);
               } else {
                 Logger.error(
                   new Error(
@@ -1236,18 +1317,9 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        if (isMultichainAccountsState2Enabled()) {
-          for (const { id } of keyringMetadataList) {
-            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(id);
-          }
-        } else {
-          this.addMultichainAccounts(keyringMetadataList);
-        }
-
         this.dispatchOauthReset();
-
         ReduxService.store.dispatch(setExistingUser(true));
+
         await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
@@ -1255,7 +1327,7 @@ class AuthenticationService {
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
-      throw error;
+      throw ensureError(error, 'Rehydrate seed phrase failed');
     }
   };
 
@@ -1304,7 +1376,14 @@ class AuthenticationService {
         // also show a info popup to user.
 
         // rehydrate with social accounts if max keychain length exceeded
-        await SeedlessOnboardingController.refreshAuthTokens();
+        try {
+          await SeedlessOnboardingController.refreshAuthTokens();
+        } catch (refreshError) {
+          Logger.error(
+            refreshError as Error,
+            'Failed to refresh auth tokens during MaxKeyChainLength recovery, attempting rehydration anyway',
+          );
+        }
         await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
         ReduxService.store.dispatch(setIsConnectionRemoved(true));
@@ -1345,12 +1424,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
-      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
-      await this.lockApp({ locked: true });
+      await this.lockApp({ locked: true, reset: false });
       throw err;
     }
 
@@ -1361,12 +1437,15 @@ class AuthenticationService {
   /**
    * Checks if the seedless password is outdated.
    *
-   * @param {boolean} skipCache - whether to skip the cache
-   * @returns {Promise<boolean>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   * @param options.skipCache - whether to skip the cache (default: true)
+   * @param options.captureSentryError - when true, failed checks are reported to Sentry via {@link Logger.error} (default: false)
+   * @returns true if the password is outdated, false otherwise (or when not in seedless flow)
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache: boolean = true,
+    options: CheckIsSeedlessPasswordOutdatedOptions = {},
   ): Promise<boolean> => {
+    const skipCache = options.skipCache ?? true;
+    const captureSentryError = options.captureSentryError ?? false;
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
@@ -1378,7 +1457,14 @@ class AuthenticationService {
         });
       return isSeedlessPasswordOutdated;
     } catch (error) {
-      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      if (captureSentryError) {
+        Logger.error(
+          error as Error,
+          'Error in checkIsSeedlessPasswordOutdated',
+        );
+      } else {
+        Logger.log('checkIsSeedlessPasswordOutdated', error);
+      }
       return false;
     }
   };
@@ -1399,10 +1485,21 @@ class AuthenticationService {
 
     // Check for latest seedless password outdated state
     // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false);
+    const isOutdated = await this.checkIsSeedlessPasswordOutdated({
+      skipCache: false,
+      captureSentryError: true,
+    });
     if (!isOutdated) {
       return;
     }
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_OUTDATED_MODAL_VIEWED,
+      )
+        .addProperties({ category: 'App' })
+        .build(),
+    );
 
     // show seedless password outdated modal and force user to lock app
     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1452,6 +1549,11 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearSeedlessOnboarding());
+    ReduxService.store.dispatch(
+      setPendingSocialLoginMarketingConsentBackfill(null),
+    );
   };
 
   /**
@@ -1506,7 +1608,7 @@ class AuthenticationService {
   protected async deleteUser(): Promise<void> {
     try {
       ReduxService.store.dispatch(setExistingUser(false));
-      await MetaMetrics.getInstance().createDataDeletionTask();
+      await createDataDeletionTaskUtil();
     } catch (error) {
       const errorMsg = `Failed to reset existingUser state in Redux`;
       Logger.log(error, errorMsg);
@@ -1530,30 +1632,21 @@ class AuthenticationService {
   updateAuthPreference = async (options: {
     authType: AUTHENTICATION_TYPE;
     password?: string;
+    fallbackToPassword?: boolean;
   }): Promise<void> => {
-    const { authType, password } = options;
+    const { authType, password, fallbackToPassword } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
       const passwordToUse = await this.reauthenticate(password);
 
       // storePassword handles all storage flag management internally
-      await this.storePassword(passwordToUse.password, authType);
+      await this.storePassword(
+        passwordToUse.password,
+        authType,
+        fallbackToPassword,
+      );
     } catch (e) {
       const errorWithMessage = e as { message: string };
-
-      // Check if the error is because password is not set with biometrics
-      // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
-      if (
-        errorWithMessage.message.includes(
-          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
-        )
-      ) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          this.authData,
-        );
-      }
 
       if (
         errorWithMessage.message === 'Invalid password' ||

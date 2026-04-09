@@ -6,9 +6,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { Footer } from '../../components/footer';
 import QRInfo from '../../components/qr-info';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Camera from './useCamera';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareAwareness from './useQRHardwareAwareness';
 import {
   QRHardwareContextProvider,
@@ -35,9 +35,33 @@ jest.mock('../../../../../core/Engine', () => ({
   },
   rejectPendingApproval: jest.fn(),
   getQrKeyringScanner: jest.fn(() => mockQrScanner),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
+
+// Mock HardwareWallet hooks used by useConfirmActions
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: jest.fn(() => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  })),
+  isUserCancellation: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');
+
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: true,
+  })),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -81,8 +105,8 @@ describe('QRHardwareContext', () => {
       .mockReturnValue(mockedValues);
   };
 
-  it('should pass correct value of needsCameraPermission to child components', () => {
-    createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
+  it('does not disable confirm button for camera permission since scanner handles it', () => {
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
     createQRHardwareAwarenessSpy({
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
@@ -97,7 +121,7 @@ describe('QRHardwareContext', () => {
     );
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('does not invoke rejectPendingScan when request is cancelled id QR signing is not in progress', async () => {

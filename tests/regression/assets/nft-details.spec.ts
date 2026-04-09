@@ -1,11 +1,11 @@
-import { RegressionAssets } from '../../../e2e/tags';
-import TestHelpers from '../../../e2e/helpers';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { RegressionAssets } from '../../tags';
+import TestHelpers from '../../helpers';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import ImportNFTView from '../../../e2e/pages/wallet/ImportNFTFlow/ImportNFTView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import ImportNFTView from '../../page-objects/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import {
@@ -15,6 +15,9 @@ import {
 import { DappVariants } from '../../framework/Constants';
 import { LocalNode } from '../../framework';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe.skip(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -36,13 +39,11 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0x539']),
@@ -56,6 +57,11 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
         ],
         restartDevice: true,
         smartContracts: [NFT_CONTRACT],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+        },
       },
       async ({ contractRegistry }) => {
         const nftsAddress =
@@ -63,9 +69,7 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
 
         await loginToApp();
 
-        await WalletView.tapNftTab();
-        await WalletView.scrollDownOnNFTsTab();
-
+        await WalletView.scrollAndTapNftsSection();
         await WalletView.tapImportNFTButton();
         await Assertions.expectElementToBeVisible(ImportNFTView.container);
         await ImportNFTView.typeInNFTAddress('1234');

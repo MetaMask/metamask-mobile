@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsCandlePeriodSelector from './PerpsCandlePeriodSelector';
-import { CandlePeriod } from '../../constants/chartConfig';
+import { CandlePeriod } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 const mockOnPeriodChange = jest.fn();

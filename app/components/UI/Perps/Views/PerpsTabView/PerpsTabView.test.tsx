@@ -9,9 +9,12 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position, PerpsMarketData } from '../../controllers/types';
+import {
+  PERPS_EVENT_VALUE,
+  type Position,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import PerpsTabView from './PerpsTabView';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -354,6 +357,18 @@ describe('PerpsTabView', () => {
   });
 
   describe('Hook Integration', () => {
+    it('passes TP/SL and reduce-only filtering options to usePerpsLiveOrders', () => {
+      render(<PerpsTabView />);
+
+      expect(mockUsePerpsLiveOrders).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hideTpSl: true,
+          hideReduceOnly: true,
+          throttleMs: 1000,
+        }),
+      );
+    });
+
     it('should use live account data when component mounts', () => {
       const mockUsePerpsLiveAccount =
         jest.requireMock('../../hooks/stream').usePerpsLiveAccount;

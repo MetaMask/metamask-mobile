@@ -9,7 +9,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import useRewardsToast from '../../hooks/useRewardsToast';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,7 +33,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   ClaimRewardDto,
   SeasonRewardType,
@@ -47,9 +47,7 @@ import AvatarAccount from '../../../../../component-library/components/Avatars/A
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import useClaimReward from '../../hooks/useClaimReward';
 import useLineaSeasonOneTokenReward from '../../hooks/useLineaSeasonOneTokenReward';
 import { validateEmail } from '../../utils/formatUtils';
@@ -327,11 +325,6 @@ const EndOfSeasonClaimBottomSheet = ({
           onChangeText={handleEmailChange}
           value={email}
           isError={emailValidationError}
-          size={TextFieldSize.Lg}
-          style={tw.style(
-            'bg-background-pressed',
-            emailValidationError && 'border-error-default',
-          )}
           keyboardType="email-address"
           autoCapitalize="none"
           isDisabled={isClaimingReward}
@@ -365,8 +358,6 @@ const EndOfSeasonClaimBottomSheet = ({
           placeholder={strings('rewards.metal_card_claim.telegram_placeholder')}
           onChangeText={setTelegram}
           value={telegram}
-          size={TextFieldSize.Lg}
-          style={tw.style('bg-background-pressed')}
           autoCapitalize="none"
           isDisabled={isClaimingReward}
           testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TELEGRAM_INPUT}
@@ -412,17 +403,7 @@ const EndOfSeasonClaimBottomSheet = ({
       );
     }
 
-    // default return title
-    return (
-      <Box
-        twClassName="flex-col items-center justify-center w-full"
-        testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE}
-      >
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-          {title}
-        </Text>
-      </Box>
-    );
+    return null;
   };
 
   const renderDescription = () => (
@@ -532,9 +513,11 @@ const EndOfSeasonClaimBottomSheet = ({
       testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
-      <BottomSheetHeader onClose={handleModalClose}>
-        {strings('rewards.end_of_season_rewards.reward_details')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={title}
+        onClose={handleModalClose}
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       {needsKeyboardAvoiding ? (
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"

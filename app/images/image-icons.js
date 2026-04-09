@@ -17,6 +17,7 @@ import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
+import CHZ from './chiliz.png';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import BTC_TESTNET from './bitcoin-testnet-logo.png';
 import BTC_MUTINYNET from './bitcoin-mutinynet-logo.png';
@@ -57,6 +58,9 @@ import ETHERLINK_NATIVE from './etherlink-native.png';
 import MSU_NATIVE from './msu-native.png';
 import BOB from './bob.png';
 import ROOTSTOCK from './rootstock-native.png';
+import STABLE from './stable.png';
+import STABLE_NATIVE from './stable-native.png';
+import TEMPO_NATIVE from './tempo-native.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
@@ -130,4 +134,9 @@ export default {
   BOB,
   RBTC: ROOTSTOCK,
   tRBTC: ROOTSTOCK,
+  CHZ,
+  STABLE,
+  USDT0: STABLE_NATIVE,
+  USD: TEMPO_NATIVE,
+  PATHUSD: TEMPO_NATIVE,
 };

@@ -3,6 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsRecentActivityList from './PerpsRecentActivityList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FillType } from '../../types/transactionHistory';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -163,6 +170,20 @@ describe('PerpsRecentActivityList', () => {
     useNavigation.mockReturnValue({
       navigate: mockNavigate,
     });
+
+    // Re-set up analytics mock (resetAllMocks in afterEach clears implementations)
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+    useAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
   });
 
   afterEach(() => {
@@ -204,23 +225,17 @@ describe('PerpsRecentActivityList', () => {
   });
 
   describe('Empty State', () => {
-    it('renders empty message when transactions array is empty', () => {
-      render(<PerpsRecentActivityList transactions={[]} />);
+    it('renders nothing when transactions array is empty', () => {
+      const { toJSON } = render(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
     });
 
-    it('renders header with title when empty', () => {
+    it('does not render header or empty message when empty', () => {
       render(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(screen.getByText('Recent Activity')).toBeOnTheScreen();
-    });
-
-    it('does not render pressable header when empty', () => {
-      render(<PerpsRecentActivityList transactions={[]} />);
-
-      // When empty, header is not pressable (no arrow icon)
-      expect(screen.queryByText('Recent Activity')).toBeOnTheScreen();
+      expect(screen.queryByText('Recent Activity')).not.toBeOnTheScreen();
+      expect(screen.queryByText('No recent activity')).not.toBeOnTheScreen();
     });
   });
 
@@ -622,20 +637,19 @@ describe('PerpsRecentActivityList', () => {
     });
 
     it('transitions from empty state to fills', () => {
-      const { rerender } = render(
+      const { rerender, toJSON } = render(
         <PerpsRecentActivityList transactions={[]} />,
       );
 
-      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
 
       rerender(<PerpsRecentActivityList transactions={mockTransactions} />);
 
-      expect(screen.queryByText('No recent activity')).not.toBeOnTheScreen();
       expect(screen.getByText('Opened long')).toBeOnTheScreen();
     });
 
     it('transitions from fills to empty state', () => {
-      const { rerender } = render(
+      const { rerender, toJSON } = render(
         <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
@@ -644,7 +658,7 @@ describe('PerpsRecentActivityList', () => {
       rerender(<PerpsRecentActivityList transactions={[]} />);
 
       expect(screen.queryByText('Opened long')).not.toBeOnTheScreen();
-      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
     });
 
     it('transitions from loading to fills', () => {
@@ -700,7 +714,7 @@ describe('PerpsRecentActivityList', () => {
     });
 
     it('cleans up properly when remounted with different props', () => {
-      const { rerender } = render(
+      const { rerender, toJSON } = render(
         <PerpsRecentActivityList transactions={mockTransactions} />,
       );
 
@@ -708,7 +722,7 @@ describe('PerpsRecentActivityList', () => {
 
       rerender(<PerpsRecentActivityList transactions={[]} />);
 
-      expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
 
       rerender(<PerpsRecentActivityList transactions={mockTransactions} />);
 
@@ -732,6 +746,26 @@ describe('PerpsRecentActivityList', () => {
 
       // FlatList is rendered with scrollEnabled={false}
       expect(root).toBeTruthy();
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
+
+      const transactionItem = screen.getByText('Opened long');
+      fireEvent.press(transactionItem.parent?.parent || transactionItem);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

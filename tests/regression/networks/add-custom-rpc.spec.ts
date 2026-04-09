@@ -1,15 +1,16 @@
-import { RegressionAssets } from '../../../e2e/tags';
-import NetworkView from '../../../e2e/pages/Settings/NetworksView';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import ToastModal from '../../../e2e/pages/wallet/ToastModal';
-import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { RegressionAssets } from '../../tags';
+import NetworkView from '../../page-objects/Settings/NetworksView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import ToastModal from '../../page-objects/wallet/ToastModal';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import TestHelpers from '../../../e2e/helpers';
+import TestHelpers from '../../helpers';
 
 describe.skip(RegressionAssets('Custom RPC Tests'), () => {
   beforeEach(() => {
@@ -74,7 +75,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
           NetworkEducationModal.container,
         );
         await Assertions.expectElementToHaveText(
-          NetworkEducationModal.networkName,
+          asDetoxElement(NetworkEducationModal.networkName),
           CustomNetworks.Gnosis.providerConfig.nickname,
         );
         await NetworkEducationModal.tapGotItButton();
@@ -159,7 +160,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Gnosis)
+          .withNetworkController(CustomNetworks.Gnosis.providerConfig)
           .build(),
         restartDevice: true,
       },

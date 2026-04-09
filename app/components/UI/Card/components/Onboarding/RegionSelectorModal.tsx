@@ -23,8 +23,6 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { useSelector } from 'react-redux';
-import { selectSelectedCountry } from '../../../../../core/redux/slices/card';
 import {
   Box,
   BoxAlignItems,
@@ -32,15 +30,11 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { Region } from '../../types';
 
 const MAX_REGION_RESULTS = 20;
 
-export interface Region {
-  key: string; // country code
-  name: string;
-  emoji?: string;
-  areaCode?: string;
-}
+export type { Region };
 
 // Simple callback registry for onValueChange
 let onValueChangeCallback: ((region: Region) => void) | null = null;
@@ -56,6 +50,7 @@ export const clearOnValueChange = () => {
 interface RegionSelectorModalParams {
   regions: Region[];
   renderAreaCode?: boolean;
+  selectedRegionKey?: string | null;
 }
 
 export const createRegionSelectorModalNavigationDetails =
@@ -67,9 +62,9 @@ export const createRegionSelectorModalNavigationDetails =
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
-  const { regions, renderAreaCode } = useParams<RegionSelectorModalParams>();
+  const { regions, renderAreaCode, selectedRegionKey } =
+    useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
-  const selectedCountry = useSelector(selectSelectedCountry);
   const [currentData, setCurrentData] = useState<Region[]>(regions || []);
   const { height: screenHeight } = useWindowDimensions();
 
@@ -140,7 +135,7 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
-          isSelected={selectedCountry?.key === region.key}
+          isSelected={selectedRegionKey === region.key}
           onPress={() => handleOnRegionPressCallback(region)}
           accessibilityRole="button"
           accessible
@@ -168,7 +163,7 @@ function RegionSelectorModal() {
         </ListItemSelect>
       );
     },
-    [selectedCountry, renderAreaCode, handleOnRegionPressCallback],
+    [selectedRegionKey, renderAreaCode, handleOnRegionPressCallback],
   );
 
   const renderEmptyList = useCallback(
@@ -222,7 +217,6 @@ function RegionSelectorModal() {
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
-          showClearButton={searchString.length > 0}
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
@@ -235,7 +229,7 @@ function RegionSelectorModal() {
         style={listStyle}
         data={dataSearchResults}
         renderItem={renderRegionItem}
-        extraData={selectedCountry}
+        extraData={selectedRegionKey}
         keyExtractor={(item) => `${item?.key}-${item?.areaCode}`}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"

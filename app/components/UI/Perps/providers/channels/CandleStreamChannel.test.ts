@@ -1,7 +1,14 @@
 import { CandleStreamChannel } from './CandleStreamChannel';
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
-import type { CandleData } from '../../types/perps-types';
+import {
+  CandlePeriod,
+  PERFORMANCE_CONFIG,
+  PERPS_CONSTANTS,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+
+const mockGetIsInitialized = jest.fn().mockReturnValue(true);
 
 jest.mock('../../../../../core/Engine');
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
@@ -30,9 +37,10 @@ describe('CandleStreamChannel', () => {
   };
 
   beforeEach(() => {
-    channel = new CandleStreamChannel();
+    channel = new CandleStreamChannel(mockGetIsInitialized);
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockGetIsInitialized.mockReturnValue(true);
 
     // Setup Engine.context.PerpsController mock
     mockSubscribeToCandles = jest.fn();
@@ -49,9 +57,11 @@ describe('CandleStreamChannel', () => {
     jest.useRealTimers();
   });
 
+  // Flush the debounce delay used by connect() → deferConnect() (#28141)
+  const flushConnectDebounce = () => jest.advanceTimersByTime(500);
+
   describe('Cache Management', () => {
     it('should generate correct cache key', () => {
-      // Test via subscription - cache key format is symbol-interval
       const callback = jest.fn();
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
@@ -61,8 +71,8 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback,
       });
+      flushConnectDebounce();
 
-      // Verify subscription was called (implies cache key was used internally)
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
           symbol: 'BTC',
@@ -81,18 +91,16 @@ describe('CandleStreamChannel', () => {
         return jest.fn();
       });
 
-      // First subscription
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: callback1,
       });
+      flushConnectDebounce();
 
-      // Simulate WebSocket data
       capturedCallback?.(mockCandleData);
 
-      // Second subscription to same symbol+interval should get cached data
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
@@ -100,7 +108,6 @@ describe('CandleStreamChannel', () => {
         callback: callback2,
       });
 
-      // Both callbacks should have been invoked
       expect(callback1).toHaveBeenCalledWith(mockCandleData);
       expect(callback2).toHaveBeenCalledWith(mockCandleData);
     });
@@ -109,15 +116,8 @@ describe('CandleStreamChannel', () => {
       const btcCallback = jest.fn();
       const ethCallback = jest.fn();
 
-      const mockBtcData: CandleData = {
-        ...mockCandleData,
-        symbol: 'BTC',
-      };
-
-      const mockEthData: CandleData = {
-        ...mockCandleData,
-        symbol: 'ETH',
-      };
+      const mockBtcData: CandleData = { ...mockCandleData, symbol: 'BTC' };
+      const mockEthData: CandleData = { ...mockCandleData, symbol: 'ETH' };
 
       let btcCapturedCallback: ((data: CandleData) => void) | undefined;
       let ethCapturedCallback: ((data: CandleData) => void) | undefined;
@@ -131,29 +131,23 @@ describe('CandleStreamChannel', () => {
         return jest.fn();
       });
 
-      // Subscribe to BTC
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: btcCallback,
       });
-
-      // Subscribe to ETH
       channel.subscribe({
         symbol: 'ETH',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: ethCallback,
       });
+      flushConnectDebounce();
 
-      // Send BTC data
       btcCapturedCallback?.(mockBtcData);
-
-      // Send ETH data
       ethCapturedCallback?.(mockEthData);
 
-      // Each callback should only receive its own data
       expect(btcCallback).toHaveBeenCalledWith(mockBtcData);
       expect(btcCallback).not.toHaveBeenCalledWith(mockEthData);
       expect(ethCallback).toHaveBeenCalledWith(mockEthData);
@@ -169,20 +163,17 @@ describe('CandleStreamChannel', () => {
         return jest.fn();
       });
 
-      // Subscribe and populate cache
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback,
       });
+      flushConnectDebounce();
 
       capturedCallback?.(mockCandleData);
-
-      // Clear cache
       channel.clearCache();
 
-      // Should notify subscribers with cleared data
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
           symbol: '',
@@ -210,6 +201,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
       capturedCallback?.(mockCandleData);
 
@@ -235,51 +227,46 @@ describe('CandleStreamChannel', () => {
     it('should share WebSocket connection for same symbol+interval', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
-      // Subscribe twice to same symbol+interval
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Should only call subscribeToCandles once
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
     });
 
     it('should create separate WebSocket connections for different symbol+interval', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
-      // Subscribe to different combinations
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.FiveMinutes,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'ETH',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Should call subscribeToCandles three times
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(3);
     });
 
@@ -295,26 +282,22 @@ describe('CandleStreamChannel', () => {
         return jest.fn();
       });
 
-      // Subscribe to BTC
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: btcCallback,
       });
-
-      // Subscribe to ETH
       channel.subscribe({
         symbol: 'ETH',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: ethCallback,
       });
+      flushConnectDebounce();
 
-      // Send BTC data
       btcCapturedCallback?.(mockCandleData);
 
-      // Only BTC callback should be invoked
       expect(btcCallback).toHaveBeenCalledWith(mockCandleData);
       expect(ethCallback).not.toHaveBeenCalled();
     });
@@ -329,19 +312,17 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       const unsubscribe2 = channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Unsubscribe first subscriber - WebSocket should stay connected
       unsubscribe1();
       expect(mockUnsubscribe).not.toHaveBeenCalled();
 
-      // Unsubscribe last subscriber - WebSocket should disconnect
       unsubscribe2();
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
@@ -350,7 +331,6 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      // Note:
       mockSubscribeToCandles.mockImplementation(({ symbol }) =>
         symbol === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
       );
@@ -361,18 +341,16 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'ETH',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Unsubscribe from BTC
       btcUnsubscribe();
 
-      // BTC WebSocket should disconnect, but ETH should remain
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
       expect(mockEthUnsubscribe).not.toHaveBeenCalled();
     });
@@ -388,6 +366,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
       expect(
         Engine.context.PerpsController.subscribeToCandles,
@@ -405,15 +384,74 @@ describe('CandleStreamChannel', () => {
         callback: jest.fn(),
       });
 
-      // Should not call subscribe immediately
       expect(mockSubscribeToCandles).not.toHaveBeenCalled();
 
-      // Fast-forward timers to trigger retry
       mockIsCurrentlyReinitializing.mockReturnValue(false);
       jest.advanceTimersByTime(5000);
 
-      // Should call subscribe after delay
       expect(mockSubscribeToCandles).toHaveBeenCalled();
+    });
+
+    it('should retry deferred connection until the controller initializes', () => {
+      mockGetIsInitialized.mockReturnValue(false);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+      expect(mockSubscribeToCandles).not.toHaveBeenCalled();
+
+      mockGetIsInitialized.mockReturnValue(true);
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectRetryDelayMs);
+
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneWeek,
+        }),
+      );
+    });
+
+    it('uses a lighter initial candle fetch when reconnecting with cached data', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return mockUnsubscribe;
+      });
+
+      const unsubscribe = channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.(mockCandleData);
+
+      unsubscribe();
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      expect(mockSubscribeToCandles).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
+          duration: TimeDuration.OneDay,
+        }),
+      );
     });
 
     it('should disconnect WebSocket via stored cleanup function', () => {
@@ -426,6 +464,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
       unsubscribe();
 
@@ -450,8 +489,8 @@ describe('CandleStreamChannel', () => {
         callback,
         throttleMs: 1000,
       });
+      flushConnectDebounce();
 
-      // First update should be immediate
       capturedCallback?.(mockCandleData);
 
       expect(callback).toHaveBeenCalledWith(mockCandleData);
@@ -474,12 +513,11 @@ describe('CandleStreamChannel', () => {
         callback,
         throttleMs: 1000,
       });
+      flushConnectDebounce();
 
-      // First update - immediate
       capturedCallback?.(mockCandleData);
       expect(callback).toHaveBeenCalledTimes(1);
 
-      // Second update - should be throttled
       const updatedData = {
         ...mockCandleData,
         candles: [
@@ -496,13 +534,10 @@ describe('CandleStreamChannel', () => {
       };
       capturedCallback?.(updatedData);
 
-      // Should not call callback immediately
       expect(callback).toHaveBeenCalledTimes(1);
 
-      // Fast-forward time
       jest.advanceTimersByTime(1000);
 
-      // Should call callback after throttle period
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenLastCalledWith(updatedData);
     });
@@ -523,11 +558,10 @@ describe('CandleStreamChannel', () => {
         callback,
         throttleMs: 1000,
       });
+      flushConnectDebounce();
 
-      // First update
       capturedCallback?.(mockCandleData);
 
-      // Multiple updates during throttle period
       const update1 = {
         ...mockCandleData,
         candles: [{ ...mockCandleData.candles[0], close: '50600' }],
@@ -545,10 +579,8 @@ describe('CandleStreamChannel', () => {
       capturedCallback?.(update2);
       capturedCallback?.(update3);
 
-      // Fast-forward time
       jest.advanceTimersByTime(1000);
 
-      // Should only send the latest update
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenLastCalledWith(update3);
     });
@@ -567,10 +599,9 @@ describe('CandleStreamChannel', () => {
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback,
-        // No throttleMs
       });
+      flushConnectDebounce();
 
-      // All updates should be immediate
       capturedCallback?.(mockCandleData);
       expect(callback).toHaveBeenCalledTimes(1);
 
@@ -597,20 +628,15 @@ describe('CandleStreamChannel', () => {
         callback,
         throttleMs: 1000,
       });
+      flushConnectDebounce();
 
-      // First update
+      capturedCallback?.(mockCandleData);
       capturedCallback?.(mockCandleData);
 
-      // Second update (throttled)
-      capturedCallback?.(mockCandleData);
-
-      // Unsubscribe before throttle expires
       unsubscribe();
 
-      // Fast-forward time
       jest.advanceTimersByTime(1000);
 
-      // Should not call callback after unsubscribe
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
@@ -631,14 +657,11 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback,
       });
+      flushConnectDebounce();
 
-      // Pause channel
       channel.pause();
-
-      // Send update
       capturedCallback?.(mockCandleData);
 
-      // Callback should not be invoked
       expect(callback).not.toHaveBeenCalled();
     });
 
@@ -657,17 +680,15 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback,
       });
+      flushConnectDebounce();
 
-      // Pause and send update
       channel.pause();
       capturedCallback?.(mockCandleData);
       expect(callback).not.toHaveBeenCalled();
 
-      // Resume and send another update
       channel.resume();
       capturedCallback?.(mockCandleData);
 
-      // Callback should be invoked
       expect(callback).toHaveBeenCalled();
     });
   });
@@ -677,7 +698,6 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      // Note:
       mockSubscribeToCandles.mockImplementation(({ symbol }) =>
         symbol === 'BTC' ? mockBtcUnsubscribe : mockEthUnsubscribe,
       );
@@ -688,18 +708,16 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'ETH',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Disconnect all
       channel.disconnectAll();
 
-      // Both unsubscribe functions should be called
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
       expect(mockEthUnsubscribe).toHaveBeenCalled();
     });
@@ -720,20 +738,15 @@ describe('CandleStreamChannel', () => {
         callback,
         throttleMs: 1000,
       });
+      flushConnectDebounce();
 
-      // Send first update
+      capturedCallback?.(mockCandleData);
       capturedCallback?.(mockCandleData);
 
-      // Send second update (throttled)
-      capturedCallback?.(mockCandleData);
-
-      // Disconnect all
       channel.disconnectAll();
 
-      // Fast-forward time
       jest.advanceTimersByTime(1000);
 
-      // Should not invoke callback after disconnect
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
@@ -749,6 +762,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
       channel.clearCache();
 
@@ -771,24 +785,40 @@ describe('CandleStreamChannel', () => {
         callback,
         throttleMs: 1000,
       });
+      flushConnectDebounce();
 
-      // Send updates
       capturedCallback?.(mockCandleData);
       capturedCallback?.(mockCandleData);
 
-      // Clear cache
       channel.clearCache();
 
-      // Fast-forward time
       jest.advanceTimersByTime(1000);
 
-      // Should have called callback for cleared data (from clearCache)
-      // but not from throttled update
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
           candles: [],
         }),
       );
+    });
+
+    it('cancels deferred connect timers on clearCache', () => {
+      mockGetIsInitialized.mockReturnValue(false);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+
+      channel.clearCache();
+      jest.advanceTimersByTime(
+        PERFORMANCE_CONFIG.NavigationParamsDelayMs +
+          PERPS_CONSTANTS.ConnectRetryDelayMs,
+      );
+
+      expect(mockSubscribeToCandles).not.toHaveBeenCalled();
     });
   });
 
@@ -816,6 +846,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
       const emptyData: CandleData = {
         symbol: 'BTC',
@@ -847,6 +878,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: subscriber,
       });
+      flushConnectDebounce();
 
       capturedCallback?.(mockCandleData);
 
@@ -873,12 +905,12 @@ describe('CandleStreamChannel', () => {
         TimeDuration.OneDay,
       );
 
-      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith(
-        'BTC',
-        CandlePeriod.OneHour,
-        50,
-        expect.any(Number),
-      );
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        limit: 50,
+        endTime: expect.any(Number),
+      });
 
       expect(subscriber).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -905,6 +937,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: subscriber,
       });
+      flushConnectDebounce();
 
       capturedCallback?.(mockCandleData);
 
@@ -939,6 +972,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
       capturedCallback?.(mockCandleData);
 
@@ -968,6 +1002,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: subscriber,
       });
+      flushConnectDebounce();
 
       capturedCallback?.(mockCandleData);
       subscriber.mockClear();
@@ -984,45 +1019,78 @@ describe('CandleStreamChannel', () => {
     });
   });
 
-  describe('Always Uses Maximum Duration', () => {
-    it('always uses YEAR_TO_DATE duration when subscribing regardless of requested duration', () => {
-      mockSubscribeToCandles.mockImplementation(({ duration }) => {
-        // Verify YEAR_TO_DATE is always used
-        expect(duration).toBe(TimeDuration.YearToDate);
-        return jest.fn();
-      });
+  describe('Initial Fetch Duration', () => {
+    it('uses OneWeek duration on cold cache for lighter initial fetch', () => {
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
 
-      // Subscribe with ONE_DAY - should still use YEAR_TO_DATE internally
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          duration: TimeDuration.OneWeek,
+        }),
+      );
+    });
+
+    it('uses OneDay duration on cache hit for minimal fetch', () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      // First subscribe — populates cache
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.(mockCandleData);
+
+      // Disconnect then re-subscribe (simulates market revisit)
+      channel.disconnect('BTC-1h');
+      mockSubscribeToCandles.mockClear();
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      expect(mockSubscribeToCandles).toHaveBeenCalledWith(
+        expect.objectContaining({
+          duration: TimeDuration.OneDay,
+        }),
+      );
     });
 
     it('shares WebSocket connection when subscribers use different durations for same symbol+interval', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());
 
-      // First subscriber with ONE_DAY
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
-      // Second subscriber with YEAR_TO_DATE (different duration, same symbol+interval)
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.YearToDate,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // WebSocket subscription created only once (connection is shared)
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(1);
     });
 
@@ -1036,18 +1104,16 @@ describe('CandleStreamChannel', () => {
         return jest.fn();
       });
 
-      // First subscriber
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.YearToDate,
         callback: firstCallback,
       });
+      flushConnectDebounce();
 
-      // Simulate initial data load
       capturedCallback?.(mockCandleData);
 
-      // Second subscriber
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneHour,
@@ -1055,7 +1121,6 @@ describe('CandleStreamChannel', () => {
         callback: secondCallback,
       });
 
-      // Second callback receives cached data immediately
       expect(secondCallback).toHaveBeenCalledWith(mockCandleData);
     });
   });
@@ -1065,7 +1130,6 @@ describe('CandleStreamChannel', () => {
       const mockBtcUnsubscribe = jest.fn();
       const mockEthUnsubscribe = jest.fn();
 
-      // Set up subscriptions
       mockSubscribeToCandles
         .mockReturnValueOnce(mockBtcUnsubscribe)
         .mockReturnValueOnce(mockEthUnsubscribe);
@@ -1076,18 +1140,16 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'ETH',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Act - call disconnect without cacheKey
       channel.disconnect();
 
-      // Assert - both unsubscribe functions should be called (via disconnectAll)
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
       expect(mockEthUnsubscribe).toHaveBeenCalled();
     });
@@ -1103,11 +1165,10 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Act - call disconnect with undefined
       channel.disconnect(undefined);
 
-      // Assert - unsubscribe function should be called (via disconnectAll)
       expect(mockBtcUnsubscribe).toHaveBeenCalled();
     });
   });
@@ -1117,45 +1178,36 @@ describe('CandleStreamChannel', () => {
       const mockEthUsdUnsubscribe = jest.fn();
       const mockBtcUnsubscribe = jest.fn();
 
-      // Setup subscriptions with coins that contain hyphens
       mockSubscribeToCandles
         .mockReturnValueOnce(mockEthUsdUnsubscribe)
         .mockReturnValueOnce(mockBtcUnsubscribe);
 
-      // Subscribe to ETH-USD (coin with hyphen)
       channel.subscribe({
         symbol: 'ETH-USD',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
-      // Subscribe to BTC (coin without hyphen)
       channel.subscribe({
         symbol: 'BTC',
         interval: CandlePeriod.OneDay,
         duration: TimeDuration.OneWeek,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Clear previous calls
       mockSubscribeToCandles.mockClear();
 
-      // Act - reconnect all channels
       channel.reconnect();
+      flushConnectDebounce();
 
-      // Assert - both subscriptions should be re-established with correct coin and interval
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(2);
-
-      // Verify ETH-USD subscription was reconnected correctly
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
           symbol: 'ETH-USD',
           interval: CandlePeriod.OneHour,
         }),
       );
-
-      // Verify BTC subscription was reconnected correctly
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({
           symbol: 'BTC',
@@ -1174,35 +1226,31 @@ describe('CandleStreamChannel', () => {
         .mockReturnValueOnce(mockUnsubscribe2)
         .mockReturnValueOnce(mockUnsubscribe3);
 
-      // Subscribe to multiple coins with hyphens
       channel.subscribe({
         symbol: 'ETH-USD',
         interval: CandlePeriod.OneHour,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'BTC-USD',
         interval: CandlePeriod.TwoHours,
         duration: TimeDuration.OneDay,
         callback: jest.fn(),
       });
-
       channel.subscribe({
         symbol: 'SOL-USD',
         interval: CandlePeriod.FourHours,
         duration: TimeDuration.OneWeek,
         callback: jest.fn(),
       });
+      flushConnectDebounce();
 
-      // Clear previous calls
       mockSubscribeToCandles.mockClear();
 
-      // Act - reconnect
       channel.reconnect();
+      flushConnectDebounce();
 
-      // Assert - all three subscriptions should be re-established correctly
       expect(mockSubscribeToCandles).toHaveBeenCalledTimes(3);
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
         expect.objectContaining({

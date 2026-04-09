@@ -1,7 +1,9 @@
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { RootState } from '../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectTransactions,
+  selectLastWithdrawTokenByType,
   selectNonReplacedTransactions,
   selectSwapsTransactions,
   selectTransactionMetadataById,
@@ -214,6 +216,129 @@ describe('TransactionController Selectors', () => {
       ];
 
       expect(selectSortedTransactions(state)).toStrictEqual(expectedSorted);
+    });
+  });
+
+  describe('selectLastWithdrawTokenByType', () => {
+    it('returns token from latest nested predictWithdraw transaction', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'older',
+                  metamaskPay: {
+                    chainId: '0x89',
+                    tokenAddress: '0xolder',
+                  },
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
+                  time: 100,
+                  type: TransactionType.batch,
+                },
+                {
+                  id: 'latest',
+                  metamaskPay: {
+                    chainId: '0x38',
+                    tokenAddress: '0xlatest',
+                  },
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
+                  time: 200,
+                  type: TransactionType.batch,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastWithdrawTokenByType(
+        state,
+        TransactionType.predictWithdraw,
+      );
+
+      expect(result).toStrictEqual({
+        address: '0xlatest',
+        chainId: '0x38',
+      });
+    });
+
+    it('ignores nested predictWithdraw transactions without metamaskPay and uses the latest one with metamaskPay', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'newer-without-metamask-pay',
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
+                  time: 300,
+                  type: TransactionType.batch,
+                },
+                {
+                  id: 'latest-with-metamask-pay',
+                  metamaskPay: {
+                    chainId: '0x38',
+                    tokenAddress: '0xlatest',
+                  },
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
+                  time: 200,
+                  type: TransactionType.batch,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastWithdrawTokenByType(
+        state,
+        TransactionType.predictWithdraw,
+      );
+
+      expect(result).toStrictEqual({
+        address: '0xlatest',
+        chainId: '0x38',
+      });
+    });
+
+    it('returns undefined when matching nested predictWithdraw transaction has no metamaskPay token', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'latest',
+                  nestedTransactions: [
+                    { type: TransactionType.predictWithdraw },
+                  ],
+                  time: 200,
+                  type: TransactionType.batch,
+                },
+              ],
+            },
+          },
+        },
+        pendingSmartTransactions: [],
+      } as unknown as RootState;
+
+      const result = selectLastWithdrawTokenByType(
+        state,
+        TransactionType.predictWithdraw,
+      );
+
+      expect(result).toBeUndefined();
     });
   });
 

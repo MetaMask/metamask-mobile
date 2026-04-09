@@ -1,11 +1,11 @@
 import { ParamListBase } from '@react-navigation/native';
-import type {
-  Position,
-  Order,
-  OrderType,
-  PerpsMarketData,
-  TPSLTrackingData,
-} from '../controllers/types';
+import {
+  type Position,
+  type Order,
+  type OrderType,
+  type PerpsMarketData,
+  type TPSLTrackingData,
+} from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 
@@ -19,6 +19,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrder: {
     direction: 'long' | 'short';
     asset: string;
+    defaultSzDecimals?: number;
+    defaultMaxLeverage?: number;
     leverage?: number;
     amount?: string;
     price?: string;
@@ -27,6 +29,8 @@ export interface PerpsNavigationParamList extends ParamListBase {
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
     /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
     showPerpsHeader?: boolean;
+    /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
+    source?: string;
   };
 
   PerpsOrderSuccess: {
@@ -77,7 +81,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     title?: string;
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
-    defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
     defaultMarketTypeFilter?:
       | 'all'
@@ -109,6 +112,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsClosePosition: {
     position: Position;
+    source?: string;
   };
 
   PerpsAdjustMargin: {
@@ -157,6 +161,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+    /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
+    source?: string;
+    /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
+    redirectScreen?: string;
+    /** Params to pass to the redirect screen */
+    redirectParams?: Record<string, unknown>;
   };
 
   // TP/SL screen
@@ -172,11 +182,16 @@ export interface PerpsNavigationParamList extends ParamListBase {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
+     * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
+     */
     onConfirm: (
+      position?: Position,
       takeProfitPrice?: string,
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
-    ) => Promise<void>;
+    ) => Promise<{ success: boolean } | void>;
   };
 
   // PnL Hero Card screen
@@ -214,6 +229,16 @@ export interface PerpsNavigationParamList extends ParamListBase {
   /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
   RedesignedConfirmations: {
     showPerpsHeader?: boolean;
+  };
+
+  /** Params for PerpsOrderRedirect - handles one-click trade from token details */
+  PerpsOrderRedirect: {
+    direction: 'long' | 'short';
+    asset: string;
+    /** When true, the order was initiated from the token details screen */
+    fromTokenDetails?: boolean;
+    /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
 }
 

@@ -45,7 +45,6 @@ const mockStateWithHideFiatOnTestnets = merge({}, mockStateWithTestnet, {
 describe('FiatDisplay', () => {
   describe('IndividualFiatDisplay', () => {
     it.each([
-      [FIAT_UNAVAILABLE, 'Not available'],
       [new BigNumber(100), '$100'],
       [new BigNumber(-100), '$100'],
       [new BigNumber(-100.5), '$100.50'],
@@ -56,6 +55,14 @@ describe('FiatDisplay', () => {
         { state: mockStateWithTestnet },
       );
       expect(await findByText(expected)).toBeTruthy();
+    });
+
+    it('returns null when fiatAmount is FIAT_UNAVAILABLE', () => {
+      const { toJSON } = renderWithProvider(
+        <IndividualFiatDisplay fiatAmount={FIAT_UNAVAILABLE} />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
     });
 
     it('does not render anything if hideFiatForTestnet is true', () => {
@@ -69,8 +76,6 @@ describe('FiatDisplay', () => {
 
   describe('TotalFiatDisplay', () => {
     it.each([
-      [[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE], 'Not available'],
-      [[], 'Not available'],
       [
         [
           new BigNumber(100),
@@ -109,6 +114,34 @@ describe('FiatDisplay', () => {
         expect(await findByText(expected)).toBeTruthy();
       },
     );
+
+    it('returns null when all fiatAmounts are FIAT_UNAVAILABLE', () => {
+      const { toJSON } = renderWithProvider(
+        <TotalFiatDisplay fiatAmounts={[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE]} />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null when fiatAmounts is empty', () => {
+      const { toJSON } = renderWithProvider(
+        <TotalFiatDisplay fiatAmounts={[]} />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null when total fiat equals zero', () => {
+      const { toJSON } = renderWithProvider(
+        <TotalFiatDisplay
+          fiatAmounts={
+            [new BigNumber(100), new BigNumber(-100)] as unknown as FiatAmount[]
+          }
+        />,
+        { state: mockStateWithTestnet },
+      );
+      expect(toJSON()).toBeNull();
+    });
 
     it('does not render anything if hideFiatForTestnet is true', () => {
       const mockFiatAmounts = [

@@ -1,21 +1,22 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../../e2e/tags';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import { RegressionTrade } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
-import PerpsMarketListView from '../../../e2e/pages/Perps/PerpsMarketListView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import PerpsMarketDetailsView from '../../../e2e/pages/Perps/PerpsMarketDetailsView';
-import PerpsHomeView from '../../../e2e/pages/Perps/PerpsHomeView';
-import PerpsView from '../../../e2e/pages/Perps/PerpsView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
+import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { TestSuiteParams } from '../../framework/types';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -30,7 +31,12 @@ describe(RegressionTrade('Perps Position'), () => {
           .withPerpsProfile('position-testing')
           .build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+          });
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+        },
         useCommandQueueServer: true,
       },
       async ({ commandQueueServer }: TestSuiteParams) => {
@@ -43,13 +49,8 @@ describe(RegressionTrade('Perps Position'), () => {
 
         await device.disableSynchronization();
 
-        // Navigate to Perps tab using manual sync management
-        await PerpsHelpers.navigateToPerpsTab();
-
-        // Navigate to actions
-        await TabBarComponent.tapActions();
-
-        await WalletActionsBottomSheet.tapPerpsButton();
+        // Navigate to Perps via homepage section (same click path as smoke perps tests)
+        await WalletView.scrollAndTapPerpsSection();
 
         await PerpsMarketListView.selectMarket('ETH');
 

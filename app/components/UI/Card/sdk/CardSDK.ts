@@ -49,9 +49,16 @@ import {
   GetOnboardingConsentResponse,
   CardDetailsTokenRequest,
   CardDetailsTokenResponse,
+  CardPinTokenRequest,
+  CardPinTokenResponse,
   CreateOrderRequest,
   CreateOrderResponse,
   GetOrderStatusResponse,
+  CashbackWalletResponse,
+  CashbackWithdrawRequest,
+  CashbackWithdrawResponse,
+  CashbackWithdrawEstimationResponse,
+  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
@@ -82,7 +89,7 @@ export class CardSDK {
     enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
-    userCardLocation?: CardLocation;
+    userCardLocation?: CardLocation | null;
     enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
@@ -92,20 +99,9 @@ export class CardSDK {
     this.userCardLocation = userCardLocation ?? 'international';
   }
 
-  get isCardEnabled(): boolean {
-    return (
-      this.cardFeatureFlag.chains?.[cardNetworkInfos.linea.caipChainId]
-        ?.enabled || false
-    );
-  }
-
   getSupportedTokensByChainId(
     caipChainId: CaipChainId = 'eip155:59144',
   ): SupportedToken[] {
-    if (!this.isCardEnabled) {
-      return [];
-    }
-
     const tokens = this.cardFeatureFlag.chains?.[caipChainId]?.tokens;
 
     if (!tokens) {
@@ -201,6 +197,9 @@ export class CardSDK {
       lowerOp.includes('authorize')
     ) {
       return 'card_auth';
+    }
+    if (lowerOp.includes('cashback')) {
+      return 'card_cashback';
     }
     return 'card_api_request';
   }
@@ -351,8 +350,8 @@ export class CardSDK {
   isCardHolder = async (
     accounts: `${string}:${string}:${string}`[],
   ): Promise<`${string}:${string}:${string}`[]> => {
-    // Early return for invalid input or disabled feature
-    if (!this.isCardEnabled || !accounts?.length) {
+    // Early return for invalid input
+    if (!accounts?.length) {
       return [];
     }
 
@@ -456,35 +455,6 @@ export class CardSDK {
     return batches;
   }
 
-  getGeoLocation = async (): Promise<string> => {
-    try {
-      const env = process.env.NODE_ENV ?? 'production';
-      const environment = env === 'production' ? 'PROD' : 'DEV';
-
-      const GEOLOCATION_URLS = {
-        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-      };
-      const url = GEOLOCATION_URLS[environment];
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Failed to get geolocation: ${response.statusText}`);
-      }
-
-      return await response.text();
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'getGeoLocation' },
-        context: {
-          name: 'card_geolocation',
-          data: { endpoint: 'geolocation' },
-        },
-      });
-      return 'UNKNOWN';
-    }
-  };
-
   // Only runs on linea network
   getSupportedTokensAllowances = async (
     address: string,
@@ -495,10 +465,6 @@ export class CardSDK {
       globalAllowance: ethers.BigNumber;
     }[]
   > => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     const supportedTokensAddresses = this.getSupportedTokensByChainId()
       .map((token) => token.address)
       // Ensure all addresses are valid Ethereum addresses
@@ -556,10 +522,6 @@ export class CardSDK {
     address: string,
     nonZeroBalanceTokens: string[],
   ): Promise<CardToken | null> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
       this.logDebugInfo('getPriorityToken (Simple Case 1)', {
@@ -1052,6 +1014,57 @@ export class CardSDK {
   };
 
   /**
+   * Freeze the user's card to temporarily disable all transactions.
+   * The card can be unfrozen at any time.
+   *
+   * @returns Promise resolving to success status
+   */
+  freezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'freezeCard',
+      'card/freeze',
+      'Failed to freeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/freeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'freezeCard',
+          'card/freeze',
+          'Failed to freeze card',
+        );
+      },
+    );
+
+  /**
+   * Unfreeze the user's card to resume normal transaction processing.
+   *
+   * @returns Promise resolving to success status
+   */
+  unfreezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'unfreezeCard',
+      'card/unfreeze',
+      'Failed to unfreeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/unfreeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'unfreezeCard',
+          'card/unfreeze',
+          'Failed to unfreeze card',
+        );
+      },
+    );
+
+  /**
    * Generate a secure token for displaying sensitive card details through an image-based display.
    * The token is time-limited (~10 minutes) and single-use.
    *
@@ -1087,6 +1100,45 @@ export class CardSDK {
     }
 
     return (await response.json()) as CardDetailsTokenResponse;
+  };
+
+  /**
+   * Generate a secure token for viewing the card PIN through an image-based display.
+   * The token is time-limited (~10 minutes) and single-use.
+   * The PIN is never transmitted as plain text, ensuring PCI compliance.
+   *
+   * @param request - Optional customization for the PIN image appearance
+   * @returns Promise containing the token and imageUrl for displaying the card PIN
+   */
+  generateCardPinToken = async (
+    request?: CardPinTokenRequest,
+  ): Promise<CardPinTokenResponse> => {
+    const response = await this.makeRequest('/v1/card/pin/token', {
+      fetchOptions: {
+        method: 'POST',
+        ...(request && { body: JSON.stringify(request) }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to generate card PIN token. Please try again.',
+        'generateCardPinToken',
+        'card/pin/token',
+        response.status,
+      );
+    }
+
+    return (await response.json()) as CardPinTokenResponse;
   };
 
   getCardExternalWalletDetails = async (
@@ -1164,6 +1216,10 @@ export class CardSDK {
             wallet,
             delegationSettings,
           );
+
+        if (!tokenDetails) {
+          return null;
+        }
 
         const caipChainId = (() => {
           if (networkLower === 'solana') {
@@ -1391,10 +1447,6 @@ export class CardSDK {
   updateWalletPriority = async (
     wallets: { id: number; priority: number }[],
   ): Promise<void> => {
-    if (!this.isCardEnabled) {
-      throw new Error('Card feature is not enabled for this chain');
-    }
-
     this.logDebugInfo('updateWalletPriority', { wallets });
 
     const requestBody = { wallets };
@@ -1468,66 +1520,81 @@ export class CardSDK {
   };
 
   /**
-   * Complete EVM wallet delegation for spending limit increase
-   * This is Step 3 of the delegation process (after user completes blockchain transaction)
+   * Complete wallet delegation for spending limit increase.
+   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
+   * Routes to the EVM or Solana endpoint based on params.network.
    */
-  completeEVMDelegation = async (params: {
-    address: string;
-    network: CardNetwork;
-    currency: string;
-    amount: string;
-    txHash: string;
-    sigHash: string;
-    sigMessage: string;
-    token: string;
-  }): Promise<{ success: boolean }> => {
-    // Validate address format (must be valid Ethereum address)
-    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!addressRegex.test(params.address)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Ethereum address format',
-      );
+  completeDelegation = async (
+    params: DelegationPostApprovalParams,
+  ): Promise<{ success: boolean }> => {
+    const isSolana = params.network === 'solana';
+
+    if (isSolana) {
+      // Validate Solana address format (Base58, 32-44 characters)
+      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+      if (!solanaAddressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana address format',
+        );
+      }
+
+      // Validate Solana transaction signature format (Base58, 87-88 characters)
+      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+      if (!solanaTxHashRegex.test(params.txHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana transaction signature format',
+        );
+      }
+    } else {
+      // Validate EVM address format
+      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!addressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Ethereum address format',
+        );
+      }
+
+      // Validate EVM signature format
+      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
+      if (!sigHashRegex.test(params.sigHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid signature format',
+        );
+      }
+
+      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
+        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
+      }
     }
 
-    // Validate signature format (must be valid EVM signature)
-    const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-    if (!sigHashRegex.test(params.sigHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid signature format',
-      );
-    }
+    const endpointSuffix = isSolana ? 'solana' : 'evm';
+    const endpoint = `delegation/${endpointSuffix}/post-approval`;
 
-    // Validate network
-    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-    }
-
-    const response = await this.makeRequest(
-      '/v1/delegation/evm/post-approval',
-      {
-        fetchOptions: {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-        authenticated: true,
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify(params),
       },
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
         CardErrorType.SERVER_ERROR,
         'Failed to complete delegation. Please try again.',
-        'completeEVMDelegation',
-        'delegation/evm/post-approval',
+        'completeDelegation',
+        endpoint,
         response.status,
         { network: params.network, currency: params.currency },
       );
     }
 
     const result = await response.json();
-    this.logDebugInfo('completeEVMDelegation', result);
+    this.logDebugInfo('completeDelegation', result);
 
     return result;
   };
@@ -2151,6 +2218,80 @@ export class CardSDK {
     );
   };
 
+  getCashbackWallet = async (): Promise<CashbackWalletResponse> =>
+    this.withErrorHandling(
+      'getCashbackWallet',
+      'wallet/reward',
+      'Failed to get cashback wallet. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward', {
+          fetchOptions: { method: 'GET' },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWalletResponse>(
+          response,
+          'getCashbackWallet',
+          'wallet/reward',
+          'Failed to get cashback wallet',
+        );
+      },
+    );
+
+  getCashbackWithdrawEstimation =
+    async (): Promise<CashbackWithdrawEstimationResponse> =>
+      this.withErrorHandling(
+        'getCashbackWithdrawEstimation',
+        'wallet/reward/withdraw-estimation',
+        'Failed to estimate withdrawal fees. Please try again.',
+        async () => {
+          const response = await this.makeRequest(
+            '/v1/wallet/reward/withdraw-estimation',
+            {
+              fetchOptions: { method: 'GET' },
+              authenticated: true,
+            },
+          );
+          return this.handleApiResponse<CashbackWithdrawEstimationResponse>(
+            response,
+            'getCashbackWithdrawEstimation',
+            'wallet/reward/withdraw-estimation',
+            'Failed to estimate withdrawal fees',
+          );
+        },
+      );
+
+  withdrawCashback = async (
+    request: CashbackWithdrawRequest,
+  ): Promise<CashbackWithdrawResponse> =>
+    this.withErrorHandling(
+      'withdrawCashback',
+      'wallet/reward/withdraw',
+      'Failed to withdraw cashback. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward/withdraw', {
+          fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify(request),
+          },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWithdrawResponse>(
+          response,
+          'withdrawCashback',
+          'wallet/reward/withdraw',
+          'Failed to withdraw cashback',
+        );
+      },
+    );
+
+  getTransactionReceipt = async (
+    txHash: string,
+    network: CardNetwork = 'linea',
+  ): Promise<ethers.providers.TransactionReceipt | null> => {
+    const provider = this.getEthersProvider(network);
+    return provider.getTransactionReceipt(txHash);
+  };
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
     const lineaSupportedTokens = this.getSupportedTokensByChainId();
 
@@ -2273,4 +2414,164 @@ export class CardSDK {
       name: token.name || null,
     };
   }
+
+  /**
+   * Create Google Wallet provisioning request
+   *
+   * This method sends card ID to the card provider API
+   * to generate an encrypted opaque payment card for Google Wallet provisioning.
+   *
+   * Google Wallet provisioning flow:
+   * 1. Card provider returns opaquePaymentCard (OPC)
+   *
+   * @returns Promise resolving to the opaque payment card string
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
+   */
+  createGoogleWalletProvisioningRequest = async (): Promise<{
+    opaquePaymentCard: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/google';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({}),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Google Wallet provisioning request. Please try again.',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success: boolean;
+      data?: {
+        opaquePaymentCard?: string;
+      };
+    };
+
+    if (!responseData.success || !responseData.data?.opaquePaymentCard) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Google Wallet provisioning response missing opaquePaymentCard',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    return {
+      opaquePaymentCard: responseData.data.opaquePaymentCard,
+    };
+  };
+
+  /**
+   * Create Apple Pay provisioning request
+   *
+   * This method sends cryptographic data from PassKit to the card provider API
+   * to generate an encrypted payload for Apple Pay in-app provisioning.
+   *
+   * Apple Pay in-app provisioning flow:
+   * 1. App presents PKAddPaymentPassViewController
+   * 2. PassKit SDK returns nonce, nonceSignature, and certificates
+   * 3. This method sends those to the card provider API
+   * 4. Card provider returns encrypted payload
+   * 5. App returns encrypted payload to PassKit to complete provisioning
+   *
+   * @param params - The Apple Pay provisioning request parameters (all values hex-encoded)
+   * @returns Promise resolving to the encrypted Apple Pay payload
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/apple
+   */
+  createApplePayProvisioningRequest = async (params: {
+    /** The leaf certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[0]) */
+    leafCertificate: string;
+    /** The intermediate certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[1]) */
+    intermediateCertificate: string;
+    /** The nonce from PassKit (hex-encoded) */
+    nonce: string;
+    /** The nonce signature from PassKit (hex-encoded) */
+    nonceSignature: string;
+  }): Promise<{
+    encryptedPassData: string;
+    activationData: string;
+    ephemeralPublicKey: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/apple';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          leafCertificate: params.leafCertificate,
+          intermediateCertificate: params.intermediateCertificate,
+          nonce: params.nonce,
+          nonceSignature: params.nonceSignature,
+        }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Apple Pay provisioning request. Please try again.',
+        'createApplePayProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success?: boolean;
+      data?: {
+        encryptedPassData?: string;
+        activationData?: string;
+        ephemeralPublicKey?: string;
+      };
+      encryptedPassData?: string;
+      activationData?: string;
+      ephemeralPublicKey?: string;
+    };
+
+    const data = responseData.data || responseData;
+
+    if (
+      !data.encryptedPassData ||
+      !data.activationData ||
+      !data.ephemeralPublicKey
+    ) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Apple Pay provisioning response missing required fields',
+        'createApplePayProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    return {
+      encryptedPassData: data.encryptedPassData,
+      activationData: data.activationData,
+      ephemeralPublicKey: data.ephemeralPublicKey,
+    };
+  };
 }

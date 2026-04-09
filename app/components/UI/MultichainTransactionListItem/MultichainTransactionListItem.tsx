@@ -1,5 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback } from 'react';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   Image,
   TouchableHighlight,
@@ -23,34 +23,59 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
 
 const MultichainTransactionListItem = ({
   transaction,
   chainId,
   navigation,
   index,
+  location,
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   index?: number;
+  location?: TransactionDetailLocation;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
   const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
 
   const handlePress = useCallback(() => {
-    navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
-      {
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: { displayData, transaction },
-      } as never,
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: transaction.type?.toLowerCase() ?? 'unknown',
+          transaction_status: transaction.status ?? 'unknown',
+          location: location ?? TransactionDetailLocation.Home,
+          chain_id_source: String(chainId),
+          chain_id_destination: String(chainId),
+        })
+        .build(),
     );
-  }, [navigation, displayData, transaction]);
+
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      params: { displayData, transaction },
+    });
+  }, [
+    navigation,
+    displayData,
+    transaction,
+    chainId,
+    location,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const style = styles(colors, typography);
 

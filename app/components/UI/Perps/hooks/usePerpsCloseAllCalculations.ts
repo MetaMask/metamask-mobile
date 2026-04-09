@@ -1,6 +1,10 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import type { Position, FeeCalculationResult } from '../controllers/types';
+import {
+  formatAccountToCaipAccountId,
+  type Position,
+  type FeeCalculationResult,
+} from '@metamask/perps-controller';
 import type {
   EstimatePointsDto,
   EstimatedPointsDto,
@@ -8,7 +12,6 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
-import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 /**
  * Aggregated calculations result for closing all positions

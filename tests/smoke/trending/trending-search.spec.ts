@@ -1,5 +1,5 @@
-import { SmokeWalletPlatform } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokeWalletPlatform } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -9,7 +9,7 @@ import TrendingView from '../../page-objects/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
 import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -57,11 +57,11 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
 
-        // 6.5. Scroll down to ensure Google Search Option is visible
-        await TrendingView.scrollToGoogleSearchOption();
+        // 6.5. Scroll down to ensure Search Engine Option is visible
+        await TrendingView.scrollToSearchEngineOption();
 
-        // 7. Verify Google Search Option is visible
-        await TrendingView.verifyGoogleSearchOptionVisible();
+        // 7. Verify Search Engine Option is visible
+        await TrendingView.verifySearchEngineOptionVisible();
 
         // 8. Verify Cancel button is visible
         await Assertions.expectElementToBeVisible(

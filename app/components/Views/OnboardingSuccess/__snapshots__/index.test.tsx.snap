@@ -1,5 +1,623 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`OnboardingSuccess route params handling uses default successFlow when route params are undefined 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
+    }
+    testID="onboarding-success-screen"
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
+        }
+        testID="onboarding-success-end-animation"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            alignment="center"
+            autoplay={true}
+            fit="contain"
+            source="onboarding_loader.riv"
+            style={
+              {
+                "alignSelf": "center",
+                "height": 667,
+                "width": 750,
+              }
+            }
+            testID="mock-rive-animation"
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
+        }
+      >
+        Your wallet is ready!
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
+        }
+        testID="onboarding-success-done-button"
+      >
+        <Text
+          accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          Done
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
+        }
+        testID="onboarding-success-manage-default-settings-button"
+      >
+        <Text
+          accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          Manage default settings
+        </Text>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;
+
+exports[`OnboardingSuccess route params handling uses default successFlow when successFlow param is undefined 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "off",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
+    }
+    testID="onboarding-success-screen"
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
+        }
+        testID="onboarding-success-end-animation"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            alignment="center"
+            autoplay={true}
+            fit="contain"
+            source="onboarding_loader.riv"
+            style={
+              {
+                "alignSelf": "center",
+                "height": 667,
+                "width": 750,
+              }
+            }
+            testID="mock-rive-animation"
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
+        }
+      >
+        Your wallet is ready!
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
+        }
+        testID="onboarding-success-done-button"
+      >
+        <Text
+          accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          Done
+        </Text>
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
+        }
+        testID="onboarding-success-manage-default-settings-button"
+      >
+        <Text
+          accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          Manage default settings
+        </Text>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaView>
+`;
+
 exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders matching snapshot with route params backedUpSRP false and noSRP true 1`] = `
 <RNCSafeAreaView
   edges={
@@ -13,45 +631,71 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -73,17 +717,23 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -91,81 +741,193 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
 `;
 
-exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE fails to add networks to the network controller but should render the component 1`] = `
+exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE fails to add networks to the network controller but renders the component 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -178,45 +940,71 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -238,17 +1026,23 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -256,75 +1050,187 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -343,45 +1249,71 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -403,17 +1335,23 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -421,75 +1359,187 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -508,45 +1558,71 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -568,17 +1644,23 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -586,75 +1668,187 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -673,45 +1867,71 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -733,17 +1953,23 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -751,75 +1977,187 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -838,45 +2176,71 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -898,17 +2262,23 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -916,75 +2286,187 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>
@@ -1003,45 +2485,71 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "paddingHorizontal": 16,
-      }
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        },
+        undefined,
+      ]
     }
     testID="onboarding-success-screen"
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-          "justifyContent": "center",
-        }
+        [
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+          },
+          undefined,
+        ]
       }
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "height": 667,
-            "justifyContent": "center",
-          }
+          [
+            {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "center",
+            },
+            {
+              "height": 667,
+            },
+          ]
         }
         testID="onboarding-success-end-animation"
       >
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexBasis": "0%",
+                "flexGrow": 1,
+                "flexShrink": 1,
+                "justifyContent": "center",
+              },
+              undefined,
+            ]
           }
         >
           <View
@@ -1063,17 +2571,23 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#121314",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginHorizontal": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "MMSans-Regular",
+              "fontSize": 32,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "400",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 24,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -1081,75 +2595,187 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "paddingBottom": 4,
-          "rowGap": 12,
-        }
-      }
-    >
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        [
           {
             "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#121314",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "display": "flex",
+            "paddingBottom": 4,
+            "rowGap": 12,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="Done"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+      </View>
+      <View
+        accessibilityLabel="Manage default settings"
+        accessibilityRole="button"
+        accessibilityState={
           {
-            "alignItems": "center",
-            "paddingVertical": 8,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 0,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-manage-default-settings-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
         </Text>
-      </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RNCSafeAreaView>

@@ -1,42 +1,46 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import type {
-  AccountState,
-  CancelOrderParams,
-  CancelOrderResult,
-  ClosePositionParams,
-  FeeCalculationParams,
-  FeeCalculationResult,
-  FlipPositionParams,
-  GetAccountStateParams,
-  GetMarketsParams,
-  GetOrderFillsParams,
-  GetOrdersParams,
-  GetFundingParams,
-  OrderFill,
-  Order,
-  Funding,
-  LiquidationPriceParams,
-  MaintenanceMarginParams,
-  MarginResult,
-  MarketInfo,
-  OrderParams,
-  OrderResult,
-  Position,
-  SubscribeOrderFillsParams,
-  SubscribePricesParams,
-  SubscribePositionsParams,
-  UpdateMarginParams,
-  UpdatePositionTPSLParams,
-  WithdrawParams,
-  WithdrawResult,
-} from '../controllers/types';
+import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
+import {
+  type AccountState,
+  type CancelOrderParams,
+  type CancelOrderResult,
+  type ClosePositionParams,
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+  type FlipPositionParams,
+  type GetAccountStateParams,
+  type GetMarketsParams,
+  type GetOrderFillsParams,
+  type GetOrdersParams,
+  type GetFundingParams,
+  type GetPositionsParams,
+  type OrderFill,
+  type Order,
+  type Funding,
+  type LiquidationPriceParams,
+  type MaintenanceMarginParams,
+  type MarginResult,
+  type MarketInfo,
+  type OrderParams,
+  type OrderResult,
+  type Position,
+  type SubscribeOrderFillsParams,
+  type SubscribePricesParams,
+  type SubscribePositionsParams,
+  type UpdateMarginParams,
+  type UpdatePositionTPSLParams,
+  type WithdrawParams,
+  type WithdrawResult,
+} from '@metamask/perps-controller';
 
 /**
  * Hook for trading operations
  * Provides methods for placing, canceling, and closing trading positions
  */
 export function usePerpsTrading() {
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
       const controller = Engine.context.PerpsController;
@@ -69,10 +73,13 @@ export function usePerpsTrading() {
     [],
   );
 
-  const getPositions = useCallback(async (): Promise<Position[]> => {
-    const controller = Engine.context.PerpsController;
-    return controller.getPositions();
-  }, []);
+  const getPositions = useCallback(
+    async (params?: GetPositionsParams): Promise<Position[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getPositions(params);
+    },
+    [],
+  );
 
   const getAccountState = useCallback(
     async (params?: GetAccountStateParams): Promise<AccountState> => {
@@ -112,18 +119,20 @@ export function usePerpsTrading() {
     ): Promise<{
       result: Promise<string>;
     }> => {
+      await ensureArbitrumNetworkExists();
       const controller = Engine.context.PerpsController;
       return controller.depositWithConfirmation({ amount, placeOrder: false });
     },
-    [],
+    [ensureArbitrumNetworkExists],
   );
 
   const depositWithOrder = useCallback(async (): Promise<{
     result: Promise<string>;
   }> => {
+    await ensureArbitrumNetworkExists();
     const controller = Engine.context.PerpsController;
     return controller.depositWithOrder();
-  }, []);
+  }, [ensureArbitrumNetworkExists]);
 
   const clearDepositResult = useCallback((): void => {
     const controller = Engine.context.PerpsController;

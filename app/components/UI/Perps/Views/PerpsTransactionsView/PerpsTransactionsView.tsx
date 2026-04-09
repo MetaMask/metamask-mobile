@@ -1,12 +1,6 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,38 +14,45 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PerpsNavigationParamList } from '../../types/navigation';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { formatAccountToCaipAccountId } from '../../utils/rewardsUtils';
+import {
+  formatAccountToCaipAccountId,
+  PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
+} from '@metamask/perps-controller';
 
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
 import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
+import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
 import {
   FilterTab,
   ListItem,
   PerpsTransaction,
-  PerpsTransactionsViewProps,
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import { PerpsTransactionsViewSelectorsIDs } from '../../Perps.testIds';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
+const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
-  // Transaction data is now computed from hooks instead of stored in state
-  const [flatListData, setFlatListData] = useState<ListItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [refreshing, setRefreshing] = useState(false);
+  const [isFocusRefreshing, setIsFocusRefreshing] = useState(false);
 
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
@@ -171,16 +172,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     groupTransactionsByDate,
   ]);
 
-  // Memoized flat data for current filter - prevents re-flattening on every change
-  const currentFlatListData = useMemo(() => {
+  const flatListData = useMemo(() => {
     const currentGrouped = allGroupedTransactions[activeFilter] || [];
     return flattenGroupedTransactions(currentGrouped, activeFilter);
-  }, [allGroupedTransactions, activeFilter]);
-
-  // Update state only when needed - much faster tab switching
-  useEffect(() => {
-    setFlatListData(currentFlatListData);
-  }, [allGroupedTransactions, activeFilter, currentFlatListData]);
+  }, [activeFilter, allGroupedTransactions]);
 
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
@@ -199,7 +194,35 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
   }, [isConnected, refreshTransactions]);
 
-  // Initial loading is handled by the hooks themselves
+  useFocusEffect(
+    useCallback(() => {
+      if (!isConnected) {
+        setIsFocusRefreshing(false);
+        return;
+      }
+
+      let isMounted = true;
+
+      const refreshOnFocus = async () => {
+        setIsFocusRefreshing(true);
+        try {
+          await refreshTransactions();
+        } catch (error) {
+          console.warn('Failed to refresh perps transactions on focus:', error);
+        } finally {
+          if (isMounted) {
+            setIsFocusRefreshing(false);
+          }
+        }
+      };
+
+      refreshOnFocus();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [isConnected, refreshTransactions]),
+  );
 
   const renderFilterTab = useCallback(
     (tab: FilterTab, index: number) => {
@@ -208,6 +231,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       // Convert tab to i18n key
       const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
       const i18nKey = i18nKeys[index];
+      const tabTestIDs = [
+        PerpsTransactionsViewSelectorsIDs.TAB_TRADES,
+        PerpsTransactionsViewSelectorsIDs.TAB_ORDERS,
+        PerpsTransactionsViewSelectorsIDs.TAB_FUNDING,
+        PerpsTransactionsViewSelectorsIDs.TAB_DEPOSITS,
+      ];
 
       const handleTabPress = () => {
         // Immediately scroll to top and switch tabs
@@ -234,6 +263,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
+          testID={tabTestIDs[index]}
         >
           {strings(`perps.transactions.tabs.${i18nKey}`)}
         </ButtonFilter>
@@ -242,7 +272,23 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [activeFilter],
   );
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const handleTransactionPress = (transaction: PerpsTransaction) => {
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: `perps_${transaction.type}`,
+          transaction_status:
+            transaction.depositWithdrawal?.status ?? 'confirmed',
+          location: TransactionDetailLocation.Home,
+          chain_id_source: PERPS_BALANCE_CHAIN_ID,
+          chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+          monetized_primitive: MonetizedPrimitive.Perps,
+        })
+        .build(),
+    );
+
     switch (transaction.type) {
       case 'trade':
         navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
@@ -356,9 +402,18 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Determine if we should show loading skeleton
   const isInitialLoading = useMemo(
     () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
+      // Show loading for connection/data fetch states and focus-refresh with no cached rows.
+      isConnecting ||
+      transactionsLoading ||
+      (!isConnected && flatListData.length === 0) ||
+      (isFocusRefreshing && flatListData.length === 0),
+    [
+      isConnecting,
+      transactionsLoading,
+      isConnected,
+      isFocusRefreshing,
+      flatListData.length,
+    ],
   );
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
@@ -426,6 +481,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       )}
 
       <FlashList
+        testID="perps-transactions-flash-list"
         ref={flashListRef}
         data={flatListData}
         renderItem={renderListItem}

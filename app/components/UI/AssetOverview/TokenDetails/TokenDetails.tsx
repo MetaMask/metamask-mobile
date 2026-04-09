@@ -27,7 +27,7 @@ import {
   isAssetFromSearch,
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
-import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -57,11 +57,6 @@ export interface MarketDetails {
 
 interface TokenDetailsProps {
   asset: TokenI;
-}
-
-interface EvmMarketData {
-  metadata?: Record<string, string | number | string[]>;
-  marketData?: MarketDataDetails;
 }
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
@@ -96,17 +91,15 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   ///: END:ONLY_INCLUDE_IF
 
   const evmMarketData = useSelector((state: RootState) =>
-    !isNonEvmAsset
-      ? selectEvmTokenMarketData(state, {
-          chainId: asset.chainId as Hex,
-          tokenAddress: asset.address,
-        })
+    !isNonEvmAsset && tokenContractAddress
+      ? (selectTokenMarketData(state)?.[asset.chainId as Hex]?.[
+          tokenContractAddress as Hex
+        ] ?? null)
       : null,
-  ) as EvmMarketData | null;
+  ) as MarketDataDetails | null;
 
   const conversionRate = isAssetFromSearch(asset) ? 1 : conversionRateBySymbol;
 
-  let tokenMetadata;
   let cachedMarketData: MarketDataDetails | undefined;
 
   if (
@@ -116,11 +109,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   ) {
     // Search results have market data
     cachedMarketData = tokenSearchResult.price;
-    tokenMetadata = tokenSearchResult.token;
   } else {
-    tokenMetadata = !isNonEvmAsset ? evmMarketData?.metadata : null;
     cachedMarketData = !isNonEvmAsset
-      ? evmMarketData?.marketData
+      ? (evmMarketData ?? undefined)
       : (nonEvmMarketData as MarketDataDetails | undefined);
   }
 
@@ -181,14 +172,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const needsConversion = isUsingCachedData && !isNonEvmAsset;
 
   const tokenDetails = useMemo(
-    () =>
-      getTokenDetails(
-        asset,
-        isNonEvmAsset,
-        tokenContractAddress,
-        tokenMetadata as Record<string, string | number | string[]>,
-      ),
-    [asset, isNonEvmAsset, tokenContractAddress, tokenMetadata],
+    () => getTokenDetails(asset, isNonEvmAsset, tokenContractAddress),
+    [asset, isNonEvmAsset, tokenContractAddress],
   );
 
   const marketDetails = useMemo(() => {
@@ -231,13 +216,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   }, [marketData, currentCurrency, needsConversion, conversionRate]);
 
   const hasAddressAndDecimals =
-    tokenDetails.contractAddress && tokenDetails.tokenDecimal;
+    tokenDetails.contractAddress !== null && tokenDetails.tokenDecimal !== null;
   return (
     <View style={styles.tokenDetailsContainer}>
-      {(asset.isETH ||
-        tokenMetadata ||
-        isNonEvmAsset ||
-        hasAddressAndDecimals) && (
+      {(asset.isETH || isNonEvmAsset || hasAddressAndDecimals) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
       {marketData && marketDetails && (

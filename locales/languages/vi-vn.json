@@ -34,7 +34,6 @@
     "import_wallet_button": "Đồng bộ hóa hoặc nhập ví",
     "new_to_crypto": "Bạn mới sử dụng tiền mã hóa?",
     "start_exploring_now": "Tạo một ví mới",
-    "unlock": "Đăng nhập",
     "new_to_metamask": "Bạn mới sử dụng MetaMask?",
     "already_have_wallet": "Bạn đã có ví?",
     "optin_back_title": "Chú ý!",
@@ -582,6 +581,7 @@
     "ok": "Ok",
     "cancel": "Hủy",
     "error": "Lỗi",
+    "open_settings": "Cài đặt",
     "attempting_to_scan_with_wallet_locked": "Có vẻ như bạn đang cố gắng quét một mã QR. Bạn cần mở khóa ví của mình trước thì mới có thể sử dụng mã đó.",
     "attempting_sync_from_wallet_error": "Có vẻ như bạn đang cố gắng đồng bộ hóa với tiện ích. Để có thể làm như vậy, bạn sẽ cần xóa ví hiện tại của mình. \n\nSau khi bạn xóa hoặc cài đặt lại một phiên bản mới của ứng dụng, hãy chọn tùy chọn để \"Đồng bộ hóa với tiện ích MetaMask\". Quan trọng! Trước khi xóa ví, hãy đảm bảo bạn đã sao lưu Cụm mật khẩu khôi phục bí mật."
   },

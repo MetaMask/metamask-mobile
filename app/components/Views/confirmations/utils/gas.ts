@@ -26,11 +26,7 @@ export function getFeesFromHex({
   fiatFormatter: (amount: BigNumber) => string;
   shouldHideFiat: boolean;
 }) {
-  if (
-    nativeConversionRate === undefined ||
-    nativeConversionRate === null ||
-    !nativeCurrency
-  ) {
+  if (!nativeCurrency) {
     return {
       currentCurrencyFee: null,
       nativeCurrencyFee: null,
@@ -40,7 +36,10 @@ export function getFeesFromHex({
     };
   }
 
-  const nativeConversionRateInBN = new BigNumber(nativeConversionRate);
+  const nativeConversionRateInBN =
+    nativeConversionRate === undefined || nativeConversionRate === null
+      ? new BigNumber(0)
+      : new BigNumber(nativeConversionRate);
   const locale = I18n.locale;
   const nativeCurrencyFee = formatAmount(
     locale,
@@ -95,7 +94,9 @@ export function getFeesFromHex({
   );
 
   let currentCurrencyFee;
-  if (preciseCurrentCurrencyFeeNum < 0.01) {
+  if (preciseCurrentCurrencyFeeNum === 0) {
+    currentCurrencyFee = fiatFormatter(new BigNumber(0));
+  } else if (preciseCurrentCurrencyFeeNum < 0.01) {
     currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
   } else {
     currentCurrencyFee = fiatFormatter(

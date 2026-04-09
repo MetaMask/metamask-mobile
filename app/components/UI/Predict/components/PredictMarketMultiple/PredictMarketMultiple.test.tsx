@@ -26,6 +26,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    activeOrder: null,
+  }),
+}));
+
 // Mock usePredictEligibility hook
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
@@ -99,13 +105,34 @@ describe('PredictMarketMultiple', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+  });
+
+  it('falls back to 0% label when percentage formatting throws', () => {
+    const formatModule =
+      jest.requireActual<typeof import('../../utils/format')>(
+        '../../utils/format',
+      );
+    const spy = jest
+      .spyOn(formatModule, 'formatPercentage')
+      .mockImplementation(() => {
+        throw new Error('format failure');
+      });
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={mockMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('0')).toBeOnTheScreen();
+    spy.mockRestore();
   });
 
   it('render market information correctly', () => {
@@ -275,7 +302,8 @@ describe('PredictMarketMultiple', () => {
     });
     // Mock user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
 
     const { UNSAFE_getAllByType } = renderWithProvider(
@@ -328,7 +356,8 @@ describe('PredictMarketMultiple', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getAllByText } = renderWithProvider(
@@ -355,7 +384,8 @@ describe('PredictMarketMultiple', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getAllByText } = renderWithProvider(

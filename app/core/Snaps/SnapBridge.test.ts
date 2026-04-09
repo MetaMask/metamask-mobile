@@ -2,7 +2,7 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { Json, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import ObjectMultiplex from '@metamask/object-multiplex';
 import { JsonRpcEngineNextCallback } from '@metamask/json-rpc-engine';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import SnapBridge from './SnapBridge';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
@@ -145,15 +145,11 @@ function createBridge(snapId = 'npm:@metamask/example-snap' as SnapId) {
         navigation: null,
         title: { current: 'Snap' },
         icon: { current: undefined },
-        isHomepage: () => false,
-        fromHomepage: { current: false },
-        toggleUrlModal: () => null,
         tabId: false,
         isWalletConnect: false,
         isMMSDK: false,
         url: { current: '' },
         analytics: {},
-        injectHomePageScripts: () => null,
       }),
   });
 

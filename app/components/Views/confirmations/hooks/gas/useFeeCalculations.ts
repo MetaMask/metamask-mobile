@@ -2,6 +2,7 @@ import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback, useMemo } from 'react';
+import BigNumber from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
@@ -77,7 +78,10 @@ export const useFeeCalculations = (
   const { maxFeePerGas, maxPriorityFeePerGas } =
     useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
-  const shouldHideFiat = isTestNet(chainId as Hex) && !showFiatOnTestnets;
+  const shouldHideFiat =
+    (isTestNet(chainId as Hex) && !showFiatOnTestnets) ||
+    nativeConversionRate === null ||
+    nativeConversionRate === undefined;
 
   // `gasUsed` is the gas limit actually used by the transaction in the
   // simulation environment.
@@ -141,47 +145,57 @@ export const useFeeCalculations = (
   );
 
   // Estimated fee
-  const estimatedFees = useMemo(
-    () =>
-      calculateGasEstimateCallback({
-        feePerGas: maxFeePerGas,
-        priorityFeePerGas: maxPriorityFeePerGas,
-        gas: optimizedGasLimit,
-        shouldUseEIP1559FeeLogic: supportsEIP1559,
-        gasPrice: txParamsGasPrice,
-        receiptGasPrice: receiptGasPriceHex,
-      }),
-    [
-      calculateGasEstimateCallback,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      optimizedGasLimit,
-      supportsEIP1559,
-      txParamsGasPrice,
-      receiptGasPriceHex,
-    ],
-  );
+  const estimatedFees = useMemo(() => {
+    if (transactionMeta.isGasFeeSponsored) {
+      return {
+        currentCurrencyFee: fiatFormatter(new BigNumber('0')),
+        preciseCurrentCurrencyFee: '0',
+        nativeCurrencyFee: '0',
+        preciseNativeFeeInHex: HEX_ZERO,
+      };
+    }
+    return calculateGasEstimateCallback({
+      feePerGas: maxFeePerGas,
+      priorityFeePerGas: maxPriorityFeePerGas,
+      gas: optimizedGasLimit,
+      shouldUseEIP1559FeeLogic: supportsEIP1559,
+      gasPrice: txParamsGasPrice,
+      receiptGasPrice: receiptGasPriceHex,
+    });
+  }, [
+    calculateGasEstimateCallback,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    optimizedGasLimit,
+    supportsEIP1559,
+    txParamsGasPrice,
+    receiptGasPriceHex,
+    transactionMeta.isGasFeeSponsored,
+    fiatFormatter,
+  ]);
 
   // Max fee
-  const maxFee = useMemo(
-    () =>
-      addHexes(
-        multiplyHexes(
-          supportsEIP1559
-            ? (decimalToHex(maxFeePerGas) as Hex)
-            : (txParamsGasPrice as Hex),
-          transactionMeta.txParams.gas,
-        ),
-        transactionMeta.layer1GasFee ?? '0x0',
-      ).toString(),
-    [
-      supportsEIP1559,
-      maxFeePerGas,
-      txParamsGasPrice,
-      transactionMeta.txParams.gas,
-      transactionMeta.layer1GasFee,
-    ],
-  );
+  const maxFee = useMemo(() => {
+    if (transactionMeta.isGasFeeSponsored) {
+      return HEX_ZERO;
+    }
+    return addHexes(
+      multiplyHexes(
+        supportsEIP1559
+          ? (decimalToHex(maxFeePerGas) as Hex)
+          : (txParamsGasPrice as Hex),
+        transactionMeta.txParams.gas,
+      ),
+      transactionMeta.layer1GasFee ?? '0x0',
+    ).toString();
+  }, [
+    supportsEIP1559,
+    maxFeePerGas,
+    txParamsGasPrice,
+    transactionMeta.txParams.gas,
+    transactionMeta.layer1GasFee,
+    transactionMeta.isGasFeeSponsored,
+  ]);
 
   const {
     currentCurrencyFee: maxFeeFiat,

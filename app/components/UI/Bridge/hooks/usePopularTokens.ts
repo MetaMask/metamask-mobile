@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
+import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { TokenRwaData } from '@metamask/assets-controllers';
+import Engine from '../../../../core/Engine';
+import { getBaseSemVerVersion } from '../../../../util/version';
 
 export interface PopularToken {
   assetId: CaipAssetType;
@@ -9,6 +12,7 @@ export interface PopularToken {
   iconUrl: string;
   name: string;
   symbol: string;
+  isVerified?: boolean;
   noFee?: {
     isSource: boolean;
     isDestination: boolean;
@@ -109,6 +113,20 @@ export const usePopularTokens = ({
 }: UsePopularTokensParams): UsePopularTokensResult => {
   const [popularTokens, setPopularTokens] = useState<PopularToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [bearerToken, setBearerToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    Engine.context.AuthenticationController.getBearerToken()
+      .then((token) => {
+        setBearerToken(token);
+      })
+      .catch((error) => {
+        console.warn(
+          'Failed to get bearer token for /getTokens/popular',
+          error,
+        );
+      });
+  }, []);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -141,6 +159,11 @@ export const usePopularTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              ...getClientHeaders({
+                clientId: BridgeClientId.MOBILE,
+                clientVersion: getBaseSemVerVersion(),
+                jwt: bearerToken ?? '',
+              }),
             },
             body: JSON.stringify({
               chainIds,
@@ -149,13 +172,26 @@ export const usePopularTokens = ({
             signal: abortController.signal,
           },
         );
-        const popularAssets: PopularToken[] = await response.json();
+        if (response.ok === false) {
+          throw new Error(
+            `Failed to fetch popular tokens with status ${response.status}`,
+          );
+        }
 
-        // Store in cache with current timestamp
-        popularTokensCache.set(cacheKey, {
-          data: popularAssets,
-          timestamp: Date.now(),
-        });
+        const popularAssetsResponse: unknown = await response.json();
+        const isValidTopLevelPayload = Array.isArray(popularAssetsResponse);
+        const popularAssets: PopularToken[] = isValidTopLevelPayload
+          ? popularAssetsResponse
+          : [];
+
+        if (isValidTopLevelPayload) {
+          // Cache only valid top-level API payloads so malformed responses do
+          // not suppress retries for the full cache TTL.
+          popularTokensCache.set(cacheKey, {
+            data: popularAssets,
+            timestamp: Date.now(),
+          });
+        }
 
         if (!isCancelled) {
           setPopularTokens(popularAssets);
@@ -183,7 +219,7 @@ export const usePopularTokens = ({
       isCancelled = true;
       abortController.abort();
     };
-  }, [chainIds, includeAssets]);
+  }, [chainIds, includeAssets, bearerToken]);
 
   return { popularTokens, isLoading };
 };

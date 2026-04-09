@@ -4,6 +4,7 @@ import { InteractionManager } from 'react-native';
 import {
   checkForUpdateAsync,
   fetchUpdateAsync,
+  reloadAsync,
   UpdateCheckResultNotAvailableReason,
 } from 'expo-updates';
 import { useOTAUpdates } from './useOTAUpdates';
@@ -12,6 +13,7 @@ import Logger from '../../util/Logger';
 jest.mock('expo-updates', () => ({
   checkForUpdateAsync: jest.fn(),
   fetchUpdateAsync: jest.fn(),
+  reloadAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockNavigate = jest.fn();
@@ -25,6 +27,11 @@ jest.mock('@react-navigation/native', () => ({
 const mockSelectOtaUpdatesEnabledFlag = jest.fn();
 jest.mock('../../selectors/featureFlagController/otaUpdates', () => ({
   selectOtaUpdatesEnabledFlag: () => mockSelectOtaUpdatesEnabledFlag(),
+}));
+
+const mockSelectCompletedOnboarding = jest.fn();
+jest.mock('../../selectors/onboarding', () => ({
+  selectCompletedOnboarding: () => mockSelectCompletedOnboarding(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -77,6 +84,7 @@ describe('useOTAUpdates', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectOtaUpdatesEnabledFlag.mockReturnValue(true);
+    mockSelectCompletedOnboarding.mockReturnValue(true);
     (global as unknown as { __DEV__: boolean }).__DEV__ = false;
   });
 
@@ -146,7 +154,8 @@ describe('useOTAUpdates', () => {
     });
   });
 
-  it('navigates to OTA update modal when a new update is available', async () => {
+  it('navigates to OTA update modal when a new update is available and user has completed onboarding', async () => {
+    mockSelectCompletedOnboarding.mockReturnValue(true);
     mockCheckForUpdateAsync.mockResolvedValue({
       isAvailable: true,
       manifest: mockManifest,
@@ -159,6 +168,10 @@ describe('useOTAUpdates', () => {
       manifest: mockManifest,
     });
 
+    const mockReloadAsync = reloadAsync as jest.MockedFunction<
+      typeof reloadAsync
+    >;
+
     renderHook(() => useOTAUpdates());
 
     await waitFor(() => {
@@ -170,6 +183,39 @@ describe('useOTAUpdates', () => {
         expect.objectContaining({
           screen: 'OTAUpdatesModal',
         }),
+      );
+      expect(mockReloadAsync).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not reload or show modal when a new update is available and user has not completed onboarding (applies on next launch)', async () => {
+    mockSelectCompletedOnboarding.mockReturnValue(false);
+    mockCheckForUpdateAsync.mockResolvedValue({
+      isAvailable: true,
+      manifest: mockManifest,
+      isRollBackToEmbedded: false,
+      reason: undefined,
+    });
+    mockFetchUpdateAsync.mockResolvedValue({
+      isNew: true,
+      isRollBackToEmbedded: false,
+      manifest: mockManifest,
+    });
+
+    const mockReloadAsync = reloadAsync as jest.MockedFunction<
+      typeof reloadAsync
+    >;
+
+    renderHook(() => useOTAUpdates());
+
+    await waitFor(() => {
+      expect(mockCheckForUpdateAsync).toHaveBeenCalledTimes(1);
+      expect(mockFetchUpdateAsync).toHaveBeenCalledTimes(1);
+      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+      expect(mockReloadAsync).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'OTA Updates: New update available on onboarding, will apply on next launch',
       );
     });
   });

@@ -2,31 +2,19 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsGTMModal from './PerpsGTMModal';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-const mockTheme = {
-  colors: {
-    background: {
-      default: '#ffffff',
-      alternative: '#f2f4f6',
-    },
-    text: {
-      default: '#24272a',
-    },
-    shadow: {
-      default: '#000000',
-    },
-  },
-};
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ theme: mockTheme }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -54,12 +42,7 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
-jest.mock('../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
 const initialState = {
   engine: {
@@ -71,6 +54,10 @@ describe('PerpsGTMModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
+    jest.mocked(useAnalytics).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   it('renders correctly with all main elements', async () => {

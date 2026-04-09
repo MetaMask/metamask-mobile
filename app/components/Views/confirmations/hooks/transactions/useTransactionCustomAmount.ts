@@ -13,13 +13,14 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import Engine from '../../../../../core/Engine';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -34,6 +35,7 @@ export function useTransactionCustomAmount({
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
+  const isPostQuote = useTransactionPayIsPostQuote();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
 
@@ -92,7 +94,9 @@ export function useTransactionCustomAmount({
     (value: boolean) => {
       const { TransactionPayController } = Engine.context;
 
-      TransactionPayController.setIsMaxAmount(transactionId, value);
+      TransactionPayController.setTransactionConfig(transactionId, (config) => {
+        config.isMaxAmount = value;
+      });
     },
     [transactionId],
   );
@@ -159,7 +163,7 @@ export function useTransactionCustomAmount({
   }, [amountHuman, updateTokenAmountCallback]);
 
   useEffect(() => {
-    if (isTokenAmountUpdated && hasSourceAmount) {
+    if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
       setConfirmationMetric({
         properties: {
           mm_pay_quote_requested: true,
@@ -167,7 +171,12 @@ export function useTransactionCustomAmount({
       });
       setIsTokenAmountUpdated(false);
     }
-  }, [hasSourceAmount, isTokenAmountUpdated, setConfirmationMetric]);
+  }, [
+    hasSourceAmount,
+    isPostQuote,
+    isTokenAmountUpdated,
+    setConfirmationMetric,
+  ]);
 
   return {
     amountFiat,
@@ -190,13 +199,17 @@ function useTokenBalance(tokenUsdRate: number) {
     payToken?.balanceUsd ?? 0,
   ).toNumber();
 
-  const { balance: predictBalanceHuman } = usePredictBalance({
-    loadOnMount: true,
-  });
+  const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
   const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
     .multipliedBy(tokenUsdRate)
     .toNumber();
+
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    const perpsState = Engine.context.PerpsController?.state;
+    const availableBalance = perpsState?.accountState?.availableBalance;
+    return availableBalance ? parseFloat(availableBalance) : 0;
+  }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
     ? predictBalanceUsd

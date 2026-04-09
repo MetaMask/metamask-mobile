@@ -3,17 +3,18 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { INotification } from '@metamask/notification-services-controller/notification-services';
 
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import Text, {
   TextVariant,
@@ -41,7 +42,7 @@ export function useMarkAsReadCallback(props: {
   notifications: INotification[];
 }) {
   const { notifications } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
   const handleMarkAllAsRead = useCallback(() => {
@@ -118,13 +119,14 @@ const NotificationsView = ({
           />
           {!isLoading && unreadCount > 0 && (
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('notifications.mark_all_as_read')}
+              variant={ButtonVariant.Primary}
               onPress={handleMarkAllAsRead}
               size={ButtonSize.Lg}
               style={styles.stickyButton}
-              disabled={loading}
-            />
+              isDisabled={loading}
+            >
+              {strings('notifications.mark_all_as_read')}
+            </Button>
           )}
         </>
       ) : (
@@ -155,7 +157,11 @@ NotificationsView.navigationOptions = ({
     <ButtonIcon
       size={ButtonIconSizes.Md}
       iconName={IconName.Close}
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+      onPress={() =>
+        navigation.canGoBack()
+          ? navigation.goBack()
+          : navigation.navigate(Routes.WALLET.HOME)
+      }
       style={styles.icon}
     />
   ),

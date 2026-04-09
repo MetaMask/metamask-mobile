@@ -2,7 +2,10 @@ import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import type { Position, ClosePositionsResult } from '../controllers/types';
+import {
+  type Position,
+  type ClosePositionsResult,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 

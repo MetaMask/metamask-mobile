@@ -6,6 +6,7 @@ import { default as Name } from './Name';
 import { NameType } from './Name.types';
 import useDisplayName, {
   DisplayNameVariant,
+  TrustSignalDisplayState,
 } from '../../hooks/DisplayName/useDisplayName';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
@@ -41,6 +42,9 @@ describe('Name', () => {
   ).mockReturnValue({
     variant: DisplayNameVariant.Unknown,
     name: KNOWN_NAME_MOCK,
+    displayState: TrustSignalDisplayState.Unknown,
+    icon: null,
+    isAccount: false,
   });
 
   describe('unknown address', () => {
@@ -63,10 +67,13 @@ describe('Name', () => {
   });
 
   describe('recognized address', () => {
-    it('should return name', () => {
+    it('returns name', () => {
       mockUseDisplayName.mockReturnValue({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NAME_MOCK,
+        displayState: TrustSignalDisplayState.Recognized,
+        icon: null,
+        isAccount: false,
       });
 
       const wrapper = render(
@@ -83,11 +90,14 @@ describe('Name', () => {
       expect(wrapper).toMatchSnapshot();
     });
 
-    it('should render image', () => {
+    it('renders image', () => {
       mockUseDisplayName.mockReturnValue({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NAME_MOCK,
         image: 'https://example.com/image.png',
+        displayState: TrustSignalDisplayState.Recognized,
+        icon: null,
+        isAccount: false,
       });
 
       const wrapper = render(
@@ -108,6 +118,9 @@ describe('Name', () => {
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NAME_MOCK,
         subtitle: mockAccountWalletName,
+        displayState: TrustSignalDisplayState.Recognized,
+        icon: null,
+        isAccount: false,
       });
 
       const wrapper = render(

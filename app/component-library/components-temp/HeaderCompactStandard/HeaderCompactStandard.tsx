@@ -49,7 +49,7 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
   closeButtonProps,
   endButtonIconProps,
   startButtonIconProps,
-  twClassName,
+  twClassName = '',
   testID,
   ...headerBaseProps
 }) => {
@@ -97,22 +97,31 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
     if (title) {
       return (
         <Box alignItems={BoxAlignItems.Center}>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            {...titleProps}
-          >
-            {title}
-          </Text>
-          {subtitle && (
+          {typeof title === 'string' ? (
             <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              {...subtitleProps}
-              twClassName={`-mt-0.5 ${subtitleProps?.twClassName ?? ''}`.trim()}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              {...titleProps}
             >
-              {subtitle}
+              {title}
             </Text>
+          ) : (
+            title
+          )}
+          {subtitle && (
+            <Box twClassName="-mt-0.5">
+              {typeof subtitle === 'string' ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  {...subtitleProps}
+                >
+                  {subtitle}
+                </Text>
+              ) : (
+                subtitle
+              )}
+            </Box>
           )}
         </Box>
       );
@@ -120,15 +129,13 @@ const HeaderCompactStandard: React.FC<HeaderCompactStandardProps> = ({
     return null;
   };
 
-  const resolvedTwClassName = twClassName ? `px-2 ${twClassName}` : 'px-2';
-
   return (
     <HeaderBase
       testID={testID}
       startButtonIconProps={resolvedStartButtonIconProps}
       endButtonIconProps={resolvedEndButtonIconProps}
-      twClassName={resolvedTwClassName}
       {...headerBaseProps}
+      twClassName={`px-2 ${twClassName}`.trim()}
     >
       {renderContent()}
     </HeaderBase>

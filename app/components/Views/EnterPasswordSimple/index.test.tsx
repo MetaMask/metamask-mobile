@@ -21,11 +21,6 @@ const mockNavigation = {
   setOptions: jest.fn(),
   goBack: jest.fn(),
   navigate: jest.fn(),
-  route: {
-    params: {
-      accountAddress: '0x123',
-    },
-  },
 };
 
 describe('EnterPasswordSimple', () => {

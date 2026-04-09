@@ -94,7 +94,6 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
 
@@ -298,9 +297,12 @@ const Main = (props) => {
       previousNetworkConfigurations.current ?? {},
     );
 
+    // Emit network addition/deletion toast if network list changes
+    // Bridge routes are skipped as they interfere with bridge UI
     if (
       previousNetworkValues.length &&
-      currentNetworkValues.length !== previousNetworkValues.length
+      currentNetworkValues.length !== previousNetworkValues.length &&
+      !isOnBridgeRoute
     ) {
       // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
@@ -336,7 +338,7 @@ const Main = (props) => {
       });
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkName, networkImage, toastRef]);
+  }, [isOnBridgeRoute, networkConfigurations, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -417,7 +419,6 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <CardVerification />
         <EarnTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
@@ -508,21 +509,24 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => (
-  <Stack.Navigator
-    initialRouteName={'Main'}
-    mode={'modal'}
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name={'Main'} component={ConnectedMain} />
-    <Stack.Screen
-      name={'ReviewModal'}
-      component={ReviewModal}
-      options={{ animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
+const MainFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      initialRouteName={'Main'}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name={'Main'} component={ConnectedMain} />
+      <Stack.Screen
+        name={'ReviewModal'}
+        component={ReviewModal}
+        options={{ animationEnabled: false, presentation: 'modal' }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default MainFlow;

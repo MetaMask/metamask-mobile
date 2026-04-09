@@ -1,18 +1,18 @@
-import {
-  CommonActions,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../constants/onboarding';
 import { TraceName, endTrace } from '../trace';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import {
   ITrackingEvent,
   IMetaMetricsEvent,
 } from '../../core/Analytics/MetaMetrics.types';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 
 /**
  * Type for the track function
@@ -25,7 +25,7 @@ type TrackFunction = (
 /**
  * Type for navigation object
  */
-type NavigationObject = NavigationProp<ParamListBase>;
+type NavigationObject = AppNavigationProp;
 
 /**
  * Type for route params
@@ -112,6 +112,7 @@ export const handleSkipBackup = async ({
       onContinue: () => {
         navigation.dispatch(resetAction);
       },
+      accountType: AccountType.Metamask,
     });
   }
 };

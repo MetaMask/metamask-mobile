@@ -46,7 +46,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -61,8 +61,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -98,7 +98,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -113,8 +113,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -150,7 +150,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -165,8 +165,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -216,7 +216,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -231,8 +231,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -268,7 +268,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -283,8 +283,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -320,7 +320,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -335,8 +335,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -386,7 +386,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -401,8 +401,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -438,7 +438,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -453,8 +453,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -490,7 +490,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -505,8 +505,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -556,7 +556,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -571,8 +571,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -608,7 +608,7 @@ exports[`Keypad components components should render correctly and match snapshot
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -623,8 +623,8 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -675,7 +675,7 @@ exports[`Keypad components components should render correctly and match snapshot
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "height": 32,
                 "width": 32,
               },
@@ -735,7 +735,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -744,14 +744,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-1"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -787,7 +788,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -796,14 +797,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-2"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -839,7 +841,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -848,14 +850,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-3"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -905,7 +908,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -914,14 +917,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-4"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -957,7 +961,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -966,14 +970,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-5"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1009,7 +1014,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -1018,14 +1023,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-6"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1075,7 +1081,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -1084,14 +1090,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-7"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1127,7 +1134,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -1136,14 +1143,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-8"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1179,7 +1187,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -1188,14 +1196,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-9"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1245,7 +1254,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -1256,14 +1265,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             },
           ]
         }
+        testID="keypad-key-dot"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1299,7 +1309,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderRadius": 12,
               "height": 48,
               "justifyContent": "center",
@@ -1308,14 +1318,15 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
+        testID="keypad-key-0"
       >
         <Text
           accessibilityRole="none"
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 32,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1369,7 +1380,7 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "height": 32,
                 "width": 32,
               },

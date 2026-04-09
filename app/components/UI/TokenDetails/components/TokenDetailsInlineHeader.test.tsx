@@ -2,29 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
-}));
-
-jest.mock('../../../hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      leftButton: {},
-      titleWrapper: {},
-      rightButton: {},
-      rightPlaceholder: {},
-    },
-  }),
-}));
-
 describe('TokenDetailsInlineHeader', () => {
   const mockOnBackPress = jest.fn();
   const mockOnOptionsPress = jest.fn();
 
   const defaultProps = {
-    title: 'ETH',
-    networkName: 'Ethereum Mainnet',
     onBackPress: mockOnBackPress,
     onOptionsPress: mockOnOptionsPress,
   };
@@ -34,30 +16,6 @@ describe('TokenDetailsInlineHeader', () => {
   });
 
   describe('rendering', () => {
-    it('renders title text', () => {
-      const { getByText } = render(
-        <TokenDetailsInlineHeader {...defaultProps} />,
-      );
-
-      expect(getByText('ETH')).toBeOnTheScreen();
-    });
-
-    it('renders network name when provided', () => {
-      const { getByText } = render(
-        <TokenDetailsInlineHeader {...defaultProps} />,
-      );
-
-      expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
-    });
-
-    it('does not render network name when empty string', () => {
-      const { queryByText } = render(
-        <TokenDetailsInlineHeader {...defaultProps} networkName="" />,
-      );
-
-      expect(queryByText('Ethereum Mainnet')).toBeNull();
-    });
-
     it('renders back button with testID', () => {
       const { getByTestId } = render(
         <TokenDetailsInlineHeader {...defaultProps} />,
@@ -76,17 +34,15 @@ describe('TokenDetailsInlineHeader', () => {
     });
 
     it('renders placeholder when onOptionsPress is falsy', () => {
-      const props = {
-        ...defaultProps,
-        onOptionsPress: undefined as unknown as () => void,
-      };
-
       const { getByTestId, queryByTestId } = render(
-        <TokenDetailsInlineHeader {...props} />,
+        <TokenDetailsInlineHeader
+          {...defaultProps}
+          onOptionsPress={undefined}
+        />,
       );
 
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
-      expect(queryByTestId('button-icon')).toBeNull();
+      expect(queryByTestId('button-icon')).not.toBeOnTheScreen();
     });
   });
 
@@ -109,31 +65,6 @@ describe('TokenDetailsInlineHeader', () => {
       fireEvent.press(getByTestId('button-icon'));
 
       expect(mockOnOptionsPress).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('edge cases', () => {
-    it('handles long title text with truncation', () => {
-      const longTitle = 'VeryLongTokenSymbolName';
-      const { getByText } = render(
-        <TokenDetailsInlineHeader {...defaultProps} title={longTitle} />,
-      );
-
-      const titleElement = getByText(longTitle);
-      expect(titleElement.props.numberOfLines).toBe(1);
-    });
-
-    it('handles long network name with truncation', () => {
-      const longNetworkName = 'Very Long Network Name That Should Be Truncated';
-      const { getByText } = render(
-        <TokenDetailsInlineHeader
-          {...defaultProps}
-          networkName={longNetworkName}
-        />,
-      );
-
-      const networkElement = getByText(longNetworkName);
-      expect(networkElement.props.numberOfLines).toBe(1);
     });
   });
 });

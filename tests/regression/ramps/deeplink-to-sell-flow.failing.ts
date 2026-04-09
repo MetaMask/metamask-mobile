@@ -1,16 +1,21 @@
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestHelpers from '../../../e2e/helpers';
-import SellGetStartedView from '../../../e2e/pages/Ramps/SellGetStartedView';
-import { RegressionTrade } from '../../../e2e/tags';
-import BuildQuoteView from '../../../e2e/pages/Ramps/BuildQuoteView';
+import TestHelpers from '../../helpers';
+import SellGetStartedView from '../../page-objects/Ramps/SellGetStartedView';
+import { RegressionTrade } from '../../tags';
+import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import NetworkApprovalBottomSheet from '../../../e2e/pages/Network/NetworkApprovalBottomSheet';
-import NetworkAddedBottomSheet from '../../../e2e/pages/Network/NetworkAddedBottomSheet';
-import NetworkEducationModal from '../../../e2e/pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import NetworkApprovalBottomSheet from '../../page-objects/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../page-objects/Network/NetworkAddedBottomSheet';
+import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
+import { Mockttp } from 'mockttp';
+import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
@@ -28,22 +33,20 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
     'should deep link to offramp ETH',
     async () => {
       const sellDeepLinkURL = 'metamask://sell?chainId=1&amount=50';
-      const franceRegion = {
-        currencies: ['/currencies/fiat/eur'],
-        emoji: '🇫🇷',
-        id: '/regions/fr',
-        name: 'France',
-        support: { buy: true, sell: true, recurringBuy: true },
-        unsupported: false,
-        recommended: false,
-        detected: false,
-      };
+      const franceRegion = RampsRegions[RampsRegionsEnum.FRANCE];
       await withFixtures(
         {
           fixture: new FixtureBuilder()
             .withRampsSelectedRegion(franceRegion)
             .withRampsSelectedPaymentMethod()
             .build(),
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureFlagRampsUnifiedEnabled(true),
+            );
+            await setupRegionAwareOnRampMocks(mockServer, franceRegion);
+          },
           restartDevice: true,
         },
         async () => {
@@ -79,6 +82,16 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
             .withRampsSelectedRegion()
             .withRampsSelectedPaymentMethod()
             .build(),
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureFlagRampsUnifiedEnabled(true),
+            );
+            await setupRegionAwareOnRampMocks(
+              mockServer,
+              RampsRegions[RampsRegionsEnum.SAINT_LUCIA],
+            );
+          },
           restartDevice: true,
         },
         async () => {

@@ -5,17 +5,21 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { View, Keyboard } from 'react-native';
+import { Keyboard } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { v4 as uuidv4 } from 'uuid';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+  FontWeight,
+  Box,
+  BoxBackgroundColor,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import SrpInput from '../../Views/SrpInput';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { useAppTheme } from '../../../util/theme';
-import { createStyles } from './SrpInputGrid.styles';
 import { SrpInputGridProps } from './SrpInputGrid.types';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -29,11 +33,39 @@ import {
 import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
 import Logger from '../../../util/Logger';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
   handleSuggestionSelect: (word: string) => void;
 }
+
+const dismissKeyboard = () => Keyboard.dismiss();
+
+const validateWords = (words: string[]) => {
+  const errorsMap: Record<number, boolean> = {};
+  words.forEach((word, index) => {
+    const trimmedWord = word.trim();
+    if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
+      errorsMap[index] = true;
+    }
+  });
+  return errorsMap;
+};
+
+const SHARED_INPUT_PROPS = {
+  submitBehavior: 'submit' as const,
+  autoComplete: 'off' as const,
+  keyboardType: 'visible-password' as const,
+  returnKeyType: 'done' as const,
+  enablesReturnKeyAutomatically: false,
+  autoCorrect: false,
+  textContentType: 'none' as const,
+  spellCheck: false,
+  importantForAutofill: 'no' as const,
+  showSoftInputOnFocus: true,
+  autoCapitalize: 'none' as const,
+};
 
 /**
  * SrpInputGrid Component
@@ -63,8 +95,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     ref,
   ) => {
     const { colors } = useAppTheme();
-    const styles = createStyles(colors);
-
+    const tw = useTailwind();
     // Internal state
     const [
       nextSeedPhraseInputFocusedIndex,
@@ -195,19 +226,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSeedPhraseChangeAtIndexRef.current = handleSeedPhraseChangeAtIndex;
     }, [handleSeedPhraseChangeAtIndex]);
 
-    // Helper to validate words
-    const validateWords = useCallback((words: string[]) => {
-      const errorsMap: Record<number, boolean> = {};
-      words.forEach((word, index) => {
-        const trimmedWord = word.trim();
-        if (trimmedWord && !checkValidSeedWord(trimmedWord)) {
-          errorsMap[index] = true;
-        }
-      });
-      return errorsMap;
-    }, []);
-
-    // Handle seed phrase change in first input
     const handleSeedPhraseChange = useCallback(
       (seedPhraseText: string) => {
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
@@ -218,8 +236,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
 
         if (SRP_LENGTHS.includes(updatedTrimmedText.length)) {
           onSeedPhraseChange(updatedTrimmedText);
-
-          // Validate complete phrases that might have invalid words
           setErrorWordIndexes(validateWords(updatedTrimmedText));
           setNextSeedPhraseInputFocusedIndex(null);
           seedPhraseInputRefs.current?.get(0)?.blur();
@@ -228,7 +244,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           handleSeedPhraseChangeAtIndexRef.current?.(text, 0);
         }
       },
-      [onSeedPhraseChange, validateWords],
+      [onSeedPhraseChange],
     );
 
     // Handle focus change with validation
@@ -355,160 +371,156 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSuggestionSelect,
     }));
 
+    const hiddenStyle = useMemo(
+      () => tw.style('opacity-0 h-0 absolute top-0 left-0'),
+      [tw],
+    );
+    const gridItemStyle = useMemo(
+      () =>
+        tw.style(
+          'w-[31.33%] mr-[3%] mb-2 min-w-0 rounded-lg bg-background-default flex-row items-center justify-start h-10 overflow-hidden py-1 pl-2',
+          { flex: 0 },
+        ),
+      [tw],
+    );
+    const gridItemLastStyle = useMemo(
+      () =>
+        tw.style(
+          'w-[31.33%] mb-2 min-w-0 rounded-lg bg-background-default flex-row items-center justify-start h-10 overflow-hidden py-1 pl-2 mr-0',
+          { flex: 0 },
+        ),
+      [tw],
+    );
+    const textareaInputStyle = useMemo(
+      () => ({
+        ...tw.style(
+          'h-[66px] bg-transparent text-text-alternative text-base my-4',
+        ),
+        lineHeight: 20,
+      }),
+      [tw],
+    );
+    const gridInputItemStyle = useMemo(
+      () => tw.style('flex-1 min-w-0 max-w-full pr-2'),
+      [tw],
+    );
+    const textareaVisibleStyle = useMemo(
+      () => tw.style('border-0 px-0 py-0 flex-1 bg-transparent'),
+      [tw],
+    );
+
+    const getGridItemStyle = useCallback(
+      (index: number) => {
+        if (isFirstInput) return hiddenStyle;
+        return (index + 1) % 3 === 0 ? gridItemLastStyle : gridItemStyle;
+      },
+      [isFirstInput, hiddenStyle, gridItemLastStyle, gridItemStyle],
+    );
+
+    const handlePasteOrClear = useCallback(() => {
+      if (trimmedSeedPhraseLength >= 1) {
+        handleClear();
+      } else {
+        handlePaste();
+      }
+    }, [trimmedSeedPhraseLength, handleClear, handlePaste]);
+
     return (
-      <View style={styles.seedPhraseRoot}>
-        <View style={styles.seedPhraseContainer}>
-          <View style={styles.seedPhraseInnerContainer}>
-            <View style={styles.seedPhraseInputContainer}>
-              {/* Grid Inputs on multiple words mode. hidden when first input mode.
-              Need to use style hidden instead of condition rendering to avoid
-              keyboard flicker when change input */}
-              {seedPhrase.map((item, index) => (
-                <SrpInput
-                  key={`seed-phrase-item-${uniqueId}-${index}`}
-                  ref={(itemRef) => {
-                    const inputRefs = getSeedPhraseInputRef();
-                    if (itemRef) {
-                      inputRefs.set(index, itemRef);
-                    } else {
-                      inputRefs.delete(index);
-                    }
-                  }}
-                  startAccessory={
-                    !isFirstInput && (
-                      <Text
-                        variant={TextVariant.BodyMDBold}
-                        color={TextColor.Alternative}
-                        style={styles.inputIndex}
-                      >
-                        {index + 1}.
-                      </Text>
-                    )
-                  }
-                  value={getInputValue(isFirstInput, index, item, seedPhrase)}
-                  onFocus={() => {
-                    handleOnFocus(index);
-                  }}
-                  onBlur={() => {
-                    handleOnBlur(index);
-                  }}
-                  onChangeText={(text) => {
-                    isFirstInput
-                      ? handleSeedPhraseChange(text)
-                      : handleSeedPhraseChangeAtIndex(text, index);
-                  }}
-                  onSubmitEditing={() => Keyboard.dismiss()}
-                  placeholder=""
-                  placeholderTextColor={colors.text.muted}
-                  size={TextFieldSize.Md}
-                  style={
-                    isFirstInput
-                      ? styles.hiddenInput
-                      : [
-                          styles.input,
-                          styles.seedPhraseInputItem,
-                          (index + 1) % 3 === 0 &&
-                            styles.seedPhraseInputItemLast,
-                        ]
-                  }
-                  inputStyle={
-                    isFirstInput ? styles.textAreaInput : styles.inputItem
-                  }
-                  submitBehavior="submit"
-                  autoComplete="off"
-                  textAlignVertical={isFirstInput ? 'top' : 'center'}
-                  showSoftInputOnFocus
-                  isError={errorWordIndexes[index]}
-                  autoCapitalize="none"
-                  testID={`${testIdPrefix}_${index}`}
-                  keyboardType="visible-password"
-                  returnKeyType="done"
-                  blurOnSubmit={false}
-                  enablesReturnKeyAutomatically={false}
-                  autoCorrect={false}
-                  textContentType="none"
-                  spellCheck={false}
-                  importantForAutofill="no"
-                  autoFocus={
-                    index === nextSeedPhraseInputFocusedIndex &&
-                    (autoFocusProp || index > 0)
-                  }
-                  onKeyPress={(e) => handleKeyPress(e, index)}
-                  isDisabled={disabled}
-                />
-              ))}
-
-              {/* Textarea Input on first input mode hidden during multiple works */}
-              <SrpInput
-                key={`seed-phrase-item-${uniqueId}`}
-                value={seedPhrase[0]}
-                onFocus={() => {
-                  handleOnFocus(0);
-                }}
-                onBlur={() => {
-                  handleOnBlur(0);
-                }}
-                onChangeText={(text) => {
-                  handleSeedPhraseChange(text);
-                }}
-                placeholder={placeholderText}
-                placeholderTextColor={colors.text.alternative}
-                size={TextFieldSize.Md}
-                style={
-                  isFirstInput
-                    ? styles.seedPhraseDefaultInput
-                    : styles.hiddenInput
-                }
-                inputStyle={styles.textAreaInput}
-                submitBehavior="submit"
-                autoComplete="off"
-                textAlignVertical="top"
-                showSoftInputOnFocus
-                autoCapitalize="none"
-                testID={testIdPrefix}
-                keyboardType="visible-password"
-                returnKeyType="done"
-                blurOnSubmit={false}
-                enablesReturnKeyAutomatically={false}
-                onSubmitEditing={() => Keyboard.dismiss()}
-                autoCorrect={false}
-                textContentType="none"
-                spellCheck={false}
-                importantForAutofill="no"
-                autoFocus={autoFocusProp && isFirstInput}
-                multiline
-                onKeyPress={(e) => handleKeyPress(e, 0)}
-                isDisabled={disabled}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Paste/Clear Button */}
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Primary}
-          style={styles.pasteText}
-          onPress={() => {
-            if (trimmedSeedPhraseLength >= 1) {
-              handleClear();
-            } else {
-              handlePaste();
-            }
-          }}
+      <Box twClassName="flex-col gap-1 mt-2 mb-6">
+        <Box
+          backgroundColor={BoxBackgroundColor.BackgroundSection}
+          twClassName={`rounded-[10px] min-h-[210px] flex-row flex-wrap w-full px-4 ${!isFirstInput ? 'pt-4 pb-2' : ''}`}
         >
-          {trimmedSeedPhraseLength >= 1
-            ? strings('import_from_seed.clear_all')
-            : strings('import_from_seed.paste')}
-        </Text>
+          {seedPhrase.map((item, index) => (
+            <SrpInput
+              key={`seed-phrase-item-${uniqueId}-${index}`}
+              {...SHARED_INPUT_PROPS}
+              ref={(itemRef) => {
+                const inputRefs = getSeedPhraseInputRef();
+                if (itemRef) {
+                  inputRefs.set(index, itemRef);
+                } else {
+                  inputRefs.delete(index);
+                }
+              }}
+              startAccessory={
+                !isFirstInput && (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Bold}
+                    color={TextColor.TextAlternative}
+                    twClassName="-mr-1"
+                  >
+                    {index + 1}.
+                  </Text>
+                )
+              }
+              value={getInputValue(isFirstInput, index, item, seedPhrase)}
+              onFocus={() => handleOnFocus(index)}
+              onBlur={() => handleOnBlur(index)}
+              onChangeText={(text) => {
+                isFirstInput
+                  ? handleSeedPhraseChange(text)
+                  : handleSeedPhraseChangeAtIndex(text, index);
+              }}
+              onSubmitEditing={dismissKeyboard}
+              placeholder=""
+              placeholderTextColor={colors.text.muted}
+              style={getGridItemStyle(index)}
+              inputStyle={
+                isFirstInput ? textareaInputStyle : gridInputItemStyle
+              }
+              textAlignVertical={isFirstInput ? 'top' : 'center'}
+              isError={errorWordIndexes[index]}
+              testID={`${testIdPrefix}_${index}`}
+              autoFocus={
+                index === nextSeedPhraseInputFocusedIndex &&
+                (autoFocusProp || index > 0)
+              }
+              onKeyPress={(e) => handleKeyPress(e, index)}
+              isDisabled={disabled}
+            />
+          ))}
 
-        {/* Error Text */}
+          <SrpInput
+            key={`seed-phrase-item-${uniqueId}`}
+            {...SHARED_INPUT_PROPS}
+            value={seedPhrase[0]}
+            onFocus={() => handleOnFocus(0)}
+            onBlur={() => handleOnBlur(0)}
+            onChangeText={handleSeedPhraseChange}
+            onSubmitEditing={dismissKeyboard}
+            placeholder={placeholderText}
+            placeholderTextColor={colors.text.alternative}
+            style={isFirstInput ? textareaVisibleStyle : hiddenStyle}
+            inputStyle={textareaInputStyle}
+            textAlignVertical="top"
+            testID={testIdPrefix}
+            autoFocus={autoFocusProp && isFirstInput}
+            multiline
+            onKeyPress={(e) => handleKeyPress(e, 0)}
+            isDisabled={disabled}
+          />
+        </Box>
+
+        <Box twClassName="flex-row justify-end items-end pt-1 pb-[1px]">
+          <Button variant={ButtonVariant.Tertiary} onPress={handlePasteOrClear}>
+            {trimmedSeedPhraseLength >= 1
+              ? strings('import_from_seed.clear_all')
+              : strings('import_from_seed.paste')}
+          </Button>
+        </Box>
+
         {Boolean(externalError || error) && (
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Error}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.ErrorDefault}
+          >
             {externalError || error}
           </Text>
         )}
-      </View>
+      </Box>
     );
   },
 );

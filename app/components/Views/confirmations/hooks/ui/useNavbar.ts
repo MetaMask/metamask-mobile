@@ -1,8 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect } from 'react';
 import { useTheme } from '../../../../../util/theme';
-import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import {
   getModalNavigationOptions,
   getNavbar,
@@ -16,8 +14,7 @@ const useNavbar = (
   addBackButton = true,
   overrides?: NavbarOverrides,
 ) => {
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
@@ -46,8 +43,7 @@ const useNavbar = (
 };
 
 export function useModalNavbar() {
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
 
   const { onReject } = useConfirmActions();
 

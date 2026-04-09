@@ -85,7 +85,7 @@ jest.mock('../Engine', () => ({
   },
   context: {
     ApprovalController: {
-      has: jest.fn(),
+      hasRequest: jest.fn(),
     },
     SelectedNetworkController: {
       getNetworkClientIdForDomain: jest.fn(),
@@ -186,11 +186,6 @@ function getMinimalOptions() {
     url: { current: '' },
     title: { current: '' },
     icon: { current: undefined },
-    // Bookmarks
-    isHomepage: jest.fn(),
-    // Show autocomplete
-    fromHomepage: { current: false },
-    toggleUrlModal: jest.fn(),
     // For the browser
     tabId: '' as const,
     // For WalletConnect
@@ -200,7 +195,6 @@ function getMinimalOptions() {
     getApprovedHosts: jest.fn(),
     setApprovedHosts: jest.fn(),
     approveHost: jest.fn(),
-    injectHomePageScripts: jest.fn(),
     analytics: {},
   };
 }
@@ -280,7 +274,6 @@ async function callMiddleware({
  * method should return.
  * @param options.permittedAccounts - Permitted accounts, keyed by hostname.
  * @param options.providerConfig - The provider configuration for the current selected network.
- * @param options.selectedAddress - The current selected address.
  */
 function setupGlobalState({
   activeTab,
@@ -289,7 +282,6 @@ function setupGlobalState({
   selectedNetworkClientId,
   networksMetadata,
   networkConfigurationsByChainId,
-  selectedAddress,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
@@ -298,7 +290,6 @@ function setupGlobalState({
   networksMetadata?: Record<string, object>;
   networkConfigurationsByChainId?: Record<string, object>;
   providerConfig?: ProviderConfig;
-  selectedAddress?: string;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
@@ -320,7 +311,7 @@ function setupGlobalState({
             networkConfigurationsByChainId:
               networkConfigurationsByChainId || {},
           },
-          PreferencesController: selectedAddress ? { selectedAddress } : {},
+          PreferencesController: {},
         },
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -337,10 +328,6 @@ function setupGlobalState({
     mockGetPermittedAccounts.mockImplementation(
       (hostname) => permittedAccounts[hostname] || [],
     );
-  }
-  if (selectedAddress) {
-    MockEngine.context.PreferencesController.state.selectedAddress =
-      selectedAddress;
   }
 }
 
@@ -375,7 +362,6 @@ function setupSignature() {
         ],
       },
     },
-    selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
   });
 
@@ -495,10 +481,8 @@ describe('getRpcMethodMiddleware', () => {
       describe('browser', () => {
         it('returns permitted accounts for connected site', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -520,10 +504,8 @@ describe('getRpcMethodMiddleware', () => {
         });
 
         it('returns an empty array for an unconnected site', async () => {
-          const mockAddress = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: {},
-            selectedAddress: mockAddress,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -546,10 +528,8 @@ describe('getRpcMethodMiddleware', () => {
       describe('WalletConnect', () => {
         it('returns the selected account', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -566,7 +546,7 @@ describe('getRpcMethodMiddleware', () => {
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-            mockAddress2,
+            mockAddress1,
           ]);
         });
       });
@@ -574,10 +554,8 @@ describe('getRpcMethodMiddleware', () => {
       describe('SDK', () => {
         it('returns permitted account for connected host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -599,10 +577,8 @@ describe('getRpcMethodMiddleware', () => {
         });
 
         it('returns an empty array for an unconnected channel', async () => {
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: {},
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -1194,7 +1170,6 @@ describe('getRpcMethodMiddleware', () => {
               ],
             },
           },
-          selectedAddress: mockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
@@ -1215,8 +1190,6 @@ describe('getRpcMethodMiddleware', () => {
 
       it('returns a JSON-RPC error if the referenced account is not currently selected', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
-        const differentMockAddress =
-          '0x0000000000000000000000000000000000000002';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
@@ -1241,7 +1214,6 @@ describe('getRpcMethodMiddleware', () => {
               nativeCurrency: 'ETH',
             },
           },
-          selectedAddress: differentMockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
@@ -1296,7 +1268,6 @@ describe('getRpcMethodMiddleware', () => {
               ],
             },
           },
-          selectedAddress: mockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
@@ -1318,8 +1289,6 @@ describe('getRpcMethodMiddleware', () => {
 
       it('returns a JSON-RPC error if the referenced account is not currently selected', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
-        const differentMockAddress =
-          '0x0000000000000000000000000000000000000002';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
@@ -1343,7 +1312,6 @@ describe('getRpcMethodMiddleware', () => {
               nativeCurrency: 'ETH',
             },
           },
-          selectedAddress: differentMockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
@@ -1945,10 +1913,12 @@ describe('getRpcMethodMiddlewareHooks', () => {
   });
 
   describe('hasApprovalRequestsForOrigin', () => {
-    it('should call ApprovalController.has with correct origin', () => {
+    it('should call ApprovalController.hasRequest with correct origin', () => {
       hooks.hasApprovalRequestsForOrigin();
 
-      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
+      expect(
+        MockEngine.context.ApprovalController.hasRequest,
+      ).toHaveBeenCalledWith({
         origin: testOrigin,
       });
     });

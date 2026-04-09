@@ -37,6 +37,12 @@ export interface MultichainBlockExplorerFormatUrls {
    * Format URL of the block explorer for transactions.
    */
   transaction: MultichainBlockExplorerFormatUrl<'txId'>;
+
+  /**
+   * Format URL of the block explorer for token detail pages.
+   * Not all chains/explorers support a dedicated token page.
+   */
+  token?: MultichainBlockExplorerFormatUrl<'address'>;
 }
 
 /**
@@ -67,6 +73,22 @@ export function formatBlockExplorerAddressUrl(
   address: string,
 ) {
   return formatBlockExplorerUrl(urls.address, 'address', address);
+}
+
+/**
+ * Format a URL for token detail pages.
+ * Falls back to the address URL if no dedicated token URL is configured.
+ *
+ * @param urls - The group of format URLs for a given block explorer.
+ * @param address - The token address (e.g. mint address) to create the URL for.
+ * @returns The formatted URL for the given token.
+ */
+export function formatBlockExplorerTokenUrl(
+  urls: MultichainBlockExplorerFormatUrls,
+  address: string,
+) {
+  const template = urls.token ?? urls.address;
+  return formatBlockExplorerUrl(template, 'address', address);
 }
 
 /**

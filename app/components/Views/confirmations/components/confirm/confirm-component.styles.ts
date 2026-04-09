@@ -12,7 +12,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     bottomSheetDialogSheet: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
     },
     confirmContainer: {
       display: 'flex',
@@ -21,7 +21,7 @@ const styleSheet = (params: {
     flatContainer: {
       flex: 1,
       zIndex: 9999,
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
       justifyContent: 'space-between',
     },
     scrollView: {
@@ -31,7 +31,7 @@ const styleSheet = (params: {
       flex: vars.isFullScreenConfirmation ? 1 : undefined,
     },
     spinnerContainer: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
       width: '100%',
       height: '100%',
       justifyContent: 'center',

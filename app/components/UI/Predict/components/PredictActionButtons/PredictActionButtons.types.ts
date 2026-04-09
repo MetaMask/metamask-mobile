@@ -5,7 +5,7 @@ import {
 } from '../../types';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
-export type PredictBetButtonVariant = 'yes' | 'no';
+export type PredictBetButtonVariant = 'yes' | 'no' | 'draw';
 
 export interface PredictBetButtonProps {
   label: string;
@@ -22,6 +22,9 @@ export interface PredictBetButtonsProps {
   yesLabel: string;
   yesPrice: number;
   onYesPress: () => void;
+  drawLabel?: string;
+  drawPrice?: number;
+  onDrawPress?: () => void;
   noLabel: string;
   noPrice: number;
   onNoPress: () => void;
@@ -36,6 +39,8 @@ export interface PredictClaimButtonProps {
   amount?: number;
   onPress: () => void;
   disabled?: boolean;
+  isLoading?: boolean;
+  isHidden?: boolean;
   testID?: string;
 }
 
@@ -46,6 +51,7 @@ export interface PredictActionButtonsProps {
   onClaimPress?: () => void;
   claimableAmount?: number;
   isLoading?: boolean;
+  isClaimPending?: boolean;
   testID?: string;
   isCarousel?: boolean;
 }

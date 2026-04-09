@@ -1,4 +1,4 @@
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
+import { RegressionWalletPlatform } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
@@ -6,14 +6,15 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
-import ConnectBottomSheet from '../../../../e2e/pages/Browser/ConnectBottomSheet';
-import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
+import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
 import { DappVariants } from '../../../framework/Constants';
-import ToastModal from '../../../../e2e/pages/wallet/ToastModal';
-import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
+import ToastModal from '../../../page-objects/wallet/ToastModal';
+import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
 
 describe(RegressionWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {

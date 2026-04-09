@@ -3,11 +3,24 @@ import AccountBackupStep1B from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager } from 'react-native';
+
+jest.mock('../../UI/ActionModal', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({
+    children,
+    modalVisible,
+  }: {
+    children: React.ReactNode;
+    modalVisible: boolean;
+  }) => (
+    <View testID="mock-action-modal">{modalVisible ? children : null}</View>
+  );
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -38,25 +51,42 @@ jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
-describe('AccountBackupStep1B', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
+const createMockNavigation = () => ({
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+});
 
+const defaultState = {
+  engine: {
+    backgroundState: {
+      SeedlessOnboardingController: {
+        vault: undefined as string | undefined,
+      },
+    },
+  },
+};
+
+const seedlessState = {
+  engine: {
+    backgroundState: {
+      SeedlessOnboardingController: {
+        vault: 'encrypted-vault-data',
+      },
+    },
+  },
+};
+
+describe('AccountBackupStep1B', () => {
   afterEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
-  const setupTest = () => {
-    const mockNavigate = jest.fn();
-    const mockGoBack = jest.fn();
-    const mockSetOptions = jest.fn();
+  const setupTest = (stateOverride = defaultState) => {
+    const mockNav = createMockNavigation();
 
-    const mockNavigation = (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetOptions,
+    const mockNavHook = (useNavigation as jest.Mock).mockReturnValue({
+      ...mockNav,
       addListener: jest.fn(),
       removeListener: jest.fn(),
       isFocused: jest.fn(),
@@ -64,118 +94,165 @@ describe('AccountBackupStep1B', () => {
     });
 
     const wrapper = renderWithProvider(
-      <AccountBackupStep1B
-        navigation={{
-          navigate: mockNavigate,
-          goBack: mockGoBack,
-          setOptions: mockSetOptions,
-        }}
-        route={{}}
-      />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              SeedlessOnboardingController: {
-                vault: 'encrypted-vault-data',
-              },
-            },
-          },
-        },
-      },
+      <AccountBackupStep1B navigation={mockNav} route={{}} />,
+      { state: stateOverride },
     );
 
-    return {
-      wrapper,
-      mockNavigate,
-      mockGoBack,
-      mockSetOptions,
-      mockNavigation,
-    };
+    return { wrapper, mockNav, mockNavHook };
   };
 
-  it('render matches snapshot', () => {
-    const { wrapper, mockNavigation } = setupTest();
-    expect(wrapper).toMatchSnapshot();
-    mockNavigation.mockRestore();
-  });
+  describe('rendering', () => {
+    it('renders title and SRP explanation link', () => {
+      const { wrapper } = setupTest();
 
-  it('render title and srp link', () => {
-    const { wrapper, mockNavigation } = setupTest();
+      const title = wrapper.getByText(strings('account_backup_step_1B.title'));
+      const srpLink = wrapper.getByText(
+        strings('account_backup_step_1B.subtitle_2'),
+      );
 
-    const title = wrapper.getByText(strings('account_backup_step_1B.title'));
-    expect(title).toBeOnTheScreen();
-
-    const srpLink = wrapper.getByText(
-      strings('account_backup_step_1B.subtitle_2'),
-    );
-    expect(srpLink).toBeOnTheScreen();
-    mockNavigation.mockRestore();
-  });
-
-  it('opens the seed phrase modal on srp link press', () => {
-    const { wrapper, mockNavigate, mockNavigation } = setupTest();
-
-    const srpLink = wrapper.getByText(
-      strings('account_backup_step_1B.subtitle_2'),
-    );
-    expect(srpLink).toBeOnTheScreen();
-
-    fireEvent.press(srpLink);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SEEDPHRASE_MODAL,
+      expect(title).toBeOnTheScreen();
+      expect(srpLink).toBeOnTheScreen();
     });
-    mockNavigation.mockRestore();
+
+    it('renders why-important info button', () => {
+      const { wrapper } = setupTest();
+
+      const whyImportantButton = wrapper.getByText(
+        strings('account_backup_step_1B.why_important'),
+      );
+
+      expect(whyImportantButton).toBeOnTheScreen();
+    });
+
+    it('renders start CTA button', () => {
+      const { wrapper } = setupTest();
+
+      const ctaButton = wrapper.getByText(
+        strings('account_backup_step_1B.cta_text'),
+      );
+
+      expect(ctaButton).toBeOnTheScreen();
+    });
+
+    it('renders AndroidBackHandler on Android', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      const { wrapper } = setupTest();
+
+      const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
+
+      expect(androidBackHandler.props.customBackPress).toBeDefined();
+    });
+
+    it('sets navigation header with empty left component', () => {
+      const { mockNav } = setupTest();
+
+      expect(mockNav.setOptions).toHaveBeenCalled();
+      const headerLeft = mockNav.setOptions.mock.calls[0][0].headerLeft();
+
+      expect(React.isValidElement(headerLeft)).toBe(true);
+    });
   });
 
-  it('render start button and on press it should navigate to ManualBackupStep1', () => {
-    const { wrapper, mockNavigate, mockNavigation } = setupTest();
-    const ctaButton = wrapper.getByText(
-      strings('account_backup_step_1B.cta_text'),
-    );
-    expect(ctaButton).toBeOnTheScreen();
-    fireEvent.press(ctaButton);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.ONBOARDING.MANUAL_BACKUP.STEP_1,
-      {
+  describe('navigation', () => {
+    it('navigates to SRP modal when explanation link is pressed', () => {
+      const { wrapper, mockNav } = setupTest();
+
+      const srpLink = wrapper.getByText(
+        strings('account_backup_step_1B.subtitle_2'),
+      );
+      fireEvent.press(srpLink);
+
+      expect(mockNav.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        { screen: Routes.SHEET.SEEDPHRASE_MODAL },
+      );
+    });
+
+    it('navigates to ManualBackupStep1 with settingsBackup when CTA is pressed', () => {
+      const { wrapper, mockNav } = setupTest();
+
+      const ctaButton = wrapper.getByText(
+        strings('account_backup_step_1B.cta_text'),
+      );
+      fireEvent.press(ctaButton);
+
+      expect(mockNav.navigate).toHaveBeenCalledWith('ManualBackupStep1', {
         settingsBackup: true,
-      },
-    );
-    mockNavigation.mockRestore();
+      });
+    });
+
+    it('navigates to webview when learn more is pressed in why-secure modal', async () => {
+      const { wrapper, mockNav } = setupTest();
+
+      await act(async () => {
+        fireEvent.press(
+          wrapper.getByText(strings('account_backup_step_1B.why_important')),
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByText(strings('account_backup_step_1B.learn_more')),
+        ).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          wrapper.getByText(strings('account_backup_step_1B.learn_more')),
+        );
+      });
+
+      expect(mockNav.navigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+          title: strings('drawer.metamask_support'),
+        },
+      });
+    });
   });
 
-  it('render AndroidBackHandler when on Android and on back press function is called with null', () => {
-    const mockIsAndroid = (Device.isAndroid as jest.Mock).mockReturnValue(true);
+  describe('why-secure modal', () => {
+    it('reveals modal content when why-important button is pressed', async () => {
+      const { wrapper } = setupTest();
 
-    const { wrapper, mockNavigation } = setupTest();
+      await act(async () => {
+        fireEvent.press(
+          wrapper.getByText(strings('account_backup_step_1B.why_important')),
+        );
+      });
 
-    // Verify AndroidBackHandler is rendered
-    const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
-    expect(androidBackHandler).toBeDefined();
+      await waitFor(() => {
+        expect(
+          wrapper.getByText(strings('account_backup_step_1B.why_secure_title')),
+        ).toBeOnTheScreen();
+      });
+    });
 
-    // Verify customBackPress prop is passed
-    expect(androidBackHandler.props.customBackPress).toBeDefined();
+    it('keeps modal hidden when seedless onboarding login flow is active', async () => {
+      const { wrapper } = setupTest(seedlessState);
 
-    // Test that pressing back triggers the correct navigation
-    androidBackHandler.props.customBackPress();
-    expect(null).toBe(null);
-    mockIsAndroid.mockRestore();
-    mockNavigation.mockRestore();
+      await act(async () => {
+        fireEvent.press(
+          wrapper.getByText(strings('account_backup_step_1B.why_important')),
+        );
+      });
+
+      expect(
+        wrapper.queryByText(strings('account_backup_step_1B.why_secure_title')),
+      ).toBeNull();
+    });
   });
 
-  it('render header left button', () => {
-    const { mockSetOptions, mockNavigation } = setupTest();
+  describe('android back handler', () => {
+    it('returns null when back press is triggered', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      const { wrapper } = setupTest();
 
-    // Verify that setOptions was called with the correct configuration
-    expect(mockSetOptions).toHaveBeenCalled();
-    const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
+      const result = androidBackHandler.props.customBackPress();
 
-    // Get the headerLeft function from the options
-    const headerLeftComponent = setOptionsCall.headerLeft();
-
-    // Verify the headerLeft component exists and is a valid React element
-    expect(headerLeftComponent).toBeDefined();
-    expect(React.isValidElement(headerLeftComponent)).toBe(true);
-    mockNavigation.mockRestore();
+      expect(result).toBeNull();
+    });
   });
 });

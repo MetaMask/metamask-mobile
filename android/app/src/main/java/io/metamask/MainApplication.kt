@@ -29,6 +29,7 @@ import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
+import com.braze.BrazeActivityLifecycleCallbackListener
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -84,7 +85,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         }
 
         // Enable debugging WebView from Chrome DevTools
-        if (BuildConfig.DEBUG || BuildConfig.IS_RAMP_UAT == "true" || BuildConfig.IS_RAMP_DEV == "true") {
+        if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
@@ -96,6 +97,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             load()
         }
 
+        registerActivityLifecycleCallbacks(BrazeActivityLifecycleCallbackListener())
         ApplicationLifecycleDispatcher.onApplicationCreate(this)
     }
 

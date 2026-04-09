@@ -1,5 +1,5 @@
 // Jest tests run in Node, so this is okay.
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import assert from 'assert';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
@@ -420,6 +420,7 @@ function setQuicknodeEnvironmentVariables() {
   process.env.QUICKNODE_BSC_URL = 'https://example.quicknode.com/bsc';
   process.env.QUICKNODE_SEI_URL = 'https://example.quicknode.com/sei';
   process.env.QUICKNODE_MONAD_URL = 'https://example.quicknode.com/monad';
+  process.env.QUICKNODE_HYPEREVM_URL = 'https://example.quicknode.com/hyperevm';
 }
 
 /**

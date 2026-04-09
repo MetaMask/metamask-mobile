@@ -23,6 +23,10 @@ describe('formatWithThreshold', () => {
     );
   });
 
+  test('returns an empty string when amount is NaN', () => {
+    expect(formatWithThreshold(NaN, 10, 'en-US', enUSCurrencyOptions)).toBe('');
+  });
+
   test('formats zero correctly in en-US currency format', () => {
     expect(formatWithThreshold(0, 10, 'en-US', enUSCurrencyOptions)).toBe(
       '$0.00',

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -8,17 +8,16 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { OrderCompletedSelectors } from '../../../../../../e2e/selectors/Card/OrderCompleted.selectors';
+import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import MM_METAL_CARD from '../../../../../images/metal-card.png';
 import { useParams } from '../../../../../util/navigation/navUtils';
 
@@ -29,8 +28,8 @@ export interface OrderCompletedParams {
 }
 
 const OrderCompleted: React.FC = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const { navigate } = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const { fromUpgrade } = useParams<OrderCompletedParams>();
 
@@ -55,8 +54,16 @@ const OrderCompleted: React.FC = () => {
         .build(),
     );
 
-    navigate(Routes.CARD.HOME);
-  }, [navigate, trackEvent, createEventBuilder, fromUpgrade]);
+    if (fromUpgrade) {
+      navigation.navigate(Routes.CARD.HOME);
+    } else {
+      navigation.dispatch(
+        StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
+          flow: 'onboarding',
+        }),
+      );
+    }
+  }, [navigation, trackEvent, createEventBuilder, fromUpgrade]);
 
   const buttonLabel = fromUpgrade
     ? strings('card.order_completed.back_to_card_button')
@@ -111,13 +118,14 @@ const OrderCompleted: React.FC = () => {
 
         <Box twClassName="pb-4">
           <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleSetUpCard}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID={OrderCompletedSelectors.SET_UP_CARD_BUTTON}
-          />
+          >
+            {buttonLabel}
+          </Button>
         </Box>
       </Box>
     </SafeAreaView>

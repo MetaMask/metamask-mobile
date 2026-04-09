@@ -33,7 +33,7 @@ import {
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../UI/PhishingModal/index.js';
-import { useMetrics } from '../../../hooks/useMetrics/index.ts';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import {
   MM_BLOCKLIST_ISSUE_URL,
@@ -92,6 +92,7 @@ import { AccountGroupId } from '@metamask/account-api';
 import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
+import AccountConnectMaliciousWarning from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
@@ -132,7 +133,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number>();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
@@ -272,6 +273,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+
+  const isMaliciousDapp = Boolean(
+    isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
+  );
 
   const currentlySelectedNetwork = useSelector(getSelectedMultichainNetwork);
 
@@ -474,6 +479,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     sdkConnection?.originatorInfo?.url ??
     sdkV2Connection?.originatorInfo?.url ??
     '';
+
+  // Should be the self reported dapp url if SDK or WC connection, empty/null if no self reported dapp url.
+  // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
+  let referrer = channelIdOrHostname;
+  if (isOriginMMSDKRemoteConn) {
+    referrer = dappUrl;
+  } else if (isOriginWalletConnect) {
+    referrer = wc2Metadata?.url;
+  }
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
@@ -689,7 +703,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             account_type: 'multichain',
             source: eventSource,
             chain_id_list: selectedChainIds,
-            referrer: request.metadata.origin,
+            referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
@@ -727,6 +741,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     eventSource,
     toastRef,
     faviconSource,
+    referrer,
   ]);
 
   const handleAccountGroupsSelected = useCallback(
@@ -787,6 +802,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
+          if (isMaliciousDapp) {
+            setScreen(AccountConnectScreens.MaliciousWarning);
+            break;
+          }
           handleConfirm();
           break;
         }
@@ -807,7 +826,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     cancelPermissionRequest,
     permissionRequestId,
     handleConfirm,
+    isMaliciousDapp,
   ]);
+
+  // Called when the user explicitly accepts the risk from the malicious warning screen.
+  const handleConnectAnyway = useCallback(async () => {
+    await handleConnect();
+    navigation.goBack();
+  }, [handleConnect, navigation]);
+
+  const handleMaliciousWarningClose = useCallback(() => {
+    setScreen(AccountConnectScreens.SingleConnect);
+  }, []);
 
   const permissionsSummaryProps = useMemo(
     (): MultichainPermissionsSummaryProps => ({
@@ -819,7 +849,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       onEdit: () => setScreen(AccountConnectScreens.MultiConnectSelector),
       onEditNetworks: () =>
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
-      onConfirm: handleConfirm,
+      onConfirm: isMaliciousDapp
+        ? () => setScreen(AccountConnectScreens.MaliciousWarning)
+        : handleConfirm,
       onCancel: () => {
         cancelPermissionRequest(permissionRequestId);
         navigation.goBack();
@@ -829,6 +861,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       networkAvatars: selectedNetworkAvatars,
       setTabIndex,
       tabIndex,
+      isMaliciousDapp,
     }),
     [
       faviconSource,
@@ -840,6 +873,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       cancelPermissionRequest,
       permissionRequestId,
       navigation,
+      isMaliciousDapp,
     ],
   );
 
@@ -943,6 +977,18 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       >
         {renderMultiConnectNetworkSelectorScreen()}
       </ScreenContainer>
+      {isMaliciousDapp && (
+        <ScreenContainer
+          isVisible={screen === AccountConnectScreens.MaliciousWarning}
+          styles={styles}
+        >
+          <AccountConnectMaliciousWarning
+            url={urlWithProtocol}
+            onConnectAnyway={handleConnectAnyway}
+            onClose={handleMaliciousWarningClose}
+          />
+        </ScreenContainer>
+      )}
       {renderPhishingModal()}
     </Box>
   );

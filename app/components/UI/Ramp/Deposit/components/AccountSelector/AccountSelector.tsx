@@ -67,6 +67,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             variant={TextVariant.BodyMD}
             numberOfLines={1}
             ellipsizeMode="middle"
+            style={styles.accountText}
           >
             {accountName}
           </Text>

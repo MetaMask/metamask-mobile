@@ -6,11 +6,6 @@ import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NetworkType,
-  useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
@@ -26,12 +21,6 @@ const SwitchChainApproval = () => {
   } = useApprovalRequest();
 
   const dispatch = useDispatch();
-  const { networks } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
-  const { selectNetwork } = useNetworkSelection({
-    networks,
-  });
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -52,16 +41,13 @@ const SwitchChainApproval = () => {
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
 
-    // If remove global network selector is enabled should set network filter
-    selectNetwork(chainId);
-
     dispatch(
       networkSwitched({
         networkUrl: approvalRequest?.requestData?.metadata?.rpcUrl,
         networkStatus: true,
       }),
     );
-  }, [approvalRequest, defaultOnConfirm, dispatch, selectNetwork, chainId]);
+  }, [approvalRequest, defaultOnConfirm, dispatch]);
 
   if (
     approvalRequest?.requestData?.diff?.permissionDiffMap?.[

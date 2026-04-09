@@ -1,19 +1,20 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import QuoteView from '../../../e2e/pages/swaps/QuoteView';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import QuoteView from '../../page-objects/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import TestHelpers from '../../../e2e/helpers';
-import { SmokeTrade } from '../../../e2e/tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import ActivitiesView from '../../../e2e/pages/Transactions/ActivitiesView';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -26,7 +27,7 @@ enum eventsToCheck {
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Bridge functionality'), () => {
-  jest.setTimeout(120000);
+  jest.setTimeout(180000);
   const eventsToAssert: {
     event: string;
     properties: Record<string, unknown>;
@@ -38,6 +39,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const sourceSymbol: string = 'ETH';
     const chainId = '0x1';
     const destChainId = '0x2105';
+    const FIRST_ROW: number = 0;
 
     await withFixtures(
       {
@@ -50,15 +52,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
+              chainId,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
             })
-            .withDisabledSmartTransactions()
             .build();
         },
         localNodeOptions: [
@@ -69,7 +68,10 @@ describe(SmokeTrade('Bridge functionality'), () => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
       },
       async () => {
@@ -80,23 +82,44 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
-        await TestHelpers.delay(2000); // wait until tokens are displayed
-        await QuoteView.swipeNetwork('Ethereum', 0.8);
-        await TestHelpers.delay(2000); // allow scroll to take place
+        await Assertions.expectElementToBeVisible(QuoteView.searchToken, {
+          timeout: 15000,
+          description: 'Token search input visible in destination token picker',
+        });
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
+        // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
+        await QuoteView.tapSourceAmountInput();
         await QuoteView.enterAmount(quantity);
+        await QuoteView.dismissKeypad();
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,
+          description: 'Network fee label visible',
         });
-        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
+        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
+          description: 'Confirm bridge button visible',
+        });
 
         await QuoteView.tapConfirmBridge();
 
-        // Check the bridge activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          timeout: 30000,
+          description: 'Activity title visible after bridge submission',
+        });
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
+          {
+            description: 'Bridge activity for destination network visible',
+          },
+        );
+
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(FIRST_ROW),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          {
+            timeout: 120000,
+            description: 'Bridge transaction should show Confirmed status',
+          },
         );
       },
     );

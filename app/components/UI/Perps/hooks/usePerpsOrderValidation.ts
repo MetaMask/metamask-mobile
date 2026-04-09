@@ -5,13 +5,13 @@ import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   VALIDATION_THRESHOLDS,
-} from '../constants/perpsConfig';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import type { OrderParams } from '../controllers/types';
-import type { OrderFormState } from '../types/perps-types';
+  TRADING_DEFAULTS,
+  PERPS_ERROR_CODES,
+  getMaxOrderValue,
+  type OrderParams,
+  type OrderFormState,
+} from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { getMaxOrderValue } from '../utils/hyperLiquidValidation';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -76,6 +76,8 @@ export function usePerpsOrderValidation(
 
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Track whether we've completed the first validation so we can skip the debounce for it
+  const hasValidatedOnceRef = useRef(false);
 
   const performValidation = useCallback(async () => {
     // Set validation state to indicate we're validating
@@ -256,7 +258,14 @@ export function usePerpsOrderValidation(
       clearTimeout(validationTimerRef.current);
     }
 
-    // Debounce validation to avoid excessive calls
+    // Run first validation immediately to enable the place-order button ASAP;
+    // subsequent changes are debounced to avoid excessive calls during input.
+    if (!hasValidatedOnceRef.current) {
+      hasValidatedOnceRef.current = true;
+      performValidation();
+      return;
+    }
+
     validationTimerRef.current = setTimeout(() => {
       performValidation();
       validationTimerRef.current = null;

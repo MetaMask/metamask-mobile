@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { usePopularTokens, clearPopularTokensCache } from './usePopularTokens';
 import {
   createMockPopularToken,
@@ -8,8 +8,22 @@ import {
 
 global.fetch = jest.fn();
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+    },
+  },
+}));
+
+const mockedEngine = jest.requireMock('../../../../core/Engine');
+
 const mockPopularTokens = [
-  createMockPopularToken({ symbol: 'TEST', name: 'Test Token' }),
+  createMockPopularToken({
+    symbol: 'TEST',
+    name: 'Test Token',
+    isVerified: true,
+  }),
   createMockPopularToken({
     symbol: 'ANOT',
     name: 'Another Token',
@@ -21,6 +35,9 @@ describe('usePopularTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearPopularTokensCache();
+    mockedEngine.context.AuthenticationController.getBearerToken.mockResolvedValue(
+      'mock-bearer-token',
+    );
   });
 
   afterEach(() => {
@@ -45,12 +62,18 @@ describe('usePopularTokens', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.popularTokens).toEqual(mockPopularTokens);
+      expect(result.current.popularTokens[0].isVerified).toBe(true);
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/getTokens/popular'),
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            // Initial fetch may not have a bearer token
+            'Client-Version': expect.any(String),
+            'X-Client-Id': 'mobile',
+          },
           body: JSON.stringify({
             chainIds: [MOCK_CHAIN_IDS.ethereum],
             includeAssets: [],
@@ -84,6 +107,79 @@ describe('usePopularTokens', () => {
           }),
         }),
       );
+    });
+
+    it('falls back to an empty array for malformed responses', async () => {
+      mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
+        new Promise(() => undefined),
+      );
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        json: async () => ({
+          data: mockPopularTokens,
+        }),
+      });
+
+      const { result } = renderHook(() =>
+        usePopularTokens({
+          chainIds: [MOCK_CHAIN_IDS.ethereum],
+          includeAssets: '[]',
+        }),
+      );
+
+      await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+
+      expect(result.current.popularTokens).toEqual([]);
+    });
+
+    it('does not cache malformed top-level responses', async () => {
+      mockedEngine.context.AuthenticationController.getBearerToken.mockReturnValue(
+        new Promise(() => undefined),
+      );
+
+      let resolveFirstFetch:
+        | ((value: { json: () => Promise<unknown> }) => void)
+        | undefined;
+
+      (global.fetch as jest.Mock)
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveFirstFetch = resolve;
+            }),
+        )
+        .mockResolvedValueOnce({
+          json: async () => mockPopularTokens,
+        });
+
+      const params = {
+        chainIds: [MOCK_CHAIN_IDS.ethereum],
+        includeAssets: '[]',
+      };
+
+      const { result: firstResult, unmount } = renderHook(() =>
+        usePopularTokens(params),
+      );
+
+      await act(async () => {
+        resolveFirstFetch?.({
+          json: async () => ({
+            data: mockPopularTokens,
+          }),
+        });
+      });
+
+      expect(firstResult.current.popularTokens).toEqual([]);
+      unmount();
+
+      const { result: secondResult } = renderHook(() =>
+        usePopularTokens(params),
+      );
+
+      await waitFor(() => expect(secondResult.current.isLoading).toBe(false));
+
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(secondResult.current.popularTokens).toEqual(mockPopularTokens);
     });
   });
 

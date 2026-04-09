@@ -10,7 +10,11 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
-import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
+import {
+  MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP,
+  TRON_SPECIAL_ASSET_SYMBOLS_SET,
+  TronSpecialAssetSymbol,
+} from './constants';
 import { formatAddress, isEthAddress } from '../../util/address';
 import {
   formatBlockExplorerAddressUrl,
@@ -257,3 +261,23 @@ export function shortenTransactionId(txId: string) {
   // For transactions we use a similar output for now, but shortenTransactionId will be added later.
   return formatAddress(txId, 'short');
 }
+
+/**
+ * Checks if a token is a Tron special asset (resources, staking state, etc.)
+ * that should be filtered out from user-facing asset lists.
+ *
+ * @param chainId - The chain ID to check
+ * @param symbol - The token symbol to check
+ * @returns true if the token is a Tron special asset
+ */
+export const isTronSpecialAsset = (
+  chainId: string | undefined,
+  symbol: string | undefined,
+): boolean => {
+  if (!chainId?.startsWith('tron:') || !symbol) {
+    return false;
+  }
+  return TRON_SPECIAL_ASSET_SYMBOLS_SET.has(
+    symbol.toLowerCase() as TronSpecialAssetSymbol,
+  );
+};

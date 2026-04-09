@@ -143,7 +143,9 @@ const RewardItem: React.FC<RewardItemProps> = ({
               fontWeight={FontWeight.Medium}
               twClassName="text-text-alternative"
             >
-              {remainingTime} {strings('rewards.unlocked_rewards.time_left')}
+              {strings('rewards.unlocked_rewards.time_left', {
+                time: remainingTime,
+              })}
             </Text>
           </Box>
         );

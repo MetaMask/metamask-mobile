@@ -22,6 +22,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  ORDER_TYPE: 'order_type',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
@@ -56,6 +57,9 @@ export const PredictEventProperties = {
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
 
+  // Payment token (buy-with-any-token flow only)
+  PREDICT_TOKEN_ADDRESS: 'predict_token_address',
+
   // Market slug and game properties (for live sports markets)
   MARKET_SLUG: 'market_slug',
   GAME_ID: 'game_id',
@@ -86,10 +90,14 @@ export const PredictEventValues = {
     BACKGROUND: 'background',
     TRENDING_SEARCH: 'trending_search',
     TRENDING: 'trending',
+    BUY_PREVIEW: 'buy_preview',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
     MM_PREDICT_SELL: 'mm_predict_sell',
+    MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
+    MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
+    MM_PREDICT_CLAIM: 'mm_predict_claim',
   },
   MARKET_TYPE: {
     BINARY: 'binary',
@@ -124,6 +132,8 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  RETRY_PROMPTED: 'retry_prompted',
+  RETRY_SUBMITTED: 'retry_submitted',
 } as const;
 
 export type PredictTradeStatusValue =

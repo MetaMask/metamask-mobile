@@ -12,15 +12,20 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
   }
   style={
     {
-      "flex": 1,
+      "flexBasis": "0%",
+      "flexGrow": 1,
+      "flexShrink": 1,
     }
   }
 >
   <RCTScrollView
     style={
       {
-        "flex": 1,
-        "paddingHorizontal": 16,
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+        "paddingLeft": 16,
+        "paddingRight": 16,
         "paddingTop": 16,
       }
     }
@@ -47,8 +52,8 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -70,13 +75,13 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
                   "width": 51,
                 },
                 {
-                  "backgroundColor": "#b7bbc866",
+                  "backgroundColor": "#b4b4b566",
                   "borderRadius": 16,
                 },
               ]
             }
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={false}
           />
         </View>
@@ -84,7 +89,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -132,8 +137,8 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -155,14 +160,14 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
                   "width": 51,
                 },
                 {
-                  "backgroundColor": "#b7bbc866",
+                  "backgroundColor": "#b4b4b566",
                   "borderRadius": 16,
                 },
               ]
             }
             testID="toggle-backupAndSync"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={false}
           />
         </View>
@@ -170,7 +175,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -217,8 +222,8 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist-Bold",
+                "color": "#131416",
+                "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -232,7 +237,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -285,7 +290,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#f3f5f9",
+              "backgroundColor": "#f3f3f4",
               "borderRadius": 16,
               "flexDirection": "row",
               "height": 32,
@@ -303,7 +308,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#f3f3f4",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "height": 16,
@@ -318,7 +323,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 10,
                     "letterSpacing": 0,
@@ -335,7 +340,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "flexShrink": 1,
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
@@ -349,7 +354,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             Ethereum Main Network
           </Text>
           <SvgMock
-            color="#121314"
+            color="#131416"
             fill="currentColor"
             height={12}
             name="ArrowDown"

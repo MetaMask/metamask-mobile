@@ -91,9 +91,17 @@ jest.mock('../../../UI/Sites/hooks/useSiteData/useSitesData', () => ({
   }),
 }));
 
-// Mock useSectionsArray to return all sections for testing
+jest.mock('../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
+  useRwaTokens: () => ({
+    data: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  }),
+}));
+
 const mockSectionsArray: { id: SectionId }[] = [
   { id: 'tokens' },
+  { id: 'stocks' },
   { id: 'perps' },
   { id: 'predictions' },
   { id: 'sites' },
@@ -103,7 +111,7 @@ jest.mock('../sections.config', () => {
   const actual = jest.requireActual('../sections.config');
   return {
     ...actual,
-    useSectionsArray: () => mockSectionsArray,
+    useSearchSectionsArray: () => mockSectionsArray,
   };
 });
 
@@ -248,7 +256,13 @@ describe('useExploreSearch', () => {
   });
 
   it('returns custom sectionsOrder when provided in options', () => {
-    const customOrder = ['sites', 'tokens', 'perps', 'predictions'] as const;
+    const customOrder = [
+      'sites',
+      'tokens',
+      'stocks',
+      'perps',
+      'predictions',
+    ] as const;
     const { result } = renderHook(() =>
       useExploreSearch('', { sectionsOrder: [...customOrder] }),
     );

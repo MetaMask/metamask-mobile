@@ -1,11 +1,11 @@
 import { toHex } from '@metamask/controller-utils';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { EVENT_PROVIDERS } from '../../constants/events';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import usePoolStakedDeposit from './index';
@@ -96,17 +96,17 @@ jest.mock('../useStakeContext', () => ({
   useStakeContext: () => mockSdkContext,
 }));
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 describe('usePoolStakedDeposit', () => {
   const mockTrackEvent = jest.fn();
-  const useMetricsMock = jest.mocked(useMetrics);
+  const useAnalyticsMock = jest.mocked(useAnalytics);
 
   beforeEach(() => {
-    useMetricsMock.mockReturnValue({
+    useAnalyticsMock.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
   afterEach(() => {

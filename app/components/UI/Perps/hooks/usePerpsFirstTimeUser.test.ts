@@ -1,9 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
-import { selectIsFirstTimeUser } from '../controllers/selectors';
+import {
+  selectIsFirstTimeUser,
+  type PerpsControllerState,
+} from '@metamask/perps-controller';
 import { usePerpsSelector } from './usePerpsSelector';
-import type { PerpsControllerState } from '../controllers/PerpsController';
 
 // Mock usePerpsSelector
 jest.mock('./usePerpsSelector', () => ({

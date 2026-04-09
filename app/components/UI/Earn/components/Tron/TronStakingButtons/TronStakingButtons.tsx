@@ -1,44 +1,32 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { View, ViewProps } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../component-library/hooks';
-import { useTheme } from '../../../../../../util/theme';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
-import styleSheet from './TronStakingButtons.styles';
+import { TronStakingButtonsTestIds } from './TronStakingButtons.testIds';
 import { strings } from '../../../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { RootState } from '../../../../../../reducers';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
-interface TronStakingButtonsProps extends Pick<ViewProps, 'style'> {
+interface TronStakingButtonsProps {
   asset: TokenI;
-  showUnstake?: boolean;
-  hasStakedPositions?: boolean;
-  aprText?: string;
 }
 
-const TronStakingButtons = ({
-  asset,
-  showUnstake = false,
-  hasStakedPositions = false,
-  aprText,
-}: TronStakingButtonsProps) => {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { theme });
+const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { isEligible } = useStakingEligibility();
 
   const isStakedTrx =
@@ -85,50 +73,31 @@ const TronStakingButtons = ({
     });
   };
 
-  // Block deposits for ineligible users unless they have an active staked position
-  if (!isEligible && !hasStakedPositions) {
-    return null;
-  }
-
   return (
-    <View style={styles.balanceButtonsContainer}>
-      {!hasStakedPositions && isEligible && (
-        <View style={styles.ctaContent}>
-          <Text variant={TextVariant.HeadingMD} style={styles.ctaTitle}>
-            {strings('stake.stake_your_trx_cta.title')}
-          </Text>
-          <Text style={styles.ctaText}>
-            {strings('stake.stake_your_trx_cta.description_start')}
-            {aprText ? <Text color={TextColor.Success}>{aprText}</Text> : null}
-            {strings('stake.stake_your_trx_cta.description_end')}
-          </Text>
-        </View>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      justifyContent={BoxJustifyContent.Between}
+      gap={4}
+    >
+      <Button
+        testID={TronStakingButtonsTestIds.UNSTAKE_BUTTON}
+        variant={ButtonVariant.Secondary}
+        twClassName="flex-1"
+        onPress={onUnstakePress}
+      >
+        {strings('stake.unstake')}
+      </Button>
+      {isEligible && (
+        <Button
+          testID={TronStakingButtonsTestIds.STAKE_MORE_BUTTON}
+          variant={ButtonVariant.Secondary}
+          twClassName="flex-1"
+          onPress={onStakePress}
+        >
+          {strings('stake.stake_more')}
+        </Button>
       )}
-      <View style={styles.buttonsRow}>
-        {showUnstake ? (
-          <Button
-            testID={'unstake-button'}
-            style={styles.balanceActionButton}
-            variant={ButtonVariants.Secondary}
-            label={strings('stake.unstake')}
-            onPress={onUnstakePress}
-          />
-        ) : null}
-        {isEligible && (
-          <Button
-            testID={'stake-more-button'}
-            style={styles.balanceActionButton}
-            variant={ButtonVariants.Secondary}
-            label={
-              hasStakedPositions
-                ? strings('stake.stake_more')
-                : strings('stake.stake_your_trx_cta.earn_button')
-            }
-            onPress={onStakePress}
-          />
-        )}
-      </View>
-    </View>
+    </Box>
   );
 };
 

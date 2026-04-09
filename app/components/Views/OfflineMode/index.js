@@ -49,7 +49,7 @@ const createStyles = (colors) =>
     },
   });
 
-const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
+const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import-x/no-commonjs
 
 const OfflineMode = ({ navigation, infuraBlocked }) => {
   const { colors } = useTheme();

@@ -1,18 +1,14 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { DateTime } from 'luxon';
-import { Box } from '@metamask/design-system-react-native';
-import Label from '../../../component-library/components/Form/Label';
+import { Box, Label, FontWeight } from '@metamask/design-system-react-native';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import { Platform, TextInput, TouchableOpacity, View } from 'react-native';
 import stylesheet from './SnapUIDateTimePicker.styles';
 import ApprovalModal from '../../Approvals/ApprovalModal';
@@ -295,10 +291,9 @@ export const SnapUIDateTimePicker: FunctionComponent<
 
   return (
     <Box testID={'snap-ui-renderer__date-time-picker'}>
-      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <TextField
         testID={`snap-ui-renderer__date-time-picker--${type}`}
-        size={TextFieldSize.Lg}
         placeholder={placeholder}
         isDisabled={disabled}
         ref={inputRef}

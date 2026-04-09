@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import { OrderType } from '../controllers/types';
-import type { OrderFormState } from '../types/perps-types';
-import { getMaxAllowedAmount } from '../utils/orderCalculations';
+import {
+  TRADING_DEFAULTS,
+  OrderType,
+  getMaxAllowedAmount,
+  selectTradeConfiguration,
+  selectPendingTradeConfiguration,
+  type OrderFormState,
+} from '@metamask/perps-controller';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -11,10 +15,6 @@ import {
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import {
-  selectTradeConfiguration,
-  selectPendingTradeConfiguration,
-} from '../controllers/selectors';
 import { usePerpsSelector } from './usePerpsSelector';
 
 interface UsePerpsOrderFormParams {
@@ -205,28 +205,26 @@ export function usePerpsOrderForm(
     }
   }, [initialAmountValue]);
 
-  // Restore pending config values on mount (only once)
-  const hasRestoredPendingConfig = useRef(false);
   useEffect(() => {
-    if (!hasRestoredPendingConfig.current && pendingConfig) {
-      setOrderForm((prev) => ({
-        ...prev,
-        ...(pendingConfig.amount && { amount: pendingConfig.amount }),
-        ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
-        ...(pendingConfig.takeProfitPrice !== undefined && {
-          takeProfitPrice: pendingConfig.takeProfitPrice,
-        }),
-        ...(pendingConfig.stopLossPrice !== undefined && {
-          stopLossPrice: pendingConfig.stopLossPrice,
-        }),
-        ...(pendingConfig.limitPrice !== undefined && {
-          limitPrice: pendingConfig.limitPrice,
-        }),
-        ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
-      }));
-      hasRestoredPendingConfig.current = true;
-    }
-  }, [pendingConfig]);
+    if (!pendingConfig) return;
+    setOrderForm((prev) => ({
+      ...prev,
+      ...(pendingConfig.amount && { amount: pendingConfig.amount }),
+      ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+      ...(pendingConfig.takeProfitPrice !== undefined && {
+        takeProfitPrice: pendingConfig.takeProfitPrice,
+      }),
+      ...(pendingConfig.stopLossPrice !== undefined && {
+        stopLossPrice: pendingConfig.stopLossPrice,
+      }),
+      ...(pendingConfig.limitPrice !== undefined && {
+        limitPrice: pendingConfig.limitPrice,
+      }),
+      ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+    }));
+    // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync leverage from existing position when it loads asynchronously
   // This handles the case where positions haven't loaded yet when form initializes
@@ -250,13 +248,19 @@ export function usePerpsOrderForm(
 
   // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max
   useEffect(() => {
-    const current = Number.parseFloat(orderForm.amount || '0');
-    if (maxPossibleAmount >= 0 && current > maxPossibleAmount) {
-      setOrderForm((prev) => ({
-        ...prev,
-        amount: String(Math.floor(maxPossibleAmount)),
-      }));
-    }
+    const currentAmount = Number.parseFloat(orderForm.amount);
+    if (
+      currentAmount === 0 ||
+      maxPossibleAmount === 0 ||
+      currentAmount < maxPossibleAmount
+    )
+      return;
+    const newValue = String(Math.floor(maxPossibleAmount));
+
+    setOrderForm((prev) => ({
+      ...prev,
+      amount: newValue,
+    }));
   }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
 
   // Update entire form
@@ -313,26 +317,28 @@ export function usePerpsOrderForm(
     setOrderForm((prev) => ({ ...prev, type }));
   };
 
-  // Handle percentage-based amount selection (respects custom token amount when set)
+  // Handle percentage-based amount selection (respects custom token amount when set).
+  // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (balanceForMax === 0) return;
-      const newAmount = Math.floor(
-        balanceForMax * orderForm.leverage * percentage,
-      ).toString();
+      const raw = balanceForMax * orderForm.leverage * percentage;
+      const clamped = Math.min(raw, maxPossibleAmount);
+      const newAmount = Math.floor(clamped).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
-    [balanceForMax, orderForm.leverage],
+    [balanceForMax, orderForm.leverage, maxPossibleAmount],
   );
 
-  // Handle max amount selection (respects custom token amount when set)
+  // Handle max amount selection (respects custom token amount when set).
+  // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
     if (balanceForMax === 0) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: Math.floor(balanceForMax * prev.leverage).toString(),
+      amount: Math.floor(maxPossibleAmount).toString(),
     }));
-  }, [balanceForMax]);
+  }, [balanceForMax, maxPossibleAmount]);
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {

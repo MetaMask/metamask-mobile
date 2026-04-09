@@ -4,8 +4,8 @@ import { SecurityAlertResponse } from '@metamask/transaction-controller';
 import { useCallback, useEffect, useMemo } from 'react';
 
 import getDecimalChainId from '../../../../../util/networks/getDecimalChainId';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { getAddressAccountType } from '../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import { getHostFromUrl } from '../../utils/generic';
@@ -67,6 +67,7 @@ const getAnalyticsParams = (
 };
 
 export const useSignatureMetrics = () => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const signatureRequest = useSignatureRequest();
   const isSimulationEnabled = useTypedSignSimulationEnabled();
   const { securityAlertResponse } = useSecurityAlertResponse();
@@ -115,13 +116,11 @@ export const useSignatureMetrics = () => {
         return;
       }
 
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(event)
-          .addProperties(analyticsParams)
-          .build(),
+      trackEvent(
+        createEventBuilder(event).addProperties(analyticsParams).build(),
       );
     },
-    [analyticsParams],
+    [analyticsParams, trackEvent, createEventBuilder],
   );
 
   useEffect(() => {

@@ -7,10 +7,6 @@ import {
   MultichainAccountServiceMessenger,
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent,
 } from '@metamask/multichain-account-service';
-import {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
 
 /**
@@ -37,11 +33,14 @@ export function getMultichainAccountServiceMessenger(
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccountByAddress',
       'AccountsController:getAccount',
+      'AccountsController:getAccounts',
       'SnapController:handleRequest',
       'KeyringController:getState',
       'KeyringController:withKeyring',
       'KeyringController:addNewKeyring',
       'KeyringController:getKeyringsByType',
+      'KeyringController:createNewVaultAndKeychain',
+      'KeyringController:createNewVaultAndRestore',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'SnapController:getState',
@@ -58,10 +57,9 @@ export function getMultichainAccountServiceMessenger(
 }
 
 type AllowedInitializationEvents =
-  | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent;
+  MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
 
-type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+type AllowedInitializationActions = never;
 
 export type MultichainAccountServiceInitMessenger = ReturnType<
   typeof getMultichainAccountServiceInitMessenger
@@ -87,11 +85,8 @@ export function getMultichainAccountServiceInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    events: [
-      'MultichainAccountService:multichainAccountGroupUpdated',
-      'RemoteFeatureFlagController:stateChange',
-    ],
+    actions: [],
+    events: ['MultichainAccountService:multichainAccountGroupUpdated'],
     messenger,
   });
   return messenger;

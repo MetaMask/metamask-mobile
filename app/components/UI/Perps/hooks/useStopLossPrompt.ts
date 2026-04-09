@@ -1,5 +1,5 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
 export type StopLossPromptVariant = 'stop_loss' | 'add_margin';
@@ -24,7 +24,7 @@ export interface UseStopLossPromptParams {
   currentPrice: number;
   /** Enable/disable the hook (default: true) */
   enabled?: boolean;
-  /** Timestamp when position was opened (from order fills) - bypasses debounce if position is >2min old */
+  /** Timestamp when position was opened (from order fills) - bypasses client-side age wait for old positions */
   positionOpenedTimestamp?: number;
 }
 
@@ -52,8 +52,9 @@ export interface UseStopLossPromptResult {
  *
  * Implements the logic from TASK_AUTOSET.md:
  * - Shows "add_margin" variant when within 3% of liquidation
- * - Shows "stop_loss" variant when ROE <= -10% for 60s (debounced)
+ * - Shows "stop_loss" variant when ROE <= -10%
  * - Suppresses when position has cross margin or existing stop loss
+ * - Suppresses for the first 2 minutes after a position is detected
  *
  * @example
  * ```tsx
@@ -65,7 +66,6 @@ export interface UseStopLossPromptResult {
  * } = useStopLossPrompt({
  *   position: existingPosition,
  *   currentPrice: 50000,
- *   positionOpenedTimestamp: 1234567890000, // Optional: from order fills
  * });
  * ```
  */
@@ -75,11 +75,6 @@ export const useStopLossPrompt = ({
   enabled = true,
   positionOpenedTimestamp,
 }: UseStopLossPromptParams): UseStopLossPromptResult => {
-  // Track when ROE first dropped below threshold for debouncing
-  const roeBelowThresholdSinceRef = useRef<number | null>(null);
-  const hasBeenShownRef = useRef(false);
-  const [roeDebounceComplete, setRoeDebounceComplete] = useState(false);
-
   // Track when the current position was first detected (client-side)
   // This is used to enforce the minimum position age requirement
   const positionFirstSeenRef = useRef<{
@@ -124,51 +119,27 @@ export const useStopLossPrompt = ({
     return roeValue * 100;
   }, [position?.returnOnEquity]);
 
-  // Callback to finish debounce (from main - for server timestamp bypass)
-  const finishDebounce = useCallback(() => {
-    setRoeDebounceComplete(true);
-    hasBeenShownRef.current = true;
-  }, []);
-
-  // Reset hasBeenShownRef when position changes (from main)
-  useEffect(() => {
-    hasBeenShownRef.current = false;
-  }, [position?.symbol, position?.liquidationPrice, position?.entryPrice]);
-
-  // Server timestamp bypass effect (from main)
-  // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
-  useEffect(() => {
-    if (!enabled || roePercent === null || hasBeenShownRef.current) {
-      return;
-    }
-
-    // Check if position was opened more than 2 minutes ago (from order fills timestamp)
-    const POSITION_AGE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
-    const positionAge = positionOpenedTimestamp
-      ? Date.now() - positionOpenedTimestamp
-      : 0;
-
-    const isBelowThreshold = roePercent <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold;
-
-    // If position is old enough (from actual order fill data), bypass both debounce and position age check
-    // Server timestamp is authoritative - no need to wait for client-side age tracking
-    if (positionAge >= POSITION_AGE_THRESHOLD_MS && isBelowThreshold) {
-      setPositionAgeCheckPassed(true); // Also bypass client-side age check
-      finishDebounce();
-    }
-  }, [positionOpenedTimestamp, enabled, roePercent, finishDebounce]);
-
-  // Handle client-side position age tracking (from HEAD)
-  // Track when a position is first detected and enforce minimum age before showing banners
+  // Handle position age tracking
+  // Positions must be open for PositionMinAgeMs before showing the banner.
+  // If positionOpenedTimestamp (from order fills) proves the position is already old enough,
+  // the check passes immediately — no client-side timer needed.
   useEffect(() => {
     if (!enabled || !position?.symbol) {
-      // Reset when disabled or no position
       positionFirstSeenRef.current = null;
       setPositionAgeCheckPassed(false);
       return;
     }
 
-    // Check if this is a new position (different symbol or first time seeing it)
+    // Server timestamp bypass: if order fills confirm the position is old enough, skip the wait
+    if (positionOpenedTimestamp) {
+      const positionAge = Date.now() - positionOpenedTimestamp;
+      if (positionAge >= STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs) {
+        setPositionAgeCheckPassed(true);
+        return;
+      }
+    }
+
+    // Client-side fallback: track when this position was first seen on this screen
     if (
       !positionFirstSeenRef.current ||
       positionFirstSeenRef.current.symbol !== position.symbol
@@ -180,12 +151,10 @@ export const useStopLossPrompt = ({
       setPositionAgeCheckPassed(false);
     }
 
-    // Check if minimum age has passed
     const elapsed = Date.now() - positionFirstSeenRef.current.timestamp;
     if (elapsed >= STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs) {
       setPositionAgeCheckPassed(true);
     } else {
-      // Set up timer to check again when age threshold is reached
       const remainingTime = STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs - elapsed;
       const timer = setTimeout(() => {
         setPositionAgeCheckPassed(true);
@@ -195,49 +164,7 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, position?.symbol]);
-
-  // Handle ROE debounce logic
-  useEffect(() => {
-    if (!enabled || roePercent === null) {
-      roeBelowThresholdSinceRef.current = null;
-      setRoeDebounceComplete(false);
-      hasBeenShownRef.current = false; // Reset when position is closed
-      return;
-    }
-
-    const isBelowThreshold = roePercent <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold;
-
-    if (isBelowThreshold) {
-      // Start tracking if not already
-      if (roeBelowThresholdSinceRef.current === null) {
-        roeBelowThresholdSinceRef.current = Date.now();
-      }
-
-      // Check if debounce period has passed
-      const elapsed = Date.now() - roeBelowThresholdSinceRef.current;
-      if (elapsed >= STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs) {
-        finishDebounce();
-      } else {
-        // Set up timer to check again
-        const remainingTime = STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs - elapsed;
-        const timer = setTimeout(() => {
-          // Re-check if still below threshold
-          if (roeBelowThresholdSinceRef.current !== null) {
-            finishDebounce();
-          }
-        }, remainingTime);
-
-        return () => clearTimeout(timer);
-      }
-    } else {
-      // Reset tracking when ROE goes above threshold
-      roeBelowThresholdSinceRef.current = null;
-      setRoeDebounceComplete(false);
-    }
-
-    return undefined;
-  }, [enabled, roePercent, position, positionOpenedTimestamp, finishDebounce]);
+  }, [enabled, position?.symbol, positionOpenedTimestamp]);
 
   // Calculate suggested stop loss price as midpoint between current price and liquidation price
   // This provides a balanced protection point that limits losses while avoiding premature triggers
@@ -380,9 +307,12 @@ export const useStopLossPrompt = ({
       return { shouldShowBanner: true, variant: 'add_margin' };
     }
 
-    // Priority 2: ROE below threshold with debounce → Stop loss variant
+    // Priority 2: ROE below threshold → Stop loss variant
     // But if suggested SL is too close to current price (within 3%), show add_margin instead
-    if (roeDebounceComplete) {
+    if (
+      roePercent !== null &&
+      roePercent <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold
+    ) {
       // Guard: Don't show stop_loss variant if we can't calculate a valid suggested price
       // This prevents displaying garbled banner text like "Set a stop loss at ( ROE)"
       if (!suggestedStopLossPrice) {
@@ -400,7 +330,6 @@ export const useStopLossPrompt = ({
     enabled,
     position,
     liquidationDistance,
-    roeDebounceComplete,
     isSuggestedSlTooClose,
     suggestedStopLossPrice,
     positionAgeCheckPassed,

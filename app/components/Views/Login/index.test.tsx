@@ -1,14 +1,14 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
 import {
   InteractionManager,
   BackHandler,
-  Alert,
   Image,
   Platform,
+  Alert,
 } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Routes from '../../../constants/navigation/Routes';
@@ -16,7 +16,6 @@ import { strings } from '../../../../locales/i18n';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passwordRequirementsMet } from '../../../util/password';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { passcodeType } from '../../../util/authentication';
 import {
   TraceName,
@@ -24,11 +23,32 @@ import {
   endTrace,
   trace,
 } from '../../../util/trace';
-import { BIOMETRY_CHOICE_DISABLED, TRUE } from '../../../constants/storage';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  PASSCODE_NOT_SET_ERROR,
+  JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
+  VAULT_ERROR,
+  DENY_PIN_ERROR_ANDROID,
+} from './constants';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import { downloadStateLogs } from '../../../util/logs';
+import { getVaultFromBackup } from '../../../core/BackupVault';
+import { parseVaultValue } from '../../../util/validators';
+import { AuthCapabilities } from '../../../core/Authentication/types';
+import { IconName } from '@metamask/design-system-react-native';
+import Logger from '../../../util/Logger';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import ReduxService from '../../../core/redux/ReduxService';
+import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
+import { RootState } from '../../../reducers';
+import { ReduxStore } from '../../../core/redux/types';
+
+// ─── Mock variables ──────────────────────────────────────────────────────────
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -48,6 +68,11 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
+const mockCheckIsSeedlessPasswordOutdated = jest.fn().mockResolvedValue(false);
+const mockUpdateAuthPreference = jest.fn();
+
+jest.mock('../../../util/Logger');
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -59,7 +84,32 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
+    checkIsSeedlessPasswordOutdated: mockCheckIsSeedlessPasswordOutdated,
+    updateAuthPreference: mockUpdateAuthPreference,
   }),
+}));
+
+const defaultCapabilities: AuthCapabilities = {
+  authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+  isBiometricsAvailable: true,
+  passcodeAvailable: true,
+  authLabel: 'Face ID',
+  authDescription:
+    "Use your device's biometrics or passcode to unlock MetaMask.",
+  authIcon: IconName.Lock,
+  osAuthEnabled: true,
+  allowLoginWithRememberMe: false,
+  deviceAuthRequiresSettings: false,
+};
+
+const mockUseAuthCapabilities = jest.fn(() => ({
+  capabilities: defaultCapabilities,
+  isLoading: false,
+}));
+
+jest.mock('../../../core/Authentication/hooks/useAuthCapabilities', () => ({
+  __esModule: true,
+  default: () => mockUseAuthCapabilities(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -71,6 +121,11 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
+      dispatch: jest.fn((action) => {
+        if (action.type === 'REPLACE') {
+          mockReplace(action.payload.name, action.payload.params);
+        }
+      }),
     }),
     useRoute: () => mockRoute(),
   };
@@ -90,12 +145,10 @@ jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
-// Mock password requirements
 jest.mock('../../../util/password', () => ({
   passwordRequirementsMet: jest.fn(),
 }));
 
-// Mock react-native Keyboard
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
@@ -106,9 +159,8 @@ jest.mock('react-native', () => {
   };
 });
 
-// Mock StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
-  getItem: jest.fn(),
+  getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn(),
 }));
 
@@ -139,11 +191,6 @@ jest.mock('../../../actions/security', () => ({
   },
 }));
 
-jest.mock('../../../store/storage-wrapper', () => ({
-  getItem: jest.fn().mockResolvedValue(null),
-  setItem: jest.fn(),
-}));
-
 jest.mock('../../../util/authentication', () => ({
   passcodeType: jest.fn(),
   updateAuthTypeStorageFlags: jest.fn(),
@@ -153,9 +200,11 @@ jest.mock('../../../core/BackupVault', () => ({
   getVaultFromBackup: jest.fn(),
 }));
 
-// Mock animation components
-jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+jest.mock('../../../util/validators', () => ({
+  parseVaultValue: jest.fn(),
+}));
 
+jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
 jest.mock('../../../util/test/utils', () => ({
@@ -163,7 +212,6 @@ jest.mock('../../../util/test/utils', () => ({
   isE2E: false,
 }));
 
-// Mock Rive animations
 jest.mock('rive-react-native', () => ({
   __esModule: true,
   default: () => null,
@@ -175,7 +223,6 @@ jest.mock('../../UI/ScreenshotDeterrent', () => ({
   ScreenshotDeterrent: () => null,
 }));
 
-// Mock safe area context
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -202,10 +249,6 @@ jest.mock('react-native-keyboard-controller', () => ({
   },
 }));
 
-jest.mock('../../../util/validators', () => ({
-  parseVaultValue: jest.fn(),
-}));
-
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
@@ -214,60 +257,28 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
-jest.mock('../../hooks/useMetrics', () => {
-  const ReactModule = jest.requireActual('react');
-  const mockMetrics = {
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    })),
-  };
-  return {
-    useMetrics: () => ({
-      trackEvent: jest.fn(),
-      isEnabled: jest.fn().mockReturnValue(true),
-      enable: jest.fn().mockResolvedValue(undefined),
-      addTraitsToUser: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn().mockReturnThis(),
-        build: jest.fn().mockReturnValue({}),
-      })),
-    }),
-    withMetricsAwareness:
-      <P extends Record<string, unknown>>(Component: React.ComponentType<P>) =>
-      (props: P) =>
-        ReactModule.createElement(Component, {
-          ...props,
-          metrics: mockMetrics,
-        }),
-    MetaMetricsEvents: jest.requireActual(
-      '../../../core/Analytics/MetaMetrics.events',
-    ).MetaMetricsEvents,
-  };
-});
-
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
+  const traceCallbackPromiseRef: { current: Promise<unknown> | null } = {
+    current: null,
+  };
+  const traceFn = jest.fn().mockImplementation(async (_request, callback) => {
+    if (callback) {
+      traceCallbackPromiseRef.current = callback();
+      return await traceCallbackPromiseRef.current;
+    }
+    return 'mockTraceContext';
+  });
+  Object.assign(traceFn, {
+    __traceCallbackPromiseRef: traceCallbackPromiseRef,
+  });
   return {
     ...actualTrace,
-    trace: jest.fn().mockImplementation((_request, callback) => {
-      if (callback) {
-        return callback();
-      }
-      return 'mockTraceContext';
-    }),
+    trace: traceFn,
     endTrace: jest.fn(),
   };
 });
 
-const mockMetricsTrackEvent = jest.fn();
-const mockMetricsCreateEventBuilder = jest.fn((eventName) => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({ name: eventName }),
-}));
-
-// Mock useNetInfo
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
     isConnected: true,
@@ -279,8 +290,67 @@ jest.mock('@react-native-community/netinfo', () => ({
   })),
 }));
 
+jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
+  trackVaultCorruption: jest.fn(),
+}));
+
+jest.mock('../../../util/logs', () => ({
+  downloadStateLogs: jest.fn(),
+}));
+
+jest.mock('../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({ mock: 'state' })),
+    },
+  },
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      verifyPassword: jest.fn(),
+      submitPassword: jest.fn(),
+    },
+    MultichainAccountService: {
+      init: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+
+jest.mock('../../../util/mnemonic', () => ({
+  uint8ArrayToMnemonic: jest.fn(),
+}));
+
+jest.mock('../../../multichain-accounts/AccountTreeInitService', () => ({
+  initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockBackHandlerAddEventListener = jest.fn();
 const mockBackHandlerRemoveEventListener = jest.fn();
+
+const createMockReduxStore = (stateOverrides?: RecursivePartial<RootState>) => {
+  const defaultState = {
+    user: { existingUser: false },
+    security: { allowLoginWithRememberMe: false },
+    settings: { lockTime: -1 },
+    ...(stateOverrides || {}),
+  } as RecursivePartial<RootState>;
+
+  return {
+    dispatch: jest.fn(),
+    getState: jest.fn(() => defaultState),
+    subscribe: jest.fn(),
+    replaceReducer: jest.fn(),
+    [Symbol.observable]: jest.fn(),
+  } as unknown as ReduxStore;
+};
 
 describe('Login', () => {
   const mockTrace = jest.mocked(trace);
@@ -288,12 +358,19 @@ describe('Login', () => {
   const mockTrackOnboarding = jest.mocked(
     jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
   );
+  const mockTrackErrorAsAnalytics =
+    trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
+  const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
+  const mockDownloadStateLogs = jest.mocked(downloadStateLogs);
+  const mockGetVaultFromBackup = jest.mocked(getVaultFromBackup);
+  const mockParseVaultValue = jest.mocked(parseVaultValue);
+  const mockAlertAlert = jest.fn();
+  const originalAlert = Alert.alert;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Alert.alert = mockAlertAlert;
     mockNavigate.mockClear();
-    mockMetricsTrackEvent.mockClear();
-    mockMetricsCreateEventBuilder.mockClear();
     mockReplace.mockClear();
     mockGoBack.mockClear();
     mockReset.mockClear();
@@ -307,7 +384,6 @@ describe('Login', () => {
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
     BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
 
-    // (Authentication.rehydrateSeedPhrase as jest.Mock).mockResolvedValue(true);
     mockUnlockWallet.mockResolvedValue(true);
     (passwordRequirementsMet as jest.Mock).mockReturnValue(true);
     mockComponentAuthenticationType.mockResolvedValue({
@@ -317,17 +393,23 @@ describe('Login', () => {
       currentAuthType: 'password',
       availableBiometryType: null,
     });
+    mockUseAuthCapabilities.mockReturnValue({
+      capabilities: defaultCapabilities,
+      isLoading: false,
+    });
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-    mockBackHandlerAddEventListener.mockClear();
-    mockBackHandlerRemoveEventListener.mockClear();
 
-    BackHandler.addEventListener = mockBackHandlerAddEventListener;
-    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   afterEach(() => {
     jest.clearAllTimers();
     jest.useRealTimers();
+    Alert.alert = originalAlert;
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   it('renders matching snapshot', () => {
@@ -337,7 +419,6 @@ describe('Login', () => {
 
   it('renders matching snapshot when password input is focused', () => {
     const { getByTestId, toJSON } = renderWithProvider(<Login />);
-
     fireEvent.changeText(
       getByTestId(LoginViewSelectors.PASSWORD_INPUT),
       'password',
@@ -345,298 +426,140 @@ describe('Login', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls trace function for AuthenticateUser during non-OAuth login', async () => {
-    const { getByTestId } = renderWithProvider(<Login />);
-    const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-    await act(async () => {
-      fireEvent.changeText(passwordInput, 'valid-password123');
-    });
-    await act(async () => {
-      fireEvent(passwordInput, 'submitEditing');
-    });
-
-    expect(mockTrace).toHaveBeenCalledTimes(2);
-    expect(mockTrace).toHaveBeenNthCalledWith(1, {
-      name: TraceName.LoginUserInteraction,
-      op: TraceOperation.Login,
-    });
-    expect(mockTrace).toHaveBeenNthCalledWith(
-      2,
-      {
-        name: TraceName.AuthenticateUser,
-        op: TraceOperation.Login,
-      },
-      expect.any(Function),
-    );
-  });
-
-  describe('Forgot Password', () => {
-    it('shows forgot password modal when reset wallet pressed', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      // Act
-      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.DELETE_WALLET,
-      });
-    });
-  });
-
-  describe('onLogin', () => {
-    it('login button exists and can be pressed', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'testpassword123');
-      fireEvent.press(loginButton);
-
-      // Assert
-      expect(loginButton).toBeOnTheScreen();
-    });
-
-    it('password input accepts text', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      fireEvent.changeText(passwordInput, 'testpassword123');
-
-      // Assert
-      expect(passwordInput).toBeOnTheScreen();
-    });
-  });
-
-  describe('Remember Me Authentication', () => {
-    it('set up remember me authentication when auth type is REMEMBER_ME', async () => {
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
-        availableBiometryType: null,
-      });
-
-      renderWithProvider(<Login />);
-
-      // Wait for useEffect to complete
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(setAllowLoginWithRememberMe).toHaveBeenCalledWith(true);
-    });
-  });
-
-  describe('Passcode Authentication', () => {
-    beforeEach(() => {
-      (StorageWrapper.getItem as jest.Mock).mockReset();
-    });
-
-    it('set up passcode authentication when auth type is PASSCODE', async () => {
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType: 'TouchID',
-      });
-
-      renderWithProvider(<Login />);
-
-      // Wait for useEffect to complete
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
-    });
-  });
-
-  describe('Biometric Authentication Setup', () => {
-    beforeEach(() => {
-      (StorageWrapper.getItem as jest.Mock).mockReset();
+  describe('Rendering', () => {
+    it('renders core login elements', () => {
       mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      const { getByTestId } = renderWithProvider(<Login />);
+      expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeOnTheScreen();
+    });
+
+    it('renders MetaMask logo and fox animation', () => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
+        <Login />,
+      );
+      expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
+      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
+      expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
+      expect(queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON)).toBeNull();
+      const images = UNSAFE_root.findAllByType(Image);
+      const hasMetaMaskLogo = images.some(
+        (img) => img.props.source === METAMASK_NAME,
+      );
+      expect(hasMetaMaskLogo).toBe(true);
+    });
+
+    it('disables login button when password is empty', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDisabled();
+    });
+
+    it('enables login button when password is entered', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'some-password',
+      );
+      expect(
+        getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID),
+      ).not.toBeDisabled();
+    });
+  });
+
+  describe('Device authentication', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
       });
     });
 
-    it('biometric authentication is setup when availableBiometryType is present', async () => {
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType: 'TouchID',
+    it('shows button when capabilities allow DEVICE_AUTHENTICATION', async () => {
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: {
+          ...defaultCapabilities,
+          authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        },
+        isLoading: false,
       });
-
       const { getByTestId } = renderWithProvider(<Login />);
-
-      // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
-
-      // Should render biometric button when biometric is available
-      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeOnTheScreen();
     });
 
-    it('biometric button is not shown when device is locked', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: true,
-          oauthLoginSuccess: false,
+    it('shows button when capabilities allow BIOMETRIC', async () => {
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: {
+          ...defaultCapabilities,
+          authType: AUTHENTICATION_TYPE.BIOMETRIC,
         },
+        isLoading: false,
       });
-
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType: 'FaceID',
+      const { getByTestId } = renderWithProvider(<Login />);
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+        ).toBeOnTheScreen();
       });
+    });
 
+    it('hides button when device is locked', async () => {
+      mockRoute.mockReturnValue({
+        params: { locked: true, oauthLoginSuccess: false },
+      });
       const { queryByTestId } = renderWithProvider(<Login />);
-
-      // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
-
-      // Should NOT render biometric button when device is locked
-      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeNull();
     });
 
-    it('biometric button is not shown when previously disabled', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
-        return Promise.resolve(null);
+    it('hides button when capabilities do not support device auth', async () => {
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: {
+          ...defaultCapabilities,
+          authType: AUTHENTICATION_TYPE.PASSWORD,
+        },
+        isLoading: false,
       });
-
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        availableBiometryType: 'TouchID',
-      });
-
       const { queryByTestId } = renderWithProvider(<Login />);
-
-      // Wait for useEffect to complete
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
-
-      // Should NOT render biometric button when previously disabled
-      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeNull();
     });
   });
 
-  describe('Password Error Handling', () => {
+  describe('Password error handling', () => {
     beforeEach(() => {
       mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
+        params: { locked: false, oauthLoginSuccess: false },
       });
-      mockTrackOnboarding.mockClear();
     });
 
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('displays invalid password error when decryption fails', async () => {
-      // Arrange
-      mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: 'password',
-      });
-      mockUnlockWallet.mockRejectedValue(new Error('Decrypt failed'));
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      // Act
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      // Assert
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeOnTheScreen();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('displays invalid password error for Android BAD_DECRYPT error', async () => {
-      mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: 'password',
-      });
-      mockUnlockWallet.mockRejectedValue(
-        new Error(
-          'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
-        ),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeOnTheScreen();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('displays invalid password error for Android DoCipher error', async () => {
-      mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: 'password',
-      });
-      mockUnlockWallet.mockRejectedValue(
-        new Error('error in DoCipher, status: 2'),
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeOnTheScreen();
-      expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
-      );
-    });
-
-    it('displays invalid password error when password is incorrect', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: true,
-        },
-      });
-      mockComponentAuthenticationType.mockResolvedValue({
-        currentAuthType: 'password',
-        oauth2Login: true,
-      });
-      mockUnlockWallet.mockRejectedValue(
-        new Error('Password is incorrect, try again.'),
-      );
-
+    it.each([
+      ['Decrypt failed', 'generic decryption failure'],
+      [
+        'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
+        'Android BAD_DECRYPT',
+      ],
+      ['error in DoCipher, status: 2', 'Android DoCipher'],
+      ['Password is incorrect, try again.', 'incorrect password'],
+    ])('displays invalid password error for %s', async (errorMessage) => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error(errorMessage));
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -655,8 +578,9 @@ describe('Login', () => {
     });
 
     it('displays generic error message for unexpected errors', async () => {
-      mockUnlockWallet.mockRejectedValue(new Error('Some unexpected error'));
-
+      mockUnlockWallet.mockRejectedValueOnce(
+        new Error('Some unexpected error'),
+      );
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -672,11 +596,83 @@ describe('Login', () => {
       expect(errorElement.props.children).toEqual('Some unexpected error');
     });
 
-    it('displays alert when passcode not set', async () => {
-      const mockAlert = jest
-        .spyOn(Alert, 'alert')
-        .mockImplementation(() => undefined);
-      mockUnlockWallet.mockRejectedValue(new Error('Passcode not set.'));
+    it('clears error when user types after an error', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'new-attempt');
+      });
+      expect(
+        queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Vault corruption recovery', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      });
+    });
+
+    it('navigates to restore wallet on valid vault backup', async () => {
+      jest.useRealTimers();
+      try {
+        mockGetVaultFromBackup.mockResolvedValueOnce({
+          success: true,
+          vault: 'mock-vault',
+        });
+        mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+        mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
+        mockComponentAuthenticationType.mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+        fireEvent.changeText(passwordInput, 'valid-password123');
+        fireEvent(passwordInput, 'submitEditing');
+
+        await waitFor(
+          () => {
+            expect(mockReplace).toHaveBeenCalledWith(
+              Routes.VAULT_RECOVERY.RESTORE_WALLET,
+              expect.objectContaining({
+                params: {
+                  previousScreen: Routes.ONBOARDING.LOGIN,
+                },
+                screen: Routes.VAULT_RECOVERY.RESTORE_WALLET,
+              }),
+            );
+          },
+          { timeout: 10000, interval: 100 },
+        );
+      } finally {
+        jest.useFakeTimers();
+      }
+    }, 15000);
+
+    it('shows error when vault seed cannot be parsed', async () => {
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce(undefined);
+      mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -688,16 +684,528 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockAlert).toHaveBeenCalledWith(
-        strings('login.security_alert_title'),
-        strings('login.security_alert_desc'),
-      );
-
-      mockAlert.mockRestore();
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
     });
 
-    it('navigates to rehydrate screen when seedless onboarding error is detected', async () => {
-      mockUnlockWallet.mockRejectedValue(
+    it('shows error when password requirements are not met', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+    });
+
+    it('shows error when backup has error', async () => {
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: false,
+        error: 'Backup error',
+      });
+      mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+    });
+
+    it('triggers vault corruption flow on JSON parse error', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(
+        new Error(JSON_PARSE_ERROR_UNEXPECTED_TOKEN),
+      );
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: false,
+        error: 'corrupted',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackVaultCorruption).toHaveBeenCalledWith(
+        JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
+        expect.objectContaining({
+          error_type: 'json_parse_error',
+          context: 'login_authentication',
+        }),
+      );
+      expect(mockGetVaultFromBackup).toHaveBeenCalled();
+    });
+
+    it('tracks vault corruption analytics at start of recovery', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error(VAULT_ERROR));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: false,
+        error: 'no backup',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackVaultCorruption).toHaveBeenCalledWith(
+        VAULT_ERROR,
+        expect.objectContaining({
+          error_type: 'vault_corruption_handling',
+          context: 'vault_corruption_recovery_attempt',
+        }),
+      );
+    });
+  });
+
+  describe('Biometric authentication', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      (passcodeType as jest.Mock).mockReturnValue('TouchID');
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
+      });
+      (StorageWrapper.getItem as jest.Mock).mockReset();
+
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
+    });
+
+    it('authenticates with biometrics successfully', async () => {
+      mockUnlockWallet.mockResolvedValueOnce(true);
+      (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
+      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: 'TouchID',
+      });
+      mockUnlockWallet.mockResolvedValueOnce(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
+      await act(async () => {
+        fireEvent.press(biometryButton);
+      });
+
+      expect(mockUnlockWallet).toHaveBeenCalled();
+    });
+
+    it('does not navigate when biometric auth fails', async () => {
+      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
+      mockGetAuthType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+        availableBiometryType: 'TouchID',
+      });
+      mockUnlockWallet.mockRejectedValueOnce(
+        new Error('Biometric authentication failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const biometryButton = getByTestId(
+        LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+      );
+      await act(async () => {
+        fireEvent.press(biometryButton);
+      });
+
+      expect(mockUnlockWallet).toHaveBeenCalled();
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('keeps biometric button visible after failure', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error('Biometric auth failed'),
+        );
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+        ).toBeOnTheScreen();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('does not show error UI for Android keychain biometric user cancel', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error('code: 10, msg: Fingerprint operation canceled by user'),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+        mockLogger.error.mockClear();
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('does not show error UI for iOS biometric user cancel', async () => {
+      jest.useRealTimers();
+      try {
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+        mockLogger.error.mockClear();
+
+        const biometryButton = getByTestId(
+          LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
+        );
+        await act(async () => {
+          fireEvent.press(biometryButton);
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('silently cancels DENY_PIN_ERROR_ANDROID without error UI', async () => {
+      jest.useRealTimers();
+      try {
+        mockGetAuthType.mockReset();
+        mockGetAuthType.mockResolvedValue({
+          currentAuthType: 'password',
+          availableBiometryType: null,
+        });
+        mockUseAuthCapabilities.mockReturnValue({
+          capabilities: {
+            ...defaultCapabilities,
+            authType: AUTHENTICATION_TYPE.PASSWORD,
+          },
+          isLoading: false,
+        });
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error(DENY_PIN_ERROR_ANDROID),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+        mockLogger.error.mockClear();
+
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+        fireEvent.changeText(passwordInput, 'some-password');
+        fireEvent(passwordInput, 'submitEditing');
+
+        await waitFor(() => {
+          expect(
+            queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+          ).not.toBeOnTheScreen();
+        });
+        expect(mockLogger.error).not.toHaveBeenCalled();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('does not log error on Android biometric cancellation', async () => {
+      jest.useRealTimers();
+      try {
+        mockGetAuthType.mockReset();
+        mockGetAuthType.mockResolvedValue({
+          currentAuthType: 'password',
+          availableBiometryType: null,
+        });
+        mockUseAuthCapabilities.mockReturnValue({
+          capabilities: {
+            ...defaultCapabilities,
+            authType: AUTHENTICATION_TYPE.PASSWORD,
+          },
+          isLoading: false,
+        });
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error(DENY_PIN_ERROR_ANDROID),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+        mockLogger.error.mockClear();
+
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        fireEvent.changeText(passwordInput, 'valid-password123');
+        fireEvent(passwordInput, 'submitEditing');
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(mockLogger.error).not.toHaveBeenCalled();
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+
+    it('does not show error UI on iOS biometric cancellation via password unlock', async () => {
+      jest.useRealTimers();
+      try {
+        mockGetAuthType.mockReset();
+        mockGetAuthType.mockResolvedValue({
+          currentAuthType: 'password',
+          availableBiometryType: null,
+        });
+        mockUseAuthCapabilities.mockReturnValue({
+          capabilities: {
+            ...defaultCapabilities,
+            authType: AUTHENTICATION_TYPE.PASSWORD,
+          },
+          isLoading: false,
+        });
+        mockUnlockWallet.mockRejectedValueOnce(
+          new Error(UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS),
+        );
+
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+        mockLogger.error.mockClear();
+
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        fireEvent.changeText(passwordInput, 'valid-password123');
+        fireEvent(passwordInput, 'submitEditing');
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        });
+
+        expect(mockLogger.error).not.toHaveBeenCalled();
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
+      } finally {
+        jest.useFakeTimers();
+      }
+    });
+  });
+
+  describe('Seedless password sync (biometric fallback alert)', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: { locked: false, oauthLoginSuccess: false },
+      });
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
+      mockGetAuthType.mockReset();
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'password',
+        availableBiometryType: null,
+      });
+      mockCheckIsSeedlessPasswordOutdated.mockReset();
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+    });
+
+    it('checks seedless password status and calls getAuthType when outdated', async () => {
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'password',
+        availableBiometryType: 'FaceID',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+        const promiseRef = (
+          trace as {
+            __traceCallbackPromiseRef?: { current: Promise<unknown> | null };
+          }
+        ).__traceCallbackPromiseRef;
+        if (promiseRef?.current) {
+          await promiseRef.current;
+          promiseRef.current = null;
+        }
+      });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        password: 'valid-password123',
+      });
+      expect(mockGetAuthType).toHaveBeenCalled();
+    });
+
+    it('does not call getAuthType when seedless password is not outdated', async () => {
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      expect(mockGetAuthType.mock.calls.length).toBe(
+        getAuthTypeCallCountAfterMount,
+      );
+    });
+
+    it('skips alert branch for BIOMETRIC auth type', async () => {
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'FaceID',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+          skipCache: false,
+          captureSentryError: true,
+        });
+      });
+    });
+
+    it('skips alert branch when device has no biometry support', async () => {
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: 'password',
+        availableBiometryType: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      fireEvent.changeText(passwordInput, 'valid-password123');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+          skipCache: false,
+          captureSentryError: true,
+        });
+      });
+    });
+  });
+
+  describe('Navigation and lifecycle', () => {
+    it('navigates to forgot password modal when reset wallet is pressed', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+    });
+
+    it('navigates to rehydrate on seedless onboarding error', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(
         new SeedlessOnboardingControllerError(
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
           'Password was recently updated',
@@ -718,91 +1226,11 @@ describe('Login', () => {
         isSeedlessPasswordOutdated: true,
       });
     });
-  });
 
-  describe('tryBiometric', () => {
-    beforeEach(() => {
+    it('registers and deregisters back handler on mount/unmount', () => {
       mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
+        params: { locked: false, oauthLoginSuccess: false },
       });
-      (passcodeType as jest.Mock).mockReturnValue('TouchID');
-      mockGetAuthType.mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-        availableBiometryType: 'TouchID',
-      });
-      (StorageWrapper.getItem as jest.Mock).mockReset();
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('authenticates with biometrics and navigates to home', async () => {
-      mockUnlockWallet.mockResolvedValueOnce(true);
-      (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
-      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType: 'TouchID',
-      });
-      mockUnlockWallet.mockResolvedValueOnce(true);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
-
-      await act(async () => {
-        fireEvent.press(biometryButton);
-      });
-
-      expect(mockUnlockWallet).toHaveBeenCalled();
-    });
-
-    it('does not navigate when biometric authentication fails', async () => {
-      // Arrange
-      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
-      mockGetAuthType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType: 'TouchID',
-      });
-      const biometricError = new Error('Biometric authentication failed');
-      mockUnlockWallet.mockRejectedValueOnce(biometricError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
-
-      // Act
-      await act(async () => {
-        fireEvent.press(biometryButton);
-      });
-
-      // Assert
-      expect(mockUnlockWallet).toHaveBeenCalled();
-      expect(mockReplace).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('handleBackPress', () => {
-    it('registers and deregisters back handler on mount and unmount', () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-
       const { unmount } = renderWithProvider(<Login />);
       unmount();
 
@@ -816,14 +1244,10 @@ describe('Login', () => {
       );
     });
 
-    it('locks app when back button is pressed', () => {
+    it('locks app on back button press', () => {
       mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
+        params: { locked: false, oauthLoginSuccess: false },
       });
-
       renderWithProvider(<Login />);
 
       const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
@@ -833,66 +1257,114 @@ describe('Login', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
-  });
 
-  describe('Conditional Rendering Based on OAuth Status', () => {
-    describe('Regular Login', () => {
-      beforeEach(() => {
-        mockRoute.mockReturnValue({
-          params: {
-            locked: false,
-            oauthLoginSuccess: false,
-          },
-        });
+    it('shows security alert when passcode is not set', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error(PASSCODE_NOT_SET_ERROR));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
       });
 
-      it('renders static MetaMask logo and fox animation', () => {
-        // Arrange & Act
-        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
-          <Login />,
-        );
-
-        // Assert - Fox animation is rendered
-        expect(getByTestId('fox-animation-mock')).toBeDefined();
-
-        // Assert - Regular login elements
-        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeDefined();
-
-        // Assert - OAuth elements are hidden
-        expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
-        expect(
-          queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
-        ).toBeNull();
-
-        // Assert - metaMask logo is rendered
-        const images = UNSAFE_root.findAllByType(Image);
-        const hasMetaMaskLogo = images.some(
-          (img) => img.props.source === METAMASK_NAME,
-        );
-
-        expect(hasMetaMaskLogo).toBe(true);
-      });
-    });
-
-    describe('Common Elements', () => {
-      it('renders core login elements', () => {
-        mockRoute.mockReturnValue({
-          params: {
-            locked: false,
-            oauthLoginSuccess: false,
-          },
-        });
-
-        const { getByTestId } = renderWithProvider(<Login />);
-
-        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeDefined();
-        expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toBeDefined();
-        expect(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID)).toBeDefined();
-      });
+      expect(mockAlertAlert).toHaveBeenCalledWith(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
     });
   });
 
-  describe('KeyboardAwareScrollView Configuration', () => {
+  describe('Analytics tracking', () => {
+    it('tracks LOGIN_SCREEN_VIEWED on mount', () => {
+      renderWithProvider(<Login />);
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
+        expect.any(Function),
+      );
+    });
+
+    it('tracks FORGOT_PASSWORD_CLICKED when reset wallet is pressed', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
+        expect.any(Function),
+      );
+    });
+
+    it('tracks LOGIN_DOWNLOAD_LOGS on long press', () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const foxAnimationMock = getByTestId('fox-animation-mock');
+      const foxWrapper = foxAnimationMock.parent;
+      if (!foxWrapper) {
+        throw new Error('Fox animation wrapper not found');
+      }
+      fireEvent(foxWrapper, 'longPress');
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS,
+        expect.any(Function),
+      );
+      expect(mockDownloadStateLogs).toHaveBeenCalledWith(
+        { mock: 'state' },
+        false,
+      );
+    });
+
+    it('calls trackErrorAsAnalytics on wrong password error', async () => {
+      const errorMsg = 'Decrypt failed';
+      mockUnlockWallet.mockReset().mockRejectedValueOnce(new Error(errorMsg));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Login: Invalid Password',
+        errorMsg,
+      );
+    });
+  });
+
+  describe('Trace integration', () => {
+    it('calls trace for AuthenticateUser during login', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrace).toHaveBeenCalledTimes(2);
+      expect(mockTrace).toHaveBeenNthCalledWith(1, {
+        name: TraceName.LoginUserInteraction,
+        op: TraceOperation.Login,
+      });
+      expect(mockTrace).toHaveBeenNthCalledWith(
+        2,
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe('Platform configuration', () => {
     let originalPlatform: string;
 
     beforeEach(() => {
@@ -912,14 +1384,9 @@ describe('Login', () => {
         writable: true,
       });
       mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
+        params: { locked: false, oauthLoginSuccess: false },
       });
-
       const { UNSAFE_root } = renderWithProvider(<Login />);
-
       const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 50 });
       expect(scrollView).toBeDefined();
       expect(scrollView.props.extraScrollHeight).toBe(50);
@@ -928,25 +1395,12 @@ describe('Login', () => {
     it('sets extraScrollHeight to 0 on iOS', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
       mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
+        params: { locked: false, oauthLoginSuccess: false },
       });
-
       const { UNSAFE_root } = renderWithProvider(<Login />);
-
       const scrollView = UNSAFE_root.findByProps({ extraScrollHeight: 0 });
       expect(scrollView).toBeDefined();
       expect(scrollView.props.extraScrollHeight).toBe(0);
     });
   });
 });
-
-// it('should navigate back and reset OAuth state when using other methods', async () => {
-//   mockRoute.mockReturnValue({
-//     params: {
-//       locked: false,
-//       oauthLoginSuccess: true,
-//     },
-//   });

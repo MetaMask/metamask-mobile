@@ -1,16 +1,15 @@
-import ImportSrpView from '../../e2e/pages/importSrp/ImportSrpView.ts';
-import AccountListBottomSheet from '../../e2e/pages/wallet/AccountListBottomSheet.ts';
-import AddAccountBottomSheet from '../../e2e/pages/wallet/AddAccountBottomSheet.ts';
-import WalletView from '../../e2e/pages/wallet/WalletView.ts';
-import Assertions from '../framework/Assertions.ts';
-import SRPListItemComponent from '../../e2e/pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
-import SrpQuizModal from '../../e2e/pages/Settings/SecurityAndPrivacy/SrpQuizModal.ts';
-import RevealSecretRecoveryPhrase from '../../e2e/pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.ts';
-import { RevealSeedViewSelectorsText } from '../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds.ts';
-import TabBarComponent from '../../e2e/pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../e2e/pages/Settings/SettingsView.ts';
-import SecurityAndPrivacyView from '../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.ts';
-import AccountDetails from '../../e2e/pages/MultichainAccounts/AccountDetails.ts';
+import ImportSrpView from '../page-objects/importSrp/ImportSrpView';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
+import WalletView from '../page-objects/wallet/WalletView';
+import Assertions from '../framework/Assertions';
+import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
+import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizModal';
+import RevealSecretRecoveryPhrase from '../page-objects/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+import TabBarComponent from '../page-objects/wallet/TabBarComponent';
+import SettingsView from '../page-objects/Settings/SettingsView';
+import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 
 const PASSWORD = '123123123';
 
@@ -32,17 +31,29 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await SrpQuizModal.tapQuestionContinueButton(1);
   await SrpQuizModal.tapQuestionRightAnswerButton(2);
   await SrpQuizModal.tapQuestionContinueButton(2);
-  await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
-    PASSWORD,
-  );
+
+  // Check if already unlocked (biometrics) or need password entry
+  let isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+
+  if (!isAlreadyUnlocked) {
+    await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
+      PASSWORD,
+    );
+    // Re-check: "Done" on keyboard triggers tryUnlock() so app may already be on "Tap to reveal"
+    isAlreadyUnlocked = await RevealSecretRecoveryPhrase.isUnlocked();
+    if (!isAlreadyUnlocked) {
+      await RevealSecretRecoveryPhrase.tapConfirmButton();
+    }
+  }
+
+  // Tap the blur overlay to reveal the SRP
   await RevealSecretRecoveryPhrase.tapToReveal();
   await Assertions.expectElementToBeVisible(
     RevealSecretRecoveryPhrase.container,
   );
-  await Assertions.expectTextDisplayed(
-    RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
-  );
-  await Assertions.expectTextDisplayed(expectedSrp);
+  // SRP is now displayed in grid format - verify first word is displayed
+  const srpWords = expectedSrp.split(' ');
+  await Assertions.expectTextDisplayed(srpWords[0]);
   await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
@@ -62,7 +73,7 @@ export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
-  await AccountDetails.tapExportSrpButton();
+  await AccountDetails.tapAccountSrpLink();
 };
 
 export const startExportForKeyring = async (keyringId: string) => {

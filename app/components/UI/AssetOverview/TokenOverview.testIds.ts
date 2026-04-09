@@ -11,6 +11,8 @@ export const TokenOverviewSelectorsIDs = {
   ADD_BUTTON: 'token-add-button',
   CLAIM_BUTTON: 'claim-banner-claim-eth-button',
   UNSTAKING_BANNER: 'unstaking-banner',
+  PERPS_POSITION_CARD: 'perps-position-card-touchable',
+  PERPS_DISCOVERY_BANNER: 'perps-discovery-banner',
   LONG_BUTTON: 'token-long-button',
   SHORT_BUTTON: 'token-short-button',
   MORE_BUTTON: 'token-more-button',
@@ -18,6 +20,7 @@ export const TokenOverviewSelectorsIDs = {
 
 export const TokenOverviewSelectorsText = {
   STAKED_BALANCE: enContent.stake.staked_balance,
+  TODAYS_CHANGE_SUFFIX: '%) Today',
   NO_CHART_DATA: enContent.asset_overview.no_chart_data.title,
   '1d': enContent.asset_overview.chart_time_period_navigation['1d'],
   '1w': enContent.asset_overview.chart_time_period_navigation['1w'],

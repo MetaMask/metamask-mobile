@@ -13,9 +13,11 @@ import {
   formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -155,7 +157,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         {content}
       </TouchableOpacity>
     );

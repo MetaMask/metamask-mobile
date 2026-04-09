@@ -1,19 +1,13 @@
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  act,
-  waitFor,
-} from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictPosition from './PredictPosition';
 import {
   PredictPositionStatus,
   type PredictPosition as PredictPositionType,
 } from '../../types';
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -23,20 +17,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-const mockLoadPositions = jest.fn();
-jest.mock('../../hooks/usePredictPositions', () => ({
-  usePredictPositions: jest.fn(() => ({
-    positions: [],
-    loadPositions: mockLoadPositions,
-    isLoading: false,
-    isRefreshing: false,
-    error: null,
-  })),
-}));
-
 const basePosition: PredictPositionType = {
   id: 'pos-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -65,29 +48,18 @@ const renderComponent = (
     ...basePosition,
     ...overrides,
   } as PredictPositionType;
-  return render(<PredictPosition position={position} onPress={onPress} />);
+  return render(
+    <PredictPosition
+      position={position}
+      onPress={onPress}
+      privacyMode={false}
+    />,
+  );
 };
 
 describe('PredictPosition', () => {
-  const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-    typeof usePredictPositions
-  >;
-
-  beforeEach(() => {
-    jest.useFakeTimers();
-    mockLoadPositions.mockClear();
-    mockUsePredictPositions.mockReturnValue({
-      positions: [],
-      loadPositions: mockLoadPositions,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-    });
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
   });
 
   it('renders primary position info', () => {
@@ -242,7 +214,7 @@ describe('PredictPosition', () => {
       claimable: true,
       endDate: '2026-01-01T00:00:00Z',
     };
-    render(<PredictPosition position={position} />);
+    render(<PredictPosition position={position} privacyMode={false} />);
 
     expect(screen.getByText('Test Market Question?')).toBeOnTheScreen();
     expect(screen.getByText('$75.25 on Maybe to win $7.50')).toBeOnTheScreen();
@@ -277,204 +249,25 @@ describe('PredictPosition', () => {
     });
   });
 
-  describe('optimistic position auto-refresh', () => {
-    it('starts auto-refresh immediately when position is optimistic', async () => {
-      mockLoadPositions.mockResolvedValue(undefined);
-      renderComponent({ optimistic: true });
-
-      await waitFor(() => {
-        expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
-      });
-    });
-
-    it('does not start auto-refresh when position is not optimistic', async () => {
-      renderComponent({ optimistic: false });
-
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(2000);
-      });
-
-      expect(mockLoadPositions).not.toHaveBeenCalled();
-    });
-
-    it('continues auto-refresh at 2-second intervals after each load completes', async () => {
-      mockLoadPositions.mockResolvedValue(undefined);
-      renderComponent({ optimistic: true });
-
-      // First load happens immediately
-      await waitFor(() => {
-        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
-      });
-
-      // Second load happens 2 seconds after first completes
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(2000);
-      });
-
-      expect(mockLoadPositions).toHaveBeenCalledTimes(2);
-
-      // Third load happens 2 seconds after second completes
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(2000);
-      });
-
-      expect(mockLoadPositions).toHaveBeenCalledTimes(3);
-    });
-
-    it('stops auto-refresh when position becomes non-optimistic', async () => {
-      const optimisticPosition = { ...basePosition, optimistic: true };
-      const resolvedPosition = { ...basePosition, optimistic: false };
-
-      mockLoadPositions.mockResolvedValue(undefined);
-      mockUsePredictPositions.mockReturnValue({
-        positions: [optimisticPosition],
-        loadPositions: mockLoadPositions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-      });
-
-      const { rerender } = renderComponent({ optimistic: true });
-
-      // First load happens immediately
-      await waitFor(() => {
-        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
-      });
-
-      mockLoadPositions.mockClear();
-
-      mockUsePredictPositions.mockReturnValue({
-        positions: [resolvedPosition],
-        loadPositions: mockLoadPositions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-      });
-
-      rerender(<PredictPosition position={resolvedPosition} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-      });
-
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(2000);
-      });
-
-      expect(mockLoadPositions).not.toHaveBeenCalled();
-    });
-
-    it('cleans up auto-refresh on unmount', async () => {
-      mockLoadPositions.mockResolvedValue(undefined);
-      const { unmount } = renderComponent({ optimistic: true });
-
-      // First load happens immediately
-      await waitFor(() => {
-        expect(mockLoadPositions).toHaveBeenCalledTimes(1);
-      });
-
-      mockLoadPositions.mockClear();
-
-      unmount();
-
-      await act(async () => {
-        await jest.advanceTimersByTimeAsync(2000);
-      });
-
-      expect(mockLoadPositions).not.toHaveBeenCalled();
-    });
-
-    it('updates displayed position when positions hook returns new data', async () => {
-      const optimisticPosition = {
-        ...basePosition,
-        optimistic: true,
-        currentValue: 100,
-        percentPnl: 0,
-      };
-      const resolvedPosition = {
-        ...basePosition,
-        optimistic: false,
-        currentValue: 2500,
-        percentPnl: 10.5,
-      };
-
-      mockUsePredictPositions.mockReturnValue({
-        positions: [optimisticPosition],
-        loadPositions: mockLoadPositions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-      });
-
-      const { rerender } = renderComponent({ optimistic: true });
-
-      expect(screen.queryByText('$2,500')).toBeNull();
-
-      mockUsePredictPositions.mockReturnValue({
-        positions: [resolvedPosition],
-        loadPositions: mockLoadPositions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-      });
-
-      rerender(<PredictPosition position={optimisticPosition} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('$2,500')).toBeOnTheScreen();
-        expect(screen.getByText('10.5%')).toBeOnTheScreen();
-      });
-    });
-
-    it('calls onPress with updated position after refresh', async () => {
-      const mockOnPress = jest.fn();
-      const optimisticPosition = {
-        ...basePosition,
-        optimistic: true,
-        currentValue: 100,
-      };
-      const resolvedPosition = {
-        ...basePosition,
-        optimistic: false,
-        currentValue: 2500,
-      };
-
-      mockUsePredictPositions.mockReturnValue({
-        positions: [optimisticPosition],
-        loadPositions: mockLoadPositions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-      });
-
-      const { rerender } = renderComponent({ optimistic: true }, mockOnPress);
-
-      mockUsePredictPositions.mockReturnValue({
-        positions: [resolvedPosition],
-        loadPositions: mockLoadPositions,
-        isLoading: false,
-        isRefreshing: false,
-        error: null,
-      });
-
-      rerender(
-        <PredictPosition position={optimisticPosition} onPress={mockOnPress} />,
+  describe('privacy mode', () => {
+    it('hides monetary values when privacy mode is enabled', () => {
+      const { queryByText, getByText, queryAllByText } = render(
+        <PredictPosition position={basePosition} privacyMode />,
       );
 
-      await waitFor(() => {
-        expect(screen.getByText('$2,500')).toBeOnTheScreen();
-      });
+      expect(queryByText('$2,345.67')).toBeNull();
+      expect(queryByText('5.25%')).toBeNull();
+      expect(queryByText('$123.45 on Yes to win $10')).toBeNull();
+      expect(getByText(basePosition.title)).toBeOnTheScreen();
+      expect(queryAllByText(/•+/).length).toBeGreaterThan(0);
+    });
 
-      fireEvent.press(
-        screen.getByTestId(PredictPositionSelectorsIDs.CURRENT_POSITION_CARD),
-      );
+    it('displays monetary values when privacy mode is disabled', () => {
+      renderComponent();
 
-      expect(mockOnPress).toHaveBeenCalledWith(
-        expect.objectContaining({
-          currentValue: 2500,
-          optimistic: false,
-        }),
-      );
+      expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
+      expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
+      expect(screen.getByText('5.25%')).toBeOnTheScreen();
     });
   });
 });

@@ -8,6 +8,7 @@ import React, {
 import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { useSharedValue } from 'react-native-reanimated';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
@@ -23,7 +24,6 @@ import {
   trustedProtocolToDeeplink,
   getAlertMessage,
   allowLinkOpen,
-  getUrlObj,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -65,21 +65,18 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   HOMEPAGE_HOST,
   IPFS_GATEWAY_DISABLED_ERROR,
-  OLD_HOMEPAGE_URL_HOST,
   NOTIFICATION_NAMES,
-  MM_MIXPANEL_TOKEN,
 } from './constants';
 import GestureWebViewWrapper from './GestureWebViewWrapper';
 import { regex } from '../../../../app/util/regex';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -90,7 +87,6 @@ import {
   type IpfsContentResult,
   WebViewNavigationEventName,
 } from './types';
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   WebViewNavigationEvent,
   WebViewErrorEvent,
@@ -116,7 +112,6 @@ import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
-import { selectAssetsTrendingTokensEnabled } from '../../../selectors/featureFlagController/assetsTrendingTokens';
 import {
   Box,
   BoxFlexDirection,
@@ -138,17 +133,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     linkType,
     updateTabInfo,
     addToBrowserHistory,
-    bookmarks,
     initialUrl,
     ipfsGateway,
     newTab,
     activeChainId,
-    fromTrending,
     fromPerps,
   }) => {
-    // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const navigation = useNavigation<StackNavigationProp<any>>();
+    const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
@@ -203,11 +194,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }>();
-    const fromHomepage = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
-    const isAssetsTrendingTokensEnabled = useSelector(
-      selectAssetsTrendingTokensEnabled,
-    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -241,7 +228,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const { faviconURI: favicon } = useFavicon(resolvedUrlRef.current);
-    const { isEnabled, getMetaMetricsId } = useMetrics();
+
     /**
      * Is the current tab the active tab
      */
@@ -250,23 +237,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * True when the Browser screen is focused (no modal or other screen drawn on top).
+     * When false, webview JS dialogs (alert/confirm/prompt) will be suppressed.
+     */
+    const isBrowserScreenFocused = useIsFocused();
+
+    /**
+     * Only show webview JS dialogs when this tab is active and the browser screen is visible.
+     */
+    const canShowJsDialogs = isTabActive && isBrowserScreenFocused;
+
+    /**
      * whitelisted url to bypass the phishing detection
      */
     const whitelist = useSelector(
       (state: RootState) => state.browser.whitelist,
     );
-
-    /**
-     * Checks if a given url or the current url is the homepage
-     */
-    const isHomepage = useCallback((checkUrl?: string | null) => {
-      const currentPage = checkUrl || resolvedUrlRef.current;
-      const prefixedUrl = prefixUrlWithProtocol(currentPage);
-      const { host: currentHost } = getUrlObj(prefixedUrl);
-      return (
-        currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
-      );
-    }, []);
 
     const notifyAllConnections = useCallback((payload: unknown) => {
       backgroundBridgeRef.current?.sendNotificationEip1193(payload);
@@ -588,36 +574,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [goBack, isTabActive, navigation]);
 
     /**
-     * Inject home page scripts to get the favourites and set analytics key
-     */
-    const injectHomePageScripts = useCallback(
-      async (injectedBookmarks?: string[]) => {
-        const { current } = webviewRef;
-        const analyticsEnabled = isEnabled();
-        const disctinctId = await getMetaMetricsId();
-        const homepageScripts = `
-              window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
-              window.__mmSearchEngine = "${searchEngine}";
-              window.__mmMetametrics = ${analyticsEnabled};
-              window.__mmDistinctId = "${disctinctId}";
-              window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-              (function () {
-                  try {
-                      window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
-                  } catch (e) {
-                      //Nothing to do
-                  }
-              })()
-          `;
-
-        current?.injectJavaScript(homepageScripts);
-      },
-      [isEnabled, getMetaMetricsId, bookmarks, searchEngine],
-    );
-
-    /**
      * Handles error for example, ssl certificate error or cannot open page
      */
     const handleError = useCallback(
@@ -718,6 +674,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      */
     const onShouldStartLoadWithRequest = useCallback(
       ({ url: urlToLoad }: { url: string }) => {
+        if (!isTabActive) return false;
+
         webStates.current[urlToLoad] = {
           ...webStates.current[urlToLoad],
           requested: true,
@@ -789,8 +747,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         return false;
       },
-      [isIpfsGatewayEnabled, isResolvedIpfsUrl, setIpfsBannerVisible],
+      [
+        isIpfsGatewayEnabled,
+        isResolvedIpfsUrl,
+        setIpfsBannerVisible,
+        isTabActive,
+      ],
     );
+
+    /**
+     * Handles target="_blank" links and window.open() calls.
+     * On Android, without this handler, such links open in the system browser (Chrome)
+     * because the native WebChromeClient creates a bare WebView with no fallback.
+     * On iOS, the native fallback loads the URL in the same WebView, but providing
+     * this explicit handler ensures consistent behavior across both platforms.
+     */
+    const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
+      const { targetUrl } = event.nativeEvent;
+      if (targetUrl && webviewRef.current) {
+        webviewRef.current.injectJavaScript(
+          `window.location.href = '${sanitizeUrlInput(targetUrl)}'; true;`,
+        );
+      }
+    }, []);
 
     /**
      * Sets loading bar progress
@@ -923,10 +902,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [checkIFrameUrls, scrollY],
     );
 
-    const toggleUrlModal = useCallback(() => {
-      urlBarRef.current?.focus();
-    }, []);
-
     const initializeBackgroundBridge = useCallback(
       (urlBridge: string, isMainFrame: boolean) => {
         // First disconnect and reset bridge
@@ -950,13 +925,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               url: resolvedUrlRef,
               title: titleRef,
               icon: iconRef,
-              // Bookmarks
-              isHomepage,
-              // Show autocomplete
-              fromHomepage,
-              toggleUrlModal,
               tabId,
-              injectHomePageScripts,
               // TODO: This properties were missing, and were not optional
               isWalletConnect: false,
               isMMSDK: false,
@@ -966,7 +935,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         });
         backgroundBridgeRef.current = newBridge;
       },
-      [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
+      [navigation, tabId],
     );
 
     const sendActiveAccount = useCallback(
@@ -1047,9 +1016,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
-        if (isHomepage(nativeEvent.url)) {
-          injectHomePageScripts();
-        }
 
         initializeBackgroundBridge(urlOrigin, true);
       },
@@ -1057,8 +1023,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         isAllowedOrigin,
         handleNotAllowedUrl,
         sendActiveAccount,
-        isHomepage,
-        injectHomePageScripts,
         initializeBackgroundBridge,
       ],
     );
@@ -1176,6 +1140,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       }: {
         nativeEvent: { downloadUrl: string };
       }) => {
+        if (!isTabActive) return;
         const downloadResponse = await downloadFile(downloadUrl);
         if (downloadResponse) {
           reload();
@@ -1184,7 +1149,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           reload();
         }
       },
-      [reload],
+      [reload, isTabActive],
     );
 
     /**
@@ -1315,19 +1280,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.PERPS_HOME,
         });
-      } else if (fromTrending) {
-        // If within trending follow the normal back button behavior
-        navigation.goBack();
-      } else if (isAssetsTrendingTokensEnabled) {
-        // If trending is enabled, go to trending view
+      } else {
+        // Navigate to TrendingView/TrendingFeed
+        // Note: We use explicit navigation instead of goBack() because the browser
+        // is a separate tab in the Tab Navigator, and goBack() doesn't properly
+        // navigate back between tabs.
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
-      } else {
-        // If trending is disabled, go back to wallet home
-        navigation.navigate(Routes.WALLET.HOME);
       }
-    }, [navigation, fromTrending, fromPerps, isAssetsTrendingTokensEnabled]);
+    }, [navigation, fromPerps]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1490,7 +1452,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               {!isUrlBarFocused && (
                 <ButtonIcon
                   iconName={IconName.ArrowLeft}
-                  size={ButtonIconSize.Lg}
+                  size={ButtonIconSize.Md}
                   onPress={handleClosePress}
                   testID="browser-tab-close-button"
                 />
@@ -1548,12 +1510,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                           onShouldStartLoadWithRequest
                         }
                         allowsInlineMediaPlayback
+                        onOpenWindow={handleOpenWindow}
                         {...webViewTestProps}
                         testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                         applicationNameForUserAgent={'WebView MetaMaskMobile'}
                         onFileDownload={handleOnFileDownload}
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
+                        allowFileDownloads={isTabActive}
+                        suppressJavaScriptDialogs={!canShowJsDialogs}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner
@@ -1592,7 +1557,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 );
 
 const mapStateToProps = (state: RootState) => ({
-  bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),

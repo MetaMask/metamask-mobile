@@ -22,7 +22,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 const PreviousSeasonSummary = () => {
   const { fetchSeasonStatus } = useSeasonStatus({
-    onlyForExplicitFetch: false,
+    onlyForExplicitFetch: true,
   });
   const seasonName = useSelector(selectSeasonName);
   const seasonError = useSelector(selectSeasonStatusError);

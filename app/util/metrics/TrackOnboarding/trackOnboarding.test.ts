@@ -43,7 +43,9 @@ describe('trackOnboarding', () => {
 
     trackOnboarding(mockEvent, mockSaveOnboardingEvent);
 
-    expect(mockSaveOnboardingEvent).toHaveBeenCalledWith(mockEvent);
+    const expectedEvent =
+      AnalyticsEventBuilder.createEventBuilder(mockEvent).build();
+    expect(mockSaveOnboardingEvent).toHaveBeenCalledWith(expectedEvent);
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 

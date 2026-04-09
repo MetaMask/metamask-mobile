@@ -9,8 +9,8 @@ interface PredictSportFootballIconProps {
 }
 
 /**
- * Small football icon for possession indicator and game UI elements.
- * Used in NFL game cards and details screens.
+ * Small football icon used as possession indicator in sports game UI.
+ * Referenced from the NFL league config in sportLeagueConfigs.ts.
  */
 const PredictSportFootballIcon: React.FC<PredictSportFootballIconProps> = ({
   size = 20,

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, TextInput, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   Box,
@@ -21,6 +22,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
+import { PerpsProviderSelectorBadge } from '../PerpsProviderSelector';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 
 /**
  * PerpsHomeHeader Component
@@ -65,6 +69,9 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
+  const { isMultiProviderEnabled } = usePerpsProvider();
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
 
   // Default back handler
   const defaultHandleBack = useCallback(() => {
@@ -137,15 +144,36 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
             <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
           </TouchableOpacity>
 
-          {/* Title */}
+          {/* Title with optional provider badge */}
           <View style={styles.headerTitleContainer}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              color={TextColor.Default}
-              style={styles.headerTitle}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
             >
-              {title || strings('perps.title')}
-            </Text>
+              <Text
+                variant={TextVariant.HeadingLG}
+                color={TextColor.Default}
+                style={styles.headerTitle}
+              >
+                {title || strings('perps.title')}
+              </Text>
+              {isMultiProviderEnabled && (
+                <PerpsProviderSelectorBadge
+                  testID={testID ? `${testID}-provider-badge` : undefined}
+                />
+              )}
+              {isTestnet && !isMultiProviderEnabled && (
+                <View
+                  style={styles.testnetBadge}
+                  testID={testID ? `${testID}-testnet-badge` : undefined}
+                >
+                  <View style={styles.testnetDot} />
+                  <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                    Testnet
+                  </Text>
+                </View>
+              )}
+            </Box>
           </View>
 
           {/* Search Toggle Button */}

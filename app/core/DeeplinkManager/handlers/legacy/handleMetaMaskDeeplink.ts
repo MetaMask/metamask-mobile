@@ -10,7 +10,6 @@ import WC2Manager from '../../../WalletConnect/WalletConnectV2';
 import parseOriginatorInfo from '../../utils/parseOriginatorInfo';
 import extractURLParams from '../../utils/extractURLParams';
 import handleRampUrl from './handleRampUrl';
-import handleDepositCashUrl from './handleDepositCashUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
 
@@ -115,7 +114,6 @@ export function handleMetaMaskDeeplink({
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
     url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)
   ) {
-    // console.debug(`test now deeplink hack ${url}`);
     let fixedUrl = wcURL;
     if (url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)) {
       fixedUrl = url.replace(
@@ -158,14 +156,6 @@ export function handleMetaMaskDeeplink({
     handleRampUrl({
       rampPath,
       rampType: RampType.SELL,
-    });
-  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
-    const depositCashPath = url.replace(
-      `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`,
-      '',
-    );
-    handleDepositCashUrl({
-      depositPath: depositCashPath,
     });
   }
 }

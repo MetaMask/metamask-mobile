@@ -10,11 +10,11 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import ActionModal from '../../../../../UI/ActionModal';
 import { strings } from '../../../../../../../locales/i18n';
 import { CLEAR_PRIVACY_SECTION } from '../../SecuritySettings.constants';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import { ClearPrivacyModalSelectorsIDs } from './ClearPrivacyModal.testIds';
@@ -71,13 +71,14 @@ const ClearPrivacy = () => {
       </Text>
       <View style={styles.accessory}>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           testID={SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('app_settings.clear_privacy_title')}
+          isFullWidth
           onPress={() => setModalVisible(true)}
-        />
+        >
+          {strings('app_settings.clear_privacy_title')}
+        </Button>
       </View>
       {approvalModal()}
     </View>

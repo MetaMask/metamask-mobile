@@ -1,7 +1,7 @@
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { SmokeCard } from '../../../e2e/tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeCard } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
@@ -9,7 +9,7 @@ import {
   EventPayload,
   getEventsPayloads,
 } from '../../helpers/analytics/helpers';
-import CardHomeView from '../../../e2e/pages/Card/CardHomeView';
+import CardHomeView from '../../page-objects/Card/CardHomeView';
 import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
@@ -21,7 +21,7 @@ describe(SmokeCard('Card NavBar Button'), () => {
       {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
-          .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withNetworkController(CustomNetworks.Tenderly.Linea.providerConfig)
           .withAccountTreeController()
           .withTokens(
             [
@@ -52,6 +52,7 @@ describe(SmokeCard('Card NavBar Button'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+    eventsToCheck.length = 0;
   });
 
   it('opens Card Home when pressing card navbar button', async () => {
@@ -63,6 +64,12 @@ describe(SmokeCard('Card NavBar Button'), () => {
   });
 
   it('should validate segment/metametric event when opening Card Home', async () => {
+    await setupCardTest(async () => {
+      await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+      await WalletView.tapNavbarCardButton();
+      await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
+    });
+
     const expectedEvents = {
       CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',

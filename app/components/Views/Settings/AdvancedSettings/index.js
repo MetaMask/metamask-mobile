@@ -11,7 +11,6 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import Engine from '../../../../core/Engine';
 import { baseStyles } from '../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowFiatOnTestnets,
   setShowHexData,
@@ -22,7 +21,6 @@ import { mockTheme, ThemeContext, useTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDismissSmartAccountSuggestionEnabled,
-  selectSmartAccountOptIn,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
@@ -41,11 +39,13 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -221,10 +221,6 @@ class AdvancedSettings extends PureComponent {
      */
     route: PropTypes.object,
     /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
-    /**
      * Boolean that checks if smart transactions is enabled
      */
     smartTransactionsOptInStatus: PropTypes.bool,
@@ -232,10 +228,6 @@ class AdvancedSettings extends PureComponent {
      * Boolean to disable smart account upgrade prompts
      */
     dismissSmartAccountSuggestionEnabled: PropTypes.bool,
-    /**
-     * Boolean for user to opt-in for smart account upgrade
-     */
-    smartAccountOptIn: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -251,22 +243,7 @@ class AdvancedSettings extends PureComponent {
     return { styles, colors };
   };
 
-  updateNavBar = () => {
-    const { navigation, route } = this.props;
-    const { colors } = this.getStyles();
-    const isFullScreenModal = route?.params?.isFullScreenModal || false;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.advanced_title'),
-        navigation,
-        isFullScreenModal,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount = async () => {
-    this.updateNavBar();
     this.mounted = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
     this.state.inputWidth &&
@@ -276,10 +253,6 @@ class AdvancedSettings extends PureComponent {
 
     this.props.route?.params?.scrollToBottom &&
       this.scrollView?.current?.scrollToEnd({ animated: true });
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   componentWillUnmount = () => {
@@ -305,9 +278,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   trackMetricsEvent = (event, properties) => {
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(event)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
         .addProperties({
           location: 'Advanced Settings',
           ...properties,
@@ -324,15 +296,6 @@ class AdvancedSettings extends PureComponent {
 
     this.trackMetricsEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
       stx_opt_in: smartTransactionsOptInStatus,
-    });
-  };
-
-  toggleSmartAccountOptIn = (smartAccountOptIn) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setSmartAccountOptIn(smartAccountOptIn);
-
-    this.trackMetricsEvent(MetaMetricsEvents.SMART_ACCOUNT_OPT_IN, {
-      smart_account_opt_in: smartAccountOptIn,
     });
   };
 
@@ -357,17 +320,12 @@ class AdvancedSettings extends PureComponent {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
-  openLinkAboutSmartAccount = () => {
-    Linking.openURL(AppConstants.URLS.SMART_ACCOUNTS);
-  };
-
   render = () => {
     const {
       showHexData,
       showFiatOnTestnets,
       setShowHexData,
       setShowFiatOnTestnets,
-      smartAccountOptIn,
       smartTransactionsOptInStatus,
       dismissSmartAccountSuggestionEnabled,
     } = this.props;
@@ -376,6 +334,11 @@ class AdvancedSettings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
+        <HeaderCompactStandard
+          title={strings('app_settings.advanced_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
@@ -413,34 +376,16 @@ class AdvancedSettings extends PureComponent {
             </View>
 
             <SettingsRow
-              heading={strings('app_settings.use_smart_account_heading')}
-              description={
-                <>
-                  {strings('app_settings.use_smart_account_desc')}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    link
-                    onPress={this.openLinkAboutSmartAccount}
-                  >
-                    {strings('app_settings.use_smart_account_learn_more')}
-                  </Text>
-                </>
-              }
-              value={smartAccountOptIn}
-              onValueChange={this.toggleSmartAccountOptIn}
-              testId={AdvancedViewSelectorsIDs.SMART_ACCOUNT_OPT_IN}
-              styles={styles}
-            />
-
-            <SettingsRow
               heading={strings(
-                'app_settings.dismiss_smart_account_update_heading',
+                'app_settings.smart_account_dapp_requests_heading',
               )}
               description={strings(
-                'app_settings.dismiss_smart_account_update_desc',
+                'app_settings.smart_account_dapp_requests_desc',
               )}
-              value={dismissSmartAccountSuggestionEnabled}
-              onValueChange={this.toggleDismissSmartAccountSuggestionEnabled}
+              value={!dismissSmartAccountSuggestionEnabled}
+              onValueChange={(val) =>
+                this.toggleDismissSmartAccountSuggestionEnabled(!val)
+              }
               testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
               styles={styles}
             />
@@ -538,7 +483,6 @@ const mapStateToProps = (state) => ({
   ),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
-  smartAccountOptIn: selectSmartAccountOptIn(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -547,7 +491,4 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setShowFiatOnTestnets(showFiatOnTestnets)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(AdvancedSettings));
+export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSettings);

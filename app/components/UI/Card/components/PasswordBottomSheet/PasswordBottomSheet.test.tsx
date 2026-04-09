@@ -19,20 +19,12 @@ jest.mock('../../../../../core/Authentication/hooks/useAuthentication', () =>
   jest.fn(),
 );
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      text: {
-        muted: '#999999',
-        default: '#000000',
-        alternative: '#666666',
-      },
-      error: {
-        default: '#FF0000',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
@@ -106,13 +98,32 @@ describe('PasswordBottomSheet', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays title and description text', () => {
+  it('displays title and default description text', () => {
     const { getByText } = setupComponent();
 
     expect(getByText('Enter password')).toBeTruthy();
     expect(
       getByText('Enter your wallet password to view card details.'),
     ).toBeTruthy();
+  });
+
+  it('displays custom description when provided', () => {
+    mockUseParams.mockReturnValue({
+      onSuccess: mockOnSuccess,
+      description: 'Enter your wallet password to unfreeze your card.',
+    });
+
+    const { getByText, queryByText } = renderWithProvider(() => (
+      <PasswordBottomSheet />
+    ));
+
+    expect(getByText('Enter password')).toBeTruthy();
+    expect(
+      getByText('Enter your wallet password to unfreeze your card.'),
+    ).toBeTruthy();
+    expect(
+      queryByText('Enter your wallet password to view card details.'),
+    ).toBeNull();
   });
 
   it('displays password input field', () => {

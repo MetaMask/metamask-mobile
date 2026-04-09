@@ -10,19 +10,19 @@ import {
   OnChainRawNotificationsWithNetworkFields,
   TRIGGER_TYPES,
   INotification,
+  BlockExplorer,
+  NetworkMetadata,
 } from '@metamask/notification-services-controller/notification-services';
-import {
-  NOTIFICATION_CHAINS_ID,
-  NOTIFICATION_NETWORK_CURRENCY_NAME,
-  NOTIFICATION_NETWORK_CURRENCY_SYMBOL,
-  SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS,
-} from '@metamask/notification-services-controller/notification-services/ui';
 import Engine from '../../../core/Engine';
-import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
+import {
+  decimalToHex,
+  hexWEIToDecETH,
+  hexWEIToDecGWEI,
+} from '../../conversions';
 import { calcTokenAmount } from '../../transactions';
-import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
 import { ImageSourcePropType } from 'react-native';
+import { getNetworkImageSource } from '../../networks';
 
 /**
  * Checks if 2 date objects are on the same day
@@ -345,65 +345,37 @@ export const sortNotifications = (
   );
 };
 
-type KnownChainIds =
-  | (typeof NOTIFICATION_CHAINS_ID)[keyof typeof NOTIFICATION_CHAINS_ID]
-  | '8453';
-
-const imageMap = {
-  [NOTIFICATION_CHAINS_ID.ETHEREUM]: images.ETHEREUM,
-  [NOTIFICATION_CHAINS_ID.LINEA]: images['LINEA-MAINNET'],
-  [NOTIFICATION_CHAINS_ID.ARBITRUM]: images.AETH,
-  [NOTIFICATION_CHAINS_ID.OPTIMISM]: images.OPTIMISM,
-  [NOTIFICATION_CHAINS_ID.BSC]: images.BNB,
-  [NOTIFICATION_CHAINS_ID.AVALANCHE]: images.AVAX,
-  [NOTIFICATION_CHAINS_ID.POLYGON]: images.POL,
-  [NOTIFICATION_CHAINS_ID.SEI]: images.SEI,
-  '8453': images.BASE,
-} satisfies Record<KnownChainIds, ImageSourcePropType | undefined>;
-
 /**
- * Gets token information for the notification chains we support.
- * @param chainId Notification Chain Id. This is a subset of chains that support notifications
- * @returns native token details for a given chain
+ * Gets the network image for a given chain ID.
+ *
+ * @param chainId - The chain ID of the network.
+ * @returns The image source of the network.
  */
-export function getNativeTokenDetailsByChainId(chainId: number) {
-  const chainIdString = chainId.toString();
-  const knownChainIds: KnownChainIds[] = [
-    ...Object.values(NOTIFICATION_CHAINS_ID),
-    '8453',
-  ];
-
-  if (knownChainIds.includes(chainIdString as KnownChainIds)) {
-    const knownChainId = chainIdString as KnownChainIds;
-    const NAMES = { ...NOTIFICATION_NETWORK_CURRENCY_NAME, '8453': 'Base' };
-    const SYMBOLS = { ...NOTIFICATION_NETWORK_CURRENCY_SYMBOL, '8453': 'ETH' };
-    return {
-      name: NAMES[knownChainId],
-      symbol: SYMBOLS[knownChainId],
-      image: imageMap[knownChainId],
-    };
-  }
-
-  return undefined;
+export function getNetworkImageByChainId(chainId: number): ImageSourcePropType {
+  const hexChainId = `0x${decimalToHex(chainId)}`;
+  return getNetworkImageSource({ chainId: hexChainId });
 }
 
-const isSupportedBlockExplorer = (
-  chainId: string,
-): chainId is keyof typeof SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS =>
-  chainId in SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS;
-
 /**
- * Gets block explorer information for the notification chains we support
- * @param chainId Notification Chain Id. This is a subset of chains that support notifications
- * @returns some default block explorers for the chains we support.
+ * Gets the network details from the notification payload.
+ *
+ * @param network - The network metadata from the notification payload.
+ * @returns The network details.
  */
-export function getBlockExplorerByChainId(chainId: number) {
-  const chainIdKey = String(chainId);
-  if (isSupportedBlockExplorer(chainIdKey)) {
-    return SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS[chainIdKey].url;
-  }
-
-  return undefined;
+export function getNetworkDetailsFromNotifPayload(
+  network: NetworkMetadata | undefined,
+): {
+  networkName: NetworkMetadata['name'];
+  nativeCurrencySymbol: NetworkMetadata['native_symbol'];
+  blockExplorerUrl: BlockExplorer['url'];
+  blockExplorerName: BlockExplorer['name'];
+} {
+  return {
+    networkName: network?.name ?? '',
+    nativeCurrencySymbol: network?.native_symbol ?? '',
+    blockExplorerUrl: network?.block_explorer?.url ?? '',
+    blockExplorerName: network?.block_explorer?.name ?? '',
+  };
 }
 
 /**

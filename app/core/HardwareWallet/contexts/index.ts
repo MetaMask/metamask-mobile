@@ -1,0 +1,5 @@
+/**
+ * Single hardware wallet context: config, state, and actions.
+ */
+
+export { useHardwareWallet } from './HardwareWalletContext';

@@ -234,7 +234,6 @@ function TransactionNotification(props) {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
       } = props;
 
       const [transactionElement, transactionDetails] = await decodeTransaction({
@@ -251,7 +250,6 @@ function TransactionNotification(props) {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
       });
       const existingGasPrice = new BigNumber(tx?.txParams?.gasPrice || '0x0');
       const gasFeeValue = fastSplit(
@@ -377,7 +375,6 @@ TransactionNotification.propTypes = {
   animatedTimingStart: PropTypes.func,
   currentNotification: PropTypes.object,
   swapsTransactions: PropTypes.object,
-  swapsTokens: PropTypes.array,
   /**
    * Map of accounts to information objects including balances
    */
@@ -437,11 +434,8 @@ TransactionNotification.propTypes = {
 const mapStateToProps = (state, ownProps) => {
   const chainId = selectChainId(state);
 
-  const {
-    SmartTransactionsController,
-    TransactionController,
-    SwapsController,
-  } = state.engine.backgroundState;
+  const { SmartTransactionsController, TransactionController } =
+    state.engine.backgroundState;
 
   const smartTransactions =
     SmartTransactionsController?.smartTransactionsState?.smartTransactions?.[
@@ -466,7 +460,6 @@ const mapStateToProps = (state, ownProps) => {
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,
     swapsTransactions: TransactionController.swapsTransactions || {},
-    swapsTokens: SwapsController.tokens,
     smartTransactions,
   };
 };

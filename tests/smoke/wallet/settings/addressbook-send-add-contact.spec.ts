@@ -1,9 +1,9 @@
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import ContactsView from '../../../../e2e/pages/Settings/Contacts/ContactsView';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { RegressionWalletPlatform } from '../../../tags';
+import WalletView from '../../../page-objects/wallet/WalletView';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
+import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
+import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../framework/Assertions';
@@ -18,12 +18,12 @@ import {
   SEND_ETH_SIMULATION_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import AddContactView from '../../../../e2e/pages/Settings/Contacts/AddContactView';
-import DeleteContactBottomSheet from '../../../../e2e/pages/Settings/Contacts/DeleteContactBottomSheet';
+import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
+import DeleteContactBottomSheet from '../../../page-objects/Settings/Contacts/DeleteContactBottomSheet';
 import { LocalNode } from '../../../framework/types';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../seeder/anvil-manager';
-import RedesignedSendView from '../../../../e2e/pages/Send/RedesignedSendView';
+import RedesignedSendView from '../../../page-objects/Send/RedesignedSendView';
 
 const TEST_CONTACT = {
   address: '0x90aF68e1ec406e77C2EA0E4e6EAc9475062d6456',
@@ -82,13 +82,11 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withNetworkEnabledMap({
               eip155: { '0x539': true },
@@ -101,8 +99,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
         await AddContactView.typeInName(TEST_CONTACT.name);
@@ -136,8 +134,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
         // should remove a contact
         // Tap on Moon address
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.tapOnAlias(TEST_CONTACT.editedName);
 
         // Tap on edit
@@ -147,8 +145,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
           DeleteContactBottomSheet.title,
         );
         await DeleteContactBottomSheet.tapDeleteButton();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapContacts();
         await ContactsView.expectContactIsNotVisible(TEST_CONTACT.editedName);
       },
     );

@@ -1,8 +1,10 @@
-import { AbstractExecutionService } from '@metamask/snaps-controllers';
-// eslint-disable-next-line import/no-nodejs-modules
+import {
+  ExecutionService,
+  ExecutionServiceMessenger,
+} from '@metamask/snaps-controllers';
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import { ControllerInitFunction } from '../../types';
-import { ExecutionServiceMessenger } from '../../messengers/snaps';
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
@@ -18,7 +20,7 @@ import { SnapId } from '@metamask/snaps-sdk';
  * @returns The initialized controller.
  */
 export const executionServiceInit: ControllerInitFunction<
-  AbstractExecutionService<unknown>,
+  ExecutionService,
   ExecutionServiceMessenger
 > = ({ controllerMessenger }) => {
   /**
@@ -47,15 +49,11 @@ export const executionServiceInit: ControllerInitFunction<
           navigation: null,
           title: { current: 'Snap' },
           icon: { current: undefined },
-          isHomepage: () => false,
-          fromHomepage: { current: false },
-          toggleUrlModal: () => null,
           tabId: false,
           isWalletConnect: false,
           isMMSDK: false,
           url: { current: '' },
           analytics: {},
-          injectHomePageScripts: () => null,
         }),
     });
 

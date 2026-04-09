@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
-import type { PerpsMarketData } from '../../controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 
 const { TouchableOpacity } = jest.requireActual('react-native');
@@ -11,13 +11,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
     const actualStyleSheet = jest.requireActual(
       './PerpsMarketRowItem.styles',
     ).default;
-    const mockTheme = {
-      colors: {
-        background: { default: '#FFFFFF', muted: '#F2F4F6' },
-        text: { default: '#24272A', muted: '#6A737D' },
-      },
-    };
-    return { styles: actualStyleSheet({ theme: mockTheme }) };
+    return { styles: actualStyleSheet({ vars: { compact: false } }) };
   }),
 }));
 

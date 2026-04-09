@@ -3,6 +3,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import {
   Encryptor,
   ENCRYPTION_LIBRARY,
@@ -10,7 +11,6 @@ import {
 } from '../../../core/Encryptor';
 import { useTheme } from '../../../util/theme';
 
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 
 import TestForm from './Form';
@@ -20,6 +20,9 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
+  aesCryptoFormSafeArea,
+  aesCryptoFormHeader,
+  aesCryptoFormHeaderBackButton,
   accountAddress,
   responseText,
 } from './AesCrypto.testIds';
@@ -53,18 +56,6 @@ const AesCryptoTestForm = () => {
     });
     setEncryptor(encryptorInstance);
   }, []);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.aes_crypto_test_form_title'),
-        navigation,
-        false,
-        colors,
-        null,
-      ),
-    );
-  }, [colors, navigation]);
 
   const generateSalt = useCallback(
     // TODO: Replace "any" with type
@@ -146,7 +137,18 @@ const AesCryptoTestForm = () => {
   );
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={styles.container}
+      testID={aesCryptoFormSafeArea}
+    >
+      <HeaderCompactStandard
+        title={strings('app_settings.aes_crypto_test_form_title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+        testID={aesCryptoFormHeader}
+        backButtonProps={{ testID: aesCryptoFormHeaderBackButton }}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         testID={aesCryptoFormScrollIdentifier}

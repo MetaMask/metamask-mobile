@@ -1,0 +1,863 @@
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ScrollView,
+  Linking,
+  Pressable,
+  Animated,
+  Image,
+  useColorScheme,
+} from 'react-native';
+import Video from 'react-native-video';
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-insights-background-light-last-frame.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
+import {
+  Box,
+  Text,
+  TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  BoxFlexDirection,
+  BoxAlignItems,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useMarketInsights } from '../../hooks/useMarketInsights';
+import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
+import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
+import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
+import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import { isSafeUrl } from '../../utils/marketInsightsFormatting';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../../Bridge/hooks/useSwapBridgeNavigation';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import type {
+  MarketInsightsTweet,
+  MarketInsightsTrend,
+} from '@metamask/ai-controllers';
+import {
+  selectMarketInsightsEnabled,
+  selectMarketInsightsPerpsEnabled,
+} from '../../../../../selectors/featureFlagController/marketInsights';
+import { endTrace, TraceName } from '../../../../../util/trace';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
+import MarketInsightsViewHeader from './MarketInsightsViewHeader';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
+import { useAppThemeFromContext } from '../../../../../util/theme';
+import MarketInsightsFeedbackBottomSheet, {
+  MarketInsightsFeedbackReason,
+} from '../../components/MarketInsightsFeedbackBottomSheet';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
+import { getDecimalChainId } from '../../../../../util/networks';
+
+const feedbackByDigest = new Map<string, 'up' | 'down'>();
+
+export function resetFeedbackCache() {
+  feedbackByDigest.clear();
+}
+
+const LOADING_SKELETON_DELAY_MS = 150;
+const SECTION_ANIMATION_DURATION_MS = 300;
+const SECTION_VERTICAL_OFFSET = 25;
+const SECTION_ANIMATION_DELAYS_MS = {
+  topArticle: 50,
+  closerLook: 130,
+  whatsBeingSaid: 210,
+};
+interface AnimatedSectionProps {
+  children: React.ReactNode;
+  delay?: number;
+}
+
+const AnimatedSection: React.FC<AnimatedSectionProps> = ({
+  children,
+  delay = 0,
+}) => {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(
+    new Animated.Value(SECTION_VERTICAL_OFFSET),
+  ).current;
+
+  useEffect(() => {
+    opacity.setValue(0);
+    translateY.setValue(SECTION_VERTICAL_OFFSET);
+
+    const animation = Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: SECTION_ANIMATION_DURATION_MS,
+        delay,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: SECTION_ANIMATION_DURATION_MS,
+        delay,
+        useNativeDriver: true,
+      }),
+    ]);
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
+  }, [delay, opacity, translateY]);
+
+  return (
+    <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+      {children}
+    </Animated.View>
+  );
+};
+
+interface MarketInsightsRouteParams {
+  assetSymbol: string;
+  /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
+  assetIdentifier: string;
+  tokenImageUrl?: string;
+  /** Token address for swap navigation */
+  tokenAddress?: string;
+  /** Token decimals for swap navigation */
+  tokenDecimals?: number;
+  /** Token name for swap navigation */
+  tokenName?: string;
+  /** Token chainId for swap navigation */
+  tokenChainId?: string;
+  /** When true, indicates the view was opened from the Perps market details view */
+  isPerps?: boolean;
+  /** When true, the user has an existing perps position for this asset */
+  hasPerpsPosition?: boolean;
+}
+
+/**
+ * MarketInsightsView is the full-page Market Insights screen.
+ * It displays the AI-generated market report including:
+ * - Headline and summary
+ * - "A closer look" trends section
+ * - Consolidated trends sources pill
+ * - "What's being said" social section
+ * - Feedback row with thumbs actions
+ * - Swap and Buy CTA buttons
+ */
+const MarketInsightsView: React.FC = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const isTokenInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
+  const route =
+    useRoute<RouteProp<{ params: MarketInsightsRouteParams }, 'params'>>();
+  const {
+    assetSymbol,
+    assetIdentifier,
+    tokenImageUrl,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenChainId,
+    isPerps = false,
+    hasPerpsPosition = false,
+  } = route.params;
+
+  const isMarketInsightsEnabled = isPerps
+    ? isPerpsInsightsEnabled
+    : isTokenInsightsEnabled;
+
+  const { report, reportAssetId, isLoading, error } = useMarketInsights(
+    assetIdentifier,
+    isMarketInsightsEnabled,
+  );
+
+  const isDarkMode = useColorScheme() === 'dark';
+  const backgroundVideo = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundVideoDark
+        : MarketInsightsBackgroundVideoLight,
+    [isDarkMode],
+  );
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { toastRef } = useContext(ToastContext);
+  const theme = useAppThemeFromContext();
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [showLastFrame, setShowLastFrame] = useState(false);
+  const lastFrameImage = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundLastFrameDark
+        : MarketInsightsBackgroundLastFrameLight,
+    [isDarkMode],
+  );
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowLastFrame(true);
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const handleVideoEnd = useCallback(() => {
+    setVideoEnded(true);
+  }, []);
+
+  const hasTrackedViewRef = useRef(false);
+  const [selectedTrend, setSelectedTrend] =
+    useState<MarketInsightsTrend | null>(null);
+  const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(false);
+  const loadingSkeletonTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState<'up' | 'down' | null>(
+    null,
+  );
+
+  // Build BridgeToken from route params for swap navigation
+  const sourceToken = useMemo(() => {
+    if (!tokenChainId) return undefined;
+    return {
+      address: tokenAddress ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+      symbol: assetSymbol,
+      name: tokenName,
+      image: tokenImageUrl,
+      decimals: tokenDecimals ?? 18,
+      chainId: tokenChainId as Hex | CaipChainId,
+    };
+  }, [
+    assetSymbol,
+    tokenAddress,
+    tokenDecimals,
+    tokenName,
+    tokenImageUrl,
+    tokenChainId,
+  ]);
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenView,
+    sourcePage: 'MarketInsightsView',
+    sourceToken,
+  });
+
+  // Sends the identifier under the right analytics property name.
+  // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market
+  // (a plain market symbol like "ETH") to keep the two dimensions clean.
+  // digest_id is the UUID from the API envelope, available once the report loads.
+  const assetIdProperty = useMemo(
+    () => ({
+      ...(isPerps
+        ? { perps_market: assetIdentifier }
+        : { caip19: assetIdentifier }),
+      ...(report ? { digest_id: report.digestId } : {}),
+    }),
+    [isPerps, assetIdentifier, report],
+  );
+  const assetSymbolProperty = useMemo(
+    () => (report?.asset ? { asset_symbol: report.asset } : {}),
+    [report?.asset],
+  );
+  const { goToBuy } = useRampNavigation();
+
+  // Collect all tweets from all trends for the "What people are saying" section
+  const allTweets: MarketInsightsTweet[] = useMemo(() => {
+    if (!report) return [];
+    return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
+  }, [report]);
+  const handleBackPress = useCallback(() => {
+    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_CLOSED)
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+      })
+      .build();
+    trackEvent(event);
+    navigation.goBack();
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
+
+  const handleTweetPress = useCallback((url: string) => {
+    if (isSafeUrl(url)) {
+      Linking.openURL(url);
+    }
+  }, []);
+
+  const handleSwapPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'swap',
+      })
+      .build();
+    trackEvent(event);
+    goToSwaps();
+  }, [
+    goToSwaps,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
+
+  const handlePerpsDirectionPress = useCallback(
+    (direction: 'long' | 'short') => {
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties({
+          ...assetIdProperty,
+          ...assetSymbolProperty,
+          interaction_type: direction,
+        })
+        .build();
+      trackEvent(event);
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.ORDER_REDIRECT,
+        params: { direction, asset: assetSymbol },
+      });
+    },
+    [
+      navigation,
+      trackEvent,
+      createEventBuilder,
+      assetIdProperty,
+      assetSymbolProperty,
+      assetSymbol,
+    ],
+  );
+
+  const handleBuyPress = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'buy',
+      })
+      .build();
+    trackEvent(event);
+
+    let assetId: string | undefined;
+    try {
+      if (tokenAddress && isCaipAssetType(tokenAddress)) {
+        assetId = tokenAddress;
+      } else if (tokenChainId && tokenAddress) {
+        assetId = parseRampIntent({
+          chainId: getDecimalChainId(tokenChainId),
+          address: tokenAddress,
+        })?.assetId;
+      }
+    } catch {
+      assetId = undefined;
+    }
+
+    goToBuy({ assetId });
+  }, [
+    goToBuy,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    tokenAddress,
+    tokenChainId,
+  ]);
+
+  const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
+    const hasArticles = trend.articles.length > 0;
+    const hasTweets = (trend.tweets?.length ?? 0) > 0;
+    if (!hasArticles && !hasTweets) {
+      return;
+    }
+    setSelectedTrend(trend);
+  }, []);
+
+  const handleCloseTrendSources = useCallback(() => {
+    setSelectedTrend(null);
+  }, []);
+
+  useEffect(() => {
+    if (loadingSkeletonTimeoutRef.current) {
+      clearTimeout(loadingSkeletonTimeoutRef.current);
+      loadingSkeletonTimeoutRef.current = null;
+    }
+
+    if (isLoading && !report) {
+      loadingSkeletonTimeoutRef.current = setTimeout(() => {
+        setShowLoadingSkeleton(true);
+      }, LOADING_SKELETON_DELAY_MS);
+      return;
+    }
+
+    setShowLoadingSkeleton(false);
+  }, [isLoading, report, error]);
+
+  useEffect(
+    () => () => {
+      if (loadingSkeletonTimeoutRef.current) {
+        clearTimeout(loadingSkeletonTimeoutRef.current);
+      }
+    },
+    [],
+  );
+  const trackMarketInsightsInteraction = useCallback(
+    (
+      interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
+      options?: {
+        source?: string;
+        feedbackReason?: MarketInsightsFeedbackReason;
+        feedbackText?: string;
+      },
+    ) => {
+      const properties = {
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: interactionType,
+        ...(options?.source ? { source: options.source } : {}),
+        ...(options?.feedbackReason
+          ? { feedback_reason: options.feedbackReason }
+          : {}),
+        ...(options?.feedbackText
+          ? { feedback_text: options.feedbackText }
+          : {}),
+      };
+      const event = createEventBuilder(
+        MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+      )
+        .addProperties(properties)
+        .build();
+      trackEvent(event);
+    },
+    [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
+  );
+
+  const showFeedbackSubmittedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.section,
+      labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
+      hasNoTimeout: false,
+    });
+  }, [toastRef, theme.colors.success.default, theme.colors.background.section]);
+
+  useEffect(() => {
+    hasTrackedViewRef.current = false;
+  }, [assetIdentifier]);
+
+  useLayoutEffect(() => {
+    setFeedbackGiven(
+      report?.generatedAt
+        ? (feedbackByDigest.get(report.generatedAt) ?? null)
+        : null,
+    );
+  }, [report?.generatedAt]);
+
+  const handleThumbsUpPress = useCallback(() => {
+    setFeedbackGiven('up');
+    if (report?.generatedAt) {
+      feedbackByDigest.set(report.generatedAt, 'up');
+    }
+    trackMarketInsightsInteraction('thumbs_up');
+    showFeedbackSubmittedToast();
+  }, [
+    trackMarketInsightsInteraction,
+    showFeedbackSubmittedToast,
+    report?.generatedAt,
+  ]);
+
+  const handleThumbsDownPress = useCallback(() => {
+    setIsFeedbackSheetVisible(true);
+  }, []);
+
+  const handleCloseFeedbackSheet = useCallback(() => {
+    setIsFeedbackSheetVisible(false);
+  }, []);
+
+  const handleFeedbackSubmit = useCallback(
+    ({
+      reason,
+      feedbackText,
+    }: {
+      reason: MarketInsightsFeedbackReason;
+      feedbackText?: string;
+    }) => {
+      setFeedbackGiven('down');
+      if (report?.generatedAt) {
+        feedbackByDigest.set(report.generatedAt, 'down');
+      }
+      trackMarketInsightsInteraction('thumbs_down', {
+        feedbackReason: reason,
+        ...(feedbackText ? { feedbackText } : {}),
+      });
+      setIsFeedbackSheetVisible(false);
+      showFeedbackSubmittedToast();
+    },
+    [
+      trackMarketInsightsInteraction,
+      showFeedbackSubmittedToast,
+      report?.generatedAt,
+    ],
+  );
+
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
+      trackMarketInsightsInteraction('source_click', { source: url });
+      setSelectedTrend(null);
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+          fromTrending: true,
+        },
+      });
+    },
+    [trackMarketInsightsInteraction, navigation, setSelectedTrend],
+  );
+
+  useEffect(() => {
+    if (
+      !report ||
+      hasTrackedViewRef.current ||
+      reportAssetId !== assetIdentifier
+    ) {
+      return;
+    }
+
+    endTrace({ name: TraceName.MarketInsightsViewLoad });
+
+    const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+      })
+      .build();
+    trackEvent(event);
+    hasTrackedViewRef.current = true;
+  }, [
+    report,
+    reportAssetId,
+    assetIdProperty,
+    assetSymbolProperty,
+    assetIdentifier,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  if (showLoadingSkeleton && !report && !error) {
+    return (
+      <MarketInsightsViewSkeleton
+        insets={insets}
+        onBackPress={handleBackPress}
+      />
+    );
+  }
+
+  if (!report || error) {
+    return null;
+  }
+
+  return (
+    <Box
+      twClassName="flex-1 bg-default"
+      testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
+    >
+      <Box twClassName={`pt-[${insets.top}px]`}>
+        <MarketInsightsViewHeader onBackPress={handleBackPress} />
+      </Box>
+
+      <ScrollView
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('pb-4')}
+        showsVerticalScrollIndicator={false}
+      >
+        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
+          {showLastFrame && (
+            <Image
+              source={lastFrameImage}
+              style={tw.style('absolute w-full h-full')}
+              resizeMode="cover"
+            />
+          )}
+          {!videoEnded && (
+            <Video
+              source={backgroundVideo}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+              muted
+              paused={false}
+              controls={false}
+              disableFocus
+              ignoreSilentSwitch="obey"
+              mixWithOthers="mix"
+              onEnd={handleVideoEnd}
+              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          )}
+        </Box>
+        <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
+          <Box twClassName="px-4 pt-4 pb-3">
+            <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
+          </Box>
+
+          <Box twClassName="px-4 pb-3">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {report.summary}
+            </Text>
+          </Box>
+        </AnimatedSection>
+
+        <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
+          {/* "A closer look" section */}
+          <Box twClassName="pb-6">
+            {report.trends.map((trend, index) => (
+              <MarketInsightsTrendItem
+                key={`trend-${index}`}
+                trend={trend}
+                onPress={() => handleTrendPress(trend)}
+                testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
+              />
+            ))}
+          </Box>
+        </AnimatedSection>
+
+        {/* "What's being said" section */}
+        {allTweets.length > 0 && (
+          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
+            <Box twClassName="h-4 border-t border-muted" />
+            <Box twClassName="pb-6">
+              <Box twClassName="px-4 py-4">
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('market_insights.whats_being_said')}
+                </Text>
+              </Box>
+
+              <Box twClassName="px-4" gap={3}>
+                {allTweets.map((tweet, index) => (
+                  <MarketInsightsTweetCard
+                    key={`tweet-${index}`}
+                    tweet={tweet}
+                    onPress={() => handleTweetPress(tweet.url)}
+                    testID={`${MarketInsightsSelectorsIDs.TWEET_CARD}-${index}`}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </AnimatedSection>
+        )}
+
+        <Box
+          alignItems={BoxAlignItems.Center}
+          twClassName="border-t border-muted px-4 pt-4"
+          testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
+            <Pressable
+              onPress={handleThumbsUpPress}
+              style={({ pressed }) =>
+                tw.style(
+                  'h-12 w-12 items-center justify-center',
+                  pressed && 'opacity-70',
+                )
+              }
+              testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+            >
+              <Icon
+                name={
+                  feedbackGiven === 'up'
+                    ? IconName.ThumbUpFilled
+                    : IconName.ThumbUp
+                }
+                size={IconSize.Lg}
+                color={
+                  feedbackGiven === 'up'
+                    ? IconColor.IconDefault
+                    : IconColor.IconAlternative
+                }
+              />
+            </Pressable>
+            <Pressable
+              onPress={handleThumbsDownPress}
+              style={({ pressed }) =>
+                tw.style(
+                  'h-12 w-12 items-center justify-center',
+                  pressed && 'opacity-70',
+                )
+              }
+              testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+            >
+              <Icon
+                name={
+                  feedbackGiven === 'down'
+                    ? IconName.ThumbDownFilled
+                    : IconName.ThumbDown
+                }
+                size={IconSize.Lg}
+                color={
+                  feedbackGiven === 'down'
+                    ? IconColor.IconDefault
+                    : IconColor.IconAlternative
+                }
+              />
+            </Pressable>
+          </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="pt-1"
+          >
+            {strings('market_insights.helpful_prompt')}
+          </Text>
+          {isPerps && hasPerpsPosition && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="pt-3"
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
+          )}
+        </Box>
+      </ScrollView>
+
+      {!(isPerps && hasPerpsPosition) && (
+        <Box
+          twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+        >
+          {isPerps ? (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                twClassName="flex-1"
+                onPress={() => handlePerpsDirectionPress('long')}
+                testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
+              >
+                {strings('perps.market.long')}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                twClassName="flex-1"
+                onPress={() => handlePerpsDirectionPress('short')}
+                testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </Button>
+            </Box>
+          ) : (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleSwapPress}
+                  testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+                >
+                  {strings('market_insights.swap_button')}
+                </Button>
+              </Box>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('market_insights.buy_button')}
+                </Button>
+              </Box>
+            </Box>
+          )}
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
+          </Box>
+        </Box>
+      )}
+
+      {selectedTrend ? (
+        <MarketInsightsTrendSourcesBottomSheet
+          isVisible
+          onClose={handleCloseTrendSources}
+          articles={selectedTrend.articles}
+          tweets={selectedTrend.tweets ?? []}
+          onSourcePress={handleSourcePress}
+        />
+      ) : null}
+
+      {isFeedbackSheetVisible ? (
+        <MarketInsightsFeedbackBottomSheet
+          isVisible
+          onClose={handleCloseFeedbackSheet}
+          onSubmit={handleFeedbackSubmit}
+        />
+      ) : null}
+    </Box>
+  );
+};
+
+export default MarketInsightsView;

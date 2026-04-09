@@ -28,6 +28,7 @@ import {
   MATIC_CONTRACTS,
   MIN_COLLATERAL_BALANCE_FOR_CLAIM,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
 } from '../constants';
 import {
   encodeApprove,
@@ -43,15 +44,18 @@ import {
   DOMAIN_SEPARATOR_TYPEHASH,
   MASTER_COPY_ADDRESS,
   outcomeTokenSpenders,
+  PERMIT2_ADDRESS,
   PROXY_CREATION_CODE,
   SAFE_FACTORY_ADDRESS,
   SAFE_FACTORY_NAME,
+  SAFE_MSG_TYPEHASH,
   SAFE_MULTISEND_ADDRESS,
   SAFE_TX_TYPEHASH,
   usdcSpenders,
 } from './constants';
 import {
   OperationType,
+  Permit2FeeAuthorization,
   SafeFeeAuthorization,
   SafeTransaction,
   SplitSignature,
@@ -168,6 +172,18 @@ const getNonce = async ({
   }
 
   return BigInt(res);
+};
+
+/**
+ * Generate a random Permit2 nonce. Uses a random 32-bit value instead of
+ * reading the on-chain nonce bitmap to avoid an RPC round-trip and prevent
+ * nonce collisions on back-to-back orders whose fee collection hasn't
+ * settled on-chain yet.
+ */
+export const getPermit2Nonce = async (): Promise<string> => {
+  const arr = new Uint32Array(1);
+  global.crypto.getRandomValues(arr);
+  return arr[0].toString();
 };
 
 const getTransactionHash = ({
@@ -312,6 +328,91 @@ export const createSafeFeeAuthorization = async ({
   };
 };
 
+export const createPermit2FeeAuthorization = async ({
+  safeAddress,
+  signer,
+  amount,
+  spender,
+}: {
+  safeAddress: Hex;
+  signer: Signer;
+  amount: bigint;
+  spender: string;
+}): Promise<Permit2FeeAuthorization> => {
+  const nonce = await getPermit2Nonce();
+  const deadline = (Math.floor(Date.now() / 1000) + 3600).toString();
+  const token = MATIC_CONTRACTS.collateral;
+
+  const domain = {
+    name: 'Permit2',
+    chainId: POLYGON_MAINNET_CHAIN_ID,
+    verifyingContract: PERMIT2_ADDRESS,
+  };
+  const types = {
+    PermitTransferFrom: [
+      { name: 'permitted', type: 'TokenPermissions' },
+      { name: 'spender', type: 'address' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+    TokenPermissions: [
+      { name: 'token', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+  };
+  const message = {
+    permitted: { token, amount: amount.toString() },
+    spender,
+    nonce,
+    deadline,
+  };
+
+  const { _TypedDataEncoder } = ethers.utils;
+  const permit2Hash = _TypedDataEncoder.hash(domain, types, message);
+
+  const safeDomainSeparator = keccak256(
+    new AbiCoder().encode(
+      ['bytes32', 'uint256', 'address'],
+      [DOMAIN_SEPARATOR_TYPEHASH, POLYGON_MAINNET_CHAIN_ID, safeAddress],
+    ),
+  );
+
+  const encodedPermit2Hash = new AbiCoder().encode(['bytes32'], [permit2Hash]);
+  const safeMessageHash = keccak256(
+    new AbiCoder().encode(
+      ['bytes32', 'bytes32'],
+      [SAFE_MSG_TYPEHASH, keccak256(encodedPermit2Hash)],
+    ),
+  );
+
+  const finalHash = keccak256(
+    solidityPack(
+      ['bytes1', 'bytes1', 'bytes32', 'bytes32'],
+      ['0x19', '0x01', safeDomainSeparator, safeMessageHash],
+    ),
+  ) as Hex;
+
+  const rsvSignature = await signTransactionHash(signer, finalHash);
+  const signature = abiEncodePacked(
+    { type: 'uint256', value: rsvSignature.r },
+    { type: 'uint256', value: rsvSignature.s },
+    { type: 'uint8', value: rsvSignature.v },
+  );
+
+  return {
+    type: 'safe-permit2',
+    authorization: {
+      permit: {
+        permitted: { token, amount: amount.toString() },
+        nonce,
+        deadline,
+      },
+      spender,
+      signature,
+    },
+  };
+};
+
 export const getDeployProxyWalletTypedData = () => {
   const domain = {
     name: SAFE_FACTORY_NAME,
@@ -400,7 +501,7 @@ export const getDeployProxyWalletTransaction = async ({
     const errorContext: LoggerErrorOptions = {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        provider: 'polymarket',
+        provider: POLYMARKET_PROVIDER_ID,
       },
       context: {
         name: 'safeUtils',
@@ -481,10 +582,16 @@ export const aggregateTransaction = (
   return transaction;
 };
 
-export const createAllowancesSafeTransaction = () => {
+export const createAllowancesSafeTransaction = (options?: {
+  extraUsdcSpenders?: string[];
+}) => {
   const safeTxns: SafeTransaction[] = [];
+  const allUsdcSpenders = [
+    ...usdcSpenders,
+    ...(options?.extraUsdcSpenders ?? []),
+  ];
 
-  for (const spender of usdcSpenders) {
+  for (const spender of allUsdcSpenders) {
     safeTxns.push({
       to: MATIC_CONTRACTS.collateral,
       data: encodeApprove({
@@ -575,12 +682,14 @@ export const getSafeTransactionCallData = async ({
 
 export const getProxyWalletAllowancesTransaction = async ({
   signer,
+  extraUsdcSpenders,
 }: {
   signer: Signer;
+  extraUsdcSpenders?: string[];
 }) => {
   try {
     const safeAddress = computeProxyAddress(signer.address);
-    const safeTxn = createAllowancesSafeTransaction();
+    const safeTxn = createAllowancesSafeTransaction({ extraUsdcSpenders });
     const callData = await getSafeTransactionCallData({
       signer,
       safeAddress,
@@ -604,7 +713,7 @@ export const getProxyWalletAllowancesTransaction = async ({
     const errorContext: LoggerErrorOptions = {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        provider: 'polymarket',
+        provider: POLYMARKET_PROVIDER_ID,
       },
       context: {
         name: 'safeUtils',
@@ -623,10 +732,17 @@ export const getProxyWalletAllowancesTransaction = async ({
   }
 };
 
-export const hasAllowances = async ({ address }: { address: string }) => {
+export const hasAllowances = async ({
+  address,
+  extraUsdcSpenders = [],
+}: {
+  address: string;
+  extraUsdcSpenders?: string[];
+}) => {
   const allowanceCalls = [];
   const isApprovedForAllCalls = [];
-  for (const spender of usdcSpenders) {
+  const allUsdcSpenders = [...usdcSpenders, ...extraUsdcSpenders];
+  for (const spender of allUsdcSpenders) {
     allowanceCalls.push(
       getAllowance({
         tokenAddress: MATIC_CONTRACTS.collateral,
@@ -649,6 +765,19 @@ export const hasAllowances = async ({ address }: { address: string }) => {
     allowanceResults.every((allowance) => allowance > 0) &&
     isApprovedForAllResults.every((isApproved) => isApproved)
   );
+};
+
+export const hasPermit2Allowance = async ({
+  address,
+}: {
+  address: string;
+}): Promise<boolean> => {
+  const allowance = await getAllowance({
+    tokenAddress: MATIC_CONTRACTS.collateral,
+    owner: address,
+    spender: PERMIT2_ADDRESS,
+  });
+  return allowance > 0;
 };
 
 export const createClaimSafeTransaction = (

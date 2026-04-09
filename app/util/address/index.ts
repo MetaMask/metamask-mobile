@@ -56,6 +56,7 @@ import type {
   NetworkState,
 } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
 
@@ -331,6 +332,27 @@ export function isEthAddress(address: string): boolean {
 }
 
 /**
+ * Checks whether an address is compatible with a destination chain.
+ * EVM and Solana are strictly validated; unknown namespaces are permissive.
+ *
+ * @param address - Address to validate.
+ * @param chainId - Destination chain ID (hex or CAIP-2).
+ * @returns True when the address is considered valid for the given chain.
+ */
+export function isAddressCompatibleWithChainId(
+  address: string,
+  chainId: string,
+): boolean {
+  if (isSolanaChainId(chainId)) {
+    return isSolanaAddress(address);
+  }
+
+  const isEvmChainId =
+    chainId.startsWith('0x') || chainId.startsWith('eip155:');
+  return isEvmChainId ? isEthAddress(address) : true;
+}
+
+/**
  * gets the internal account by address
  *
  * @param {String} address - String corresponding to an address
@@ -339,10 +361,13 @@ export function isEthAddress(address: string): boolean {
 export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
-  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find((a: InternalAccount) =>
-    areAddressesEqual(a.address, address),
-  );
+  const {
+    internalAccounts: { accounts },
+    accountIdByAddress,
+  } = Engine.context.AccountsController.state;
+  const id =
+    accountIdByAddress[address] ?? accountIdByAddress[address?.toLowerCase()];
+  return id ? accounts[id] : undefined;
 }
 
 /**

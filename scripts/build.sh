@@ -159,23 +159,72 @@ checkParameters(){
 	#TODO: Add check for valid METAMASK_BUILD_TYPE once commands are fully refactored
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration from builds.yml
+# Used when GITHUB_ACTIONS is set (workflow already set secrets; this fills CONFIGURATION, IS_SIM_BUILD, etc.)
+# ─────────────────────────────────────────────────────────────────────────────
+loadBuildConfig() {
+	local build_type="$1"
+	local environment="$2"
+
+	# Normalize environment name (production -> prod for build name)
+	local normalized_env="$environment"
+	case "$environment" in
+		production) normalized_env="prod" ;;
+	esac
+
+	# Construct build name (e.g., main-prod, flask-dev)
+	local build_name="${build_type}-${normalized_env}"
+
+	echo ""
+	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
+	echo ""
+
+	# Load config using apply-build-config.js
+	local config_output
+	config_output=$(node "${__DIRNAME__}/apply-build-config.js" "${build_name}" --export 2>&1)
+	local exit_code=$?
+
+	if [ $exit_code -ne 0 ]; then
+		echo "❌ Failed to load build configuration"
+		echo ""
+		echo "Error: ${config_output}"
+		echo ""
+		echo "Available builds can be found in builds.yml"
+		echo "Run 'node scripts/validate-build-config.js' to check config validity."
+		return 1
+	fi
+
+	# Apply the configuration (exports environment variables)
+	eval "$config_output"
+
+	echo "✅ Configuration loaded from builds.yml"
+	echo "   Build: ${build_name}"
+	echo ""
+
+	return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
+# GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
+# ─────────────────────────────────────────────────────────────────────────────
+# Remap Bitrise-style vars (*_DEV, *_QA, *_PROD) to canonical names. Skip when source is unset
+# (local / builds.yml use canonical names in .js.env; no _DEV/_QA needed).
+# Legacy path (not GHA, not builds.yml): missing source var fails fast. Local: set BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY in .js.env to use builds.yml and skip.
 remapEnvVariable() {
-    # Get the old and new variable names
-    old_var_name=$1
-    new_var_name=$2
-
-    # Check if the old variable exists
-    if [ -z "${!old_var_name}" ]; then
-        echo "Error: $old_var_name does not exist in the environment."
-        return 1
-    fi
-
-    # Remap the variable
-    export $new_var_name="${!old_var_name}"
-
-    unset $old_var_name
-
-    echo "Successfully remapped $old_var_name to $new_var_name."
+	local old_var_name="$1"
+	local new_var_name="$2"
+	if [ -z "${!old_var_name}" ]; then
+		if [ -z "${GITHUB_ACTIONS:-}" ] && [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" != "true" ]; then
+			echo "❌ Required Bitrise secret is missing: $old_var_name"
+			return 1
+		fi
+		return 0
+	fi
+	export $new_var_name="${!old_var_name}"
+	unset $old_var_name
+	echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
 # Mapping for Main env variables in the dev environment
@@ -502,6 +551,14 @@ generateIosBinary() {
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+
+		# Also generate an .ipa to run on devices
+		if [ "$IS_DEVICE_BUILD" = "true" ]; then
+			echo "Binary build type: Device"
+			xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+			echo "Generating ipa for $scheme"
+			xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+		fi
 	else
 		echo "Binary build type: Device"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
@@ -556,8 +613,12 @@ generateAndroidBinary() {
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
-			# Only build for x86_64 for E2E builds
-			reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
+			if [ "${CI:-false}" = "true" ] ; then
+				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
+			else
+				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64,arm64-v8a"
+			fi
 			# Enable verbose logging for E2E builds to help diagnose build failures
 			gradleLoggingFlags="--stacktrace --info"
 		fi
@@ -664,6 +725,11 @@ createEnvFile() {
 		"QUICKNODE_MONAD_URL"
 		"QUICKNODE_OPTIMISM_URL"
 		"QUICKNODE_POLYGON_URL"
+		"QUICKNODE_HYPEREVM_URL"
+		"MM_CHARTING_LIBRARY_URL"
+		"MM_BRAZE_API_KEY_IOS"
+		"MM_BRAZE_API_KEY_ANDROID"
+		"MM_BRAZE_SDK_ENDPOINT"
 	)
 
 	# Create .env file and export to GITHUB_ENV
@@ -935,40 +1001,70 @@ checkParameters "$@"
 
 printTitle
 
-# Map environment variables based on mode.
-# TODO: MODE should be renamed to TARGET
-# Skip environment variable remapping for expo-update platform
+# ─────────────────────────────────────────────────────────────────────────────
+# Load build configuration. Gated by BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:
+#   true  = GHA (set by workflow) and local (set in .js.env) → use builds.yml
+#   false = Bitrise (unset) → skip builds.yml, use legacy remap only
+# Local: .js.env is applied after loadBuildConfig so it overrides (see below).
+# ─────────────────────────────────────────────────────────────────────────────
 if [ "$PLATFORM" != "expo-update" ]; then
+	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 		export GENERATE_BUNDLE=true # Used only for Android
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapMainProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-			remapMainBetaEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
-			remapMainReleaseCandidateEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
-			remapMainExperimentalEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapMainTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapMainE2EEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
-			remapMainDevEnvVariables
+	fi
+
+	# Non-GHA: source .js.env early so BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is set for the gate (local can opt in)
+	if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
+		source "$JS_ENV_FILE"
+	fi
+
+	BUILD_TYPE_FOR_CONFIG=$(echo "$METAMASK_BUILD_TYPE" | tr '[:upper:]' '[:lower:]')
+	if [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" = "true" ]; then
+		# builds.yml path: GHA or local with flag.
+		if ! loadBuildConfig "$BUILD_TYPE_FOR_CONFIG" "$METAMASK_ENVIRONMENT"; then
+			echo "❌ Build configuration failed. Exiting."
+			exit 1
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
-		# TODO: Map environment variables based on environment
-		if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-			remapFlaskProdEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-			remapFlaskTestEnvVariables
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-			remapFlaskE2EEnvVariables
+	else
+		echo "⚠️  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true; skipping builds.yml, using legacy remap / .js.env"
+		echo ""
+	fi
+
+	# Local builds: .js.env overrides builds.yml (takes precedence)
+	if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
+		source "$JS_ENV_FILE"
+	fi
+
+	# Bitrise (or other non-GHA CI): legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+	if [ -z "${GITHUB_ACTIONS:-}" ]; then
+		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+				remapMainProdEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
+				remapMainBetaEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
+				remapMainReleaseCandidateEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
+				remapMainExperimentalEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+				remapMainTestEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+				remapMainE2EEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
+				remapMainDevEnvVariables
+			fi
+		elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
+				remapFlaskProdEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
+				remapFlaskTestEnvVariables
+			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
+				remapFlaskE2EEnvVariables
+			fi
+		elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
+			remapEnvVariableQA
 		fi
-	elif [ "$METAMASK_BUILD_TYPE" == "qa" ] || [ "$METAMASK_BUILD_TYPE" == "QA" ]; then
-		# TODO: Map environment variables based on environment
-		remapEnvVariableQA
 	fi
 fi
 

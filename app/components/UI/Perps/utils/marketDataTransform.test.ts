@@ -8,18 +8,18 @@ import {
   formatChange,
   formatPercentage,
   HyperLiquidMarketData,
-} from './marketDataTransform';
+} from './mobileMarketDataFormatters';
 import {
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from './formatUtils';
-import { HIP3_ASSET_MARKET_TYPES } from '../constants/hyperLiquidConfig';
-import type {
-  AllMidsResponse,
-  PerpsAssetCtx,
-  PredictedFunding,
-} from '../types/hyperliquid-types';
+import {
+  HIP3_ASSET_MARKET_TYPES,
+  type AllMidsResponse,
+  type PerpsAssetCtx,
+  type PredictedFunding,
+} from '@metamask/perps-controller';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -997,11 +997,11 @@ describe('marketDataTransform', () => {
 
     it('handles negative numbers in formatting functions', () => {
       // Arrange & Act & Assert
-      // formatPerpsFiat is not designed for negative values - returns "<$value" with absolute value
-      // Use formatChange() for signed values instead
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $10-$100, trailing zeros removed: 100 → $10 (5 sig figs)
+      // formatPerpsFiat passes negative values through — |−100| = 100 > threshold (10), no < prefix
+      // Use formatChange() for signed display; formatPerpsFiat with negatives returns the raw negative
+      // PRICE_RANGES_UNIVERSAL $10-$100 range: 5 sig figs, max 4 decimals → -100.00 → strip → -$100
       expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
-        '<$10',
+        '-$100',
       );
       expect(formatVolume(-1000000)).toBe('-$1.00M'); // formatVolume handles negatives
     });

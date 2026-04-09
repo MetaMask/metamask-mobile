@@ -18,7 +18,6 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
-import handleDepositCashUrl from './handleDepositCashUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
 import handleBrowserUrl from './handleBrowserUrl';
@@ -27,12 +26,12 @@ import { handlePerpsUrl } from './handlePerpsUrl';
 import { handleRewardsUrl } from './handleRewardsUrl';
 import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
-import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
 import { handleEarnMusd } from './handleEarnMusd';
+import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
@@ -56,6 +55,9 @@ import Logger from '../../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+  MM_UNIVERSAL_LINK_TEST_APP_HOST,
+  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
@@ -66,8 +68,8 @@ const SUPPORTED_ACTIONS = {
   BUY_CRYPTO: ACTIONS.BUY_CRYPTO,
   SELL: ACTIONS.SELL,
   SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
-  DEPOSIT: ACTIONS.DEPOSIT,
   HOME: ACTIONS.HOME,
+  ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
@@ -78,7 +80,6 @@ const SUPPORTED_ACTIONS = {
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
   ONBOARDING: ACTIONS.ONBOARDING,
-  ENABLE_CARD_BUTTON: ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
@@ -99,14 +100,18 @@ type SUPPORTED_ACTIONS =
  * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.WC,
-  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
   SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION,
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.BUY,
+  SUPPORTED_ACTIONS.BUY_CRYPTO,
+  SUPPORTED_ACTIONS.SELL,
+  SUPPORTED_ACTIONS.SELL_CRYPTO,
 ];
 
 /**
@@ -127,6 +132,7 @@ const inAppLinkSources = [
   AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
   AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
   AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+  AppConstants.DEEPLINKS.ORIGIN_BRAZE,
 ] as string[];
 
 /**
@@ -175,19 +181,24 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
+  const action: SUPPORTED_ACTIONS | ACTIONS.OAUTH_REDIRECT =
+    validatedUrl.pathname.split('/')[1] as
+      | SUPPORTED_ACTIONS
+      | ACTIONS.OAUTH_REDIRECT;
+
   // Skip handling deeplinks that do not have a pathname or query
+  // Skip handling oauth-login universal links (it is handled by the OAuthService)
   // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
-  if (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) {
+  if (
+    (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) ||
+    action === ACTIONS.OAUTH_REDIRECT
+  ) {
     handled();
     return;
   }
 
   let isPrivateLink = false;
   let isInvalidLink = false;
-
-  const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
-    '/',
-  )[1] as SUPPORTED_ACTIONS;
 
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (METAMASK_SDK_ACTIONS.includes(action)) {
@@ -209,6 +220,9 @@ async function handleUniversalLink({
 
   const isSupportedDomain =
     urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||
+    urlObj.hostname === MM_UNIVERSAL_LINK_HOST_ALTERNATE ||
+    urlObj.hostname === MM_UNIVERSAL_LINK_TEST_APP_HOST ||
+    urlObj.hostname === MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
@@ -496,24 +510,38 @@ async function handleUniversalLink({
       });
       break;
     }
-    case SUPPORTED_ACTIONS.DEPOSIT:
-      handleDepositCashUrl({
-        depositPath: actionBasedRampPath,
-      });
-      break;
     case SUPPORTED_ACTIONS.HOME:
       navigateToHomeUrl({ homePath: actionBasedRampPath });
       return;
+    case SUPPORTED_ACTIONS.ASSET: {
+      handleAssetUrl({
+        assetPath: actionBasedRampPath,
+      });
+      break;
+    }
     case SUPPORTED_ACTIONS.SWAP:
       handleSwapUrl({
         swapPath: actionBasedRampPath,
       });
       return;
     case SUPPORTED_ACTIONS.DAPP: {
-      const deeplinkUrl = urlObj.href.replace(
-        `${BASE_URL_ACTION}/`,
-        PREFIXES[ACTIONS.DAPP],
-      );
+      // Extract everything after /dapp/ from the URL.
+      // The path can contain either a bare domain (example.com/path)
+      // or a full URL with protocol (https://example.com/path).
+      // When a full URL is embedded, url-parse may normalize the double
+      // slash (https://...app.link/dapp/https://x.com → .../dapp/https:/x.com),
+      // so we check for both http:// and http:/ patterns.
+      const pathAfterAction = urlObj.href.replace(`${BASE_URL_ACTION}/`, '');
+
+      // Guard: no domain was supplied after /dapp/ — nothing to open.
+      if (!pathAfterAction) {
+        return;
+      }
+
+      const hasProtocol = /^https?:\/\/?/.test(pathAfterAction);
+      const deeplinkUrl = hasProtocol
+        ? pathAfterAction.replace(/^(https?:\/)([^/])/, '$1/$2')
+        : `${PREFIXES[ACTIONS.DAPP]}${pathAfterAction}`;
       handleBrowserUrl({
         url: deeplinkUrl,
         callback: browserCallBack,
@@ -582,10 +610,6 @@ async function handleUniversalLink({
       handleFastOnboarding({ onboardingPath: actionBasedRampPath });
       break;
     }
-    case SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON: {
-      handleEnableCardButton();
-      break;
-    }
     case SUPPORTED_ACTIONS.CARD_ONBOARDING: {
       handleCardOnboarding();
       break;
@@ -599,7 +623,9 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.TRENDING: {
-      handleTrendingUrl();
+      handleTrendingUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
     case SUPPORTED_ACTIONS.EARN_MUSD: {

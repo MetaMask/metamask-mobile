@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
 
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useSendMetricsContext } from '../../../context/send-context/send-metrics-context';
 
 export const useRecipientSelectionMetrics = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { accountType, chainId, chainIdCaip } = useSendMetricsContext();
 
   const captureRecipientSelected = useCallback(

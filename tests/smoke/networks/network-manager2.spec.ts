@@ -1,22 +1,31 @@
-import { SmokeNetworkAbstractions } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeNetworkAbstractions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import NetworkManager from '../../../e2e/pages/wallet/NetworkManager';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
 import { DappVariants } from '../../framework/Constants';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import Browser from '../../../e2e/pages/Browser/BrowserView';
-import TestDApp from '../../../e2e/pages/Browser/TestDApp';
-import ConnectedAccountsModal from '../../../e2e/pages/Browser/ConnectedAccountsModal';
-import ConnectBottomSheet from '../../../e2e/pages/Browser/ConnectBottomSheet';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import Browser from '../../page-objects/Browser/BrowserView';
+import TestDApp from '../../page-objects/Browser/TestDApp';
+import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
+import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
 const isMultichainAccountsState2Enabled =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    carouselBanners: false,
+  });
+};
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
@@ -62,6 +71,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
             )
             .build(),
           restartDevice: true,
+          testSpecificMock,
         },
         async () => {
           await loginToApp();
@@ -128,6 +138,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -185,6 +196,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -220,7 +232,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     );
   });
 
-  it.skip('should preserve existing enabled networks when adding a network via dapp', async () => {
+  it('should preserve existing enabled networks when adding a network via dapp', async () => {
     await withFixtures(
       {
         dapps: [
@@ -237,6 +249,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();

@@ -5,5 +5,5 @@ export interface TooltipModalRouteParams {
   tooltip: string | ReactNode;
   footerText?: string;
   buttonText?: string;
-  bottomPadding?: number;
+  onButtonPress?: () => void;
 }

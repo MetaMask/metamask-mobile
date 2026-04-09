@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
-import type { OrderFormState } from '../types/perps-types';
+import {
+  VALIDATION_THRESHOLDS,
+  type OrderFormState,
+} from '@metamask/perps-controller';
 import { usePerpsOrderValidation } from './usePerpsOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
@@ -311,6 +313,113 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toContain('Validation error');
+    });
+  });
+
+  describe('immediate first validation and debounced subsequent validation', () => {
+    it('runs first validation immediately without debounce', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation(defaultParams),
+      );
+
+      // First validation runs immediately (no timer advance needed)
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.isValid).toBe(true);
+    });
+
+    it('debounces subsequent validations after the first immediate one', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+
+      // First validation runs immediately
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      // Change positionSize and assetPrice to trigger the effect's dependency array
+      rerender({
+        ...defaultParams,
+        positionSize: '0.004',
+        assetPrice: 51000,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Validation should not fire yet (debouncing)
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      // Advance timers to fire the debounced callback
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Now the debounced validation should have fired
+      expect(mockValidateOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('cleans up debounce timer on unmount', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender, unmount } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+
+      // First immediate validation
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Change deps to trigger debounced path
+      rerender({
+        ...defaultParams,
+        positionSize: '0.005',
+        assetPrice: 52000,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Unmount before debounce fires - should clean up without error
+      unmount();
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      // Validation should only have been called once (the initial immediate call)
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
     });
   });
 

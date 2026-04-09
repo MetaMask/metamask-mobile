@@ -26,6 +26,7 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 
 export const SUMMARY_SECTION_TYPES = [
+  TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
@@ -41,9 +42,10 @@ export function TransactionDetails() {
   const title = getTitle(transactionMeta);
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(title, navigation, false, colors),
-    );
+    navigation.setOptions({
+      ...getNavigationOptionsTitle(title, navigation, false, colors),
+      headerTintColor: colors.text.default,
+    });
   }, [colors, navigation, theme, title]);
 
   const showSummarySection = hasTransactionType(
@@ -88,9 +90,15 @@ function getTitle(transactionMeta: TransactionMeta) {
     return strings('transaction_details.title.predict_withdraw');
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    return strings('transaction_details.title.perps_withdraw');
+  }
+
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
       return strings('transaction_details.title.musd_conversion');
+    case TransactionType.musdClaim:
+      return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
       return strings('transaction_details.title.perps_deposit');
     default:

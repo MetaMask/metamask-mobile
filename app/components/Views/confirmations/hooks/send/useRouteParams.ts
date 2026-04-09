@@ -22,7 +22,7 @@ const createAssetFromParams = (paramsAsset: AssetType): AssetType => ({
 export const useRouteParams = () => {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const flatAssets = useMemo(() => Object.values(assets).flat(), [assets]);
-  const nfts = useEVMNfts();
+  const { nfts, isLoading: isNftsLoading } = useEVMNfts();
 
   const { asset: paramsAsset } = useParams<{
     asset: AssetType;
@@ -49,9 +49,10 @@ export const useRouteParams = () => {
 
       if (!filteredAsset && nfts.length) {
         filteredAsset = nfts.find(
-          ({ address, chainId }) =>
+          ({ address, chainId, tokenId }) =>
             address === paramsAsset.address &&
-            chainId?.toLowerCase() === paramChainId,
+            chainId?.toLowerCase() === paramChainId &&
+            tokenId === paramsAsset.tokenId,
         );
       }
 
@@ -66,4 +67,10 @@ export const useRouteParams = () => {
       }
     }
   }, [asset, paramsAsset, nfts, flatAssets, updateAsset]);
+
+  // True while NFT processing is in progress and the asset hasn't been
+  // resolved into the send context yet (i.e. navigated from NftDetails).
+  const isLoading = Boolean(paramsAsset?.tokenId && isNftsLoading && !asset);
+
+  return { isLoading };
 };

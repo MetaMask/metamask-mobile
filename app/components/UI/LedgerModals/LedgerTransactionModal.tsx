@@ -1,15 +1,12 @@
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import { createStyles } from './styles';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -28,6 +25,9 @@ export interface ReplacementTxParams {
     maxFeePerGas?: string;
     maxPriorityFeePerGas?: string;
   };
+  legacyGasFee?: {
+    gasPrice?: string;
+  };
 }
 
 export interface LedgerTransactionModalParams {
@@ -38,9 +38,7 @@ export interface LedgerTransactionModalParams {
 }
 
 const LedgerTransactionModal = () => {
-  const modalRef = useRef<ReusableModalRef | null>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const navigation = useNavigation();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { TransactionController, ApprovalController } = Engine.context as any;
@@ -48,44 +46,55 @@ const LedgerTransactionModal = () => {
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
     useParams<LedgerTransactionModalParams>();
 
-  const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
+  const hasNavigatedRef = useRef(false);
+  const goBack = useCallback(() => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
+    const gasFeeParams =
+      replacementParams?.legacyGasFee ?? replacementParams?.eip1559GasFee;
+
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       //@ts-expect-error Will defer this typescript issue to the hardware wallet team, confirmations or transactions team
-      await speedUpTransaction(transactionId, replacementParams.eip1559GasFee);
+      await speedUpTransaction(transactionId, gasFeeParams);
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
-      await TransactionController.stopTransaction(
-        transactionId,
-        replacementParams.eip1559GasFee,
-      );
+      await TransactionController.stopTransaction(transactionId, gasFeeParams);
     } else {
       // This requires the user to confirm on the ledger device
-      await ApprovalController.accept(transactionId, undefined, {
+      await ApprovalController.acceptRequest(transactionId, undefined, {
         waitForResult: true,
       });
     }
 
     onConfirmationComplete(true);
-    dismissModal();
+    goBack();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onConfirmationComplete, dismissModal]);
+  }, [onConfirmationComplete, goBack]);
 
   const onRejection = useCallback(() => {
+    try {
+      Engine.rejectPendingApproval(
+        transactionId,
+        new Error('User rejected the transaction'),
+      );
+    } catch {
+      // no-op: approval may already be consumed
+    }
     onConfirmationComplete(false);
-    dismissModal();
-  }, [onConfirmationComplete, dismissModal]);
+    goBack();
+  }, [transactionId, onConfirmationComplete, goBack]);
 
   return (
-    <ReusableModal ref={modalRef} style={styles.modal}>
-      <View style={styles.contentWrapper}>
-        <LedgerConfirmationModal
-          onConfirmation={executeOnLedger}
-          onRejection={onRejection}
-          deviceId={deviceId}
-        />
-      </View>
-    </ReusableModal>
+    <LedgerConfirmationModal
+      onConfirmation={executeOnLedger}
+      onRejection={onRejection}
+      deviceId={deviceId}
+    />
   );
 };
 

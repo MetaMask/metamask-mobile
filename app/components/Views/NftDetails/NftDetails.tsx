@@ -15,7 +15,7 @@ import styleSheet from './NftDetails.styles';
 import Routes from '../../../constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
 import { ScrollView } from 'react-native-gesture-handler';
-import StyledButton from '../../../components/UI/StyledButton';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
 import { renderShortAddress } from '../../../util/address';
@@ -42,14 +42,11 @@ import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/Cont
 import BigNumber from 'bignumber.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
-import Engine from '../../../core/Engine';
-import { toHex } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
@@ -60,7 +57,7 @@ const NftDetails = () => {
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectEvmTicker);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
@@ -170,31 +167,17 @@ const NftDetails = () => {
     return Math.floor(date.getTime() / 1000);
   };
 
-  const onSend = useCallback(async () => {
-    const chainIdHex = toHex(collectible?.chainId as number) as Hex;
-    if (chainIdHex !== chainId) {
-      const { NetworkController, MultichainNetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(chainIdHex);
-
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      await MultichainNetworkController.setActiveNetwork(
-        networkClientId as string,
-      );
-    }
+  const onSend = useCallback(() => {
     navigateToSendPage({
       location: InitSendLocation.NftDetails,
       asset: collectible,
     });
-  }, [collectible, chainId, navigateToSendPage]);
+  }, [collectible, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>
-      collectible.standard === 'ERC721' &&
+      (collectible.standard === 'ERC721' ||
+        collectible.standard === 'ERC1155') &&
       collectible.isCurrentlyOwned === true,
     [collectible],
   );
@@ -665,14 +648,13 @@ const NftDetails = () => {
 
       {isTradable() ? (
         <View style={styles.buttonSendWrapper}>
-          <StyledButton
-            type={'confirm'}
-            containerStyle={styles.buttonSend}
+          <Button
+            variant={ButtonVariant.Primary}
+            twClassName="flex-1"
             onPress={onSend}
-            disabled={false} // TODO check why ERC1155 is still disabled on mobile
           >
             {strings('transaction.send')}
-          </StyledButton>
+          </Button>
         </View>
       ) : null}
     </SafeAreaView>

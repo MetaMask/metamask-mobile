@@ -1,24 +1,9 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
-  type MockAnyNamespace,
-} from '@metamask/messenger';
-import { TokenDetectionControllerMessenger } from '@metamask/assets-controllers';
+import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
 import {
   getTokenDetectionControllerMessenger,
   getTokenDetectionControllerInitMessenger,
-  TokenDetectionControllerInitMessenger,
 } from './token-detection-controller-messenger';
-
-type RootMessenger = Messenger<
-  MockAnyNamespace,
-  | MessengerActions<TokenDetectionControllerMessenger>
-  | MessengerActions<TokenDetectionControllerInitMessenger>,
-  | MessengerEvents<TokenDetectionControllerMessenger>
-  | MessengerEvents<TokenDetectionControllerInitMessenger>
->;
+import { RootMessenger } from '../types';
 
 const getRootMessenger = (): RootMessenger =>
   new Messenger({

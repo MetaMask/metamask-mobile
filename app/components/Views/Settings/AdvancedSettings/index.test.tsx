@@ -13,13 +13,18 @@ const originalFetch = global.fetch;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let initialState: any;
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockDismissSmartAccountSuggestionEnabled: jest.Mock<any, any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockSmartAccountOptIn: jest.Mock<any, any>;
+
+const defaultNavigation = {
+  navigate: mockNavigate,
+  goBack: mockGoBack,
+  setOptions: jest.fn(),
+};
 
 beforeEach(() => {
   initialState = {
@@ -29,6 +34,7 @@ beforeEach(() => {
     },
   };
   mockNavigate.mockClear();
+  mockGoBack.mockClear();
   mockSetSmartTransactionsOptInStatus.mockClear();
 });
 
@@ -50,7 +56,6 @@ const mockEngine = Engine;
 jest.mock('../../../../core/Engine', () => {
   mockSetSmartTransactionsOptInStatus = jest.fn();
   mockDismissSmartAccountSuggestionEnabled = jest.fn();
-  mockSmartAccountOptIn = jest.fn();
   return {
     init: () => mockEngine.init(''),
     context: {
@@ -58,7 +63,6 @@ jest.mock('../../../../core/Engine', () => {
         setSmartTransactionsOptInStatus: mockSetSmartTransactionsOptInStatus,
         setDismissSmartAccountSuggestionEnabled:
           mockDismissSmartAccountSuggestionEnabled,
-        setSmartAccountOptIn: mockSmartAccountOptIn,
       },
     },
   };
@@ -67,14 +71,33 @@ jest.mock('../../../../core/Engine', () => {
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
     const container = renderWithProvider(
-      <AdvancedSettings
-        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-      />,
+      <AdvancedSettings navigation={defaultNavigation} />,
       {
         state: initialState,
       },
     );
     expect(container).toMatchSnapshot();
+  });
+
+  it('renders header with correct title', () => {
+    const { getByText } = renderWithProvider(
+      <AdvancedSettings navigation={defaultNavigation} />,
+      { state: initialState },
+    );
+
+    expect(getByText(strings('app_settings.advanced_title'))).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedSettings navigation={defaultNavigation} />,
+      { state: initialState },
+    );
+    const backButton = getByTestId('button-icon');
+
+    fireEvent.press(backButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   describe('Smart Transactions Opt In', () => {
@@ -85,65 +108,42 @@ describe('AdvancedSettings', () => {
     Device.isIos = jest.fn().mockReturnValue(true);
     Device.isAndroid = jest.fn().mockReturnValue(false);
 
-    it('should render option to dismiss smart account upgrade', async () => {
+    it('should render smart account dapp requests toggle on by default', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },
       );
 
       const switchElement = await findByLabelText(
-        strings('app_settings.dismiss_smart_account_update_heading'),
+        strings('app_settings.smart_account_dapp_requests_heading'),
       );
-      expect(switchElement.props.value).toBe(false);
+      expect(switchElement.props.value).toBe(true);
     });
 
-    it('should update dismissSmartAccountSuggestionEnabled when dismiss smart account upgrade is pressed', async () => {
+    it('should set dismissSmartAccountSuggestionEnabled to true when smart account dapp requests toggle is turned off', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },
       );
 
       const switchElement = await findByLabelText(
-        strings('app_settings.dismiss_smart_account_update_heading'),
+        strings('app_settings.smart_account_dapp_requests_heading'),
       );
 
       fireEvent(switchElement, 'onValueChange', false);
 
-      expect(mockDismissSmartAccountSuggestionEnabled).toHaveBeenCalled();
-    });
-
-    it('should update smartAccountOptIn when dismiss upgrade opt in pressed', async () => {
-      const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
-        {
-          state: initialState,
-        },
+      expect(mockDismissSmartAccountSuggestionEnabled).toHaveBeenCalledWith(
+        true,
       );
-
-      const switchElement = await findByLabelText(
-        strings('app_settings.use_smart_account_heading'),
-      );
-
-      fireEvent(switchElement, 'onValueChange', false);
-
-      expect(mockSmartAccountOptIn).toHaveBeenCalled();
     });
 
     it('should render smart transactions opt in switch on by default', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },
@@ -157,9 +157,7 @@ describe('AdvancedSettings', () => {
 
     it('should update smartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },

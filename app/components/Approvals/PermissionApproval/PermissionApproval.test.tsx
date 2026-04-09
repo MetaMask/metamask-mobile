@@ -7,8 +7,9 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { render } from '@testing-library/react-native';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   Caip25EndowmentPermissionName,
@@ -21,7 +22,7 @@ import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
@@ -116,23 +117,22 @@ const mockAccountsLength = (accountsLength: number) => {
 
 const mockTrackEvent = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 describe('PermissionApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
     (
       getAllScopesFromPermission as jest.MockedFn<
@@ -200,7 +200,7 @@ describe('PermissionApproval', () => {
 
     render(<PermissionApproval navigation={navigationMock} />);
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.CONNECT_REQUEST_STARTED,
     )
       .addProperties({
@@ -289,7 +289,7 @@ describe('PermissionApproval', () => {
     expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('re-runs effect when pendingApprovals changes', async () => {
+  it('does not re-navigate for the same approval when pendingApprovals changes', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -329,12 +329,13 @@ describe('PermissionApproval', () => {
       anotherRequestId: anotherApprovalRequest,
     };
 
+    // The current approvalRequest is still the same (same metadata.id),
+    // so navigation should not fire again even though the queue changed.
     mockApprovalRequest(approvalRequest, pendingApprovals2);
 
     rerender(<PermissionApproval navigation={navigationMock} />);
 
-    // Effect should re-run when pendingApprovals content changes, causing navigation again
-    expect(navigationMock.navigate).toHaveBeenCalledTimes(2);
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
   });
 
   it('navigates when new approval added after queue cleared', async () => {
@@ -369,7 +370,10 @@ describe('PermissionApproval', () => {
 
     const approvalRequest2 = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-      requestData: HOST_INFO_MOCK,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        metadata: { id: 'newRequestId' },
+      },
       id: 'newRequestId',
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

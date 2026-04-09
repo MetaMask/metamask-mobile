@@ -58,7 +58,7 @@ jest.mock('../../../../selectors/smartTransactionsController', () => ({
 }));
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
-  selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
+  selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
 describe('useEarnLendingPositions', () => {

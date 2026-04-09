@@ -30,13 +30,10 @@ describe('PredictWithdrawBalance', () => {
     jest.clearAllMocks();
 
     mockUsePredictBalance.mockReturnValue({
-      balance: 1232.39,
-      hasNoBalance: false,
+      data: 1232.39,
       isLoading: false,
-      isRefreshing: false,
       error: null,
-      loadBalance: jest.fn(),
-    });
+    } as never);
   });
 
   afterEach(() => {

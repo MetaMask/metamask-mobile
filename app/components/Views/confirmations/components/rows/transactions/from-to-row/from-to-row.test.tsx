@@ -5,9 +5,20 @@ import { TransactionType } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
+import useDisplayName, {
+  DisplayNameVariant,
+  TrustSignalDisplayState,
+} from '../../../../../../hooks/DisplayName/useDisplayName';
 import FromToRow from './from-to-row';
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
+jest.mock('../../../../../../hooks/DisplayName/useDisplayName', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../../../hooks/DisplayName/useDisplayName'),
+  default: jest.fn(),
+}));
+
+const mockUseDisplayName = jest.mocked(useDisplayName);
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     GasFeeController: {
@@ -66,6 +77,11 @@ describe('FromToRow', () => {
     useConfirmationMetricEventsMock.mockReturnValue({
       trackTooltipClickedEvent: mockTrackTooltipClickedEvent,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
+
+    mockUseDisplayName.mockImplementation(
+      jest.requireActual('../../../../../../hooks/DisplayName/useDisplayName')
+        .default,
+    );
   });
 
   it('displays the correct addresses for native transfer', async () => {
@@ -73,8 +89,10 @@ describe('FromToRow', () => {
       state: nativeTransferState,
     });
 
-    expect(getByText('0xDc477...0c164')).toBeDefined();
-    expect(getByText('0x97Cb1...21231')).toBeDefined();
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(getByText('To')).toBeOnTheScreen();
+    expect(getByText(/^0xDc47789/)).toBeOnTheScreen();
+    expect(getByText(/^0x97Cb1/)).toBeOnTheScreen();
   });
 
   it('displays the correct addresses for erc20 transfer', async () => {
@@ -82,7 +100,46 @@ describe('FromToRow', () => {
       state: erc20TransferState,
     });
 
-    expect(getByText('0xDc477...0c164')).toBeDefined();
-    expect(getByText('0x97cb1...2D317')).toBeDefined();
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(getByText('To')).toBeOnTheScreen();
+    expect(getByText(/^0xDc47789/)).toBeOnTheScreen();
+    expect(getByText(/^0x97cb1/)).toBeOnTheScreen();
+  });
+
+  it('displays wallet name next to labels when subtitle is returned', async () => {
+    mockUseDisplayName.mockReturnValue({
+      variant: DisplayNameVariant.Saved,
+      name: 'Account 1',
+      subtitle: 'Wallet 1',
+      displayState: TrustSignalDisplayState.Petname,
+      icon: null,
+      isAccount: true,
+    });
+
+    const { getByText } = renderWithProvider(<FromToRow />, {
+      state: nativeTransferState,
+    });
+
+    expect(getByText('From Wallet 1')).toBeOnTheScreen();
+    expect(getByText('To Wallet 1')).toBeOnTheScreen();
+  });
+
+  it('displays plain labels when subtitle is undefined', async () => {
+    mockUseDisplayName.mockReturnValue({
+      variant: DisplayNameVariant.Unknown,
+      name: undefined,
+      subtitle: undefined,
+      displayState: TrustSignalDisplayState.Unknown,
+      icon: null,
+      isAccount: false,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(<FromToRow />, {
+      state: nativeTransferState,
+    });
+
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(getByText('To')).toBeOnTheScreen();
+    expect(queryByText(/Wallet/)).not.toBeOnTheScreen();
   });
 });

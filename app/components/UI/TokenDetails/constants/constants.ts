@@ -1,0 +1,31 @@
+import type { TokenI } from '../../Tokens/types';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
+
+/**
+ * Source of navigation to Token Details page
+ */
+export enum TokenDetailsSource {
+  /** Token list on main wallet screen (compact view) */
+  MobileTokenList = 'mobile-token-list',
+  /** Token list in full page view */
+  MobileTokenListPage = 'mobile-token-list-page',
+  /** Homepage section entry point */
+  HomeSection = 'home_section',
+  /** Trending tokens section (e.g. Explore tab) */
+  Trending = 'trending',
+  /** Trending tokens section on the Swaps / Bridge view */
+  TrendingSwaps = 'trending-swaps',
+  /** Swap/Bridge token selector */
+  Swap = 'swap',
+  /** Fallback when source cannot be determined */
+  Unknown = 'unknown',
+}
+
+/**
+ * Extended route params for Token Details page
+ * Includes source tracking for analytics
+ */
+export interface TokenDetailsRouteParams extends TokenI {
+  source?: TokenDetailsSource;
+  securityData?: TokenSecurityData;
+}

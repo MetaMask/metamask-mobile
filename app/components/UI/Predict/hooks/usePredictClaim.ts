@@ -1,33 +1,55 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
 
-interface UsePredictClaimParams {
-  providerId?: string;
-}
-
-export const usePredictClaim = ({
-  providerId = POLYMARKET_PROVIDER_ID,
-}: UsePredictClaimParams = {}) => {
+export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const { claim: claimWinnings } = usePredictTrading();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
 
+  useSelector(selectSelectedAccountGroupId);
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const selectedAddress = evmAccount?.address ?? '0x0';
+
+  const claimBatchId = useSelector(
+    selectPredictPendingClaimByAddress({ address: selectedAddress }),
+  );
+  const isClaimPending = !!claimBatchId;
+
   const claim = useCallback(async () => {
+    if (isClaimPending) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('predict.claim.toasts.in_progress.title'),
+            isBold: true,
+          },
+        ],
+        iconName: IconName.Info,
+        iconColor: theme.colors.primary.default,
+        hasNoTimeout: false,
+      });
+      return;
+    }
+
     try {
       navigateToConfirmation({
         headerShown: false,
@@ -35,9 +57,8 @@ export const usePredictClaim = ({
         // TODO: remove once navigation stack is fixed properly
         stack: Routes.PREDICT.ROOT,
       });
-      await claimWinnings({ providerId });
+      await claimWinnings({});
     } catch (err) {
-      // Log error with claim context
       Logger.error(ensureError(err), {
         tags: {
           feature: PREDICT_CONSTANTS.FEATURE_NAME,
@@ -49,14 +70,12 @@ export const usePredictClaim = ({
             method: 'claim',
             action: 'claim_winnings',
             operation: 'position_management',
-            providerId,
           },
         },
       });
 
       navigation.goBack();
 
-      // Show error toast with retry option
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -80,16 +99,18 @@ export const usePredictClaim = ({
       });
     }
   }, [
-    claimWinnings,
-    navigateToConfirmation,
-    navigation,
-    providerId,
-    theme.colors.accent04.normal,
-    theme.colors.error.default,
+    isClaimPending,
     toastRef,
+    theme.colors.primary.default,
+    theme.colors.error.default,
+    theme.colors.accent04.normal,
+    navigateToConfirmation,
+    claimWinnings,
+    navigation,
   ]);
 
   return {
     claim,
+    isClaimPending,
   };
 };

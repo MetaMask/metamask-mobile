@@ -133,19 +133,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock metrics - first definition (will be overridden below with constants). Keeping for potential earlier imports.
-jest.mock('../../../../../../components/hooks/useMetrics', () => {
-  const mockBuilder = {
-    addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn().mockReturnValue({}),
-  };
-  return {
-    useMetrics: () => ({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => mockBuilder),
-    }),
-  };
-});
+import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+
+jest.mock('../../../../../../components/hooks/useAnalytics/useAnalytics');
 
 // Mock multichain utils
 jest.mock('../../../../../../core/Multichain/utils', () => ({
@@ -176,24 +167,6 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-// Override metrics mock to also export MetaMetricsEvents constants while preserving proper builder shape
-jest.mock('../../../../../../components/hooks/useMetrics', () => {
-  const mockBuilder = {
-    addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn().mockReturnValue({}),
-  };
-  return {
-    useMetrics: () => ({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => mockBuilder),
-    }),
-    MetaMetricsEvents: {
-      REWARDS_ONBOARDING_STARTED: 'REWARDS_ONBOARDING_STARTED',
-      REWARDS_ONBOARDING_COMPLETED: 'REWARDS_ONBOARDING_COMPLETED',
-    },
-  };
-});
-
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => `mocked_${key}`,
@@ -216,6 +189,7 @@ describe('OnboardingIntroStep', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook({}));
 
     // Reset storage mock to default (resolved promise)
     (storageWrapper.setItem as jest.Mock).mockResolvedValue(undefined);
@@ -601,7 +575,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
         },
       );
@@ -688,7 +662,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
           onCancel: expect.any(Function),
           cancelLabel:
@@ -870,7 +844,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
         },
       );
@@ -1059,7 +1033,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
         },
       );
@@ -1323,7 +1297,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
           onCancel: expect.any(Function),
           cancelLabel:

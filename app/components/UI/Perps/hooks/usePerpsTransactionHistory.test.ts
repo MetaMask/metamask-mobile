@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
@@ -9,6 +10,7 @@ import {
   transformOrdersToTransactions,
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
+  transformWalletPerpsDepositsToTransactions,
 } from '../utils/transactionTransforms';
 import { FillType } from '../types/transactionHistory';
 import type { CaipAccountId } from '@metamask/utils';
@@ -19,6 +21,9 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./useUserHistory');
 jest.mock('../utils/transactionTransforms');
 jest.mock('./stream/usePerpsLiveFills');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -44,10 +49,16 @@ const mockTransformUserHistoryToTransactions =
   transformUserHistoryToTransactions as jest.MockedFunction<
     typeof transformUserHistoryToTransactions
   >;
+const mockTransformWalletPerpsDepositsToTransactions =
+  transformWalletPerpsDepositsToTransactions as jest.MockedFunction<
+    typeof transformWalletPerpsDepositsToTransactions
+  >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('usePerpsTransactionHistory', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
+    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
   };
   let mockProvider: {
     getOrderFills: jest.MockedFunction<
@@ -150,6 +161,12 @@ describe('usePerpsTransactionHistory', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Mock Redux selectors: first call = wallet transactions, second = selected address
+    mockUseSelector.mockImplementation(() => {
+      const len = mockUseSelector.mock.calls.length;
+      return len % 2 === 1 ? [] : '0x1234567890123456789012345678901234567890';
+    });
+
     // Mock provider
     mockProvider = {
       getOrderFills: jest.fn().mockResolvedValue(mockFills),
@@ -160,6 +177,7 @@ describe('usePerpsTransactionHistory', () => {
     // Mock controller
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
+      getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
     };
 
     // Mock Engine context
@@ -190,6 +208,7 @@ describe('usePerpsTransactionHistory', () => {
     mockTransformOrdersToTransactions.mockReturnValue([]);
     mockTransformFundingToTransactions.mockReturnValue([]);
     mockTransformUserHistoryToTransactions.mockReturnValue([]);
+    mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([]);
   });
 
   describe('initial state', () => {
@@ -222,6 +241,134 @@ describe('usePerpsTransactionHistory', () => {
 
       expect(result.current.transactions).toEqual([]);
       expect(mockProvider.getOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('includes wallet perps deposits in merged transactions', async () => {
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([]);
+      const walletDepositTx = {
+        id: 'wallet-deposit-tx-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 100.00 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995204000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$100.00',
+          amountNumber: 100,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: '0xabc',
+          status: 'completed' as const,
+          type: 'deposit' as const,
+        },
+      };
+      mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([
+        walletDepositTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w1',
+                type: 'perpsDeposit',
+                txParams: { from: selectedAddr },
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: true }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(result.current.transactions).toContainEqual(walletDepositTx);
+      expect(mockTransformWalletPerpsDepositsToTransactions).toHaveBeenCalled();
+    });
+
+    it('deduplicates wallet deposits against REST deposits by txHash', async () => {
+      const sameTxHash = '0xabc123';
+      const restDeposit = {
+        id: 'deposit-rest-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 50.00 USDC',
+        subtitle: 'Completed',
+        timestamp: 1640995200000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$50.00',
+          amountNumber: 50,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'completed' as const,
+          type: 'deposit' as const,
+        },
+      };
+      const walletDepositSameTx = {
+        id: 'wallet-deposit-tx-1',
+        type: 'deposit' as const,
+        category: 'deposit' as const,
+        title: 'Deposited 50.00 USDC',
+        subtitle: 'Pending',
+        timestamp: 1640995201000,
+        asset: 'USDC',
+        depositWithdrawal: {
+          amount: '+$50.00',
+          amountNumber: 50,
+          isPositive: true,
+          asset: 'USDC',
+          txHash: sameTxHash,
+          status: 'pending' as const,
+          type: 'deposit' as const,
+        },
+      };
+      mockTransformFillsToTransactions.mockReturnValue([]);
+      mockTransformUserHistoryToTransactions.mockReturnValue([restDeposit]);
+      mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([
+        walletDepositSameTx,
+      ]);
+      const selectedAddr = '0x1234567890123456789012345678901234567890';
+      mockUseSelector.mockImplementation(() => {
+        const len = mockUseSelector.mock.calls.length;
+        return len % 2 === 1
+          ? [
+              {
+                id: 'w1',
+                type: 'perpsDeposit',
+                txParams: { from: selectedAddr },
+              },
+            ]
+          : selectedAddr;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTransactionHistory({ skipInitialFetch: false }),
+      );
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      const depositsWithSameTxHash = result.current.transactions.filter(
+        (tx) =>
+          tx.type === 'deposit' &&
+          tx.depositWithdrawal?.txHash?.toLowerCase() ===
+            sameTxHash.toLowerCase(),
+      );
+      expect(depositsWithSameTxHash).toHaveLength(1);
+      expect(depositsWithSameTxHash[0].id).toBe('deposit-rest-1');
     });
   });
 
@@ -502,7 +649,7 @@ describe('usePerpsTransactionHistory', () => {
     });
 
     it('handles no active provider', async () => {
-      mockController.getActiveProvider.mockReturnValue(undefined);
+      mockController.getActiveProviderOrNull.mockReturnValue(null);
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
@@ -517,7 +664,8 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(result.current.error).toBe('No active provider available');
+      // With getActiveProviderOrNull returning null, hook bails early without error
+      expect(result.current.error).toBeNull();
       // With no REST data and no WebSocket data, transactions should be empty
       expect(result.current.transactions).toEqual([]);
     });
@@ -926,6 +1074,72 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
         { ...mockFills[0], detailedOrderType: undefined },
       ]);
+    });
+  });
+
+  describe('WS fill merge preserves fillType from REST', () => {
+    it('preserves non-standard fillType when WS fill has standard', async () => {
+      // Arrange — REST returns a trade with stop_loss fillType
+      const restTrade = {
+        ...mockTransformedTransactions[0],
+        id: 'rest-sl-1',
+        asset: 'BTC',
+        timestamp: 1641000000000,
+        fill: {
+          ...mockTransformedTransactions[0].fill,
+          fillType: FillType.StopLoss,
+        },
+      };
+      // Live fill with same asset+timestamp(seconds) but standard fillType
+      const wsFill = {
+        ...mockTransformedTransactions[0],
+        id: 'ws-sl-1',
+        asset: 'BTC',
+        timestamp: 1641000000000,
+        fill: {
+          ...mockTransformedTransactions[0].fill,
+          fillType: FillType.Standard,
+        },
+      };
+
+      // Call order: (1) useMemo on initial render with liveFills,
+      // (2) fetchAllTransactions with REST fills (sets state),
+      // (3) useMemo re-runs with liveFills after state update
+      mockTransformFillsToTransactions
+        .mockReturnValueOnce([wsFill]) // initial render: live fills
+        .mockReturnValueOnce([restTrade]) // fetchAllTransactions: REST fills
+        .mockReturnValue([wsFill]); // re-render: live fills again
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [
+          {
+            orderId: 'ws-1',
+            timestamp: 1641000000000,
+            symbol: 'BTC',
+            side: 'buy',
+            size: '0.1',
+            price: '50000',
+            pnl: '0',
+            direction: 'Open Long',
+            fee: '5',
+            feeToken: 'USDC',
+          },
+        ],
+        isInitialLoading: false,
+      });
+
+      // Act
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert — merged trade preserves the stop_loss fillType
+      const trades = result.current.transactions.filter(
+        (tx) => tx.type === 'trade',
+      );
+      expect(trades).toHaveLength(1);
+      expect(trades[0].fill?.fillType).toBe(FillType.StopLoss);
     });
   });
 

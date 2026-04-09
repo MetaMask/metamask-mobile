@@ -17,6 +17,13 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { PredictActivityItem, PredictActivityType } from '../../types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
+import { POLYGON_MAINNET_CHAIN_ID } from '../../providers/polymarket/constants';
 
 interface PredictActivityProps {
   item: PredictActivityItem;
@@ -31,6 +38,7 @@ const activityTitleByType: Record<PredictActivityType, string> = {
 const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isDebit = item.type === PredictActivityType.BUY;
   const signedAmount = `${isDebit ? '-' : '+'}${formatPrice(
     Math.abs(item.amountUsd),
@@ -45,17 +53,30 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
       ? 'text-success-default'
       : 'text-error-default';
 
+  const handlePress = () => {
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: `predict_${item.type.toLowerCase()}`,
+          transaction_status: 'confirmed',
+          location: TransactionDetailLocation.Home,
+          chain_id_source: String(POLYGON_MAINNET_CHAIN_ID),
+          chain_id_destination: String(POLYGON_MAINNET_CHAIN_ID),
+          monetized_primitive: MonetizedPrimitive.Predict,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+      screen: Routes.PREDICT.ACTIVITY_DETAIL,
+      params: {
+        activity: item,
+      },
+    });
+  };
+
   return (
-    <TouchableOpacity
-      onPress={() => {
-        navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-          screen: Routes.PREDICT.ACTIVITY_DETAIL,
-          params: {
-            activity: item,
-          },
-        });
-      }}
-    >
+    <TouchableOpacity onPress={handlePress}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}

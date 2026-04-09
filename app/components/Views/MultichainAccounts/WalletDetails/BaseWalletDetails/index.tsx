@@ -79,9 +79,9 @@ export const BaseWalletDetails = ({
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+      navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         keyringId,
+        popToTopOnDone: true, // Return to wallet home and dismiss Accounts sheet + Wallet Details
       });
     }
   }, [navigation, keyringId]);

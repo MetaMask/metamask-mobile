@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,10 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
+import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import CollectibleMedia from '../CollectibleMedia';
+import { Skeleton } from '../../../component-library/components-temp/Skeleton';
 
 const debouncedNavigation = debounce((navigation, collectible, source) => {
   navigation.navigate('NftDetails', { collectible, source });
@@ -27,14 +30,32 @@ const NftGridItem = ({
 }) => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
+  const [isImageLoading, setIsImageLoading] = useState(
+    () => displayNftMedia && !!(item.image || item.imageOriginal),
+  );
+
+  useEffect(() => {
+    setIsImageLoading(displayNftMedia && !!(item.image || item.imageOriginal));
+  }, [
+    item.address,
+    item.tokenId,
+    item.image,
+    item.imageOriginal,
+    displayNftMedia,
+  ]);
 
   const onPress = useCallback(() => {
     debouncedNavigation(navigation, item, source);
   }, [navigation, item, source]);
 
+  const handleImageLoad = useCallback(() => setIsImageLoading(false), []);
+
   return (
     <Pressable
-      style={tw.style('self-stretch mb-3')}
+      style={({ pressed }) =>
+        tw.style('self-stretch mb-3', pressed && 'opacity-50')
+      }
       onPress={onPress}
       onLongPress={() => onLongPress(item)}
       testID={`collectible-${item.name}-${item.tokenId}`}
@@ -44,7 +65,11 @@ const NftGridItem = ({
           style={tw.style('self-stretch aspect-square')}
           collectible={item}
           isTokenImage
+          onLoad={handleImageLoad}
         />
+        {isImageLoading && (
+          <Skeleton twClassName="absolute inset-0 rounded-lg" />
+        )}
       </Box>
       <Text
         variant={TextVariant.BodyMd}

@@ -31,6 +31,8 @@ export function getAccountTrackerControllerMessenger(
       'PreferencesController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
+      'NetworkEnablementController:getState',
+      'NetworkEnablementController:listPopularEvmNetworks',
       'KeyringController:getState',
     ],
     events: [

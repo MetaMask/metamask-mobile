@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { CardDetailsTokenResponse, CardType } from '../types';
-import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
+import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 
 // Hex colors required by the external card details API
 /* eslint-disable @metamask/design-tokens/color-no-hex */
-const CARD_DETAILS_CSS = {
+export const CARD_DETAILS_CSS = {
   [CardType.VIRTUAL]: {
     cardBackgroundColor: '#FF5C16',
     cardTextColor: '#FFFFFF',
@@ -53,7 +53,7 @@ interface UseCardDetailsTokenResult {
  * @returns Object containing fetchCardDetailsToken function, loading state, error, and imageUrl
  */
 const useCardDetailsToken = (): UseCardDetailsTokenResult => {
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const { sdk } = useCardSDK();
 
   const [isLoading, setIsLoading] = useState(false);

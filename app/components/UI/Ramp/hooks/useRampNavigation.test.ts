@@ -4,8 +4,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useRampNavigation } from './useRampNavigation';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
@@ -23,15 +23,10 @@ jest.mock('./useRampsTokens', () => ({
   }),
 }));
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Deposit/routes/utils');
-jest.mock('../components/TokenSelection/TokenSelection', () => {
-  const actual = jest.requireActual(
-    '../components/TokenSelection/TokenSelection',
-  );
+jest.mock('../Views/TokenSelection/TokenSelection', () => {
+  const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');
   const mockFn = jest.fn();
   return {
     ...actual,
@@ -39,7 +34,7 @@ jest.mock('../components/TokenSelection/TokenSelection', () => {
     createTokenSelectionNavigationDetails: mockFn, // Alias for hook compatibility
   };
 });
-jest.mock('../components/BuildQuote', () => {
+jest.mock('../Views/BuildQuote', () => {
   const mockFn = jest.fn();
   return {
     createBuildQuoteNavDetails: mockFn,
@@ -110,8 +105,14 @@ describe('useRampNavigation', () => {
     ] as unknown as ReturnType<typeof createTokenSelectionNavDetails>);
 
     mockCreateBuildQuoteNavDetails.mockReturnValue([
-      Routes.RAMP.AMOUNT_INPUT,
-      { assetId: 'eip155:1/erc20:0x123' },
+      Routes.RAMP.TOKEN_SELECTION,
+      {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+        params: {
+          screen: Routes.RAMP.AMOUNT_INPUT,
+          params: { assetId: 'eip155:1/erc20:0x123' },
+        },
+      },
     ] as unknown as ReturnType<typeof createBuildQuoteNavDetails>);
   });
 
@@ -124,8 +125,14 @@ describe('useRampNavigation', () => {
       it('navigates to BuildQuote when assetId is provided', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
-          Routes.RAMP.AMOUNT_INPUT,
-          { assetId: intent.assetId },
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: { assetId: intent.assetId },
+            },
+          },
         ] as const;
         mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
@@ -136,13 +143,61 @@ describe('useRampNavigation', () => {
         expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
+          buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
-      it('does not navigate to BuildQuote when assetId is not provided', () => {
+      it('passes buyFlowOrigin through to BuildQuote params', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent, { buyFlowOrigin: 'tokenInfo' });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: intent.assetId,
+          buyFlowOrigin: 'tokenInfo',
+        });
+      });
+
+      it('passes homeTokenList buyFlowOrigin through to BuildQuote params', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent, { buyFlowOrigin: 'homeTokenList' });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: intent.assetId,
+          buyFlowOrigin: 'homeTokenList',
+        });
+      });
+
+      it('navigates to TokenSelection when no assetId and V1 is disabled (matches handleRampUrl deeplink)', () => {
+        // V2 on, V1 off (default in this describe): must go to TokenSelection like handleRampUrl, not legacy
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          undefined,
+        ] as const;
+        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+          mockNavDetails,
+        );
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy();
+
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('navigates to TokenSelection when no assetId and V1 is also enabled', () => {
         mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
@@ -187,8 +242,14 @@ describe('useRampNavigation', () => {
         );
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [
-          Routes.RAMP.AMOUNT_INPUT,
-          { assetId: intent.assetId },
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: { assetId: intent.assetId },
+            },
+          },
         ] as const;
         mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
 
@@ -199,6 +260,7 @@ describe('useRampNavigation', () => {
         expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
+          buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();

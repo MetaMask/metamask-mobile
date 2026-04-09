@@ -20,13 +20,26 @@ import {
 import type { CaipAccountId } from '@metamask/utils';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn();
 
 const mockNavigate = jest.fn();
+const mockRefetchTransactions = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => callback(), [callback]);
+  },
 }));
 
 jest.mock('../../hooks', () => ({
@@ -41,6 +54,10 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
     assetUrl: null,
     error: null,
   }),
+}));
+
+jest.mock('../../hooks/usePerpsMeasurement', () => ({
+  usePerpsMeasurement: jest.fn(),
 }));
 
 const mockInitialState: DeepPartial<RootState> = {
@@ -119,10 +136,28 @@ describe('PerpsTransactionsView', () => {
     >;
   const mockUsePerpsEventTracking =
     usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
+  const mockUsePerpsMeasurement = usePerpsMeasurement as jest.MockedFunction<
+    typeof usePerpsMeasurement
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockRefetchTransactions.mockClear();
+
+    // Set up analytics mock
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+    useAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
 
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
@@ -139,12 +174,14 @@ describe('PerpsTransactionsView', () => {
       transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: mockRefetchTransactions,
     });
 
     mockUsePerpsEventTracking.mockReturnValue({
       track: jest.fn(),
     });
+
+    mockUsePerpsMeasurement.mockImplementation(() => undefined);
   });
 
   it('should render with filter tabs', () => {
@@ -168,6 +205,29 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
       });
     });
+  });
+
+  it('refreshes transaction history when screen becomes focused', async () => {
+    renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    await waitFor(() => {
+      expect(mockRefetchTransactions).toHaveBeenCalled();
+    });
+  });
+
+  it('tracks measurement as ready when initial loading is complete', () => {
+    renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    expect(mockUsePerpsMeasurement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conditions: [true],
+        resetConditions: [],
+      }),
+    );
   });
 
   it('should not load transactions when not connected', () => {
@@ -271,6 +331,34 @@ describe('PerpsTransactionsView', () => {
         ),
       ).toBeTruthy();
     });
+  });
+
+  it('shows loading skeleton instead of blank list when disconnected with no data', () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
+    });
+
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchTransactions,
+    });
+
+    const component = renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      component.getByTestId('perps-transactions-loading-skeleton'),
+    ).toBeOnTheScreen();
   });
 
   it('should handle API errors gracefully', async () => {
@@ -835,6 +923,41 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
         accountId: secondAccountId,
       });
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a transaction item is pressed', async () => {
+      const component = renderWithProvider(<PerpsTransactionsView />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(mockUsePerpsTransactionHistory).toHaveBeenCalled();
+      });
+
+      let transactionItems: ReturnType<typeof component.queryAllByTestId> = [];
+      await waitFor(() => {
+        transactionItems = component.queryAllByTestId(
+          PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
+        );
+        expect(transactionItems.length).toBeGreaterThan(0);
+      });
+
+      await act(async () => {
+        fireEvent.press(transactionItems[0]);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

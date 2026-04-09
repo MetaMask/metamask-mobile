@@ -6,14 +6,15 @@ import { keyringSnapPermissionsBuilder } from '../../SnapKeyring/keyringSnapsPer
 import { ControllerGetStateAction } from '@metamask/base-controller';
 import { Messenger } from '@metamask/messenger';
 import {
-  ClearSnapState,
-  CreateInterface,
-  GetInterface,
-  GetSnap,
-  GetSnapState,
-  HandleSnapRequest,
-  UpdateInterface,
-  UpdateSnapState,
+  SnapControllerClearSnapStateAction,
+  SnapInterfaceControllerCreateInterfaceAction,
+  SnapInterfaceControllerGetInterfaceAction,
+  SnapControllerGetSnapAction,
+  SnapControllerGetSnapStateAction,
+  SnapControllerHandleRequestAction,
+  SnapInterfaceControllerSetInterfaceDisplayedAction,
+  SnapInterfaceControllerUpdateInterfaceAction,
+  SnapControllerUpdateSnapStateAction,
 } from '@metamask/snaps-controllers';
 import { CurrencyRateController } from '@metamask/assets-controllers';
 import {
@@ -26,43 +27,41 @@ import {
 } from '@metamask/keyring-controller';
 import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
-import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { DialogType, EnumToUnion } from '@metamask/snaps-sdk';
 import {
   AddApprovalOptions,
-  AddApprovalRequest,
+  ApprovalControllerAddRequestAction,
 } from '@metamask/approval-controller';
 import Logger from '../../../util/Logger';
 import { HasPermission } from '@metamask/permission-controller';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import I18n from '../../../../locales/i18n';
-import {
-  ExcludedSnapEndowments,
-  ExcludedSnapPermissions,
-} from './permissions.ts';
+import { ExcludedSnapEndowments, ExcludedSnapPermissions } from './permissions';
+import { getMnemonic, getMnemonicSeed } from './utils';
 
 export type SnapPermissionSpecificationsActions =
-  | AddApprovalRequest
-  | ClearSnapState
+  | ApprovalControllerAddRequestAction
+  | SnapControllerClearSnapStateAction
   | ControllerGetStateAction<
       'CurrencyRateController',
       CurrencyRateController['state']
     >
-  | CreateInterface
-  | GetInterface
-  | GetSnap
-  | GetSnapState
-  | HandleSnapRequest
+  | SnapInterfaceControllerCreateInterfaceAction
+  | SnapInterfaceControllerGetInterfaceAction
+  | SnapControllerGetSnapAction
+  | SnapControllerGetSnapStateAction
+  | SnapControllerHandleRequestAction
   | KeyringControllerGetKeyringsByTypeAction
   | KeyringControllerWithKeyringAction
   | MaybeUpdateState
   | PreferencesControllerGetStateAction
   | TestOrigin
-  | UpdateSnapState
-  | UpdateInterface
+  | SnapControllerUpdateSnapStateAction
+  | SnapInterfaceControllerUpdateInterfaceAction
   | KeyringControllerGetStateAction
-  | HasPermission;
+  | HasPermission
+  | SnapInterfaceControllerSetInterfaceDisplayedAction;
 
 export type SnapPermissionSpecificationsEvents = KeyringControllerUnlockEvent;
 
@@ -81,35 +80,6 @@ export const getSnapPermissionSpecifications = (
   >,
   { addNewKeyring }: SnapPermissionSpecificationsHooks,
 ) => {
-  /**
-   * Gets the mnemonic of the user's primary keyring.
-   */
-  const getPrimaryKeyringMnemonic = () => {
-    const [keyring] = messenger.call(
-      'KeyringController:getKeyringsByType',
-      KeyringTypes.hd,
-    ) as HdKeyring[];
-
-    if (!keyring.mnemonic) {
-      throw new Error('Primary keyring mnemonic unavailable.');
-    }
-
-    return keyring.mnemonic;
-  };
-
-  const getPrimaryKeyringMnemonicSeed = () => {
-    const [keyring] = messenger.call(
-      'KeyringController:getKeyringsByType',
-      KeyringTypes.hd,
-    ) as HdKeyring[];
-
-    if (!keyring.seed) {
-      throw new Error('Primary keyring mnemonic unavailable.');
-    }
-
-    return keyring.seed;
-  };
-
   const getUnlockPromise = () => {
     if (messenger.call('KeyringController:getState').isUnlocked) {
       return Promise.resolve();
@@ -130,66 +100,10 @@ export const getSnapPermissionSpecifications = (
       messenger,
       'SnapController:clearSnapState',
     ),
-    getMnemonic: async (source?: string) => {
-      if (!source) {
-        return getPrimaryKeyringMnemonic();
-      }
-
-      try {
-        const { type, mnemonic } = (await messenger.call(
-          'KeyringController:withKeyring',
-          {
-            id: source,
-          },
-          async ({ keyring }) => ({
-            type: keyring.type,
-            mnemonic: (keyring as unknown as HdKeyring).mnemonic,
-          }),
-        )) as { type: string; mnemonic?: Uint8Array };
-
-        if (type !== KeyringTypes.hd || !mnemonic) {
-          // The keyring isn't guaranteed to have a mnemonic (e.g.,
-          // hardware wallets, which can't be used as entropy sources),
-          // so we throw an error if it doesn't.
-          throw new Error(`Entropy source with ID "${source}" not found.`);
-        }
-
-        return mnemonic;
-      } catch {
-        throw new Error(`Entropy source with ID "${source}" not found.`);
-      }
-    },
-    getMnemonicSeed: async (source?: string) => {
-      if (!source) {
-        return getPrimaryKeyringMnemonicSeed();
-      }
-
-      try {
-        const { type, seed } = (await messenger.call(
-          'KeyringController:withKeyring',
-          {
-            id: source,
-          },
-          async ({ keyring }) => ({
-            type: keyring.type,
-            seed: (keyring as unknown as HdKeyring).seed,
-          }),
-        )) as { type: string; seed?: Uint8Array };
-
-        if (type !== KeyringTypes.hd || !seed) {
-          // The keyring isn't guaranteed to have a seed (e.g.,
-          // hardware wallets, which can't be used as entropy sources),
-          // so we throw an error if it doesn't.
-          throw new Error(`Entropy source with ID "${source}" not found.`);
-        }
-
-        return seed;
-      } catch {
-        throw new Error(`Entropy source with ID "${source}" not found.`);
-      }
-    },
+    getMnemonic: getMnemonic.bind(null, messenger),
+    getMnemonicSeed: getMnemonicSeed.bind(null, messenger),
     getUnlockPromise: getUnlockPromise.bind(this),
-    getSnap: messenger.call.bind(messenger, 'SnapController:get'),
+    getSnap: messenger.call.bind(messenger, 'SnapController:getSnap'),
     handleSnapRpcRequest: messenger.call.bind(
       messenger,
       'SnapController:handleRequest',
@@ -245,6 +159,10 @@ export const getSnapPermissionSpecifications = (
     updateInterface: messenger.call.bind(
       messenger,
       'SnapInterfaceController:updateInterface',
+    ),
+    setInterfaceDisplayed: messenger.call.bind(
+      messenger,
+      'SnapInterfaceController:setInterfaceDisplayed',
     ),
     requestUserApproval: (opts: AddApprovalOptions) =>
       messenger.call('ApprovalController:addRequest', opts, true),

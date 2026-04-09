@@ -34,12 +34,11 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { Linking, TouchableOpacity } from 'react-native';
 import { formatUrl } from '../../../utils/formatUtils';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 
 export interface ModalAction {
   label: string;
@@ -78,7 +77,7 @@ const RewardsClaimBottomSheetModal = ({
     useRewardsToast();
   const tw = useTailwind();
   const { claimReward, isClaimingReward, claimRewardError } = useClaimReward();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [inputValue, setInputValue] = useState('');
   const {
     rewardId,
@@ -304,8 +303,7 @@ const RewardsClaimBottomSheetModal = ({
           placeholder={inputPlaceholder}
           onChangeText={setInputValue}
           value={inputValue}
-          size={TextFieldSize.Lg}
-          style={tw.style('bg-background-pressed my-4')}
+          style={tw.style('my-4')}
         />
       );
     }

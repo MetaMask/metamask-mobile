@@ -1,7 +1,8 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
@@ -9,41 +10,44 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import AssetElement from '../../../AssetElement';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
+import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
 import {
-  selectMerklCampaignClaimingEnabledFlag,
+  selectIsMusdConversionFlowEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextColor as CLTextColor,
+  TextVariant as CLTextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
@@ -51,63 +55,102 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
-import {
-  useMerklRewards,
-  isEligibleForMerklRewards,
-} from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import BigNumber from 'bignumber.js';
-import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
+import {
+  selectNativeCurrencyByChainId,
+  selectProviderType,
+} from '../../../../../selectors/networkController';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_BALANCE_LOADING_UPPERCASE,
+  TOKEN_RATE_UNDEFINED,
+} from '../../constants';
+import {
+  BALANCE_TEST_ID,
+  SECONDARY_BALANCE_BUTTON_TEST_ID,
+  SECONDARY_BALANCE_TEST_ID,
+} from '../../../AssetElement/index.constants';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    balances: {
-      flex: 1,
-      justifyContent: 'center',
-      marginLeft: 20,
-    },
-    balanceFiat: {
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
     badge: {
       marginTop: 8,
     },
     assetNameContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexShrink: 1,
     },
     assetName: {
       flexDirection: 'row',
       gap: 8,
+      flexShrink: 1,
+    },
+    assetNameText: {
+      flexShrink: 1,
     },
     percentageChange: {
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
     },
-    centered: {
-      textAlign: 'center',
-    },
     stockBadgeWrapper: {
       marginLeft: 4,
+    },
+    itemWrapper: {
+      flexDirection: 'row',
+      height: 64,
+      alignItems: 'center',
+    },
+    skeleton: {
+      width: 50,
+    },
+    secondaryBalance: {
+      color: colors.text.alternative,
+      paddingHorizontal: 0,
+      textAlign: 'right',
     },
   });
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
-  setShowScamWarningModal: (arg: boolean) => void;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  setShowScamWarningModal: (chainId: string | null) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
+  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  // Whether this item is currently visible in the viewport.
+  isVisible?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -115,15 +158,23 @@ export const TokenListItem = React.memo(
     assetKey,
     showRemoveMenu,
     setShowScamWarningModal,
-    shouldShowTokenListItemCta,
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
+    shouldShowTokenListItemCta,
+    isVisible = true,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
+
+    const tokenMarketData = useSelector(selectTokenMarketData);
+    const currencyRates = useSelector(selectCurrencyRates);
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF
 
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
@@ -137,17 +188,44 @@ export const TokenListItem = React.memo(
 
     const chainId = asset?.chainId as Hex;
 
+    const nativeCurrency = useSelector((state: RootState) =>
+      selectNativeCurrencyByChainId(state, chainId),
+    );
+
+    const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
+
+    const providerType = useSelector(selectProviderType) ?? '';
+    const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
+      chainId ?? '',
+      asset?.ticker ?? asset?.symbol,
+      providerType,
+    );
+    const showScamWarningIcon =
+      isOriginalNativeTokenSymbol === false &&
+      (asset?.isNative || asset?.isETH);
+
+    const currentCurrency = useSelector(selectCurrentCurrency);
+
     const networkName = useNetworkName(chainId);
 
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
 
+    const isQuickConvertEnabled = useSelector(
+      selectMusdQuickConvertEnabledFlag,
+    );
+
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
 
-    const { initiateConversion, hasSeenConversionEducationScreen } =
+    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
@@ -155,39 +233,114 @@ export const TokenListItem = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    // Check for claimable Merkl rewards
-    const isMerklCampaignClaimingEnabled = useSelector(
-      selectMerklCampaignClaimingEnabledFlag,
-    );
-    const { claimableReward } = useMerklRewards({
+    const merklClaimData = useMerklBonusClaim(
       asset,
-    });
-
-    const isEligibleForMerkl = useMemo(
-      () =>
-        asset?.chainId && asset?.address
-          ? isEligibleForMerklRewards(
-              asset.chainId as Hex,
-              asset.address as Hex | undefined,
-            )
-          : false,
-      [asset?.chainId, asset?.address],
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+      isVisible,
     );
+    const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
-    const hasClaimableBonus = Boolean(
-      isMerklCampaignClaimingEnabled && claimableReward && isEligibleForMerkl,
-    );
+    const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
+
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      claimRewards,
+    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
+
+    // Calculate token price in fiat currency
+    const tokenPriceInFiat = useMemo(() => {
+      if (!asset?.address || !asset?.chainId) {
+        return undefined;
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
+      const multichainRate =
+        multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
+      if (multichainRate !== undefined) {
+        return multichainRate;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      // EVM: convert token price from native currency to fiat
+      if (!nativeCurrency) {
+        return undefined;
+      }
+
+      if (isTestNet(asset.chainId) && !showFiatOnTestnets) {
+        return undefined;
+      }
+
+      // Get the checksummed address for market data lookup
+      const addressToUse = asset.isNative
+        ? getNativeTokenAddress(asset.chainId as Hex)
+        : safeToChecksumAddress(asset.address);
+
+      // Token price in native currency: tokenMarketData first, then currencyRates for native
+      const marketPriceInNative =
+        tokenMarketData?.[asset.chainId as Hex]?.[addressToUse as Hex]?.price;
+      const currencyRateAsFiat = currencyRates?.[asset.symbol]?.conversionRate;
+      const tokenPriceInNative = marketPriceInNative ?? currencyRateAsFiat;
+
+      if (!tokenPriceInNative) {
+        return undefined;
+      }
+
+      // currencyRateAsFiat is already in fiat; market price is in native, so convert with nativeToFiatRate
+      if (currencyRateAsFiat != null && marketPriceInNative == null) {
+        return currencyRateAsFiat;
+      }
+
+      const nativeToFiatRate = currencyRates[nativeCurrency]?.conversionRate;
+      if (!nativeToFiatRate) {
+        return undefined;
+      }
+
+      return tokenPriceInNative * nativeToFiatRate;
+    }, [
+      asset,
+      tokenMarketData,
+      currencyRates,
+      nativeCurrency,
+      showFiatOnTestnets,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      multichainAssetsRates,
+      ///: END:ONLY_INCLUDE_IF
+    ]);
 
     const handleConvertToMUSD = useCallback(async () => {
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-        const getRedirectLocation = () =>
-          hasSeenConversionEducationScreen
-            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
-            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+        const getRedirectLocation = () => {
+          if (!hasSeenConversionEducationScreen) {
+            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+          }
+
+          return isQuickConvertEnabled
+            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+        };
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -218,12 +371,13 @@ export const TokenListItem = React.memo(
 
         const assetChainId = toHex(asset.chainId);
 
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -238,7 +392,8 @@ export const TokenListItem = React.memo(
       chainId,
       createEventBuilder,
       hasSeenConversionEducationScreen,
-      initiateConversion,
+      initiateCustomConversion,
+      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);
@@ -254,24 +409,15 @@ export const TokenListItem = React.memo(
     const onItemPress = useCallback(
       (token: TokenI, scrollToMerklRewards?: boolean) => {
         trace({ name: TraceName.AssetDetails });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
-            .addProperties({
-              source: isFullView
-                ? 'mobile-token-list-page'
-                : 'mobile-token-list',
-              chain_id: token.chainId,
-              token_symbol: token.symbol,
-            })
-            .build(),
-        );
-
         navigation.navigate('Asset', {
           ...token,
           scrollToMerklRewards,
+          source: isFullView
+            ? TokenDetailsSource.MobileTokenListPage
+            : TokenDetailsSource.MobileTokenList,
         });
       },
-      [isFullView, trackEvent, createEventBuilder, navigation],
+      [isFullView, navigation],
     );
 
     const handleLendingRedirect = useStablecoinLendingRedirect({
@@ -283,8 +429,24 @@ export const TokenListItem = React.memo(
       if (hasClaimableBonus) {
         return {
           text: strings('earn.claim_bonus'),
-          color: TextColor.Primary,
-          onPress: asset ? () => onItemPress(asset as TokenI, true) : undefined,
+          color: CLTextColor.Primary,
+          onPress: handleClaimBonus,
+        };
+      }
+
+      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
+      if (
+        isMusdConversionFlowEnabled &&
+        isMusdGeoEligible &&
+        asset &&
+        isMusdToken(asset.address)
+      ) {
+        return {
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: CLTextColor.Success,
+          onPress: undefined,
         };
       }
 
@@ -293,21 +455,18 @@ export const TokenListItem = React.memo(
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          color: TextColor.Primary,
+          color: CLTextColor.Primary,
           onPress: handleConvertToMUSD,
         };
       }
 
       if (
         isStablecoinLendingEnabled &&
-        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-        new BigNumber(earnToken?.balanceFiatNumber || '0').gte(
-          MINIMUM_BALANCE_FOR_EARN_CTA,
-        )
+        earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
       ) {
         return {
           text: `${strings('stake.earn')}`,
-          color: TextColor.Primary,
+          color: CLTextColor.Primary,
           onPress: handleLendingRedirect,
         };
       }
@@ -315,7 +474,7 @@ export const TokenListItem = React.memo(
       if (!hasPercentageChange) {
         return {
           text: undefined,
-          color: TextColor.Alternative,
+          color: CLTextColor.Alternative,
           onPress: undefined,
         };
       }
@@ -324,23 +483,25 @@ export const TokenListItem = React.memo(
         2,
       )}%`;
 
-      let color = TextColor.Alternative;
+      let color = CLTextColor.Alternative;
       if (pricePercentChange1d > 0) {
-        color = TextColor.Success;
+        color = CLTextColor.Success;
       } else if (pricePercentChange1d < 0) {
-        color = TextColor.Error;
+        color = CLTextColor.Error;
       }
 
       return { text, color, onPress: undefined };
     }, [
+      isMusdConversionFlowEnabled,
+      isMusdGeoEligible,
       hasClaimableBonus,
       shouldShowConvertToMusdCta,
-      earnToken,
       isStablecoinLendingEnabled,
-      asset,
+      earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      onItemPress,
+      asset,
+      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -376,73 +537,193 @@ export const TokenListItem = React.memo(
       ? ACCOUNT_TYPE_LABELS[asset.accountType]
       : undefined;
 
+    const hideFiatForTestnet =
+      asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
+    const hideFiatForScamWarning = showScamWarningIcon;
+    const fiatBalance = asset.balanceFiat || '—';
+    const tokenBalance = `${asset.balance} ${asset.symbol}`;
+
+    const isFiatBalanceLoading =
+      fiatBalance === TOKEN_BALANCE_LOADING ||
+      fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE;
+    let fiatBalanceDisplay: string | React.ReactNode;
+    if (hideFiatForTestnet) {
+      fiatBalanceDisplay = '—';
+    } else if (isFiatBalanceLoading) {
+      fiatBalanceDisplay = <SkeletonText thin style={styles.skeleton} />;
+    } else {
+      fiatBalanceDisplay = fiatBalance;
+    }
+
     return (
-      <AssetElement
-        onPress={onItemPress}
-        onLongPress={
-          asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
-        }
-        asset={asset}
-        balance={asset.balanceFiat}
-        secondaryBalance={secondaryBalanceDisplay.text}
-        secondaryBalanceColor={secondaryBalanceDisplay.color}
-        privacyMode={privacyMode}
-        hideSecondaryBalanceInPrivacyMode={false}
-        onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
+      <TouchableOpacity
+        onPress={() => {
+          onItemPress?.(asset);
+        }}
+        onLongPress={() => {
+          const onLongPress =
+            asset.isNative || isMusdToken(asset.address)
+              ? null
+              : showRemoveMenu;
+          onLongPress?.(asset);
+        }}
+        style={styles.itemWrapper}
+        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
       >
+        {/* Column: 1 - Token logo */}
         <BadgeWrapper
           style={styles.badge}
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            networkBadgeSource ? (
+            networkBadgeSource && (
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={networkBadgeSource}
               />
-            ) : null
+            )
           }
         >
           <AssetLogo asset={asset} />
         </BadgeWrapper>
-        <View style={styles.balances}>
-          {/*
-           * The name of the token must callback to the symbol
-           * The reason for this is that the wallet_watchAsset doesn't return the name
-           * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
-           */}
-          <View style={styles.assetNameContainer}>
-            <View style={styles.assetName}>
-              <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-                {asset.name || asset.symbol}
-              </Text>
-              {label && (
-                <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+
+        {/* Column 2*/}
+        <Box twClassName="flex-1 ml-5">
+          {/* Row: 1 - Token name, label, earn CTA, stock badge */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
+          >
+            {/*
+             * Token name and label
+             * The name of the token must callback to the symbol
+             * The reason for this is that the wallet_watchAsset doesn't return the name
+             * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+             */}
+            <View style={styles.assetNameContainer}>
+              <View style={styles.assetName}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  numberOfLines={1}
+                  style={styles.assetNameText}
+                >
+                  {asset.name || asset.symbol}
+                </Text>
+                {label && (
+                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+                )}
+              </View>
+
+              {renderEarnCta()}
+
+              {isStockToken(asset as BridgeToken) && (
+                <StockBadge
+                  style={styles.stockBadgeWrapper}
+                  token={asset as BridgeToken}
+                />
               )}
             </View>
 
-            {renderEarnCta()}
-          </View>
-          <View style={styles.percentageChange}>
-            {
+            {/* Fiat Balance — or scam warning icon when native symbol is not original */}
+            {hideFiatForScamWarning ? (
+              <ScamWarningIcon
+                asset={asset as TokenI & { chainId: string }}
+                setShowScamWarningModal={setShowScamWarningModal}
+              />
+            ) : (
               <SensitiveText
-                variant={TextVariant.BodySMMedium}
-                style={styles.balanceFiat}
+                variant={
+                  asset?.hasBalanceError ||
+                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                  hideFiatForTestnet
+                    ? CLTextVariant.BodySM
+                    : CLTextVariant.BodyMDMedium
+                }
                 isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
+                length={SensitiveTextLength.Medium}
+                testID={BALANCE_TEST_ID}
               >
-                {asset.balance} {asset.symbol}
+                {fiatBalanceDisplay}
               </SensitiveText>
-            }
-            {isStockToken(asset as BridgeToken) && (
-              <StockBadge style={styles.stockBadgeWrapper} token={asset} />
             )}
-          </View>
-        </View>
-        <ScamWarningIcon
-          asset={asset as TokenI & { chainId: string }}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
-      </AssetElement>
+          </Box>
+
+          {/* Row: 2 - Token price and percentage change and token balance */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
+          >
+            {/* Token price and percentage change — or claim bonus CTA */}
+            <View style={styles.percentageChange}>
+              {merklClaimData.isClaiming ? (
+                <Spinner />
+              ) : (
+                <>
+                  {!hasClaimableBonus && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {tokenPriceInFiat && !hideFiatForScamWarning
+                        ? formatPriceWithSubscriptNotation(
+                            tokenPriceInFiat,
+                            currentCurrency,
+                          )
+                        : '-'}
+                      {' \u2022 '}
+                    </Text>
+                  )}
+
+                  {hideFiatForScamWarning ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
+                    >
+                      {'-'}
+                    </Text>
+                  ) : (
+                    <TouchableOpacity
+                      disabled={!secondaryBalanceDisplay.onPress}
+                      onPress={secondaryBalanceDisplay.onPress}
+                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                    >
+                      <SensitiveText
+                        variant={CLTextVariant.BodySMMedium}
+                        color={secondaryBalanceDisplay.color}
+                        isHidden={false}
+                        length={SensitiveTextLength.Short}
+                        testID={SECONDARY_BALANCE_TEST_ID}
+                      >
+                        {secondaryBalanceDisplay.text || '-'}
+                      </SensitiveText>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
+            </View>
+
+            {/* Token balance */}
+            <Box twClassName="shrink">
+              <SensitiveText
+                variant={CLTextVariant.BodySMMedium}
+                style={styles.secondaryBalance}
+                length={SensitiveTextLength.Short}
+                isHidden={privacyMode}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tokenBalance}
+              </SensitiveText>
+            </Box>
+          </Box>
+        </Box>
+      </TouchableOpacity>
     );
   },
 );

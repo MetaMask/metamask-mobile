@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // Third party dependences.
 import { ImageSourcePropType } from 'react-native';
 

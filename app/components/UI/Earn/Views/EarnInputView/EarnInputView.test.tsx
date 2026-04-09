@@ -12,7 +12,7 @@ import { BigNumber as EthersBigNumber, Contract } from 'ethers';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { RootState } from '../../../../../reducers';
 
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
@@ -26,7 +26,7 @@ import {
   renderScreen,
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
-import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
@@ -34,14 +34,14 @@ import {
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import Engine from '../../../../../core/Engine';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useEarnGasFee from '../../../Earn/hooks/useEarnGasFee';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as multichainAccountsSelectors from '../../../../../selectors/multichainAccounts/accounts';
 import {
   createMockToken,
@@ -113,7 +113,10 @@ jest.mock('../../hooks/useEarnTokens', () => ({
   })),
 }));
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+const mockUseAnalyticsFn = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: (...args: unknown[]) => mockUseAnalyticsFn(...args),
+}));
 
 const mockGoBack = jest.fn();
 
@@ -126,7 +129,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       reset: mockReset,
       goBack: mockGoBack,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -359,7 +362,6 @@ describe('EarnInputView', () => {
     },
   };
   const mockTrackEvent = jest.fn();
-  const useMetricsMock = jest.mocked(useMetrics);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -369,10 +371,10 @@ describe('EarnInputView', () => {
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
-    useMetricsMock.mockReturnValue({
+    mockUseAnalyticsFn.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
 

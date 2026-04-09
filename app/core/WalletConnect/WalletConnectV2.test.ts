@@ -4,18 +4,22 @@ import { ERROR_MESSAGES, WC2Manager } from './WalletConnectV2';
 import StorageWrapper from '../../store/storage-wrapper';
 import AppConstants from '../AppConstants';
 import { IWalletKit } from '@reown/walletkit';
-import WalletConnect from './WalletConnect';
 import WalletConnect2Session from './WalletConnect2Session';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as wcUtils from './wc-utils';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types';
 import { Core } from '@walletconnect/core';
 import Routes from '../../constants/navigation/Routes';
+import { store } from '../../store';
+import { ActionType } from '../../actions/sdk';
+// eslint-disable-next-line import-x/no-namespace
+import * as waitUtil from '../SDKConnect/utils/wait.util';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
     PROJECT_ID: 'test-project-id',
+    LIMIT_SESSIONS: 20,
     METADATA: {
       name: 'Test Wallet',
       description: 'Test Wallet Description',
@@ -214,10 +218,6 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
   })),
 }));
 
-jest.mock('./WalletConnect', () => ({
-  newSession: jest.fn().mockResolvedValue({}),
-}));
-
 jest.mock('./wc-utils', () => ({
   ...jest.requireActual('./wc-utils'),
   getScopedPermissions: jest.fn().mockResolvedValue({
@@ -237,6 +237,11 @@ jest.mock('@walletconnect/core', () => ({
     projectId: opts?.projectId,
     logger: opts?.logger,
   })),
+}));
+
+jest.mock('../SDKConnect/utils/wait.util', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+  waitForKeychainUnlocked: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('WC2Manager', () => {
@@ -445,6 +450,145 @@ describe('WC2Manager', () => {
       expect(secondInstance).toBe(firstInstance);
       expect(secondInstance).toBeInstanceOf(WC2Manager);
     });
+
+    describe('session restore', () => {
+      const SESSION_RESTORE_STAGGER_MS = 200;
+
+      const makeSession = (index: number) => ({
+        topic: `topic-${index}`,
+        pairingTopic: `pairing-${index}`,
+        peer: {
+          metadata: {
+            url: `https://dapp-${index}.example.com`,
+            name: `DApp ${index}`,
+            icons: [],
+          },
+        },
+      });
+
+      // The WalletKit mock always resolves to the same singleton mockClient.
+      // We access it through the manager created by the outer beforeEach so
+      // we can configure getActiveSessions before each fresh init() call.
+      let walletKitClient: IWalletKit;
+
+      beforeEach(() => {
+        walletKitClient = (manager as unknown as { web3Wallet: IWalletKit })
+          .web3Wallet;
+        (WC2Manager as any).instance = undefined;
+        (WC2Manager as any)._initialized = false;
+        jest.clearAllMocks();
+      });
+
+      it('calls updateSession for each active session on startup', async () => {
+        const sessions = [makeSession(1), makeSession(2), makeSession(3)];
+        (walletKitClient.getActiveSessions as jest.Mock).mockReturnValueOnce(
+          Object.fromEntries(sessions.map((s) => [s.topic, s])),
+        );
+
+        const mockUpdateSession = jest.fn().mockResolvedValue(undefined);
+        (WalletConnect2Session as jest.Mock).mockImplementation(() => ({
+          updateSession: mockUpdateSession,
+          handleRequest: jest.fn(),
+          removeListeners: jest.fn(),
+          setDeeplink: jest.fn(),
+          isHandlingRequest: jest.fn().mockReturnValue(false),
+          getCurrentChainId: jest.fn().mockReturnValue('0x1'),
+          getAllowedChainIds: ['eip155:1'],
+        }));
+
+        await WC2Manager.init({});
+
+        expect(mockUpdateSession).toHaveBeenCalledTimes(sessions.length);
+      });
+
+      it('does not start the next updateSession before the previous one resolves', async () => {
+        const sessions = [makeSession(1), makeSession(2), makeSession(3)];
+        (walletKitClient.getActiveSessions as jest.Mock).mockReturnValueOnce(
+          Object.fromEntries(sessions.map((s) => [s.topic, s])),
+        );
+
+        let concurrentCallCount = 0;
+        let maxConcurrentCalls = 0;
+        const mockUpdateSession = jest.fn().mockImplementation(async () => {
+          concurrentCallCount++;
+          maxConcurrentCalls = Math.max(
+            maxConcurrentCalls,
+            concurrentCallCount,
+          );
+          await Promise.resolve();
+          concurrentCallCount--;
+        });
+
+        (WalletConnect2Session as jest.Mock).mockImplementation(() => ({
+          updateSession: mockUpdateSession,
+          handleRequest: jest.fn(),
+          removeListeners: jest.fn(),
+          setDeeplink: jest.fn(),
+          isHandlingRequest: jest.fn().mockReturnValue(false),
+          getCurrentChainId: jest.fn().mockReturnValue('0x1'),
+          getAllowedChainIds: ['eip155:1'],
+        }));
+
+        await WC2Manager.init({});
+
+        expect(maxConcurrentCalls).toBe(1);
+      });
+
+      it('inserts a delay between successive session restores', async () => {
+        const sessions = [makeSession(1), makeSession(2), makeSession(3)];
+        (walletKitClient.getActiveSessions as jest.Mock).mockReturnValueOnce(
+          Object.fromEntries(sessions.map((s) => [s.topic, s])),
+        );
+
+        const waitSpy = jest.spyOn(waitUtil, 'wait');
+
+        await WC2Manager.init({});
+
+        const staggerCalls = waitSpy.mock.calls.filter(
+          ([ms]) => ms === SESSION_RESTORE_STAGGER_MS,
+        );
+        // One stagger wait after each restored session
+        expect(staggerCalls).toHaveLength(sessions.length);
+      });
+
+      it('skips sessions with internal/invalid URLs without restoring them', async () => {
+        // ORIGIN_METAMASK ('metamask') is a member of INTERNAL_ORIGINS
+        const internalUrl = 'metamask';
+        const sessions = [
+          {
+            topic: 'internal-topic',
+            pairingTopic: 'internal-pairing',
+            peer: {
+              metadata: { url: internalUrl, name: 'Internal', icons: [] },
+            },
+          },
+          makeSession(2),
+        ];
+        (walletKitClient.getActiveSessions as jest.Mock).mockReturnValueOnce(
+          Object.fromEntries(sessions.map((s) => [s.topic, s])),
+        );
+
+        const mockUpdateSession = jest.fn().mockResolvedValue(undefined);
+        (WalletConnect2Session as jest.Mock).mockImplementation(() => ({
+          updateSession: mockUpdateSession,
+          handleRequest: jest.fn(),
+          removeListeners: jest.fn(),
+          setDeeplink: jest.fn(),
+          isHandlingRequest: jest.fn().mockReturnValue(false),
+          getCurrentChainId: jest.fn().mockReturnValue('0x1'),
+          getAllowedChainIds: ['eip155:1'],
+        }));
+
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+        await WC2Manager.init({});
+
+        // Only the valid session is restored
+        expect(mockUpdateSession).toHaveBeenCalledTimes(1);
+
+        consoleSpy.mockRestore();
+      });
+    });
   });
 
   describe('WC2Manager Sessions', () => {
@@ -527,9 +671,12 @@ describe('WC2Manager', () => {
       expect(showLoadingSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('creates new session for WalletConnect v1 URIs', async () => {
+    it('logs a warning and returns early for WalletConnect v1 URIs', async () => {
       const mockWcUri = 'wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1';
-      const WalletConnectSpy = jest.spyOn(WalletConnect, 'newSession');
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      const pairingSpy = jest.spyOn(mockWeb3Wallet.core.pairing, 'pair');
 
       await manager.connect({
         wcUri: mockWcUri,
@@ -537,12 +684,21 @@ describe('WC2Manager', () => {
         origin: 'qrcode',
       });
 
-      expect(WalletConnectSpy).toHaveBeenCalledWith(
-        mockWcUri,
-        'https://example.com',
-        false,
-        'qrcode',
+      // Verify the deprecation warning is logged
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('WalletConnect V1 is no longer supported'),
       );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('V1 was shut down on June 28, 2023'),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(mockWcUri),
+      );
+
+      // Verify that V2 pairing was NOT called (early return)
+      expect(pairingSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
     });
 
     it('logs a warning to console on invalid URIs', async () => {
@@ -555,7 +711,10 @@ describe('WC2Manager', () => {
         origin: 'qrcode',
       });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Invalid wallet connect uri',
+        mockWcUri,
+      );
       consoleSpy.mockRestore();
     });
   });
@@ -706,7 +865,7 @@ describe('WC2Manager', () => {
         },
         topic: 'test-topic',
       });
-      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-topic');
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-pairing');
     });
   });
 
@@ -722,6 +881,34 @@ describe('WC2Manager', () => {
         AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
         JSON.stringify({}),
       );
+    });
+
+    it('revokes permissions for each active session', async () => {
+      const revokeAllPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'revokeAllPermissions',
+      );
+
+      await manager.removeAll();
+
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-pairing');
+    });
+
+    it('calls removeListeners on each WalletConnect2Session before clearing local sessions', async () => {
+      const removeListenersA = jest.fn().mockResolvedValue(undefined);
+      const removeListenersB = jest.fn().mockResolvedValue(undefined);
+      (manager as unknown as { sessions: Record<string, unknown> }).sessions = {
+        'topic-a': { removeListeners: removeListenersA },
+        'topic-b': { removeListeners: removeListenersB },
+      };
+
+      await manager.removeAll();
+
+      expect(removeListenersA).toHaveBeenCalledTimes(1);
+      expect(removeListenersB).toHaveBeenCalledTimes(1);
+      expect(
+        (manager as unknown as { sessions: Record<string, unknown> }).sessions,
+      ).toEqual({});
     });
   });
 
@@ -1639,6 +1826,409 @@ describe('WC2Manager', () => {
       );
 
       expect(originRejection).toBeUndefined();
+    });
+  });
+
+  describe('WalletConnect Verify API context extraction', () => {
+    let dispatchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      dispatchSpy = jest.spyOn(store, 'dispatch');
+    });
+
+    afterEach(() => {
+      dispatchSpy.mockRestore();
+    });
+
+    const createProposal = (
+      verifyContext?: any,
+      overrides?: { id?: number; url?: string },
+    ): any => ({
+      id: overrides?.id ?? 2001,
+      params: {
+        id: overrides?.id ?? 2001,
+        pairingTopic: 'verify-test-pairing',
+        proposer: {
+          publicKey: 'test-public-key',
+          metadata: {
+            name: 'Verify Test App',
+            description: 'A test dapp',
+            url: overrides?.url ?? 'https://example.com',
+            icons: ['https://example.com/icon.png'],
+          },
+        },
+        expiryTimestamp: Date.now() + 300000,
+        relays: [{ protocol: 'irn' }],
+        requiredNamespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+          },
+        },
+        optionalNamespaces: {},
+      },
+      ...(verifyContext !== undefined ? { verifyContext } : {}),
+    });
+
+    it('dispatches verifyContext with isScam true for malicious dapps', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal({
+        verified: {
+          isScam: true,
+          validation: 'INVALID',
+          origin: 'https://malicious-site.com',
+        },
+      });
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toEqual({
+        isScam: true,
+        validation: 'INVALID',
+        verifiedOrigin: 'https://malicious-site.com',
+      });
+    });
+
+    it('dispatches verifyContext with isScam false for verified dapps', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-2',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal(
+        {
+          verified: {
+            isScam: false,
+            validation: 'VALID',
+            origin: 'https://example.com',
+          },
+        },
+        { id: 2002 },
+      );
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toEqual({
+        isScam: false,
+        validation: 'VALID',
+        verifiedOrigin: 'https://example.com',
+      });
+    });
+
+    it('dispatches undefined verifyContext when verifyContext is absent', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-3',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal(undefined, { id: 2003 });
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toBeUndefined();
+    });
+
+    it('dispatches undefined verifyContext when verified object is missing', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-4',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal({}, { id: 2004 });
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toBeUndefined();
+    });
+
+    it('defaults validation to UNKNOWN when validation field is absent', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-5',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal(
+        {
+          verified: {
+            isScam: false,
+            // validation is intentionally missing
+            origin: 'https://example.com',
+          },
+        },
+        { id: 2005 },
+      );
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toEqual({
+        isScam: false,
+        validation: 'UNKNOWN',
+        verifiedOrigin: 'https://example.com',
+      });
+    });
+  });
+
+  describe('session limit enforcement', () => {
+    it('removes the oldest session when the session limit is exceeded', async () => {
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      const mockDisconnectSession = jest.spyOn(web3Wallet, 'disconnectSession');
+
+      const now = Math.floor(Date.now() / 1000);
+
+      // Pre-populate 20 active sessions
+      const existingSessions: Record<string, SessionTypes.Struct> = {};
+      for (let i = 0; i < 20; i++) {
+        const topic = `topic-${i}`;
+        existingSessions[topic] = {
+          topic,
+          pairingTopic: `pairing-${topic}`,
+          expiry: now + i * 100,
+          relay: { protocol: 'irn' },
+          acknowledged: true,
+          controller: 'controller',
+          namespaces: {},
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+          self: { publicKey: 'self-key', metadata: {} as any },
+          peer: {
+            publicKey: 'peer-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              description: '',
+              icons: [],
+            },
+          },
+        } as SessionTypes.Struct;
+      }
+
+      // Make getActiveSessions return all 20 existing sessions plus the new one
+      // so enforceSessionLimit fires.
+      const newSessionTopic = 'new-session-topic';
+      (web3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
+        ...existingSessions,
+        [newSessionTopic]: {
+          topic: newSessionTopic,
+          pairingTopic: 'new-pairing',
+          expiry: now + 9999,
+          relay: { protocol: 'irn' },
+          acknowledged: true,
+          controller: 'controller',
+          namespaces: {},
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+          self: { publicKey: 'self-key', metadata: {} as any },
+          peer: {
+            publicKey: 'peer-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'New App',
+              description: '',
+              icons: [],
+            },
+          },
+        } as SessionTypes.Struct,
+      });
+
+      mockApproveSession.mockResolvedValue({
+        topic: newSessionTopic,
+        pairingTopic: 'new-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'New App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = {
+        id: 9001,
+        params: {
+          id: 9001,
+          pairingTopic: 'new-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'New App',
+              description: 'New App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await manager.onSessionProposal(proposal as any);
+
+      expect(mockDisconnectSession).toHaveBeenCalledWith(
+        expect.objectContaining({ topic: 'topic-0' }),
+      );
+    });
+
+    it('does not remove any session when the session count is at or below the limit', async () => {
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      const mockDisconnectSession = jest.spyOn(web3Wallet, 'disconnectSession');
+
+      const now = Math.floor(Date.now() / 1000);
+
+      // Exactly 20 active sessions (at the limit, not over it).
+      const sessionsAtLimit: Record<string, SessionTypes.Struct> = {};
+      for (let i = 0; i < 20; i++) {
+        const topic = `at-limit-topic-${i}`;
+        sessionsAtLimit[topic] = {
+          topic,
+          pairingTopic: `pairing-${topic}`,
+          expiry: now + i * 100,
+          relay: { protocol: 'irn' },
+          acknowledged: true,
+          controller: 'controller',
+          namespaces: {},
+          requiredNamespaces: {},
+          optionalNamespaces: {},
+          self: { publicKey: 'self-key', metadata: {} as any },
+          peer: {
+            publicKey: 'peer-key',
+            metadata: {
+              url: 'https://example.com',
+              name: 'Test App',
+              description: '',
+              icons: [],
+            },
+          },
+        } as SessionTypes.Struct;
+      }
+
+      (web3Wallet.getActiveSessions as jest.Mock).mockReturnValue(
+        sessionsAtLimit,
+      );
+
+      mockApproveSession.mockResolvedValue({
+        topic: 'within-limit-topic',
+        pairingTopic: 'within-limit-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = {
+        id: 9002,
+        params: {
+          id: 9002,
+          pairingTopic: 'within-limit-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {},
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await manager.onSessionProposal(proposal as any);
+
+      expect(mockDisconnectSession).not.toHaveBeenCalled();
     });
   });
 });

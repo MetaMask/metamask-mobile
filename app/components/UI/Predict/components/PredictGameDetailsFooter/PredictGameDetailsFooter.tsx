@@ -14,9 +14,14 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { isDrawCapableLeague } from '../../constants/sports';
 import { formatVolume } from '../../utils/format';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictGameDetailsFooterProps } from './PredictGameDetailsFooter.types';
+import {
+  PREDICT_GAME_DETAILS_FOOTER,
+  PREDICT_GAME_DETAILS_FOOTER_TEST_IDS,
+} from './PredictGameDetailsFooter.testIds';
 
 const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   market,
@@ -26,7 +31,8 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   onInfoPress,
   claimableAmount = 0,
   isLoading = false,
-  testID = 'predict-game-details-footer',
+  isClaimPending = false,
+  testID = PREDICT_GAME_DETAILS_FOOTER,
 }) => {
   const insets = useSafeAreaInsets();
   const formattedVolume = useMemo(
@@ -38,6 +44,10 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
     market.status !== 'open' || market.game?.status === 'ended';
   const hasClaimableWinnings = claimableAmount > 0;
   const showClaimButton = hasClaimableWinnings && onClaimPress;
+  const labelKey =
+    market.game?.league && isDrawCapableLeague(market.game.league)
+      ? 'predict.game_details_footer.make_your_prediction'
+      : 'predict.game_details_footer.pick_a_winner';
 
   if (isMarketClosed && !hasClaimableWinnings) {
     return null;
@@ -63,23 +73,23 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              testID={`${testID}-label`}
+              testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.LABEL}`}
             >
-              {strings('predict.game_details_footer.pick_a_winner')}
+              {strings(labelKey)}
             </Text>
             <ButtonIcon
               size={ButtonIconSize.Sm}
               iconProps={{ color: IconColor.IconAlternative }}
               iconName={IconName.Info}
               onPress={onInfoPress}
-              testID={`${testID}-info-button`}
+              testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.INFO_BUTTON}`}
             />
           </Box>
 
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            testID={`${testID}-volume`}
+            testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.VOLUME}`}
           >
             {strings('predict.game_details_footer.volume_display', {
               volume: formattedVolume,
@@ -95,7 +105,8 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         onClaimPress={onClaimPress}
         claimableAmount={claimableAmount}
         isLoading={isLoading}
-        testID={`${testID}-action-buttons`}
+        isClaimPending={isClaimPending}
+        testID={`${testID}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}`}
       />
     </Box>
   );
