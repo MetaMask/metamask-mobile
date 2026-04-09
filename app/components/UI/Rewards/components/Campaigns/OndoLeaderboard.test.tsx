@@ -204,23 +204,12 @@ describe('OndoLeaderboard', () => {
   });
 
   describe('leaderboard content', () => {
-    it('renders container with leaderboard title', () => {
-      const { getByTestId, getByText } = render(
-        <OndoLeaderboard {...defaultProps} />,
-      );
+    it('renders container', () => {
+      const { getByTestId } = render(<OndoLeaderboard {...defaultProps} />);
 
       expect(
         getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
       ).toBeDefined();
-      expect(getByText('Leaderboard')).toBeDefined();
-    });
-
-    it('does not render title when showTitle is false', () => {
-      const { queryByText } = render(
-        <OndoLeaderboard {...defaultProps} showTitle={false} />,
-      );
-
-      expect(queryByText('Leaderboard')).toBeNull();
     });
 
     it('renders tier selector when multiple tiers', () => {
@@ -410,6 +399,200 @@ describe('OndoLeaderboard', () => {
       expect(
         queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-10`),
       ).toBeDefined();
+    });
+  });
+
+  describe('user position and neighbors', () => {
+    const tenEntries = Array.from({ length: 10 }, (_, i) =>
+      createMockEntry({
+        rank: i + 1,
+        referralCode: `STR${String(i + 1).padStart(3, '0')}`,
+        rateOfReturn: 0.2 - i * 0.01,
+      }),
+    );
+
+    it('renders normally when no userPosition is provided', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={tenEntries}
+          maxEntries={5}
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeNull();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-5`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-6`),
+      ).toBeNull();
+    });
+
+    it('renders normally when tier does not match', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={tenEntries}
+          maxEntries={5}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'MID',
+            rank: 250,
+            neighbors: [
+              createMockEntry({ rank: 249, referralCode: 'N249' }),
+              createMockEntry({ rank: 250, referralCode: 'USER' }),
+              createMockEntry({ rank: 251, referralCode: 'N251' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeNull();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-250`),
+      ).toBeNull();
+    });
+
+    it('highlights user row in place when rank is within visible range', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={tenEntries}
+          maxEntries={5}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 3,
+            neighbors: [
+              createMockEntry({ rank: 2, referralCode: 'STR002' }),
+              createMockEntry({ rank: 3, referralCode: 'USER' }),
+              createMockEntry({ rank: 4, referralCode: 'STR004' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeNull();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-5`),
+      ).toBeDefined();
+    });
+
+    it('shows split view with top 3 + separator + neighbors when rank is outside visible range', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={tenEntries}
+          maxEntries={5}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 250,
+            neighbors: [
+              createMockEntry({ rank: 249, referralCode: 'N249' }),
+              createMockEntry({ rank: 250, referralCode: 'USER' }),
+              createMockEntry({ rank: 251, referralCode: 'N251' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-1`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-2`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-3`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-4`),
+      ).toBeNull();
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-249`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-250`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-251`),
+      ).toBeDefined();
+    });
+
+    it('handles last-in-tier edge case with only 2 neighbors', () => {
+      const { getByTestId, queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={tenEntries}
+          maxEntries={5}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 50,
+            neighbors: [
+              createMockEntry({ rank: 49, referralCode: 'N049' }),
+              createMockEntry({ rank: 50, referralCode: 'USER' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-49`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-50`),
+      ).toBeDefined();
+      expect(
+        queryByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-51`),
+      ).toBeNull();
+    });
+
+    it('does not show split view in full leaderboard (no maxEntries)', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          entries={tenEntries}
+          selectedTier="STARTER"
+          userPosition={{
+            projectedTier: 'STARTER',
+            rank: 250,
+            neighbors: [
+              createMockEntry({ rank: 249, referralCode: 'N249' }),
+              createMockEntry({ rank: 250, referralCode: 'USER' }),
+              createMockEntry({ rank: 251, referralCode: 'N251' }),
+            ],
+          }}
+          currentUserReferralCode="USER"
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
+      ).toBeNull();
     });
   });
 

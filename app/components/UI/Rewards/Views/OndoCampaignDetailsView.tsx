@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 import {
   useNavigation,
   useRoute,
@@ -59,6 +61,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
 
+  const referralCode = useSelector(selectReferralCode);
   const { pendingPicker, setPendingPicker, sheetRef, handleGroupSelect } =
     useOndoAccountPicker(campaignId);
 
@@ -282,7 +285,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showLeaderboardSection && (
                 <>
-                  <Box twClassName="p-4">
+                  <Box twClassName="py-4">
                     <Pressable
                       onPress={() =>
                         navigation.navigate(
@@ -294,7 +297,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4"
+                        twClassName="gap-2 mb-4 px-4"
                       >
                         <Text variant={TextVariant.HeadingMd}>
                           {strings('rewards.ondo_campaign_leaderboard.title')}
@@ -303,7 +306,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                       </Box>
                     </Pressable>
                     <OndoLeaderboard
-                      showTitle={false}
                       tierNames={tierNames}
                       selectedTier={selectedTier}
                       onTierChange={setSelectedTier}
@@ -316,6 +318,16 @@ const OndoCampaignDetailsView: React.FC = () => {
                       isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
                       onRetry={refetchLeaderboard}
                       maxEntries={5}
+                      currentUserReferralCode={referralCode}
+                      userPosition={
+                        leaderboardPosition
+                          ? {
+                              projectedTier: leaderboardPosition.projectedTier,
+                              rank: leaderboardPosition.rank,
+                              neighbors: leaderboardPosition.neighbors,
+                            }
+                          : null
+                      }
                     />
                   </Box>
                 </>

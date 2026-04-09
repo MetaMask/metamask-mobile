@@ -17,32 +17,9 @@ import { formatPercentChange, formatUsd } from '../../utils/formatUtils';
 import { formatTierDisplayName } from './OndoLeaderboard.utils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 
-export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
-  CONTAINER: 'campaign-stats-summary-container',
-  RETURN: 'campaign-stats-summary-return',
-  NET_DEPOSIT: 'campaign-stats-summary-net-deposit',
-  RANK: 'campaign-stats-summary-rank',
-  TIER: 'campaign-stats-summary-tier',
-  LEADERBOARD_ERROR: 'campaign-stats-summary-leaderboard-error',
-  PORTFOLIO_ERROR: 'campaign-stats-summary-portfolio-error',
-} as const;
-
-interface DataSourceState {
-  isLoading: boolean;
-  hasError: boolean;
-  refetch: () => void;
-}
-
-interface CampaignStatsSummaryProps {
-  leaderboardPosition: CampaignLeaderboardPositionDto | null;
-  portfolioSummary: OndoGmPortfolioSummaryDto | null;
-  leaderboard: DataSourceState;
-  portfolio: DataSourceState;
-}
-
 const CELL_STYLE = { flex: 1 } as const;
 
-interface StatCellProps {
+export interface StatCellProps {
   label: string;
   value: string;
   isLoading?: boolean;
@@ -50,7 +27,7 @@ interface StatCellProps {
   testID?: string;
 }
 
-const StatCell: React.FC<StatCellProps> = ({
+export const StatCell: React.FC<StatCellProps> = ({
   label,
   value,
   isLoading = false,
@@ -79,6 +56,29 @@ const StatCell: React.FC<StatCellProps> = ({
     </Box>
   );
 };
+
+export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
+  CONTAINER: 'campaign-stats-summary-container',
+  RETURN: 'campaign-stats-summary-return',
+  NET_DEPOSIT: 'campaign-stats-summary-net-deposit',
+  RANK: 'campaign-stats-summary-rank',
+  TIER: 'campaign-stats-summary-tier',
+  LEADERBOARD_ERROR: 'campaign-stats-summary-leaderboard-error',
+  PORTFOLIO_ERROR: 'campaign-stats-summary-portfolio-error',
+} as const;
+
+interface DataSourceState {
+  isLoading: boolean;
+  hasError: boolean;
+  refetch: () => void;
+}
+
+interface CampaignStatsSummaryProps {
+  leaderboardPosition: CampaignLeaderboardPositionDto | null;
+  portfolioSummary: OndoGmPortfolioSummaryDto | null;
+  leaderboard: DataSourceState;
+  portfolio: DataSourceState;
+}
 
 const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   leaderboardPosition,

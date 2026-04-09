@@ -1,15 +1,24 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxFlexDirection,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
+import { StatCell } from '../components/Campaigns/CampaignStatsSummary';
+import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { strings } from '../../../../../locales/i18n';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -27,6 +36,7 @@ const OndoLeaderboardView: React.FC = () => {
   const route =
     useRoute<RouteProp<OndoLeaderboardRouteParams, 'OndoLeaderboard'>>();
   const { campaignId } = route.params;
+  const referralCode = useSelector(selectReferralCode);
 
   const {
     position,
@@ -67,9 +77,29 @@ const OndoLeaderboardView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          {/* Full leaderboard */}
+          {/* User position */}
+          {position && (
+            <Box twClassName="p-4 gap-3">
+              <Text variant={TextVariant.HeadingMd}>
+                {strings('rewards.ondo_campaign_leaderboard.your_position')}
+              </Text>
+              <Box flexDirection={BoxFlexDirection.Row}>
+                <StatCell
+                  label="Rank"
+                  value={`${position.rank}`}
+                  isLoading={isPositionLoading}
+                />
+                <StatCell
+                  label="Tier"
+                  value={formatTierDisplayName(position.projectedTier)}
+                  isLoading={isPositionLoading}
+                />
+              </Box>
+            </Box>
+          )}
 
-          <Box twClassName="px-4 py-4">
+          {/* Full leaderboard */}
+          <Box>
             <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}
@@ -80,7 +110,7 @@ const OndoLeaderboardView: React.FC = () => {
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
-              showTitle={false}
+              currentUserReferralCode={referralCode}
             />
           </Box>
         </ScrollView>
