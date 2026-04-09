@@ -60,8 +60,10 @@ import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
 import AccountSelector from '../../AccountSelector';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -120,9 +122,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountWithdraw,
     ]);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
     const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
       string | undefined
     >(undefined);
+
+    const globalSelectedAddress = useSelector(
+      selectSelectedInternalAccountAddress,
+    );
+    const initialFromAddress =
+      (transactionMeta?.txParams?.from as string | undefined) ??
+      globalSelectedAddress;
+    const [selectedFromAddress, setSelectedFromAddress] = useState<
+      string | undefined
+    >(initialFromAddress);
 
     const handleRecipientAccountSelected = useCallback(
       (address: string) => {
@@ -130,6 +145,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           updateEditableParams(transactionId, { to: address as Hex });
         }
         setSelectedRecipientAddress(address);
+      },
+      [transactionId],
+    );
+
+    const handleFromAccountSelected = useCallback(
+      (address: string) => {
+        if (transactionId) {
+          updateEditableParams(transactionId, { from: address as Hex });
+        }
+        setSelectedFromAddress(address);
       },
       [transactionId],
     );
@@ -206,6 +231,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box gap={16}>
           {!overrideContent && (
             <>
+              {isMoneyAccountDeposit && (
+                <AccountSelector
+                  label={strings('confirm.label.from')}
+                  selectedAddress={selectedFromAddress}
+                  onAccountSelected={handleFromAccountSelected}
+                />
+              )}
               {isMoneyAccountWithdraw && (
                 <AccountSelector
                   selectedAddress={selectedRecipientAddress}

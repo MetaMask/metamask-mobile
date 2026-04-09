@@ -1,10 +1,13 @@
 import {
   Asset,
+  selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
   TokenListState,
   AssetListState,
+  AccountGroupAssets,
 } from '@metamask/assets-controllers';
+import type { AccountGroupId } from '@metamask/account-api';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
@@ -165,6 +168,30 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
 );
+
+const EMPTY_ACCOUNT_GROUP_ASSETS: AccountGroupAssets = {};
+
+const selectAllAssetsGrouped = createDeepEqualSelector(
+  getStateForAssetSelector,
+  (assetsState) => {
+    try {
+      return _selectAllAssets(assetsState);
+    } catch {
+      return {};
+    }
+  },
+);
+
+export const selectAssetsByAccountGroupId = (
+  state: RootState,
+  accountGroupId: AccountGroupId | undefined,
+): AccountGroupAssets => {
+  if (!accountGroupId) {
+    return EMPTY_ACCOUNT_GROUP_ASSETS;
+  }
+  const allAssets = selectAllAssetsGrouped(state);
+  return allAssets[accountGroupId] ?? EMPTY_ACCOUNT_GROUP_ASSETS;
+};
 
 // BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
 const selectStakedAssets = createDeepEqualSelector(
