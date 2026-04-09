@@ -157,7 +157,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
             "letterSpacing": 0,
@@ -194,7 +194,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -305,7 +305,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -337,7 +337,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -356,7 +356,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "height": 20,
                 "width": 20,
               },
@@ -386,7 +386,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -403,7 +403,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -435,7 +435,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -452,7 +452,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -484,7 +484,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -501,7 +501,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -742,7 +742,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
             "letterSpacing": 0,
@@ -779,7 +779,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -837,7 +837,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -883,7 +883,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -929,7 +929,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -975,7 +975,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1230,7 +1230,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 40,
             "letterSpacing": 0,
@@ -1267,7 +1267,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1378,7 +1378,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1410,7 +1410,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -1429,7 +1429,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "height": 20,
                 "width": 20,
               },
@@ -1459,7 +1459,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1476,7 +1476,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1508,7 +1508,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1525,7 +1525,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1557,7 +1557,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1574,7 +1574,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,

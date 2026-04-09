@@ -48,7 +48,7 @@ exports[`Login renders matching snapshot 1`] = `
             "width": 160,
           },
           {
-            "tintColor": "#131416",
+            "tintColor": "#141414",
           },
         ]
       }
@@ -151,7 +151,7 @@ exports[`Login renders matching snapshot 1`] = `
                   "backgroundColor": "transparent",
                   "borderColor": "transparent",
                   "borderWidth": 0,
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "height": 46,
                 },
@@ -226,7 +226,7 @@ exports[`Login renders matching snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 24,
                   "width": 24,
                 },
@@ -301,7 +301,7 @@ exports[`Login renders matching snapshot 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -540,7 +540,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             "width": 160,
           },
           {
-            "tintColor": "#131416",
+            "tintColor": "#141414",
           },
         ]
       }
@@ -643,7 +643,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                   "backgroundColor": "transparent",
                   "borderColor": "transparent",
                   "borderWidth": 0,
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "height": 46,
                 },
@@ -715,7 +715,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 24,
                   "width": 24,
                 },
@@ -790,7 +790,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",

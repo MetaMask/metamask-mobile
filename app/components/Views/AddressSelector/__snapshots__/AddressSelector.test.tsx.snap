@@ -493,7 +493,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -532,7 +532,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={24}
                                       name="Close"
@@ -584,7 +584,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   numberOfLines={1}
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -596,7 +596,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   Mock Account Name
                                 </Text>
                                 <SvgMock
-                                  color="#131416"
+                                  color="#141414"
                                   fill="currentColor"
                                   height={16}
                                   name="ArrowDown"
@@ -777,7 +777,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -956,7 +956,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1120,7 +1120,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1284,7 +1284,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1448,7 +1448,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1612,7 +1612,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1776,7 +1776,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1940,7 +1940,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                   style={
                                                     [
                                                       {
-                                                        "color": "#131416",
+                                                        "color": "#141414",
                                                         "fontFamily": "Geist-Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,

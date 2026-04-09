@@ -276,7 +276,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 20,
                                           "fontWeight": "normal",
@@ -291,7 +291,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 20,
                                           "letterSpacing": 0,
@@ -330,7 +330,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 20,
                                           "letterSpacing": 0,
@@ -467,7 +467,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 20,
                                           "fontWeight": "normal",
@@ -514,7 +514,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -550,7 +550,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -675,7 +675,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -716,7 +716,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1040,7 +1040,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 20,
                                           "fontWeight": "normal",
@@ -1055,7 +1055,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 20,
                                           "letterSpacing": 0,
@@ -1098,7 +1098,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 20,
                                           "letterSpacing": 0,
@@ -1196,7 +1196,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1232,7 +1232,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -1357,7 +1357,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -1398,7 +1398,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1722,7 +1722,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 20,
                                           "fontWeight": "normal",
@@ -1737,7 +1737,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 20,
                                           "letterSpacing": 0,
@@ -1780,7 +1780,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 20,
                                           "letterSpacing": 0,
@@ -1917,7 +1917,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 20,
                                           "fontWeight": "normal",
@@ -1964,7 +1964,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2000,7 +2000,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -2125,7 +2125,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2166,7 +2166,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,

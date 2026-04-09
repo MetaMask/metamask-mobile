@@ -170,7 +170,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-SemiBold",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -209,7 +209,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
                 }
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={24}
                   name="Close"
@@ -236,7 +236,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -303,7 +303,7 @@ exports[`MarketClosedBottomSheet renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

@@ -444,7 +444,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "center",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#141414",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,

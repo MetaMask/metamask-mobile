@@ -357,7 +357,7 @@ exports[`OrderDetails matches snapshot when order exists 1`] = `
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#131416"
+                              tintColor="#141414"
                             />
                           }
                         >

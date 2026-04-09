@@ -429,7 +429,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -470,7 +470,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -570,7 +570,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -609,7 +609,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -641,7 +641,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -665,7 +665,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -707,7 +707,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -719,7 +719,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 20,
                                               "letterSpacing": 0,
@@ -733,7 +733,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -845,7 +845,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               selectable={true}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -860,7 +860,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                               selectable={true}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1253,7 +1253,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1715,7 +1715,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -1756,7 +1756,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1856,7 +1856,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -1895,7 +1895,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1927,7 +1927,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1951,7 +1951,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -1993,7 +1993,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -2005,7 +2005,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 20,
                                               "letterSpacing": 0,
@@ -2019,7 +2019,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2097,7 +2097,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -2559,7 +2559,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2600,7 +2600,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2700,7 +2700,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -2739,7 +2739,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2771,7 +2771,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3234,7 +3234,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -3275,7 +3275,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -3375,7 +3375,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -3414,7 +3414,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3446,7 +3446,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3486,7 +3486,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3947,7 +3947,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -3988,7 +3988,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -4088,7 +4088,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -4127,7 +4127,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4159,7 +4159,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4183,7 +4183,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -4658,7 +4658,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -4699,7 +4699,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -4799,7 +4799,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -4838,7 +4838,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4870,7 +4870,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4894,7 +4894,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -5369,7 +5369,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -5410,7 +5410,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -5510,7 +5510,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -5549,7 +5549,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -5581,7 +5581,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -5605,7 +5605,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -6080,7 +6080,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -6121,7 +6121,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -6221,7 +6221,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -6260,7 +6260,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -6292,7 +6292,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -6316,7 +6316,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -6791,7 +6791,7 @@ exports[`Settings renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -6832,7 +6832,7 @@ exports[`Settings renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -6932,7 +6932,7 @@ exports[`Settings renders correctly 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -6971,7 +6971,7 @@ exports[`Settings renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -7003,7 +7003,7 @@ exports[`Settings renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -7027,7 +7027,7 @@ exports[`Settings renders correctly 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -7502,7 +7502,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -7543,7 +7543,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -7643,7 +7643,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -7682,7 +7682,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -7714,7 +7714,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -7738,7 +7738,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#131416",
+                                            "backgroundColor": "#141414",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -7780,7 +7780,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -7792,7 +7792,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 20,
                                               "letterSpacing": 0,
@@ -7806,7 +7806,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -7915,7 +7915,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               selectable={true}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -7930,7 +7930,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                               selectable={true}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -8322,7 +8322,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,

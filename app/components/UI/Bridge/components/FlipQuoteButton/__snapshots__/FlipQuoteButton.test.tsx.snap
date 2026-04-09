@@ -54,7 +54,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
       testID="arrow-button"
     >
       <SvgMock
-        color="#131416"
+        color="#141414"
         fill="currentColor"
         height={24}
         name="SwapVertical"
@@ -128,7 +128,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
       testID="arrow-button"
     >
       <SvgMock
-        color="#131416"
+        color="#141414"
         fill="currentColor"
         height={24}
         name="SwapVertical"

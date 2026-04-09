@@ -72,7 +72,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -180,7 +180,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -297,7 +297,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -391,7 +391,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -499,7 +499,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -616,7 +616,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="found" 1`]
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -710,7 +710,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -818,7 +818,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -935,7 +935,7 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -1029,7 +1029,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -1137,7 +1137,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1254,7 +1254,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -1348,7 +1348,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -1456,7 +1456,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1573,7 +1573,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -1667,7 +1667,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -1775,7 +1775,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1892,7 +1892,7 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",

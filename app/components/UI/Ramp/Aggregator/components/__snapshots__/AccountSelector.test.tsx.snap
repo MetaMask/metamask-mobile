@@ -49,7 +49,7 @@ exports[`AccountSelector renders correctly with selected address 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "flexShrink": 1,
           "fontFamily": "Geist-Medium",
           "fontSize": 16,

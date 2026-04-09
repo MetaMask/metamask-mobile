@@ -101,7 +101,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -170,7 +170,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -410,7 +410,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -479,7 +479,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -719,7 +719,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -788,7 +788,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1028,7 +1028,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -1097,7 +1097,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1337,7 +1337,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -1406,7 +1406,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1646,7 +1646,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -1715,7 +1715,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1955,7 +1955,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -2024,7 +2024,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -2264,7 +2264,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -2333,7 +2333,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -2573,7 +2573,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "letterSpacing": 0,
@@ -2642,7 +2642,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",

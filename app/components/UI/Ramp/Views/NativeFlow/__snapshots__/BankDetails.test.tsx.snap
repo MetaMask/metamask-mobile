@@ -42,7 +42,7 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
           }
           onRefresh={[Function]}
           refreshing={false}
-          tintColor="#131416"
+          tintColor="#141414"
         />
       }
       testID="bank-details-refresh-control-scrollview"
@@ -87,7 +87,7 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 20,
                       "letterSpacing": 0,
@@ -320,7 +320,7 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -374,7 +374,7 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -474,7 +474,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
           }
           onRefresh={[Function]}
           refreshing={false}
-          tintColor="#131416"
+          tintColor="#141414"
         />
       }
       testID="bank-details-refresh-control-scrollview"
@@ -519,7 +519,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 20,
                       "letterSpacing": 0,
@@ -894,7 +894,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                       style={
                         [
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "height": 20,
                             "width": 20,
                           },
@@ -913,7 +913,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -968,7 +968,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1068,7 +1068,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
           }
           onRefresh={[Function]}
           refreshing={false}
-          tintColor="#131416"
+          tintColor="#141414"
         />
       }
       testID="bank-details-refresh-control-scrollview"
@@ -1113,7 +1113,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 20,
                       "letterSpacing": 0,
@@ -1447,7 +1447,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1662,7 +1662,7 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
           }
           onRefresh={[Function]}
           refreshing={false}
-          tintColor="#131416"
+          tintColor="#141414"
         />
       }
       testID="bank-details-refresh-control-scrollview"
@@ -1707,7 +1707,7 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 20,
                       "letterSpacing": 0,
@@ -2041,7 +2041,7 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -2095,7 +2095,7 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -2195,7 +2195,7 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
           }
           onRefresh={[Function]}
           refreshing={false}
-          tintColor="#131416"
+          tintColor="#141414"
         />
       }
       testID="bank-details-refresh-control-scrollview"
@@ -2240,7 +2240,7 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 20,
                       "letterSpacing": 0,
@@ -2554,7 +2554,7 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -2608,7 +2608,7 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -2708,7 +2708,7 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
           }
           onRefresh={[Function]}
           refreshing={false}
-          tintColor="#131416"
+          tintColor="#141414"
         />
       }
       testID="bank-details-refresh-control-scrollview"
@@ -2753,7 +2753,7 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 20,
                       "letterSpacing": 0,
@@ -3087,7 +3087,7 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3141,7 +3141,7 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",

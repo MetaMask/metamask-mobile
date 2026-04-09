@@ -375,7 +375,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 20,
                                   "letterSpacing": 0,
@@ -412,7 +412,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                               testID="bottomsheetheader-close-button"
                             >
                               <SvgMock
-                                color="#131416"
+                                color="#141414"
                                 fill="currentColor"
                                 height={24}
                                 name="Close"
@@ -509,7 +509,7 @@ exports[`RampUnsupportedModal renders modal with title and description 1`] = `
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#141414",
                                 "borderRadius": 12,
                                 "columnGap": 8,
                                 "flexDirection": "row",

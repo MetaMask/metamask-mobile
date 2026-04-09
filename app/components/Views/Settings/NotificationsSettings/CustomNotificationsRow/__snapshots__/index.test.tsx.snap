@@ -11,7 +11,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
   testID="notifications-switch--container"
 >
   <SvgMock
-    color="#131416"
+    color="#141414"
     fill="currentColor"
     height={24}
     name="Sparkle"
@@ -36,7 +36,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Medium",
           "fontSize": 20,
           "letterSpacing": 0,

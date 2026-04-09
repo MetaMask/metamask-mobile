@@ -25,7 +25,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-SemiBold",
           "fontSize": 20,
           "letterSpacing": 0,
@@ -125,7 +125,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -157,7 +157,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#131416",
+        "color": "#141414",
         "fontFamily": "Geist-SemiBold",
         "fontSize": 20,
         "letterSpacing": 0,
@@ -222,7 +222,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,

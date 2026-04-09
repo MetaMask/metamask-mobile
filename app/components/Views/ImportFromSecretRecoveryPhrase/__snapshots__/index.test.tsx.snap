@@ -130,7 +130,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                   testID="import-from-seed-screen-back-button-id"
                 >
                   <SvgMock
-                    color="#131416"
+                    color="#141414"
                     fill="currentColor"
                     height={24}
                     name="ArrowLeft"
@@ -191,7 +191,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                   testID="import-from-seed-screen-qr-code-button-id"
                 >
                   <SvgMock
-                    color="#131416"
+                    color="#141414"
                     fill="currentColor"
                     height={24}
                     name="Scan"
@@ -427,7 +427,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -898,7 +898,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                               [
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#141414",
                                   "borderRadius": 12,
                                   "columnGap": 8,
                                   "flexDirection": "row",

@@ -341,7 +341,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -398,7 +398,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -432,7 +432,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -645,7 +645,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -689,7 +689,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -756,7 +756,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -837,7 +837,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 24,
                                                   "letterSpacing": 0,
@@ -899,7 +899,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -978,7 +978,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1046,7 +1046,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontSize": 20,
                                                   },
                                                   undefined,
@@ -1083,7 +1083,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -1119,7 +1119,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-SemiBold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1252,7 +1252,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -1351,7 +1351,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1391,7 +1391,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1431,7 +1431,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1508,7 +1508,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1561,7 +1561,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1614,7 +1614,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1681,7 +1681,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1734,7 +1734,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1787,7 +1787,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1854,7 +1854,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1907,7 +1907,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -1960,7 +1960,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -2029,7 +2029,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -2082,7 +2082,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -2137,7 +2137,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -2172,7 +2172,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2296,7 +2296,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2337,7 +2337,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2414,7 +2414,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2751,7 +2751,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -2775,7 +2775,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -2832,7 +2832,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -2958,7 +2958,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2999,7 +2999,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -3076,7 +3076,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -3413,7 +3413,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -3437,7 +3437,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -3494,7 +3494,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -3620,7 +3620,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -3661,7 +3661,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -4006,7 +4006,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -4030,7 +4030,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -4087,7 +4087,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -4213,7 +4213,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -4254,7 +4254,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -4331,7 +4331,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -4712,7 +4712,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -4769,7 +4769,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -4803,7 +4803,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -5023,7 +5023,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -5104,7 +5104,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 24,
                                                   "letterSpacing": 0,
@@ -5166,7 +5166,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -5245,7 +5245,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5469,7 +5469,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -5568,7 +5568,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5608,7 +5608,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5648,7 +5648,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -5725,7 +5725,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -5778,7 +5778,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -5831,7 +5831,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -5898,7 +5898,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -5951,7 +5951,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6004,7 +6004,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6071,7 +6071,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6124,7 +6124,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6177,7 +6177,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6246,7 +6246,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6299,7 +6299,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -6354,7 +6354,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -6389,7 +6389,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -6513,7 +6513,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -6554,7 +6554,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -6631,7 +6631,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -6968,7 +6968,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -6992,7 +6992,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -7049,7 +7049,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -7175,7 +7175,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -7216,7 +7216,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -7293,7 +7293,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -7674,7 +7674,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -7731,7 +7731,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -7765,7 +7765,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -7985,7 +7985,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -8187,7 +8187,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -8411,7 +8411,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -8510,7 +8510,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -8550,7 +8550,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -8590,7 +8590,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -8667,7 +8667,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -8720,7 +8720,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -8773,7 +8773,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -8840,7 +8840,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -8893,7 +8893,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -8946,7 +8946,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -9013,7 +9013,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -9066,7 +9066,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -9119,7 +9119,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -9188,7 +9188,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -9241,7 +9241,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -9296,7 +9296,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -9331,7 +9331,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -9455,7 +9455,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -9496,7 +9496,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -9573,7 +9573,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -9910,7 +9910,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -9934,7 +9934,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -9991,7 +9991,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -10117,7 +10117,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -10158,7 +10158,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -10235,7 +10235,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -10616,7 +10616,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -10673,7 +10673,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -10707,7 +10707,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -10920,7 +10920,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -10964,7 +10964,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -11031,7 +11031,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -11112,7 +11112,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 24,
                                                   "letterSpacing": 0,
@@ -11174,7 +11174,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -11253,7 +11253,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -11321,7 +11321,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontSize": 20,
                                                   },
                                                   undefined,
@@ -11358,7 +11358,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -11394,7 +11394,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-SemiBold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -11484,7 +11484,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -11583,7 +11583,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -11623,7 +11623,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -11663,7 +11663,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -11740,7 +11740,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -11793,7 +11793,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -11846,7 +11846,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -11913,7 +11913,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -11966,7 +11966,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12019,7 +12019,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12086,7 +12086,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12139,7 +12139,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12192,7 +12192,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12261,7 +12261,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12314,7 +12314,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -12369,7 +12369,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -12404,7 +12404,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -12528,7 +12528,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -12569,7 +12569,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -12646,7 +12646,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -13027,7 +13027,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -13084,7 +13084,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -13118,7 +13118,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -13331,7 +13331,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -13375,7 +13375,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -13442,7 +13442,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -13523,7 +13523,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 24,
                                                   "letterSpacing": 0,
@@ -13585,7 +13585,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -13664,7 +13664,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -13888,7 +13888,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -13987,7 +13987,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -14027,7 +14027,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -14067,7 +14067,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -14144,7 +14144,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14197,7 +14197,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14250,7 +14250,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14317,7 +14317,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14370,7 +14370,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14423,7 +14423,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14490,7 +14490,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14543,7 +14543,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14596,7 +14596,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14665,7 +14665,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14718,7 +14718,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -14773,7 +14773,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -14808,7 +14808,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -14932,7 +14932,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -14973,7 +14973,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -15050,7 +15050,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -15387,7 +15387,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -15411,7 +15411,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -15468,7 +15468,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -15594,7 +15594,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -15635,7 +15635,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -15712,7 +15712,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -16093,7 +16093,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -16160,7 +16160,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -16380,7 +16380,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -16582,7 +16582,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -16806,7 +16806,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -16905,7 +16905,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -16945,7 +16945,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -16985,7 +16985,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -17062,7 +17062,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17115,7 +17115,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17168,7 +17168,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17235,7 +17235,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17288,7 +17288,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17341,7 +17341,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17408,7 +17408,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17461,7 +17461,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17514,7 +17514,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17583,7 +17583,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17636,7 +17636,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -17691,7 +17691,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -17726,7 +17726,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -17850,7 +17850,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -17891,7 +17891,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -17968,7 +17968,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -18349,7 +18349,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -18406,7 +18406,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -18440,7 +18440,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -18653,7 +18653,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -18697,7 +18697,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -18764,7 +18764,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -18845,7 +18845,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 24,
                                                   "letterSpacing": 0,
@@ -18907,7 +18907,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -18986,7 +18986,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -19054,7 +19054,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontSize": 20,
                                                   },
                                                   undefined,
@@ -19091,7 +19091,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -19127,7 +19127,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-SemiBold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -19260,7 +19260,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -19359,7 +19359,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -19399,7 +19399,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -19439,7 +19439,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -19516,7 +19516,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19569,7 +19569,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19622,7 +19622,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19689,7 +19689,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19742,7 +19742,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19795,7 +19795,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19862,7 +19862,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19915,7 +19915,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -19968,7 +19968,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -20037,7 +20037,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -20090,7 +20090,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -20145,7 +20145,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -20180,7 +20180,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -20304,7 +20304,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -20345,7 +20345,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -20422,7 +20422,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -20803,7 +20803,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "flexShrink": 1,
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
@@ -20860,7 +20860,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -20917,7 +20917,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -20949,7 +20949,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -21162,7 +21162,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -21206,7 +21206,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontFamily": "Geist-SemiBold",
                                                     "fontSize": 16,
                                                     "letterSpacing": 0,
@@ -21273,7 +21273,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -21354,7 +21354,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               numberOfLines={1}
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 24,
                                                   "letterSpacing": 0,
@@ -21415,7 +21415,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -21483,7 +21483,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "fontSize": 20,
                                                   },
                                                   undefined,
@@ -21520,7 +21520,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 20,
                                                   "letterSpacing": 0,
@@ -21556,7 +21556,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-SemiBold",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -21689,7 +21689,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
+                                      "backgroundColor": "#141414",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 48,
@@ -21788,7 +21788,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -21828,7 +21828,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -21868,7 +21868,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -21908,7 +21908,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -21985,7 +21985,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22038,7 +22038,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22091,7 +22091,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22158,7 +22158,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22211,7 +22211,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22264,7 +22264,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22331,7 +22331,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22384,7 +22384,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22437,7 +22437,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22506,7 +22506,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22559,7 +22559,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-SemiBold",
                                             "fontSize": 32,
                                             "fontWeight": "500",
@@ -22614,7 +22614,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 32,
                                             "width": 32,
                                           },
@@ -22649,7 +22649,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -22773,7 +22773,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -22814,7 +22814,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -23159,7 +23159,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -23183,7 +23183,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -23240,7 +23240,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -23366,7 +23366,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -23407,7 +23407,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -23484,7 +23484,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -23821,7 +23821,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -23845,7 +23845,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -23902,7 +23902,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -24028,7 +24028,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -24069,7 +24069,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,

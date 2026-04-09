@@ -398,7 +398,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -475,7 +475,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -508,7 +508,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -570,7 +570,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#141414",
                                 "borderRadius": 12,
                                 "columnGap": 8,
                                 "flexDirection": "row",
@@ -1032,7 +1032,7 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -1109,7 +1109,7 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -1142,7 +1142,7 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1206,7 +1206,7 @@ Additional context for debugging.
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#141414",
                                 "borderRadius": 12,
                                 "columnGap": 8,
                                 "flexDirection": "row",
@@ -1668,7 +1668,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -1745,7 +1745,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -1778,7 +1778,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1838,7 +1838,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#141414",
                                 "borderRadius": 12,
                                 "columnGap": 8,
                                 "flexDirection": "row",
@@ -2300,7 +2300,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -2377,7 +2377,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -2410,7 +2410,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2507,7 +2507,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                             style={
                               [
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "flexGrow": 0,
                                   "flexShrink": 1,
                                   "flexWrap": "wrap",
@@ -2560,7 +2560,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#141414",
                                 "borderRadius": 12,
                                 "columnGap": 8,
                                 "flexDirection": "row",
@@ -3022,7 +3022,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -3099,7 +3099,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -3132,7 +3132,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -3229,7 +3229,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                             style={
                               [
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "flexGrow": 0,
                                   "flexShrink": 1,
                                   "flexWrap": "wrap",
@@ -3282,7 +3282,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                             [
                               {
                                 "alignItems": "center",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#141414",
                                 "borderRadius": 12,
                                 "columnGap": 8,
                                 "flexDirection": "row",

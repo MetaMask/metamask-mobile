@@ -181,7 +181,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -258,7 +258,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "height": 24,
                         "width": 24,
                       },
@@ -519,7 +519,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-SemiBold",
                         "fontSize": 20,
                         "letterSpacing": 0,
@@ -743,7 +743,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#141414",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -948,7 +948,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#141414",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,

@@ -60,7 +60,7 @@ exports[`PaymentMethodListItem matches snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontSize": 24,
                 },
                 undefined,
@@ -99,7 +99,7 @@ exports[`PaymentMethodListItem matches snapshot 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -252,7 +252,7 @@ exports[`PaymentMethodListItem renders as selected when isSelected is true 1`] =
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,

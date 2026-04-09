@@ -90,7 +90,7 @@ exports[`QuoteDisplay matches snapshot with crypto and fiat 1`] = `
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -139,7 +139,7 @@ exports[`QuoteDisplay matches snapshot with crypto only 1`] = `
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,

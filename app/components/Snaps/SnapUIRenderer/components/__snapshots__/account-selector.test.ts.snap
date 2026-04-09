@@ -94,7 +94,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                 testID="snap-ui-renderer__selector"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -191,7 +191,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -233,7 +233,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 testID="snap-ui-renderer__selector"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"

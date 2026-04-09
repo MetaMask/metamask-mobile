@@ -85,7 +85,7 @@ exports[`MarketClosedActionButton renders correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "flexShrink": 0,
             "fontFamily": "Geist-Medium",
             "fontSize": 16,

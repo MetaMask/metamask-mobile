@@ -87,7 +87,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -182,7 +182,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -277,7 +277,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -372,7 +372,7 @@ exports[`QuickAmounts matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",

@@ -513,7 +513,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
@@ -548,7 +548,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={24}
                                       name="Close"
@@ -584,7 +584,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,

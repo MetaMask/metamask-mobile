@@ -56,7 +56,7 @@ exports[`SampleFeature Snapshot Tests matches rendered snapshot when feature fla
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,
@@ -159,7 +159,7 @@ exports[`SampleFeature Snapshot Tests matches rendered snapshot when feature fla
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-SemiBold",
           "fontSize": 24,
           "letterSpacing": 0,

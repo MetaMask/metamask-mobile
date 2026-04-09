@@ -101,7 +101,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 24,
                   "width": 24,
                 },
@@ -142,7 +142,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -273,7 +273,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -367,7 +367,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                           "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 0,
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "height": 46,
                         },
@@ -436,7 +436,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#141414",
                       "borderRadius": 12,
                       "columnGap": 8,
                       "flexDirection": "row",

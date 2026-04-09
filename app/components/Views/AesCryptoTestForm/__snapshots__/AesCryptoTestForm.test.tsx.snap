@@ -99,7 +99,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 24,
                   "width": 24,
                 },
@@ -140,7 +140,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -173,7 +173,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -188,7 +188,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -208,7 +208,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -255,7 +255,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
@@ -294,7 +294,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -366,7 +366,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
@@ -405,7 +405,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -477,7 +477,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
@@ -516,7 +516,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -563,7 +563,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
@@ -602,7 +602,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -674,7 +674,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
@@ -713,7 +713,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -760,7 +760,7 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#131416",
+              "backgroundColor": "#141414",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,

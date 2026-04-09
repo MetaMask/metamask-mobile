@@ -81,7 +81,7 @@ exports[`DefaultSlippageButtonGroup button variants handles mixed selected state
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -137,7 +137,7 @@ exports[`DefaultSlippageButtonGroup button variants handles mixed selected state
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -253,7 +253,7 @@ exports[`DefaultSlippageButtonGroup button variants handles mixed selected state
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -324,7 +324,7 @@ exports[`DefaultSlippageButtonGroup button variants uses Primary variant for sel
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -455,7 +455,7 @@ exports[`DefaultSlippageButtonGroup button variants uses Secondary variant for u
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -557,7 +557,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -644,7 +644,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -700,7 +700,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -816,7 +816,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -903,7 +903,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -974,7 +974,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -1090,7 +1090,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1177,7 +1177,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1279,7 +1279,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1366,7 +1366,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1422,7 +1422,7 @@ exports[`DefaultSlippageButtonGroup complete component snapshots matches snapsho
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -1553,7 +1553,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles long labels 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1609,7 +1609,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles long labels 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -1740,7 +1740,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1827,7 +1827,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -1883,7 +1883,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -1999,7 +1999,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2086,7 +2086,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2173,7 +2173,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2275,7 +2275,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles options without selected 
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2362,7 +2362,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles options without selected 
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2433,7 +2433,7 @@ exports[`DefaultSlippageButtonGroup edge cases handles single option 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -2533,7 +2533,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with first o
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -2649,7 +2649,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with first o
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2736,7 +2736,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with first o
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2838,7 +2838,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with last op
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2925,7 +2925,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with last op
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -2981,7 +2981,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with last op
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -3081,7 +3081,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with multipl
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -3166,7 +3166,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with multipl
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -3282,7 +3282,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with multipl
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -3384,7 +3384,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with no opti
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -3471,7 +3471,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with no opti
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -3558,7 +3558,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with no opti
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -3660,7 +3660,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with one opt
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",
@@ -3716,7 +3716,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with one opt
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -3832,7 +3832,7 @@ exports[`DefaultSlippageButtonGroup styling renders correct styling with one opt
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",

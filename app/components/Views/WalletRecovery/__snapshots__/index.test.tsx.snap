@@ -79,7 +79,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
                 }
               >
                 <AppleIcon
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={24}
                   name="google"
@@ -100,7 +100,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,

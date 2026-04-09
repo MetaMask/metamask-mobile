@@ -492,7 +492,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -526,7 +526,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                     }
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={24}
                                       name="Close"
@@ -671,7 +671,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -786,7 +786,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -1327,7 +1327,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1361,7 +1361,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                     }
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={24}
                                       name="Close"
@@ -1942,7 +1942,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1976,7 +1976,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                     }
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={24}
                                       name="Close"
@@ -2121,7 +2121,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2667,7 +2667,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2701,7 +2701,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                     }
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={24}
                                       name="Close"
@@ -2851,7 +2851,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,

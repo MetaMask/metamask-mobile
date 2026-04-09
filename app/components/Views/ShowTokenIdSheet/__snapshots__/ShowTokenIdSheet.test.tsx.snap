@@ -474,7 +474,7 @@ exports[`ShowTokenId should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -505,7 +505,7 @@ exports[`ShowTokenId should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,

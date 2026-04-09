@@ -503,7 +503,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -580,7 +580,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -751,7 +751,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -762,7 +762,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       All networks
                                     </Text>
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={12}
                                       name="ArrowDown"
@@ -875,7 +875,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -997,7 +997,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 20,
                                             "letterSpacing": 0,
@@ -1531,7 +1531,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1608,7 +1608,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -1844,7 +1844,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -2011,7 +2011,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -2178,7 +2178,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -2214,7 +2214,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2759,7 +2759,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2836,7 +2836,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -3007,7 +3007,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -3018,7 +3018,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       All networks
                                     </Text>
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={12}
                                       name="ArrowDown"
@@ -3131,7 +3131,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -3414,7 +3414,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3651,7 +3651,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3873,7 +3873,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4095,7 +4095,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4317,7 +4317,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,

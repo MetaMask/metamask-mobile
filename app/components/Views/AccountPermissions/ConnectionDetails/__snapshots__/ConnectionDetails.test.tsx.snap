@@ -45,7 +45,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -73,7 +73,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -103,7 +103,7 @@ exports[`ConnectionDetails renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#141414",
           "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",

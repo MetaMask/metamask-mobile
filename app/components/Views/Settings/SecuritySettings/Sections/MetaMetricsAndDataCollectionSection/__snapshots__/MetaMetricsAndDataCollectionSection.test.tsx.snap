@@ -354,7 +354,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "flex": 1,
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 20,
@@ -427,7 +427,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             style={
                               {
                                 "backgroundColor": "transparent",
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -473,7 +473,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "flex": 1,
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 20,

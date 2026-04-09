@@ -435,7 +435,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "flex-start",
-                                          "backgroundColor": "#131416",
+                                          "backgroundColor": "#141414",
                                           "borderRadius": 12,
                                           "columnGap": 8,
                                           "flexDirection": "row",
@@ -577,7 +577,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -689,7 +689,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -801,7 +801,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -921,7 +921,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -1038,7 +1038,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 20,
                                               "letterSpacing": 0,
@@ -1506,7 +1506,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "flex-start",
-                                          "backgroundColor": "#131416",
+                                          "backgroundColor": "#141414",
                                           "borderRadius": 12,
                                           "columnGap": 8,
                                           "flexDirection": "row",
@@ -1648,7 +1648,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1760,7 +1760,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1872,7 +1872,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1992,7 +1992,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -2269,7 +2269,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2375,7 +2375,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -2577,7 +2577,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2683,7 +2683,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -2885,7 +2885,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -2991,7 +2991,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -3193,7 +3193,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3299,7 +3299,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -3501,7 +3501,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -3607,7 +3607,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -4074,7 +4074,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "flex-start",
-                                          "backgroundColor": "#131416",
+                                          "backgroundColor": "#141414",
                                           "borderRadius": 12,
                                           "columnGap": 8,
                                           "flexDirection": "row",
@@ -4216,7 +4216,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4328,7 +4328,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4440,7 +4440,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4560,7 +4560,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -4837,7 +4837,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -4943,7 +4943,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -5145,7 +5145,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -5251,7 +5251,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -5453,7 +5453,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -5559,7 +5559,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -5761,7 +5761,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -5867,7 +5867,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },
@@ -6069,7 +6069,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontFamily": "Geist-Medium",
                                                   "fontSize": 16,
                                                   "letterSpacing": 0,
@@ -6175,7 +6175,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 [
                                                   {
-                                                    "color": "#131416",
+                                                    "color": "#141414",
                                                     "height": 24,
                                                     "width": 24,
                                                   },

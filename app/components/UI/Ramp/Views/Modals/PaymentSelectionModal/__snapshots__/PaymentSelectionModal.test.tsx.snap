@@ -402,7 +402,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -479,7 +479,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -653,7 +653,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -767,7 +767,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "color": "#131416",
+                                                  "color": "#141414",
                                                   "fontSize": 24,
                                                 },
                                                 undefined,
@@ -806,7 +806,7 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#131416",
+                                                "color": "#141414",
                                                 "fontFamily": "Geist-Medium",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1313,7 +1313,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -1390,7 +1390,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -1464,7 +1464,7 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
@@ -1951,7 +1951,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2028,7 +2028,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -4372,7 +4372,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -4449,7 +4449,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "height": 24,
                                           "width": 24,
                                         },
@@ -4523,7 +4523,7 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
                                           "letterSpacing": 0,

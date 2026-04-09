@@ -28,7 +28,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontSize": 42,
             },
             {
@@ -69,7 +69,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 "fontSize": 15,
               },
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontSize": 28,
               },
               {
@@ -177,7 +177,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
             <Text
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontSize": 24,
                   "height": 48,
                 }
@@ -238,7 +238,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
             <Text
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontSize": 24,
                   "height": 48,
                 }

@@ -105,7 +105,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexShrink": 0,
                 "fontFamily": "Geist-Medium",
                 "fontSize": 14,
@@ -218,7 +218,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexShrink": 0,
                 "fontFamily": "Geist-Medium",
                 "fontSize": 14,
@@ -331,7 +331,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexShrink": 0,
                 "fontFamily": "Geist-Medium",
                 "fontSize": 14,
@@ -444,7 +444,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "flexShrink": 0,
                 "fontFamily": "Geist-Medium",
                 "fontSize": 14,

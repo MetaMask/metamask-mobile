@@ -20,7 +20,7 @@ exports[`IPFSGatewaySettings render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "flex": 1,
           "fontFamily": "Geist-Medium",
           "fontSize": 20,

@@ -371,7 +371,7 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -775,7 +775,7 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -823,7 +823,7 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
                               testID="listitemcolumn"
                             >
                               <SvgMock
-                                color="#131416"
+                                color="#141414"
                                 fill="currentColor"
                                 height={20}
                                 name="Edit"
@@ -1224,7 +1224,7 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1272,7 +1272,7 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
                               testID="listitemcolumn"
                             >
                               <SvgMock
-                                color="#131416"
+                                color="#141414"
                                 fill="currentColor"
                                 height={20}
                                 name="Edit"
@@ -1673,7 +1673,7 @@ exports[`ManageCardListItem Component renders with required props and matches sn
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2090,7 +2090,7 @@ exports[`ManageCardListItem Component renders without right icon when rightIcon 
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,

@@ -17,7 +17,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
     }
   >
     <SvgMock
-      color="#131416"
+      color="#141414"
       fill="currentColor"
       height={24}
       name="Danger"
@@ -37,7 +37,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-SemiBold",
           "fontSize": 20,
           "letterSpacing": 0,
@@ -95,7 +95,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         onPress={[Function]}
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -148,7 +148,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -222,7 +222,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
     }
   >
     <SvgMock
-      color="#131416"
+      color="#141414"
       fill="currentColor"
       height={24}
       name="Danger"
@@ -242,7 +242,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-SemiBold",
           "fontSize": 20,
           "letterSpacing": 0,
@@ -300,7 +300,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         onPress={[Function]}
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -353,7 +353,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "letterSpacing": 0,

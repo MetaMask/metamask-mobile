@@ -186,7 +186,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "height": 24,
                           "width": 24,
                         },
@@ -425,7 +425,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -522,7 +522,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "flexGrow": 0,
                                     "flexShrink": 1,
                                     "flexWrap": "wrap",
@@ -543,7 +543,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -597,7 +597,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -620,7 +620,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
@@ -689,7 +689,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -786,7 +786,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "flexGrow": 0,
                                     "flexShrink": 1,
                                     "flexWrap": "wrap",
@@ -807,7 +807,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -904,7 +904,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "flexGrow": 0,
                                     "flexShrink": 1,
                                     "flexWrap": "wrap",
@@ -925,7 +925,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -1022,7 +1022,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "flexGrow": 0,
                                     "flexShrink": 1,
                                     "flexWrap": "wrap",
@@ -1043,7 +1043,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-SemiBold",
                                 "fontSize": 24,
                                 "letterSpacing": 0,
@@ -1141,7 +1141,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "flexGrow": 0,
                                     "flexShrink": 1,
                                     "flexWrap": "wrap",
@@ -1174,7 +1174,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
@@ -1271,7 +1271,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "flexGrow": 0,
                                       "flexShrink": 1,
                                       "flexWrap": "wrap",

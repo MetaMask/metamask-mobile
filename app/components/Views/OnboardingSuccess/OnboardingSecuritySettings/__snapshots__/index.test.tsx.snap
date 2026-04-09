@@ -34,7 +34,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "flex": 1,
               "fontFamily": "Geist-Medium",
               "fontSize": 20,
@@ -100,7 +100,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 16,
               "letterSpacing": 0,

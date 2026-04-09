@@ -883,7 +883,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -960,7 +960,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -990,7 +990,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -1008,7 +1008,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                     },
                                     undefined,
                                     undefined,
@@ -1032,7 +1032,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
@@ -1050,7 +1050,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                       },
                                       undefined,
                                       undefined,
@@ -1252,7 +1252,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                     {
                                                       "alignItems": "center",
                                                       "alignSelf": "stretch",
-                                                      "backgroundColor": "#131416",
+                                                      "backgroundColor": "#141414",
                                                       "borderRadius": 12,
                                                       "flexDirection": "row",
                                                       "height": 48,
@@ -1434,7 +1434,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -1475,7 +1475,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1855,7 +1855,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 18,
                                       "letterSpacing": 0,
@@ -2474,7 +2474,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2515,7 +2515,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2906,7 +2906,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2983,7 +2983,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -3050,7 +3050,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
@@ -3068,7 +3068,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                           },
                                           undefined,
                                           undefined,
@@ -3092,7 +3092,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -3110,7 +3110,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                             },
                                             undefined,
                                             undefined,
@@ -3157,7 +3157,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 30,
                                             "marginVertical": 2,
@@ -3421,7 +3421,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#131416",
+                                                            "color": "#141414",
                                                             "fontFamily": "Geist-Medium",
                                                             "fontSize": 20,
                                                             "letterSpacing": 0,
@@ -3455,7 +3455,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#131416",
+                                                            "color": "#141414",
                                                             "fontFamily": "Geist-Medium",
                                                             "fontSize": 20,
                                                             "letterSpacing": 0,
@@ -3510,7 +3510,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                             {
                                                               "alignItems": "center",
                                                               "alignSelf": "stretch",
-                                                              "backgroundColor": "#131416",
+                                                              "backgroundColor": "#141414",
                                                               "borderRadius": 12,
                                                               "flexDirection": "row",
                                                               "height": 48,
@@ -3752,7 +3752,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#131416",
+                                                            "color": "#141414",
                                                             "fontFamily": "Geist-Medium",
                                                             "fontSize": 20,
                                                             "letterSpacing": 0,
@@ -3786,7 +3786,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#131416",
+                                                            "color": "#141414",
                                                             "fontFamily": "Geist-Medium",
                                                             "fontSize": 20,
                                                             "letterSpacing": 0,
@@ -3841,7 +3841,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                             {
                                                               "alignItems": "center",
                                                               "alignSelf": "stretch",
-                                                              "backgroundColor": "#131416",
+                                                              "backgroundColor": "#141414",
                                                               "borderRadius": 12,
                                                               "flexDirection": "row",
                                                               "height": 48,
@@ -4008,7 +4008,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#131416",
+                                                            "color": "#141414",
                                                             "fontFamily": "Geist-Medium",
                                                             "fontSize": 20,
                                                             "letterSpacing": 0,
@@ -4042,7 +4042,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#131416",
+                                                            "color": "#141414",
                                                             "fontFamily": "Geist-Medium",
                                                             "fontSize": 20,
                                                             "letterSpacing": 0,
@@ -4097,7 +4097,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                             {
                                                               "alignItems": "center",
                                                               "alignSelf": "stretch",
-                                                              "backgroundColor": "#131416",
+                                                              "backgroundColor": "#141414",
                                                               "borderRadius": 12,
                                                               "flexDirection": "row",
                                                               "height": 48,
@@ -4234,7 +4234,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -4275,7 +4275,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -4685,7 +4685,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-SemiBold",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -4762,7 +4762,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                       style={
                                         [
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "height": 24,
                                             "width": 24,
                                           },
@@ -4792,7 +4792,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 30,
                                       "marginVertical": 2,
@@ -4810,7 +4810,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                     undefined,
                                     undefined,
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                     },
                                     undefined,
                                     undefined,
@@ -4834,7 +4834,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 30,
                                         "marginVertical": 2,
@@ -4852,7 +4852,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                       },
                                       undefined,
                                       undefined,
@@ -5114,7 +5114,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#141414",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 20,
                                                       "letterSpacing": 0,
@@ -5148,7 +5148,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#141414",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 20,
                                                       "letterSpacing": 0,
@@ -5203,7 +5203,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                       {
                                                         "alignItems": "center",
                                                         "alignSelf": "stretch",
-                                                        "backgroundColor": "#131416",
+                                                        "backgroundColor": "#141414",
                                                         "borderRadius": 12,
                                                         "flexDirection": "row",
                                                         "height": 48,
@@ -5386,7 +5386,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -5427,7 +5427,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -5853,7 +5853,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -5877,7 +5877,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -5934,7 +5934,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -6060,7 +6060,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -6101,7 +6101,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -6527,7 +6527,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -6551,7 +6551,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -6608,7 +6608,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -6734,7 +6734,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -6775,7 +6775,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -7201,7 +7201,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -7225,7 +7225,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -7282,7 +7282,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -7408,7 +7408,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -7449,7 +7449,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -7875,7 +7875,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 18,
                                         "letterSpacing": 0,
@@ -7899,7 +7899,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 30,
                                           "marginVertical": 2,
@@ -7956,7 +7956,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
+                                        "backgroundColor": "#141414",
                                         "borderRadius": 12,
                                         "flexDirection": "row",
                                         "height": 48,
@@ -8082,7 +8082,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -8123,7 +8123,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -8190,7 +8190,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8208,7 +8208,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#131416",
+          "color": "#141414",
         },
         undefined,
         undefined,
@@ -8232,7 +8232,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8250,7 +8250,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#131416",
+            "color": "#141414",
           },
           undefined,
           undefined,
@@ -8300,7 +8300,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8318,7 +8318,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#131416",
+          "color": "#141414",
         },
         undefined,
         undefined,
@@ -8342,7 +8342,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8360,7 +8360,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#131416",
+            "color": "#141414",
           },
           undefined,
           undefined,
@@ -8410,7 +8410,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8428,7 +8428,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#131416",
+          "color": "#141414",
         },
         undefined,
         undefined,
@@ -8452,7 +8452,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8470,7 +8470,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#131416",
+            "color": "#141414",
           },
           undefined,
           undefined,
@@ -8520,7 +8520,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8538,7 +8538,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#131416",
+          "color": "#141414",
         },
         undefined,
         undefined,
@@ -8562,7 +8562,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8580,7 +8580,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#131416",
+            "color": "#141414",
           },
           undefined,
           undefined,
@@ -8630,7 +8630,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8648,7 +8648,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         {
-          "color": "#131416",
+          "color": "#141414",
         },
         undefined,
         undefined,
@@ -8672,7 +8672,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -8690,7 +8690,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "color": "#131416",
+            "color": "#141414",
           },
           undefined,
           undefined,
@@ -8743,7 +8743,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8803,7 +8803,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8863,7 +8863,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,
@@ -8923,7 +8923,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Regular",
           "fontSize": 30,
           "marginVertical": 2,

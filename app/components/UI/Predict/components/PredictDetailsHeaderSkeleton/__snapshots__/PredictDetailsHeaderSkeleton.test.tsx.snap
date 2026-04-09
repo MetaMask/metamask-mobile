@@ -58,7 +58,7 @@ exports[`PredictDetailsHeaderSkeleton matches snapshot 1`] = `
     testID="predict-details-header-skeleton-back-button"
   >
     <SvgMock
-      color="#131416"
+      color="#141414"
       fill="currentColor"
       height={24}
       name="ArrowLeft"

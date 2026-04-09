@@ -41,7 +41,7 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 16,
             "letterSpacing": 0,

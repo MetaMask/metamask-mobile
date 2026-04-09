@@ -92,7 +92,7 @@ exports[`BrowserTab render Browser 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "height": 24,
                 "width": 24,
               },
@@ -159,7 +159,7 @@ exports[`BrowserTab render Browser 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flex": 1,
                       "fontFamily": "Geist-Regular",
                       "fontSize": 14,
@@ -200,7 +200,7 @@ exports[`BrowserTab render Browser 1`] = `
                 onStartShouldSetResponder={[Function]}
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -716,7 +716,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 32,
                   "width": 32,
                 },
@@ -784,7 +784,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 32,
                   "width": 32,
                 },
@@ -852,7 +852,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 32,
                   "width": 32,
                 },
@@ -934,7 +934,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 32,
                   "width": 32,
                 },
@@ -1002,7 +1002,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 32,
                   "width": 32,
                 },

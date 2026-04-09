@@ -533,7 +533,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
@@ -545,7 +545,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     Aura #44
                                   </Text>
                                   <SvgMock
-                                    color="#131416"
+                                    color="#141414"
                                     fill="currentColor"
                                     height={20}
                                     name="SecurityTick"
@@ -714,7 +714,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "700",
@@ -729,7 +729,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       onPress={[Function]}
                                     >
                                       <SvgMock
-                                        color="#131416"
+                                        color="#141414"
                                         fill="currentColor"
                                         height={12}
                                         name="Export"
@@ -801,7 +801,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "700",
@@ -935,7 +935,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -978,7 +978,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1021,7 +1021,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1064,7 +1064,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1080,7 +1080,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -1122,7 +1122,7 @@ exports[`NftDetails renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1138,7 +1138,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -1189,7 +1189,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#141414",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1204,7 +1204,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     onPress={[Function]}
                                   >
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={12}
                                       name="Export"
@@ -1225,7 +1225,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-SemiBold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
@@ -1288,7 +1288,7 @@ exports[`NftDetails renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#141414",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1374,7 +1374,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#141414",
                                   "borderRadius": 12,
                                   "columnGap": 8,
                                   "flexBasis": "0%",

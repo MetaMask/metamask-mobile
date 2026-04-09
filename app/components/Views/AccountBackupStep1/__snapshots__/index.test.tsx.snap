@@ -91,7 +91,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               [
                 {
                   "alignSelf": "flex-start",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -237,7 +237,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -353,7 +353,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flexGrow": 0,
                     "flexShrink": 1,
                     "flexWrap": "wrap",
@@ -468,7 +468,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               [
                 {
                   "alignSelf": "flex-start",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -614,7 +614,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -730,7 +730,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flexGrow": 0,
                     "flexShrink": 1,
                     "flexWrap": "wrap",
@@ -845,7 +845,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               [
                 {
                   "alignSelf": "flex-start",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -991,7 +991,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -1107,7 +1107,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flexGrow": 0,
                     "flexShrink": 1,
                     "flexWrap": "wrap",
@@ -1222,7 +1222,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               [
                 {
                   "alignSelf": "flex-start",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -1368,7 +1368,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -1484,7 +1484,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flexGrow": 0,
                     "flexShrink": 1,
                     "flexWrap": "wrap",
@@ -1599,7 +1599,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               [
                 {
                   "alignSelf": "flex-start",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -1745,7 +1745,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -1861,7 +1861,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flexGrow": 0,
                     "flexShrink": 1,
                     "flexWrap": "wrap",

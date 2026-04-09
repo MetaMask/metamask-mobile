@@ -28,7 +28,7 @@ exports[`DefaultSettings should render correctly 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -93,7 +93,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
                   "letterSpacing": 0,
@@ -136,7 +136,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#131416"
+              color="#141414"
               fill="currentColor"
               height={20}
               name="ArrowRight"
@@ -186,7 +186,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
                   "letterSpacing": 0,
@@ -229,7 +229,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#131416"
+              color="#141414"
               fill="currentColor"
               height={20}
               name="ArrowRight"
@@ -279,7 +279,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
                   "letterSpacing": 0,
@@ -322,7 +322,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#131416"
+              color="#141414"
               fill="currentColor"
               height={20}
               name="ArrowRight"

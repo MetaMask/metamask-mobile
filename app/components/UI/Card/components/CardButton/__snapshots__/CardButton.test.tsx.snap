@@ -415,7 +415,7 @@ exports[`CardButton Component renders with badge (not yet viewed) and matches sn
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "height": 24,
                                     "width": 24,
                                   },
@@ -898,7 +898,7 @@ exports[`CardButton Component renders without badge when already viewed 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "height": 24,
                                     "width": 24,
                                   },

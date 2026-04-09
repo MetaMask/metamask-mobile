@@ -111,7 +111,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -231,7 +231,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
@@ -246,7 +246,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -383,7 +383,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#141414",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -428,7 +428,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -599,7 +599,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -631,7 +631,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -644,7 +644,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -714,7 +714,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -784,7 +784,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -816,7 +816,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -828,7 +828,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -909,7 +909,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -1246,7 +1246,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1366,7 +1366,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
@@ -1381,7 +1381,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1544,7 +1544,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1576,7 +1576,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1588,7 +1588,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -1602,7 +1602,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Medium",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -1966,7 +1966,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -2086,7 +2086,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
@@ -2101,7 +2101,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2179,7 +2179,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2211,7 +2211,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -2224,7 +2224,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -2294,7 +2294,7 @@ exports[`PermissionsSummary should render only the account permissions card when
               testID="connection-details-button"
             >
               <SvgMock
-                color="#131416"
+                color="#141414"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -2612,7 +2612,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 24,
                       "textAlign": "center",
@@ -2653,7 +2653,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
@@ -2668,7 +2668,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2745,7 +2745,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2777,7 +2777,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -2789,7 +2789,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -2870,7 +2870,7 @@ exports[`PermissionsSummary should render only the network permissions card when
               testID="connection-details-button"
             >
               <SvgMock
-                color="#131416"
+                color="#141414"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -3206,7 +3206,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -3326,7 +3326,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
@@ -3341,7 +3341,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3478,7 +3478,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#141414",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -3523,7 +3523,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -3694,7 +3694,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -3726,7 +3726,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -3739,7 +3739,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -3809,7 +3809,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -3879,7 +3879,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -3911,7 +3911,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -3923,7 +3923,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -4004,7 +4004,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -4341,7 +4341,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -4461,7 +4461,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 20,
               "letterSpacing": 0,
@@ -4476,7 +4476,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4613,7 +4613,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#131416",
+                              "color": "#141414",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -4658,7 +4658,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -4829,7 +4829,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -4861,7 +4861,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -4874,7 +4874,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -4944,7 +4944,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -5014,7 +5014,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -5046,7 +5046,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -5058,7 +5058,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -5139,7 +5139,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"

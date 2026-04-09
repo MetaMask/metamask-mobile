@@ -161,7 +161,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-SemiBold",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -238,7 +238,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "height": 24,
                         "width": 24,
                       },
@@ -548,7 +548,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             }
           >
             <SvgMock
-              color="#131416"
+              color="#141414"
               fill="currentColor"
               height={20}
               name="Plant"
@@ -571,7 +571,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-SemiBold",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -608,7 +608,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             }
           >
             <SvgMock
-              color="#131416"
+              color="#141414"
               fill="currentColor"
               height={20}
               name="Clock"
@@ -626,7 +626,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-SemiBold",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -694,7 +694,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -716,7 +716,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#131416",
+                "backgroundColor": "#141414",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",

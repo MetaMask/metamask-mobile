@@ -351,7 +351,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                           style={
                             [
                               {
-                                "color": "#131416",
+                                "color": "#141414",
                                 "fontFamily": "Geist-Medium",
                                 "fontSize": 20,
                                 "letterSpacing": 0,
@@ -382,7 +382,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#131416",
+                                  "color": "#141414",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,

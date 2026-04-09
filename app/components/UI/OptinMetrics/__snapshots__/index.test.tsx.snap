@@ -298,7 +298,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -415,7 +415,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -588,7 +588,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -707,7 +707,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#141414",
                                   "borderRadius": 12,
                                   "columnGap": 8,
                                   "flexDirection": "row",
@@ -1219,7 +1219,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -1336,7 +1336,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -1509,7 +1509,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -1628,7 +1628,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#141414",
                                   "borderRadius": 12,
                                   "columnGap": 8,
                                   "flexDirection": "row",
@@ -2257,7 +2257,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -2374,7 +2374,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -2547,7 +2547,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#131416",
+                                              "color": "#141414",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -2666,7 +2666,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#141414",
                                   "borderRadius": 12,
                                   "columnGap": 8,
                                   "flexDirection": "row",

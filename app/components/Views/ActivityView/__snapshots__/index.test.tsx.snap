@@ -405,7 +405,7 @@ exports[`ActivityView matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 24,
                                       "letterSpacing": 0,
@@ -526,7 +526,7 @@ exports[`ActivityView matches snapshot 1`] = `
                                         numberOfLines={1}
                                         style={
                                           {
-                                            "color": "#131416",
+                                            "color": "#141414",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -538,7 +538,7 @@ exports[`ActivityView matches snapshot 1`] = `
                                       </Text>
                                     </View>
                                     <SvgMock
-                                      color="#131416"
+                                      color="#141414"
                                       fill="currentColor"
                                       height={16}
                                       name="ArrowDown"

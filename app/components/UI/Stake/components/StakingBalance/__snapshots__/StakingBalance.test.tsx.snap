@@ -184,7 +184,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -291,7 +291,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -352,7 +352,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -374,7 +374,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -486,7 +486,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -572,7 +572,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -606,7 +606,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 20,
             "letterSpacing": 0,
@@ -748,7 +748,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -817,7 +817,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -872,7 +872,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1074,7 +1074,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1181,7 +1181,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1242,7 +1242,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1264,7 +1264,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             {
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1376,7 +1376,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1462,7 +1462,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1496,7 +1496,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-SemiBold",
             "fontSize": 20,
             "letterSpacing": 0,
@@ -1638,7 +1638,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1707,7 +1707,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1762,7 +1762,7 @@ exports[`StakingBalance should match the snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

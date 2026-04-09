@@ -196,7 +196,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
                   "letterSpacing": 0,
@@ -230,7 +230,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
                   "letterSpacing": 0,
@@ -285,7 +285,7 @@ exports[`Quote Component shows loading indicator when isLoading is true 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "stretch",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "flexDirection": "row",
                     "height": 48,

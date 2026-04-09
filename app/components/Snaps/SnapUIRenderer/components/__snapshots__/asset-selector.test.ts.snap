@@ -263,7 +263,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -310,7 +310,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#141414",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -339,7 +339,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                   </View>
                 </View>
                 <SvgMock
-                  color="#131416"
+                  color="#141414"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"

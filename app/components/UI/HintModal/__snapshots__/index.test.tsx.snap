@@ -95,7 +95,7 @@ exports[`HintModal should render correctly 1`] = `
             "borderColor": "#949596",
             "borderRadius": 6,
             "borderWidth": 1,
-            "color": "#131416",
+            "color": "#141414",
             "minHeight": 76,
             "padding": 16,
             "paddingTop": 16,

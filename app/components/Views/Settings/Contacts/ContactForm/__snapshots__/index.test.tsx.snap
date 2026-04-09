@@ -58,7 +58,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -85,7 +85,7 @@ exports[`ContactForm renders correctly 1`] = `
                 "borderColor": "#949596",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#141414",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -102,7 +102,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -119,7 +119,7 @@ exports[`ContactForm renders correctly 1`] = `
                 "borderColor": "#949596",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#141414",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -152,7 +152,7 @@ exports[`ContactForm renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-Regular",
                     "padding": 0,
                     "paddingRight": 8,
@@ -202,7 +202,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -219,7 +219,7 @@ exports[`ContactForm renders correctly 1`] = `
                 "borderColor": "#949596",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#141414",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -252,7 +252,7 @@ exports[`ContactForm renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-Regular",
                     "padding": 0,
                     "paddingRight": 8,
@@ -268,7 +268,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-SemiBold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -340,7 +340,7 @@ exports[`ContactForm renders correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                 }
               }
             />
@@ -365,7 +365,7 @@ exports[`ContactForm renders correctly 1`] = `
             }
           >
             <SvgMock
-              color="#131416"
+              color="#141414"
               fill="currentColor"
               height={20}
               name="ArrowDown"

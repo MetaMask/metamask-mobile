@@ -32,7 +32,7 @@ exports[`DefaultSlippageModal edge cases handles empty slippage options 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -95,7 +95,7 @@ exports[`DefaultSlippageModal edge cases handles empty slippage options 1`] = `
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -178,7 +178,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -282,7 +282,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for complete modal
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -365,7 +365,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -469,7 +469,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for description: d
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -552,7 +552,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -656,7 +656,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for header: header
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -739,7 +739,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -843,7 +843,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot for submit button:
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -926,7 +926,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1030,7 +1030,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with auto selected
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",
@@ -1113,7 +1113,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1217,7 +1217,7 @@ exports[`DefaultSlippageModal snapshot tests matches snapshot with numeric slipp
         [
           {
             "alignItems": "center",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#141414",
             "borderRadius": 12,
             "columnGap": 8,
             "flexDirection": "row",

@@ -6,7 +6,7 @@ exports[`TokenDetails renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#131416",
+        "color": "#141414",
         "fontFamily": "Geist-SemiBold",
         "fontSize": 20,
         "letterSpacing": 0,
@@ -68,7 +68,7 @@ exports[`TokenDetails renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#141414",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -84,7 +84,7 @@ exports[`TokenDetails renders correctly 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "height": 16,
                 "width": 16,
               },
@@ -121,7 +121,7 @@ exports[`TokenDetails renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -164,7 +164,7 @@ exports[`TokenDetails renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#141414",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,

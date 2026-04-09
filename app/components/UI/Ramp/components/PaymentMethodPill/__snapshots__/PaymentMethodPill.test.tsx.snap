@@ -28,7 +28,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "height": 16,
             "width": 16,
           },
@@ -42,7 +42,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     style={
       [
         {
-          "color": "#131416",
+          "color": "#141414",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -70,7 +70,7 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#141414",
             "height": 16,
             "width": 16,
           },
@@ -134,7 +134,7 @@ exports[`PaymentMethodPill when isLoading is true matches snapshot when loading 
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "height": 16,
               "width": 16,
             },

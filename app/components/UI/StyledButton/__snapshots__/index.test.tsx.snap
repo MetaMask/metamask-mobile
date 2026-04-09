@@ -571,7 +571,7 @@ exports[`StyledButton should render correctly on iOS the button with type second
         "textAlign": "center",
       },
       {
-        "color": "#131416",
+        "color": "#141414",
       },
       undefined,
     ]

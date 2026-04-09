@@ -103,7 +103,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 24,
                   "width": 24,
                 },
@@ -229,7 +229,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#141414",
               "flexGrow": 0,
               "flexShrink": 1,
               "flexWrap": "wrap",

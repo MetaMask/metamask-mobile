@@ -466,7 +466,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
@@ -489,7 +489,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -512,7 +512,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
@@ -526,7 +526,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
@@ -577,7 +577,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1085,7 +1085,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-SemiBold",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
@@ -1108,7 +1108,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#141414",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1131,7 +1131,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
@@ -1145,7 +1145,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#141414",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 20,
                                       "letterSpacing": 0,
@@ -1196,7 +1196,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#131416",
+                                    "backgroundColor": "#141414",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,

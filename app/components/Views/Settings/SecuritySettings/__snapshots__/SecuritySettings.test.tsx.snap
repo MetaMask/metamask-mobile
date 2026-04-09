@@ -99,7 +99,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "height": 24,
                   "width": 24,
                 },
@@ -140,7 +140,7 @@ exports[`SecuritySettings renders correctly 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-SemiBold",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -195,7 +195,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-SemiBold",
                 "fontSize": 24,
                 "letterSpacing": 0,
@@ -223,7 +223,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -312,7 +312,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -360,7 +360,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -423,7 +423,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -484,7 +484,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#141414",
                   "borderRadius": 12,
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -548,7 +548,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -612,7 +612,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                       style={
                         {
                           "alignSelf": "flex-start",
-                          "color": "#131416",
+                          "color": "#141414",
                           "flex": 1,
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
@@ -628,7 +628,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                       style={
                         [
                           {
-                            "color": "#131416",
+                            "color": "#141414",
                             "fontSize": 24,
                           },
                           {
@@ -687,7 +687,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flex": 1,
                     "fontFamily": "Geist-Medium",
                     "fontSize": 20,
@@ -753,7 +753,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -837,7 +837,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-SemiBold",
                 "fontSize": 24,
                 "letterSpacing": 0,
@@ -886,7 +886,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "fontFamily": "Geist-SemiBold",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -980,7 +980,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -1081,7 +1081,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1113,7 +1113,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -1213,7 +1213,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1243,7 +1243,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -1343,7 +1343,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1398,7 +1398,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -1464,7 +1464,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-SemiBold",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1514,7 +1514,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -1598,7 +1598,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -1668,7 +1668,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               style={
                 {
                   "backgroundColor": "transparent",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -1728,7 +1728,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -1812,7 +1812,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#141414",
                     "flex": 1,
                     "fontFamily": "Geist-Medium",
                     "fontSize": 20,
@@ -1896,7 +1896,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -2034,7 +2034,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -2107,7 +2107,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               style={
                 {
                   "backgroundColor": "transparent",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -2153,7 +2153,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#141414",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
                   "fontSize": 20,
@@ -2229,7 +2229,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -2276,7 +2276,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               style={
                 {
                   "backgroundColor": "transparent",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -2340,7 +2340,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               style={
                 {
                   "backgroundColor": "transparent",
-                  "color": "#131416",
+                  "color": "#141414",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -2441,7 +2441,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -2472,7 +2472,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#141414",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 20,
                 "letterSpacing": 0,
@@ -2575,7 +2575,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
