@@ -55,6 +55,7 @@ import {
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
 import { usePredictTabs, type FeedTab } from '../../hooks/usePredictTabs';
@@ -73,7 +74,10 @@ import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import { selectPredictFeaturedCarouselEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictUpDownEnabledFlag,
+} from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { strings } from '../../../../../../locales/i18n';
@@ -249,6 +253,9 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     }
   }, [isActive, hasEverBeenActive]);
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
   const {
     marketData,
     isFetching,
@@ -257,7 +264,12 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     refetch,
     fetchMore,
     isFetchingMore,
-  } = usePredictMarketData({ category, pageSize: 20, customQueryParams });
+  } = usePredictMarketData({
+    category,
+    pageSize: 20,
+    customQueryParams,
+    refine,
+  });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -497,10 +509,14 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
   const isDebouncing = searchQuery !== debouncedSearchQuery;
 
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
     q: debouncedSearchQuery,
     pageSize: 20,
+    refine,
   });
 
   const isSearchLoading = isDebouncing || isFetching;

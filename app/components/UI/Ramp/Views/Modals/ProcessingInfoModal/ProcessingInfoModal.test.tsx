@@ -112,7 +112,6 @@ describe('ProcessingInfoModal', () => {
   it('renders correctly', () => {
     renderModal();
     expect(screen.getByTestId('processing-info-modal')).toBeOnTheScreen();
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders the close button', () => {

@@ -55,9 +55,11 @@ describe('EligibilityFailedModal', () => {
   });
 
   it('renders modal with title and description', () => {
-    const { toJSON } = render(EligibilityFailedModal);
+    const { getByText } = render(EligibilityFailedModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Eligibility check failed')).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
+    expect(getByText('Got it')).toBeOnTheScreen();
   });
   it('navigates to contact support when the contact support button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);

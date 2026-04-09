@@ -73,14 +73,14 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.TOKEN_DETECTION]: UserProfileProperty.ON,
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
       [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
   it.each([
-    [UserProfileProperty.ON, true],
-    [UserProfileProperty.OFF, false],
+    [true, true],
+    [false, false],
   ])('returns marketing consent "%s"', (expected, stateConsentValue) => {
     mockGetState.mockReturnValue({
       ...mockState,

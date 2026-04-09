@@ -122,6 +122,11 @@ export const selectPredictFeatureFlags = createSelector(
     resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
 );
 
+export const selectExtendedSportsMarketsLeagues = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.extendedSportsMarketsLeagues,
+);
+
 export const selectPredictFeeCollectionFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.feeCollection,
@@ -135,6 +140,11 @@ export const selectPredictFakOrdersEnabledFlag = createSelector(
 export const selectPredictWithAnyTokenEnabledFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWithAnyTokenEnabled,
+);
+
+export const selectPredictUpDownEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictUpDownEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
