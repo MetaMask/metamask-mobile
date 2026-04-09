@@ -52,6 +52,10 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight as FontWeightComponent,
+  Text as TextComponent,
+  TextColor as TextColorComponent,
+  TextVariant as TextVariantComponent,
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
@@ -236,13 +240,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!overrideContent && (
             <>
               {isMoneyAccountDeposit && !hasTokens && (
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Error}
+                <TextComponent
+                  variant={TextVariantComponent.BodyMd}
+                  fontWeight={FontWeightComponent.Medium}
+                  color={TextColorComponent.ErrorDefault}
                   style={styles.noFundsText}
                 >
                   {strings('confirm.no_funds_use_different_account')}
-                </Text>
+                </TextComponent>
               )}
               {isMoneyAccountDeposit && (
                 <AccountSelector
