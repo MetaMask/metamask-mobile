@@ -7821,6 +7821,7 @@ describe('PolymarketProvider', () => {
         expect(Object.keys(status)).toEqual([
           'sportsConnected',
           'marketConnected',
+          'rtdsConnected',
         ]);
       });
     });
