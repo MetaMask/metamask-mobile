@@ -510,9 +510,8 @@ describe('BuildQuote View', () => {
         'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
       mockUseBalanceValues.balance = '1.5';
       render(BuildQuote);
-      expect(
-        screen.getByRole('button', { name: 'Get quotes' }),
-      ).toBeOnTheScreen();
+      expect(screen.getByText(/Current balance/)).toBeOnTheScreen();
+      expect(screen.getByText(/1\.5/)).toBeOnTheScreen();
     });
   });
 
@@ -522,7 +521,13 @@ describe('BuildQuote View', () => {
         ...mockUseRegionsInitialValues,
         isFetching: true,
       };
-      expect(() => render(BuildQuote)).not.toThrow();
+      render(BuildQuote);
+      expect(
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
+      ).toBe(true);
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeNull();
     });
 
     it('renders an error page when there is a region error', async () => {
@@ -568,7 +573,16 @@ describe('BuildQuote View', () => {
         ...mockUseCryptoCurrenciesInitialValues,
         isFetchingCryptoCurrencies: true,
       };
-      expect(() => render(BuildQuote)).not.toThrow();
+      render(BuildQuote);
+      expect(
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeOnTheScreen();
     });
 
     it('renders a special error page if crypto currencies are not available', async () => {
@@ -577,17 +591,19 @@ describe('BuildQuote View', () => {
         cryptoCurrencies: [],
       };
       render(BuildQuote);
+      expect(screen.getByText('No tokens available')).toBeOnTheScreen();
       expect(
-        screen.queryByRole('button', { name: 'Get quotes' }),
-      ).not.toBeOnTheScreen();
+        screen.getByRole('button', { name: 'Change payment method' }),
+      ).toBeOnTheScreen();
 
       mockUseRampSDKValues.isBuy = false;
       mockUseRampSDKValues.isSell = true;
       mockUseRampSDKValues.rampType = RampType.SELL;
       render(BuildQuote);
+      expect(screen.getAllByText('No tokens available')[0]).toBeOnTheScreen();
       expect(
-        screen.queryByRole('button', { name: 'Get quotes' }),
-      ).not.toBeOnTheScreen();
+        screen.getByRole('button', { name: 'Change cash destination' }),
+      ).toBeOnTheScreen();
     });
 
     it('renders an error page when there is a cryptos error', async () => {
@@ -628,7 +644,16 @@ describe('BuildQuote View', () => {
         ...mockUsePaymentMethodsInitialValues,
         isFetching: true,
       };
-      expect(() => render(BuildQuote)).not.toThrow();
+      render(BuildQuote);
+      expect(
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeOnTheScreen();
     });
 
     it('renders no icons if there are no payment methods', async () => {
@@ -685,7 +710,13 @@ describe('BuildQuote View', () => {
         ...mockUseFiatCurrenciesInitialValues,
         isFetchingFiatCurrency: true,
       };
-      expect(() => render(BuildQuote)).not.toThrow();
+      render(BuildQuote);
+      expect(
+        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON).props.disabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
+      ).toBeOnTheScreen();
     });
 
     it('renders an error page when there is a fiat error', async () => {
