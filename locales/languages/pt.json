@@ -6638,7 +6638,6 @@
     "nested_transaction_heading": "Transação {{index}}",
     "transaction": "Transações",
     "available_balance": "Saldo disponível: ",
-    "available_perps_balance": "Saldo de perps disponível: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Adicionar fundos",
     "deposit_edit_amount_predict_withdraw": "Sacar",

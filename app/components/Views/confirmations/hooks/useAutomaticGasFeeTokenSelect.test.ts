@@ -37,7 +37,12 @@ export const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
 function getState({
   gasFeeTokens,
   selectedGasFeeToken,
-}: { gasFeeTokens?: GasFeeToken[]; selectedGasFeeToken?: Hex } = {}): {
+  excludeNativeTokenForFee,
+}: {
+  gasFeeTokens?: GasFeeToken[];
+  selectedGasFeeToken?: Hex;
+  excludeNativeTokenForFee?: Boolean;
+} = {}): {
   state: ProviderValues['state'];
 } {
   const state = merge({}, contractDeploymentTransactionStateMock, {
@@ -50,6 +55,7 @@ function getState({
               address: FROM_MOCK,
               gasFeeTokens: gasFeeTokens ?? [GAS_FEE_TOKEN_MOCK],
               selectedGasFeeToken,
+              excludeNativeTokenForFee,
             },
           ],
         },
@@ -72,11 +78,17 @@ function getState({
 function runHook({
   gasFeeTokens,
   selectedGasFeeToken,
+  excludeNativeTokenForFee,
 }: {
   gasFeeTokens?: GasFeeToken[];
   selectedGasFeeToken?: Hex;
+  excludeNativeTokenForFee?: Boolean;
 } = {}) {
-  const { state } = getState({ gasFeeTokens, selectedGasFeeToken });
+  const { state } = getState({
+    gasFeeTokens,
+    selectedGasFeeToken,
+    excludeNativeTokenForFee,
+  });
 
   const result = renderHookWithProvider(useAutomaticGasFeeTokenSelect, {
     state,
@@ -121,6 +133,28 @@ describe('useAutomaticGasFeeTokenSelect', () => {
   it('does not select first gas fee token if gas fee token already selected', () => {
     runHook({ selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress });
     expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('selects first gas fee token if gas fee token already selected but doesnt correspond to any gasFeeTokens (only if `excludeNativeTokenForFee` is set', () => {
+    runHook({
+      selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+      gasFeeTokens: [
+        {
+          // When a gasFeeToken is available but is not the same as `selectedGasFeeToken`.
+          tokenAddress: NATIVE_TOKEN_ADDRESS,
+        } as unknown as GasFeeToken,
+        {
+          // When a gasFeeToken is available but is not the same as `selectedGasFeeToken`.
+          tokenAddress: '0x9876543210000000000000000000000000000000',
+        } as unknown as GasFeeToken,
+      ],
+      excludeNativeTokenForFee: true,
+    });
+    expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledTimes(1);
+    expect(updateSelectedGasFeeTokenMock).toHaveBeenCalledWith(
+      expect.any(String),
+      '0x9876543210000000000000000000000000000000',
+    );
   });
 
   it('does not select first gas fee token if no gas fee tokens', () => {

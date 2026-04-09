@@ -6245,6 +6245,20 @@
     },
     "footer": {
       "add_money": "Add money"
+    },
+    "convert_stablecoins": {
+      "title": "Convert your stablecoins",
+      "description_prefix": "Get a ",
+      "description_bonus": "3% annualized bonus",
+      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
+      "tag_dollar_backed": "Dollar-backed",
+      "tag_no_lockups": "No lockups",
+      "tag_no_fee": "No MetaMask fee",
+      "tag_daily_bonus": "Daily bonus",
+      "convert_cta": "Convert to mUSD",
+      "learn_more": "Learn more",
+      "swap": "Swap",
+      "buy": "Buy"
     }
   },
   "stake": {
@@ -6682,11 +6696,11 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available balance: ",
-    "available_perps_balance": "Available Perps balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD"
+    "deposit_edit_amount_musd_conversion": "Convert to mUSD",
+    "no_funds_use_different_account": "No funds available. Use a different account."
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -8366,8 +8380,8 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Cash",
-      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
+      "cash": "Money",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
       "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
