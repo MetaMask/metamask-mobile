@@ -16,6 +16,7 @@ import { strings } from '../../../../../../locales/i18n';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -66,6 +67,13 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
       totalSectionsLoaded,
       isEmpty: !hasMusdBalanceOnAnyChain,
       itemCount: hasMusdBalanceOnAnyChain ? 1 : 0,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.CASH,
+      contentReady: isCashSectionEnabled,
+      isEmpty: !hasMusdBalanceOnAnyChain,
+      enabled: isCashSectionEnabled,
     });
 
     const refresh = useCallback(async () => {
