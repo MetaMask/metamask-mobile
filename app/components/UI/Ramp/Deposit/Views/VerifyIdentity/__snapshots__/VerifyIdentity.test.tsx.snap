@@ -409,7 +409,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 24,
                                         "fontWeight": "bold",
                                         "letterSpacing": 0,

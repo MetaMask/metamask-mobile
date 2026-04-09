@@ -10,14 +10,6 @@
       "sha1": "53d4deff787adeb561e69bfa4b28375710f4686f"
     },
     {
-      "path": "app/fonts/Geist-SemiBoldItalic.otf",
-      "sha1": "bbbda4921114ab99f8af88f06fd0cbe54c3c2d04"
-    },
-    {
-      "path": "app/fonts/Geist-SemiBold.otf",
-      "sha1": "5aa18555f9d712446d2e8f786adbe3582e3cb199"
-    },
-    {
       "path": "app/fonts/Geist-MediumItalic.otf",
       "sha1": "5f1ba7a59a89db9a70a046aa7b6d38345e79eb5c"
     },

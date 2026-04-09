@@ -13,7 +13,6 @@ import {
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
-  OndoGmActivityEntryDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -149,9 +148,6 @@ export interface RewardsState {
 
   // Ondo GM portfolio (keyed by composite key `${subscriptionId}:${campaignId}`)
   ondoCampaignPortfolio: Record<string, OndoGmPortfolioDto>;
-
-  // Ondo GM activity (keyed by composite key `${subscriptionId}:${campaignId}`)
-  ondoCampaignActivity: Record<string, OndoGmActivityEntryDto[] | null>;
 }
 
 export const initialState: RewardsState = {
@@ -239,9 +235,6 @@ export const initialState: RewardsState = {
 
   // Ondo GM portfolio initial state
   ondoCampaignPortfolio: {},
-
-  // Ondo GM activity initial state
-  ondoCampaignActivity: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -353,7 +346,6 @@ const rewardsSlice = createSlice({
       state.ondoCampaignLeaderboardSelectedTier = null;
       state.ondoCampaignLeaderboardPositions = {};
       state.ondoCampaignPortfolio = {};
-      state.ondoCampaignActivity = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -616,18 +608,6 @@ const rewardsSlice = createSlice({
       }
     },
 
-    setOndoCampaignActivity: (
-      state,
-      action: PayloadAction<{
-        subscriptionId: string;
-        campaignId: string;
-        entries: OndoGmActivityEntryDto[] | null;
-      }>,
-    ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
-      state.ondoCampaignActivity[key] = action.payload.entries;
-    },
-
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -737,8 +717,6 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.ondoCampaignLeaderboardPositions ?? {},
               ondoCampaignPortfolio:
                 action.payload.rewards.ondoCampaignPortfolio ?? {},
-              ondoCampaignActivity:
-                action.payload.rewards.ondoCampaignActivity ?? {},
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
@@ -809,7 +787,6 @@ export const {
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
-  setOndoCampaignActivity,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

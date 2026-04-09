@@ -142,8 +142,9 @@ exports[`Settings renders settings component with all sections 1`] = `
             [
               {
                 "color": "#131416",
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 16,
+                "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               },

@@ -1,9 +1,6 @@
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
-import {
-  selectMoneyHomeScreenEnabledFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from './featureFlags';
+import { selectMoneyHomeScreenEnabledFlag } from './featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {},
@@ -14,18 +11,10 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(),
 }));
 
-jest.mock('../../../../lib/Money/feature-flags', () => ({
-  isMoneyAccountEnabled: jest.fn(),
-}));
-
 const mockedValidate =
   remoteFeatureFlagModule.validatedVersionGatedFeatureFlag as jest.MockedFunction<
     typeof remoteFeatureFlagModule.validatedVersionGatedFeatureFlag
   >;
-
-const mockedIsMoneyAccountEnabled = jest.requireMock(
-  '../../../../lib/Money/feature-flags',
-).isMoneyAccountEnabled as jest.Mock;
 
 const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
   engine: {
@@ -93,21 +82,5 @@ describe('selectMoneyHomeScreenEnabledFlag', () => {
     const result = selectMoneyHomeScreenEnabledFlag(state as never);
 
     expect(result).toBe(false);
-  });
-});
-
-describe('selectMoneyEnableMoneyAccountFlag', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('delegates to isMoneyAccountEnabled', () => {
-    mockedIsMoneyAccountEnabled.mockReturnValue(true);
-    const state = createState();
-
-    const result = selectMoneyEnableMoneyAccountFlag(state as never);
-
-    expect(mockedIsMoneyAccountEnabled).toHaveBeenCalledWith({});
-    expect(result).toBe(true);
   });
 });

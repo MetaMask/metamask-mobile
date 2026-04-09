@@ -220,7 +220,12 @@ describe('AssetSelectionBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockReturnValue(undefined);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector.toString().includes('selectUserCardLocation')) {
+        return 'international';
+      }
+      return undefined;
+    });
 
     (useAssetBalances as jest.Mock).mockReturnValue(new Map());
 
@@ -388,7 +393,12 @@ describe('AssetSelectionBottomSheet', () => {
 
   describe('token sorting', () => {
     it('sorts tokens by priority', () => {
-      mockUseSelector.mockReturnValue(undefined);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectUserCardLocation')) {
+          return 'international';
+        }
+        return undefined;
+      });
       const token1 = createMockToken({
         symbol: 'USDC',
         priority: 2,
