@@ -699,12 +699,19 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
+      let accountType: string;
+      try {
+        accountType = getAddressAccountType(selectedCaipAccountIds[0]);
+      } catch {
+        accountType = 'unknown';
+      }
+
       const eventBuilder = createEventBuilder(
         MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       ).addProperties({
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
-        account_type: getAddressAccountType(selectedCaipAccountIds[0]),
+        account_type: accountType,
         source: eventSource,
         chain_id_list: selectedChainIds,
         referrer,
