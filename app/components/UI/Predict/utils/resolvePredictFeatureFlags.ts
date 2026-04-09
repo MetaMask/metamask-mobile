@@ -3,6 +3,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import {
+  DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
@@ -10,6 +11,7 @@ import {
 import { filterSupportedLeagues } from '../constants/sports';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
 import {
+  PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
@@ -80,9 +82,23 @@ export function resolvePredictFeatureFlags(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictUpDown),
     ) ?? false;
 
+  const rawExtendedSportsFlag =
+    unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
+      flags.predictExtendedSportsMarkets,
+    ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
+
+  const isExtendedSportsEnabled = validatedVersionGatedFeatureFlag(
+    rawExtendedSportsFlag,
+  );
+
+  const extendedSportsMarketsLeagues = isExtendedSportsEnabled
+    ? filterSupportedLeagues(rawExtendedSportsFlag.leagues ?? [])
+    : [];
+
   return {
     feeCollection,
     liveSportsLeagues,
+    extendedSportsMarketsLeagues,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
