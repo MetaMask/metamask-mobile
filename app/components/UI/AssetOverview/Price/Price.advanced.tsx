@@ -207,14 +207,30 @@ const PriceAdvanced = ({
     ohlcvData,
     isLoading: chartLoading,
     error: chartError,
-    fetchMoreHistory,
     hasMore,
+    nextCursor,
   } = useOHLCVChart({
     assetId,
     timePeriod: config.timePeriod,
     interval: config.interval,
     vsCurrency: currentCurrency,
   });
+
+  const ohlcvPagination = useMemo(
+    () => ({
+      nextCursor,
+      hasMore,
+      assetId,
+      vsCurrency: currentCurrency,
+    }),
+    [nextCursor, hasMore, assetId, currentCurrency],
+  );
+  // This is to make sure we show only data relevant to selected timeframe even if api returns a lot more data than that
+  const visibleFromMs = useMemo(() => {
+    const lastBar = ohlcvData[ohlcvData.length - 1];
+    if (!lastBar) return undefined;
+    return lastBar.time - config.durationMs;
+  }, [ohlcvData, config.durationMs]);
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -335,8 +351,8 @@ const PriceAdvanced = ({
               indicators={EMPTY_INDICATORS}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
-              ohlcvHasMoreHistory={hasMore}
-              onRequestMoreHistory={fetchMoreHistory}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
               onCrosshairMove={handleCrosshairMove}
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}

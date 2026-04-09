@@ -142,14 +142,42 @@ describe('AdvancedChart', () => {
     );
   });
 
-  it('sends SET_OHLCV_DATA when ohlcvSeriesKey changes even if bar count matches', () => {
-    const altBars: OHLCVBar[] = [
+  it('includes pagination config in SET_OHLCV_DATA when ohlcvPagination is provided', () => {
+    const pagination = {
+      nextCursor: 'cursor-abc',
+      hasMore: true,
+      assetId: 'eip155:1/slip44:60',
+      vsCurrency: 'usd',
+    };
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} ohlcvPagination={pagination} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: MOCK_BARS, pagination },
+      }),
+    );
+  });
+
+  it('does not send stale data when ohlcvSeriesKey changes; waits for fresh data', () => {
+    const staleBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
+      { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
+    ];
+    const freshBars: OHLCVBar[] = [
       { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
       { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
     ];
 
     const { getByTestId, rerender } = render(
-      <AdvancedChart ohlcvData={MOCK_BARS} ohlcvSeriesKey="range-a" />,
+      <AdvancedChart ohlcvData={staleBars} ohlcvSeriesKey="range-a" />,
     );
 
     const webView = getByTestId('mock-webview');
@@ -159,12 +187,28 @@ describe('AdvancedChart', () => {
 
     mockPostMessage.mockClear();
 
-    rerender(<AdvancedChart ohlcvData={altBars} ohlcvSeriesKey="range-b" />);
+    // Time range switch with stale data (same bars, new key) — should NOT send SET_OHLCV_DATA
+    rerender(<AdvancedChart ohlcvData={staleBars} ohlcvSeriesKey="range-b" />);
+
+    const setOhlcvCallsAfterKeyChange = mockPostMessage.mock.calls.filter(
+      (call) => {
+        try {
+          return JSON.parse(call[0] as string).type === 'SET_OHLCV_DATA';
+        } catch {
+          return false;
+        }
+      },
+    );
+    expect(setOhlcvCallsAfterKeyChange).toHaveLength(0);
+
+    // Fresh data arrives (same key, different bars) — NOW it should send
+    mockPostMessage.mockClear();
+    rerender(<AdvancedChart ohlcvData={freshBars} ohlcvSeriesKey="range-b" />);
 
     expect(mockPostMessage).toHaveBeenCalledWith(
       JSON.stringify({
         type: 'SET_OHLCV_DATA',
-        payload: { data: altBars },
+        payload: { data: freshBars },
       }),
     );
 
@@ -391,63 +435,6 @@ describe('AdvancedChart', () => {
       'https://www.tradingview.com/from-bridge',
     );
     expect(onChartTradingViewClicked).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onRequestMoreHistory when WebView requests more data', () => {
-    const onRequestMoreHistory = jest.fn();
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        onRequestMoreHistory={onRequestMoreHistory}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({
-            type: 'NEED_MORE_HISTORY',
-            payload: { oldestTimestamp: 1000000 },
-          }),
-        },
-      });
-    });
-
-    expect(onRequestMoreHistory).toHaveBeenCalledTimes(1);
-  });
-
-  it('posts RESOLVE_DEFERRED_GET_BARS when API has no more history and WebView needs older bars', () => {
-    const onRequestMoreHistory = jest.fn();
-    const { getByTestId } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        ohlcvHasMoreHistory={false}
-        onRequestMoreHistory={onRequestMoreHistory}
-      />,
-    );
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onLoadEnd();
-    });
-    mockPostMessage.mockClear();
-
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({
-            type: 'NEED_MORE_HISTORY',
-            payload: { oldestTimestamp: 1000000 },
-          }),
-        },
-      });
-    });
-
-    expect(onRequestMoreHistory).not.toHaveBeenCalled();
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({ type: 'RESOLVE_DEFERRED_GET_BARS' }),
-    );
   });
 
   it('sends SET_POSITION_LINES when positionLines prop changes', () => {
