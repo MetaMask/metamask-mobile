@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
-import { View, ActivityIndicator, Animated } from 'react-native';
+import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -159,17 +159,11 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
                 size={ButtonSize.Sm}
                 onPress={handleAddMarginPress}
                 isDisabled={isLoading || !onAddMargin}
+                isLoading={isLoading}
                 style={styles.button}
                 testID={PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON}
               >
-                {isLoading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary.inverse}
-                  />
-                ) : (
-                  strings('perps.stop_loss_prompt.add_margin_button')
-                )}
+                {strings('perps.stop_loss_prompt.add_margin_button')}
               </Button>
             </View>
           </Animated.View>
@@ -200,15 +194,10 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
               onPress={handleSetStopLossPress}
               isDisabled={isLoading || isSuccess || !onSetStopLoss}
               style={styles.button}
+              isLoading={isLoading}
               testID={PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON}
             >
-              {isLoading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.inverse}
-                  testID={PerpsStopLossPromptSelectorsIDs.LOADING}
-                />
-              ) : isSuccess ? (
+              {isSuccess ? (
                 <Icon
                   name={IconName.Check}
                   size={IconSize.Sm}
