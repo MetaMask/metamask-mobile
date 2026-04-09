@@ -288,12 +288,9 @@ class Browser {
     }
   }
 
-  async expectUrlNotContaining(
-    text: string,
-    description?: string,
-  ): Promise<void> {
+  async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
     await Assertions.expectElementToNotHaveText(this.urlInputBoxID, text, {
-      description: description ?? `URL input box does not contain "${text}"`,
+      description: description ?? `URL input box text is not "${text}"`,
     });
   }
 

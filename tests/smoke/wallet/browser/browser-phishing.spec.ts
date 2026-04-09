@@ -14,6 +14,7 @@ import Browser from '../../../page-objects/Browser/BrowserView';
 import { Assertions } from '../../../framework';
 
 const PHISHING_TEST_DOMAIN = 'phishing-test.example.com';
+const PHISHING_TEST_ORIGIN = `https://${PHISHING_TEST_DOMAIN}`;
 const PHISHING_FIXTURES_PATH = path.resolve(
   __dirname,
   '../../../fixtures/phishing',
@@ -79,7 +80,7 @@ describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
           description: 'Phishing warning back to safety button is visible',
         });
         await Browser.tapBackToSafetyButton();
-        await Browser.expectUrlNotContaining(PHISHING_TEST_DOMAIN);
+        await Browser.expectUrlNotEqualTo(PHISHING_TEST_ORIGIN);
       },
     );
   });
@@ -107,7 +108,7 @@ describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
             'Phishing warning back to safety button is visible for iframe',
         });
         await Browser.tapBackToSafetyButton();
-        await Browser.expectUrlNotContaining('localhost');
+        await Browser.expectUrlNotEqualTo(getDappUrl(0));
       },
     );
   });
