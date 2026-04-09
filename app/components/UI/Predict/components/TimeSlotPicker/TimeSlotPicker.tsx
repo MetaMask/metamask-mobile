@@ -112,7 +112,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
       return {
         bg: BoxBackgroundColor.ErrorMuted,
         border: BoxBorderColor.ErrorDefault,
-        textColor: TextColor.PrimaryInverse,
+        textColor: TextColor.TextDefault,
         bgClassName: undefined,
       };
     }
@@ -120,14 +120,14 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
       return {
         bg: undefined,
         border: undefined,
-        textColor: TextColor.TextDefault,
+        textColor: TextColor.PrimaryInverse,
         bgClassName: 'bg-icon-default',
       };
     }
     return {
       bg: BoxBackgroundColor.BackgroundMuted,
       border: undefined,
-      textColor: TextColor.PrimaryInverse,
+      textColor: TextColor.TextDefault,
       bgClassName: undefined,
     };
   }, [isSelected, isLive]);
@@ -169,7 +169,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
             <Text
               testID={`time-slot-countdown-${market.id}`}
               variant={TextVariant.BodySm}
-              color={textColor}
+              color={TextColor.ErrorDefault}
               fontWeight={FontWeight.Medium}
             >
               {countdown}
