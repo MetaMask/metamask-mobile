@@ -688,11 +688,6 @@ const ImportSRPView = () => (
       options={{
         presentation: 'modal',
         cardStyle: { backgroundColor: 'transparent' },
-        cardStyleInterpolator: () => ({
-          overlayStyle: {
-            opacity: 0,
-          },
-        }),
       }}
     />
   </Stack.Navigator>
