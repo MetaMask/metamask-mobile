@@ -181,7 +181,7 @@ export const useSectionPerformance = ({
 
     const windowStart = now - reRenderWindowMs;
     while (timestamps.length > 0 && timestamps[0] < windowStart) {
-      timestamps.shift();
+        category: TraceOperation.HomepageSectionPerformance,
     }
 
     if (
