@@ -23,6 +23,7 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayToken');
@@ -31,6 +32,10 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
+jest.mock('../../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../../selectors/transactionController'),
+  selectLastWithdrawTokenByType: jest.fn(),
+}));
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
@@ -672,6 +677,11 @@ describe('useAutomaticTransactionPayToken', () => {
       nestedTransactions: [{ type: TransactionType.predictWithdraw }],
       txParams: { from: '0x123' },
     } as never);
+
+    jest.mocked(selectLastWithdrawTokenByType).mockReturnValue({
+      address: TOKEN_ADDRESS_2_MOCK as Hex,
+      chainId: CHAIN_ID_2_MOCK as Hex,
+    });
 
     renderHookWithProvider(() => useAutomaticTransactionPayToken(), {
       state: predictWithdrawStateMock,

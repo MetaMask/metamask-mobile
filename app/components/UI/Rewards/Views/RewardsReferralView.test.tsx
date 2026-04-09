@@ -16,20 +16,16 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual };
 });
 
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
   build: jest.fn().mockReturnValue({ event: 'REWARDS_REFERRALS_VIEWED' }),
 });
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    REWARDS_REFERRALS_VIEWED: 'REWARDS_REFERRALS_VIEWED',
-  },
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -111,6 +107,12 @@ jest.mock('react-native-safe-area-context', () => {
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   describe('rendering', () => {
@@ -156,7 +158,7 @@ describe('RewardsReferralView', () => {
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          'REWARDS_REFERRALS_VIEWED',
+          MetaMetricsEvents.REWARDS_REFERRALS_VIEWED,
         );
         expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       });
