@@ -11,10 +11,9 @@ import { DappVariants } from '../../../framework/Constants';
 import { TestSpecificMock } from '../../../framework/types';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import Browser from '../../../page-objects/Browser/BrowserView';
-import Assertions from '../../../framework/Assertions';
+import { Assertions } from '../../../framework';
 
 const PHISHING_TEST_DOMAIN = 'phishing-test.example.com';
-
 const PHISHING_FIXTURES_PATH = path.resolve(
   __dirname,
   '../../../fixtures/phishing',
@@ -76,21 +75,11 @@ describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
         await Browser.navigateToURL(
           `${getDappUrl(0)}/redirect-to-phishing.html`,
         );
-
         await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
           description: 'Phishing warning back to safety button is visible',
         });
-
         await Browser.tapBackToSafetyButton();
-
-        await Assertions.expectElementToNotHaveText(
-          Browser.urlInputBoxID,
-          PHISHING_TEST_DOMAIN,
-          {
-            description:
-              'URL input box does not contain phishing domain after going back to safety',
-          },
-        );
+        await Browser.expectUrlNotContaining(PHISHING_TEST_DOMAIN);
       },
     );
   });
@@ -111,25 +100,14 @@ describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
       async () => {
         await loginToApp();
         await navigateToBrowserView();
-
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`);
-
         await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
           description:
             'Phishing warning back to safety button is visible for iframe',
         });
-
         await Browser.tapBackToSafetyButton();
-
-        await Assertions.expectElementToNotHaveText(
-          Browser.urlInputBoxID,
-          'localhost',
-          {
-            description:
-              'URL input box does not contain localhost after going back to safety',
-          },
-        );
+        await Browser.expectUrlNotContaining('localhost');
       },
     );
   });
