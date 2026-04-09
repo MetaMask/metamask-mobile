@@ -27,6 +27,7 @@ import Device from '../../../util/device';
 import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface SocialLoginIosUserProps {
   type: 'new' | 'existing';
@@ -47,13 +48,14 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
     }) || {};
 
   const isUserTypeNew = type === 'new';
+  const accountType = getSocialAccountType(provider ?? '', !isUserTypeNew);
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED)
         .addProperties({
           is_new_user: isUserTypeNew,
-          social_provider: provider,
+          account_type: accountType,
         })
         .build(),
     );
@@ -65,7 +67,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED)
         .addProperties({
           is_new_user: isUserTypeNew,
-          social_provider: provider,
+          account_type: accountType,
         })
         .build(),
     );
@@ -85,7 +87,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED)
         .addProperties({
           is_new_user: isUserTypeNew,
-          social_provider: provider,
+          account_type: accountType,
         })
         .build(),
     );
@@ -94,6 +96,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
         onboardingTraceCtx,
+        provider,
       }),
     );
   };
