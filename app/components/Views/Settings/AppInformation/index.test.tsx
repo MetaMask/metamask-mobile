@@ -598,8 +598,10 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        // Should show 5 enabled flags: enabledBooleanFlag, enabledObjectFlag, enabledArrayFlag, stringFlag
-        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+        // Should show 4 enabled flags: enabledBooleanFlag, enabledObjectFlag, enabledArrayFlag, stringFlag
+        expect(
+          screen.getByText(/Feature Flags \(4 enabled\)/),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -613,18 +615,20 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+        expect(
+          screen.getByText(/Feature Flags \(4 enabled\)/),
+        ).toBeOnTheScreen();
       });
 
       // Tap to expand
       fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
 
       await waitFor(() => {
-        expect(screen.getByText('Copy All to Clipboard')).toBeTruthy();
-        expect(screen.getByText('• enabledArrayFlag')).toBeTruthy();
-        expect(screen.getByText('• enabledBooleanFlag')).toBeTruthy();
-        expect(screen.getByText('• enabledObjectFlag')).toBeTruthy();
-        expect(screen.getByText('• stringFlag')).toBeTruthy();
+        expect(screen.getByText('Copy All to Clipboard')).toBeOnTheScreen();
+        expect(screen.getByText('• enabledArrayFlag')).toBeOnTheScreen();
+        expect(screen.getByText('• enabledBooleanFlag')).toBeOnTheScreen();
+        expect(screen.getByText('• enabledObjectFlag')).toBeOnTheScreen();
+        expect(screen.getByText('• stringFlag')).toBeOnTheScreen();
       });
 
       // Should not show disabled flags
@@ -644,14 +648,16 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+        expect(
+          screen.getByText(/Feature Flags \(4 enabled\)/),
+        ).toBeOnTheScreen();
       });
 
       // Tap to expand
       fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
 
       await waitFor(() => {
-        expect(screen.getByText('Copy All to Clipboard')).toBeTruthy();
+        expect(screen.getByText('Copy All to Clipboard')).toBeOnTheScreen();
       });
 
       // Tap again to collapse
@@ -673,14 +679,16 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+        expect(
+          screen.getByText(/Feature Flags \(4 enabled\)/),
+        ).toBeOnTheScreen();
       });
 
       // Tap to expand
       fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
 
       await waitFor(() => {
-        expect(screen.getByText('Copy All to Clipboard')).toBeTruthy();
+        expect(screen.getByText('Copy All to Clipboard')).toBeOnTheScreen();
       });
 
       // Tap copy button
@@ -705,7 +713,9 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+        expect(
+          screen.getByText(/Feature Flags \(4 enabled\)/),
+        ).toBeOnTheScreen();
       });
 
       // Tap to expand
@@ -748,7 +758,9 @@ describe('AppInformation', () => {
       triggerLongPress(screen);
 
       await waitFor(() => {
-        expect(screen.getByText(/Feature Flags \(0 enabled\)/)).toBeTruthy();
+        expect(
+          screen.getByText(/Feature Flags \(0 enabled\)/),
+        ).toBeOnTheScreen();
       });
     });
   });
