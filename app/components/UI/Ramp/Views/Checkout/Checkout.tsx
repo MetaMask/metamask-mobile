@@ -126,6 +126,7 @@ const Checkout = () => {
     }, 2000);
 
     return () => {
+      hasAutoClosedRef.current = true;
       if (kycPollRef.current) {
         clearInterval(kycPollRef.current);
         kycPollRef.current = null;
