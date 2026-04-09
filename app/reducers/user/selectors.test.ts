@@ -20,7 +20,7 @@ const mockState = {
     isConnectionRemoved: false,
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
-    tokenOverviewChartType: ChartType.Line,
+    tokenOverviewChartType: ChartType.Line as ChartType,
   },
 };
 
