@@ -75,11 +75,17 @@ export function resolvePredictFeatureFlags(
       ),
     ) ?? false;
 
+  const predictUpDownEnabled =
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictUpDown),
+    ) ?? false;
+
   return {
     feeCollection,
     liveSportsLeagues,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
+    predictUpDownEnabled,
   };
 }
