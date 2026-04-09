@@ -1310,3 +1310,388 @@ describe('CardController — account switch (#handleAccountSwitch)', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('CardController — setUserLocation', () => {
+  it('writes location to providerData for the active provider', () => {
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    controller.setUserLocation('us');
+
+    const providerData = controller.state.providerData as Record<
+      string,
+      Record<string, string>
+    >;
+    expect(providerData.baanx.location).toBe('us');
+  });
+
+  it('overwrites previous location', () => {
+    const provider = buildMockProvider();
+    const controller = buildController(provider);
+
+    controller.setUserLocation('us');
+    controller.setUserLocation('international');
+
+    const providerData = controller.state.providerData as Record<
+      string,
+      Record<string, string>
+    >;
+    expect(providerData.baanx.location).toBe('international');
+  });
+
+  it('is a no-op when activeProviderId is falsy', () => {
+    const provider = buildMockProvider();
+    const controller = buildController(provider, { activeProviderId: '' });
+    const before = { ...controller.state.providerData };
+
+    controller.setUserLocation('us');
+
+    expect(controller.state.providerData).toStrictEqual(before);
+  });
+});
+
+describe('CardController — getCapabilities', () => {
+  it('returns base capabilities for non-US location', () => {
+    const provider = buildMockProvider({
+      capabilities: {
+        authMethod: 'email_password',
+        supportsOTP: true,
+        supportsFundingApproval: true,
+        supportsFundingLimits: true,
+        fundingChains: ['eip155:59144'],
+        supportsFreeze: true,
+        supportsPushProvisioning: true,
+        onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
+        supportsPinView: false,
+        supportsCashback: true,
+      },
+    });
+    const controller = buildController(provider, {
+      providerData: { baanx: { location: 'international' } },
+    });
+
+    const caps = controller.getCapabilities();
+    expect(caps.supportsPinView).toBe(false);
+    expect(caps.supportsCashback).toBe(true);
+  });
+
+  it('forces supportsPinView true and supportsCashback false for US', () => {
+    const provider = buildMockProvider({
+      capabilities: {
+        authMethod: 'email_password',
+        supportsOTP: true,
+        supportsFundingApproval: true,
+        supportsFundingLimits: true,
+        fundingChains: ['eip155:59144'],
+        supportsFreeze: true,
+        supportsPushProvisioning: true,
+        onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
+        supportsPinView: false,
+        supportsCashback: true,
+      },
+    });
+    const controller = buildController(provider, {
+      providerData: { baanx: { location: 'us' } },
+    });
+
+    const caps = controller.getCapabilities();
+    expect(caps.supportsPinView).toBe(true);
+    expect(caps.supportsCashback).toBe(false);
+  });
+});
+
+describe('CardController — data pass-throughs', () => {
+  function buildAuthenticatedController(provider: jest.Mocked<ICardProvider>) {
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    return buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+    });
+  }
+
+  describe('refreshCardStatus', () => {
+    it('delegates to provider.getCardDetails', async () => {
+      const provider = buildMockProvider();
+      const { controller } = buildAuthenticatedController(provider);
+      provider.getCardDetails.mockResolvedValue(mockCard);
+
+      const result = await controller.refreshCardStatus();
+
+      expect(result).toStrictEqual(mockCard);
+      expect(provider.getCardDetails).toHaveBeenCalled();
+    });
+
+    it('returns null on error', async () => {
+      const provider = buildMockProvider();
+      provider.getCardDetails.mockImplementation(() => {
+        throw new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'Server error',
+          500,
+        );
+      });
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      const { controller } = buildControllerWithMockMessenger(provider, {
+        isAuthenticated: true,
+      });
+
+      const result = await controller.refreshCardStatus();
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getCardDetailsView', () => {
+    it('delegates to provider.getCardDetailsView', async () => {
+      const mockGetCardDetailsView = jest.fn().mockResolvedValue({
+        url: 'https://example.com',
+        token: 'view-tok',
+      });
+      const provider = buildMockProvider({
+        getCardDetailsView: mockGetCardDetailsView,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardDetailsView({
+        customCss: { card: 'color:red' },
+      });
+
+      expect(result).toStrictEqual({
+        url: 'https://example.com',
+        token: 'view-tok',
+      });
+    });
+
+    it('throws when provider does not support getCardDetailsView', async () => {
+      const provider = buildMockProvider({ getCardDetailsView: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.getCardDetailsView({ customCss: {} }),
+      ).rejects.toThrow('Card details view not supported');
+    });
+  });
+
+  describe('getCardPinView', () => {
+    it('delegates to provider.getCardPinView', async () => {
+      const mockGetCardPinView = jest.fn().mockResolvedValue({
+        url: 'https://pin.example.com',
+        token: 'pin-tok',
+      });
+      const provider = buildMockProvider({
+        getCardPinView: mockGetCardPinView,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardPinView({
+        customCss: { card: 'color:blue' },
+      });
+
+      expect(result).toStrictEqual({
+        url: 'https://pin.example.com',
+        token: 'pin-tok',
+      });
+    });
+
+    it('throws when provider does not support getCardPinView', async () => {
+      const provider = buildMockProvider({ getCardPinView: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.getCardPinView({ customCss: {} }),
+      ).rejects.toThrow('Card PIN view not supported');
+    });
+  });
+
+  describe('getFundingConfig', () => {
+    it('delegates to provider.getFundingConfig', async () => {
+      const mockConfig = {
+        maxLimit: 1000,
+        fundingOptions: [],
+        supportedChains: [],
+      };
+      const mockGetFundingConfig = jest.fn().mockResolvedValue(mockConfig);
+      const provider = buildMockProvider({
+        getFundingConfig: mockGetFundingConfig,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getFundingConfig();
+      expect(result).toStrictEqual(mockConfig);
+    });
+
+    it('throws when provider does not support getFundingConfig', async () => {
+      const provider = buildMockProvider({ getFundingConfig: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getFundingConfig()).rejects.toThrow(
+        'Funding config not supported',
+      );
+    });
+  });
+
+  describe('createGoogleWalletProvisioningRequest', () => {
+    it('delegates to provider', async () => {
+      const mockCreate = jest
+        .fn()
+        .mockResolvedValue({ opaquePaymentCard: 'opaque' });
+      const provider = buildMockProvider({
+        createGoogleWalletProvisioningRequest: mockCreate,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.createGoogleWalletProvisioningRequest();
+      expect(result).toStrictEqual({ opaquePaymentCard: 'opaque' });
+    });
+
+    it('throws when unsupported', async () => {
+      const provider = buildMockProvider({
+        createGoogleWalletProvisioningRequest: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.createGoogleWalletProvisioningRequest(),
+      ).rejects.toThrow('Google Wallet provisioning not supported');
+    });
+  });
+
+  describe('createApplePayProvisioningRequest', () => {
+    it('delegates to provider', async () => {
+      const mockCreate = jest.fn().mockResolvedValue({
+        encryptedPassData: 'enc',
+        activationData: 'act',
+        ephemeralPublicKey: 'epk',
+      });
+      const provider = buildMockProvider({
+        createApplePayProvisioningRequest: mockCreate,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.createApplePayProvisioningRequest({
+        leafCertificate: 'leaf',
+        intermediateCertificate: 'inter',
+        nonce: 'n',
+        nonceSignature: 'ns',
+      });
+      expect(result.encryptedPassData).toBe('enc');
+    });
+
+    it('throws when unsupported', async () => {
+      const provider = buildMockProvider({
+        createApplePayProvisioningRequest: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.createApplePayProvisioningRequest({
+          leafCertificate: 'l',
+          intermediateCertificate: 'i',
+          nonce: 'n',
+          nonceSignature: 'ns',
+        }),
+      ).rejects.toThrow('Apple Pay provisioning not supported');
+    });
+  });
+
+  describe('getCashbackWallet', () => {
+    it('delegates to provider', async () => {
+      const wallet = { id: 'w1', balance: '10', currency: 'musd' };
+      const mockGet = jest.fn().mockResolvedValue(wallet);
+      const provider = buildMockProvider({ getCashbackWallet: mockGet });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCashbackWallet();
+      expect(result).toStrictEqual(wallet);
+    });
+
+    it('throws when unsupported', async () => {
+      const provider = buildMockProvider({ getCashbackWallet: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCashbackWallet()).rejects.toThrow(
+        'Cashback not supported',
+      );
+    });
+  });
+
+  describe('getCashbackWithdrawEstimation', () => {
+    it('delegates to provider', async () => {
+      const est = { estimatedAmount: '5', fee: '0.1' };
+      const mockGet = jest.fn().mockResolvedValue(est);
+      const provider = buildMockProvider({
+        getCashbackWithdrawEstimation: mockGet,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCashbackWithdrawEstimation();
+      expect(result).toStrictEqual(est);
+    });
+
+    it('throws when unsupported', async () => {
+      const provider = buildMockProvider({
+        getCashbackWithdrawEstimation: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCashbackWithdrawEstimation()).rejects.toThrow(
+        'Cashback not supported',
+      );
+    });
+  });
+
+  describe('withdrawCashback', () => {
+    it('delegates to provider', async () => {
+      const resp = { txHash: '0x123' };
+      const mockWithdraw = jest.fn().mockResolvedValue(resp);
+      const provider = buildMockProvider({
+        withdrawCashback: mockWithdraw,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.withdrawCashback({
+        amount: '5',
+        walletAddress: '0xaddr',
+      } as never);
+      expect(result).toStrictEqual(resp);
+    });
+
+    it('throws when unsupported', async () => {
+      const provider = buildMockProvider({ withdrawCashback: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(
+        controller.withdrawCashback({ amount: '5' } as never),
+      ).rejects.toThrow('Cashback withdrawal not supported');
+    });
+  });
+
+  describe('getCardHomeData — unauthenticated path', () => {
+    it('falls back to getOnChainAssets when no valid tokens exist', async () => {
+      const onChainData: CardHomeData = {
+        primaryAsset: mockAsset,
+        assets: [mockAsset],
+        supportedTokens: [mockAsset],
+        card: null,
+        account: null,
+        alerts: [{ type: 'login_required', dismissable: false }],
+        actions: [{ type: 'add_funds', enabled: true }],
+      };
+      const provider = buildMockProvider();
+      const mockGetOnChainAssets = provider.getOnChainAssets as jest.Mock;
+      mockGetOnChainAssets.mockResolvedValue(onChainData);
+      mockTokenStore.get.mockResolvedValue(null);
+
+      const { controller } = buildControllerWithMockMessenger(provider, {
+        isAuthenticated: false,
+      });
+
+      const result = await controller.getCardHomeData('0xabc');
+
+      expect(provider.getOnChainAssets).toHaveBeenCalledWith('0xabc');
+      expect(provider.getCardHomeData).not.toHaveBeenCalled();
+      expect(result).toStrictEqual(onChainData);
+    });
+  });
+});

@@ -1943,4 +1943,324 @@ describe('BaanxProvider', () => {
       ).rejects.toThrow('Invalid auth session');
     });
   });
+
+  describe('getCardPinView', () => {
+    it('returns url and token from the pin endpoint', async () => {
+      service.post.mockResolvedValue({
+        imageUrl: 'https://pin.example.com/view',
+        token: 'pin-view-tok',
+      });
+
+      const result = await provider.getCardPinView(AUTH_TOKENS, {
+        customCss: { card: 'color: blue' },
+      });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/card/pin/token',
+        { customCss: { card: 'color: blue' } },
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual({
+        url: 'https://pin.example.com/view',
+        token: 'pin-view-tok',
+      });
+    });
+
+    it('propagates error when pin view request fails', async () => {
+      service.post.mockRejectedValue(new Error('pin service down'));
+
+      await expect(
+        provider.getCardPinView(AUTH_TOKENS, { customCss: {} }),
+      ).rejects.toThrow('pin service down');
+    });
+  });
+
+  describe('createGoogleWalletProvisioningRequest', () => {
+    it('returns opaquePaymentCard from Google endpoint', async () => {
+      service.post.mockResolvedValue({
+        success: true,
+        data: { opaquePaymentCard: 'opaque-card-data' },
+      });
+
+      const result =
+        await provider.createGoogleWalletProvisioningRequest(AUTH_TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/card/wallet/provision/google',
+        {},
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual({ opaquePaymentCard: 'opaque-card-data' });
+    });
+
+    it('throws when response is missing opaquePaymentCard', async () => {
+      service.post.mockResolvedValue({ success: true, data: {} });
+
+      await expect(
+        provider.createGoogleWalletProvisioningRequest(AUTH_TOKENS),
+      ).rejects.toThrow(
+        'Google Wallet provisioning response missing opaquePaymentCard',
+      );
+    });
+  });
+
+  describe('createApplePayProvisioningRequest', () => {
+    const appleParams = {
+      leafCertificate: 'leaf-cert',
+      intermediateCertificate: 'inter-cert',
+      nonce: 'nonce-123',
+      nonceSignature: 'nonce-sig',
+    };
+
+    it('returns provisioning data from nested response', async () => {
+      service.post.mockResolvedValue({
+        success: true,
+        data: {
+          encryptedPassData: 'enc-pass',
+          activationData: 'act-data',
+          ephemeralPublicKey: 'epk',
+        },
+      });
+
+      const result = await provider.createApplePayProvisioningRequest(
+        appleParams,
+        AUTH_TOKENS,
+      );
+
+      expect(result).toStrictEqual({
+        encryptedPassData: 'enc-pass',
+        activationData: 'act-data',
+        ephemeralPublicKey: 'epk',
+      });
+    });
+
+    it('returns provisioning data from flat response', async () => {
+      service.post.mockResolvedValue({
+        encryptedPassData: 'enc-pass-flat',
+        activationData: 'act-data-flat',
+        ephemeralPublicKey: 'epk-flat',
+      });
+
+      const result = await provider.createApplePayProvisioningRequest(
+        appleParams,
+        AUTH_TOKENS,
+      );
+
+      expect(result).toStrictEqual({
+        encryptedPassData: 'enc-pass-flat',
+        activationData: 'act-data-flat',
+        ephemeralPublicKey: 'epk-flat',
+      });
+    });
+
+    it('throws when required fields are missing', async () => {
+      service.post.mockResolvedValue({
+        success: true,
+        data: { encryptedPassData: 'enc' },
+      });
+
+      await expect(
+        provider.createApplePayProvisioningRequest(appleParams, AUTH_TOKENS),
+      ).rejects.toThrow(
+        'Apple Pay provisioning response missing required fields',
+      );
+    });
+  });
+
+  describe('getCashbackWallet', () => {
+    it('returns wallet data from reward endpoint', async () => {
+      const wallet = { id: 'w1', balance: '10', currency: 'musd' };
+      service.get.mockResolvedValue(wallet);
+
+      const result = await provider.getCashbackWallet(AUTH_TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/wallet/reward',
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual(wallet);
+    });
+  });
+
+  describe('getCashbackWithdrawEstimation', () => {
+    it('returns estimation from endpoint', async () => {
+      const estimation = { estimatedAmount: '5', fee: '0.1' };
+      service.get.mockResolvedValue(estimation);
+
+      const result = await provider.getCashbackWithdrawEstimation(AUTH_TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/wallet/reward/withdraw-estimation',
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual(estimation);
+    });
+  });
+
+  describe('withdrawCashback', () => {
+    it('posts withdrawal to endpoint', async () => {
+      const response = { txHash: '0xabc' };
+      service.post.mockResolvedValue(response);
+
+      const result = await provider.withdrawCashback(
+        { amount: '5', walletAddress: '0xaddr' } as never,
+        AUTH_TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/wallet/reward/withdraw',
+        { amount: '5', walletAddress: '0xaddr' },
+        AUTH_TOKENS,
+      );
+      expect(result).toStrictEqual(response);
+    });
+  });
+
+  describe('getCardHomeData — error fallback', () => {
+    it('returns emptyCardHomeData when outer try/catch triggers', async () => {
+      service.get.mockRejectedValue(new Error('Network failure'));
+
+      const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
+
+      expect(result).toStrictEqual({
+        primaryAsset: null,
+        assets: [],
+        supportedTokens: [],
+        card: null,
+        account: null,
+        alerts: [],
+        actions: [],
+      });
+    });
+  });
+
+  describe('buildAlerts — additional edge cases', () => {
+    it('returns empty alerts for VERIFIED user with active card and active asset', async () => {
+      service.get.mockImplementation((url: string) => {
+        if (url === '/v1/delegation/chain/config')
+          return Promise.resolve({ networks: [] });
+        if (url === '/v1/card/status')
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: 'VIRTUAL',
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        if (url === '/v1/user')
+          return Promise.resolve({ verificationState: 'VERIFIED' });
+        if (url === '/v1/wallet/external') return Promise.resolve([]);
+        if (url === '/v1/wallet/external/priority') return Promise.resolve([]);
+        return Promise.resolve(null);
+      });
+
+      const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
+
+      expect(result.alerts).toStrictEqual([]);
+    });
+  });
+
+  describe('buildActions — additional edge cases', () => {
+    it('returns add_funds and change_asset for VERIFIED user with active card and active asset', async () => {
+      service.get.mockImplementation((url: string) => {
+        if (url === '/v1/delegation/chain/config')
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'Linea',
+                chainId: 59144,
+                environment: 'production',
+                tokens: {
+                  USDC: {
+                    address: '0xusdc',
+                    symbol: 'USDC',
+                    decimals: 6,
+                  },
+                },
+              },
+            ],
+          });
+        if (url === '/v1/card/status')
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: 'VIRTUAL',
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        if (url === '/v1/user')
+          return Promise.resolve({ verificationState: 'VERIFIED' });
+        if (url === '/v1/wallet/external')
+          return Promise.resolve([
+            {
+              address: '0xowner',
+              currency: 'USDC',
+              balance: '100',
+              allowance: '500000',
+              network: 'Linea',
+            },
+          ]);
+        if (url === '/v1/wallet/external/priority')
+          return Promise.resolve([
+            {
+              id: 1,
+              address: '0xowner',
+              currency: 'USDC',
+              network: 'Linea',
+              priority: 1,
+            },
+          ]);
+        return Promise.resolve(null);
+      });
+
+      const result = await provider.getCardHomeData('0xabc', AUTH_TOKENS);
+
+      expect(result.actions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: 'add_funds' }),
+          expect.objectContaining({ type: 'change_asset' }),
+        ]),
+      );
+    });
+  });
+
+  describe('mapApiError edge cases via getCardDetails', () => {
+    it('maps 409 to Conflict', async () => {
+      service.get.mockRejectedValue(
+        new CardApiError(409, '/v1/card/status', 'Conflict'),
+      );
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Conflict,
+      });
+    });
+
+    it('maps 408 to Timeout', async () => {
+      service.get.mockRejectedValue(
+        new CardApiError(408, '/v1/card/status', 'Timeout'),
+      );
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Timeout,
+      });
+    });
+
+    it('maps statusCode 0 to Network', async () => {
+      service.get.mockRejectedValue(new CardApiError(0, '/v1/card/status', ''));
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Network,
+      });
+    });
+
+    it('maps generic Error to Unknown', async () => {
+      service.get.mockRejectedValue(new Error('something broke'));
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Unknown,
+      });
+    });
+  });
 });
