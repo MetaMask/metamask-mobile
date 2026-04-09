@@ -9,6 +9,7 @@ import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
@@ -30,9 +31,11 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const quotes = useTransactionPayQuotes();
+  const hasQuotes = Boolean(quotes?.length);
 
   const receiveUsd = useMemo(() => {
-    if (!totals || inputAmountUsd == null) return '';
+    if (!totals || inputAmountUsd == null || !hasQuotes) return '';
 
     const inputUsd = new BigNumber(inputAmountUsd);
     const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
@@ -50,7 +53,7 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
       .plus(metaMaskFee);
     const youReceive = inputUsd.minus(totalFees);
     return formatFiat(youReceive.isPositive() ? youReceive : new BigNumber(0));
-  }, [totals, formatFiat, inputAmountUsd]);
+  }, [totals, formatFiat, inputAmountUsd, hasQuotes]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;

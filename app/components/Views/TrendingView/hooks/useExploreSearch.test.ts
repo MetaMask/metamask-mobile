@@ -99,7 +99,6 @@ jest.mock('../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
   }),
 }));
 
-// Mock useSectionsArray to return all sections for testing
 const mockSectionsArray: { id: SectionId }[] = [
   { id: 'tokens' },
   { id: 'stocks' },
@@ -112,7 +111,7 @@ jest.mock('../sections.config', () => {
   const actual = jest.requireActual('../sections.config');
   return {
     ...actual,
-    useSectionsArray: () => mockSectionsArray,
+    useSearchSectionsArray: () => mockSectionsArray,
   };
 });
 

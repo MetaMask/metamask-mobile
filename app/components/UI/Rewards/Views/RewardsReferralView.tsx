@@ -7,13 +7,14 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const hasTrackedReferralsViewed = useRef(false);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
     if (!hasTrackedReferralsViewed.current) {
