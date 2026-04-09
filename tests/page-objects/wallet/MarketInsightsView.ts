@@ -20,6 +20,14 @@ class MarketInsightsView {
     return Matchers.getIdentifier(MarketInsightsSelectorsIDs.VIEW_SCROLL);
   }
 
+  get longButton() {
+    return Matchers.getElementByID(MarketInsightsSelectorsIDs.LONG_BUTTON);
+  }
+
+  get shortButton() {
+    return Matchers.getElementByID(MarketInsightsSelectorsIDs.SHORT_BUTTON);
+  }
+
   get thumbsUpButton() {
     return Matchers.getElementByID(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON);
   }
@@ -33,6 +41,30 @@ class MarketInsightsView {
   async expectViewVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Market Insights detail view is visible',
+    });
+  }
+
+  async expectLongButtonVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.longButton, {
+      description: 'Market Insights Long button is visible',
+    });
+  }
+
+  async expectLongButtonNotVisible(): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(this.longButton, {
+      description: 'Market Insights Long button is not visible',
+    });
+  }
+
+  async expectShortButtonVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.shortButton, {
+      description: 'Market Insights Short button is visible',
+    });
+  }
+
+  async expectShortButtonNotVisible(): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(this.shortButton, {
+      description: 'Market Insights Short button is not visible',
     });
   }
 
