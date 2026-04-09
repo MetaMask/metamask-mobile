@@ -1,0 +1,27 @@
+[
+  {
+    "name": "controller-version-bump",
+    "description": "MetaMask controller package version changed",
+    "trigger": {
+      "file": "package.json",
+      "diffPattern": "@metamask/.*-controller"
+    },
+
+    "result": {
+      "risk_score": 85,
+      "risk_level": "high",
+      "summary": "One or more @metamask/*-controller package versions were changed — controller upgrades can alter core behavior.",
+      "risk_areas": [
+        "Controller dependencies",
+        "Breaking changes",
+        "State migration"
+      ],
+      "testing_recommendations": [
+        "Review controller changelog for breaking changes",
+        "Full E2E regression on affected flows",
+        "Verify state migrations if applicable"
+      ],
+      "label": "risk:high"
+    }
+  }
+]

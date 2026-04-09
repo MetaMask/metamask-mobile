@@ -1,0 +1,138 @@
+repo: MetaMask/metamask-mobile
+
+critical:
+  files:
+    - package.json
+    - yarn.lock
+    - babel.config.js
+    - tsconfig.json
+    - metro.config.js
+    - metro.transform.js
+    - react-native.config.js
+    - index.js
+    - app.config.js
+    - shim.js
+    - jest.config.js
+    - tailwind.config.js
+    - ios/Podfile
+    - ios/Podfile.lock
+    - ios/Gemfile
+    - android/build.gradle
+    - android/settings.gradle
+    - android/gradle.properties
+    - android/app/build.gradle
+    - bitrise.yml
+    - builds.yml
+    - .github/workflows/ci.yml
+    - .github/workflows/build.yml
+
+  keywords:
+    - Controller
+    - Keyring
+    - SecureKeychain
+    - Permission
+    - Middleware
+    - Migration
+    - Engine
+    - DeeplinkManager
+    - SDKConnect
+    - WalletConnect
+    - BackgroundBridge
+    - Transaction
+    - Vault
+    - Encryptor
+    - Authentication
+    - NativeModule
+    - NavigationService
+    - SnapKeyring
+    - RPCMethods
+    - LockManager
+
+  paths:
+    # Security and authentication
+    - app/core/SecureKeychain.ts
+    - app/core/Vault.ts
+    - app/core/Encryptor/
+    - app/core/Authentication/
+    - app/core/Permissions/
+    - app/core/BackupVault/
+
+    # Core engine and controllers
+    - app/core/Engine/
+    - app/core/EngineService/
+    - app/controllers/
+
+    # Keyring and accounts
+    - app/core/SnapKeyring/
+    - app/core/QrKeyring/
+    - app/core/HardwareWallet/
+    - app/core/HardwareWallets/
+    - app/core/Ledger/
+
+    # Transactions and signing
+    - app/core/Transaction/
+    - app/core/RPCMethods/
+    - app/core/SanitizationMiddleware.ts
+
+    # Deep linking and external connections
+    - app/core/DeeplinkManager/
+    - app/core/SDKConnect/
+    - app/core/SDKConnectV2/
+    - app/core/WalletConnect/
+    - app/core/BackgroundBridge/
+
+    # Snaps
+    - app/core/Snaps/
+    - app/lib/snaps/
+
+    # Native modules and platform bridges
+    - app/core/NativeModules.ts
+    - app/core/MobilePortStream.js
+    - ios/MetaMask/
+    - android/app/
+
+    # Navigation
+    - app/core/NavigationService/
+    - app/components/Nav/
+
+    # State management
+    - app/store/
+    - app/reducers/
+    - app/selectors/
+    - app/actions/
+    - app/core/redux/
+
+    # Build and CI
+    - scripts/
+    - patches/
+    - .github/workflows/
+    - android/keystores/
+
+    # PPOM and security scanning
+    - ppom/
+    - app/lib/ppom/
+    - app/lib/address-scanning/
+
+    # Multichain
+    - app/core/Multichain/
+    - app/multichain-accounts/
+    - app/multichain-bitcoin/
+    - app/multichain-tron/
+
+searchDirs:
+  - app/
+  - ios/
+  - android/
+  - scripts/
+  - patches/
+  - e2e/
+  - locales/
+  - .github/
+
+models:
+  default: azure/grok-4-fast-reasoning
+  escalation: anthropic/claude-sonnet-4-6
+  escalationThreshold: 3
+
+modes:
+  - pr-risk-analysis
