@@ -129,18 +129,7 @@ export const LIMIT_PRICE_CONFIG = {
   ShortPresets: [1, 2], // Sell above market for short orders
 } as const;
 
-/**
- * Funding rate display configuration
- * Controls how funding rates are formatted and displayed across the app
- */
-export const FUNDING_RATE_CONFIG = {
-  // Number of decimal places to display for funding rates
-  Decimals: 4,
-  // Default display value when funding rate is zero or unavailable
-  ZeroDisplay: '0.0000%',
-  // Multiplier to convert decimal funding rate to percentage
-  PercentageMultiplier: 100,
-} as const;
+export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';

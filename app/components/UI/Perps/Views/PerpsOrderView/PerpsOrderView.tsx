@@ -149,6 +149,7 @@ import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/tran
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -605,7 +606,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [blockingPayAlerts],
   );
 
-  // Order execution hook. Perps balance: standard "Order submitted" toast. Custom token: persistent "Submitting your trade" toast during deposit.
+  // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -1084,19 +1085,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           },
         };
 
-        if (hasCustomTokenSelected) {
-          // Persistent "Submitting your trade" toast for deposit flow (user can dismiss via close button or swipe)
-          showToast(PerpsToastOptions.orderManagement.shared.submitting());
-        } else {
-          // Standard "Order submitted" toast for perps balance orders
-          showToast(
-            PerpsToastOptions.orderManagement[orderForm.type].submitted(
-              orderForm.direction,
-              positionSize,
-              orderForm.asset,
-            ),
-          );
-        }
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
@@ -1235,6 +1230,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
+  useInitPerpsPaymentToken(orderForm.asset ?? '');
+
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
 
@@ -1336,6 +1333,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 const amount = Math.floor(value).toString();
                 setAmount(amount);
               }}
+              key={payToken?.symbol ?? ''}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
               step={1}
@@ -1488,7 +1486,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
-                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>
