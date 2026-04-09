@@ -3,10 +3,12 @@ import { useTheme } from '../../../../util/theme';
 
 import { Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
+import {
+  FontWeight,
   TextColor,
+  Text,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { usePushNotificationSettingsToggle } from './PushNotificationToggle.hooks';
@@ -26,7 +28,11 @@ export const PushNotificationToggle = () => {
         style={styles.switchElement}
         testID={PUSH_NOTIFICATION_TOGGLE_TEST_ID}
       >
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.enable_push_notifications')}
         </Text>
         <Switch

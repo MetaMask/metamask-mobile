@@ -3,10 +3,12 @@ import { useTheme } from '../../../../util/theme';
 
 import { Linking, Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
+import {
+  FontWeight,
   TextColor,
+  Text,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import AppConstants from '../../../../core/AppConstants';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
@@ -33,7 +35,11 @@ export const MainNotificationToggle = () => {
         style={styles.switchElement}
         testID={MAIN_NOTIFICATION_TOGGLE_TEST_ID}
       >
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
@@ -50,11 +56,11 @@ export const MainNotificationToggle = () => {
         />
       </View>
       <View style={styles.setting}>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
           {strings('app_settings.allow_notifications_desc')}{' '}
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Info}
+            variant={TextVariant.BodyMd}
+            color={TextColor.InfoDefault}
             onPress={goToLearnMore}
             testID={MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID}
           >

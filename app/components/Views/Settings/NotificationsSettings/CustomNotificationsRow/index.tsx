@@ -2,9 +2,11 @@ import React from 'react';
 import { Switch, View } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { createStyles } from '../NotificationOptionToggle/styles';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -49,7 +51,9 @@ const CustomNotificationsRow = ({
         />
       )}
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+          {title}
+        </Text>
       </View>
       <Switch
         value={isEnabled}
