@@ -110,6 +110,7 @@ export const useSwapBridgeNavigation = ({
   destToken: destTokenBase,
   abTestContext,
   skipLocationUpdate = false,
+  swapButtonEventLocationOverride,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
@@ -126,6 +127,14 @@ export const useSwapBridgeNavigation = ({
    * bridge asset picker) to preserve the original entry-point location.
    */
   skipLocationUpdate?: boolean;
+  /**
+   * Override only the tracked location on the unified swap click event.
+   * This keeps bridge session source attribution intact while letting callers
+   * report the button tap from a more specific UI surface like the navbar.
+   */
+  swapButtonEventLocationOverride?:
+    | ActionLocation
+    | SwapBridgeNavigationLocation;
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -296,7 +305,7 @@ export const useSwapBridgeNavigation = ({
       trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
 
       const swapEventProperties = {
-        location,
+        location: swapButtonEventLocationOverride ?? location,
         chain_id_source: getDecimalChainId(sourceToken.chainId),
         token_symbol_source: sourceToken?.symbol,
         token_address_source: sourceToken?.address,
@@ -327,6 +336,7 @@ export const useSwapBridgeNavigation = ({
       currentNetworkInfo,
       getIsBridgeEnabledSource,
       skipLocationUpdate,
+      swapButtonEventLocationOverride,
     ],
   );
   const { networkModal } = useAddNetwork();

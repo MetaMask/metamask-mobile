@@ -53,6 +53,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
@@ -389,6 +390,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       isEmpty,
       itemCount,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.PERPS,
+      contentReady: !isLoadingSection && !connectionError,
+      isEmpty: !hasItems,
+      isLoading: isLoadingSection,
     });
 
     // positions-only: hide when empty before connection error UI (WS failure must not show error for empty section)

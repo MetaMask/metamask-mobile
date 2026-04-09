@@ -1,7 +1,11 @@
 import React, { act } from 'react';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { CustomAmountInfo, CustomAmountInfoProps } from './custom-amount-info';
+import {
+  CustomAmountInfo,
+  CustomAmountInfoProps,
+  CustomAmountInfoSkeleton,
+} from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
@@ -55,7 +59,7 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
 }));
 jest.mock('../../AccountSelector', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
@@ -447,5 +451,70 @@ describe('CustomAmountInfo', () => {
     expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
       to: '0xTestRecipient',
     });
+  });
+
+  it('renders AccountSelector for moneyAccountDeposit transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByTestId('account-selector')).toBeOnTheScreen();
+  });
+
+  it('renders AccountSelector for moneyAccountDeposit when txParams.from is undefined', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: {},
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByTestId('account-selector')).toBeOnTheScreen();
+  });
+
+  it('calls updateEditableParams with from key when deposit account is selected', async () => {
+    const { updateEditableParams } = jest.requireMock(
+      '../../../../../../util/transaction-controller',
+    );
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
+      from: '0xTestRecipient',
+    });
+  });
+});
+
+describe('CustomAmountInfoSkeleton', () => {
+  it('renders skeleton without AccountSelectorSkeleton', () => {
+    const { queryByTestId } = renderWithProvider(<CustomAmountInfoSkeleton />, {
+      state: merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+      ),
+    });
+
+    expect(queryByTestId('account-selector-skeleton')).toBeNull();
   });
 });

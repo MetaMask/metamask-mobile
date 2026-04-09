@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -57,15 +63,33 @@ export function PayWithRow() {
 
   const canEdit = !isHardwareAccount(from ?? '');
 
+  const prevFromRef = useRef(from);
+  const [isReselecting, setIsReselecting] = useState(false);
+
+  useEffect(() => {
+    if (from && from !== prevFromRef.current) {
+      prevFromRef.current = from;
+      setIsReselecting(true);
+    }
+  }, [from]);
+
+  useEffect(() => {
+    if (isReselecting && payToken) {
+      setIsReselecting(false);
+    }
+  }, [isReselecting, payToken]);
+
+  const isDisabled = !canEdit || isReselecting;
+
   const handleClick = useCallback(() => {
-    if (!canEdit) return;
+    if (isDisabled) return;
     setConfirmationMetric({
       properties: {
         mm_pay_token_list_opened: true,
       },
     });
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation, setConfirmationMetric]);
+  }, [isDisabled, navigation, setConfirmationMetric]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
@@ -110,14 +134,14 @@ export function PayWithRow() {
   return (
     <TouchableOpacity
       onPress={handleClick}
-      disabled={!canEdit}
+      disabled={isDisabled}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.spaceBetween}
-        style={styles.container}
+        style={[styles.container, isReselecting && styles.disabled]}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {label}
@@ -144,7 +168,7 @@ export function PayWithRow() {
               </Text>
             )}
           </Text>
-          {canEdit && from && (
+          {!isDisabled && from && (
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}

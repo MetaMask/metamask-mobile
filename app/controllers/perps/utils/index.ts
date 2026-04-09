@@ -39,3 +39,4 @@ export const getEnvironment = (): 'DEV' | 'PROD' => {
   const env = globalThis.process?.env?.NODE_ENV ?? 'production';
   return env === 'production' ? 'PROD' : 'DEV';
 };
+export * from './perpsFormatters';

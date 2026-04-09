@@ -60,8 +60,10 @@ import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useSelector } from 'react-redux';
 import AccountSelector from '../../AccountSelector';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -120,9 +122,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountWithdraw,
     ]);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
     const [selectedRecipientAddress, setSelectedRecipientAddress] = useState<
       string | undefined
     >(undefined);
+
+    const globalSelectedAddress = useSelector(
+      selectSelectedInternalAccountAddress,
+    );
+    const initialFromAddress =
+      (transactionMeta?.txParams?.from as string | undefined) ??
+      globalSelectedAddress;
+    const [selectedFromAddress, setSelectedFromAddress] = useState<
+      string | undefined
+    >(initialFromAddress);
 
     const handleRecipientAccountSelected = useCallback(
       (address: string) => {
@@ -134,10 +149,23 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       [transactionId],
     );
 
+    const handleFromAccountSelected = useCallback(
+      (address: string) => {
+        if (transactionId) {
+          updateEditableParams(transactionId, { from: address as Hex });
+        }
+        setSelectedFromAddress(address);
+      },
+      [transactionId],
+    );
+
     const isRecipientMissing =
       isMoneyAccountWithdraw && !selectedRecipientAddress;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
+    const quotes = useTransactionPayQuotes();
+    const isQuotesLoading = useIsTransactionPayLoading();
+    const hasQuoteResults = isQuotesLoading || Boolean(quotes?.length);
 
     const {
       amountFiat,
@@ -204,8 +232,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!overrideContent && children}
         </Box>
         <Box gap={16}>
+          <AlertMessage alertMessage={alertMessage} />
           {!overrideContent && (
             <>
+              {isMoneyAccountDeposit && (
+                <AccountSelector
+                  label={strings('confirm.label.from')}
+                  selectedAddress={selectedFromAddress}
+                  onAccountSelected={handleFromAccountSelected}
+                />
+              )}
               {isMoneyAccountWithdraw && (
                 <AccountSelector
                   selectedAddress={selectedRecipientAddress}
@@ -215,15 +251,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
-          <AlertMessage alertMessage={alertMessage} />
           {isResultReady && (
             <Box>
-              <BridgeFeeRow />
-              <BridgeTimeRow />
-              {canSelectWithdrawToken ? (
-                <ReceiveRow inputAmountUsd={amountFiat} />
-              ) : (
-                <TotalRow />
+              {hasQuoteResults && (
+                <>
+                  <BridgeFeeRow />
+                  <BridgeTimeRow />
+                  {canSelectWithdrawToken ? (
+                    <ReceiveRow inputAmountUsd={amountFiat} />
+                  ) : (
+                    <TotalRow />
+                  )}
+                </>
               )}
               <PercentageRow />
             </Box>

@@ -40,6 +40,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
@@ -208,6 +209,18 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       totalSectionsLoaded,
       isEmpty: sectionIsEmpty,
       itemCount,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.TOKENS,
+      contentReady:
+        !showTokensError &&
+        (isZeroBalanceAccount || displayTokenKeys.length > 0),
+      isEmpty: isZeroBalanceAccount || showTokensError,
+      isLoading:
+        displayTokenKeys.length === 0 &&
+        sortedTokenKeys.length === 0 &&
+        !showTokensError,
     });
 
     const handleViewAllTokens = useCallback(() => {
