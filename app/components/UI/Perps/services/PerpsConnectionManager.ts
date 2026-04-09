@@ -32,7 +32,8 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
- PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
