@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import { Pressable } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,52 +28,18 @@ import {
   PULSE_RING_SIZE,
 } from './TimeSlotPicker.constants';
 import { TimeSlotPickerProps } from './TimeSlotPicker.types';
+import {
+  formatTime,
+  findLiveMarket,
+  findNearestMarket,
+} from './TimeSlotPicker.utils';
 
-const formatTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
-};
-
-const findLiveMarket = (
-  markets: PredictMarket[],
-): PredictMarket | undefined => {
-  const now = Date.now();
-  let closest: PredictMarket | undefined;
-  let closestDiff = Infinity;
-
-  for (const market of markets) {
-    if (!market.endDate) continue;
-    const diff = new Date(market.endDate).getTime() - now;
-    if (diff > 0 && diff < closestDiff) {
-      closestDiff = diff;
-      closest = market;
-    }
-  }
-  return closest;
-};
-
-const findNearestMarket = (
-  markets: PredictMarket[],
-): PredictMarket | undefined => {
-  if (markets.length === 0) return undefined;
-  const now = Date.now();
-  let nearest: PredictMarket | undefined;
-  let nearestDiff = Infinity;
-
-  for (const market of markets) {
-    if (!market.endDate) continue;
-    const diff = Math.abs(new Date(market.endDate).getTime() - now);
-    if (diff < nearestDiff) {
-      nearestDiff = diff;
-      nearest = market;
-    }
-  }
-  return nearest ?? markets[0];
-};
+interface PillStyle {
+  bg: BoxBackgroundColor | undefined;
+  border: BoxBorderColor | undefined;
+  textColor: TextColor;
+  bgClassName: string | undefined;
+}
 
 const PulseDot: React.FC = () => {
   const tw = useTailwind();
@@ -127,7 +94,7 @@ interface TimeSlotPillProps {
   market: PredictMarket;
   isSelected: boolean;
   isLive: boolean;
-  onPress: () => void;
+  onPress: (market: PredictMarket) => void;
 }
 
 const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
@@ -140,18 +107,18 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
   const countdown = useCountdown(isLive ? market.endDate : undefined);
   const timeLabel = market.endDate ? formatTime(market.endDate) : '';
 
-  const getPillStyle = () => {
+  const pillStyle = useMemo((): PillStyle => {
     if (isSelected && isLive) {
       return {
         bg: BoxBackgroundColor.ErrorMuted,
         border: BoxBorderColor.ErrorDefault,
         textColor: TextColor.PrimaryInverse,
-        bgClassName: undefined as string | undefined,
+        bgClassName: undefined,
       };
     }
     if (isSelected) {
       return {
-        bg: undefined as BoxBackgroundColor | undefined,
+        bg: undefined,
         border: undefined,
         textColor: TextColor.TextDefault,
         bgClassName: 'bg-icon-default',
@@ -161,15 +128,20 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
       bg: BoxBackgroundColor.BackgroundMuted,
       border: undefined,
       textColor: TextColor.PrimaryInverse,
-      bgClassName: undefined as string | undefined,
+      bgClassName: undefined,
     };
-  };
+  }, [isSelected, isLive]);
 
-  const { bg, border, textColor, bgClassName } = getPillStyle();
+  const { bg, border, textColor, bgClassName } = pillStyle;
+
+  const handlePress = useCallback(() => {
+    onPress(market);
+  }, [onPress, market]);
 
   return (
     <Pressable
-      onPress={onPress}
+      testID={`time-slot-pill-${market.id}`}
+      onPress={handlePress}
       style={({ pressed }) => tw.style(pressed && 'opacity-80')}
     >
       <Box
@@ -187,6 +159,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
             twClassName="gap-1"
           >
             <Text
+              testID={`time-slot-live-label-${market.id}`}
               variant={TextVariant.BodySm}
               color={textColor}
               fontWeight={FontWeight.Medium}
@@ -194,6 +167,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
               Live
             </Text>
             <Text
+              testID={`time-slot-countdown-${market.id}`}
               variant={TextVariant.BodySm}
               color={textColor}
               fontWeight={FontWeight.Medium}
@@ -203,6 +177,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
           </Box>
         ) : (
           <Text
+            testID={`time-slot-time-label-${market.id}`}
             variant={TextVariant.BodySm}
             color={textColor}
             fontWeight={isSelected ? FontWeight.Medium : FontWeight.Regular}
@@ -223,7 +198,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
   const pillPositions = useRef<Map<string, number>>(new Map());
-  const didAutoScroll = useRef(false);
+  const lastScrolledId = useRef<string | undefined>(undefined);
 
   const liveMarket = useMemo(() => findLiveMarket(markets), [markets]);
 
@@ -238,26 +213,21 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   }, []);
 
   useEffect(() => {
-    if (didAutoScroll.current || !resolvedSelectedId) return;
+    if (!resolvedSelectedId) return;
+    if (lastScrolledId.current === resolvedSelectedId) return;
 
     const offset = pillPositions.current.get(resolvedSelectedId);
     if (offset !== undefined) {
       scrollRef.current?.scrollTo({ x: offset, animated: true });
-      didAutoScroll.current = true;
+      lastScrolledId.current = resolvedSelectedId;
     }
   }, [resolvedSelectedId, markets]);
-
-  const handlePress = useCallback(
-    (market: PredictMarket) => {
-      onMarketSelected(market);
-    },
-    [onMarketSelected],
-  );
 
   if (markets.length === 0) return null;
 
   return (
     <ScrollView
+      testID="time-slot-picker"
       ref={scrollRef}
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -272,7 +242,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
             market={market}
             isSelected={market.id === resolvedSelectedId}
             isLive={market.id === liveMarket?.id}
-            onPress={() => handlePress(market)}
+            onPress={onMarketSelected}
           />
         </Box>
       ))}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, screen } from '@testing-library/react-native';
 import TimeSlotPicker from './TimeSlotPicker';
 import { PredictMarket, Recurrence } from '../../types';
 
@@ -39,18 +39,29 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxBorderColor: { ErrorDefault: 'border-error-default' },
     Text: ({
       children,
+      testID,
       ...props
     }: {
       children?: React.ReactNode;
+      testID?: string;
       [key: string]: unknown;
-    }) => <RNText {...props}>{children}</RNText>,
+    }) => (
+      <RNText testID={testID} {...props}>
+        {children}
+      </RNText>
+    ),
     TextVariant: { BodySm: 'body-sm' },
     TextColor: {
-      TextInverse: 'text-inverse',
+      PrimaryInverse: 'text-primary-inverse',
       TextDefault: 'text-default',
     },
     FontWeight: { Medium: 'medium', Regular: 'regular' },
   };
+});
+
+jest.mock('react-native-gesture-handler', () => {
+  const { ScrollView } = jest.requireActual('react-native');
+  return { ScrollView };
 });
 
 jest.mock('react-native-reanimated', () => {
@@ -133,32 +144,33 @@ describe('TimeSlotPicker', () => {
     it('renders a pill for each market', () => {
       const markets = createMarkets();
 
-      const { getAllByText } = render(
-        <TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />,
-      );
+      render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
 
-      const timeTexts = getAllByText(/.+/);
-      expect(timeTexts.length).toBeGreaterThanOrEqual(markets.length);
+      markets.forEach((market) => {
+        expect(
+          screen.getByTestId(`time-slot-pill-${market.id}`),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('renders nothing when markets array is empty', () => {
-      const { toJSON } = render(
-        <TimeSlotPicker markets={[]} onMarketSelected={jest.fn()} />,
-      );
+      render(<TimeSlotPicker markets={[]} onMarketSelected={jest.fn()} />);
 
-      expect(toJSON()).toBeNull();
+      expect(screen.queryByTestId('time-slot-picker')).not.toBeOnTheScreen();
     });
 
-    it('displays "Live" text for the live market when countdown is active', () => {
+    it('displays Live label and countdown for the live market when countdown is active', () => {
       useCountdown.mockReturnValue('02:00');
       const markets = createMarkets();
 
-      const { getByText } = render(
-        <TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />,
-      );
+      render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
 
-      expect(getByText('Live')).toBeTruthy();
-      expect(getByText('02:00')).toBeTruthy();
+      expect(
+        screen.getByTestId('time-slot-live-label-live-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('time-slot-countdown-live-1'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -167,26 +179,25 @@ describe('TimeSlotPicker', () => {
       useCountdown.mockReturnValue('02:00');
       const markets = createMarkets();
 
-      const { getByText } = render(
-        <TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />,
-      );
+      render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
 
-      expect(getByText('Live')).toBeTruthy();
+      expect(
+        screen.getByTestId('time-slot-live-label-live-1'),
+      ).toBeOnTheScreen();
     });
 
-    it('selects the market matching selectedMarketId', () => {
+    it('renders a pill for the explicitly selected market', () => {
       const markets = createMarkets();
-      const onSelected = jest.fn();
 
       render(
         <TimeSlotPicker
           markets={markets}
           selectedMarketId="future-1"
-          onMarketSelected={onSelected}
+          onMarketSelected={jest.fn()}
         />,
       );
 
-      expect(useCountdown).toHaveBeenCalled();
+      expect(screen.getByTestId('time-slot-pill-future-1')).toBeOnTheScreen();
     });
   });
 
@@ -195,16 +206,15 @@ describe('TimeSlotPicker', () => {
       const markets = createMarkets();
       const onSelected = jest.fn();
 
-      const { getAllByText } = render(
+      render(
         <TimeSlotPicker markets={markets} onMarketSelected={onSelected} />,
       );
 
-      const timeTexts = getAllByText(/.+/);
-      fireEvent.press(timeTexts[0]);
+      fireEvent.press(screen.getByTestId('time-slot-pill-past-1'));
 
       expect(onSelected).toHaveBeenCalledTimes(1);
       expect(onSelected).toHaveBeenCalledWith(
-        expect.objectContaining({ id: expect.any(String) }),
+        expect.objectContaining({ id: 'past-1' }),
       );
     });
   });
@@ -225,21 +235,17 @@ describe('TimeSlotPicker', () => {
         }),
       ];
 
-      const { toJSON } = render(
-        <TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />,
-      );
+      render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
 
-      expect(toJSON()).not.toBeNull();
+      expect(screen.getByTestId('time-slot-picker')).toBeOnTheScreen();
     });
 
     it('renders markets without endDate gracefully', () => {
       const markets = [createMarket({ id: 'no-end', endDate: undefined })];
 
-      const { toJSON } = render(
-        <TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />,
-      );
+      render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
 
-      expect(toJSON()).not.toBeNull();
+      expect(screen.getByTestId('time-slot-picker')).toBeOnTheScreen();
     });
   });
 });
