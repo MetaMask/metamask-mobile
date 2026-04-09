@@ -204,6 +204,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!overrideContent && children}
         </Box>
         <Box gap={16}>
+          <AlertMessage alertMessage={alertMessage} />
           {!overrideContent && (
             <>
               {isMoneyAccountWithdraw && (
@@ -215,7 +216,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
-          <AlertMessage alertMessage={alertMessage} />
           {isResultReady && (
             <Box>
               <BridgeFeeRow />
