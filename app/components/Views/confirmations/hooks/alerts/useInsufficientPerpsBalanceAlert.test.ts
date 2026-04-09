@@ -175,6 +175,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
   });
 
   it('does not trigger fee check during pending input even when fees exceed amount', () => {
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
         provider: { usd: '100' },
@@ -193,6 +197,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     useTokenAmountMock.mockReturnValue({
       amountPrecise: '40',
     } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
 
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
