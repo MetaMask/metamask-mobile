@@ -7,13 +7,13 @@ import React, {
 } from 'react';
 import {
   Alert,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
   Platform,
   Image,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
