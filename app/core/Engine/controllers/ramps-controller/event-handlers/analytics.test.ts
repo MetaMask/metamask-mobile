@@ -2,16 +2,19 @@ import {
   RampsOrderStatus as Status,
   type RampsOrder,
 } from '@metamask/ramps-controller';
+import { analytics } from '../../../../../util/analytics/analytics';
+import Logger from '../../../../../util/Logger';
 import { handleOrderStatusChangedForMetrics } from './analytics';
 
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../../Analytics', () => ({
-  MetaMetrics: {
-    getInstance: () => ({
-      trackEvent: mockTrackEvent,
-    }),
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
   },
+}));
+
+jest.mock('../../../../Analytics', () => ({
   MetaMetricsEvents: {
     ONRAMP_PURCHASE_COMPLETED: { category: 'On-ramp Purchase Completed' },
     ONRAMP_PURCHASE_FAILED: { category: 'On-ramp Purchase Failed' },
@@ -21,8 +24,6 @@ jest.mock('../../../../Analytics', () => ({
     OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
   },
 }));
-
-import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -66,6 +67,7 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
 describe('handleOrderStatusChangedForMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
   });
 
   describe('BUY orders', () => {
