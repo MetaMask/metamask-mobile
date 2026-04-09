@@ -458,9 +458,6 @@ class PerpsConnectionManagerClass {
         }
         return;
       } catch {
-        DevLogger.log(
-          '[TAT-2892] BUG_MARKER: ping failed in resumeFromForeground - falling through to full reconnect',
-        );
         // Fall through to reconnect below.
       }
     }
