@@ -587,7 +587,7 @@ describe('AppInformation', () => {
         { state: MOCK_STATE },
       );
 
-      expect(queryByText(/Feature Flags/)).toBeNull();
+      expect(queryByText(/Feature Flags/)).not.toBeOnTheScreen();
     });
 
     it('displays feature flags section after long-pressing fox icon', async () => {
@@ -634,10 +634,10 @@ describe('AppInformation', () => {
       });
 
       // Should not show disabled flags
-      expect(screen.queryByText('• disabledBooleanFlag')).toBeNull();
-      expect(screen.queryByText('• disabledObjectFlag')).toBeNull();
-      expect(screen.queryByText('• emptyArrayFlag')).toBeNull();
-      expect(screen.queryByText('• nullFlag')).toBeNull();
+      expect(screen.queryByText('• disabledBooleanFlag')).not.toBeOnTheScreen();
+      expect(screen.queryByText('• disabledObjectFlag')).not.toBeOnTheScreen();
+      expect(screen.queryByText('• emptyArrayFlag')).not.toBeOnTheScreen();
+      expect(screen.queryByText('• nullFlag')).not.toBeOnTheScreen();
     });
 
     it('collapses feature flags list when tapped again', async () => {
@@ -666,8 +666,12 @@ describe('AppInformation', () => {
       fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
 
       await waitFor(() => {
-        expect(screen.queryByText('Copy All to Clipboard')).toBeNull();
-        expect(screen.queryByText('• enabledBooleanFlag')).toBeNull();
+        expect(
+          screen.queryByText('Copy All to Clipboard'),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByText('• enabledBooleanFlag'),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -736,7 +740,7 @@ describe('AppInformation', () => {
       });
     });
 
-    it('handles empty feature flags gracefully', async () => {
+    it('displays zero enabled count when feature flags object is empty', async () => {
       const emptyState = {
         ...MOCK_STATE,
         engine: {
