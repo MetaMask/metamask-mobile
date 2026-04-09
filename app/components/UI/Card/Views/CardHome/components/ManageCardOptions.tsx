@@ -27,6 +27,7 @@ interface ManageCardOptionsProps {
   hasSetupActions: boolean;
   hasAlertOnlyState: boolean;
   hasSetupAlerts: boolean;
+  userLocation: string | null;
   isFrozen: boolean;
   isFreezeLoading: boolean;
   isPinLoading: boolean;
@@ -52,6 +53,7 @@ const ManageCardOptions = ({
   hasSetupActions,
   hasAlertOnlyState,
   hasSetupAlerts,
+  userLocation,
   isFrozen,
   isFreezeLoading,
   isPinLoading,
@@ -77,6 +79,7 @@ const ManageCardOptions = ({
   const isEligibleForMetalCard =
     isMetalCardCheckoutEnabled &&
     isAuthenticated &&
+    userLocation === 'us' &&
     !!account?.shippingAddress &&
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;

@@ -31,7 +31,10 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
-import { selectIsCardAuthenticated } from '../../../../../selectors/cardController';
+import {
+  selectIsCardAuthenticated,
+  selectCardUserLocation,
+} from '../../../../../selectors/cardController';
 import {
   CardStatus,
   FundingAssetStatus,
@@ -74,6 +77,7 @@ const CardHome = () => {
   const { data, isLoading, isError, refetch } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const userLocation = useSelector(selectCardUserLocation);
   const privacyMode = useSelector(selectPrivacyMode);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
@@ -361,6 +365,7 @@ const CardHome = () => {
         hasSetupActions={hasSetupActions}
         hasAlertOnlyState={hasAlertOnlyState}
         hasSetupAlerts={hasSetupAlerts}
+        userLocation={userLocation}
         isFrozen={isFrozen}
         isFreezeLoading={actions.freeze.isPending || actions.unfreeze.isPending}
         isPinLoading={actions.isPinLoading}
