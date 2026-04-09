@@ -1061,12 +1061,6 @@ const AppFlow = () => {
         component={MultichainAccountDetailsActions}
         options={{
           presentation: 'transparentModal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
         }}
       />
       <Stack.Screen
@@ -1193,12 +1187,6 @@ const AppFlow = () => {
         component={PayWithModal}
         options={{
           presentation: 'transparentModal',
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
         }}
       />
     </Stack.Navigator>
