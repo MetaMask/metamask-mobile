@@ -181,6 +181,7 @@ const TraderProfileView = () => {
           traderId,
           traderName,
           tokenSymbol: position.tokenSymbol,
+          position,
         } as never,
       );
     },

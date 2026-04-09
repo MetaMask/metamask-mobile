@@ -25,8 +25,10 @@ import {
   AvatarBase,
   AvatarBaseSize,
 } from '@metamask/design-system-react-native';
+import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
+import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
 
 // ---------------------------------------------------------------------------
 // Route params
@@ -37,6 +39,7 @@ interface TraderPositionRouteParams {
     traderId: string;
     traderName: string;
     tokenSymbol: string;
+    position?: Position;
   };
 }
 
@@ -197,16 +200,21 @@ const TraderPositionView = () => {
     useRoute<RouteProp<TraderPositionRouteParams, 'TraderPositionView'>>();
   const tw = useTailwind();
 
-  const { traderName, tokenSymbol } = route.params;
+  const { traderName, tokenSymbol, position: positionParam } = route.params;
 
   const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleBuyPress = useCallback(() => {
-    // Buy action will be wired when the trading flow is integrated.
+    setIsQuickBuyVisible(true);
+  }, []);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
   }, []);
 
   const symbol = tokenSymbol || MOCK_TOKEN.symbol;
@@ -401,6 +409,12 @@ const TraderPositionView = () => {
           {strings('social_leaderboard.trader_position.buy')}
         </Button>
       </Box>
+
+      <QuickBuyBottomSheet
+        isVisible={isQuickBuyVisible}
+        position={positionParam ?? null}
+        onClose={handleQuickBuyClose}
+      />
     </SafeAreaView>
   );
 };
