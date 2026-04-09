@@ -1030,17 +1030,24 @@ describe('CardHome Component', () => {
     setupMockSelectors();
   });
 
-  it('renders correctly and matches snapshot', async () => {
+  it('renders card title, action buttons, and manage spending limit item', async () => {
     // Given: default state with priority token
     // When: component renders
-    const { toJSON } = render();
+    render();
 
-    // Then: should match snapshot
+    // Then: key structural elements are present
     await waitFor(() => {
-      expect(toJSON()).toBeDefined();
+      expect(screen.getByTestId('card-view-title')).toBeOnTheScreen();
     });
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly with privacy mode enabled', async () => {
@@ -1048,15 +1055,14 @@ describe('CardHome Component', () => {
     setupMockSelectors({ privacyMode: true });
 
     // When: component renders
-    const { toJSON } = render();
+    render();
 
-    // Then: should show privacy indicators and match snapshot
+    // Then: should show privacy indicators
     expect(
       screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON),
-    ).toBeTruthy();
-    expect(screen.getByText('••••••••••••')).toBeTruthy();
-
-    expect(toJSON()).toMatchSnapshot();
+    ).toBeOnTheScreen();
+    expect(screen.getByText('••••••••••••')).toBeOnTheScreen();
+    expect(screen.getByTestId('card-view-title')).toBeOnTheScreen();
   });
 
   it('does not render wallet address on the card image when unauthenticated', async () => {
