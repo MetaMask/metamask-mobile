@@ -810,23 +810,5 @@
       }
     },
     "version": "v0.3.0"
-  },
-  "previewBuilds": {
-    "@metamask/assets-controller": {
-      "type": "breaking",
-      "previewVersion": "5.0.0-preview-19b4ad7e6"
-    },
-    "@metamask/transaction-controller": {
-      "type": "breaking",
-      "previewVersion": "64.0.0-preview-19b4ad7e6"
-    },
-    "@metamask/transaction-pay-controller": {
-      "type": "non-breaking",
-      "previewVersion": "19.1.0-preview-19b4ad7e6"
-    },
-    "@metamask/keyring-controller": {
-      "type": "non-breaking",
-      "previewVersion": "25.2.0-preview-19b4ad7e6"
-    }
   }
 }
