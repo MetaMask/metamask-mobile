@@ -16,6 +16,20 @@ class MarketInsightsView {
     return Matchers.getElementByID(MarketInsightsSelectorsIDs.BUY_BUTTON);
   }
 
+  get scrollView(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(MarketInsightsSelectorsIDs.VIEW_SCROLL);
+  }
+
+  get thumbsUpButton() {
+    return Matchers.getElementByID(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON);
+  }
+
+  trendItem(index: number) {
+    return Matchers.getElementByID(
+      `${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`,
+    );
+  }
+
   async expectViewVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Market Insights detail view is visible',
@@ -37,6 +51,30 @@ class MarketInsightsView {
   async tapSwapButton(): Promise<void> {
     await Gestures.tap(this.swapButton, {
       elemDescription: 'Tap Market Insights Swap button',
+    });
+  }
+
+  async tapBuyButton(): Promise<void> {
+    await Gestures.tap(this.buyButton, {
+      elemDescription: 'Tap Market Insights Buy button',
+    });
+  }
+
+  async tapTrendItem(index: number): Promise<void> {
+    await Gestures.tap(this.trendItem(index), {
+      elemDescription: `Tap Market Insights trend item ${index}`,
+    });
+  }
+
+  async scrollToThumbsUp(): Promise<void> {
+    await Gestures.scrollToElement(this.thumbsUpButton, this.scrollView, {
+      elemDescription: 'Scroll to Market Insights thumbs up button',
+    });
+  }
+
+  async tapThumbsUpButton(): Promise<void> {
+    await Gestures.tap(this.thumbsUpButton, {
+      elemDescription: 'Tap Market Insights thumbs up button',
     });
   }
 }

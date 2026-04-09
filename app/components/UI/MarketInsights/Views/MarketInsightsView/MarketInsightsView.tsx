@@ -618,6 +618,7 @@ const MarketInsightsView: React.FC = () => {
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         showsVerticalScrollIndicator={false}
+        testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
           {showLastFrame && (
