@@ -67,6 +67,10 @@ class MockWebSocket {
 let appStateCallback: ((state: AppStateStatus) => void) | null = null;
 const mockRemoveListener = jest.fn();
 
+const OriginalWebSocket = (
+  global as unknown as { WebSocket: typeof MockWebSocket }
+).WebSocket;
+
 (global as unknown as { WebSocket: typeof MockWebSocket }).WebSocket =
   MockWebSocket;
 
@@ -78,6 +82,8 @@ jest.mock('react-native', () => ({
 
 describe('WebSocketManager', () => {
   beforeEach(() => {
+    (global as unknown as { WebSocket: typeof MockWebSocket }).WebSocket =
+      MockWebSocket;
     WebSocketManager.resetInstance();
     mockWebSocketInstances = [];
     appStateCallback = null;
@@ -98,6 +104,8 @@ describe('WebSocketManager', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    (global as unknown as { WebSocket: typeof MockWebSocket }).WebSocket =
+      OriginalWebSocket;
   });
 
   describe('singleton pattern', () => {
