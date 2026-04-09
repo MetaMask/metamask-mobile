@@ -11,6 +11,7 @@ import {
   calculateNetAmount,
   formatPriceWithSubscriptNotation,
   formatGameStartTime,
+  formatMarketEndDate,
   formatPredictUnrealizedPnLStringParts,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
@@ -1387,6 +1388,35 @@ describe('format utils', () => {
       });
 
       expect(result).toBe('5');
+    });
+  });
+
+  describe('formatMarketEndDate', () => {
+    it('formats valid ISO date string to readable format', () => {
+      jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () =>
+          ({
+            format: () => 'April 9, 1:45 PM',
+            formatToParts: () => [],
+            resolvedOptions: () => ({}),
+          }) as unknown as Intl.DateTimeFormat,
+      );
+
+      const result = formatMarketEndDate('2026-04-09T19:45:00Z');
+
+      expect(result).toBe('April 9, 1:45 PM');
+    });
+
+    it('returns empty string for invalid date string', () => {
+      const result = formatMarketEndDate('not-a-date');
+
+      expect(result).toBe('');
+    });
+
+    it('returns empty string for completely unparseable input', () => {
+      const result = formatMarketEndDate('invalid-date-format');
+
+      expect(result).toBe('');
     });
   });
 
