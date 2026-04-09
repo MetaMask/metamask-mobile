@@ -138,6 +138,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isMoneyAccountWithdraw && !selectedRecipientAddress;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
+    const quotes = useTransactionPayQuotes();
+    const isQuotesLoading = useIsTransactionPayLoading();
+    const hasQuoteResults = isQuotesLoading || Boolean(quotes?.length);
 
     const {
       amountFiat,
@@ -204,6 +207,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!overrideContent && children}
         </Box>
         <Box gap={16}>
+          <AlertMessage alertMessage={alertMessage} />
           {!overrideContent && (
             <>
               {isMoneyAccountWithdraw && (
@@ -215,15 +219,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
-          <AlertMessage alertMessage={alertMessage} />
           {isResultReady && (
             <Box>
-              <BridgeFeeRow />
-              <BridgeTimeRow />
-              {canSelectWithdrawToken ? (
-                <ReceiveRow inputAmountUsd={amountFiat} />
-              ) : (
-                <TotalRow />
+              {hasQuoteResults && (
+                <>
+                  <BridgeFeeRow />
+                  <BridgeTimeRow />
+                  {canSelectWithdrawToken ? (
+                    <ReceiveRow inputAmountUsd={amountFiat} />
+                  ) : (
+                    <TotalRow />
+                  )}
+                </>
               )}
               <PercentageRow />
             </Box>
