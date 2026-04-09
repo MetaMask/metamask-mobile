@@ -28,6 +28,7 @@ import { isNftFetchingProgressSelector } from '../../../../../reducers/collectib
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { Nft } from '@metamask/assets-controllers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -153,6 +154,13 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       totalSectionsLoaded,
       isEmpty: !hasNfts,
       itemCount: ownedNfts.length,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.NFTS,
+      contentReady: !isLoadingSection,
+      isEmpty: !hasNfts,
+      isLoading: isLoadingSection,
     });
 
     return (

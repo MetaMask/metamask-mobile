@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../util/theme';
-import AccountSelector, { ACCOUNT_SELECTOR_TEST_IDS } from './AccountSelector';
+import AccountSelector, {
+  ACCOUNT_SELECTOR_TEST_IDS,
+  AccountSelectorSkeleton,
+} from './AccountSelector';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -18,7 +21,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const { Text: RNText } = jest.requireActual('react-native');
   const MockText = ({
     children,
@@ -27,12 +30,20 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     children: React.ReactNode;
     style?: unknown;
     variant?: string;
+    color?: string;
     testID?: string;
+    twClassName?: string;
   }) => <RNText {...props}>{children}</RNText>;
+  const MockSkeleton = (props: {
+    height?: number;
+    width?: number;
+    twClassName?: string;
+  }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
   return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: { BodyMD: 'BodyMD', HeadingMD: 'HeadingMD' },
+    Text: MockText,
+    Skeleton: MockSkeleton,
+    TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
+    TextColor: { TextAlternative: 'TextAlternative' },
   };
 });
 
@@ -53,6 +64,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   return {
     __esModule: true,
     default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
+    IconColor: { Alternative: 'Alternative' },
     IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
     IconSize: { Sm: 'Sm', Md: 'Md' },
   };
@@ -202,12 +214,13 @@ describe('AccountSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders pill with placeholder when no account selected', () => {
+  it('renders "To" label and placeholder when no account selected', () => {
     const { getByTestId, getByText } = render(
       <AccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
     expect(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL)).toBeOnTheScreen();
+    expect(getByText('confirm.label.to')).toBeOnTheScreen();
     expect(getByText('transaction.recipient_address')).toBeOnTheScreen();
   });
 
@@ -252,5 +265,25 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId('account-group-group-1'));
 
     expect(queryByTestId(ACCOUNT_SELECTOR_TEST_IDS.MODAL)).toBeNull();
+  });
+
+  it('renders custom label when label prop is provided', () => {
+    const { getByText, queryByText } = render(
+      <AccountSelector
+        label="From"
+        onAccountSelected={mockOnAccountSelected}
+      />,
+    );
+
+    expect(getByText('From')).toBeOnTheScreen();
+    expect(queryByText('confirm.label.to')).toBeNull();
+  });
+});
+
+describe('AccountSelectorSkeleton', () => {
+  it('renders skeleton with correct testID', () => {
+    const { getByTestId } = render(<AccountSelectorSkeleton />);
+
+    expect(getByTestId('account-selector-skeleton')).toBeOnTheScreen();
   });
 });

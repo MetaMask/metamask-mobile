@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
 } from './OndoCampaignDetailsView';
-import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignCTA';
+import { CAMPAIGN_CTA_TEST_IDS } from '../components/Campaigns/CampaignOptInCta';
 import {
   type CampaignDto,
   CampaignType,
@@ -151,20 +151,6 @@ jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
         testID: 'ondo-leaderboard-position',
       });
     },
-  };
-});
-
-jest.mock('../components/RewardsInfoBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ title }: { title: string }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'competition-ended-banner' },
-        ReactActual.createElement(Text, null, title),
-      ),
   };
 });
 
@@ -369,10 +355,10 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaigns_view.error_description': 'Please try again.',
       'rewards.campaigns_view.retry_button': 'Retry',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.open_position': 'Open Position',
-      'rewards.campaign_details.entries_closed_title': 'Entries closed',
-      'rewards.campaign_details.entries_closed_description':
-        'You missed the opt-in window',
+      'rewards.campaign_details.ondo.open_position': 'Open Position',
+      'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
+      'rewards.campaign_details.ondo.entries_closed_description':
+        'You missed the opt-in window. Check back for more campaigns in the future.',
       'rewards.campaign_details.competition_closed_title':
         'Competition no longer open',
       'rewards.campaign_details.competition_closed_description':
@@ -531,9 +517,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('campaign-status')).toBeDefined();
     });
 
-    it('does not render CampaignHowItWorks when campaign is active and past the deposit cutoff date', () => {
-      // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff.
-      // HowItWorks is hidden once entries are closed so the user sees the leaderboard instead.
+    it('renders CampaignHowItWorks when campaign is active and user is not opted in', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -544,31 +528,6 @@ describe('OndoCampaignDetailsView', () => {
                 description: 'Description',
                 steps: [],
               },
-              depositCutoffDate: new Date(0).toISOString(),
-            },
-          }),
-        ],
-      });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('campaign-how-it-works')).toBeNull();
-    });
-
-    it('renders CampaignHowItWorks when campaign is active and entries are still open', () => {
-      // Any real-world date is "future" relative to the mocked Date.now() of 123ms,
-      // so opt-in is still allowed and HowItWorks should be visible.
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: {
-                title: 'How it works',
-                description: 'Description',
-                steps: [],
-              },
-              depositCutoffDate: nextWeek.toISOString(),
             },
           }),
         ],
@@ -577,9 +536,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
-    it('does not render CampaignHowItWorks when user is opted in (even with entries still open)', () => {
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
+    it('renders CampaignHowItWorks when user is opted in but has no positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -590,7 +547,6 @@ describe('OndoCampaignDetailsView', () => {
                 description: 'Description',
                 steps: [],
               },
-              depositCutoffDate: nextWeek.toISOString(),
             },
           }),
         ],
@@ -599,6 +555,38 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('campaign-how-it-works')).toBeDefined();
+    });
+
+    it('does not render CampaignHowItWorks when user is opted in with positions', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              howItWorks: {
+                title: 'How it works',
+                description: 'Description',
+                steps: [],
+              },
+            },
+          }),
+        ],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
@@ -766,131 +754,23 @@ describe('OndoCampaignDetailsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
     });
 
-    it('renders disabled CTA button when entries are closed (past deposit cutoff)', () => {
+    it('renders the entries-closed CTA when campaign is complete and user is not opted in', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
           createTestCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: new Date(0).toISOString(),
-            },
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
           }),
         ],
       });
-      const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
-      expect(getByText('Entries closed')).toBeDefined();
-    });
-
-    it('does not render the CTA when campaign is complete', () => {
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            startDate: lastMonth.toISOString(),
-            endDate: yesterday.toISOString(),
-          }),
-        ],
-      });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
-    });
-  });
-
-  describe('competition ended banner', () => {
-    it('shows the banner when campaign is active, past cutoff, and user is not opted in', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: new Date(0).toISOString(),
-            },
-          }),
-        ],
-      });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('competition-ended-banner')).toBeDefined();
-    });
-
-    it('shows the banner when campaign is complete and user is not opted in', () => {
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            startDate: lastMonth.toISOString(),
-            endDate: yesterday.toISOString(),
-          }),
-        ],
-      });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('competition-ended-banner')).toBeDefined();
-    });
-
-    it('does not show the banner when entries are still open', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [createTestCampaign()],
-      });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('competition-ended-banner')).toBeNull();
-    });
-
-    it('does not show the banner when the user is opted in with portfolio fetching', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: new Date(0).toISOString(),
-            },
-          }),
-        ],
-      });
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: { optedIn: true, participantCount: 1 },
-        isLoading: false,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      // Portfolio not yet fetched — banner should be hidden while data loads
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('competition-ended-banner')).toBeNull();
-    });
-
-    it('does not show the banner while participant status is loading (entries closed)', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: { title: 'How', description: 'Desc', steps: [] },
-              depositCutoffDate: new Date(0).toISOString(),
-            },
-          }),
-        ],
-      });
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: null,
-        isLoading: true,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('competition-ended-banner')).toBeNull();
     });
   });
 
@@ -948,31 +828,10 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
     });
 
-    it('does not show OndoLeaderboard when not opted in and campaign is active with entries still open', () => {
+    it('shows OndoLeaderboard when not opted in and campaign is active', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
-      });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('ondo-leaderboard')).toBeNull();
-    });
-
-    it('shows OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
-      // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: {
-                title: 'How it works',
-                description: 'Description',
-                steps: [],
-              },
-              depositCutoffDate: new Date(0).toISOString(),
-            },
-          }),
-        ],
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('ondo-leaderboard')).toBeDefined();
@@ -1055,7 +914,7 @@ describe('OndoCampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      // Must be opted-in for portfolio section to render
+      // Opted-in so the portfolio mock triggers onOpenAccountPicker
       mockUseGetCampaignParticipantStatus.mockReturnValue({
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
