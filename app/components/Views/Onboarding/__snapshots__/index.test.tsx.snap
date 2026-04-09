@@ -159,7 +159,7 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -212,7 +212,7 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -472,7 +472,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -525,7 +525,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -631,14 +631,14 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "marginTop": 30,
                       "textAlign": "center",
                     },
@@ -796,7 +796,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -842,7 +842,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -1051,7 +1051,7 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1104,7 +1104,7 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1364,7 +1364,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1417,7 +1417,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1523,14 +1523,14 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "marginTop": 30,
                       "textAlign": "center",
                     },
@@ -1688,7 +1688,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -1734,7 +1734,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#141414",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -1943,7 +1943,7 @@ exports[`Onboarding renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1996,7 +1996,7 @@ exports[`Onboarding renders correctly 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -2256,7 +2256,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -2309,7 +2309,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -2569,7 +2569,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -2622,7 +2622,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -2882,7 +2882,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#141414",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -2935,7 +2935,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#131416",
+                    "backgroundColor": "#141414",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",

@@ -2,17 +2,12 @@
 
 exports[`SwitchCustomNetwork should render correctly 1`] = `
 <RCTSafeAreaView
-  style={
-    {
-      "backgroundColor": "#f3f3f4",
-    }
-  }
+  style={{}}
 >
   <View
     style={
       [
         {
-          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": 325,

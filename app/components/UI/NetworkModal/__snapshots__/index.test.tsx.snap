@@ -201,7 +201,6 @@ exports[`NetworkDetails renders correctly 1`] = `
                 onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "#ffffff",
                     "paddingHorizontal": 16,
                   }
                 }
