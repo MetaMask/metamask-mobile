@@ -638,6 +638,9 @@
     "cardholderAccounts": [],
     "providerData": {}
   },
+  "ClientController": {
+    "isUiOpen": false
+  },
   "ComplianceController": {},
   "ConnectivityController": {
     "connectivityStatus": "online"
