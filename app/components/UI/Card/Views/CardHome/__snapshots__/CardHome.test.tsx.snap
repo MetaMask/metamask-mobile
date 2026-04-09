@@ -351,7 +351,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             }
                             onRefresh={[Function]}
                             refreshing={false}
-                            tintColor="#141414"
+                            tintColor="#131416"
                           />
                         }
                         showsVerticalScrollIndicator={false}
@@ -372,7 +372,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#141414",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
@@ -888,7 +888,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141414",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
@@ -904,7 +904,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     testID="privacy-toggle-button"
                                   >
                                     <SvgMock
-                                      color="#141414"
+                                      color="#131416"
                                       fill="currentColor"
                                       height={20}
                                       name="Eye"
@@ -1000,7 +1000,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#141414",
+                                        "backgroundColor": "#131416",
                                         "borderRadius": 12,
                                         "columnGap": 8,
                                         "flexDirection": "row",
@@ -1087,7 +1087,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#141414",
+                                        "backgroundColor": "#131416",
                                         "borderRadius": 12,
                                         "columnGap": 8,
                                         "flexDirection": "row",
@@ -1189,7 +1189,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#141414",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -1237,7 +1237,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     testID="listitemcolumn"
                                   >
                                     <SvgMock
-                                      color="#141414"
+                                      color="#131416"
                                       fill="currentColor"
                                       height={20}
                                       name="ArrowRight"
@@ -1293,7 +1293,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#141414",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1341,7 +1341,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#141414"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="Export"
@@ -1396,7 +1396,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#141414",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1444,7 +1444,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#141414"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="Export"
@@ -1828,7 +1828,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             }
                             onRefresh={[Function]}
                             refreshing={false}
-                            tintColor="#141414"
+                            tintColor="#131416"
                           />
                         }
                         showsVerticalScrollIndicator={false}
@@ -1849,7 +1849,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#141414",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-SemiBold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
@@ -2365,7 +2365,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141414",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-SemiBold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
@@ -2381,7 +2381,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     testID="privacy-toggle-button"
                                   >
                                     <SvgMock
-                                      color="#141414"
+                                      color="#131416"
                                       fill="currentColor"
                                       height={20}
                                       name="EyeSlash"
@@ -2477,7 +2477,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#141414",
+                                        "backgroundColor": "#131416",
                                         "borderRadius": 12,
                                         "columnGap": 8,
                                         "flexDirection": "row",
@@ -2564,7 +2564,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     [
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#141414",
+                                        "backgroundColor": "#131416",
                                         "borderRadius": 12,
                                         "columnGap": 8,
                                         "flexDirection": "row",
@@ -2666,7 +2666,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#141414",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -2714,7 +2714,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     testID="listitemcolumn"
                                   >
                                     <SvgMock
-                                      color="#141414"
+                                      color="#131416"
                                       fill="currentColor"
                                       height={20}
                                       name="ArrowRight"
@@ -2770,7 +2770,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#141414",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2818,7 +2818,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#141414"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="Export"
@@ -2873,7 +2873,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#141414",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2921,7 +2921,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#141414"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="Export"
