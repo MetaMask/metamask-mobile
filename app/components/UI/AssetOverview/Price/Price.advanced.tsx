@@ -244,38 +244,17 @@ const PriceAdvanced = ({
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
-  // Calculate price diff and percentage from OHLCV data instead of legacy props
+  // Use the first candle at or after visibleFromMs — i.e. the leftmost point
+  // the line chart actually draws. The API may return extra history before the
+  // visible window; we skip those so the header matches the chart direction.
   const dynamicComparePrice = useMemo(() => {
-    if (ohlcvData.length === 0) return null;
+    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
 
-    // Calculate the target timestamp based on the selected time range
-    const now = Date.now();
-    const timeRangeMs: Record<TimeRange, number> = {
-      '1H': 60 * 60 * 1000, // 1 hour
-      '1D': 24 * 60 * 60 * 1000, // 24 hours
-      '1W': 7 * 24 * 60 * 60 * 1000, // 7 days
-      '1M': 30 * 24 * 60 * 60 * 1000, // 30 days
-      '1Y': 365 * 24 * 60 * 60 * 1000, // 365 days
-    };
-    const targetTimestamp = now - timeRangeMs[timeRange];
+    const firstVisible =
+      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
 
-    // Find the candle closest to the target timestamp (start of time range)
-    // Note: The OHLCV API may return more data than requested (e.g., 4+ days for timePeriod=1d),
-    // so we can't assume ohlcvData[0] is the start of the selected time range.
-    // We must search for the candle closest to our target timestamp.
-    let closestCandle = ohlcvData[0];
-    let minDiff = Math.abs(ohlcvData[0].time - targetTimestamp);
-
-    for (let i = 1; i < ohlcvData.length; i++) {
-      const diff = Math.abs(ohlcvData[i].time - targetTimestamp);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestCandle = ohlcvData[i];
-      }
-    }
-
-    return closestCandle.open;
-  }, [ohlcvData, timeRange]);
+    return firstVisible.close;
+  }, [ohlcvData, visibleFromMs]);
 
   const dynamicPriceDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;

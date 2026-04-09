@@ -47,6 +47,8 @@ window.ohlcvPagination = {
 };
 /** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
+/** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
+window.visibleFromMs = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -432,6 +434,7 @@ function handleSetOHLCVData(payload) {
 
   var visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
+  window.visibleFromMs = visibleFromMs;
 
   var newResolution = detectResolution(window.ohlcvData);
 
@@ -3308,9 +3311,14 @@ function initChart() {
       disabledFeatures.push('context_menus');
     }
 
+    var tfOption = window.visibleFromMs != null
+      ? { from: Math.floor(window.visibleFromMs / 1000), to: Math.ceil(Date.now() / 1000) }
+      : undefined;
+
     window.chartWidget = new TradingView.widget({
       symbol: window.currentSymbol,
       interval: window.currentResolution || '5',
+      timeframe: tfOption,
       container: 'tv_chart_container',
       datafeed: customDatafeed,
       library_path: window.CONFIG.libraryUrl,
