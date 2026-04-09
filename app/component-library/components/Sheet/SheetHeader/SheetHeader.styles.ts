@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../../util/theme/models';
 
 /**
  * Style sheet function for SheetHeader component.
@@ -14,14 +14,17 @@ import { Theme } from '../../../../util/theme/models';
  */
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
+  const { colors, themeAppearance } = theme;
   return StyleSheet.create({
     base: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       margin: 16,
-      backgroundColor: colors.background.default,
+      backgroundColor:
+        themeAppearance === AppThemeKey.dark
+          ? colors.background.section
+          : colors.background.default,
       height: 32,
     },
     leftAccessory: {
