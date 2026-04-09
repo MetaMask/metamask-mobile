@@ -87,10 +87,6 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
 
         await PerpsOrderView.tapPlaceOrderButton();
 
-        if (device.getPlatform() === 'ios') {
-          await PerpsOrderView.tapTurnOnNotificationsButton();
-        }
-
         await PerpsMarketDetailsView.waitForScreenReady();
         await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 

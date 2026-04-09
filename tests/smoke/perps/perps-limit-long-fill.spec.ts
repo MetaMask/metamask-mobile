@@ -94,11 +94,6 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
         // Place order
         await PerpsView.tapPlaceOrderButton();
 
-        // Tap Turn on notifications on the Order placed modal
-        if (device.getPlatform() === 'ios') {
-          await PerpsOrderView.tapTurnOnNotificationsButton();
-        }
-
         // Navigate back to main Perps screen to follow the same navigation pattern as other specs
         await PerpsView.tapBackButtonPositionSheet();
         await PerpsHomeView.tapBackHomeButton();

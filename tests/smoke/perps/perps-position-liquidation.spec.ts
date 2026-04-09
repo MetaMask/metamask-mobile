@@ -77,10 +77,6 @@ describe.skip(SmokePerps('Perps Position Liquidation'), () => {
         await PerpsMarketDetailsView.tapLongButton();
         await PerpsOrderView.tapPlaceOrderButton();
 
-        if (device.getPlatform() === 'ios') {
-          await PerpsOrderView.tapTurnOnNotificationsButton();
-        }
-
         // Wait for market details like perps-position.spec: a price push before the
         // sheet finishes closing can redraw the chart and leave the scroll view
         // under the 75% visible / not-obscured threshold on Android.

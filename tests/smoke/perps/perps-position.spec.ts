@@ -82,10 +82,6 @@ describe(SmokePerps('Perps Position'), () => {
         await PerpsOrderView.enterCustomTakeProfitTriggerPrice('2800');
         await PerpsOrderView.tapPlaceOrderButton();
 
-        if (device.getPlatform() === 'ios') {
-          await PerpsOrderView.tapTurnOnNotificationsButton();
-        }
-
         // Wait for screen ready and assert Close Position availability
         await PerpsMarketDetailsView.waitForScreenReady();
         await PerpsMarketDetailsView.expectClosePositionButtonVisible();
