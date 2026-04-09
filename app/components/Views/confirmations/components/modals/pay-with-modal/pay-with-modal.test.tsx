@@ -484,6 +484,45 @@ describe('PayWithModal', () => {
       expect(mockAddTokens).toHaveBeenCalled();
       expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
     });
+
+    it('passes image to addTokens when available on zero-balance token', async () => {
+      mockFindNetworkClientIdByChainId.mockReturnValue('network-client-1');
+
+      const zeroBalanceToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xZeroBalanceToken',
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        image: 'https://example.com/token.png',
+        name: 'Zero Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'ZERO',
+      } as AssetType;
+
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [zeroBalanceToken]),
+      );
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Zero Token'));
+      });
+
+      expect(mockAddTokens).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            address: '0xZeroBalanceToken',
+            symbol: 'ZERO',
+            decimals: 6,
+            image: 'https://example.com/token.png',
+          }),
+        ],
+        'network-client-1',
+      );
+    });
   });
 
   describe('fiat payment', () => {
