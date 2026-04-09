@@ -8,6 +8,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 
 jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
   InteractionManager: {
     runAfterInteractions: jest.fn((callback) => {
       callback();
