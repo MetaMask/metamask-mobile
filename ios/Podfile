@@ -166,16 +166,13 @@ post_install do |installer|
   end
 
   # Fix fmt compilation error with Xcode 26 / Clang 21 consteval strictness
-  # The fmt library's consteval detection doesn't account for broken consteval
-  # in newer Apple Clang versions. Patch base.h to force consteval off.
+  # Directly disable FMT_USE_CONSTEVAL rather than patching the detection logic,
+  # which varies across fmt versions and is fragile to match with a regex.
   Dir.glob(installer.sandbox.root + "fmt/include/fmt/base.h") do |file|
     begin
       system "chmod +w #{file}"
       contents = File.read(file)
-      modified = contents.gsub(
-        /defined\(__apple_build_version__\) && __apple_build_version__ < 14000029L/,
-        'defined(__apple_build_version__)'
-      )
+      modified = contents.gsub('#define FMT_USE_CONSTEVAL 1', '#define FMT_USE_CONSTEVAL 0')
       if !File.writable?(file)
         system "sudo chmod +w #{file}"
       end
