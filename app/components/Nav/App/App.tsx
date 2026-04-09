@@ -686,7 +686,7 @@ const ImportSRPView = () => (
       name={Routes.SHEET.SEEDPHRASE_MODAL}
       component={SeedphraseModal}
       options={{
-        presentation: 'modal',
+        presentation: 'transparentModal',
         cardStyle: { backgroundColor: 'transparent' },
       }}
     />
