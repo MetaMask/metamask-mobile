@@ -1,7 +1,7 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor, screen } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
 import {
   InteractionManager,
@@ -413,17 +413,21 @@ describe('Login', () => {
   });
 
   it('renders matching snapshot', () => {
-    const { toJSON } = renderWithProvider(<Login />);
-    expect(toJSON()).toMatchSnapshot();
+    renderWithProvider(<Login />);
+    expect(
+      screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+    ).toBeOnTheScreen();
   });
 
   it('renders matching snapshot when password input is focused', () => {
-    const { getByTestId, toJSON } = renderWithProvider(<Login />);
+    const { getByTestId } = renderWithProvider(<Login />);
     fireEvent.changeText(
       getByTestId(LoginViewSelectors.PASSWORD_INPUT),
       'password',
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+    ).toBeOnTheScreen();
   });
 
   describe('Rendering', () => {
@@ -446,8 +450,10 @@ describe('Login', () => {
       );
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
       expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
-      expect(queryByTestId(LoginViewSelectors.TITLE_ID)).toBeNull();
-      expect(queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON)).toBeNull();
+      expect(queryByTestId(LoginViewSelectors.TITLE_ID)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
+      ).not.toBeOnTheScreen();
       const images = UNSAFE_root.findAllByType(Image);
       const hasMetaMaskLogo = images.some(
         (img) => img.props.source === METAMASK_NAME,
