@@ -42,10 +42,16 @@ export const useRouteParams = () => {
           : paramsAsset?.chainId?.toString().toLowerCase();
 
       let filteredAsset = flatAssets?.find(
-        ({ assetId, chainId: tokenChainId }) =>
+        ({ address, chainId: tokenChainId }) =>
           paramChainId === tokenChainId.toLowerCase() &&
-          assetId?.toLowerCase() === paramsAsset.address?.toLowerCase(),
+          address?.toLowerCase() === paramsAsset.address?.toLowerCase(),
       ) as AssetType | Nft | undefined;
+
+      console.log('DEBUG XXXXXuseRouteParams', {
+        filteredAsset,
+        paramsAsset,
+        flatAssets,
+      });
 
       if (!filteredAsset && nfts.length) {
         filteredAsset = nfts.find(

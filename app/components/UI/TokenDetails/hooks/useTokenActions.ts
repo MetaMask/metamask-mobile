@@ -385,7 +385,7 @@ export const useTokenActions = ({
       .filter(
         (a) =>
           a.chainId === token.chainId &&
-          !areAddressesEqual(a.assetId, token.address) &&
+          !areAddressesEqual(a.address, token.address) &&
           hasPositiveBalance(a),
       )
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
@@ -393,8 +393,8 @@ export const useTokenActions = ({
     if (sameChainAssets.length > 0) {
       const asset = sameChainAssets[0];
       return {
-        address: asset.assetId,
-        chainId: asset.chainId as Hex | CaipChainId,
+        address: asset.address,
+        chainId: asset.chainId,
         decimals: asset.decimals,
         symbol: asset.symbol,
         name: asset.name,
@@ -418,8 +418,8 @@ export const useTokenActions = ({
     const nativeAsset = crossChainAssets.find((a) => a.isNative);
     if (nativeAsset) {
       return {
-        address: nativeAsset.assetId,
-        chainId: nativeAsset.chainId as Hex | CaipChainId,
+        address: nativeAsset.address,
+        chainId: nativeAsset.chainId,
         decimals: nativeAsset.decimals,
         symbol: nativeAsset.symbol,
         name: nativeAsset.name,
@@ -434,8 +434,8 @@ export const useTokenActions = ({
     if (crossChainAssets.length > 0) {
       const asset = crossChainAssets[0];
       return {
-        address: asset.assetId,
-        chainId: asset.chainId as Hex | CaipChainId,
+        address: asset.address,
+        chainId: asset.chainId,
         decimals: asset.decimals,
         symbol: asset.symbol,
         name: asset.name,

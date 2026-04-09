@@ -26,6 +26,7 @@ import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
  * - tokens: AssetType[] - The tokens that are eligible for mUSD conversion.
  */
 export const useMusdConversionTokens = () => {
+  console.log('DEBUG XXXXX useMusdConversionTokens');
   const musdConversionPaymentTokensAllowlist = useSelector(
     selectMusdConversionPaymentTokensAllowlist,
   );

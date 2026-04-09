@@ -13,7 +13,15 @@ import {
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  hexToBigInt,
+  hexToNumber,
+  isCaipChainId,
+  toCaipAssetType,
+} from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -252,7 +260,12 @@ const selectStakedAssets = createDeepEqualSelector(
 
             const stakedAsset = {
               accountType: account.type,
-              assetId: nativeToken.address,
+              assetId: toCaipAssetType(
+                KnownCaipNamespace.Eip155,
+                hexToNumber(chainId).toString(),
+                'slip44',
+                '60',
+              ),
               isNative: true,
               isStaked: true,
               address: nativeToken.address,
@@ -377,11 +390,11 @@ function mergeStakedSortAndDedupeAssets(
 
   const uniqueTokensMap = new Map<string, SortedAssetItem>();
   tokensSorted.forEach(
-    ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-      const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
+    ({ address, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
+      const uniqueKey = `${address}-${chainId}-${Boolean(isStaked)}`;
       if (!uniqueTokensMap.has(uniqueKey)) {
         uniqueTokensMap.set(uniqueKey, {
-          address: assetId || '',
+          address: address || '',
           chainId: chainId?.toString() || '',
           isStaked: Boolean(isStaked),
         });
@@ -523,13 +536,13 @@ export const selectAsset = createSelector(
           (item) =>
             item.chainId === chainId &&
             (!scopedAccountId || item.accountId === scopedAccountId) &&
-            item.stakedAsset.assetId === address,
+            item.stakedAsset.address === address,
         )?.stakedAsset
       : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
           const itemIsStaked = Boolean(item.isStaked);
           const targetIsStaked = Boolean(isStaked);
           return (
-            item.assetId === address &&
+            item.address === address &&
             (!scopedAccountId || item.accountId === scopedAccountId) &&
             itemIsStaked === targetIsStaked
           );
@@ -558,11 +571,10 @@ function assetToToken(
   rwaData?: TokenI['rwaData'],
 ): TokenI {
   return {
-    address: asset.assetId,
+    address: asset.address,
     aggregators:
-      ('address' in asset &&
-        tokensChainsCache[asset.chainId]?.data[asset.address]?.aggregators) ||
-      [],
+      tokensChainsCache[asset.chainId as Hex]?.data[asset.address as Hex]
+        ?.aggregators || [],
     decimals: asset.decimals,
     image: asset.image,
     name: asset.name,

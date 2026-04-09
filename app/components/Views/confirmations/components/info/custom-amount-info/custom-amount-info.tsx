@@ -288,7 +288,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && !isNativePayToken}
             />
           )}
-          {!hasTokens && <BuySection />}
+          {<BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
@@ -338,7 +338,7 @@ function BuySection() {
     'eip155',
     Number(primaryRequiredToken?.chainId ?? '0x0').toString(),
     'erc20',
-    asset?.assetId ?? '0x0',
+    asset?.address ?? '0x0',
   );
 
   const { goToBuy } = useRampNavigation();

@@ -117,7 +117,7 @@ const AssetOptions = () => {
 
     // For EVM tokens, asset.assetId equals the address (already in hex)
     return chainAssets.some((assetItem) =>
-      assetItem.assetId ? areAddressesEqual(assetItem.assetId, address) : false,
+      areAddressesEqual(assetItem.address, address),
     );
   }, [assets, networkId, address]);
 
