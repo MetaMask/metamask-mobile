@@ -374,16 +374,32 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('calls setUserLocation when pressing US location button', () => {
+    it('does not call setUserLocation on flag press, defers to login', async () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
-      const Engine = jest.requireMock('../../../../../core/Engine').default;
+      const EngineModule = jest.requireMock(
+        '../../../../../core/Engine',
+      ).default;
 
       fireEvent.press(usBox);
 
       expect(
-        Engine.context.CardController.setUserLocation,
-      ).toHaveBeenCalledWith('us');
+        EngineModule.context.CardController.setUserLocation,
+      ).not.toHaveBeenCalled();
+
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
+      });
     });
 
     it('navigates to card home on successful login', async () => {

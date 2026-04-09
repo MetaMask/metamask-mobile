@@ -26,7 +26,7 @@ interface ManageCardOptionsProps {
   isLoading: boolean;
   hasSetupActions: boolean;
   hasAlertOnlyState: boolean;
-  hasAnyAlerts: boolean;
+  hasSetupAlerts: boolean;
   isFrozen: boolean;
   isFreezeLoading: boolean;
   isPinLoading: boolean;
@@ -51,7 +51,7 @@ const ManageCardOptions = ({
   isLoading,
   hasSetupActions,
   hasAlertOnlyState,
-  hasAnyAlerts,
+  hasSetupAlerts,
   isFrozen,
   isFreezeLoading,
   isPinLoading,
@@ -68,7 +68,11 @@ const ManageCardOptions = ({
   const tw = useTailwind();
 
   const isFullySetUp =
-    !isLoading && !hasSetupActions && !hasAnyAlerts && isAuthenticated && card;
+    !isLoading &&
+    !hasSetupActions &&
+    !hasSetupAlerts &&
+    isAuthenticated &&
+    card;
 
   const isEligibleForMetalCard =
     isMetalCardCheckoutEnabled &&

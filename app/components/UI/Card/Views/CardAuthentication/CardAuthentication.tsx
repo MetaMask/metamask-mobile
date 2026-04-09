@@ -26,7 +26,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
-import Engine from '../../../../../core/Engine';
+import type { CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -45,7 +45,10 @@ const CardAuthentication = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const location = useSelector(selectCardUserLocation);
+  const persistedLocation = useSelector(selectCardUserLocation);
+  const [selectedLocation, setSelectedLocation] = useState<CardLocation>(
+    persistedLocation ?? 'international',
+  );
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -167,7 +170,7 @@ const CardAuthentication = () => {
 
       try {
         if (!isOtpStep) {
-          await initiate.mutateAsync(location ?? 'international');
+          await initiate.mutateAsync(selectedLocation);
         }
         const result = await submit.mutateAsync({
           type: 'email_password',
@@ -210,7 +213,7 @@ const CardAuthentication = () => {
       initiate,
       submit,
       isOtpStep,
-      location,
+      selectedLocation,
       password,
       navigation,
       dispatch,
@@ -232,8 +235,8 @@ const CardAuthentication = () => {
   }, [confirmCode, performLogin, latestValueSubmitted, isOtpStep]);
 
   const isLoginDisabled = useMemo(
-    () => !!error || email.length === 0 || password.length === 0 || !location,
-    [error, email, password, location],
+    () => !!error || email.length === 0 || password.length === 0,
+    [error, email, password],
   );
 
   const handleResendOtp = useCallback(() => {
@@ -349,11 +352,9 @@ const CardAuthentication = () => {
         <>
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() =>
-                Engine.context.CardController.setUserLocation('international')
-              }
+              onPress={() => setSelectedLocation('international')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'international' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -370,11 +371,9 @@ const CardAuthentication = () => {
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() =>
-                Engine.context.CardController.setUserLocation('us')
-              }
+              onPress={() => setSelectedLocation('us')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'us' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
@@ -456,7 +455,7 @@ const CardAuthentication = () => {
       performLogin,
       resendCooldown,
       tw,
-      location,
+      selectedLocation,
     ],
   );
 

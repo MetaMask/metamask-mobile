@@ -123,6 +123,9 @@ const CardHome = () => {
     rawFiatNumber,
   });
 
+  const [isSpendingLimitWarningDismissed, setIsSpendingLimitWarningDismissed] =
+    useState(false);
+
   // --- Pull-to-refresh ---
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
@@ -195,9 +198,13 @@ const CardHome = () => {
     (a) => a.type === 'enable_card',
   );
 
-  const hasAnyAlerts = (data?.alerts ?? []).length > 0;
+  const setupAlertTypes = new Set(['kyc_pending', 'card_provisioning']);
+  const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
+    setupAlertTypes.has(a.type),
+  );
 
-  const hasAlertOnlyState = hasAnyAlerts && (data?.actions ?? []).length === 0;
+  const hasAlertOnlyState =
+    hasSetupAlerts && (data?.actions ?? []).length === 0;
 
   const showSpendingLimitProgress =
     isAuthenticated &&
@@ -261,9 +268,17 @@ const CardHome = () => {
       </Text>
 
       <CardAlertSection
-        alerts={data?.alerts ?? []}
+        alerts={(data?.alerts ?? []).filter(
+          (a) =>
+            !(
+              a.type === 'close_to_spending_limit' &&
+              isSpendingLimitWarningDismissed
+            ),
+        )}
         onNavigateToSpendingLimit={actions.manageSpendingLimitAction}
-        onDismissSpendingLimitWarning={undefined}
+        onDismissSpendingLimitWarning={() =>
+          setIsSpendingLimitWarningDismissed(true)
+        }
         onLoginRequired={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
       />
 
@@ -344,7 +359,7 @@ const CardHome = () => {
         isLoading={isLoading}
         hasSetupActions={hasSetupActions}
         hasAlertOnlyState={hasAlertOnlyState}
-        hasAnyAlerts={hasAnyAlerts}
+        hasSetupAlerts={hasSetupAlerts}
         isFrozen={isFrozen}
         isFreezeLoading={actions.freeze.isPending || actions.unfreeze.isPending}
         isPinLoading={actions.isPinLoading}
