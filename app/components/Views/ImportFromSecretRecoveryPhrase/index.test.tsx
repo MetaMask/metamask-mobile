@@ -2105,4 +2105,132 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(continueButton).toBeTruthy();
     });
   });
+
+  describe('account_type analytics', () => {
+    const renderCreatePasswordUIWithParams = async (
+      params: Record<string, unknown> = {},
+    ) => {
+      const { getByText, getByPlaceholderText, getByRole, getByTestId } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+          params,
+        );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+      fireEvent.press(continueButton);
+
+      return { getByText, getByPlaceholderText, getByRole, getByTestId };
+    };
+
+    it('uses SrpImport account_type on trace when oauthLoginSuccess is false', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      mockTrace.mockClear();
+
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+
+      const { getByTestId } = await renderCreatePasswordUIWithParams({
+        oauthLoginSuccess: false,
+      });
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSRPAccountImportTime,
+            tags: expect.objectContaining({
+              account_type: 'srp_import',
+              is_social_login: false,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('uses SocialImport account_type on trace when oauthLoginSuccess is true', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      mockTrace.mockClear();
+
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+
+      const { getByTestId } = await renderCreatePasswordUIWithParams({
+        oauthLoginSuccess: true,
+      });
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSRPAccountImportTime,
+            tags: expect.objectContaining({
+              account_type: 'social_import',
+              is_social_login: true,
+            }),
+          }),
+        );
+      });
+    });
+  });
 });

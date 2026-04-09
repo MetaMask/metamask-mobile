@@ -225,6 +225,12 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
+  // This is to make sure we show only data relevant to selected timeframe even if api returns a lot more data than that
+  const visibleFromMs = useMemo(() => {
+    const lastBar = ohlcvData[ohlcvData.length - 1];
+    if (!lastBar) return undefined;
+    return lastBar.time - config.durationMs;
+  }, [ohlcvData, config.durationMs]);
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
@@ -346,6 +352,7 @@ const PriceAdvanced = ({
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
               onCrosshairMove={handleCrosshairMove}
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}
