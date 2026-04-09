@@ -670,16 +670,16 @@ export const sortMarkets = (
   const markets = Array.isArray(event.markets) ? event.markets : [];
   const eventSortBy = event.sortBy;
 
+  if (isSportEvent(event)) {
+    return sortSportMarkets(markets);
+  }
+
   if (sortBy) {
     return sortMarketsByField(markets, sortBy);
   }
 
   if (eventSortBy) {
     return sortMarketsByField(markets, eventSortBy);
-  }
-
-  if (isSportEvent(event)) {
-    return sortSportMarkets(markets);
   }
 
   return markets;
