@@ -28,6 +28,8 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { useTraderProfile, useTraderPositions } from './hooks';
+import type { Position } from '@metamask/social-controllers';
+import Routes from '../../../../constants/navigation/Routes';
 import ProfileHeader from './components/ProfileHeader';
 import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
@@ -171,6 +173,20 @@ const TraderProfileView = () => {
     // TBD — notification preferences not yet wired
   }, []);
 
+  const handlePositionPress = useCallback(
+    (position: Position) => {
+      navigation.navigate(
+        Routes.SOCIAL_LEADERBOARD.POSITION as never,
+        {
+          traderId,
+          traderName,
+          tokenSymbol: position.tokenSymbol,
+        } as never,
+      );
+    },
+    [navigation, traderId, traderName],
+  );
+
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
     activeTab === 'open' ? isLoadingOpen : isLoadingClosed;
@@ -282,6 +298,7 @@ const TraderProfileView = () => {
             <PositionRow
               key={`${position.tokenAddress}-${position.chain}`}
               position={position}
+              onPress={handlePositionPress}
             />
           ))
         )}
