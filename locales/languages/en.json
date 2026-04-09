@@ -1017,7 +1017,16 @@
     },
     "follow": "Follow",
     "following": "Following",
-    "all_networks": "All networks"
+    "all_networks": "All networks",
+    "trader_profile": {
+      "followers_count": "{{count}} followers",
+      "win_rate": "win rate",
+      "pnl_30d": "30D P&L",
+      "avg_hold": "avg. hold",
+      "open": "Open",
+      "closed": "Closed",
+      "no_positions": "No positions yet"
+    }
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
