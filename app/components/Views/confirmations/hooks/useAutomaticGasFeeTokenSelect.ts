@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { updateSelectedGasFeeToken } from '../../../../util/transaction-controller';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { useIsGaslessSupported } from './gas/useIsGaslessSupported';
+import { useConfirmationMetricEvents } from './metrics/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useHasInsufficientBalance } from './useHasInsufficientBalance';
 
@@ -14,6 +15,7 @@ export function useAutomaticGasFeeTokenSelect() {
     (useTransactionMetadataRequest() as TransactionMeta) ??
     ({} as TransactionMeta);
   const [checked, setChecked] = useState(false);
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const {
     gasFeeTokens,
@@ -62,7 +64,23 @@ export function useAutomaticGasFeeTokenSelect() {
   useEffect(() => {
     if (shouldSelect) {
       selectFirstToken();
+      const automaticFeeTokenSelectedSymbol = gasFeeTokens?.find(
+        ({ tokenAddress }) => tokenAddress === firstGasFeeTokenAddress,
+      )?.symbol;
+      setConfirmationMetric({
+        properties: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          gas_payment_token_default: true,
+          gas_payment_token_default_symbol: automaticFeeTokenSelectedSymbol,
+        },
+      });
       setChecked(true);
     }
-  }, [shouldSelect, selectFirstToken]);
+  }, [
+    shouldSelect,
+    selectFirstToken,
+    gasFeeTokens,
+    firstGasFeeTokenAddress,
+    setConfirmationMetric,
+  ]);
 }
