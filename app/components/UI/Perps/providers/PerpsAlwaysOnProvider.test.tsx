@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -31,6 +32,7 @@ jest.mock('@metamask/perps-controller', () => ({
   PERPS_CONSTANTS: {
     FeatureName: 'perps',
     ReconnectionDelayAndroidMs: 500,
+    ConnectRetryDelayMs: 1000,
   },
 }));
 
@@ -49,9 +51,9 @@ jest.mock('../index', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockConnect = PerpsConnectionManager.connect as jest.Mock;
+const mockResumeFromForeground =
+  PerpsConnectionManager.resumeFromForeground as jest.Mock;
 const mockDisconnect = PerpsConnectionManager.disconnect as jest.Mock;
-const mockEnsureConnected = PerpsConnectionManager.ensureConnected as jest.Mock;
 const mockStartMarketDataPreload = Engine.context.PerpsController
   .startMarketDataPreload as jest.Mock;
 const mockStopMarketDataPreload = Engine.context.PerpsController
@@ -66,9 +68,8 @@ describe('PerpsAlwaysOnProvider', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    mockConnect.mockResolvedValue(undefined);
+    mockResumeFromForeground.mockResolvedValue(undefined);
     mockDisconnect.mockResolvedValue(undefined);
-    mockEnsureConnected.mockResolvedValue(undefined);
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
 
@@ -112,13 +113,17 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(getByText('child content')).toBeOnTheScreen();
   });
 
-  it('calls connect on mount when perps is enabled', () => {
+  it('calls resumeFromForeground on mount when perps is enabled', () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
       </PerpsAlwaysOnProvider>,
     );
-    expect(mockConnect).toHaveBeenCalledTimes(1);
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
+    expect(mockResumeFromForeground).toHaveBeenCalledWith({
+      source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+      suppressError: true,
+    });
   });
 
   it('starts market data preload on mount when perps is enabled', () => {
@@ -131,7 +136,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockStartMarketDataPreload).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call connect on mount when perps is disabled', () => {
+  it('does not call resumeFromForeground on mount when perps is disabled', () => {
     mockUseSelector.mockReturnValue(false);
 
     render(
@@ -140,7 +145,7 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    expect(mockConnect).not.toHaveBeenCalled();
+    expect(mockResumeFromForeground).not.toHaveBeenCalled();
   });
 
   it('does not start market data preload when perps is disabled', () => {
@@ -208,15 +213,15 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('calls ensureConnected after delay when app returns to foreground', () => {
+  it('calls resumeFromForeground after delay when app returns to foreground', () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
       </PerpsAlwaysOnProvider>,
     );
 
-    // Clear the initial mount connect call
-    mockEnsureConnected.mockClear();
+    // Clear the initial mount call
+    mockResumeFromForeground.mockClear();
 
     act(() => {
       mockAppStateListener?.('background');
@@ -226,13 +231,13 @@ describe('PerpsAlwaysOnProvider', () => {
     });
 
     // Should not reconnect immediately — uses a timer delay
-    expect(mockEnsureConnected).not.toHaveBeenCalled();
+    expect(mockResumeFromForeground).not.toHaveBeenCalled();
 
     act(() => {
       jest.runAllTimers();
     });
 
-    expect(mockEnsureConnected).toHaveBeenCalledTimes(1);
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
   });
 
   it('cancels pending reconnect timer if app goes background before timer fires', () => {
@@ -242,7 +247,7 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    mockEnsureConnected.mockClear();
+    mockResumeFromForeground.mockClear();
 
     // Goes active — schedules reconnect timer
     act(() => {
@@ -258,8 +263,8 @@ describe('PerpsAlwaysOnProvider', () => {
       jest.runAllTimers();
     });
 
-    // ensureConnected should NOT have been called (timer was cancelled)
-    expect(mockEnsureConnected).not.toHaveBeenCalled();
+    // resumeFromForeground should NOT have been called (timer was cancelled)
+    expect(mockResumeFromForeground).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
@@ -291,7 +296,7 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    mockEnsureConnected.mockClear();
+    mockResumeFromForeground.mockClear();
     mockDisconnect.mockClear();
 
     // Pull-down: active → inactive → active
@@ -307,7 +312,98 @@ describe('PerpsAlwaysOnProvider', () => {
     });
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
-    expect(mockEnsureConnected).toHaveBeenCalledTimes(1);
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries connection when initial resumeFromForeground fails', async () => {
+    // Arrange: make initial connect reject
+    mockResumeFromForeground.mockRejectedValueOnce(
+      new Error('initial failure'),
+    );
+    // Subsequent calls succeed
+    mockResumeFromForeground.mockResolvedValue(undefined);
+
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    // Flush the rejection microtask so the .catch() handler runs
+    // and schedules the retry timer
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Now advance timers to fire the retry setTimeout
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    // Initial call (rejected) + retry call from the timer
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears existing reconnect timer when scheduling a new one', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    mockResumeFromForeground.mockClear();
+
+    // First foreground event schedules a timer
+    act(() => {
+      mockAppStateListener?.('background');
+    });
+    act(() => {
+      mockAppStateListener?.('active');
+    });
+
+    // Second foreground event before the first timer fires — should clear the first
+    act(() => {
+      mockAppStateListener?.('background');
+    });
+    act(() => {
+      mockAppStateListener?.('active');
+    });
+
+    // Only one timer should fire (the second one replaced the first)
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs error when foreground reconnect timer callback fails', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    mockResumeFromForeground.mockClear();
+    // Make the delayed reconnect reject
+    mockResumeFromForeground.mockRejectedValueOnce(
+      new Error('reconnect failed'),
+    );
+
+    // Trigger foreground → schedules timer
+    act(() => {
+      mockAppStateListener?.('background');
+    });
+    act(() => {
+      mockAppStateListener?.('active');
+    });
+
+    // Fire the timer — the catch logs but does not throw
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
   });
 
   it('calls disconnect and removes AppState subscription on unmount', () => {

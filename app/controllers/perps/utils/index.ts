@@ -24,7 +24,6 @@ export * from './hyperLiquidOrderBookProcessor';
 export * from './hyperLiquidValidation';
 export * from './idUtils';
 export * from './marketDataTransform';
-export * from './myxAdapter';
 export * from './marketUtils';
 export * from './orderCalculations';
 export * from './perpsDiskPersistence';
@@ -41,3 +40,4 @@ export const getEnvironment = (): 'DEV' | 'PROD' => {
   const env = globalThis.process?.env?.NODE_ENV ?? 'production';
   return env === 'production' ? 'PROD' : 'DEV';
 };
+export * from './perpsFormatters';

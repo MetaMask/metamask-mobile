@@ -4,6 +4,7 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
+import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 
 export const selectMoneyHomeScreenEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -14,4 +15,9 @@ export const selectMoneyHomeScreenEnabledFlag = createSelector(
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
+);
+
+export const selectMoneyEnableMoneyAccountFlag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyAccountEnabled,
 );

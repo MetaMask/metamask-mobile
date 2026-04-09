@@ -64,6 +64,7 @@ import {
   getContractConfig,
   getFeeRateBps,
   fetchEventsFromPolymarketApi,
+  fetchCarouselFromPolymarketApi,
   getL2Headers,
   getMarketDetailsFromGammaApi,
   getOrderTypedData,
@@ -94,6 +95,7 @@ jest.mock('./utils', () => {
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
     })),
     getParsedMarketsFromPolymarketApi: jest.fn(),
+    fetchCarouselFromPolymarketApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn().mockResolvedValue({
       events: [],
       category: 'trending',
@@ -219,6 +221,8 @@ const mockSignPersonalMessage = Engine.context.KeyringController
   .signPersonalMessage as jest.Mock;
 const mockFetchEventsFromPolymarketApi =
   fetchEventsFromPolymarketApi as jest.Mock;
+const mockFetchCarouselFromPolymarketApi =
+  fetchCarouselFromPolymarketApi as jest.Mock;
 const mockGetMarketDetailsFromGammaApi =
   getMarketDetailsFromGammaApi as jest.Mock;
 const mockGetContractConfig = getContractConfig as jest.Mock;
@@ -255,6 +259,7 @@ describe('PolymarketProvider', () => {
     },
     fakOrdersEnabled: false,
     predictWithAnyTokenEnabled: false,
+    predictUpDownEnabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
@@ -5175,6 +5180,168 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    describe('createOptimisticPositionFromPreview', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('creates optimistic position for a new position using preview data', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+          maxAmountSpent: 10,
+          minAmountReceived: 20,
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        expect(positions).toHaveLength(1);
+        expect(positions[0]).toEqual(
+          expect.objectContaining({
+            marketId: 'market-1',
+            outcomeTokenId: 'token-456',
+            optimistic: true,
+          }),
+        );
+      });
+
+      it('updates existing position when one already exists', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        const existingPosition = createMockPosition({
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          amount: 10,
+          size: 10,
+          initialValue: 5,
+        });
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+          sharePrice: 0.5,
+          maxAmountSpent: 5,
+          minAmountReceived: 10,
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        mockParsePolymarketPositions.mockResolvedValue([existingPosition]);
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        const optimisticPosition = positions.find(
+          (p) => p.outcomeTokenId === 'token-456',
+        );
+        expect(optimisticPosition?.optimistic).toBe(true);
+        expect(optimisticPosition?.amount).toBe(20);
+        expect(optimisticPosition?.initialValue).toBe(10);
+      });
+    });
+
+    describe('clearOptimisticPosition', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('removes optimistic position so it no longer appears in getPositions', async () => {
+        const { provider, mockAddress, mockFetch } =
+          setupOptimisticUpdateTest();
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue([]),
+        });
+        mockParsePolymarketPositions.mockResolvedValue([]);
+
+        mockMarketDetailsForOptimistic({
+          marketId: 'market-1',
+          outcomes: [
+            {
+              id: 'outcome-456',
+              title: 'Yes',
+              tokenId: 'token-456',
+              price: 0.5,
+            },
+          ],
+        });
+
+        const preview = createMockOrderPreview({
+          side: Side.BUY,
+          outcomeTokenId: 'token-456',
+          outcomeId: 'outcome-456',
+          marketId: 'market-1',
+        });
+
+        await provider.createOptimisticPositionFromPreview({
+          address: mockAddress,
+          preview,
+        });
+
+        provider.clearOptimisticPosition(mockAddress, 'token-456');
+
+        const positions = await provider.getPositions({
+          address: mockAddress,
+        });
+
+        expect(positions).toHaveLength(0);
+      });
+
+      it('is a no-op when no optimistic position exists for the address', () => {
+        const provider = createProvider();
+
+        expect(() => {
+          provider.clearOptimisticPosition('0xunknown', 'token-1');
+        }).not.toThrow();
+      });
+    });
+
     describe('getPositions with optimistic removal filtering', () => {
       it('filters out positions marked for optimistic removal', async () => {
         // Arrange
@@ -7364,6 +7531,88 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    describe('getCarouselMarkets', () => {
+      it('returns parsed markets from carousel API', async () => {
+        const provider = createProvider();
+        const mockEvents = [{ id: 'event-1' }, { id: 'event-2' }];
+        const parsedMarkets = [
+          { id: 'market-1', status: 'open', outcomes: [{ id: 'o1' }] },
+          { id: 'market-2', status: 'open', outcomes: [{ id: 'o2' }] },
+        ];
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: mockEvents[0] },
+          { event: mockEvents[1] },
+        ]);
+        mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual(parsedMarkets);
+        expect(mockFetchCarouselFromPolymarketApi).toHaveBeenCalled();
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          mockEvents,
+          expect.objectContaining({
+            category: 'trending',
+            sortMarketsBy: 'price',
+          }),
+        );
+      });
+
+      it('returns empty array on error', async () => {
+        const provider = createProvider();
+
+        mockFetchCarouselFromPolymarketApi.mockRejectedValue(
+          new Error('carousel error'),
+        );
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual([]);
+      });
+
+      it('filters out closed markets and markets with no outcomes', async () => {
+        const provider = createProvider();
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([{ event: {} }]);
+        mockParsePolymarketEvents.mockReturnValue([
+          { id: 'open-market', status: 'open', outcomes: [{ id: 'o1' }] },
+          { id: 'closed-market', status: 'closed', outcomes: [{ id: 'o2' }] },
+          { id: 'empty-outcomes', status: 'open', outcomes: [] },
+        ]);
+
+        const result = await provider.getCarouselMarkets();
+
+        expect(result).toEqual([
+          { id: 'open-market', status: 'open', outcomes: [{ id: 'o1' }] },
+        ]);
+      });
+
+      it('loads teams when live sports is enabled', async () => {
+        const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        const mockEvents = [{ id: 'event-1' }];
+
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: mockEvents[0] },
+        ]);
+        mockExtractNeededTeamsFromEvents.mockReturnValue(
+          new Map([['nfl', ['sea', 'den']]]),
+        );
+        mockParsePolymarketEvents.mockReturnValue([]);
+
+        await provider.getCarouselMarkets();
+
+        expect(mockExtractNeededTeamsFromEvents).toHaveBeenCalledWith(
+          mockEvents,
+          ['nfl'],
+        );
+        expect(mockTeamsCacheInstance.ensureTeamsLoaded).toHaveBeenCalledWith(
+          'nfl',
+          ['sea', 'den'],
+        );
+      });
+    });
+
     describe('getMarketDetails', () => {
       it('applies GameCache overlay to fetched market details when event is a sports event', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
@@ -7690,6 +7939,93 @@ describe('PolymarketProvider', () => {
           expect.objectContaining({ teamLookup: undefined }),
         );
       });
+    });
+  });
+
+  describe('getMarketSeries', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('calls the series events endpoint with the requested params', async () => {
+      const provider = createProvider();
+      const mockEvents = [{ id: 'event-1' }];
+      const parsedMarkets = [{ id: 'market-1' }];
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEvents),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue(parsedMarkets);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+        limit: 10,
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('series_id=10684'),
+      );
+      expect(requestUrl.origin + requestUrl.pathname).toBe(
+        'https://gamma-api.polymarket.com/events',
+      );
+      expect(requestUrl.searchParams.get('series_id')).toBe('10684');
+      expect(requestUrl.searchParams.get('end_date_min')).toBe(
+        '2026-04-06T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('end_date_max')).toBe(
+        '2026-04-07T00:00:00.000Z',
+      );
+      expect(requestUrl.searchParams.get('limit')).toBe('10');
+      expect(requestUrl.searchParams.get('order')).toBe('endDate');
+      expect(requestUrl.searchParams.get('ascending')).toBe('true');
+    });
+
+    it('returns an empty array when the API returns no events', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      expect(result).toEqual([]);
+      expect(mockParsePolymarketEvents).not.toHaveBeenCalled();
+    });
+
+    it('uses the default limit when one is not provided', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: 'event-1' }]),
+      };
+      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await provider.getMarketSeries({
+        seriesId: '10684',
+        endDateMin: '2026-04-06T00:00:00.000Z',
+        endDateMax: '2026-04-07T00:00:00.000Z',
+      });
+
+      const requestUrl = new URL((global.fetch as jest.Mock).mock.calls[0][0]);
+
+      expect(requestUrl.searchParams.get('limit')).toBe('50');
     });
   });
 });

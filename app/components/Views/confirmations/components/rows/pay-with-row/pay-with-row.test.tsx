@@ -163,7 +163,8 @@ describe('PayWithRow', () => {
 
     it('shows "Receive" label instead of "Pay with"', () => {
       const { getByText } = render();
-      expect(getByText('Receive test')).toBeDefined();
+      expect(getByText('Receive')).toBeDefined();
+      expect(getByText('test')).toBeDefined();
     });
 
     it('hides balance in withdraw mode', () => {
@@ -220,7 +221,8 @@ describe('PayWithRow', () => {
 
       const { getByText } = render();
 
-      expect(getByText('Pay with Credit Card')).toBeDefined();
+      expect(getByText('Pay with')).toBeDefined();
+      expect(getByText('Credit Card')).toBeDefined();
     });
 
     it('navigates to modal when fiat payment method row is pressed', async () => {
@@ -231,7 +233,7 @@ describe('PayWithRow', () => {
       const { getByText } = render();
 
       await act(() => {
-        fireEvent.press(getByText('Pay with Credit Card'));
+        fireEvent.press(getByText('Credit Card'));
       });
 
       expect(navigateMock).toHaveBeenCalledWith(

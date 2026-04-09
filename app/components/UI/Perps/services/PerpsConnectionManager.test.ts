@@ -113,6 +113,7 @@ import { TradingReadinessCache } from '@metamask/perps-controller';
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
 import { PerpsConnectionManager } from './PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 // Get reference to the mocked TradingReadinessCache
 const mockTradingReadinessCache = TradingReadinessCache as jest.Mocked<
@@ -1434,6 +1435,141 @@ describe('PerpsConnectionManager', () => {
         configurable: true,
         writable: true,
       });
+    });
+  });
+
+  describe('resumeFromForeground', () => {
+    it('skips reconnect when existing connection is healthy (ping succeeds)', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+
+      // Clear mocks to track resumeFromForeground calls
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      // resumeFromForeground should skip reconnect — ping succeeds
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+        suppressError: true,
+      });
+
+      // init should NOT be called again — healthy connection kept
+      expect(Engine.context.PerpsController.init).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('reconnects when existing connection ping fails', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+
+      // Make ping fail to simulate unhealthy connection
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValueOnce({
+        ping: jest.fn().mockRejectedValueOnce(new Error('ping timeout')),
+      });
+
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+      (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      // Should have fallen through to ensureConnected → reconnected
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+    });
+
+    it('cancels grace period before resuming', async () => {
+      // Establish connection then simulate grace period
+      await PerpsConnectionManager.connect();
+      const m = PerpsConnectionManager as unknown as {
+        isInGracePeriod: boolean;
+        gracePeriodTimer: number | null;
+      };
+      m.isInGracePeriod = true;
+      m.gracePeriodTimer = 999;
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      expect(m.isInGracePeriod).toBe(false);
+    });
+
+    it('calls ensureConnected when not currently connected', async () => {
+      // Manager starts disconnected (from resetManager in beforeEach)
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+      });
+
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('sets connectionRefCount to at least 1', async () => {
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+      };
+      expect(m.connectionRefCount).toBe(0);
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+      });
+
+      expect(m.connectionRefCount).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('startConnectionTimeout with suppressError', () => {
+    it('does not set error when suppressError is true and timeout fires', async () => {
+      jest.useFakeTimers();
+
+      // Access private method via casting
+      const m = PerpsConnectionManager as unknown as {
+        startConnectionTimeout: (suppressError?: boolean) => void;
+        error: string | null;
+        isConnecting: boolean;
+      };
+      m.isConnecting = true;
+
+      m.startConnectionTimeout(true);
+
+      // Fire the timeout
+      jest.runAllTimers();
+
+      // Error should NOT be set because suppressError=true
+      expect(m.error).toBeNull();
+
+      jest.useRealTimers();
+    });
+
+    it('sets error when suppressError is false and timeout fires', async () => {
+      jest.useFakeTimers();
+
+      const m = PerpsConnectionManager as unknown as {
+        startConnectionTimeout: (suppressError?: boolean) => void;
+        error: string | null;
+        isConnecting: boolean;
+      };
+      m.isConnecting = true;
+
+      m.startConnectionTimeout(false);
+
+      jest.runAllTimers();
+
+      // Error should be set
+      expect(m.error).not.toBeNull();
+
+      jest.useRealTimers();
     });
   });
 });
