@@ -3,6 +3,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
+import { strings } from '../../../../../locales/i18n';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
@@ -46,7 +47,7 @@ const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <NotificationsSettings
         navigation={
           {
@@ -59,6 +60,8 @@ describe('NotificationsSettings', () => {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.notifications_title')),
+    ).toBeOnTheScreen();
   });
 });

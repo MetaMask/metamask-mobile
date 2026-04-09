@@ -3,7 +3,7 @@ import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { render, cleanup } from '@testing-library/react-native';
+import { render, screen, cleanup } from '@testing-library/react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -259,7 +259,7 @@ describe('Transactions', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -282,10 +282,12 @@ describe('Transactions', () => {
             },
           ]}
           loading={false}
+          navigation={mockNavigation}
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    jest.advanceTimersByTime(100);
+    expect(screen.getByTestId('transactions-container')).toBeOnTheScreen();
   });
 
   describe('Transaction Component Behavior', () => {

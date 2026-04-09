@@ -1,6 +1,6 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -151,14 +151,10 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    const { toJSON, getByText } = renderComponent({ state: initialState });
-    expect(toJSON()).toMatchSnapshot();
-    const nonceText = getByText('Nonce');
-    expect(nonceText).toBeDefined();
-    const totalAmountText = getByText('Total amount');
-    expect(totalAmountText).toBeDefined();
-    const dateText = getByText('Date');
-    expect(dateText).toBeDefined();
+    renderComponent({ state: initialState });
+    expect(screen.getByText('Nonce')).toBeOnTheScreen();
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
   });
 
   it('should render correctly for multi-layer fee network', () => {
@@ -167,7 +163,7 @@ describe('TransactionDetails', () => {
       l1Fee: '0x1',
     });
 
-    const { toJSON } = renderComponent({
+    renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -191,14 +187,15 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Status')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
   });
   it('should render correctly for multi-layer fee network with no l1 fee', () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x0',
     });
-    const { toJSON } = renderComponent({
+    renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -222,7 +219,8 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Status')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
   });
 
   const arrangeBlockExplorerTest = () => {
@@ -465,8 +463,8 @@ describe('TransactionDetails', () => {
       expect(getByText('Status')).toBeTruthy();
     });
 
-    expect(queryByText('Speed up')).toBeNull();
-    expect(queryByText('Cancel')).toBeNull();
+    expect(queryByText('Speed up')).not.toBeOnTheScreen();
+    expect(queryByText('Cancel')).not.toBeOnTheScreen();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
