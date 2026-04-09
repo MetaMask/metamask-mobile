@@ -14,6 +14,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -38,11 +39,14 @@ export const ACCOUNT_SELECTOR_TEST_IDS = {
 export interface AccountSelectorProps {
   selectedAddress?: string;
   onAccountSelected: (address: string) => void;
+  /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
+  label?: string;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
+  label = strings('confirm.label.to'),
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -122,7 +126,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('confirm.label.to')}
+          {label}
         </Text>
         <View style={styles.valueContainer}>
           {selectedAddress && accountName ? (
@@ -191,5 +195,21 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     </View>
   );
 };
+
+export function AccountSelectorSkeleton() {
+  const { styles } = useStyles(stylesheet, {});
+
+  return (
+    <View style={styles.container} testID="account-selector-skeleton">
+      <View style={styles.row}>
+        <Skeleton height={18} width={60} />
+        <View style={styles.valueContainer}>
+          <Skeleton height={32} width={32} twClassName="rounded-full" />
+          <Skeleton height={18} width={120} />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default AccountSelector;

@@ -32,7 +32,7 @@ export interface UserProfileMetaData {
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
-  [UserProfileProperty.HAS_MARKETING_CONSENT]: string;
+  [UserProfileProperty.HAS_MARKETING_CONSENT]: boolean;
   [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]?: number;
   [UserProfileProperty.CHAIN_IDS]: CaipChainId[];
   [UserProfileProperty.HAS_REWARDS_OPTED_IN]?: string;

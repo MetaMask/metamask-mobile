@@ -46,6 +46,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
@@ -374,6 +375,14 @@ const PredictionsSectionDefault = forwardRef<
       totalSectionsLoaded,
       isEmpty: isEmpty || !!hasError,
       itemCount,
+    });
+
+    useSectionPerformance({
+      sectionId: HomeSectionNames.PREDICT,
+      contentReady: willRender,
+      isEmpty: isEmpty || !!hasError,
+      isLoading,
+      enabled: isPredictEnabled,
     });
 
     const refresh = useCallback(async () => {
