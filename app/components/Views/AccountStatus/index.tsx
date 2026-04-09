@@ -58,10 +58,6 @@ interface AccountStatusRouteParams {
 }
 
 interface AccountStatusProps {
-  route: RouteProp<
-    AccountStatusRouteParams,
-    'AccountStatus' | 'AccountAlreadyExists' | 'AccountNotFound'
-  >;
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
