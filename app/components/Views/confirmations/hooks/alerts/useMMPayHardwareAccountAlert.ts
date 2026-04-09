@@ -7,8 +7,6 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { hasTransactionType } from '../../utils/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
 
-export const MINIMUM_DEPOSIT_USD = 0;
-
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
 
