@@ -65,11 +65,12 @@ describe('useFeeCalculations', () => {
         state: stakingDepositConfirmationState,
       },
     );
-
     expect(result.current.estimatedFeeFiat).toBe('$0');
     expect(result.current.estimatedFeeNative).toBe('0');
     expect(result.current.estimatedFeeFiatPrecise).toBe('0');
     expect(result.current.preciseNativeFeeInHex).toBe('0x0');
+    expect(result.current.maxFeeFiat).toBe('$0');
+    expect(result.current.maxFeeNative).toBe('0');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
