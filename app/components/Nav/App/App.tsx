@@ -396,9 +396,7 @@ interface RootModalFlowProps {
   };
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
-  <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-  >
+  <Stack.Navigator screenOptions={{ ...clearStackNavigatorOptions }}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
@@ -944,6 +942,7 @@ const AppFlow = () => {
       screenOptions={{
         headerShown: false,
         animationEnabled: false,
+        presentation: 'transparentModal',
       }}
     >
       <Stack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
@@ -977,10 +976,6 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={{
-          presentation: 'modal',
-          detachPreviousScreen: false,
-        }}
       />
       <Stack.Screen
         name="ImportPrivateKeyView"
