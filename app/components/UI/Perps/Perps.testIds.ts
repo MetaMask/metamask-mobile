@@ -170,6 +170,7 @@ export const getPerpsMarketRowItemSelector = {
 
 export const PerpsOrderHeaderSelectorsIDs = {
   HEADER: 'perps-order-header',
+  BACK_BUTTON: 'perps-order-header-back-button',
   ASSET_TITLE: 'perps-order-header-asset-title',
   ORDER_TYPE_BUTTON: 'perps-order-header-order-type-button',
 };
@@ -758,4 +759,14 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_ORDERS: 'perps-transactions-tab-orders',
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+} as const;
+
+// ========================================
+// PERPS FLIP POSITION CONFIRM SHEET SELECTORS
+// ========================================
+
+export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
+  SHEET: 'perps-flip-position-confirm-sheet',
+  CANCEL_BUTTON: 'perps-flip-position-cancel-button',
+  FLIP_BUTTON: 'perps-flip-position-flip-button',
 } as const;

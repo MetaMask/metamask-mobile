@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CashTokensFullView from './CashTokensFullView';
+import { useMerklBonusClaim } from '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 
 const mockGoBack = jest.fn();
 
@@ -38,6 +39,17 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
     }),
   }),
 }));
+
+const mockClaimRewards = jest.fn();
+
+jest.mock(
+  '../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
+  () => ({
+    useMerklBonusClaim: jest.fn(),
+  }),
+);
+
+const mockUseMerklBonusClaim = jest.mocked(useMerklBonusClaim);
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -73,6 +85,14 @@ describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: null,
+      lifetimeBonusClaimed: null,
+      hasPendingClaim: false,
+      isClaiming: false,
+      error: null,
+      claimRewards: mockClaimRewards,
+    });
   });
 
   it('renders mUSD title', () => {

@@ -130,6 +130,10 @@ export const PERFORMANCE_CONFIG = {
   // Prevents excessive liquidation price calls during rapid form input changes
   LiquidationPriceDebounceMs: 500,
 
+  // Candle subscription debounce delay (milliseconds)
+  // Prevents WS subscription churn during rapid market switching (#28141)
+  CandleConnectDebounceMs: 500,
+
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
@@ -344,6 +348,19 @@ export const MARKET_SORTING_CONFIG = {
  */
 export type SortOptionId =
   (typeof MARKET_SORTING_CONFIG.SortOptions)[number]['id'];
+
+/**
+ * Funding rate display configuration
+ * Controls how funding rates are formatted and displayed
+ */
+export const FUNDING_RATE_CONFIG = {
+  // Number of decimal places to display for funding rates
+  Decimals: 4,
+  // Default display value when funding rate is zero or unavailable
+  ZeroDisplay: '0.0000%',
+  // Multiplier to convert decimal funding rate to percentage
+  PercentageMultiplier: 100,
+} as const;
 
 /**
  * Provider configuration for multi-provider support

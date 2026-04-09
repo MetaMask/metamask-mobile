@@ -23,31 +23,36 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#131416"
       fill="currentColor"
-      height={16}
       name="Card"
       style={
-        {
-          "height": 16,
-          "width": 16,
-        }
+        [
+          {
+            "color": "#131416",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
       }
-      width={16}
     />
   </View>
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#131416",
-        "fontFamily": "Geist-Medium",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginLeft": 8,
-        "marginRight": 4,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Medium",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginLeft": 8,
+          "marginRight": 4,
+        },
+      ]
     }
   >
     Debit card
@@ -60,17 +65,18 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#131416"
       fill="currentColor"
-      height={16}
       name="ArrowDown"
       style={
-        {
-          "height": 16,
-          "width": 16,
-        }
+        [
+          {
+            "color": "#131416",
+            "height": 16,
+            "width": 16,
+          },
+          undefined,
+        ]
       }
-      width={16}
     />
   </View>
 </TouchableOpacity>
@@ -95,5 +101,49 @@ exports[`PaymentMethodPill when isLoading is true matches snapshot when loading 
     ]
   }
   testID="payment-method-pill"
-/>
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "columnGap": 8,
+          "flexDirection": "row",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "rotate": "0deg",
+              },
+            ],
+          },
+        ]
+      }
+      testID="spinner-animated-view"
+    >
+      <SvgMock
+        fill="currentColor"
+        name="Loading"
+        style={
+          [
+            {
+              "color": "#131416",
+              "height": 16,
+              "width": 16,
+            },
+            undefined,
+          ]
+        }
+        testID="spinner-icon"
+      />
+    </View>
+  </View>
+</View>
 `;

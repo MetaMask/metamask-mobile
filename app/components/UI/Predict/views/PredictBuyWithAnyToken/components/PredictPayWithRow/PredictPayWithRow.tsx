@@ -25,6 +25,7 @@ import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
+import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
 
 interface PredictPayWithRowProps {
   disabled?: boolean;
@@ -33,6 +34,7 @@ interface PredictPayWithRowProps {
 export function PredictPayWithRow({
   disabled = false,
 }: PredictPayWithRowProps) {
+  usePredictDefaultPaymentToken();
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
@@ -41,47 +43,62 @@ export function PredictPayWithRow({
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
+  const showPredictBalance = isPredictBalanceSelected || !payToken;
+
   const handlePress = useCallback(() => {
     if (!canEdit) return;
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
-      isPredictContext: true,
-    });
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [canEdit, navigation]);
 
   const label = strings('confirm.label.pay_with');
-  const displaySymbol = isPredictBalanceSelected
+  const displaySymbol = showPredictBalance
     ? 'Predict balance'
     : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
-  const tokenIconAddress = isPredictBalanceSelected
+  const tokenIconAddress = showPredictBalance
     ? POLYGON_USDCE.address
     : (payToken?.address as Hex | undefined);
-  const tokenIconChainId = isPredictBalanceSelected
+  const tokenIconChainId = showPredictBalance
     ? PREDICT_BALANCE_CHAIN_ID
     : (payToken?.chainId as Hex | undefined);
 
   return (
-    <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="rounded-full bg-default p-4"
-        gap={3}
-      >
-        {tokenIconAddress && tokenIconChainId && (
-          <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
-        )}
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {`${label} ${displaySymbol}`}
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Center}
+      gap={3}
+    >
+      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'} mx-auto`}
+          gap={3}
+        >
+          {tokenIconAddress && tokenIconChainId && (
+            <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
+          )}
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {`${label} ${displaySymbol}`}
+          </Text>
+          {canEdit && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          )}
+        </Box>
+      </TouchableOpacity>
+      {!isPredictBalanceSelected && (
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="font-medium"
+          color={TextColor.TextDefault}
+        >
+          {strings('predict.order.predict_balance_first')}
         </Text>
-        {canEdit && (
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        )}
-      </Box>
-    </TouchableOpacity>
+      )}
+    </Box>
   );
 }

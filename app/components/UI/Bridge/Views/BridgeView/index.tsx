@@ -14,7 +14,7 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '../../../Box/Box';
+import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -32,7 +32,16 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
+  selectDestTokenWarning,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
+import { TokenFeatureType } from '@metamask/bridge-controller';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
   useNavigation,
   useRoute,
@@ -48,17 +57,15 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
-import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
+  Pressable,
   ScrollView,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -81,7 +88,6 @@ import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncl
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import { useRWAToken } from '../../hooks/useRWAToken.ts';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
@@ -93,11 +99,11 @@ import type { RootState } from '../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
+import { getQuoteStreamReasonString } from './BridgeView.utils';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
 const BridgeView = () => {
-  const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -127,7 +133,6 @@ const BridgeView = () => {
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const { handleSwitchTokens } = useSwitchTokens();
-  const { isStockToken } = useRWAToken();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -140,6 +145,8 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const tokenWarning = useSelector(selectDestTokenWarning);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -228,9 +235,9 @@ const BridgeView = () => {
     activeQuote,
     isLoading,
     destTokenAmount,
-    quoteFetchError,
     isNoQuotesAvailable,
     blockaidError,
+    quoteFetchError,
     shouldShowPriceImpactWarning,
     needsNewQuote,
   } = useBridgeQuoteData({
@@ -290,9 +297,6 @@ const BridgeView = () => {
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });
 
-  // Compute error state directly from dependencies
-  const isError = isNoQuotesAvailable || quoteFetchError;
-
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
 
   // Update quote parameters when relevant state changes
@@ -322,13 +326,6 @@ const BridgeView = () => {
   }, [navigation, bridgeViewMode, colors]);
 
   useTrackSwapPageViewed();
-
-  // Reset isErrorBannerVisible when error state changes
-  useEffect(() => {
-    if (isError) {
-      setIsErrorBannerVisible(true);
-    }
-  }, [isError]);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -372,23 +369,19 @@ const BridgeView = () => {
       type: 'dest',
     });
 
-  const isRWATokenSelected = useMemo(
-    () =>
-      (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
-      (destToken && isStockToken(destToken as BridgeToken)),
-    [isStockToken, sourceToken, destToken],
-  );
-  const genericErrorMessage = isRWATokenSelected
-    ? strings('bridge.stock_token_error_banner_description')
-    : strings('bridge.error_banner_description');
-
   const getContentMode = () => {
     if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
-    if (isError && isErrorBannerVisible) return 'error';
     if (isZeroState) return 'zero';
     return 'quote';
   };
   const contentMode = getContentMode();
+  const shouldShowTrendingTokens =
+    contentMode === 'zero' && isSwapsTrendingTokensEnabled;
+
+  const dismissInputAndKeypad = useCallback(() => {
+    inputRef.current?.blur();
+    keypadRef.current?.close();
+  }, []);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -408,11 +401,8 @@ const BridgeView = () => {
     <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={() => {
-          inputRef.current?.blur();
-          keypadRef.current?.close();
-        }}
+        onStartShouldSetResponder={() => !shouldShowTrendingTokens}
+        onResponderRelease={dismissInputAndKeypad}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -421,6 +411,9 @@ const BridgeView = () => {
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
+          onScrollBeginDrag={
+            shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+          }
           onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
         >
           <Box style={styles.inputsContainer}>
@@ -474,23 +467,99 @@ const BridgeView = () => {
             />
           </Box>
 
-          <Box style={styles.dynamicContent}>
+          <Box gap={3} twClassName="mx-4">
+            {quoteStreamComplete?.reason || quoteFetchError
+              ? (() => {
+                  const quoteStreamErrorBannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: colors.error.default,
+                    backgroundColor: colors.error.muted,
+                    paddingLeft: 8,
+                  };
+                  return (
+                    <BannerBase
+                      style={quoteStreamErrorBannerStyle}
+                      startAccessory={
+                        <Icon
+                          name={IconName.Danger}
+                          color={colors.error.default}
+                          size={IconSize.Lg}
+                        />
+                      }
+                      description={getQuoteStreamReasonString(
+                        quoteStreamComplete?.reason,
+                      )}
+                    />
+                  );
+                })()
+              : null}
+
+            {contentMode === 'quote' && tokenWarning
+              ? (() => {
+                  const isMalicious =
+                    tokenWarning.type === TokenFeatureType.MALICIOUS;
+                  const bannerColors = isMalicious
+                    ? colors.error
+                    : colors.warning;
+                  const bannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: bannerColors.default,
+                    backgroundColor: bannerColors.muted,
+                    paddingLeft: 8,
+                  };
+                  const navigateToModal = () =>
+                    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                      screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                      params: {
+                        warningType: tokenWarning.type,
+                        description: tokenWarning.description,
+                        mode: TokenWarningModalMode.Info,
+                        location,
+                      },
+                    });
+                  return (
+                    <Pressable onPress={navigateToModal}>
+                      <BannerBase
+                        style={bannerStyle}
+                        startAccessory={
+                          <Icon
+                            name={
+                              isMalicious ? IconName.Danger : IconName.Warning
+                            }
+                            color={bannerColors.default}
+                            size={IconSize.Lg}
+                          />
+                        }
+                        description={
+                          isMalicious
+                            ? strings('bridge.token_warning_malicious_banner', {
+                                token: destToken?.symbol,
+                              })
+                            : strings(
+                                'bridge.token_warning_suspicious_banner',
+                                {
+                                  token: destToken?.symbol,
+                                },
+                              )
+                        }
+                        onClose={navigateToModal}
+                        closeButtonProps={{ iconName: IconName.ArrowRight }}
+                      />
+                    </Pressable>
+                  );
+                })()
+              : null}
+          </Box>
+
+          <Box
+            style={styles.dynamicContent}
+            onTouchEnd={
+              shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+            }
+          >
             {contentMode === 'loading' ? (
               <Box style={styles.loadingContainer}>
                 <QuoteDetailsCardSkeleton />
-              </Box>
-            ) : null}
-            {contentMode === 'error' ? (
-              <Box style={styles.buttonContainer}>
-                <BannerAlert
-                  severity={BannerAlertSeverity.Error}
-                  description={genericErrorMessage}
-                  onClose={() => {
-                    setIsErrorBannerVisible(false);
-                    inputRef.current?.focus();
-                    keypadRef.current?.open();
-                  }}
-                />
               </Box>
             ) : null}
             {contentMode === 'quote' ? (
@@ -501,7 +570,7 @@ const BridgeView = () => {
                 />
               </Box>
             ) : null}
-            {contentMode === 'zero' && isSwapsTrendingTokensEnabled ? (
+            {shouldShowTrendingTokens ? (
               <BridgeTrendingTokensSection isNearBottom={isNearBottom} />
             ) : null}
           </Box>

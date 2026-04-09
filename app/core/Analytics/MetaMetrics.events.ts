@@ -77,6 +77,19 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  /** Token overview advanced chart: user switched line vs candlestick */
+  CHART_TYPE_CHANGED = 'chart_type_changed',
+  /** Token overview advanced chart: user selected a different timeframe */
+  CHART_TIMEFRAME_CHANGED = 'chart_timeframe_changed',
+  /** Advanced chart: user zoomed, panned, or used crosshair tooltip */
+  CHART_INTERACTED = 'chart_interacted',
+  /** Advanced chart: user tapped TradingView logo/link to open external chart */
+  CHART_TRADINGVIEW_CLICKED = 'chart_tradingview_clicked',
+  /**
+   * Token overview advanced chart: empty state shown (no usable chart data).
+   * Triggered when no chart data is available.
+   */
+  CHART_EMPTY_DISPLAYED = 'chart_empty_displayed',
   SECURITY_TRUST_BOTTOM_SHEET_OPENED = 'Security Trust BottomSheet Opened',
   SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN = 'Security Trust BottomSheet Action Taken',
   DEFI_TAB_SELECTED = 'DeFi Tab Selected',
@@ -637,6 +650,7 @@ enum EVENT_NAME {
   MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
   MARKET_INSIGHTS_VIEWED = 'Market Insights Viewed',
   MARKET_INSIGHTS_INTERACTION = 'Market Insights Interaction',
+  MARKET_INSIGHTS_CLOSED = 'Market Insights Closed',
 
   // Share
   SHARE_ACTION = 'Share Action',
@@ -1501,6 +1515,11 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  CHART_TYPE_CHANGED: generateOpt(EVENT_NAME.CHART_TYPE_CHANGED),
+  CHART_TIMEFRAME_CHANGED: generateOpt(EVENT_NAME.CHART_TIMEFRAME_CHANGED),
+  CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
+  CHART_TRADINGVIEW_CLICKED: generateOpt(EVENT_NAME.CHART_TRADINGVIEW_CLICKED),
+  CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
     EVENT_NAME.SECURITY_TRUST_BOTTOM_SHEET_OPENED,
   ),
@@ -1573,6 +1592,7 @@ const events = {
   MARKET_INSIGHTS_INTERACTION: generateOpt(
     EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
   ),
+  MARKET_INSIGHTS_CLOSED: generateOpt(EVENT_NAME.MARKET_INSIGHTS_CLOSED),
   // Card
   CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),

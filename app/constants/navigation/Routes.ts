@@ -105,6 +105,9 @@ const Routes = {
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
   REWARDS_CAMPAIGN_MECHANICS: 'RewardsCampaignMechanics',
   REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
+  REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR: 'RewardsOndoRwaAssetSelector',
+  REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW: 'RewardsOndoCampaignPortfolioView',
+  REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
@@ -169,6 +172,7 @@ const Routes = {
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
+    ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
   },
@@ -294,6 +298,7 @@ const Routes = {
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
       PRICE_IMPACT_MODAL: 'PriceImpactModal',
+      TOKEN_WARNING_MODAL: 'TokenWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -336,6 +341,10 @@ const Routes = {
   MARKET_INSIGHTS: {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
+  },
+  SOCIAL_LEADERBOARD: {
+    ROOT: 'SocialLeaderboard',
+    VIEW: 'TopTradersView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -395,6 +404,9 @@ const Routes = {
     ROOT: 'MoneyScreens',
     HOME: 'MoneyHome',
   },
+  MONEY_ACCOUNT: {
+    ROOT: 'MoneyAccountScreens',
+  },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
@@ -438,7 +450,6 @@ const Routes = {
     HOME: 'CardHome',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
-    NOTIFICATION: 'CardNotification',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHANGE_ASSET: 'CardChangeAsset',
     VERIFYING_REGISTRATION: 'VerifyingRegistration',
@@ -472,6 +483,7 @@ const Routes = {
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
+      WAITLIST_FORM: 'CardWaitlistFormModal',
     },
   },
   SEND: {

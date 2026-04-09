@@ -22,7 +22,7 @@ jobs:
   repack-ios-flask-apps:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'FlaskBuildTests')
     name: 'Repack iOS Flask Apps'
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
     permissions:
       contents: read
       id-token: write
@@ -32,7 +32,7 @@ jobs:
 
       - name: Setup iOS Environment
         timeout-minutes: 15
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@v1.7.0
+        uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
           setup-simulator: false

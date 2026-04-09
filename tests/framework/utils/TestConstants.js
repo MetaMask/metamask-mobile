@@ -34,17 +34,27 @@ export const TEST_SRP = {
   SRP_3: process.env.TEST_SRP_3,
 };
 
+function getRequiredLoginPassword() {
+  if (!TEST_PASSWORDS.LOGIN) {
+    throw new Error(
+      'E2E_PASSWORD environment variable is required for login performance tests.',
+    );
+  }
+
+  return TEST_PASSWORDS.LOGIN;
+}
+
 // Helper function to get the appropriate password for a scenario type
 export function getPasswordForScenario(scenarioType) {
   switch (scenarioType) {
     case 'login':
-      return TEST_PASSWORDS.LOGIN;
+      return getRequiredLoginPassword();
     case 'onboarding':
       return TEST_PASSWORDS.ONBOARDING;
     case 'import':
       return TEST_PASSWORDS.ONBOARDING;
     default:
-      return TEST_PASSWORDS.LOGIN;
+      return getRequiredLoginPassword();
   }
 }
 

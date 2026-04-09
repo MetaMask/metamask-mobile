@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.72.0]
+
+### Added
+
+- Card Spending limit screen analytics include Linea mUSD fiat balance, top card-supported asset by fiat, and top wallet-wide asset by fiat when the screen is viewed (#27981)
+- Upgrade @metamask/seedless-onboarding-controller to v9.0.0 (#27859)
+- Added new workflow runway_ios_rc_workflow (#27662)
+- Added check to hide Speed up and Cancel buttons in the activity list and transaction details when the user has selected another token to pay for gas (#27404)
+- Added skeleton-style quote loading UI during swaps (#27174)
+- Added Earn Rewards preview section to the Rewards Dashboard with geo-gated mUSD calculator and MetaMask Card earn cards (#27684)
+- Added geo-restriction guard to campaign opt-in sheet, disabling opt-in for users in restricted regions (#27676)
+- Added edit gas from cancel/speed up modal: users can tap the network fee row to open the gas fee modal and adjust gas before confirming cancel or speed up (#27194)
+- Added an experiment for the bridge token selector balance layout (#27690)
+- Added Stable network logo and USDT0 native token icon (#27258)
+- Added "View all" actions for Explore search sections (#26569)
+- Added Ondo GM campaign portfolio positions (#27971)
+- Added Ondo campaign leaderboard rank and position (#27917)
+- Added remote feature flag for the Tron unstaked TRX claim button on token details (#27908)
+- Added compliance access-restricted modal when a wallet address is flagged (#27694)
+- Added ERC-1155 send from NFT details (#27800)
+- Added Money home empty state scaffold (#27831)
+- Added Solana SPL delegation for MetaMask Card spending limits (#25276)
+- Added Perps withdraw entry under Developer Options with updated UI (#27792)
+- Added test-app universal link support (#27811)
+- Added Braze SDK integration for push notification delivery (#28143)
+
+### Changed
+
+- Changed the default in-app browser search engine to Brave Search for a privacy-focused, ad-free browsing experience (#26356)
+- Updated ERC-20 token balance loading to resolve balances via an API call instead of cache-only reads (#27611)
+- Improved Predict withdraw token list load performance (#27735)
+- Removed token list item V1/V2 feature flag (#27731)
+- Updated hosted charting library URL for in-app charts (#27972)
+- Hid date on Rewards campaign cards, tightened disclaimer copy, and added mUSD button metrics in the mUSD view (#27952)
+- Improved mUSD calculator defaults, swap navigation, and disclaimer placement (#27949)
+- Market Insights feedback buttons show a filled state and persist selection for the current digest (#27849)
+- Migrated `Button` to the design system in the web3auth scope (#27810)
+- Migrated `Button` to the design system in the card scope (#27752)
+- Migrated `Button` to the design system in the confirmations scope (#27805)
+- Migrated `Button` to the design system in the wallet-integration scope (#27548)
+- Migrated `Button` to the design system in the bridge scope (#27535)
+- Activity "View full history" uses the correct block explorer when the wallet network does not match the activity chain (#27734)
+- WalletConnect v2: sequential session restore (#27950)
+- WalletConnect v2: `pairingTopic` handling for permission revocation (#27945)
+- WalletConnect v2: Redux store listener cleanup (#27932)
+- Updated Activity to filter incoming native transfers from unknown senders while keeping transfers from your accounts and address book (#27799)
+- Gated campaigns with rewards enabled instead of a separate campaigns feature flag (#27863)
+- Updated global error handling by moving `ErrorBoundary` above providers to catch render failures (#27816)
+- Updated the general settings language picker to show each language in its native name (#27788)
+- Updated `@metamask/design-system-react-native` to 0.11.0 and deprecated overlapping component-library exports (#27652)
+- Refactored Card spending limit flow with account-scoped token ordering, settings-style rows, and a dedicated limit options sheet (#27918)
+- Improved cross-chain bridge activity visibility on the destination chain (#27536)
+
+### Fixed
+
+- fix: replace static hex colors with design tokens in test files (#26396)
+- Fixed Perps PnL comma formatting (#27815)
+- Fixed incorrect aggregated PnL and order size for multi-fill trades on Perps market and home (#27906)
+- Fixed HIP-3 market category labels for URNM (commodity) and USAR (stock) (#27910)
+- Fixed low-price asset TP/SL price entry to allow up to six decimals (#27901)
+- Fixed prediction outcome labels breaking the market details action button layout (#27832)
+- Fixed Card delegation by adding missing Card-supported networks so approvals receive a valid `networkClientId` (#27833)
+- Fixed Perps max-size buffer to reduce spurious "Insufficient margin" near 100% margin (#27417)
+- Fixed missing TP/SL pills on Perps and Activity recent activity (#27685)
+- Fixed perps order toast styling and deposit progress toast behavior (#27487)
+- Fixed empty error messages in authentication flows (#27705)
+- Fixed gas-sponsored swap activity to show "Paid by MetaMask" on the total gas fee row (#27268)
+- Fixed error reporting initialization for Sentry (#27794)
+- Suppressed WebView JavaScript dialogs when the browser screen is not focused (#26705)
+- Fixed mUSD/Cash row typography and fiat formatting alignment with the token list (#27736)
+- Fixed swap amount row alignment with quote details (#27730)
+- Fixed opening a trending token from Swap dismissing the screen instead of showing token details (#27707)
+- Fixed bridge amount keypad cursor handling (#27367)
+- Fixed mUSD analytics and address-copy regressions (#27670)
+- Fixed brief Long/Short flash when opening a market that already has a position (#27671)
+- Fixed Merkl bonus claim handling with session lock and reward refetching (#28204)
+- Fixed token details sticky swap actions to use balance-aware defaults (#28151)
+
+## [7.71.1]
+
+### Changed
+
+- Pointed Market Insights digest fallback URL at the production endpoint when `DIGEST_API_URL` is not set at build time (#28098)
+
 ## [7.71.0]
 
 ### Added
@@ -11072,7 +11156,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...HEAD
+[7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.1...v7.72.0
+[7.71.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.71.0...v7.71.1
 [7.71.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.71.0
 [7.70.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...v7.70.1
 [7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...v7.70.0
