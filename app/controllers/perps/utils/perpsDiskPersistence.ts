@@ -7,6 +7,14 @@ import {
 } from '../constants/perpsConfig';
 import type { AccountState, Order, PerpsMarketData, Position } from '../types';
 
+/**
+ * Multiplier applied to staleGuardMs (preloadGuardMs, currently 30s) to compute
+ * the staleness cap for disk-hydrated timestamps. A factor of 10 ensures hydrated
+ * data is always TTL-expired so the stream manager overwrites it with live data,
+ * while still being recent enough for a useful first paint.
+ */
+const DISK_HYDRATION_STALENESS_FACTOR = 10;
+
 /** Minimal disk cache interface required by persistence utilities. */
 export type PerpsDiskCache = {
   getItem(key: string): Promise<string | null>;
@@ -231,8 +239,8 @@ export type HydrateFromDiskResult = {
  * Returns plain objects rather than mutating state directly, so the caller
  * can apply all changes in a single batched this.update() call.
  *
- * All returned timestamps are capped at staleGuardMs * 10 ms in the past so
- * the stream manager always overwrites disk data with fresh live data.
+ * All returned timestamps are capped at DISK_HYDRATION_STALENESS_FACTOR * staleGuardMs
+ * in the past so the stream manager always overwrites disk data with fresh live data.
  *
  * @param diskCache - Disk cache instance from controller infrastructure.
  * @param currentMarketCache - Current cachedMarketDataByProvider state.
@@ -261,7 +269,8 @@ export function hydrateFromDiskSync(
     };
   }
 
-  const staleHydratedTimestamp = Date.now() - staleGuardMs * 10 - 1;
+  const staleHydratedTimestamp =
+    Date.now() - staleGuardMs * DISK_HYDRATION_STALENESS_FACTOR - 1;
 
   try {
     const marketsRaw = diskCache.getItemSync(PERPS_DISK_CACHE_MARKETS);
