@@ -22,7 +22,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_activity.type_deposit': 'Deposit',
       'rewards.ondo_campaign_activity.type_withdraw': 'Withdraw',
       'rewards.ondo_campaign_activity.type_rebalance': 'Rebalance',
-      'rewards.ondo_campaign_activity.type_external_outflow': 'Transfer Out',
+      'rewards.ondo_campaign_activity.type_external_outflow': 'Outflow',
     };
     return translations[key] ?? key;
   },
@@ -100,7 +100,7 @@ describe('OndoActivityRow', () => {
       />,
     );
 
-    expect(getByText('Transfer Out')).toBeDefined();
+    expect(getByText('Outflow')).toBeDefined();
   });
 
   it('renders token symbols in detail line', () => {

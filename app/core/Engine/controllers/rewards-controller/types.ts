@@ -275,6 +275,18 @@ export interface CampaignLeaderboardEntry {
    * @example 0.15
    */
   rateOfReturn: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
 }
 
 /**
@@ -363,6 +375,18 @@ export interface CampaignLeaderboardPositionDto {
    * @example 8500.00
    */
   netDeposit: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
 
   /**
    * Neighboring entries around the user's rank (up to 1 before/after)
@@ -645,6 +669,8 @@ export type CampaignLeaderboardState = {
         rank: number;
         referralCode: string;
         rateOfReturn: number;
+        qualifiedDays: number;
+        qualified: boolean;
       }[];
       totalParticipants: number;
     };
@@ -664,7 +690,15 @@ export type CampaignLeaderboardPositionFoundState = {
   currentUsdValue: number;
   totalUsdDeposited: number;
   netDeposit: number;
-  neighbors: { rank: number; referralCode: string; rateOfReturn: number }[];
+  qualifiedDays: number;
+  qualified: boolean;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    rateOfReturn: number;
+    qualifiedDays: number;
+    qualified: boolean;
+  }[];
   computedAt: string;
   lastFetched: number;
 };

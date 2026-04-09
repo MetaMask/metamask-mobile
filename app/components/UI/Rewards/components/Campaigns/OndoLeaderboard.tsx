@@ -21,6 +21,7 @@ import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/contro
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { PendingTag } from './CampaignStatsSummary';
 import {
   formatRateOfReturn,
   formatTierDisplayName,
@@ -31,6 +32,7 @@ export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   TIER_TOGGLE: 'campaign-leaderboard-tier-toggle',
   LIST: 'campaign-leaderboard-list',
   ENTRY_ROW: 'campaign-leaderboard-entry-row',
+  PENDING_TAG: 'campaign-leaderboard-pending-tag',
   NEIGHBOR_SEPARATOR: 'campaign-leaderboard-neighbor-separator',
   LOADING: 'campaign-leaderboard-loading',
   ERROR: 'campaign-leaderboard-error',
@@ -92,6 +94,9 @@ const LeaderboardEntryRow: React.FC<{
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {entry.referralCode}
       </Text>
+      {!entry.qualified && (
+        <PendingTag testID={CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG} />
+      )}
     </Box>
     <Text
       variant={TextVariant.BodyMd}
@@ -156,11 +161,11 @@ const NeighborSeparator: React.FC = () => (
   >
     <Box twClassName="flex-1 border-b border-border-muted" />
     <Text
-      variant={TextVariant.BodySm}
+      variant={TextVariant.BodyMd}
       color={TextColor.TextAlternative}
       twClassName="px-3"
     >
-      ...
+      •••
     </Text>
     <Box twClassName="flex-1 border-b border-border-muted" />
   </Box>

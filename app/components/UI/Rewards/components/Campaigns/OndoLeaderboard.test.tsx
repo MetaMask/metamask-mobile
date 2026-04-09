@@ -69,6 +69,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
       'rewards.ondo_campaign_leaderboard.select_tier': 'Select Tier',
+      'rewards.ondo_campaign_leaderboard.pending': 'Pending',
     };
     return translations[key] || key;
   },
@@ -80,6 +81,8 @@ const createMockEntry = (
   rank: 1,
   referralCode: 'ABC123',
   rateOfReturn: 0.15,
+  qualifiedDays: 10,
+  qualified: true,
   ...overrides,
 });
 
@@ -593,6 +596,65 @@ describe('OndoLeaderboard', () => {
       expect(
         queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NEIGHBOR_SEPARATOR),
       ).toBeNull();
+    });
+  });
+
+  describe('pending tag', () => {
+    it('renders Pending tag when entry is not qualified', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'USR001',
+          qualified: false,
+          qualifiedDays: 3,
+        }),
+      ];
+      const { getAllByTestId, getByText } = render(
+        <OndoLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(
+        getAllByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toHaveLength(1);
+      expect(getByText('Pending')).toBeDefined();
+    });
+
+    it('does not render Pending tag when entry is qualified', () => {
+      const entries = [
+        createMockEntry({
+          rank: 1,
+          referralCode: 'USR001',
+          qualified: true,
+          qualifiedDays: 10,
+        }),
+      ];
+      const { queryByTestId } = render(
+        <OndoLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toBeNull();
+    });
+
+    it('renders Pending tag only for unqualified entries in a mixed list', () => {
+      const entries = [
+        createMockEntry({ rank: 1, referralCode: 'USR001', qualified: true }),
+        createMockEntry({
+          rank: 2,
+          referralCode: 'USR002',
+          qualified: false,
+          qualifiedDays: 2,
+        }),
+        createMockEntry({ rank: 3, referralCode: 'USR003', qualified: true }),
+      ];
+      const { getAllByTestId } = render(
+        <OndoLeaderboard {...defaultProps} entries={entries} />,
+      );
+
+      expect(
+        getAllByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.PENDING_TAG),
+      ).toHaveLength(1);
     });
   });
 

@@ -13,7 +13,10 @@ import { useSelector } from 'react-redux';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
-import { StatCell } from '../components/Campaigns/CampaignStatsSummary';
+import {
+  StatCell,
+  PendingTag,
+} from '../components/Campaigns/CampaignStatsSummary';
 import { formatTierDisplayName } from '../components/Campaigns/OndoLeaderboard.utils';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
@@ -38,13 +41,10 @@ const OndoLeaderboardView: React.FC = () => {
   const { campaignId } = route.params;
   const referralCode = useSelector(selectReferralCode);
 
-  const {
-    position,
-    isLoading: isPositionLoading,
-    hasError: hasPositionError,
-    hasFetched: positionHasFetched,
-    refetch: refetchPosition,
-  } = useGetOndoLeaderboardPosition(campaignId);
+  const { position, isLoading: isPositionLoading } =
+    useGetOndoLeaderboardPosition(campaignId);
+
+  const isPending = position != null && !position.qualified;
 
   const {
     tierNames,
@@ -88,11 +88,13 @@ const OndoLeaderboardView: React.FC = () => {
                   label="Rank"
                   value={`${position.rank}`}
                   isLoading={isPositionLoading}
+                  suffix={isPending ? <PendingTag /> : undefined}
                 />
                 <StatCell
                   label="Tier"
                   value={formatTierDisplayName(position.projectedTier)}
                   isLoading={isPositionLoading}
+                  suffix={isPending ? <PendingTag /> : undefined}
                 />
               </Box>
             </Box>

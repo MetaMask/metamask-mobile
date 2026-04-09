@@ -54,6 +54,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard.tier_starter': 'Bronze',
       'rewards.ondo_campaign_leaderboard.tier_mid': 'Silver',
       'rewards.ondo_campaign_leaderboard.tier_upper': 'Platinum',
+      'rewards.ondo_campaign_leaderboard.pending': 'Pending',
     };
     return t[key] ?? key;
   },
@@ -77,6 +78,8 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   currentUsdValue: 14250.75,
   totalUsdDeposited: 12000.0,
   netDeposit: 11500.0,
+  qualifiedDays: 10,
+  qualified: true,
   neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };
@@ -124,8 +127,8 @@ describe('CampaignStatsSummary', () => {
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN).props.children,
     ).toBe('+15.20%');
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT).props.children,
-    ).toBe('$11,500.00');
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+    ).toBe('$13,057.58');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
     ).toBe('5');
@@ -150,13 +153,13 @@ describe('CampaignStatsSummary', () => {
     ).toBe('-');
   });
 
-  it('displays dash for net deposit when portfolio summary is null', () => {
+  it('displays dash for market value when portfolio summary is null', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary {...baseProps} portfolioSummary={null} />,
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT).props.children,
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
     ).toBe('-');
     expect(
       getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK).props.children,
@@ -186,6 +189,45 @@ describe('CampaignStatsSummary', () => {
     expect(getByText('Stats')).toBeDefined();
   });
 
+  // ── Pending tag ──────────────────────────────────────────────────
+
+  it('renders Pending tags next to rank and tier when qualified is false', () => {
+    const pendingPosition: CampaignLeaderboardPositionDto = {
+      ...MOCK_POSITION,
+      qualified: false,
+      qualifiedDays: 3,
+    };
+
+    const { getAllByTestId } = render(
+      <CampaignStatsSummary
+        {...baseProps}
+        leaderboardPosition={pendingPosition}
+      />,
+    );
+
+    expect(
+      getAllByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toHaveLength(2);
+  });
+
+  it('does not render Pending tags when qualified is true', () => {
+    const { queryByTestId } = render(<CampaignStatsSummary {...baseProps} />);
+
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeNull();
+  });
+
+  it('does not render Pending tags when leaderboardPosition is null', () => {
+    const { queryByTestId } = render(
+      <CampaignStatsSummary {...baseProps} leaderboardPosition={null} />,
+    );
+
+    expect(
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG),
+    ).toBeNull();
+  });
+
   // ── Leaderboard loading ───────────────────────────────────────────
 
   it('shows skeletons for leaderboard cells when leaderboard is loading with no data', () => {
@@ -200,9 +242,9 @@ describe('CampaignStatsSummary', () => {
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();
-    // Net deposit still renders since portfolio is fine
+    // Market value still renders since portfolio is fine
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT),
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeDefined();
   });
 
@@ -224,7 +266,7 @@ describe('CampaignStatsSummary', () => {
 
   // ── Portfolio loading ─────────────────────────────────────────────
 
-  it('shows skeleton for net deposit cell when portfolio is loading with no data', () => {
+  it('shows skeleton for market value cell when portfolio is loading with no data', () => {
     const { queryByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
@@ -234,14 +276,14 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT),
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
     // Leaderboard cells still render
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeDefined();
   });
 
-  it('shows stale net deposit data instead of skeleton when loading with existing data', () => {
+  it('shows stale market value data instead of skeleton when loading with existing data', () => {
     const { getByTestId } = render(
       <CampaignStatsSummary
         {...baseProps}
@@ -250,8 +292,8 @@ describe('CampaignStatsSummary', () => {
     );
 
     expect(
-      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT).props.children,
-    ).toBe('$11,500.00');
+      getByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE).props.children,
+    ).toBe('$13,057.58');
   });
 
   // ── Both loading ──────────────────────────────────────────────────
@@ -269,7 +311,7 @@ describe('CampaignStatsSummary', () => {
 
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN)).toBeNull();
     expect(
-      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT),
+      queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE),
     ).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK)).toBeNull();
     expect(queryByTestId(CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER)).toBeNull();

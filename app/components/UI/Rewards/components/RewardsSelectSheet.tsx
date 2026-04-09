@@ -60,7 +60,7 @@ const RewardsSelectSheet: React.FC<RewardsSelectSheetProps> = ({ route }) => {
   return (
     <BottomSheet testID={REWARDS_SELECT_SHEET_TEST_IDS.CONTAINER}>
       <BottomSheetHeader onClose={handleClose}>{title}</BottomSheetHeader>
-      <Box twClassName="pb-4">
+      <Box>
         {options.map((option) => (
           <Pressable
             key={option.key}
@@ -78,13 +78,6 @@ const RewardsSelectSheet: React.FC<RewardsSelectSheetProps> = ({ route }) => {
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {option.label}
               </Text>
-              {option.value === selectedValue && (
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Sm}
-                  color={IconColor.IconDefault}
-                />
-              )}
             </Box>
           </Pressable>
         ))}

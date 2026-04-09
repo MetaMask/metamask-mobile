@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   Text,
   TextColor,
@@ -13,6 +14,7 @@ import type {
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioSummaryDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { strings } from '../../../../../../locales/i18n';
 import { formatPercentChange, formatUsd } from '../../utils/formatUtils';
 import { formatTierDisplayName } from './OndoLeaderboard.utils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
@@ -25,6 +27,7 @@ export interface StatCellProps {
   isLoading?: boolean;
   valueColor?: TextColor;
   testID?: string;
+  suffix?: React.ReactNode;
 }
 
 export const StatCell: React.FC<StatCellProps> = ({
@@ -33,6 +36,7 @@ export const StatCell: React.FC<StatCellProps> = ({
   isLoading = false,
   valueColor = TextColor.TextDefault,
   testID,
+  suffix,
 }) => {
   const tw = useTailwind();
   return (
@@ -43,15 +47,22 @@ export const StatCell: React.FC<StatCellProps> = ({
       {isLoading ? (
         <Skeleton style={tw.style('h-5 w-20 rounded')} />
       ) : (
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={valueColor}
-          testID={testID}
-          twClassName="font-semibold"
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
         >
-          {value}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            color={valueColor}
+            testID={testID}
+            twClassName="font-semibold"
+          >
+            {value}
+          </Text>
+          {suffix}
+        </Box>
       )}
     </Box>
   );
@@ -60,12 +71,25 @@ export const StatCell: React.FC<StatCellProps> = ({
 export const CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'campaign-stats-summary-container',
   RETURN: 'campaign-stats-summary-return',
-  NET_DEPOSIT: 'campaign-stats-summary-net-deposit',
+  MARKET_VALUE: 'campaign-stats-summary-market-value',
   RANK: 'campaign-stats-summary-rank',
   TIER: 'campaign-stats-summary-tier',
+  PENDING_TAG: 'campaign-stats-summary-pending-tag',
   LEADERBOARD_ERROR: 'campaign-stats-summary-leaderboard-error',
   PORTFOLIO_ERROR: 'campaign-stats-summary-portfolio-error',
 } as const;
+
+export const PendingTag: React.FC<{ testID?: string }> = ({ testID }) => (
+  <Box twClassName="bg-muted rounded-[6px] px-1" testID={testID}>
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+    >
+      {strings('rewards.ondo_campaign_leaderboard.pending')}
+    </Text>
+  </Box>
+);
 
 interface DataSourceState {
   isLoading: boolean;
@@ -92,12 +116,15 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
   const leaderboardError = leaderboard.hasError && !leaderboardPosition;
   const portfolioError = portfolio.hasError && !portfolioSummary;
 
+  const isPending =
+    leaderboardPosition != null && !leaderboardPosition.qualified;
+
   const returnValue = leaderboardPosition
     ? formatPercentChange(leaderboardPosition.rateOfReturn)
     : '-';
 
-  const netDepositValue = portfolioSummary
-    ? formatUsd(portfolioSummary.netDeposit)
+  const marketValue = portfolioSummary
+    ? formatUsd(portfolioSummary.totalCurrentValue)
     : '-';
 
   const rankValue = leaderboardPosition ? `${leaderboardPosition.rank}` : '-';
@@ -119,11 +146,11 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RETURN}
         />
         <StatCell
-          label="Net Deposit"
-          value={netDepositValue}
+          label="Market Value"
+          value={marketValue}
           isLoading={portfolioLoading}
           valueColor={TextColor.SuccessDefault}
-          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NET_DEPOSIT}
+          testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARKET_VALUE}
         />
       </Box>
 
@@ -133,12 +160,26 @@ const CampaignStatsSummary: React.FC<CampaignStatsSummaryProps> = ({
           value={rankValue}
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.RANK}
+          suffix={
+            isPending ? (
+              <PendingTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
+              />
+            ) : undefined
+          }
         />
         <StatCell
           label="Tier"
           value={tierValue}
           isLoading={leaderboardLoading}
           testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.TIER}
+          suffix={
+            isPending ? (
+              <PendingTag
+                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.PENDING_TAG}
+              />
+            ) : undefined
+          }
         />
       </Box>
 
