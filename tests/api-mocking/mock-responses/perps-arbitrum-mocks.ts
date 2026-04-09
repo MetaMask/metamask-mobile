@@ -471,6 +471,58 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
 };
 
 /**
+ * Mocks the HyperLiquid clearinghouseState endpoint to return no open positions.
+ * Without this mock the request reaches the real API and the test account's
+ * actual positions would be returned, causing hasPerpsPosition=true.
+ */
+export const mockPerpsNoOpenPositions = async (
+  mockServer: Mockttp,
+): Promise<void> => {
+  const HYPERLIQUID_INFO_URL = 'api.hyperliquid.xyz/info';
+
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes(HYPERLIQUID_INFO_URL);
+    })
+    .asPriority(1000)
+    .thenCallback(async (request) => {
+      try {
+        const bodyText = await request.body.getText();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        if (body?.type === 'clearinghouseState') {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({
+              assetPositions: [],
+              crossMaintenanceMarginUsed: '0.0',
+              crossMarginSummary: {
+                accountValue: '0.0',
+                totalMarginUsed: '0.0',
+                totalNtlPos: '0.0',
+                totalRawUsd: '0.0',
+              },
+              marginSummary: {
+                accountValue: '0.0',
+                totalMarginUsed: '0.0',
+                totalNtlPos: '0.0',
+                totalRawUsd: '0.0',
+              },
+              time: Date.now(),
+              withdrawable: '0.0',
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          };
+        }
+      } catch {
+        // fall through
+      }
+      return { statusCode: 200, body: JSON.stringify({}) };
+    });
+};
+
+/**
  * Mock the geolocation endpoint for Perps eligibility checks.
  * The EligibilityService fetches geolocation via /proxy and compares
  * the plain-text result against the blocked regions list (US, CA-ON, GB, BE).

@@ -5,6 +5,7 @@ import {
   PerpsOpenOrderCardSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
+import { MarketInsightsSelectorsIDs } from '../../../app/components/UI/MarketInsights/MarketInsights.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
@@ -135,6 +136,12 @@ class PerpsMarketDetailsView {
   // Scroll view
   get scrollView(): DetoxElement {
     return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+  }
+
+  get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );
   }
@@ -280,6 +287,18 @@ class PerpsMarketDetailsView {
       checkStability: true,
       elemDescription: 'Perps market details scroll view',
     });
+  }
+
+  async scrollToMarketInsightsCard() {
+    await Gestures.scrollToElement(
+      Matchers.getElementByID(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      this.scrollViewIdentifier,
+      {
+        direction: 'down',
+        scrollAmount: 300,
+        elemDescription: 'Scroll to Market Insights entry card',
+      },
+    );
   }
 
   async scrollToBottom() {
