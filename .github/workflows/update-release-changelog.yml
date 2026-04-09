@@ -47,11 +47,39 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Update Release Changelog
-        uses: MetaMask/github-tools/.github/actions/update-release-changelog@v1
+      - name: Checkout release branch
+        uses: actions/checkout@v4
         with:
-          release-branch: ${{ github.ref_name }}
-          repository-url: ${{ github.server_url }}/${{ github.repository }}
-          platform: mobile
-          previous-version-ref: 'null'
-          github-token: ${{ secrets.PR_TOKEN }}
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.PR_TOKEN }}
+          fetch-depth: 0
+
+      - name: Checkout github-tools
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/github-tools
+          path: github-tools
+          ref: v1
+
+      - name: Setup Node for changelog tooling
+        uses: ./github-tools/.github/actions/checkout-and-setup
+        with:
+          is-high-risk-environment: true
+
+      - name: Update Release Changelog
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.PR_TOKEN }}
+          GIT_AUTHOR_NAME: metamaskbot
+          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          corepack enable
+          yarn install --immutable
+          bash .github/scripts/run-update-release-changelog-mobile.sh \
+            "${{ github.ref_name }}" \
+            mobile \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            "null"
