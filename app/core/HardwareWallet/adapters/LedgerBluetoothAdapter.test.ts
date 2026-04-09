@@ -674,13 +674,9 @@ describe('LedgerBluetoothAdapter', () => {
       async (errorMessage) => {
         const nonTransientError = new Error(errorMessage);
         nonTransientError.name = 'Error';
-        jest
-          .mocked(connectLedgerHardware)
-          .mockRejectedValue(nonTransientError);
+        jest.mocked(connectLedgerHardware).mockRejectedValue(nonTransientError);
 
-        await expect(
-          adapter.ensureDeviceReady('device-123'),
-        ).rejects.toThrow();
+        await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow();
         expect(connectLedgerHardware).toHaveBeenCalledTimes(1);
       },
     );
