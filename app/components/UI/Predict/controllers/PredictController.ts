@@ -1119,6 +1119,7 @@ export class PredictController extends BaseController<
     sharePrice,
     pnl,
     orderType,
+    paymentTokenAddress,
   }: {
     status: PredictTradeStatusValue;
     amountUsd?: number;
@@ -1128,6 +1129,7 @@ export class PredictController extends BaseController<
     sharePrice?: number;
     pnl?: number;
     orderType?: PredictOrderType;
+    paymentTokenAddress?: string;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -1183,6 +1185,9 @@ export class PredictController extends BaseController<
       }),
       ...(orderType && {
         [PredictEventProperties.ORDER_TYPE]: orderType,
+      }),
+      ...(paymentTokenAddress && {
+        [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
       }),
     };
 
@@ -1514,6 +1519,18 @@ export class PredictController extends BaseController<
           { error: error instanceof Error ? error.message : String(error) },
         );
       }
+
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUBMITTED,
+        amountUsd: params.preview?.maxAmountSpent,
+        analyticsProperties: params.analyticsProperties,
+        sharePrice: params.preview?.sharePrice,
+        orderType: params.preview.orderType,
+        paymentTokenAddress:
+          params.preview.side === Side.BUY
+            ? this.state.selectedPaymentToken?.address
+            : undefined,
+      });
 
       this.messenger.publish('PredictController:transactionStatusChanged', {
         type: 'order',
