@@ -91,6 +91,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartTradingViewClicked,
       isLoading = false,
       lineChrome,
+      visibleFromMs,
     },
     ref,
   ) => {
@@ -181,11 +182,18 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
     paginationRef.current = ohlcvPagination;
 
+    const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
+    visibleFromMsRef.current = visibleFromMs;
+
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
         postMessage({
           type: 'SET_OHLCV_DATA',
-          payload: { data, pagination: paginationRef.current },
+          payload: {
+            data,
+            pagination: paginationRef.current,
+            visibleFromMs: visibleFromMsRef.current,
+          },
         });
       },
       [postMessage],
@@ -390,6 +398,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         ohlcvSeriesKey !== undefined &&
         ohlcvSeriesKey !== prevOhlcvSeriesKeyRef.current
       ) {
+        if (prevOhlcvSeriesKeyRef.current !== undefined) {
+          // Time range switch: ohlcvData is still stale from the previous
+          // period (fetch is in progress). Show skeleton, mark the key, and
+          // clear prevData so the fresh data triggers the length-diff branch
+          // on arrival — avoiding sending stale data to the WebView which
+          // causes a resolution race condition in TradingView.
+          beginFullOhlcvLayoutSettle();
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+          prevOhlcvDataRef.current = [];
+          return;
+        }
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
