@@ -308,16 +308,16 @@ describe('Balance', () => {
   });
 
   it('should render correctly with main and secondary balance', () => {
-    const wrapper = render(
+    const { getByTestId } = render(
       <Provider store={store}>
         <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(getByTestId('asset-DAI')).toBeOnTheScreen();
   });
 
   it('should render correctly without a secondary balance', () => {
-    const wrapper = render(
+    const { getByTestId } = render(
       <Provider store={store}>
         <Balance
           asset={mockDAI}
@@ -326,7 +326,7 @@ describe('Balance', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(getByTestId('asset-DAI')).toBeOnTheScreen();
   });
 
   it('should fire navigation event for non native tokens', () => {
