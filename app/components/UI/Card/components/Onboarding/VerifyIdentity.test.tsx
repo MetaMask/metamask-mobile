@@ -269,6 +269,7 @@ const createTestStore = (initialState = {}) =>
             user: null,
             ...initialState,
           },
+          userCardLocation: 'international',
         },
         action = { type: '', payload: null },
       ) => {

@@ -14,6 +14,7 @@ export enum PROTOCOLS {
 
 export enum ACTIONS {
   RAMP = 'ramp',
+  ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   CARD_KYC_NOTIFICATION = 'card-kyc-notification',
@@ -76,6 +77,7 @@ export const PREFIXES = {
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
   [ACTIONS.SHIELD]: '',
+  [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',

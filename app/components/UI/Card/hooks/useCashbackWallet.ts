@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+import { selectIsAuthenticatedCard } from '../../../../core/redux/slices/card';
 import { cardQueries } from '../queries';
 
 type MonitoringStatus = 'idle' | 'monitoring' | 'success' | 'failed';
@@ -11,7 +11,7 @@ const TX_POLLING_INTERVAL_MS = 5000;
 const TX_POLLING_TIMEOUT_MS = 3 * 60 * 1000;
 
 const useCashbackWallet = () => {
-  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
   const { sdk } = useCardSDK();
   const queryClient = useQueryClient();
 

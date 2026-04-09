@@ -21,7 +21,7 @@ exports[`NetworkInfo render correctly 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "marginVertical": 10,
           "textAlign": "center",
@@ -96,7 +96,7 @@ exports[`NetworkInfo render correctly 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 14,
           "marginBottom": 15,
           "textAlign": "center",
@@ -296,7 +296,7 @@ exports[`NetworkInfo render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -337,7 +337,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "marginVertical": 10,
           "textAlign": "center",
@@ -428,7 +428,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 14,
           "marginBottom": 15,
           "textAlign": "center",
@@ -628,7 +628,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },
@@ -669,7 +669,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 16,
           "marginVertical": 10,
           "textAlign": "center",
@@ -744,7 +744,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       style={
         {
           "color": "#131416",
-          "fontFamily": "Geist-SemiBold",
+          "fontFamily": "Geist-Bold",
           "fontSize": 14,
           "marginBottom": 15,
           "textAlign": "center",
@@ -883,7 +883,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
             null,
             [
               {
-                "fontFamily": "Geist-SemiBold",
+                "fontFamily": "Geist-Bold",
                 "fontSize": 14,
                 "textAlign": "center",
               },

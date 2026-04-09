@@ -44,8 +44,7 @@ import { getNavigationOptionsTitle } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAppTheme } from '../../../../../../util/theme';
 import { Country, State } from '@metamask/ramps-controller';
-import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
-import { useRampsCountries } from '../../../hooks/useRampsCountries';
+import useRampsController from '../../../hooks/useRampsController';
 import { REGION_SELECTOR_TEST_IDS } from './RegionSelector.testIds';
 
 const MAX_REGION_RESULTS = 20;
@@ -110,12 +109,13 @@ function RegionSelector() {
   const { colors } = useAppTheme();
   const listRef = useRef<FlatList<ListItem>>(null);
 
-  const { userRegion, setUserRegion } = useRampsUserRegion();
   const {
+    userRegion,
+    setUserRegion,
     countries,
-    isLoading: countriesLoading,
-    error: countriesError,
-  } = useRampsCountries();
+    countriesLoading,
+    countriesError,
+  } = useRampsController();
 
   const [searchString, setSearchString] = useState('');
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);

@@ -121,8 +121,8 @@ const mockInAppBrowser = InAppBrowser as jest.Mocked<typeof InAppBrowser>;
 let mockSelectedProvider: Provider | null = createMockProvider();
 const mockSetSelectedProvider = jest.fn();
 
-jest.mock('../../../hooks/useRampsProviders', () => ({
-  useRampsProviders: () => ({
+jest.mock('../../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
     selectedProvider: mockSelectedProvider,
     setSelectedProvider: mockSetSelectedProvider,
   }),

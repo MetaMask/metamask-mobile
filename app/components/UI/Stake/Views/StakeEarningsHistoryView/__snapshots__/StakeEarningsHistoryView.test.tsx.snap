@@ -211,7 +211,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 style={
                   {
                     "color": "#457a39",
-                    "fontFamily": "Geist-SemiBold",
+                    "fontFamily": "Geist-Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
                     "lineHeight": 32,
@@ -833,8 +833,9 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               [
                 {
                   "color": "#131416",
-                  "fontFamily": "Geist-SemiBold",
+                  "fontFamily": "Geist-Bold",
                   "fontSize": 16,
+                  "fontWeight": 400,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
@@ -861,6 +862,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                       "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
+                      "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     },
@@ -902,6 +904,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         "color": "#131416",
                         "fontFamily": "Geist-Medium",
                         "fontSize": 16,
+                        "fontWeight": 400,
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       },
@@ -937,6 +940,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                           "color": "#457a39",
                           "fontFamily": "Geist-Medium",
                           "fontSize": 16,
+                          "fontWeight": 400,
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         },
