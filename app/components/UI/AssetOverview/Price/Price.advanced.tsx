@@ -19,7 +19,6 @@ import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
-import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
