@@ -44,4 +44,6 @@ jobs:
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ inputs.source_branch || github.ref_name }}
+      semver: ${{ needs.runway-rc.outputs.semantic_version }}
+      android_build_number: ${{ needs.runway-rc.outputs.android_version_code }}
     secrets: inherit
