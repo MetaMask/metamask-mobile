@@ -1083,6 +1083,293 @@ describe('WebSocketManager', () => {
     });
   });
 
+  describe('RTDS connection edge cases', () => {
+    it('reuses existing connection for second subscriber', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+
+      const rtdsInstances = mockWebSocketInstances.filter(
+        (ws) => ws.url === 'wss://ws-live-data.polymarket.com',
+      );
+      expect(rtdsInstances).toHaveLength(1);
+    });
+
+    it('sends subscribe for new symbols on already-open connection', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.send.mockClear();
+
+      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+
+      expect(rtdsInstance.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'subscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices',
+              type: 'update',
+              filters: 'ethusdt',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('does not create new connection when WS is in CONNECTING state', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const countAfterFirst = mockWebSocketInstances.length;
+
+      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+
+      expect(mockWebSocketInstances.length).toBe(countAfterFirst);
+    });
+
+    it('calls multiple subscriber callbacks for same symbol', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback1);
+      manager.subscribeToCryptoPrices(['btcusdt'], callback2);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+
+      jest.advanceTimersByTime(16);
+
+      expect(callback1).toHaveBeenCalled();
+      expect(callback2).toHaveBeenCalled();
+    });
+
+    it('delivers updates to multiple subscriptions with overlapping symbols', () => {
+      const manager = WebSocketManager.getInstance();
+      const callbackA = jest.fn();
+      const callbackB = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callbackA);
+      manager.subscribeToCryptoPrices(['btcusdt', 'ethusdt'], callbackB);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+      jest.advanceTimersByTime(16);
+
+      expect(callbackA).toHaveBeenCalledTimes(1);
+      expect(callbackB).toHaveBeenCalledTimes(1);
+
+      callbackA.mockClear();
+      callbackB.mockClear();
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000001,
+        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500.0 },
+      });
+      jest.advanceTimersByTime(16);
+
+      expect(callbackA).not.toHaveBeenCalled();
+      expect(callbackB).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores messages with non-crypto_prices topic', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'orderbook',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+
+      jest.advanceTimersByTime(16);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('ignores messages with missing payload', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+      });
+
+      jest.advanceTimersByTime(16);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('handles onerror without crashing', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+
+      expect(() => rtdsInstance.simulateError()).not.toThrow();
+    });
+
+    it('does not send subscribe when WS is not open', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+
+      expect(rtdsInstance.send).not.toHaveBeenCalled();
+    });
+
+    it('does not send unsubscribe when WS is not open', () => {
+      const manager = WebSocketManager.getInstance();
+
+      const unsubscribe = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        jest.fn(),
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.send.mockClear();
+
+      unsubscribe();
+
+      expect(rtdsInstance.send).not.toHaveBeenCalled();
+    });
+
+    it('cleans up RTDS connection with throttle timer active', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+
+      WebSocketManager.resetInstance();
+
+      expect(() => jest.advanceTimersByTime(100)).not.toThrow();
+    });
+
+    it('handles cleanup when rtdsWs is null', () => {
+      WebSocketManager.getInstance();
+
+      expect(() => WebSocketManager.resetInstance()).not.toThrow();
+    });
+
+    it('resubscribes all symbols on reconnect after close', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+      const firstInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      firstInstance.simulateOpen();
+      firstInstance.simulateClose();
+
+      jest.advanceTimersByTime(3000);
+
+      const secondInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      secondInstance.simulateOpen();
+
+      const subscribeCalls = secondInstance.send.mock.calls.filter(
+        (call: string[]) => {
+          try {
+            const msg = JSON.parse(call[0]);
+            return msg.action === 'subscribe';
+          } catch {
+            return false;
+          }
+        },
+      );
+
+      expect(subscribeCalls.length).toBeGreaterThan(0);
+    });
+
+    it('reconnectAll only connects RTDS when only RTDS has subscriptions', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      const countBefore = mockWebSocketInstances.length;
+
+      if (appStateCallback) {
+        appStateCallback('background');
+        appStateCallback('active');
+      }
+
+      expect(mockWebSocketInstances.length).toBe(countBefore + 1);
+      expect(
+        mockWebSocketInstances[mockWebSocketInstances.length - 1].url,
+      ).toBe('wss://ws-live-data.polymarket.com');
+    });
+
+    it('clears throttle timer when buffer empties after flush', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+
+      jest.advanceTimersByTime(16);
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      callback.mockClear();
+      jest.advanceTimersByTime(16);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
   describe('getConnectionStatus', () => {
     it('returns connection status with all fields populated', () => {
       const manager = WebSocketManager.getInstance();
