@@ -1,10 +1,10 @@
 import React, { useCallback, useLayoutEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
   RouteProp,
   useNavigation,
-  useRoute,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -25,6 +25,7 @@ import {
   FontFamily,
   FontWeight,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -41,6 +42,10 @@ interface OnboardingSuccessRouteParams {
 interface OnboardingSuccessParamList {
   OnboardingSuccess: OnboardingSuccessRouteParams;
   [key: string]: object | undefined;
+}
+
+interface OnboardingSuccessScreenProps {
+  route?: RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>;
 }
 
 interface OnboardingSuccessProps {
@@ -110,15 +115,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     }
 
     return (
-      <Button
+      <TouchableOpacity
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        variant={ButtonVariant.Tertiary}
-        size={ButtonSize.Lg}
-        isFullWidth
+        style={tw.style('py-2 items-center')}
       >
-        {strings('onboarding_success.manage_default_settings')}
-      </Button>
+        <Text
+          color={TextColor.InfoDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
+          {strings('onboarding_success.manage_default_settings')}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
@@ -156,10 +165,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-export const OnboardingSuccess = () => {
+export const OnboardingSuccess = ({ route }: OnboardingSuccessScreenProps) => {
   const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>>();
   const successFlow =
     route?.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
   const nextScreen = ResetNavigationToHome;

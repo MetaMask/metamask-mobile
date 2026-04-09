@@ -534,7 +534,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-SemiBold",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1081,7 +1081,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1139,7 +1139,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1226,7 +1226,7 @@ exports[`NftDetails renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 20,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -1412,6 +1412,7 @@ exports[`NftDetails renders correctly 1`] = `
                                     "flexWrap": "wrap",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
+                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "textAlign": "center",

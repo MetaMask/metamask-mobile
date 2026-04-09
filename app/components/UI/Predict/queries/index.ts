@@ -4,10 +4,6 @@ import {
 } from './accountState';
 import { predictActivityKeys, predictActivityOptions } from './activity';
 import { predictBalanceKeys, predictBalanceOptions } from './balance';
-import {
-  predictFeaturedCarouselKeys,
-  predictFeaturedCarouselOptions,
-} from './featuredCarousel';
 import { predictMarketKeys, predictMarketOptions } from './market';
 import {
   predictOrderPreviewKeys,
@@ -35,10 +31,6 @@ export const predictQueries = {
   balance: {
     keys: predictBalanceKeys,
     options: predictBalanceOptions,
-  },
-  featuredCarousel: {
-    keys: predictFeaturedCarouselKeys,
-    options: predictFeaturedCarouselOptions,
   },
   market: {
     keys: predictMarketKeys,

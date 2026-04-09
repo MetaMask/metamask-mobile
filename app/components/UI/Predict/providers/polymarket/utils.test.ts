@@ -68,7 +68,6 @@ import {
   roundOrderAmount,
   previewOrder,
   getAllowanceCalls,
-  fetchCarouselFromPolymarketApi,
   isSportEvent,
   isSpreadMarket,
   sortSportMarkets,
@@ -138,8 +137,6 @@ describe('polymarket utils', () => {
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
         GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
-        HOMEPAGE_CAROUSEL_ENDPOINT:
-          'https://polymarket.com/api/homepage/carousel',
         CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       });
     });
@@ -3746,156 +3743,6 @@ describe('polymarket utils', () => {
       });
 
       expect(result.negRisk).toBe(true);
-    });
-  });
-
-  describe('fetchCarouselFromPolymarketApi', () => {
-    const carouselEndpoint = 'https://polymarket.com/api/homepage/carousel';
-
-    const createCarouselItem = (overrides = {}) => ({
-      event: {
-        id: 'event-1',
-        slug: 'event-1',
-        title: 'Event 1',
-        description: 'event description',
-        icon: 'https://example.com/icon.png',
-        closed: false,
-        tags: [],
-        series: [],
-        markets: [
-          {
-            conditionId: 'market-1',
-            question: 'Question?',
-            description: 'market description',
-            icon: 'https://example.com/market-icon.png',
-            image: 'https://example.com/market-image.png',
-            groupItemTitle: 'Option group',
-            status: 'open',
-            volumeNum: 100,
-            liquidity: 100,
-            negRisk: false,
-            clobTokenIds: ['1', '2'],
-            outcomes: ['Yes', 'No'],
-            outcomePrices: ['0.6', '0.4'],
-            closed: false,
-            active: true,
-            resolvedBy: '',
-            orderPriceMinTickSize: 0.01,
-            umaResolutionStatus: 'unresolved',
-          },
-        ],
-        liquidity: 100,
-        volume: 200,
-      },
-      type: 'sports',
-      shortName: 'S',
-      options: [],
-      ...overrides,
-    });
-
-    it('fetches from the carousel endpoint and returns items', async () => {
-      const responseItems = [createCarouselItem()];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => responseItems,
-      });
-
-      const result = await fetchCarouselFromPolymarketApi();
-
-      expect(mockFetch).toHaveBeenCalledWith(carouselEndpoint);
-      expect(result).toHaveLength(1);
-      expect(result[0].event.id).toBe('event-1');
-    });
-
-    it('returns empty array when response is not an array', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ items: [createCarouselItem()] }),
-      });
-
-      const result = await fetchCarouselFromPolymarketApi();
-
-      expect(result).toEqual([]);
-    });
-
-    it('throws when response is not ok', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({}),
-      });
-
-      await expect(fetchCarouselFromPolymarketApi()).rejects.toThrow(
-        'Failed to fetch carousel data',
-      );
-    });
-
-    it('normalizes array-type outcomes to JSON strings', async () => {
-      const responseItems = [createCarouselItem()];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => responseItems,
-      });
-
-      const result = await fetchCarouselFromPolymarketApi();
-
-      expect(result[0].event.markets[0].outcomes).toBe('["Yes","No"]');
-    });
-
-    it('normalizes array-type outcomePrices to JSON strings', async () => {
-      const responseItems = [createCarouselItem()];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => responseItems,
-      });
-
-      const result = await fetchCarouselFromPolymarketApi();
-
-      expect(result[0].event.markets[0].outcomePrices).toBe('["0.6","0.4"]');
-    });
-
-    it('normalizes array-type clobTokenIds to JSON strings', async () => {
-      const responseItems = [createCarouselItem()];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => responseItems,
-      });
-
-      const result = await fetchCarouselFromPolymarketApi();
-
-      expect(result[0].event.markets[0].clobTokenIds).toBe('["1","2"]');
-    });
-
-    it('leaves string-type fields unchanged', async () => {
-      const responseItems = [
-        createCarouselItem({
-          event: {
-            ...createCarouselItem().event,
-            markets: [
-              {
-                ...createCarouselItem().event.markets[0],
-                outcomes: '["Yes","No"]',
-                outcomePrices: '["0.6","0.4"]',
-                clobTokenIds: '["1","2"]',
-              },
-            ],
-          },
-        }),
-      ];
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => responseItems,
-      });
-
-      const result = await fetchCarouselFromPolymarketApi();
-
-      expect(result[0].event.markets[0].outcomes).toBe('["Yes","No"]');
-      expect(result[0].event.markets[0].outcomePrices).toBe('["0.6","0.4"]');
-      expect(result[0].event.markets[0].clobTokenIds).toBe('["1","2"]');
     });
   });
 

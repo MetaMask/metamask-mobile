@@ -387,8 +387,9 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
                                 [
                                   {
                                     "color": "#131416",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
+                                    "fontWeight": 400,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   },
@@ -491,6 +492,7 @@ exports[`UnsupportedTokenModal renders the modal with correct title and descript
                                 "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
+                                "fontWeight": 400,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               },

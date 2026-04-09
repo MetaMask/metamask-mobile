@@ -14,7 +14,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.contractInteraction,
   TransactionType.deployContract,
   TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
@@ -50,7 +49,6 @@ export const TRANSFER_TRANSACTION_TYPES = [
 
 export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -89,7 +87,6 @@ export const HIDE_NETWORK_FILTER_TYPES = [
 export const POST_QUOTE_TRANSACTION_TYPES = [
   TransactionType.predictWithdraw,
   TransactionType.perpsWithdraw,
-  TransactionType.moneyAccountWithdraw,
 ] as const;
 
 /**

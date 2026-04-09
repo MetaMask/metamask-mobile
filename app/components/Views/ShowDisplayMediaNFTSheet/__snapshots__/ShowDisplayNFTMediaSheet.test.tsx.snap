@@ -504,8 +504,9 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                       [
                                         {
                                           "color": "#131416",
-                                          "fontFamily": "Geist-SemiBold",
+                                          "fontFamily": "Geist-Bold",
                                           "fontSize": 16,
+                                          "fontWeight": 400,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         },
@@ -612,7 +613,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#66676a",
-                                    "fontFamily": "Geist-SemiBold",
+                                    "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
@@ -646,7 +647,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#66676a",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

@@ -493,7 +493,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -674,6 +674,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -789,6 +790,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -1328,7 +1330,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1943,7 +1945,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -2124,6 +2126,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
@@ -2668,7 +2671,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                   style={
                                     {
                                       "color": "#131416",
-                                      "fontFamily": "Geist-SemiBold",
+                                      "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -2854,6 +2857,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Regular",
                                                   "fontSize": 16,
+                                                  "fontWeight": 400,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 },
