@@ -19,8 +19,6 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import Utilities from '../../framework/Utilities';
-import Assertions from '../../framework/Assertions';
-
 describe(SmokePerps('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
     await withFixtures(
@@ -91,23 +89,16 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
         // Confirm limit price (Set button)
         await PerpsOrderView.confirmLimitPrice();
 
-        // Place order
+        // Place order (PerpsView waits until the button is enabled, then taps)
         await PerpsView.tapPlaceOrderButton();
 
-        // Navigate back to main Perps screen to follow the same navigation pattern as other specs
-        await PerpsView.tapBackButtonPositionSheet();
-        await PerpsHomeView.tapBackHomeButton();
+        // Return to Perps portfolio home (explore → details → order: need list back, not wallet back)
+        await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
 
-        // Verify on Perps home that the newly created limit order is visible.
-        await Utilities.executeWithRetry(
-          async () => {
-            await Assertions.expectTextDisplayed('Limit long', {
-              description: 'Limit long order is visible on Perps home',
-              timeout: 5000,
-            });
-          },
-          { interval: 1000, timeout: 30000 },
-        );
+        await PerpsView.expectLimitOrderVisibleOnPortfolio({
+          symbol: 'ETH',
+          direction: 'long',
+        });
 
         // Push the price -15% to ensure the order is executed
         // Default ETH price in mock is 2500.00, -15% => 2125.00
@@ -117,11 +108,10 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
           '2125.00',
         );
 
-        // Navigate to ETH again to verify order is gone and position is present
-        await WalletView.scrollAndTapPerpsSection();
-        await PerpsHomeView.tapExploreCryptoIfVisible();
-        await PerpsMarketListView.selectMarket('ETH');
-        await PerpsMarketDetailsView.expectNoOpenOrderVisible();
+        await PerpsView.expectPositionRowAfterLimitOrderFilled({
+          symbol: 'ETH',
+          direction: 'long',
+        });
       },
     );
   });

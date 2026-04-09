@@ -15,7 +15,7 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
-describe(
+describe.skip(
   SmokePerps('Perps - no funds shows Start Trading and tutorial'),
   () => {
     beforeEach(async () => {

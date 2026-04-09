@@ -11,6 +11,17 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
+import PerpsHomeView from './PerpsHomeView';
+import PerpsMarketListView from './PerpsMarketListView';
+
+/** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
+export interface PerpsPortfolioLimitFlowExpectOptions {
+  symbol: string;
+  direction: 'long' | 'short';
+  /** Override order card label before fill (default `Limit {direction}`). */
+  orderLabel?: string;
+}
 
 class PerpsView {
   get closePositionButton() {
@@ -94,8 +105,14 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
+  /** PerpsTabView main scroll (embedded tab). Not mounted on Perps home (homepage redesign). */
   get anchor(): DetoxElement {
     return Matchers.getElementByID('perps-tab-scroll-view');
+  }
+
+  /** Perps home header — use as swipe target when {@link anchor} is absent. */
+  get perpsHomeHeader(): DetoxElement {
+    return Matchers.getElementByID('perps-home');
   }
 
   // Orders section on the Perps main tab
@@ -115,6 +132,55 @@ class PerpsView {
     await Assertions.expectElementToBeVisible(this.anyOrderCardOnTab, {
       description: 'An order card is visible on Perps tab',
     });
+  }
+
+  /**
+   * Open limit order visible on portfolio/home (`formatOrderLabel` / PerpsCard).
+   */
+  async expectLimitOrderVisibleOnPortfolio(
+    options: PerpsPortfolioLimitFlowExpectOptions,
+  ): Promise<void> {
+    const { symbol, direction } = options;
+    const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectTextDisplayed(orderLabel, {
+          description: `${orderLabel} order visible on Perps portfolio (${symbol})`,
+          timeout: 5000,
+        });
+      },
+      { interval: 1000, timeout: 30000 },
+    );
+  }
+
+  /**
+   * After fill: order label gone and position row matches `{symbol} {n}x {direction}` (PerpsCard).
+   */
+  async expectPositionRowAfterLimitOrderFilled(
+    options: PerpsPortfolioLimitFlowExpectOptions,
+  ): Promise<void> {
+    const { symbol, direction } = options;
+    const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const positionPrimaryLine = new RegExp(
+      `${escapedSymbol} \\d+x ${direction}`,
+    );
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectTextNotDisplayed(orderLabel, {
+          description: `Open order "${orderLabel}" cleared after fill (${symbol})`,
+          timeout: 5000,
+        });
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByText(positionPrimaryLine),
+          {
+            description: `${symbol} position row visible (${direction}, any leverage)`,
+            timeout: 5000,
+          },
+        );
+      },
+      { interval: 1000, timeout: 30000 },
+    );
   }
 
   getTakeProfitPercentageButton(percentage: number) {
@@ -172,14 +238,23 @@ class PerpsView {
     });
   }
 
-  // Scroll helper on Perps tab (swipe over the tab ScrollView)
+  /**
+   * Scrolls the Perps portfolio area down. Uses tab ScrollView when present; otherwise Perps home
+   * (homepage redesign has no `perps-tab-scroll-view`).
+   */
   async scrollDownOnPerpsTab(times = 1) {
-    const anchor = this.anchor;
     for (let i = 0; i < times; i++) {
-      await Gestures.swipe(anchor, 'up', {
+      const tabScrollVisible = await Utilities.isElementVisible(
+        this.anchor,
+        1000,
+      );
+      const swipeTarget = tabScrollVisible ? this.anchor : this.perpsHomeHeader;
+      await Gestures.swipe(swipeTarget, 'up', {
         speed: 'fast',
         percentage: 0.7,
-        elemDescription: 'Perps tab scroll down',
+        elemDescription: tabScrollVisible
+          ? 'Perps tab scroll down'
+          : 'Perps home scroll down',
       });
     }
   }
@@ -242,15 +317,20 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
-    // Live price/streaming updates shift surrounding layout; skip stability (see e2e-testing-guidelines).
-    await Utilities.waitForReadyState(this.placeOrderButton as DetoxElement, {
+    const el = this.placeOrderButton as DetoxElement;
+    await Utilities.waitForReadyState(el, {
       checkStability: false,
+      timeout: 8000,
       elemDescription: 'Place order button',
-      timeout: 7000,
     });
-    await Gestures.waitAndTap(this.placeOrderButton, {
-      elemDescription: 'Tap Place Order',
-      checkStability: false,
+    await waitForStableEnabledIOS(el, {
+      timeout: 22000,
+      pollIntervalMs: 120,
+      consecutiveSuccess: 5,
+    });
+    await Gestures.waitAndTap(el, {
+      timeout: 35000,
+      elemDescription: 'Place order button',
     });
   }
 
@@ -296,6 +376,45 @@ class PerpsView {
     await Gestures.waitAndTap(this.backButtonPositionSheet, {
       elemDescription: 'Back button position sheet',
     });
+  }
+
+  /**
+   * After placing an order from market details (explore → market → order), return to Perps
+   * portfolio home where open orders are listed. Uses market-details header back, then
+   * market-list header back — not {@link PerpsHomeView.tapBackHomeButton} (that control only
+   * exists on portfolio home and exits Perps toward wallet).
+   */
+  async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
+    await this.tapBackButtonPositionSheet();
+
+    if (await Utilities.isElementVisible(PerpsHomeView.backHome, 3000)) {
+      return;
+    }
+
+    if (
+      await Utilities.isElementVisible(
+        PerpsMarketListView.headerBackButton,
+        3000,
+      )
+    ) {
+      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+      return;
+    }
+
+    if (
+      await Utilities.isElementVisible(
+        this.backButtonPositionSheet as DetoxElement,
+        3000,
+      )
+    ) {
+      await this.tapBackButtonPositionSheet();
+      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+      return;
+    }
+
+    throw new Error(
+      'Could not reach Perps portfolio home: no market list back or market header back visible',
+    );
   }
 
   /**

@@ -3,6 +3,7 @@ import Matchers from '../../framework/Matchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -12,6 +13,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
+  asDetoxElement,
   asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
@@ -74,9 +76,20 @@ class PerpsOrderView {
   }
 
   async tapPlaceOrderButton() {
-    await UnifiedGestures.waitAndTap(this.placeOrderButton, {
-      description: 'Place Order button',
-      timeout: 15000,
+    const el = asDetoxElement(this.placeOrderButton);
+    await Utilities.waitForReadyState(el, {
+      checkStability: false,
+      timeout: 8000,
+      elemDescription: 'Place order button',
+    });
+    await waitForStableEnabledIOS(el, {
+      timeout: 22000,
+      pollIntervalMs: 120,
+      consecutiveSuccess: 5,
+    });
+    await Gestures.waitAndTap(el, {
+      timeout: 35000,
+      elemDescription: 'Place order button',
     });
   }
 
