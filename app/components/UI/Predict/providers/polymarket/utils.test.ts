@@ -1972,10 +1972,10 @@ describe('polymarket utils', () => {
 
     it('prioritizes sport event sorting over sortBy parameter', () => {
       const markets = [
-        createMarket('totals-low-price', '["0.3", "0.7"]', 100, 100, 'totals'),
+        createMarket('totals-high-price', '["0.9", "0.1"]', 100, 100, 'totals'),
         createMarket(
-          'moneyline-high-price',
-          '["0.9", "0.1"]',
+          'moneyline-low-price',
+          '["0.3", "0.7"]',
           100,
           100,
           'moneyline',
@@ -1986,10 +1986,9 @@ describe('polymarket utils', () => {
 
       const result = sortMarkets(event, 'price');
 
-      // Sport sorting takes priority: moneyline first regardless of price
       expect(result.map((m) => m.conditionId)).toEqual([
-        'moneyline-high-price',
-        'totals-low-price',
+        'moneyline-low-price',
+        'totals-high-price',
       ]);
     });
 
