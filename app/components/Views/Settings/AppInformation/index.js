@@ -243,6 +243,7 @@ class AppInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const otaUpdateMessage = this.getOtaUpdateMessage();
+    const enabledFeatureFlags = this.getEnabledFeatureFlags();
 
     const aboutTitle = strings('app_settings.info_title');
 
@@ -330,7 +331,7 @@ class AppInformation extends PureComponent {
                 {/* Feature Flags Section */}
                 <TouchableOpacity onPress={this.toggleFeatureFlags}>
                   <Text style={styles.link}>
-                    {`Feature Flags (${this.getEnabledFeatureFlags().length} enabled) ${this.state.showFeatureFlags ? '▼' : '▶'}`}
+                    {`Feature Flags (${enabledFeatureFlags.length} enabled) ${this.state.showFeatureFlags ? '▼' : '▶'}`}
                   </Text>
                 </TouchableOpacity>
 
@@ -341,7 +342,7 @@ class AppInformation extends PureComponent {
                     >
                       <Text style={styles.link}>Copy All to Clipboard</Text>
                     </TouchableOpacity>
-                    {this.getEnabledFeatureFlags().map((name) => (
+                    {enabledFeatureFlags.map((name) => (
                       <Text key={name} style={styles.branchInfo}>
                         {`• ${name}`}
                       </Text>

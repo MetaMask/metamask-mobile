@@ -101,8 +101,8 @@ describe('AppInformation', () => {
     (Clipboard.setString as jest.Mock).mockClear();
   });
 
-  it('renders correctly with snapshot', async () => {
-    const { getByText } = renderScreen(
+  it('renders correctly', async () => {
+    const { getByText, getByTestId } = renderScreen(
       AppInformation,
       { name: 'AppInformation', options: { headerShown: false } },
       { state: MOCK_STATE },
@@ -110,7 +110,9 @@ describe('AppInformation', () => {
     await waitFor(() => {
       expect(getByText('MetaMask v7.0.0 (1000)')).toBeOnTheScreen();
     });
+    expect(getByTestId(AboutMetaMaskSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
+    expect(getByText(strings('app_information.links'))).toBeOnTheScreen();
   });
 
   it('renders the container with correct testID', () => {
