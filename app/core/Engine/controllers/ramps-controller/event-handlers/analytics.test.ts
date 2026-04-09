@@ -80,7 +80,19 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
       expect(trackedEvent.name).toBe('On-ramp Purchase Completed');
-      expect(trackedEvent.properties).toMatchSnapshot();
+      expect(trackedEvent.properties).toEqual({
+        amount: 100,
+        amount_in_usd: 100,
+        chain_id_destination: 'eip155:1',
+        crypto_out: '0.5',
+        currency_destination: 'ETH',
+        currency_source: 'USD',
+        exchange_rate: 190,
+        order_type: 'BUY',
+        payment_method_id: 'card-1',
+        provider_onramp: 'Transak',
+        total_fee: 5,
+      });
     });
 
     it('tracks ONRAMP_PURCHASE_FAILED for Failed status', () => {
