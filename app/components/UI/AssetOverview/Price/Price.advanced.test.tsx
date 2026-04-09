@@ -274,12 +274,32 @@ describe('PriceAdvanced', () => {
   });
 
   it('calculates percentage from OHLCV data instead of props', () => {
-    // Mock OHLCV data: first candle open = 95, current price = 105
+    // Mock OHLCV data for 1D time range (default)
+    // Candle ~24 hours ago: open = 95, current price = 105
     // Expected: (105 - 95) / 95 * 100 = 10.53%
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
-        { time: 1000, open: 95, high: 101, low: 94, close: 100, volume: 1 },
-        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        // Candle from ~24 hours ago (closest to target)
+        {
+          time: oneDayAgo,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        // Recent candle
+        {
+          time: now - 1000,
+          open: 100,
+          high: 106,
+          low: 100,
+          close: 105,
+          volume: 1,
+        },
       ],
       isLoading: false,
       error: undefined,
@@ -311,12 +331,29 @@ describe('PriceAdvanced', () => {
   });
 
   it('updates percentage when time range changes and new OHLCV data loads', () => {
-    // Initial: 1D range with first candle open = 95, current price = 105
+    // Initial: 1D range with candle from 24h ago, open = 95, current price = 105
     // Expected: (105 - 95) / 95 * 100 = 10.53%
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
-        { time: 1000, open: 95, high: 101, low: 94, close: 100, volume: 1 },
-        { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        {
+          time: oneDayAgo,
+          open: 95,
+          high: 101,
+          low: 94,
+          close: 100,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 100,
+          high: 106,
+          low: 100,
+          close: 105,
+          volume: 1,
+        },
       ],
       isLoading: false,
       error: undefined,
@@ -332,12 +369,26 @@ describe('PriceAdvanced', () => {
     expect(getByText(/10\.53%/)).toBeOnTheScreen();
 
     // Simulate time range change: new OHLCV data with different starting price
-    // First candle open = 102, current price = 105
+    // Candle from 24h ago: open = 102, current price = 105
     // Expected: (105 - 102) / 102 * 100 = 2.94%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
-        { time: 3000, open: 102, high: 104, low: 102, close: 103, volume: 1 },
-        { time: 4000, open: 103, high: 106, low: 103, close: 105, volume: 1 },
+        {
+          time: oneDayAgo,
+          open: 102,
+          high: 104,
+          low: 102,
+          close: 103,
+          volume: 1,
+        },
+        {
+          time: now - 1000,
+          open: 103,
+          high: 106,
+          low: 103,
+          close: 105,
+          volume: 1,
+        },
       ],
       isLoading: false,
       error: undefined,
