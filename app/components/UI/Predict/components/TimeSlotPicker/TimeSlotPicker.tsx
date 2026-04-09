@@ -200,13 +200,15 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   const pillPositions = useRef<Map<string, number>>(new Map());
   const lastScrolledId = useRef<string | undefined>(undefined);
 
-  const liveMarket = useMemo(() => findLiveMarket(markets), [markets]);
+  const liveMarket = findLiveMarket(markets);
+  const liveMarketId = liveMarket?.id;
+  useCountdown(liveMarket?.endDate);
 
   const resolvedSelectedId = useMemo(() => {
     if (selectedMarketId) return selectedMarketId;
-    if (liveMarket) return liveMarket.id;
+    if (liveMarketId) return liveMarketId;
     return findNearestMarket(markets)?.id;
-  }, [selectedMarketId, liveMarket, markets]);
+  }, [selectedMarketId, liveMarketId, markets]);
 
   const handlePillLayout = useCallback((marketId: string, x: number) => {
     pillPositions.current.set(marketId, x);
@@ -216,11 +218,13 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     if (!resolvedSelectedId) return;
     if (lastScrolledId.current === resolvedSelectedId) return;
 
-    const offset = pillPositions.current.get(resolvedSelectedId);
-    if (offset !== undefined) {
-      scrollRef.current?.scrollTo({ x: offset, animated: true });
-      lastScrolledId.current = resolvedSelectedId;
-    }
+    requestAnimationFrame(() => {
+      const offset = pillPositions.current.get(resolvedSelectedId);
+      if (offset !== undefined) {
+        scrollRef.current?.scrollTo({ x: offset, animated: true });
+        lastScrolledId.current = resolvedSelectedId;
+      }
+    });
   }, [resolvedSelectedId, markets]);
 
   if (markets.length === 0) return null;
@@ -241,7 +245,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
           <TimeSlotPill
             market={market}
             isSelected={market.id === resolvedSelectedId}
-            isLive={market.id === liveMarket?.id}
+            isLive={market.id === liveMarketId}
             onPress={onMarketSelected}
           />
         </Box>
