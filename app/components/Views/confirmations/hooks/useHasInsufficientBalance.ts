@@ -1,14 +1,13 @@
 import { add0x, Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import {
   addHexes,
   decimalToHex,
   multiplyHexes,
 } from '../../../../util/conversions';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
+import { useNativeCurrencySymbol } from './useNativeCurrencySymbol';
 
 const HEX_ZERO = '0x0';
 
@@ -17,7 +16,6 @@ export function useHasInsufficientBalance(): {
   nativeCurrency?: string;
 } {
   const transactionMetadata = useTransactionMetadataRequest();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { balanceWeiInHex } = useAccountNativeBalance(
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
@@ -25,9 +23,9 @@ export function useHasInsufficientBalance(): {
 
   const { txParams } = transactionMetadata ?? {};
   const { maxFeePerGas, gas, gasPrice } = txParams || {};
-  const { nativeCurrency } =
-    networkConfigurations[transactionMetadata?.chainId as Hex] ?? {};
-
+  const { nativeCurrencySymbol: nativeCurrency } = useNativeCurrencySymbol(
+    transactionMetadata?.chainId,
+  );
   const maxFeeNativeInHex = multiplyHexes(
     maxFeePerGas ? (decimalToHex(maxFeePerGas) as Hex) : (gasPrice as Hex),
     gas as Hex,
