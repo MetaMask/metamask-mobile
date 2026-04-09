@@ -509,7 +509,6 @@ const Onboarding = () => {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: onboardingTraceCtx.current,
-                provider,
               },
             )
           : navigation.navigate('Rehydrate', {
