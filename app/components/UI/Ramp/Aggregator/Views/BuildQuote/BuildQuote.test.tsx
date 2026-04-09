@@ -522,9 +522,10 @@ describe('BuildQuote View', () => {
         isFetching: true,
       };
       render(BuildQuote);
-      expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
-      ).toBeDisabled();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
       expect(
         screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
       ).not.toBeOnTheScreen();
@@ -574,9 +575,10 @@ describe('BuildQuote View', () => {
         isFetchingCryptoCurrencies: true,
       };
       render(BuildQuote);
-      expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
-      ).toBeDisabled();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toBeOnTheScreen();
@@ -645,9 +647,10 @@ describe('BuildQuote View', () => {
         isFetching: true,
       };
       render(BuildQuote);
-      expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
-      ).toBeDisabled();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toBeOnTheScreen();
@@ -711,9 +714,10 @@ describe('BuildQuote View', () => {
         isFetchingFiatCurrency: true,
       };
       render(BuildQuote);
-      expect(
-        getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON),
-      ).toBeDisabled();
+      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
+        'disabled',
+        true,
+      );
       expect(
         screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
       ).toBeOnTheScreen();
