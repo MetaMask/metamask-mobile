@@ -321,8 +321,8 @@ describe('BuildQuote Component', () => {
         }),
       );
       render(BuildQuote);
-      expect(screen.queryByText('1 to 2 days')).toBeNull();
-      expect(screen.queryByText('Instant')).toBeNull();
+      expect(screen.queryByText('1 to 2 days')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Instant')).not.toBeOnTheScreen();
     });
 
     it('navigates to payment method selection when payment button is pressed', () => {

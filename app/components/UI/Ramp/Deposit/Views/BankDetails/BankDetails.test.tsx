@@ -191,7 +191,7 @@ describe('BankDetails Component', () => {
     render(BankDetails);
 
     // Initially beneficiary address should not be visible
-    expect(screen.queryByText('456 Recipient Street')).toBeNull();
+    expect(screen.queryByText('456 Recipient Street')).not.toBeOnTheScreen();
 
     // Show bank information
     fireEvent.press(screen.getByText('Show bank information'));

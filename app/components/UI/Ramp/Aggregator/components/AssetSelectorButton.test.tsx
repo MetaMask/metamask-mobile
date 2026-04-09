@@ -53,7 +53,7 @@ describe('AssetSelectorButton', () => {
     renderWithProvider(<AssetSelectorButton {...mockProps} loading />, {
       state: defaultState,
     });
-    expect(screen.queryByText('Ethereum')).toBeNull();
+    expect(screen.queryByText('Ethereum')).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {

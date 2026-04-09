@@ -217,7 +217,7 @@ describe('BasicInfo Component', () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId('continue-button'));
     });
-    expect(screen.queryByTestId('ssn-input')).toBeNull();
+    expect(screen.queryByTestId('ssn-input')).not.toBeOnTheScreen();
     expect(
       screen.getByText(strings('deposit.basic_info.first_name_invalid')),
     ).toBeOnTheScreen();
@@ -562,7 +562,9 @@ describe('BasicInfo Component', () => {
       await screen.findByText('Network error');
 
       // Verify logout button is NOT displayed for generic errors
-      expect(screen.queryByTestId('basic-info-logout-button')).toBeNull();
+      expect(
+        screen.queryByTestId('basic-info-logout-button'),
+      ).not.toBeOnTheScreen();
     });
 
     it('calls logoutFromProvider and navigates to EnterEmail on logout click', async () => {

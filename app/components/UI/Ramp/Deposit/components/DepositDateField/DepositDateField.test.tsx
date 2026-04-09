@@ -42,7 +42,7 @@ describe('DepositDateField', () => {
     const { queryByDisplayValue } = render(
       <DepositDateField {...defaultProps} value="" />,
     );
-    expect(queryByDisplayValue(/\d{2}\/\d{2}\/\d{4}/)).toBeNull();
+    expect(queryByDisplayValue(/\d{2}\/\d{2}\/\d{4}/)).not.toBeOnTheScreen();
   });
 
   describe('Platform specific rendering', () => {
@@ -59,8 +59,8 @@ describe('DepositDateField', () => {
       );
       fireEvent.press(getByTestId('textfield'));
 
-      expect(queryByText('Cancel')).toBeNull();
-      expect(queryByText('Done')).toBeNull();
+      expect(queryByText('Cancel')).not.toBeOnTheScreen();
+      expect(queryByText('Done')).not.toBeOnTheScreen();
     });
 
     it('opens date picker on iOS (modal becomes visible)', () => {

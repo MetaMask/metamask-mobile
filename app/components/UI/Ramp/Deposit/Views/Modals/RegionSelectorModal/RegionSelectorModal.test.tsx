@@ -84,7 +84,7 @@ describe('RegionSelectorModal Component', () => {
     fireEvent.changeText(getByPlaceholderText('Search by country'), 'Germany');
 
     expect(getByText('Germany')).toBeOnTheScreen();
-    expect(queryByText('Canada')).toBeNull();
+    expect(queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('shows no results when search has no matches', () => {
@@ -96,8 +96,8 @@ describe('RegionSelectorModal Component', () => {
       'Nonexistent Country',
     );
 
-    expect(queryByText('Germany')).toBeNull();
-    expect(queryByText('Canada')).toBeNull();
+    expect(queryByText('Germany')).not.toBeOnTheScreen();
+    expect(queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('calls setSelectedRegion when a supported region is selected', () => {
@@ -163,7 +163,7 @@ describe('RegionSelectorModal Component', () => {
 
     expect(getByText('Germany')).toBeOnTheScreen();
     expect(getByText('Canada')).toBeOnTheScreen();
-    expect(queryByText('United States')).toBeNull();
+    expect(queryByText('United States')).not.toBeOnTheScreen();
   });
 
   it('handles empty regions array from navigation params', () => {
@@ -173,8 +173,8 @@ describe('RegionSelectorModal Component', () => {
 
     const { queryByText } = renderWithProvider(RegionSelectorModal);
 
-    expect(queryByText('Germany')).toBeNull();
-    expect(queryByText('Canada')).toBeNull();
+    expect(queryByText('Germany')).not.toBeOnTheScreen();
+    expect(queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('calls onRegionSelect callback when provided and region is selected', () => {

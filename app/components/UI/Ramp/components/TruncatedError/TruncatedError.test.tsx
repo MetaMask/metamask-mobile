@@ -126,7 +126,7 @@ describe('TruncatedError', () => {
       });
 
       expect(getByText("We've encountered an error")).toBeOnTheScreen();
-      expect(queryByText(shortError)).toBeNull();
+      expect(queryByText(shortError)).not.toBeOnTheScreen();
     });
 
     it('still navigates with the full error message when truncated', () => {

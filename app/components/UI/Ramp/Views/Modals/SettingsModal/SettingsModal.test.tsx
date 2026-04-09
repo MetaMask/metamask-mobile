@@ -242,7 +242,7 @@ describe('SettingsModal', () => {
 
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).toBeNull();
+      expect(queryByText('Contact support')).not.toBeOnTheScreen();
     });
   });
 
@@ -331,7 +331,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).toBeNull();
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
       });
     });
   });
@@ -349,7 +349,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText('Log out of Transak')).toBeNull();
+        expect(queryByText('Log out of Transak')).not.toBeOnTheScreen();
       });
     });
   });
@@ -362,7 +362,7 @@ describe('SettingsModal', () => {
     it('hides contact support option', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).toBeNull();
+      expect(queryByText('Contact support')).not.toBeOnTheScreen();
     });
 
     it('hides logout option even when authenticated', async () => {
@@ -378,7 +378,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).toBeNull();
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
       });
     });
   });

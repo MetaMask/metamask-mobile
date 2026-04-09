@@ -147,7 +147,7 @@ describe('OrderDetails', () => {
   it('renders empty ScreenLayout when order is not found', () => {
     mockGetOrderById.mockReturnValue(undefined);
     const { queryByTestId } = render();
-    expect(queryByTestId('order-content')).toBeNull();
+    expect(queryByTestId('order-content')).not.toBeOnTheScreen();
   });
 
   it('shows loading state when order is pending and refreshing', () => {

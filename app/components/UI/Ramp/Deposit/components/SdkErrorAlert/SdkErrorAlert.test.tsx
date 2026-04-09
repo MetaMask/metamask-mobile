@@ -97,6 +97,8 @@ describe('SdkErrorAlert', () => {
 
   it('does not render retry button when onRetry is not provided', () => {
     render(<SdkErrorAlert error="Some error" errorType="regions" />);
-    expect(screen.queryByText(strings('deposit.errors.try_again'))).toBeNull();
+    expect(
+      screen.queryByText(strings('deposit.errors.try_again')),
+    ).not.toBeOnTheScreen();
   });
 });

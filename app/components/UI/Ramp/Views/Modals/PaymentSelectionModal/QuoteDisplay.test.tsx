@@ -66,7 +66,7 @@ describe('QuoteDisplay', () => {
       />,
     );
     expect(getByText('1.5 USDC')).toBeOnTheScreen();
-    expect(queryByText('$')).toBeNull();
+    expect(queryByText('$')).not.toBeOnTheScreen();
   });
 
   it('renders warning icon when showWarningIcon is true', () => {

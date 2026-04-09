@@ -269,7 +269,7 @@ describe('ProviderSelectionModal', () => {
     );
 
     expect(getByText('Transak')).toBeOnTheScreen();
-    expect(queryByText('MoonPay')).toBeNull();
+    expect(queryByText('MoonPay')).not.toBeOnTheScreen();
   });
 
   it('filters providers by assetId when provided', () => {
@@ -313,7 +313,7 @@ describe('ProviderSelectionModal', () => {
 
     expect(getByText('Transak')).toBeOnTheScreen();
     expect(getByText('MoonPay')).toBeOnTheScreen();
-    expect(queryByText('Other')).toBeNull();
+    expect(queryByText('Other')).not.toBeOnTheScreen();
   });
 
   it('navigates to token selection when dismissed without action and skipQuotes is true', () => {
@@ -348,7 +348,9 @@ describe('ProviderSelectionModal', () => {
     const { queryByText } = renderWithProvider(ProviderSelectionModal);
 
     // Should not show "no quotes available" error since showQuotes is false
-    expect(queryByText('fiat_on_ramp.no_quotes_available')).toBeNull();
+    expect(
+      queryByText('fiat_on_ramp.no_quotes_available'),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not navigate to token selection when dismissed without action and skipQuotes is false', () => {

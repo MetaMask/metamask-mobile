@@ -207,7 +207,7 @@ describe('EnterAddress Component', () => {
 
     render(EnterAddress);
     expect(screen.getByTestId('state-input')).toBeOnTheScreen();
-    expect(screen.queryByText('Select state')).toBeNull();
+    expect(screen.queryByText('Select state')).not.toBeOnTheScreen();
   });
 
   it('validates address line 2 when provided', () => {

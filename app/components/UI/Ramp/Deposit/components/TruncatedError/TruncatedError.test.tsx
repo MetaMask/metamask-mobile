@@ -37,7 +37,7 @@ describe('TruncatedError', () => {
       const shortError = 'Short error';
       const { queryByText } = render(<TruncatedError error={shortError} />);
 
-      expect(queryByText('See more')).toBeNull();
+      expect(queryByText('See more')).not.toBeOnTheScreen();
     });
 
     it('displays the full error text when not truncated', () => {

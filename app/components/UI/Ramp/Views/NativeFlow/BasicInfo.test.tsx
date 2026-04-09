@@ -196,7 +196,7 @@ describe('V2BasicInfo', () => {
 
     const { queryByTestId } = renderWithTheme(<V2BasicInfo />);
 
-    expect(queryByTestId('ssn-input')).toBeNull();
+    expect(queryByTestId('ssn-input')).not.toBeOnTheScreen();
   });
 
   it('renders the continue button', () => {
@@ -406,7 +406,7 @@ describe('V2BasicInfo', () => {
     };
 
     const { queryByTestId, getByTestId } = renderWithTheme(<V2BasicInfo />);
-    expect(queryByTestId('ssn-input')).toBeNull();
+    expect(queryByTestId('ssn-input')).not.toBeOnTheScreen();
     expect(getByTestId('first-name-input')).toBeOnTheScreen();
   });
 

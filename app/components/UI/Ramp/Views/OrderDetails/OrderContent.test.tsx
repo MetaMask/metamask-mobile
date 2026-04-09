@@ -163,7 +163,7 @@ describe('OrderContent', () => {
 
   it('does not render close button by default', () => {
     renderOrder(mockOrder);
-    expect(screen.queryByText('Close')).toBeNull();
+    expect(screen.queryByText('Close')).not.toBeOnTheScreen();
   });
 
   it('renders correct status text for each order state', () => {
@@ -196,7 +196,7 @@ describe('OrderContent', () => {
   it('does not render bank details section when paymentDetails is absent', () => {
     renderOrder(mockOrder);
 
-    expect(screen.queryByText('To complete your order')).toBeNull();
+    expect(screen.queryByText('To complete your order')).not.toBeOnTheScreen();
   });
 
   it('does not render bank details section when paymentDetails has no matching fields', () => {
@@ -213,7 +213,7 @@ describe('OrderContent', () => {
 
     renderOrder(orderWithPaymentDetails);
 
-    expect(screen.queryByText('To complete your order')).toBeNull();
+    expect(screen.queryByText('To complete your order')).not.toBeOnTheScreen();
   });
 
   it('renders bank details section when paymentDetails has bank transfer fields', () => {

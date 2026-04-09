@@ -39,7 +39,7 @@ describe('QuickAmounts', () => {
     expect(getByText('$25')).toBeOnTheScreen();
     expect(getByText('$75')).toBeOnTheScreen();
     expect(getByText('$150')).toBeOnTheScreen();
-    expect(queryByText('$50')).toBeNull();
+    expect(queryByText('$50')).not.toBeOnTheScreen();
   });
 
   it('uses custom currency when provided', () => {

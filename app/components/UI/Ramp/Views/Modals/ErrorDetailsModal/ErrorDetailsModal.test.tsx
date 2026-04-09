@@ -166,7 +166,7 @@ describe('ErrorDetailsModal', () => {
   it('does not render contact support button when provider info is missing', () => {
     const { queryByText } = renderWithProvider(ErrorDetailsModal);
 
-    expect(queryByText(/Contact.*support/u)).toBeNull();
+    expect(queryByText(/Contact.*support/u)).not.toBeOnTheScreen();
   });
 
   it('renders with change provider button', () => {
@@ -208,6 +208,6 @@ describe('ErrorDetailsModal', () => {
     const { getByText, queryByText } = renderWithProvider(ErrorDetailsModal);
 
     expect(getByText('Change provider')).toBeOnTheScreen();
-    expect(queryByText(/Contact.*support/u)).toBeNull();
+    expect(queryByText(/Contact.*support/u)).not.toBeOnTheScreen();
   });
 });

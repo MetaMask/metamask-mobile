@@ -402,7 +402,7 @@ describe('V2BankDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    expect(queryByText('Test Bank')).toBeNull();
+    expect(queryByText('Test Bank')).not.toBeOnTheScreen();
 
     fireEvent.press(getByText('deposit.bank_details.show_bank_info'));
 
@@ -663,7 +663,7 @@ describe('V2BankDetails', () => {
       const { queryByTestId, getByText } = renderWithTheme(<V2BankDetails />);
 
       expect(mockGetOrder).not.toHaveBeenCalled();
-      expect(queryByTestId('loader')).toBeNull();
+      expect(queryByTestId('loader')).not.toBeOnTheScreen();
       expect(getByText('deposit.bank_details.main_title')).toBeOnTheScreen();
     });
 

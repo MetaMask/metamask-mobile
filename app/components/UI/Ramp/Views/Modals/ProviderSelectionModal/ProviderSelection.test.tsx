@@ -205,7 +205,7 @@ describe('ProviderSelection', () => {
         quotesLoading: true,
       },
     );
-    expect(queryByText('Transak')).toBeNull();
+    expect(queryByText('Transak')).not.toBeOnTheScreen();
   });
 
   it('renders skeleton loading state when quotes are loading', () => {
@@ -223,7 +223,7 @@ describe('ProviderSelection', () => {
         quotesLoading: true,
       },
     );
-    expect(queryByText('Transak')).toBeNull();
+    expect(queryByText('Transak')).not.toBeOnTheScreen();
   });
 
   it('shows error message when quotes fail to load', async () => {
@@ -329,7 +329,7 @@ describe('ProviderSelection', () => {
     await waitFor(() => {
       expect(getByText('Transak')).toBeTruthy();
     });
-    expect(queryByText('Stripe')).toBeNull();
+    expect(queryByText('Stripe')).not.toBeOnTheScreen();
   });
 
   it('renders empty state when there are no providers', () => {

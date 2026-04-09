@@ -147,7 +147,7 @@ describe('RegionSelector', () => {
     };
     render(RegionSelector);
     expect(screen.getByTestId('textfieldsearch')).toBeOnTheScreen();
-    expect(screen.queryByText('United States')).toBeNull();
+    expect(screen.queryByText('United States')).not.toBeOnTheScreen();
   });
 
   it('renders error state when countries error occurs', () => {
@@ -189,7 +189,7 @@ describe('RegionSelector', () => {
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'United');
     expect(screen.getByText('United States')).toBeOnTheScreen();
-    expect(screen.queryByText('Canada')).toBeNull();
+    expect(screen.queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('displays empty state when search has no results', () => {
@@ -337,7 +337,7 @@ describe('RegionSelector', () => {
     };
     render(RegionSelector);
     expect(screen.getByTestId('textfieldsearch')).toBeOnTheScreen();
-    expect(screen.queryByText('United States')).toBeNull();
+    expect(screen.queryByText('United States')).not.toBeOnTheScreen();
   });
 
   it('renders country without flag', () => {
@@ -424,7 +424,7 @@ describe('RegionSelector', () => {
     const searchInput = screen.getByTestId('textfieldsearch');
     fireEvent.changeText(searchInput, 'France');
     expect(screen.getByText('France')).toBeOnTheScreen();
-    expect(screen.queryByText('Canada')).toBeNull();
+    expect(screen.queryByText('Canada')).not.toBeOnTheScreen();
   });
 
   it('sets up back button in state view', () => {

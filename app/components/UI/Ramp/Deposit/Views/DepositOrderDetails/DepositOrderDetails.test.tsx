@@ -153,8 +153,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.queryByText('Order ID')).toBeNull();
-    expect(screen.queryByText('Total')).toBeNull();
+    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
   });
 
   it('renders loading state correctly', () => {
@@ -168,8 +168,8 @@ describe('DepositOrderDetails Component', () => {
         },
       },
     });
-    expect(screen.queryByText('Order ID')).toBeNull();
-    expect(screen.queryByText('Total')).toBeNull();
+    expect(screen.queryByText('Order ID')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Total')).not.toBeOnTheScreen();
   });
 
   it('renders an error screen if a CREATED order cannot be polled on load', async () => {

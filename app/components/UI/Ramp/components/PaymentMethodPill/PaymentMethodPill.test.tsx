@@ -113,7 +113,7 @@ describe('PaymentMethodPill', () => {
         <PaymentMethodPill label="Select payment method" isLoading />,
       );
 
-      expect(queryByText('Select payment method')).toBeNull();
+      expect(queryByText('Select payment method')).not.toBeOnTheScreen();
     });
 
     it('does not render arrow icon', () => {

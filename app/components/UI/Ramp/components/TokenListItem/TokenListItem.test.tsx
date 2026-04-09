@@ -111,7 +111,9 @@ describe('TokenListItem', () => {
         />,
       );
 
-      expect(queryByTestId('token-unsupported-info-button')).toBeNull();
+      expect(
+        queryByTestId('token-unsupported-info-button'),
+      ).not.toBeOnTheScreen();
     });
 
     it('hides info button when onInfoPress is not provided', () => {
@@ -121,7 +123,9 @@ describe('TokenListItem', () => {
         <TokenListItem token={token} onPress={mockOnPress} isDisabled />,
       );
 
-      expect(queryByTestId('token-unsupported-info-button')).toBeNull();
+      expect(
+        queryByTestId('token-unsupported-info-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 

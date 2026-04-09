@@ -119,8 +119,10 @@ describe('DepositOrderContent Component', () => {
       },
     );
 
-    expect(screen.queryByText('Your deposit is being processed')).toBeNull();
-    expect(screen.queryByText('Order failed')).toBeNull();
+    expect(
+      screen.queryByText('Your deposit is being processed'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Order failed')).not.toBeOnTheScreen();
   });
 
   it('renders no subtitle when statusDescription is missing', () => {
@@ -146,8 +148,10 @@ describe('DepositOrderContent Component', () => {
       },
     );
 
-    expect(screen.queryByText('Your deposit is being processed')).toBeNull();
-    expect(screen.queryByText('Order processing')).toBeNull();
+    expect(
+      screen.queryByText('Your deposit is being processed'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Order processing')).not.toBeOnTheScreen();
   });
 
   it('renders processing state correctly', () => {

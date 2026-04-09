@@ -73,7 +73,9 @@ describe('WebviewModal Component', () => {
 
   it('renders without errors on mount', () => {
     renderWithProvider(WebviewModal);
-    expect(screen.queryByText(strings('deposit.error_view.title'))).toBeNull();
+    expect(
+      screen.queryByText(strings('deposit.error_view.title')),
+    ).not.toBeOnTheScreen();
   });
 
   it('displays error view when webview HTTP error occurs', () => {

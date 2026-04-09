@@ -44,7 +44,7 @@ describe('MenuItem', () => {
     const props = createTestProps({ description: undefined });
     render(<MenuItem {...props} />);
 
-    expect(screen.queryByText('Test description')).toBeNull();
+    expect(screen.queryByText('Test description')).not.toBeOnTheScreen();
   });
 
   it('calls onPress when pressed', () => {

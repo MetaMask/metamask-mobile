@@ -100,10 +100,10 @@ describe('StateSelectorModal Component', () => {
         renderWithProvider(StateSelectorModal);
       const searchInput = getByPlaceholderText('Search by state');
       fireEvent.changeText(searchInput, 'Cal');
-      expect(queryByText('New York')).toBeNull();
+      expect(queryByText('New York')).not.toBeOnTheScreen();
       const clearButton = getByTestId('textfield-endacccessory');
       fireEvent.press(clearButton);
-      expect(queryByText('No states match')).toBeNull();
+      expect(queryByText('No states match')).not.toBeOnTheScreen();
     });
 
     it('calls onStateSelect when a state is selected', () => {
@@ -134,7 +134,7 @@ describe('StateSelectorModal Component', () => {
       const searchInput = getByPlaceholderText('Search by state');
       fireEvent.changeText(searchInput, 'Cal');
       expect(getByText('California')).toBeOnTheScreen();
-      expect(queryByText('Texas')).toBeNull();
+      expect(queryByText('Texas')).not.toBeOnTheScreen();
     });
 
     it('filters states when searching by code', () => {
@@ -145,7 +145,7 @@ describe('StateSelectorModal Component', () => {
       fireEvent.changeText(searchInput, 'CA');
 
       expect(getByText('California')).toBeOnTheScreen();
-      expect(queryByText('Texas')).toBeNull();
+      expect(queryByText('Texas')).not.toBeOnTheScreen();
     });
 
     it('shows empty state message when no search results found', () => {

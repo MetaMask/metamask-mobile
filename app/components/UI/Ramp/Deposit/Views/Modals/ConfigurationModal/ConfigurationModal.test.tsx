@@ -228,7 +228,7 @@ describe('ConfigurationModal', () => {
   describe('when user is not authenticated', () => {
     it('does not display logout option', () => {
       const { queryByText } = renderWithProvider(ConfigurationModal);
-      expect(queryByText('Log out')).toBeNull();
+      expect(queryByText('Log out')).not.toBeOnTheScreen();
     });
   });
 });
