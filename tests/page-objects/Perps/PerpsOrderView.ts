@@ -222,10 +222,15 @@ class PerpsOrderView {
   }
 
   /**
-   * On PerpsTPSL (Auto close), focus TP trigger price and enter value via the in-view Keypad,
-   * then dismiss the keypad and confirm with Set.
+   * On PerpsTPSL (Auto close), focus TP or SL trigger price, enter via keypad, Done, Set.
    */
-  async enterCustomTakeProfitTriggerPrice(price: string): Promise<void> {
+  private async enterTpslTriggerPriceViaKeypad(
+    price: string,
+    inputTestId:
+      | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
+      | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+    focusInputElemDescription: string,
+  ): Promise<void> {
     await Assertions.expectElementToBeVisible(
       Matchers.getElementByText('Auto close'),
       {
@@ -234,12 +239,9 @@ class PerpsOrderView {
       },
     );
 
-    const tpInput = Matchers.getElementByID(
-      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
-    ) as DetoxElement;
-
-    await Gestures.waitAndTap(tpInput, {
-      elemDescription: 'Focus take profit trigger price input',
+    const input = Matchers.getElementByID(inputTestId) as DetoxElement;
+    await Gestures.waitAndTap(input, {
+      elemDescription: focusInputElemDescription,
       checkEnabled: false,
     });
 
@@ -269,50 +271,27 @@ class PerpsOrderView {
   }
 
   /**
+   * On PerpsTPSL (Auto close), focus TP trigger price and enter value via the in-view Keypad,
+   * then dismiss the keypad and confirm with Set.
+   */
+  async enterCustomTakeProfitTriggerPrice(price: string): Promise<void> {
+    await this.enterTpslTriggerPriceViaKeypad(
+      price,
+      PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      'Focus take profit trigger price input',
+    );
+  }
+
+  /**
    * On PerpsTPSL (Auto close), focus SL trigger price and enter value via the in-view Keypad,
    * then dismiss the keypad and confirm with Set.
    */
   async enterCustomStopLossTriggerPrice(price: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText('Auto close'),
-      {
-        description: 'TPSL Auto close screen visible',
-        timeout: 15000,
-      },
-    );
-
-    const slInput = Matchers.getElementByID(
+    await this.enterTpslTriggerPriceViaKeypad(
+      price,
       PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-    ) as DetoxElement;
-
-    await Gestures.waitAndTap(slInput, {
-      elemDescription: 'Focus stop loss trigger price input',
-      checkEnabled: false,
-    });
-
-    for (const ch of price) {
-      const keypadTestId = ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
-      const key = Matchers.getElementByID(keypadTestId) as DetoxElement;
-      await Gestures.waitAndTap(key, {
-        elemDescription: `TPSL keypad key ${ch}`,
-        checkEnabled: false,
-        checkVisibility: false,
-      });
-    }
-
-    const doneButton = Matchers.getElementByText('Done') as DetoxElement;
-    await Gestures.waitAndTap(doneButton, {
-      elemDescription: 'Dismiss TPSL keypad (Done)',
-      checkEnabled: false,
-      checkVisibility: false,
-    });
-
-    const setButton = Matchers.getElementByID(
-      PerpsTPSLViewSelectorsIDs.SET_BUTTON,
-    ) as DetoxElement;
-    await Gestures.waitAndTap(setButton, {
-      elemDescription: 'Confirm TP/SL (Set)',
-    });
+      'Focus stop loss trigger price input',
+    );
   }
 
   async setLimitPricePresetLong(preset: string) {
