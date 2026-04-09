@@ -252,6 +252,21 @@ function BuildQuote() {
   // when the combination changes.
   const lastShownUnavailableKeyRef = useRef<string>('');
 
+  // Caps the number of silent provider auto-switches per token.
+  // Without this, when every candidate provider claims static support
+  // but returns empty payment methods the effect would cycle through
+  // all of them (flashing "Powered by X" for each) before reaching
+  // the modal — or loop forever.  A single attempt is sufficient:
+  // if the best alternative also fails, the token is almost certainly
+  // unavailable in this region so we go straight to the modal.
+  const autoSwitchAttemptedRef = useRef(false);
+  const autoSwitchAssetRef = useRef<string | undefined>();
+
+  if (effectiveAssetId !== autoSwitchAssetRef.current) {
+    autoSwitchAttemptedRef.current = false;
+    autoSwitchAssetRef.current = effectiveAssetId;
+  }
+
   // Bump a counter on screen focus so the modal effect re-evaluates
   // when the user navigates away (e.g. token selection) and comes back.
   const [focusTrigger, setFocusTrigger] = useState(0);
@@ -297,13 +312,18 @@ function BuildQuote() {
       return;
     }
 
-    if (providerAutoSelected && effectiveAssetId) {
+    if (
+      providerAutoSelected &&
+      effectiveAssetId &&
+      !autoSwitchAttemptedRef.current
+    ) {
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
           providerSupportsAsset(p, effectiveAssetId),
       );
       if (supportingProvider) {
+        autoSwitchAttemptedRef.current = true;
         setSelectedProvider(supportingProvider, { autoSelected: true });
         return;
       }
