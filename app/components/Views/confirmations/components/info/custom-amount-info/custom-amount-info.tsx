@@ -248,11 +248,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   onAccountSelected={handleRecipientAccountSelected}
                 />
               )}
-              {disablePay !== true && hasTokens && <PayWithRow />}
+              {!isResultReady && disablePay !== true && hasTokens && (
+                <PayWithRow />
+              )}
             </>
           )}
           {isResultReady && (
             <Box>
+              {!overrideContent && disablePay !== true && hasTokens && (
+                <PayWithRow />
+              )}
               {hasQuoteResults && (
                 <>
                   <BridgeFeeRow />
