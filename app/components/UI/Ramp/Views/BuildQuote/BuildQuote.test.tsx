@@ -1378,7 +1378,7 @@ describe('BuildQuote', () => {
         );
       });
 
-      it('switches at most once then shows modal when alternative also fails', () => {
+      it('tries each provider once then shows modal when all return empty', () => {
         const SOL_ASSET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
         const robinhoodProvider = {
@@ -1401,7 +1401,7 @@ describe('BuildQuote', () => {
           links: [],
         };
 
-        // First render: PayPal is selected, SOL token, empty payment methods.
+        // First render: PayPal selected, SOL token, empty payment methods.
         mockUnavailableController({
           selectedProvider: paypalProvider,
           providers: [paypalProvider, robinhoodProvider, moonpayProvider],
@@ -1417,7 +1417,7 @@ describe('BuildQuote', () => {
           state: autoSelectedState,
         });
 
-        // First (and only) switch: PayPal -> Robinhood
+        // First switch: PayPal -> Robinhood
         expect(mockSetSelectedProvider).toHaveBeenCalledWith(
           robinhoodProvider,
           { autoSelected: true },
@@ -1425,7 +1425,6 @@ describe('BuildQuote', () => {
 
         // Simulate Robinhood also returning empty payment methods.
         mockSetSelectedProvider.mockClear();
-        mockNavigate.mockClear();
         mockUnavailableController({
           selectedProvider: robinhoodProvider,
           providers: [paypalProvider, robinhoodProvider, moonpayProvider],
@@ -1437,10 +1436,30 @@ describe('BuildQuote', () => {
         });
         rerender(<BuildQuote />);
 
-        // Should NOT switch again — attempt already used.
+        // Second switch: Robinhood -> Moonpay (PayPal already tried)
+        expect(mockSetSelectedProvider).toHaveBeenCalledTimes(1);
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(moonpayProvider, {
+          autoSelected: true,
+        });
+
+        // Simulate Moonpay also returning empty.
+        mockSetSelectedProvider.mockClear();
+        mockNavigate.mockClear();
+        mockUnavailableController({
+          selectedProvider: moonpayProvider,
+          providers: [paypalProvider, robinhoodProvider, moonpayProvider],
+          selectedToken: {
+            assetId: SOL_ASSET,
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            symbol: 'SOL',
+          },
+        });
+        rerender(<BuildQuote />);
+
+        // All exhausted — no further switch.
         expect(mockSetSelectedProvider).not.toHaveBeenCalled();
 
-        // Should fall through to the modal.
+        // Falls through to modal.
         act(() => {
           jest.advanceTimersByTime(650);
         });
@@ -1450,6 +1469,27 @@ describe('BuildQuote', () => {
             screen: 'RampTokenNotAvailableModal',
           }),
         );
+      });
+
+      it('hides powered-by text while auto-switching between providers', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        const { queryByText } = renderWithProvider(<BuildQuote />, {
+          state: autoSelectedState,
+        });
+
+        // While the token is unavailable and provider is auto-selected,
+        // the "Powered by" text should be suppressed to prevent flash.
+        expect(queryByText(/powered by/i)).toBeNull();
       });
     });
   });

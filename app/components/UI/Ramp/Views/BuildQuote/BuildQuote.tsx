@@ -252,19 +252,15 @@ function BuildQuote() {
   // when the combination changes.
   const lastShownUnavailableKeyRef = useRef<string>('');
 
-  // Caps the number of silent provider auto-switches per token.
-  // Without this, when every candidate provider claims static support
-  // but returns empty payment methods the effect would cycle through
-  // all of them (flashing "Powered by X" for each) before reaching
-  // the modal — or loop forever.  A single attempt is sufficient:
-  // if the best alternative also fails, the token is almost certainly
-  // unavailable in this region so we go straight to the modal.
-  const autoSwitchAttemptedRef = useRef(false);
-  const autoSwitchAssetRef = useRef<string | undefined>();
+  // Tracks providers already attempted for the current token during
+  // auto-switch.  Prevents an infinite loop when every candidate
+  // provider claims static support but returns empty payment methods.
+  const triedProvidersRef = useRef<Set<string>>(new Set());
+  const triedProvidersAssetRef = useRef<string | undefined>();
 
-  if (effectiveAssetId !== autoSwitchAssetRef.current) {
-    autoSwitchAttemptedRef.current = false;
-    autoSwitchAssetRef.current = effectiveAssetId;
+  if (effectiveAssetId !== triedProvidersAssetRef.current) {
+    triedProvidersRef.current = new Set();
+    triedProvidersAssetRef.current = effectiveAssetId;
   }
 
   // Bump a counter on screen focus so the modal effect re-evaluates
@@ -312,18 +308,18 @@ function BuildQuote() {
       return;
     }
 
-    if (
-      providerAutoSelected &&
-      effectiveAssetId &&
-      !autoSwitchAttemptedRef.current
-    ) {
+    if (providerAutoSelected && effectiveAssetId) {
+      if (selectedProvider?.id) {
+        triedProvidersRef.current.add(selectedProvider.id);
+      }
+
       const supportingProvider = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
+          !triedProvidersRef.current.has(p.id) &&
           providerSupportsAsset(p, effectiveAssetId),
       );
       if (supportingProvider) {
-        autoSwitchAttemptedRef.current = true;
         setSelectedProvider(supportingProvider, { autoSelected: true });
         return;
       }
@@ -984,7 +980,8 @@ function BuildQuote() {
                       amount={amountAsNumber}
                     />
                   ) : (
-                    selectedProvider && (
+                    selectedProvider &&
+                    !(providerAutoSelected && isTokenUnavailable) && (
                       <Text
                         variant={TextVariant.BodySm}
                         style={styles.poweredByText}
