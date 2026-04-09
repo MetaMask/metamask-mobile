@@ -3,9 +3,9 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
-import { strings } from '../../../../../locales/i18n';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn().mockReturnValue(true),
@@ -46,8 +46,8 @@ jest.mock(
 const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
-  it('render matches snapshot', () => {
-    const { getByText } = renderWithProvider(
+  it('renders correctly', () => {
+    const { getByTestId } = renderWithProvider(
       <NotificationsSettings
         navigation={
           {
@@ -61,7 +61,7 @@ describe('NotificationsSettings', () => {
       },
     );
     expect(
-      getByText(strings('app_settings.notifications_title')),
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
     ).toBeOnTheScreen();
   });
 });
