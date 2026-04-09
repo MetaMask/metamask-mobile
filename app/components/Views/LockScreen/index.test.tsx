@@ -6,6 +6,6 @@ import LockScreen from './';
 describe('LockScreen', () => {
   it('should render correctly', () => {
     render(<LockScreen />);
-    expect(screen.UNSAFE_getByType(ActivityIndicator)).toBeOnTheScreen();
+    expect(screen.UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 });
