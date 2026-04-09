@@ -694,7 +694,8 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       message.includes('disconnected') ||
       message.includes('connection lost') ||
       message.includes('gatt') ||
-      message.includes('bluetooth')
+      message.includes('bluetooth connection') ||
+      message.includes('bluetooth transfer')
     );
   }
 
