@@ -191,18 +191,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
       dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
       analytics.identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]:
-          marketingOptInStatus.is_opt_in
-            ? UserProfileProperty.ON
-            : UserProfileProperty.OFF,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+          marketingOptInStatus.is_opt_in,
+        ),
       });
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
         )
           .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]:
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
               marketingOptInStatus.is_opt_in,
+            ),
             updated_after_onboarding: true,
             location: 'oauth_rehydration',
             account_type: getSocialAccountType(authConnection, true),
