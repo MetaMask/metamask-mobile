@@ -527,7 +527,7 @@ describe('BuildQuote View', () => {
       ).toBe(true);
       expect(
         screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('renders an error page when there is a region error', async () => {
