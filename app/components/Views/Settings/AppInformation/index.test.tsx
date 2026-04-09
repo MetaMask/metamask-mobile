@@ -1,6 +1,7 @@
 import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity, Alert } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider, {
   DeepPartial,
   renderScreen,
@@ -9,6 +10,16 @@ import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
+
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  setString: jest.fn(),
+}));
+
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+  alert: jest.fn(),
+}));
+
+const mockAlert = Alert.alert as jest.MockedFunction<typeof Alert.alert>;
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -60,6 +71,19 @@ const MOCK_STATE = {
           },
         },
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          enabledBooleanFlag: true,
+          disabledBooleanFlag: false,
+          enabledObjectFlag: { enabled: true, value: 'test' },
+          disabledObjectFlag: { enabled: false, value: 'test' },
+          enabledArrayFlag: ['item1', 'item2'],
+          emptyArrayFlag: [],
+          stringFlag: 'some-value',
+          nullFlag: null,
+        },
+        localOverrides: {},
+      },
     },
   },
 } as DeepPartial<RootState>;
@@ -73,6 +97,8 @@ describe('AppInformation', () => {
     mockIsProduction.mockReturnValue(true);
     mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
+    mockAlert.mockClear();
+    (Clipboard.setString as jest.Mock).mockClear();
   });
 
   it('renders correctly with snapshot', async () => {
@@ -537,6 +563,192 @@ describe('AppInformation', () => {
         expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('Feature Flags Display', () => {
+    const triggerLongPress = (screen: ReturnType<typeof renderScreen>) => {
+      const touchableOpacities = screen.UNSAFE_getAllByType(TouchableOpacity);
+      const foxTouchable = touchableOpacities.find(
+        (item) => item.props.onLongPress !== undefined,
+      );
+      if (foxTouchable) {
+        fireEvent(foxTouchable, 'longPress');
+      }
+    };
+
+    it('does not display feature flags section initially', () => {
+      const { queryByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(queryByText(/Feature Flags/)).toBeNull();
+    });
+
+    it('displays feature flags section after long-pressing fox icon', async () => {
+      const screen = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      triggerLongPress(screen);
+
+      await waitFor(() => {
+        // Should show 5 enabled flags: enabledBooleanFlag, enabledObjectFlag, enabledArrayFlag, stringFlag
+        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+      });
+    });
+
+    it('expands feature flags list when tapped', async () => {
+      const screen = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      triggerLongPress(screen);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+      });
+
+      // Tap to expand
+      fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
+
+      await waitFor(() => {
+        expect(screen.getByText('Copy All to Clipboard')).toBeTruthy();
+        expect(screen.getByText('• enabledArrayFlag')).toBeTruthy();
+        expect(screen.getByText('• enabledBooleanFlag')).toBeTruthy();
+        expect(screen.getByText('• enabledObjectFlag')).toBeTruthy();
+        expect(screen.getByText('• stringFlag')).toBeTruthy();
+      });
+
+      // Should not show disabled flags
+      expect(screen.queryByText('• disabledBooleanFlag')).toBeNull();
+      expect(screen.queryByText('• disabledObjectFlag')).toBeNull();
+      expect(screen.queryByText('• emptyArrayFlag')).toBeNull();
+      expect(screen.queryByText('• nullFlag')).toBeNull();
+    });
+
+    it('collapses feature flags list when tapped again', async () => {
+      const screen = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      triggerLongPress(screen);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+      });
+
+      // Tap to expand
+      fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
+
+      await waitFor(() => {
+        expect(screen.getByText('Copy All to Clipboard')).toBeTruthy();
+      });
+
+      // Tap again to collapse
+      fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
+
+      await waitFor(() => {
+        expect(screen.queryByText('Copy All to Clipboard')).toBeNull();
+        expect(screen.queryByText('• enabledBooleanFlag')).toBeNull();
+      });
+    });
+
+    it('copies all feature flags to clipboard when copy button is pressed', async () => {
+      const screen = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      triggerLongPress(screen);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+      });
+
+      // Tap to expand
+      fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
+
+      await waitFor(() => {
+        expect(screen.getByText('Copy All to Clipboard')).toBeTruthy();
+      });
+
+      // Tap copy button
+      fireEvent.press(screen.getByText('Copy All to Clipboard'));
+
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        expect.stringContaining('enabledBooleanFlag'),
+      );
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Copied',
+        'Feature flags copied to clipboard',
+      );
+    });
+
+    it('displays enabled flags in alphabetical order', async () => {
+      const screen = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      triggerLongPress(screen);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Feature Flags \(4 enabled\)/)).toBeTruthy();
+      });
+
+      // Tap to expand
+      fireEvent.press(screen.getByText(/Feature Flags \(4 enabled\)/));
+
+      await waitFor(() => {
+        const flagTexts = screen
+          .getAllByText(/^• /)
+          .map((node) => node.props.children);
+        expect(flagTexts).toEqual([
+          '• enabledArrayFlag',
+          '• enabledBooleanFlag',
+          '• enabledObjectFlag',
+          '• stringFlag',
+        ]);
+      });
+    });
+
+    it('handles empty feature flags gracefully', async () => {
+      const emptyState = {
+        ...MOCK_STATE,
+        engine: {
+          ...MOCK_STATE.engine,
+          backgroundState: {
+            ...MOCK_STATE.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              localOverrides: {},
+            },
+          },
+        },
+      } as DeepPartial<RootState>;
+
+      const screen = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: emptyState },
+      );
+
+      triggerLongPress(screen);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Feature Flags \(0 enabled\)/)).toBeTruthy();
       });
     });
   });

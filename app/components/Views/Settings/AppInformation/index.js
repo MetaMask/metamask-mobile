@@ -8,7 +8,9 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
@@ -38,6 +40,7 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -110,6 +113,7 @@ class AppInformation extends PureComponent {
     */
     navigation: PropTypes.object,
     preinstalledSnaps: PropTypes.array,
+    remoteFeatureFlags: PropTypes.object,
   };
 
   state = {
@@ -117,6 +121,7 @@ class AppInformation extends PureComponent {
     appVersion: '',
     buildNumber: '',
     showEnvironmentInfo: false,
+    showFeatureFlags: false,
   };
 
   componentDidMount = async () => {
@@ -170,6 +175,46 @@ class AppInformation extends PureComponent {
 
   handleLongPressFox = () => {
     this.setState({ showEnvironmentInfo: true });
+  };
+
+  /**
+   * Determines if a feature flag value is considered "enabled"
+   */
+  isFeatureFlagEnabled = (value) => {
+    if (typeof value === 'boolean') return value;
+    if (value && typeof value === 'object' && 'enabled' in value)
+      return value.enabled;
+    if (Array.isArray(value)) return value.length > 0;
+    return Boolean(value);
+  };
+
+  /**
+   * Returns only enabled feature flags, sorted alphabetically
+   */
+  getEnabledFeatureFlags = () => {
+    const { remoteFeatureFlags } = this.props;
+    if (!remoteFeatureFlags) return [];
+
+    return Object.entries(remoteFeatureFlags)
+      .filter(([, value]) => this.isFeatureFlagEnabled(value))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name]) => name);
+  };
+
+  /**
+   * Toggles feature flags list visibility
+   */
+  toggleFeatureFlags = () => {
+    this.setState((prev) => ({ showFeatureFlags: !prev.showFeatureFlags }));
+  };
+
+  /**
+   * Copies all feature flags to clipboard as JSON
+   */
+  copyFeatureFlagsToClipboard = () => {
+    const { remoteFeatureFlags } = this.props;
+    Clipboard.setString(JSON.stringify(remoteFeatureFlags, null, 2));
+    Alert.alert('Copied', 'Feature flags copied to clipboard');
   };
 
   /**
@@ -281,6 +326,28 @@ class AppInformation extends PureComponent {
                     {snap.name}: {snap.version} ({snap.status})
                   </Text>
                 ))}
+
+                {/* Feature Flags Section */}
+                <TouchableOpacity onPress={this.toggleFeatureFlags}>
+                  <Text style={styles.link}>
+                    {`Feature Flags (${this.getEnabledFeatureFlags().length} enabled) ${this.state.showFeatureFlags ? '▼' : '▶'}`}
+                  </Text>
+                </TouchableOpacity>
+
+                {this.state.showFeatureFlags && (
+                  <>
+                    <TouchableOpacity
+                      onPress={this.copyFeatureFlagsToClipboard}
+                    >
+                      <Text style={styles.link}>Copy All to Clipboard</Text>
+                    </TouchableOpacity>
+                    {this.getEnabledFeatureFlags().map((name) => (
+                      <Text key={name} style={styles.branchInfo}>
+                        {`• ${name}`}
+                      </Text>
+                    ))}
+                  </>
+                )}
               </>
             )}
           </View>
@@ -330,6 +397,7 @@ AppInformation.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   preinstalledSnaps: getPreinstalledSnapsMetadata(state),
+  remoteFeatureFlags: selectRemoteFeatureFlags(state),
 });
 
 export default connect(mapStateToProps)(AppInformation);
