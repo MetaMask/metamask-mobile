@@ -1032,8 +1032,6 @@ const Wallet = ({
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
-  const shouldEnableParentScroll = true;
-
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(() => {
     if (!isHomepageSectionsV1Enabled) return;
@@ -1208,11 +1206,8 @@ const Wallet = ({
     assetsDefiPositionsEnabled;
 
   const scrollViewContentStyle = useMemo(
-    () => [
-      styles.wrapper,
-      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
-    ],
-    [styles.wrapper, shouldEnableParentScroll],
+    () => [styles.wrapper, { flex: undefined, flexGrow: 0 }],
+    [styles.wrapper],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1457,7 +1452,7 @@ const Wallet = ({
               >
                 <ConditionalScrollView
                   ref={scrollViewRef}
-                  isScrollEnabled={shouldEnableParentScroll}
+                  isScrollEnabled
                   scrollViewProps={{
                     testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                     contentContainerStyle: scrollViewContentStyle,
@@ -1466,14 +1461,14 @@ const Wallet = ({
                       ? handleHomepageScroll
                       : undefined,
                     scrollEventThrottle: 16,
-                    refreshControl: shouldEnableParentScroll ? (
+                    refreshControl: (
                       <RefreshControl
                         colors={[colors.primary.default]}
                         tintColor={colors.icon.default}
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
                       />
-                    ) : undefined,
+                    ),
                   }}
                 >
                   {content}
