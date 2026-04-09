@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -24,11 +24,15 @@ import {
   ButtonVariant,
   AvatarBase,
   AvatarBaseSize,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
+import { chainNameToId } from '../utils/chainMapping';
+import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 // ---------------------------------------------------------------------------
 // Route params
@@ -205,6 +209,13 @@ const TraderPositionView = () => {
   const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
 
+  const tokenImageUrl = useMemo(() => {
+    if (!positionParam) return undefined;
+    const chainId = chainNameToId(positionParam.chain);
+    if (!chainId) return undefined;
+    return getAssetImageUrl(positionParam.tokenAddress, chainId);
+  }, [positionParam]);
+
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -266,9 +277,10 @@ const TraderPositionView = () => {
             gap={4}
             twClassName="flex-1 min-w-0 mr-3"
           >
-            <AvatarBase
-              size={AvatarBaseSize.Lg}
-              fallbackText={symbol.charAt(0).toUpperCase()}
+            <AvatarToken
+              name={symbol}
+              src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
+              size={AvatarTokenSize.Lg}
             />
             <Box twClassName="flex-1 min-w-0">
               <Text

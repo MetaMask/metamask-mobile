@@ -28,12 +28,12 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  AvatarToken,
+  AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import type { Position } from '@metamask/social-controllers';
 import type { BottomSheetRef } from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -303,10 +303,8 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
         <Box twClassName="w-12 h-12 rounded-xl overflow-hidden">
           <AvatarToken
             name={position.tokenSymbol}
-            imageSource={
-              destToken?.image ? { uri: destToken.image } : undefined
-            }
-            size={AvatarSize.Lg}
+            src={destToken?.image ? { uri: destToken.image } : undefined}
+            size={AvatarTokenSize.Lg}
           />
         </Box>
         <Box twClassName="flex-1">
@@ -445,12 +443,12 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
                   >
                     <AvatarToken
                       name={sourceToken?.symbol ?? ''}
-                      imageSource={
+                      src={
                         sourceToken?.image
                           ? { uri: sourceToken.image }
                           : undefined
                       }
-                      size={AvatarSize.Xs}
+                      size={AvatarTokenSize.Xs}
                     />
                     <Text
                       variant={TextVariant.BodyMd}
