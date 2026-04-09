@@ -1045,10 +1045,11 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // mergedTransactions sorts fills descending by timestamp before transforming
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
-        { ...partialFills[0], detailedOrderType: 'Stop Loss' },
-        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
         { ...partialFills[2], detailedOrderType: 'Stop Loss' },
+        { ...partialFills[1], detailedOrderType: 'Stop Loss' },
+        { ...partialFills[0], detailedOrderType: 'Stop Loss' },
       ]);
     });
 

@@ -147,7 +147,8 @@ export const usePerpsTransactionHistory = ({
       setRestFills(enrichedFills);
 
       // Transform each data type to PerpsTransaction format
-      const fillTransactions = transformFillsToTransactions(enrichedFills);
+      // Note: fill transactions are derived in mergedTransactions from restFills,
+      // so we only need orders, funding, and user history here.
       const orderTransactions = transformOrdersToTransactions(
         orders,
         fillSizeByOrderId,
@@ -157,9 +158,8 @@ export const usePerpsTransactionHistory = ({
         userHistoryRef.current,
       );
 
-      // Combine all transactions (no Arbitrum withdrawals - using user history as single source of truth)
+      // Combine all non-trade transactions (no Arbitrum withdrawals - using user history as single source of truth)
       const allTransactions = [
-        ...fillTransactions,
         ...orderTransactions,
         ...fundingTransactions,
         ...userHistoryTransactions,
@@ -187,6 +187,7 @@ export const usePerpsTransactionHistory = ({
       DevLogger.log('Error fetching transaction history:', errorMessage);
       setError(errorMessage);
       setTransactions([]);
+      setRestFills([]);
     } finally {
       setIsLoading(false);
     }
