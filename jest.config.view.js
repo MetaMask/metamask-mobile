@@ -7,4 +7,8 @@ module.exports = {
   testTimeout: 30000,
   forceExit: true,
   maxWorkers: 1,
+  // Re-include *.view.test.* files excluded from the base config
+  testPathIgnorePatterns: (baseConfig.testPathIgnorePatterns ?? []).filter(
+    (p) => p !== '\\.view\\.test\\.(ts|tsx)$',
+  ),
 };
