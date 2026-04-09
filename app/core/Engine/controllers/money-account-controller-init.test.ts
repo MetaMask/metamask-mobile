@@ -1,7 +1,7 @@
 import { buildControllerInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getMoneyAccountControllerMessenger } from '../messengers/money-account-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { moneyAccountControllerInit } from './money-account-controller-init';
 import {
   MoneyAccountController,
@@ -12,7 +12,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/money-account-controller');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<MoneyAccountControllerMessenger>
+  MessengerClientInitRequest<MoneyAccountControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
