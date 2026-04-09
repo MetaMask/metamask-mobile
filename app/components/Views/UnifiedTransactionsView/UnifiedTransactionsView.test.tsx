@@ -391,8 +391,8 @@ describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
       state: initialState,
     });
 
-    expect(queryByTestId('speedup-modal')).toBeNull();
-    expect(queryByTestId('cancel-modal')).toBeNull();
+    expect(queryByTestId('speedup-modal')).not.toBeOnTheScreen();
+    expect(queryByTestId('cancel-modal')).not.toBeOnTheScreen();
   });
 
   it('renders CancelSpeedupModal as speed up when speedUpIsOpen is true', () => {
@@ -586,7 +586,7 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
     });
 
     // Transaction passes filter → data is non-empty → empty state is absent
-    expect(queryByText('You have no transactions')).toBeNull();
+    expect(queryByText('You have no transactions')).not.toBeOnTheScreen();
   });
 });
 
