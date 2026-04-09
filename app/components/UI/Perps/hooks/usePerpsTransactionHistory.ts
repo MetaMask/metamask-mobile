@@ -293,6 +293,15 @@ export const usePerpsTransactionHistory = ({
       const timestampSeconds = Math.floor(tx.timestamp / 1000);
       const dedupKey = `${tx.asset}-${timestampSeconds}`;
       const existing = tradeMap.get(dedupKey);
+      if (existing) {
+        DevLogger.log('[PR-28593] BUG_MARKER: WS overwrites REST trade', {
+          key: dedupKey,
+          restPnl: existing.fill?.pnl,
+          wsPnl: tx.fill?.pnl,
+          restAmount: existing.fill?.amount,
+          wsAmount: tx.fill?.amount,
+        });
+      }
       if (
         existing?.fill?.fillType &&
         existing.fill.fillType !== FillType.Standard &&
