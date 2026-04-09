@@ -64,15 +64,14 @@ export function useAutomaticGasFeeTokenSelect() {
   useEffect(() => {
     if (shouldSelect) {
       selectFirstToken();
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const automatic_fee_token_selected = gasFeeTokens?.find(
+      const automaticFeeTokenSelectedSymbol = gasFeeTokens?.find(
         ({ tokenAddress }) => tokenAddress === firstGasFeeTokenAddress,
       )?.symbol;
       setConfirmationMetric({
         properties: {
           // eslint-disable-next-line @typescript-eslint/naming-convention
-          automatic_fee_token_selection: true,
-          automatic_fee_token_selected,
+          gas_payment_token_default: true,
+          gas_payment_token_default_symbol: automaticFeeTokenSelectedSymbol,
         },
       });
       setChecked(true);

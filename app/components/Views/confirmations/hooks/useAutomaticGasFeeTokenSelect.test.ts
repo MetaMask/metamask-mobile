@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { GasFeeToken, TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { act } from '@testing-library/react';
@@ -138,8 +139,8 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
-        automatic_fee_token_selection: true,
-        automatic_fee_token_selected: GAS_FEE_TOKEN_MOCK.symbol,
+        gas_payment_token_default: true,
+        gas_payment_token_default_symbol: GAS_FEE_TOKEN_MOCK.symbol,
       },
     });
   });
@@ -170,6 +171,13 @@ describe('useAutomaticGasFeeTokenSelect', () => {
       expect.any(String),
       '0x9876543210000000000000000000000000000000',
     );
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        gas_payment_token_default: true,
+        gas_payment_token_default_symbol: undefined,
+      },
+    });
   });
 
   it('does not select first gas fee token if no gas fee tokens', () => {
@@ -282,8 +290,8 @@ describe('useAutomaticGasFeeTokenSelect', () => {
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
-        automatic_fee_token_selection: true,
-        automatic_fee_token_selected: GAS_FEE_TOKEN_MOCK.symbol,
+        gas_payment_token_default: true,
+        gas_payment_token_default_symbol: GAS_FEE_TOKEN_MOCK.symbol,
       },
     });
   });
