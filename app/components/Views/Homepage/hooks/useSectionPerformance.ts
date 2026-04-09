@@ -181,7 +181,7 @@ export const useSectionPerformance = ({
 
     const windowStart = now - reRenderWindowMs;
     while (timestamps.length > 0 && timestamps[0] < windowStart) {
-        category: TraceOperation.HomepageSectionPerformance,
+      timestamps.shift();
     }
 
     if (
@@ -190,7 +190,7 @@ export const useSectionPerformance = ({
     ) {
       hasLoggedExcessiveRenders.current = true;
       addBreadcrumb({
-        category: 'homepage.section.performance',
+        category: TraceOperation.HomepageSectionPerformance,
         message: `Excessive re-renders detected in section "${sectionId}": ${timestamps.length} renders in ${reRenderWindowMs}ms`,
         level: 'warning',
         data: {
