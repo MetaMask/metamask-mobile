@@ -483,7 +483,7 @@ export class WC2Manager {
             );
             analytics.trackEvent(
               AnalyticsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+                MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
               )
                 .addProperties({
                   transport_type: 'walletconnect',
@@ -512,7 +512,7 @@ export class WC2Manager {
 
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.REMOTE_CONNECT_REQUEST_RECEIVED,
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
       )
         .addProperties({
           transport_type: 'walletconnect',
@@ -589,7 +589,7 @@ export class WC2Manager {
       console.warn(`WC2::session_proposal rejected - invalid dApp URL: ${url}`);
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
         )
           .addProperties({
             transport_type: 'walletconnect',
@@ -610,7 +610,7 @@ export class WC2Manager {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
         )
           .addProperties({
             transport_type: 'walletconnect',
@@ -699,7 +699,7 @@ export class WC2Manager {
       });
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
         )
           .addProperties({
             transport_type: 'walletconnect',
@@ -961,7 +961,7 @@ export class WC2Manager {
       console.error(`Failed to connect uri=${wcUri}`, err);
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.REMOTE_CONNECT_REQUEST_FAILED,
+          MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
         )
           .addProperties({
             transport_type: 'walletconnect',
