@@ -227,7 +227,7 @@ const PriceAdvanced = ({
   // Calculate price diff and percentage from OHLCV data instead of legacy props
   const dynamicComparePrice = useMemo(() => {
     if (ohlcvData.length === 0) return null;
-    return ohlcvData[0].close; // First candle's close price = start of time range
+    return ohlcvData[0].open; // First candle's open price = start of time range
   }, [ohlcvData]);
 
   const dynamicPriceDiff = useMemo(() => {

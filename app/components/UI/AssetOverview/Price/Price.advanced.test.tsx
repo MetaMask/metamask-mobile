@@ -274,8 +274,8 @@ describe('PriceAdvanced', () => {
   });
 
   it('calculates percentage from OHLCV data instead of props', () => {
-    // Mock OHLCV data: first candle close = 100, current price = 105
-    // Expected: (105 - 100) / 100 * 100 = 5%
+    // Mock OHLCV data: first candle open = 95, current price = 105
+    // Expected: (105 - 95) / 95 * 100 = 10.53%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 95, high: 101, low: 94, close: 100, volume: 1 },
@@ -291,8 +291,8 @@ describe('PriceAdvanced', () => {
       <PriceAdvanced {...baseProps} currentPrice={105} />,
     );
 
-    // Should show 5.00% based on OHLCV data (105 - 100) / 100 * 100
-    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+    // Should show 10.53% based on OHLCV data (105 - 95) / 95 * 100
+    expect(getByText(/10\.53%/)).toBeOnTheScreen();
   });
 
   it('hides price diff when OHLCV data is empty', () => {
@@ -311,7 +311,8 @@ describe('PriceAdvanced', () => {
   });
 
   it('updates percentage when time range changes and new OHLCV data loads', () => {
-    // Initial: 1D range with data showing 5% increase
+    // Initial: 1D range with first candle open = 95, current price = 105
+    // Expected: (105 - 95) / 95 * 100 = 10.53%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 1000, open: 95, high: 101, low: 94, close: 100, volume: 1 },
@@ -327,12 +328,12 @@ describe('PriceAdvanced', () => {
       <PriceAdvanced {...baseProps} currentPrice={105} />,
     );
 
-    // Should show 5.00% based on initial OHLCV data
-    expect(getByText(/5\.00%/)).toBeOnTheScreen();
+    // Should show 10.53% based on initial OHLCV data (105 - 95) / 95 * 100
+    expect(getByText(/10\.53%/)).toBeOnTheScreen();
 
     // Simulate time range change: new OHLCV data with different starting price
-    // First candle close = 103, current price = 105
-    // Expected: (105 - 103) / 103 * 100 = 1.94%
+    // First candle open = 102, current price = 105
+    // Expected: (105 - 102) / 102 * 100 = 2.94%
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [
         { time: 3000, open: 102, high: 104, low: 102, close: 103, volume: 1 },
@@ -346,7 +347,7 @@ describe('PriceAdvanced', () => {
 
     rerender(<PriceAdvanced {...baseProps} currentPrice={105} />);
 
-    // Should now show 1.94% based on new OHLCV data
-    expect(getByText(/1\.94%/)).toBeOnTheScreen();
+    // Should now show 2.94% based on new OHLCV data (105 - 102) / 102 * 100
+    expect(getByText(/2\.94%/)).toBeOnTheScreen();
   });
 });
