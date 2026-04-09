@@ -1,6 +1,5 @@
 import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -16,25 +15,17 @@ import {
 
 interface PredictPicksProps {
   market: PredictMarket;
-  /**
-   * TestID for the component
-   */
+  positions: PredictPosition[];
+  claimablePositions: PredictPosition[];
   testID?: string;
 }
 
 const PredictPicks: React.FC<PredictPicksProps> = ({
   market,
+  positions,
+  claimablePositions,
   testID = PREDICT_PICKS_TEST_ID,
 }) => {
-  const { data: positions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: false,
-    refetchInterval: 10000,
-  });
-  const { data: claimablePositions = [] } = usePredictPositions({
-    marketId: market.id,
-    claimable: true,
-  });
   const { livePositions } = usePredictLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -59,10 +50,6 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
     );
   };
-
-  if (livePositions.length === 0 && claimablePositions.length === 0) {
-    return null;
-  }
 
   return (
     <Box testID={testID} twClassName="flex-col">

@@ -1,7 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
-import { PredictMarket, PredictMarketStatus } from '../../types';
+import {
+  PredictMarket,
+  PredictMarketStatus,
+  PredictPosition,
+} from '../../types';
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
@@ -86,12 +90,10 @@ const createMockMarket = (
     ...overrides,
   }) as PredictMarket;
 
+const mockActivePositions = [{ id: 'pos-1' }] as PredictPosition[];
+
 const positionsTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
   { label: 'Positions', key: 'positions' },
-  { label: 'Outcomes', key: 'outcomes' },
-];
-
-const outcomesOnlyTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
   { label: 'Outcomes', key: 'outcomes' },
 ];
 
@@ -101,7 +103,25 @@ describe('PredictGameDetailsTabs', () => {
   });
 
   describe('disabled (flag off)', () => {
-    it('renders "Your picks" title', () => {
+    it('returns null when no positions exist', () => {
+      const market = createMockMarket();
+
+      const { toJSON } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={null}
+          tabs={[]}
+          enabled={false}
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('renders "Your picks" title when positions exist', () => {
       const market = createMockMarket();
 
       const { getByText } = render(
@@ -110,13 +130,16 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={null}
           tabs={[]}
           enabled={false}
+          showTabBar={false}
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 
       expect(getByText('predict.market_details.your_picks')).toBeOnTheScreen();
     });
 
-    it('renders PredictPicks with market', () => {
+    it('renders PredictPicks with market when positions exist', () => {
       const market = createMockMarket();
 
       const { getByTestId } = render(
@@ -125,6 +148,9 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={null}
           tabs={[]}
           enabled={false}
+          showTabBar={false}
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 
@@ -136,7 +162,7 @@ describe('PredictGameDetailsTabs', () => {
       expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
     });
 
-    it('does not render outcomes placeholder', () => {
+    it('does not render outcomes placeholder when positions exist', () => {
       const market = createMockMarket();
 
       const { queryByTestId } = render(
@@ -145,6 +171,9 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={null}
           tabs={[]}
           enabled={false}
+          showTabBar={false}
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 
@@ -156,7 +185,72 @@ describe('PredictGameDetailsTabs', () => {
     });
   });
 
-  describe('enabled (flag on)', () => {
+  describe('enabled, no positions (no tab bar)', () => {
+    it('renders outcomes placeholder directly', () => {
+      const market = createMockMarket();
+
+      const { getByTestId, getByText } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={null}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+        />,
+      );
+
+      expect(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('predict.market_details.outcomes_coming_soon'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render PredictPicks', () => {
+      const market = createMockMarket();
+
+      const { queryByTestId } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={null}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+        />,
+      );
+
+      expect(
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render "Your picks" title', () => {
+      const market = createMockMarket();
+
+      const { queryByText } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={null}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+        />,
+      );
+
+      expect(
+        queryByText('predict.market_details.your_picks'),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('enabled, with positions (tab bar)', () => {
     it('renders PredictPicks when active tab key is positions', () => {
       const market = createMockMarket();
 
@@ -166,6 +260,9 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={0}
           tabs={positionsTabs}
           enabled
+          showTabBar
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 
@@ -190,6 +287,9 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={1}
           tabs={positionsTabs}
           enabled
+          showTabBar
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 
@@ -198,23 +298,6 @@ describe('PredictGameDetailsTabs', () => {
       ).toBeOnTheScreen();
       expect(
         getByText('predict.market_details.outcomes_coming_soon'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders outcomes placeholder when outcomes is the only tab', () => {
-      const market = createMockMarket();
-
-      const { getByTestId } = render(
-        <PredictGameDetailsTabsContent
-          market={market}
-          activeTab={0}
-          tabs={outcomesOnlyTabs}
-          enabled
-        />,
-      );
-
-      expect(
-        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_PLACEHOLDER),
       ).toBeOnTheScreen();
     });
 
@@ -227,6 +310,9 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={null}
           tabs={positionsTabs}
           enabled
+          showTabBar
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 
@@ -249,6 +335,9 @@ describe('PredictGameDetailsTabs', () => {
           activeTab={0}
           tabs={positionsTabs}
           enabled
+          showTabBar
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
         />,
       );
 

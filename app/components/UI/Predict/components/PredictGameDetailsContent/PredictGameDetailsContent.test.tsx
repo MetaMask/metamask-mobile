@@ -161,7 +161,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: jest.fn(() => ({
-    data: [],
+    data: [{ id: 'mock-pos-1' }],
     isLoading: false,
     refresh: jest.fn(),
   })),
@@ -173,6 +173,7 @@ jest.mock('./hooks/useGameDetailsTabs', () => ({
     tabs: [],
     activeTab: null,
     handleTabPress: jest.fn(),
+    showTabBar: false,
     stickyHeaderIndices: undefined,
   })),
 }));

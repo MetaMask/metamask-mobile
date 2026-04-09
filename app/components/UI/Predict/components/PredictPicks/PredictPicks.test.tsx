@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PredictPicks from './PredictPicks';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import {
   PredictPositionStatus,
@@ -20,7 +19,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
-jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
 jest.mock('../../hooks/usePredictLivePositions', () => ({
   usePredictLivePositions: jest.fn((positions: unknown[]) => ({
@@ -31,37 +29,10 @@ jest.mock('../../hooks/usePredictLivePositions', () => ({
 }));
 jest.mock('../../utils/format');
 
-const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
   typeof usePredictActionGuard
 >;
 const mockFormatPrice = formatPrice as jest.MockedFunction<typeof formatPrice>;
-
-interface MockPositionsConfig {
-  livePositions?: PredictPosition[];
-  claimablePositions?: PredictPosition[];
-  isLoading?: boolean;
-  isRefreshing?: boolean;
-  error?: string | null;
-}
-
-const setupPositionsMock = (config: MockPositionsConfig = {}) => {
-  const {
-    livePositions = [],
-    claimablePositions = [],
-    isLoading = false,
-    isRefreshing = false,
-    error = null,
-  } = config;
-
-  mockUsePredictPositions.mockImplementation((options) => ({
-    data: options?.claimable ? claimablePositions : livePositions,
-    isLoading,
-    isRefetching: isRefreshing,
-    error,
-    refetch: jest.fn(),
-  }));
-};
 
 const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
@@ -140,7 +111,6 @@ describe('PredictPicks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
-    setupPositionsMock();
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
@@ -159,110 +129,115 @@ describe('PredictPicks', () => {
   });
 
   describe('rendering states', () => {
-    it('returns null when there are no positions and not loading', () => {
-      setupPositionsMock();
-
-      render(<PredictPicks market={createMockMarket()} />);
-
-      expect(screen.queryByTestId('predict-picks')).toBeNull();
-    });
-
-    it('returns null when loading with no existing positions', () => {
-      setupPositionsMock({ isLoading: true });
-
-      render(<PredictPicks market={createMockMarket()} />);
-
-      expect(screen.queryByTestId('predict-picks')).toBeNull();
-    });
-
-    it('returns null when refreshing with no existing positions', () => {
-      setupPositionsMock({ isRefreshing: true });
-
-      render(<PredictPicks market={createMockMarket()} />);
-
-      expect(screen.queryByTestId('predict-picks')).toBeNull();
-    });
-
     it('renders container when live positions exist', () => {
-      setupPositionsMock({ livePositions: [createMockPosition()] });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition()]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getAllByTestId('predict-picks').length).toBeGreaterThan(0);
     });
 
     it('renders container when only claimable positions exist', () => {
-      setupPositionsMock({
-        livePositions: [],
-        claimablePositions: [createMockPosition({ claimable: true })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[]}
+          claimablePositions={[createMockPosition({ claimable: true })]}
+        />,
+      );
 
       expect(screen.getAllByTestId('predict-picks').length).toBeGreaterThan(0);
     });
 
     it('renders pick items when positions exist', () => {
-      setupPositionsMock({ livePositions: [createMockPosition()] });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition()]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getAllByTestId('predict-picks').length).toBeGreaterThan(0);
+    });
+
+    it('renders empty container when no positions provided', () => {
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[]}
+          claimablePositions={[]}
+        />,
+      );
+
+      expect(screen.getByTestId('predict-picks')).toBeOnTheScreen();
     });
   });
 
   describe('position display', () => {
     it('displays position initialValue and outcome', () => {
-      setupPositionsMock({
-        livePositions: [
-          createMockPosition({ initialValue: 50, outcome: 'Yes' }),
-        ],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ initialValue: 50, outcome: 'Yes' })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getByText(/\$50\.00 on/)).toBeOnTheScreen();
       expect(screen.getByText(/Yes/)).toBeOnTheScreen();
     });
 
     it('displays positive cashPnl value', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ cashPnl: 25.75 })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ cashPnl: 25.75 })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getByText('$25.75')).toBeOnTheScreen();
     });
 
     it('displays negative cashPnl value', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ cashPnl: -10.5 })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ cashPnl: -10.5 })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getByText('$-10.50')).toBeOnTheScreen();
     });
 
     it('displays zero cashPnl value', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ cashPnl: 0 })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ cashPnl: 0 })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
 
     it('applies SuccessDefault color when cashPnl is positive', () => {
-      setupPositionsMock({
-        livePositions: [
-          createMockPosition({ id: 'pos-positive', cashPnl: 25.75 }),
-        ],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[
+            createMockPosition({ id: 'pos-positive', cashPnl: 25.75 }),
+          ]}
+          claimablePositions={[]}
+        />,
+      );
 
       const pnlText = screen.getByTestId('predict-picks-pnl-pos-positive');
       expect(pnlText.props.style).toEqual(
@@ -275,13 +250,15 @@ describe('PredictPicks', () => {
     });
 
     it('applies ErrorDefault color when cashPnl is negative', () => {
-      setupPositionsMock({
-        livePositions: [
-          createMockPosition({ id: 'pos-negative', cashPnl: -10.5 }),
-        ],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[
+            createMockPosition({ id: 'pos-negative', cashPnl: -10.5 }),
+          ]}
+          claimablePositions={[]}
+        />,
+      );
 
       const pnlText = screen.getByTestId('predict-picks-pnl-pos-negative');
       expect(pnlText.props.style).toEqual(
@@ -294,11 +271,13 @@ describe('PredictPicks', () => {
     });
 
     it('applies SuccessDefault color when cashPnl is zero (break-even)', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ id: 'pos-zero', cashPnl: 0 })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ id: 'pos-zero', cashPnl: 0 })]}
+          claimablePositions={[]}
+        />,
+      );
 
       const pnlText = screen.getByTestId('predict-picks-pnl-pos-zero');
       expect(pnlText.props.style).toEqual(
@@ -311,24 +290,27 @@ describe('PredictPicks', () => {
     });
 
     it('renders Cash Out button for non-claimable position', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ claimable: false })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ claimable: false })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getByText('Cash out')).toBeOnTheScreen();
     });
 
     it('does not render Cash Out button for claimable position', () => {
-      setupPositionsMock({
-        livePositions: [],
-        claimablePositions: [
-          createMockPosition({ id: 'pos-claimable', claimable: true }),
-        ],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[]}
+          claimablePositions={[
+            createMockPosition({ id: 'pos-claimable', claimable: true }),
+          ]}
+        />,
+      );
 
       expect(
         screen.queryByTestId('predict-picks-cash-out-button-pos-claimable'),
@@ -343,9 +325,14 @@ describe('PredictPicks', () => {
         createMockPosition({ id: 'pos-2', outcome: 'No', size: 200 }),
         createMockPosition({ id: 'pos-3', outcome: 'Maybe', size: 50 }),
       ];
-      setupPositionsMock({ livePositions: positions });
 
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={positions}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(screen.getByText(/Yes/)).toBeOnTheScreen();
       expect(screen.getByText(/No/)).toBeOnTheScreen();
@@ -353,18 +340,19 @@ describe('PredictPicks', () => {
     });
 
     it('renders both live and claimable positions', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ id: 'pos-live', outcome: 'Yes' })],
-        claimablePositions: [
-          createMockPosition({
-            id: 'pos-claim',
-            outcome: 'No',
-            claimable: true,
-          }),
-        ],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ id: 'pos-live', outcome: 'Yes' })]}
+          claimablePositions={[
+            createMockPosition({
+              id: 'pos-claim',
+              outcome: 'No',
+              claimable: true,
+            }),
+          ]}
+        />,
+      );
 
       expect(screen.getByText(/Yes/)).toBeOnTheScreen();
       expect(screen.getByText(/No/)).toBeOnTheScreen();
@@ -375,9 +363,14 @@ describe('PredictPicks', () => {
         createMockPosition({ id: 'pos-1', claimable: false }),
         createMockPosition({ id: 'pos-2', claimable: false }),
       ];
-      setupPositionsMock({ livePositions: positions });
 
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={positions}
+          claimablePositions={[]}
+        />,
+      );
 
       const cashOutButtons = screen.getAllByText('Cash out');
 
@@ -385,58 +378,15 @@ describe('PredictPicks', () => {
     });
   });
 
-  describe('hook configuration', () => {
-    it('calls usePredictPositions with correct market.id for live positions', () => {
-      setupPositionsMock();
-
-      render(
-        <PredictPicks
-          market={createMockMarket({ id: 'specific-market-123' })}
-        />,
-      );
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith({
-        marketId: 'specific-market-123',
-        claimable: false,
-        refetchInterval: 10000,
-      });
-    });
-
-    it('calls usePredictPositions with claimable flag for claimable positions', () => {
-      setupPositionsMock();
-
-      render(
-        <PredictPicks
-          market={createMockMarket({ id: 'specific-market-123' })}
-        />,
-      );
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith({
-        marketId: 'specific-market-123',
-        claimable: true,
-      });
-    });
-
-    it('passes refetchInterval of 10000ms to hook', () => {
-      setupPositionsMock();
-
-      render(<PredictPicks market={createMockMarket()} />);
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          refetchInterval: 10000,
-        }),
-      );
-    });
-  });
-
   describe('formatPrice calls', () => {
     it('calls formatPrice for position initialValue', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ initialValue: 15.75 })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ initialValue: 15.75 })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(mockFormatPrice).toHaveBeenCalledWith(15.75, {
         maximumDecimals: 2,
@@ -444,11 +394,13 @@ describe('PredictPicks', () => {
     });
 
     it('calls formatPrice for cashPnl', () => {
-      setupPositionsMock({
-        livePositions: [createMockPosition({ cashPnl: 1234.56 })],
-      });
-
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[createMockPosition({ cashPnl: 1234.56 })]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(mockFormatPrice).toHaveBeenCalledWith(1234.56, {
         maximumDecimals: 2,
@@ -459,9 +411,14 @@ describe('PredictPicks', () => {
   describe('cash out functionality', () => {
     it('calls executeGuardedAction when Cash Out button is pressed', () => {
       const position = createMockPosition({ id: 'pos-1', claimable: false });
-      setupPositionsMock({ livePositions: [position] });
 
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
+      );
       fireEvent.press(
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
@@ -471,9 +428,14 @@ describe('PredictPicks', () => {
 
     it('passes CASHOUT as attemptedAction option to executeGuardedAction', () => {
       const position = createMockPosition({ id: 'pos-1', claimable: false });
-      setupPositionsMock({ livePositions: [position] });
 
-      render(<PredictPicks market={createMockMarket()} />);
+      render(
+        <PredictPicks
+          market={createMockMarket()}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
+      );
       fireEvent.press(
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
@@ -491,10 +453,15 @@ describe('PredictPicks', () => {
         outcomeId: 'outcome-1',
         claimable: false,
       });
-      setupPositionsMock({ livePositions: [position] });
       mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
-      render(<PredictPicks market={market} />);
+      render(
+        <PredictPicks
+          market={market}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
+      );
       fireEvent.press(
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
@@ -516,10 +483,15 @@ describe('PredictPicks', () => {
         outcomeId: 'outcome-2',
         claimable: false,
       });
-      setupPositionsMock({ livePositions: [position] });
       mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
-      render(<PredictPicks market={market} />);
+      render(
+        <PredictPicks
+          market={market}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
+      );
       fireEvent.press(
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
@@ -539,10 +511,15 @@ describe('PredictPicks', () => {
         outcomeId: 'non-existent-outcome',
         claimable: false,
       });
-      setupPositionsMock({ livePositions: [position] });
       mockExecuteGuardedAction.mockImplementation((callback) => callback());
 
-      render(<PredictPicks market={market} />);
+      render(
+        <PredictPicks
+          market={market}
+          positions={[position]}
+          claimablePositions={[]}
+        />,
+      );
       fireEvent.press(
         screen.getByTestId('predict-picks-cash-out-button-pos-1'),
       );
@@ -557,9 +534,14 @@ describe('PredictPicks', () => {
 
     it('calls usePredictActionGuard with navigation only', () => {
       const market = createMockMarket({ providerId: 'custom-provider' });
-      setupPositionsMock({ livePositions: [createMockPosition()] });
 
-      render(<PredictPicks market={market} />);
+      render(
+        <PredictPicks
+          market={market}
+          positions={[createMockPosition()]}
+          claimablePositions={[]}
+        />,
+      );
 
       expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -20,6 +20,7 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
@@ -59,13 +60,28 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
+
+  const { data: activePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    claimable: false,
+  });
+  const { data: claimablePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    claimable: true,
+  });
+
   const {
     enabled: tabsEnabled,
+    showTabBar,
     tabs,
     activeTab,
     handleTabPress,
     stickyHeaderIndices,
-  } = useGameDetailsTabs({ marketId: market.id });
+  } = useGameDetailsTabs({
+    activePositions,
+    claimablePositions,
+    league: game?.league,
+  });
 
   if (!outcome || !game) {
     return null;
@@ -138,7 +154,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           />
         </Box>
 
-        {tabsEnabled && (
+        {showTabBar && (
           <PredictMarketDetailsTabBar
             tabs={tabs}
             activeTab={activeTab}
@@ -151,6 +167,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           activeTab={activeTab}
           tabs={tabs}
           enabled={tabsEnabled}
+          showTabBar={showTabBar}
+          activePositions={activePositions}
+          claimablePositions={claimablePositions}
         />
       </ScrollView>
 

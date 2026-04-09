@@ -1,41 +1,104 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useGameDetailsTabs } from './useGameDetailsTabs';
-import { usePredictPositions } from '../../../hooks/usePredictPositions';
+import type { PredictPosition } from '../../../types';
 
-jest.mock('../../../hooks/usePredictPositions');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-const mockUsePredictPositions = usePredictPositions as jest.Mock;
+const mockUseSelector = useSelector as jest.Mock;
 
-const setupPositionsMock = ({
-  activePositions = [],
-  claimablePositions = [],
-}: {
-  activePositions?: { id: string }[];
-  claimablePositions?: { id: string }[];
-} = {}) => {
-  mockUsePredictPositions.mockImplementation(
-    (opts: { claimable: boolean }) => ({
-      data: opts.claimable ? claimablePositions : activePositions,
-    }),
-  );
+const createMockPosition = (id = 'pos-1'): PredictPosition =>
+  ({ id }) as PredictPosition;
+
+const defaultParams = {
+  activePositions: [] as PredictPosition[],
+  claimablePositions: [] as PredictPosition[],
+  league: 'nba' as const,
 };
 
 describe('useGameDetailsTabs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    setupPositionsMock();
+  });
+
+  describe('enabled (league in flag)', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba', 'ucl']);
+    });
+
+    it('returns enabled true when league is in extendedSportsMarketsLeagues', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, league: 'nba' }),
+      );
+
+      expect(result.current.enabled).toBe(true);
+    });
+
+    it('returns enabled false when league is not in extendedSportsMarketsLeagues', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, league: 'nfl' }),
+      );
+
+      expect(result.current.enabled).toBe(false);
+    });
+
+    it('returns enabled false when league is undefined', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, league: undefined }),
+      );
+
+      expect(result.current.enabled).toBe(false);
+    });
+  });
+
+  describe('disabled (empty flag)', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue([]);
+    });
+
+    it('returns enabled false', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.enabled).toBe(false);
+    });
+
+    it('returns showTabBar false even with positions', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          activePositions: [createMockPosition()],
+        }),
+      );
+
+      expect(result.current.showTabBar).toBe(false);
+    });
+
+    it('defaults activeTab to null', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.activeTab).toBeNull();
+    });
+
+    it('returns undefined stickyHeaderIndices', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.stickyHeaderIndices).toBeUndefined();
+    });
   });
 
   describe('tabs computation', () => {
-    it('includes only Outcomes tab when no positions exist', () => {
-      setupPositionsMock();
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
 
-      const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
-      );
+    it('includes only Outcomes tab when no positions exist', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
 
       expect(result.current.tabs).toEqual([
         { label: 'predict.tabs.outcomes', key: 'outcomes' },
@@ -43,10 +106,11 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('includes Positions and Outcomes tabs when active positions exist', () => {
-      setupPositionsMock({ activePositions: [{ id: 'pos-1' }] });
-
       const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
+        useGameDetailsTabs({
+          ...defaultParams,
+          activePositions: [createMockPosition()],
+        }),
       );
 
       expect(result.current.tabs).toEqual([
@@ -56,10 +120,11 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('includes Positions tab when only claimable positions exist', () => {
-      setupPositionsMock({ claimablePositions: [{ id: 'pos-1' }] });
-
       const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
+        useGameDetailsTabs({
+          ...defaultParams,
+          claimablePositions: [createMockPosition()],
+        }),
       );
 
       expect(result.current.tabs).toEqual([
@@ -69,43 +134,49 @@ describe('useGameDetailsTabs', () => {
     });
   });
 
-  describe('default tab selection', () => {
-    it('defaults activeTab to 0 on first render', () => {
-      setupPositionsMock();
+  describe('default tab selection (enabled)', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
 
-      const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
-      );
+    it('defaults activeTab to 0', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
 
       expect(result.current.activeTab).toBe(0);
     });
 
     it('resets activeTab to 0 when it exceeds tabs length', () => {
-      setupPositionsMock({ activePositions: [{ id: 'pos-1' }] });
-
-      const { result, rerender } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
+      const { result, rerender } = renderHook(
+        (props) => useGameDetailsTabs(props),
+        {
+          initialProps: {
+            ...defaultParams,
+            activePositions: [createMockPosition()],
+          },
+        },
       );
 
       act(() => {
         result.current.handleTabPress(1);
       });
-
       expect(result.current.activeTab).toBe(1);
 
-      setupPositionsMock();
-      rerender({});
-
+      rerender({ ...defaultParams, activePositions: [] });
       expect(result.current.activeTab).toBe(0);
     });
   });
 
   describe('handleTabPress', () => {
-    it('updates activeTab when tab is pressed', () => {
-      setupPositionsMock({ activePositions: [{ id: 'pos-1' }] });
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
 
+    it('updates activeTab when tab is pressed', () => {
       const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
+        useGameDetailsTabs({
+          ...defaultParams,
+          activePositions: [createMockPosition()],
+        }),
       );
 
       act(() => {
@@ -116,40 +187,60 @@ describe('useGameDetailsTabs', () => {
     });
   });
 
-  describe('stickyHeaderIndices', () => {
-    it('returns [2] when enabled', () => {
+  describe('showTabBar', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
+
+    it('returns false when no positions exist', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+
+      expect(result.current.showTabBar).toBe(false);
+    });
+
+    it('returns true when active positions exist', () => {
       const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
+        useGameDetailsTabs({
+          ...defaultParams,
+          activePositions: [createMockPosition()],
+        }),
+      );
+
+      expect(result.current.showTabBar).toBe(true);
+    });
+
+    it('returns true when claimable positions exist', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          claimablePositions: [createMockPosition()],
+        }),
+      );
+
+      expect(result.current.showTabBar).toBe(true);
+    });
+  });
+
+  describe('stickyHeaderIndices', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(['nba']);
+    });
+
+    it('returns [2] when showTabBar is true', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          activePositions: [createMockPosition()],
+        }),
       );
 
       expect(result.current.stickyHeaderIndices).toEqual([2]);
     });
-  });
 
-  describe('enabled flag', () => {
-    it('returns enabled as true', () => {
-      const { result } = renderHook(() =>
-        useGameDetailsTabs({ marketId: 'market-1' }),
-      );
+    it('returns undefined when showTabBar is false', () => {
+      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
 
-      expect(result.current.enabled).toBe(true);
-    });
-  });
-
-  describe('position fetching', () => {
-    it('calls usePredictPositions with correct params', () => {
-      renderHook(() => useGameDetailsTabs({ marketId: 'market-42' }));
-
-      expect(mockUsePredictPositions).toHaveBeenCalledWith({
-        marketId: 'market-42',
-        claimable: false,
-        enabled: true,
-      });
-      expect(mockUsePredictPositions).toHaveBeenCalledWith({
-        marketId: 'market-42',
-        claimable: true,
-        enabled: true,
-      });
+      expect(result.current.stickyHeaderIndices).toBeUndefined();
     });
   });
 });
