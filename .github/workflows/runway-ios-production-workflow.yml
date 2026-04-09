@@ -1,0 +1,41 @@
+##############################################################################################
+#
+# Runway iOS Production Workflow
+#
+# Triggered from Runway to either:
+# - Push an OTA update to the production channel (when OTA_VERSION is bumped), or
+# - Build the production app and upload the IPA to TestFlight (when there is no OTA bump).
+#
+# When triggering workflow_dispatch, select the correct branch (e.g. main or release).
+# Version bump: this workflow bumps; run Android production after on the same branch.
+#
+##############################################################################################
+name: Runway iOS Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA (Build workflow source_branch).
+          Empty uses the branch selected in the "Use workflow from" UI.
+        required: false
+        type: string
+
+permissions:
+  contents: write # required by build.yml (update-build-version job)
+  pull-requests: read
+  actions: write
+  id-token: write # required by build.yml
+
+jobs:
+  runway-production:
+    uses: ./.github/workflows/runway-ota-build-core.yml
+    with:
+      platform: ios
+      source_branch: ${{ inputs.source_branch }}
+      ota_channel: production
+      build_name: main-prod
+      create_production_ota_tag: true
+      environment: prod
+    secrets: inherit

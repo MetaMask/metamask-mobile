@@ -51,6 +51,7 @@ describe('selectWallets', () => {
             name: 'Account 1',
             pinned: false,
             hidden: false,
+            lastSelected: 0,
           },
         },
       },
@@ -75,6 +76,7 @@ describe('selectWallets', () => {
             name: 'Account 2',
             pinned: false,
             hidden: false,
+            lastSelected: 0,
           },
         },
       },
@@ -110,8 +112,8 @@ describe('selectWallets', () => {
           [WALLET_ID_1]: wallet1,
           [WALLET_ID_2]: wallet2,
         },
-        selectedAccountGroup: '',
       },
+      selectedAccountGroup: '',
       accountGroupsMetadata: groupMetadata,
       accountWalletsMetadata: walletMetadata,
     });
@@ -173,6 +175,7 @@ describe('selectMultichainWallets', () => {
           [MULTICHAIN_WALLET_ID_1]: {
             id: MULTICHAIN_WALLET_ID_1,
             type: AccountWalletType.Entropy,
+            status: 'ready',
             metadata: {
               name: 'Multichain Wallet 1',
               entropy: {
@@ -184,6 +187,7 @@ describe('selectMultichainWallets', () => {
           [MULTICHAIN_WALLET_ID_2]: {
             id: MULTICHAIN_WALLET_ID_2,
             type: AccountWalletType.Entropy,
+            status: 'ready',
             metadata: {
               name: 'Multichain Wallet 2',
               entropy: {
@@ -195,6 +199,7 @@ describe('selectMultichainWallets', () => {
           [WALLET_ID_1]: {
             id: WALLET_ID_1,
             type: AccountWalletType.Keyring,
+            status: 'ready',
             metadata: {
               name: 'Wallet 1',
               keyring: {
@@ -206,6 +211,7 @@ describe('selectMultichainWallets', () => {
           [WALLET_ID_2]: {
             id: WALLET_ID_2,
             type: AccountWalletType.Keyring,
+            status: 'ready',
             metadata: {
               name: 'Wallet 2',
               keyring: {
@@ -215,14 +221,15 @@ describe('selectMultichainWallets', () => {
             groups: {},
           },
         },
-        selectedAccountGroup: '',
       },
+      selectedAccountGroup: '',
     });
     const result = selectMultichainWallets(mockState);
     expect(result).toEqual([
       {
         id: MULTICHAIN_WALLET_ID_1,
         type: AccountWalletType.Entropy,
+        status: 'ready',
         metadata: {
           name: 'Multichain Wallet 1',
           entropy: {
@@ -234,6 +241,7 @@ describe('selectMultichainWallets', () => {
       {
         id: MULTICHAIN_WALLET_ID_2,
         type: AccountWalletType.Entropy,
+        status: 'ready',
         metadata: {
           name: 'Multichain Wallet 2',
           entropy: {

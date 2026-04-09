@@ -59,6 +59,7 @@ export interface BridgeRouteParams {
   destToken?: BridgeToken;
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
+  scrollToTopOnNav?: boolean;
 }
 
 export enum SwapBridgeNavigationLocation {
@@ -109,6 +110,7 @@ export const useSwapBridgeNavigation = ({
   destToken: destTokenBase,
   abTestContext,
   skipLocationUpdate = false,
+  swapButtonEventLocationOverride,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
@@ -125,6 +127,14 @@ export const useSwapBridgeNavigation = ({
    * bridge asset picker) to preserve the original entry-point location.
    */
   skipLocationUpdate?: boolean;
+  /**
+   * Override only the tracked location on the unified swap click event.
+   * This keeps bridge session source attribution intact while letting callers
+   * report the button tap from a more specific UI surface like the navbar.
+   */
+  swapButtonEventLocationOverride?:
+    | ActionLocation
+    | SwapBridgeNavigationLocation;
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -141,6 +151,7 @@ export const useSwapBridgeNavigation = ({
       sourceTokenOverride?: BridgeToken,
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
+      scrollToTopOnNav?: boolean,
     ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
@@ -269,6 +280,7 @@ export const useSwapBridgeNavigation = ({
         sourcePage,
         bridgeViewMode,
         location: mappedLocation,
+        ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
       };
 
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -293,7 +305,7 @@ export const useSwapBridgeNavigation = ({
       trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
 
       const swapEventProperties = {
-        location,
+        location: swapButtonEventLocationOverride ?? location,
         chain_id_source: getDecimalChainId(sourceToken.chainId),
         token_symbol_source: sourceToken?.symbol,
         token_address_source: sourceToken?.address,
@@ -324,6 +336,7 @@ export const useSwapBridgeNavigation = ({
       currentNetworkInfo,
       getIsBridgeEnabledSource,
       skipLocationUpdate,
+      swapButtonEventLocationOverride,
     ],
   );
   const { networkModal } = useAddNetwork();
@@ -333,12 +346,14 @@ export const useSwapBridgeNavigation = ({
       tokenOverride?: BridgeToken,
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
+      scrollToTopOnNav?: boolean,
     ) => {
       goToNativeBridge(
         BridgeViewMode.Unified,
         tokenOverride,
         destTokenOverride,
         buttonLabel,
+        scrollToTopOnNav,
       );
     },
     [goToNativeBridge],

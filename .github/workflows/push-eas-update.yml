@@ -34,6 +34,31 @@ on:
           - android
         default: all
 
+  workflow_call:
+    inputs:
+      pr_number:
+        description: 'PR number to publish (uses PR branch HEAD commit)'
+        type: string
+        required: true
+      base_branch:
+        description: 'Base ref to compare fingerprints against (branch name like "main" or tag name like "v7.61.6")'
+        type: string
+        required: true
+      message:
+        description: 'EAS update message'
+        type: string
+        required: true
+      channel:
+        description: 'OTA channel to push update to (exp, rc, production)'
+        type: string
+        required: false
+        default: exp
+      platform:
+        description: 'Platform to update (all, ios, android)'
+        type: string
+        required: false
+        default: all
+
 permissions:
   contents: read
   id-token: write
@@ -82,6 +107,7 @@ jobs:
             echo "| **Update version** | ${UPDATE_MESSAGE} |"
             echo "| **Target version** | ${BASE_BRANCH_REF} |"
             echo "| **Environment** | ${TARGET_CHANNEL} |"
+            echo "| **Platform** | ${OTA_PUSH_PLATFORM} |"
             echo "| **Target commit** | ${{ needs.validate-pr.outputs.commit_sha }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -332,6 +358,9 @@ jobs:
       QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
       QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
       MM_CHARTING_LIBRARY_URL: ${{ secrets.MM_CHARTING_LIBRARY_URL }}
+      MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+      MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+      MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

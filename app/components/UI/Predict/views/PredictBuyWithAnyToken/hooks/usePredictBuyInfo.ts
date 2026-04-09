@@ -1,46 +1,77 @@
 import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { OrderPreview } from '../../../types';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { OrderPreview } from '../../../types';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
   preview?: OrderPreview | null;
   previewError: string | null;
-  placeOrderError?: string | null;
-  isOrderNotFilled: boolean;
-  isPlaceOrderLoading: boolean;
   isConfirming: boolean;
+  isPlacingOrder: boolean;
 }
 
 export const usePredictBuyInfo = ({
   preview,
   previewError,
   currentValue,
-  placeOrderError,
-  isOrderNotFilled,
-  isPlaceOrderLoading,
   isConfirming,
+  isPlacingOrder,
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
-  const { activeOrder } = usePredictActiveOrder();
 
-  const depositFee = useMemo(() => {
-    if (isPredictBalanceSelected || !payTotals?.fees) return 0;
+  const [insufficientPayTokenBalanceAlert] =
+    useInsufficientPayTokenBalanceAlert();
+
+  const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
+
+  const totalPayForPredictBalance = useMemo(
+    () =>
+      currentValue +
+      (preview?.fees?.providerFee ?? 0) +
+      (preview?.fees?.metamaskFee ?? 0),
+    [currentValue, preview?.fees?.providerFee, preview?.fees?.metamaskFee],
+  );
+
+  const computedDepositFee = useMemo(() => {
+    if (
+      isPredictBalanceSelected ||
+      !payTotals?.fees ||
+      insufficientPayTokenBalanceAlert
+    )
+      return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
       .plus(sourceNetwork?.estimate?.usd ?? 0)
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
-  }, [isPredictBalanceSelected, payTotals]);
+  }, [
+    insufficientPayTokenBalanceAlert,
+    isPredictBalanceSelected,
+    payTotals?.fees,
+  ]);
+
+  useEffect(() => {
+    if (computedDepositFee > 0) {
+      setAcceptedDepositFee(computedDepositFee);
+    }
+  }, [computedDepositFee]);
+
+  useEffect(() => {
+    if (!isConfirming) {
+      setAcceptedDepositFee(0);
+    }
+  }, [isConfirming]);
+
+  const fallbackDepositFee = isConfirming ? acceptedDepositFee : 0;
+  const depositFee =
+    computedDepositFee > 0 ? computedDepositFee : fallbackDepositFee;
 
   const rewardsFeeAmount =
-    isPlaceOrderLoading || previewError
-      ? undefined
-      : (preview?.fees?.totalFee ?? 0);
+    isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
 
   const { toWin, metamaskFee, providerFee, total } = useMemo(
     () => ({
@@ -48,33 +79,15 @@ export const usePredictBuyInfo = ({
       isRateLimited: preview?.rateLimited ?? false,
       metamaskFee: preview?.fees?.metamaskFee ?? 0,
       providerFee: preview?.fees?.providerFee ?? 0,
-      total:
-        currentValue +
-        (preview?.fees?.providerFee ?? 0) +
-        (preview?.fees?.metamaskFee ?? 0) +
-        depositFee,
+      total: totalPayForPredictBalance + depositFee,
     }),
     [
-      currentValue,
       depositFee,
       preview?.fees?.metamaskFee,
       preview?.fees?.providerFee,
       preview?.minAmountReceived,
       preview?.rateLimited,
-    ],
-  );
-
-  const errorMessage = useMemo(
-    () =>
-      isOrderNotFilled || isConfirming
-        ? undefined
-        : (previewError ?? placeOrderError ?? activeOrder?.error),
-    [
-      isOrderNotFilled,
-      isConfirming,
-      previewError,
-      placeOrderError,
-      activeOrder?.error,
+      totalPayForPredictBalance,
     ],
   );
 
@@ -85,6 +98,6 @@ export const usePredictBuyInfo = ({
     depositFee,
     total,
     rewardsFeeAmount,
-    errorMessage,
+    totalPayForPredictBalance,
   };
 };

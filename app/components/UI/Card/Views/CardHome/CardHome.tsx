@@ -76,10 +76,7 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  resetAuthenticatedData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -107,7 +104,7 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../pushProvisioning';
-import { AddToWalletButton } from '@expensify/react-native-wallet';
+import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
 import { createViewPinBottomSheetNavigationDetails } from '../../components/ViewPinBottomSheet';
@@ -144,7 +141,7 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
-  const userLocation = useSelector(selectUserCardLocation);
+  const userLocation = useSelector(selectCardUserLocation);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
@@ -191,7 +188,6 @@ const CardHome = () => {
     error: cardError,
     warning,
     isAuthenticated,
-    isBaanxLoginEnabled,
     fetchAllData,
     fetchCardDetails,
     allTokens,
@@ -273,12 +269,12 @@ const CardHome = () => {
       cardDetails
         ? {
             id: cardDetails.id,
-            holderName: cardDetails.holderName,
+            holderName: cardholderName,
             panLast4: cardDetails.panLast4,
             status: cardDetails.status,
           }
         : null,
-    [cardDetails],
+    [cardDetails, cardholderName],
   );
 
   const {
@@ -288,6 +284,7 @@ const CardHome = () => {
   } = usePushProvisioning({
     cardDetails: cardDetailsForProvisioning,
     userAddress: userAddressForProvisioning,
+    accountCreatedAt: kycStatus?.userDetails?.createdAt,
     onSuccess: () => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -916,15 +913,13 @@ const CardHome = () => {
 
   const cardSetupState = useMemo(() => {
     const needsSetup =
-      isBaanxLoginEnabled &&
-      (warning === CardStateWarning.NoCard ||
-        warning === CardStateWarning.NeedDelegation);
+      warning === CardStateWarning.NoCard ||
+      warning === CardStateWarning.NeedDelegation;
 
     const isKYCVerified =
       isAuthenticated && kycStatus?.verificationState === 'VERIFIED';
 
     const isKYCPending =
-      isBaanxLoginEnabled &&
       isAuthenticated &&
       (kycStatus?.verificationState === 'PENDING' ||
         kycStatus?.verificationState === 'UNVERIFIED');
@@ -937,7 +932,7 @@ const CardHome = () => {
         : CardHomeSelectors.ENABLE_ASSETS_BUTTON;
 
     return { needsSetup, canEnable, isKYCPending, setupTestId };
-  }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
+  }, [warning, isAuthenticated, kycStatus, isLoading]);
 
   /**
    * Check if the card is being provisioned.
@@ -958,7 +953,6 @@ const CardHome = () => {
       !cardSetupState.isKYCPending &&
       !isCardProvisioning &&
       isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
       isAuthenticated &&
       warning === CardStateWarning.NoCard &&
       userLocation === 'us' &&
@@ -968,7 +962,6 @@ const CardHome = () => {
       cardSetupState.isKYCPending,
       isCardProvisioning,
       isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
       isAuthenticated,
       warning,
       userLocation,
@@ -1013,20 +1006,6 @@ const CardHome = () => {
           style={tw.style('rounded-xl')}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
         />
-      );
-    }
-
-    if (!isBaanxLoginEnabled) {
-      return (
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={addFundsAction}
-          isFullWidth
-          testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        >
-          {strings('card.card_home.add_funds')}
-        </Button>
       );
     }
 
@@ -1088,7 +1067,6 @@ const CardHome = () => {
     addFundsAction,
     changeAssetAction,
     cardSetupState,
-    isBaanxLoginEnabled,
     isLoading,
     isSwapEnabledForPriorityToken,
     tw,
@@ -1105,14 +1083,12 @@ const CardHome = () => {
       !cardSetupState.needsSetup &&
       !isCardProvisioning &&
       isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
       isAuthenticated &&
       userLocation === 'us' &&
       userShippingAddress &&
       cardDetails?.type === CardType.VIRTUAL,
     [
       isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
       isAuthenticated,
       userLocation,
       userShippingAddress,
@@ -1151,12 +1127,16 @@ const CardHome = () => {
 
       try {
         await removeCardBaanxToken();
+        // Sync controller state: token is now gone so validateAndRefreshSession
+        // will mark CardController.isAuthenticated = false without an API call.
+        await Engine.context.CardController.validateAndRefreshSession().catch(
+          () => undefined,
+        );
 
         if (isComponentUnmountedRef.current) {
           return;
         }
 
-        dispatch(resetAuthenticatedData());
         queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({
@@ -1180,7 +1160,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
+  }, [cardError, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -1578,7 +1558,7 @@ const CardHome = () => {
               testID="freeze-card-list-item"
             />
           )}
-        {isBaanxLoginEnabled && !isLoading && (
+        {!isLoading && (
           <ManageCardListItem
             title={strings(
               'card.card_home.manage_card_options.manage_spending_limit',

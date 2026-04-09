@@ -1,6 +1,6 @@
+import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
-import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 
 const DEVELOPMENT = 'development';
 
@@ -126,6 +126,7 @@ export default {
     ORIGIN_NOTIFICATION: 'notifications',
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
     ORIGIN_PUSH_NOTIFICATION: 'push-notification',
+    ORIGIN_BRAZE: 'braze',
   },
   WALLET_CONNECT: {
     //One day in hours
@@ -211,13 +212,13 @@ export default {
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
+    MUSD_LEARN_MORE: 'https://support.metamask.io/manage-crypto/tokens/musd',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
   DIGEST_API_URL:
-    process.env.DIGEST_API_URL ||
-    'https://digest.dev-api.cx.metamask.io/api/v1',
+    process.env.DIGEST_API_URL || 'https://digest.api.cx.metamask.io/api/v1',
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',

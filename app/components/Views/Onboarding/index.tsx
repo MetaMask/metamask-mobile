@@ -27,6 +27,7 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
+  clearSeedlessOnboarding,
 } from '../../../actions/onboarding';
 import {
   AccountType,
@@ -37,6 +38,7 @@ import {
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
+import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -89,6 +91,11 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
+import {
+  presentIosGoogleLoginUnsupportedBlockingSheet,
+  presentIosGoogleLoginUnsupportedBlockingSheetRehydration,
+  presentIosGoogleLoginVersionWarningSheet,
+} from './OnboardingIosPrompt';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
@@ -100,7 +107,6 @@ import {
   ButtonSize,
   ButtonVariant,
   Text,
-  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -110,11 +116,7 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
-import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -142,7 +144,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
     () => `${getVersion()} (${getBuildNumber()})`,
     [],
@@ -160,6 +162,9 @@ const Onboarding = () => {
     (state: RootState) => state.user.loadingMsg || '',
   );
   const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
+  const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
+    selectGoogleLoginIosUnsupportedBlockingEnabled,
+  );
 
   const setLoading = useCallback(
     (msg?: string) => dispatch(loadingSet(msg || '')),
@@ -316,15 +321,6 @@ const Onboarding = () => {
         );
       }
     }, [navigation, route]);
-
-  const onLogin = useCallback(async (): Promise<void> => {
-    if (!passwordSet) {
-      await Authentication.resetVault();
-      navigation.dispatch(StackActions.replace(Routes.ONBOARDING.HOME_NAV));
-    } else {
-      await Authentication.lockApp({ navigateToLogin: true });
-    }
-  }, [navigation, passwordSet]);
 
   const handleExistingUser = useCallback(
     async (action: () => void | Promise<void>): Promise<void> => {
@@ -519,7 +515,7 @@ const Onboarding = () => {
                 onboardingTraceCtx: onboardingTraceCtx.current,
               },
             )
-          : navigation.navigate('Rehydrate', {
+          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
               [PREVIOUS_SCREEN]: ONBOARDING,
               oauthLoginSuccess: true,
               onboardingTraceCtx: onboardingTraceCtx.current,
@@ -767,13 +763,6 @@ const Onboarding = () => {
         });
       }
 
-      socialLoginTraceCtx.current = trace({
-        name: TraceName.OnboardingSocialLoginAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: { ...getTraceTags(store.getState()), provider },
-        parentContext: onboardingTraceCtx.current,
-      });
-
       const action = async () => {
         // prompt for ios google login not supported below iOS 17.4
         if (
@@ -781,35 +770,33 @@ const Onboarding = () => {
           Device.isIos() &&
           Device.comparePlatformVersionTo('17.4') < 0
         ) {
-          const description = () => (
-            <>
-              <Text style={tw.style('text-pretty')}>
-                {strings(`error_sheet.ios_need_update_description`)}
-                <Text twClassName="font-bold">
-                  {strings(`error_sheet.ios_need_update_description_version`)}
-                </Text>
-                {strings(`error_sheet.ios_need_update_description_end`)}
-              </Text>
-              <Text style={tw.style('text-pretty')}>
-                {strings(`error_sheet.ios_need_update_description2`)}
-              </Text>
-            </>
-          );
+          if (isGoogleLoginIosUnsupportedBlockingEnabled) {
+            if (createWallet) {
+              await presentIosGoogleLoginUnsupportedBlockingSheet(navigation);
+            } else {
+              await presentIosGoogleLoginUnsupportedBlockingSheetRehydration(
+                navigation,
+              );
+            }
+            track(MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED, {
+              account_type: accountType,
+            });
+            return;
+          }
 
-          await navigateToSuccessErrorSheetPromise(navigation, {
-            type: 'error',
-            icon: IconName.Warning,
-            iconColor: IconColor.Warning,
-            title: strings(`error_sheet.ios_need_update_title`),
-            description: description(),
-            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
-            closeOnPrimaryButtonPress: true,
-            isInteractable: false,
-          });
+          await presentIosGoogleLoginVersionWarningSheet(navigation);
           track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
             account_type: accountType,
           });
         }
+
+        socialLoginTraceCtx.current = trace({
+          name: TraceName.OnboardingSocialLoginAttempt,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: { ...getTraceTags(store.getState()), provider },
+          parentContext: onboardingTraceCtx.current,
+        });
+
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {
@@ -839,7 +826,6 @@ const Onboarding = () => {
       handleExistingUser(action);
     },
     [
-      tw,
       navigation,
       metrics,
       track,
@@ -848,6 +834,7 @@ const Onboarding = () => {
       handleLoginError,
       handlePostSocialLogin,
       handleExistingUser,
+      isGoogleLoginIosUnsupportedBlockingEnabled,
     ],
   );
 
@@ -866,6 +853,7 @@ const Onboarding = () => {
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
+        dispatch(clearSeedlessOnboarding());
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: {
@@ -876,7 +864,6 @@ const Onboarding = () => {
             createWallet: actionType === 'create',
           },
         });
-        // else
       } else if (actionType === 'create') {
         await onPressCreate();
       } else {
@@ -889,6 +876,7 @@ const Onboarding = () => {
       onPressImport,
       onPressContinueWithGoogle,
       onPressContinueWithApple,
+      dispatch,
     ],
   );
 
@@ -1059,8 +1047,7 @@ const Onboarding = () => {
     }
   }, [isPna25FlagEnabled, storePna25Acknowledged]);
 
-  const { existingUser, errorToThrow, startFoxAnimation } = state;
-  const hasFooter = existingUser && !loading;
+  const { errorToThrow, startFoxAnimation } = state;
 
   const ThrowErrorIfNeeded = () => {
     if (errorToThrow) {
@@ -1115,20 +1102,12 @@ const Onboarding = () => {
               </Box>
             )}
           </Box>
-
-          {existingUser && !loading && (
-            <Box twClassName="mb-10 -mt-10">
-              <TextButton onPress={onLogin} isInverse>
-                {strings('onboarding.unlock')}
-              </TextButton>
-            </Box>
-          )}
         </ScrollView>
 
         <FadeOutOverlay />
 
         {!isE2E && (
-          <FoxAnimation hasFooter={hasFooter} trigger={startFoxAnimation} />
+          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
 
         <Box>{handleSimpleNotification()}</Box>

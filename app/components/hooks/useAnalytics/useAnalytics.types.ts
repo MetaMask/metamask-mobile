@@ -22,7 +22,7 @@ type AnalyticsEventBuilderType = ReturnType<
  */
 export const SourceType = {
   SDK: 'sdk',
-  SDK_CONNECT_V2: 'sdk_connect_v2',
+  MM_CONNECT: 'mm_connect',
   WALLET_CONNECT: 'walletconnect',
   IN_APP_BROWSER: 'in-app browser',
   PERMISSION_SYSTEM: 'permission system',

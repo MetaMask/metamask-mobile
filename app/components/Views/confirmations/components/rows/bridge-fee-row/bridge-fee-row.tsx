@@ -64,20 +64,25 @@ function TransactionFeeRow({
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
+  const hasQuotes = Boolean(quotes?.length);
+
   const feeTotalUsd = useMemo(() => {
-    if (!totals?.fees) return '';
+    if (!totals?.fees || !hasQuotes) return '';
+
+    const metaMask = totals.fees.metaMask.usd ?? 0;
+    const provider = totals.fees.provider.usd;
+    const sourceNetwork = totals.fees.sourceNetwork.estimate.usd;
+    const targetNetwork = totals.fees.targetNetwork.usd;
 
     return formatFiat(
-      new BigNumber(totals.fees.metaMask.usd ?? 0)
-        .plus(totals.fees.provider.usd)
-        .plus(totals.fees.sourceNetwork.estimate.usd)
-        .plus(totals.fees.targetNetwork.usd),
+      new BigNumber(metaMask)
+        .plus(provider)
+        .plus(sourceNetwork)
+        .plus(targetNetwork),
     );
-  }, [totals, formatFiat]);
+  }, [totals, formatFiat, hasQuotes]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
-
-  const hasQuotes = Boolean(quotes?.length);
 
   return (
     <AlertRow
@@ -129,13 +134,18 @@ function Tooltip({
     hasTransactionType(transactionMeta, [
       TransactionType.predictDeposit,
       TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
     ])
   ) {
-    message = hasTransactionType(transactionMeta, [
-      TransactionType.predictWithdraw,
-    ])
-      ? strings('confirm.tooltip.predict_withdraw.transaction_fee')
-      : strings('confirm.tooltip.predict_deposit.transaction_fee');
+    if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+      message = strings('confirm.tooltip.perps_withdraw.transaction_fee');
+    } else if (
+      hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
+    ) {
+      message = strings('confirm.tooltip.predict_withdraw.transaction_fee');
+    } else {
+      message = strings('confirm.tooltip.predict_deposit.transaction_fee');
+    }
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {

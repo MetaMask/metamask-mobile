@@ -22,6 +22,8 @@ import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/con
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
+import ToastModal from '../wallet/ToastModal';
+import SolanaTestDApp from './SolanaTestDApp';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/3.4.1/';
@@ -425,12 +427,47 @@ class TestSnaps {
     await Gestures.tap(this.getApproveSignRequestButton);
   }
 
+  /**
+   * Blurs the focused field inside the test-snaps WebView so iOS does not keep the
+   * keyboard input accessory (prev/next/done bar) over the native confirmation footer.
+   */
+  async blurActiveWebViewInput(): Promise<void> {
+    const nativeWebView = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+    const bodyElement = nativeWebView.element(by.web.tag('body'));
+    await bodyElement.runScript(
+      `(el) => {
+        var active = document.activeElement;
+        if (active && typeof active.blur === 'function') {
+          active.blur();
+        }
+      }`,
+    );
+  }
+
   async approveNativeConfirmation() {
-    await Gestures.tap(this.confirmSignatureButton);
+    // Network-added toasts can sit above the confirmation footer and steal hit tests.
+    await Assertions.expectElementToNotBeVisible(ToastModal.container, {
+      description: 'network toast dismissed before confirming snap signature',
+      timeout: 15_000,
+    });
+    await this.blurActiveWebViewInput();
+    await Gestures.tap(this.confirmSignatureButton, {
+      elemDescription: 'confirm snap signature',
+      checkStability: true,
+    });
   }
 
   async approveSolanaConfirmation() {
-    await Gestures.tap(this.solanaConfirmButton);
+    await Assertions.expectElementToNotBeVisible(ToastModal.container, {
+      description:
+        'network toast dismissed before confirming Solana snap signature',
+      timeout: 15_000,
+    });
+    // Multichain Solana signing can use SnapDialog/BottomSheetFooter ("Approve") instead of
+    // redesigned `confirm-button` — same as Solana Wallet Standard E2E.
+    await SolanaTestDApp.confirmSignMessage();
   }
 
   async waitForWebSocketUpdate(state: {

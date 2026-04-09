@@ -5,12 +5,18 @@ import { useAccountTokens } from './useAccountTokens';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { TokenStandard } from '../../types/token';
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import {
+  selectAssetsBySelectedAccountGroup,
+  selectAssetsByAccountGroupId,
+} from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { Hex } from '@metamask/utils';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -33,8 +39,27 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('../transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(),
+}));
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
+);
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectInternalAccountsById: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: jest.fn(),
+  }),
+);
+
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(),
+  selectAssetsByAccountGroupId: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
@@ -91,6 +116,8 @@ describe('useAccountTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    useTransactionMetadataRequestMock.mockReturnValue(undefined);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockSelectAssetsBySelectedAccountGroup.mockReturnValue(mockAssets as any);
     mockSelectCurrentCurrency.mockReturnValue('USD');
@@ -101,6 +128,12 @@ describe('useAccountTokens', () => {
       }
       if (selector === selectCurrentCurrency) {
         return 'USD';
+      }
+      if (selector === selectInternalAccountsById) {
+        return {};
+      }
+      if (selector === selectAccountToGroupMap) {
+        return {};
       }
       return undefined;
     });
@@ -766,6 +799,60 @@ describe('useAccountTokens', () => {
       );
 
       expect(result.current).toHaveLength(0);
+    });
+  });
+
+  describe('txParams.from override', () => {
+    const overrideAssets = {
+      '0x89': [
+        {
+          chainId: '0x89',
+          accountType: 'eip155:1/erc20:0xoverride',
+          fiat: { balance: '500' },
+          rawBalance: '0xAAAA',
+          symbol: 'OVERRIDE',
+        },
+      ],
+    };
+
+    it('uses from account assets when txParams.from resolves to an account group', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        txParams: { from: '0xFromAddress' },
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mockAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectInternalAccountsById) {
+          return {
+            'acc-1': { address: '0xFromAddress' },
+          };
+        }
+        if (selector === selectAccountToGroupMap) {
+          return {
+            'acc-1': { id: 'group-from' },
+          };
+        }
+        return overrideAssets;
+      });
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('OVERRIDE');
+    });
+
+    it('falls back to global assets when txParams.from is not available', () => {
+      useTransactionMetadataRequestMock.mockReturnValue(undefined);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toHaveLength(2);
+      expect(result.current[0].symbol).toBe('TOKEN1');
     });
   });
 });
