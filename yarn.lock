@@ -9486,18 +9486,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@metamask/ramps-controller@npm:13.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/messenger": "npm:^1.1.1"
-  checksum: 10/94f2e84f39ca94382c8635676f8843797642a0829f51d4ad09f77131c4edcff6da20659bda80c6570bd646ce984e9ca35de7d0063b67bc23c3632b10e23d4c47
-  languageName: node
-  linkType: hard
-
-"@metamask/ramps-controller@npm:^13.1.0":
+"@metamask/ramps-controller@npm:^13.0.0, @metamask/ramps-controller@npm:^13.1.0":
   version: 13.1.0
   resolution: "@metamask/ramps-controller@npm:13.1.0"
   dependencies:
