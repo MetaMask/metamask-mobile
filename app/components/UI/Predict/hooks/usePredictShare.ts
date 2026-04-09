@@ -1,9 +1,6 @@
 import { useCallback, useContext } from 'react';
 import { Share } from 'react-native';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { useTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
 import { PredictShareStatus } from '../constants/eventNames';

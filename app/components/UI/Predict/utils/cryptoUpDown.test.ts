@@ -35,7 +35,7 @@ describe('cryptoUpDown utilities', () => {
   });
 
   describe('isCryptoUpDown', () => {
-    it('returns true when market has series and up-or-down tag', () => {
+    it('returns true when market has series, up-or-down tag, and crypto tag', () => {
       const market = createMockMarket({
         series: {
           id: 's1',
