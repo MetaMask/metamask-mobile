@@ -223,17 +223,12 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
     'browser.activeTab',
 
-    // ── Random IDs (generated fresh each onboarding) ──
-    'engine.backgroundState.PerpsController.cachedUserDataAddress',
-
     // ── Timestamps (non-deterministic) ──
     'engine.backgroundState.CurrencyRateController.currencyRates.ETH.conversionDate',
     'engine.backgroundState.PhishingController.hotlistLastFetched',
     'engine.backgroundState.PhishingController.stalelistLastFetched',
     'engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched',
     'engine.backgroundState.PerpsController.lastUpdateTimestamp',
-    'engine.backgroundState.PerpsController.cachedMarketDataTimestamp',
-    'engine.backgroundState.PerpsController.cachedUserDataTimestamp',
     'legalNotices.newPrivacyPolicyToastShownDate',
     'engine.backgroundState.RemoteFeatureFlagController.cacheTimestamp',
     'cronjobController.storage.events.*.date',
