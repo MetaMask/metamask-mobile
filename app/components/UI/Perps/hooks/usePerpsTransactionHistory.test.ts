@@ -11,6 +11,7 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  mergeOrderFills,
 } from '../utils/transactionTransforms';
 import { FillType } from '../types/transactionHistory';
 import type { CaipAccountId } from '@metamask/utils';
@@ -53,6 +54,9 @@ const mockTransformWalletPerpsDepositsToTransactions =
   transformWalletPerpsDepositsToTransactions as jest.MockedFunction<
     typeof transformWalletPerpsDepositsToTransactions
   >;
+const mockMergeOrderFills = mergeOrderFills as jest.MockedFunction<
+  typeof mergeOrderFills
+>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('usePerpsTransactionHistory', () => {
@@ -209,6 +213,13 @@ describe('usePerpsTransactionHistory', () => {
     mockTransformFundingToTransactions.mockReturnValue([]);
     mockTransformUserHistoryToTransactions.mockReturnValue([]);
     mockTransformWalletPerpsDepositsToTransactions.mockReturnValue([]);
+    // Use real mergeOrderFills so dedup, sort, and detailedOrderType preservation
+    // are exercised correctly in hook-level tests. Unit tests for the function
+    // itself live in transactionTransforms.test.ts.
+    const actualTransforms = jest.requireActual(
+      '../utils/transactionTransforms',
+    ) as typeof import('../utils/transactionTransforms');
+    mockMergeOrderFills.mockImplementation(actualTransforms.mergeOrderFills);
   });
 
   describe('initial state', () => {

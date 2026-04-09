@@ -19,6 +19,7 @@ import {
   transformFundingToTransactions,
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
+  mergeOrderFills,
 } from '../utils/transactionTransforms';
 
 interface UsePerpsTransactionHistoryParams {
@@ -235,36 +236,9 @@ export const usePerpsTransactionHistory = ({
   // sub-fills) are aggregated from the complete fill set rather than from the WS
   // partial snapshot, which would produce an incorrect (lower) PnL and size.
   const mergedTransactions = useMemo(() => {
-    // Merge raw fills: REST fills first, then WS fills overwrite duplicates.
-    // Dedup key matches usePerpsHomeData pattern: orderId-timestamp-size-price.
-    const fillsMap = new Map<string, OrderFill>();
-
-    for (const fill of restFills) {
-      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      fillsMap.set(key, fill);
-    }
-
-    // WS fills overwrite REST duplicates (live data is fresher).
-    // Preserve detailedOrderType and liquidation from REST when WS fill lacks them
-    // so TP/SL pills remain visible.
-    for (const fill of liveFills) {
-      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      const existing = fillsMap.get(key);
-      if (existing?.detailedOrderType && !fill.detailedOrderType) {
-        fillsMap.set(key, {
-          ...fill,
-          detailedOrderType: existing.detailedOrderType,
-          ...(existing.liquidation &&
-            !fill.liquidation && { liquidation: existing.liquidation }),
-        });
-      } else {
-        fillsMap.set(key, fill);
-      }
-    }
-
     // Transform once on the complete merged fill set
     const mergedFillTransactions = transformFillsToTransactions(
-      Array.from(fillsMap.values()).sort((a, b) => b.timestamp - a.timestamp),
+      mergeOrderFills(restFills, liveFills),
     );
 
     // Separate non-trade transactions (orders, funding, user history deposits)
