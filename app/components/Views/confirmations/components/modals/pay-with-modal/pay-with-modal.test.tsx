@@ -444,8 +444,10 @@ describe('PayWithModal', () => {
       mockAddTokens.mockImplementation(
         () =>
           new Promise<void>((resolve) => {
-            callOrder.push('addTokens');
-            resolve();
+            setTimeout(() => {
+              callOrder.push('addTokens');
+              resolve();
+            }, 0);
           }),
       );
 
@@ -475,8 +477,11 @@ describe('PayWithModal', () => {
         fireEvent.press(getByText('Zero Token'));
       });
 
+      await waitFor(() => {
+        expect(setPayTokenMock).toHaveBeenCalled();
+      });
+
       expect(mockAddTokens).toHaveBeenCalled();
-      expect(setPayTokenMock).toHaveBeenCalled();
       expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
     });
   });
